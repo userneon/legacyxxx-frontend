@@ -23,6 +23,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 const CALLBACK_TOKEN_KEYS = ["access_token", "accessToken", "token", "jwt"]
+const SILENT_REFRESH_INTERVAL_MS = 10 * 60 * 1000
 
 function consumeSteamCallbackToken(): string | null {
   const url = new URL(window.location.href)
@@ -57,6 +58,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
 
+  const rotateSession = useCallback(async () => {
+    // Never attach an expired access bearer token here: the API needs the
+    // HttpOnly refresh cookie to rotate a durable browser session.
+    const session = await authService.refresh({ skipAuth: true })
+    setUser(session.user)
+    return session.user
+  }, [])
+
   const refreshUser = useCallback(async () => {
     const callbackToken = consumeSteamCallbackToken()
     const token = callbackToken ?? getAccessToken()
@@ -66,16 +75,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const profile = await authService.me({ skipAuth: !token })
       setUser(profile)
     } catch {
-      if (token) setAccessToken(null)
-      setUser(null)
+      try {
+        // Access JWTs deliberately expire quickly. Do not send the expired
+        // bearer token here: the API must rotate the HttpOnly refresh cookie.
+        await rotateSession()
+      } catch {
+        if (token) setAccessToken(null)
+        setUser(null)
+      }
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [rotateSession])
 
   useEffect(() => {
     void refreshUser()
   }, [refreshUser])
+
+  useEffect(() => {
+    if (!user) return
+
+    let refreshing = false
+    const silentlyRotate = async () => {
+      if (refreshing) return
+      refreshing = true
+      try {
+        await rotateSession()
+      } catch {
+        // Transient network failures do not clear the player session. A later
+        // interval, visibility event, or browser reload will retry safely.
+      } finally {
+        refreshing = false
+      }
+    }
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") void silentlyRotate()
+    }
+    const interval = window.setInterval(() => void silentlyRotate(), SILENT_REFRESH_INTERVAL_MS)
+    document.addEventListener("visibilitychange", onVisibilityChange)
+    return () => {
+      window.clearInterval(interval)
+      document.removeEventListener("visibilitychange", onVisibilityChange)
+    }
+  }, [user?.id, rotateSession])
 
   const loginWithSteam = useCallback(() => {
     window.location.href = authService.getSteamLoginUrl()
