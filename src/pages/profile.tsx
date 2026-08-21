@@ -1,0 +1,355 @@
+import { useEffect, useState, type FormEvent } from "react"
+import { useParams } from "react-router-dom"
+import {
+  Trophy,
+  Crosshair,
+  Target,
+  Zap,
+  TrendingUp,
+  Settings,
+  LogOut,
+  Wallet,
+  Plus,
+  Trash2,
+  ExternalLink,
+  Globe2,
+} from "lucide-react"
+
+import { cn } from "@/lib/utils"
+import { profileService } from "@/api"
+import type { PageId, ProfileLink, ProfileRecentMatch, ProfileStats, UserProfile } from "@/api/types"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { useApiQuery } from "@/hooks/use-api-query"
+import { QueryState } from "@/components/query-state"
+import { useAuth } from "@/hooks/use-auth"
+
+interface ProfilePageProps {
+  onNavigate: (page: PageId) => void
+  balance: number
+  userId?: string
+}
+
+const KNOWN_DOMAINS: Record<string, string> = {
+  "discord.com": "Discord",
+  "facebook.com": "Facebook",
+  "github.com": "GitHub",
+  "instagram.com": "Instagram",
+  "linkedin.com": "LinkedIn",
+  "twitch.tv": "Twitch",
+  "twitter.com": "Twitter",
+  "x.com": "X",
+  "youtube.com": "YouTube",
+}
+
+function getDomain(url: string): string {
+  return new URL(url).hostname.replace(/^www\./, "")
+}
+
+function getDomainLabel(url: string): string | null {
+  try {
+    return KNOWN_DOMAINS[getDomain(url)] ?? null
+  } catch {
+    return null
+  }
+}
+
+function ProfileLinkIcon({ url }: { url: string }) {
+  const [failed, setFailed] = useState(false)
+  const isKnownDomain = getDomainLabel(url) !== null
+
+  if (!isKnownDomain || failed) {
+    return <Globe2 className="size-4 text-muted-foreground" />
+  }
+
+  return (
+    <img
+      src={`https://www.google.com/s2/favicons?domain=${getDomain(url)}&sz=64`}
+      alt=""
+      className="size-4 rounded-sm"
+      onError={() => setFailed(true)}
+    />
+  )
+}
+
+function ProfileLinks({ profile }: { profile: UserProfile }) {
+  const [links, setLinks] = useState<ProfileLink[]>(profile.links ?? [])
+  const [newUrl, setNewUrl] = useState("")
+  const [error, setError] = useState("")
+
+  useEffect(() => {
+    setLinks(profile.links ?? [])
+  }, [profile.id, profile.links])
+
+  const saveLinks = (nextLinks: ProfileLink[]) => {
+    setLinks(nextLinks)
+    void profileService.updateLinks(nextLinks).catch(() => {
+      // Revert to the profile's server-side links on failure
+      setLinks(profile.links ?? [])
+    })
+  }
+
+  const handleAddLink = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const value = newUrl.trim()
+    if (!value) return
+
+    try {
+      const parsed = new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`)
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") throw new Error("Invalid protocol")
+
+      const url = parsed.toString()
+      if (links.some((link) => link.url === url)) {
+        setError("That link is already on your profile.")
+        return
+      }
+
+      saveLinks([...links, { url }])
+      setNewUrl("")
+      setError("")
+    } catch {
+      setError("Enter a valid website address.")
+    }
+  }
+
+  return (
+    <section className="glass rounded-xl p-5">
+      <div className="mb-4">
+        <h2 className="font-semibold">Links</h2>
+        <p className="mt-1 text-xs text-muted-foreground">Add your social profiles and favorite websites.</p>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        {links.map((link) => {
+          const domainLabel = getDomainLabel(link.url)
+          return (
+            <div key={link.url} className="flex items-center gap-3 rounded-lg bg-secondary/50 px-3 py-2.5">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-background/70">
+                <ProfileLinkIcon url={link.url} />
+              </div>
+              <a
+                href={link.url}
+                target="_blank"
+                rel="noreferrer"
+                className="min-w-0 flex-1 truncate text-sm font-medium hover:text-primary hover:underline"
+              >
+                {domainLabel ?? getDomain(link.url)}
+              </a>
+              <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                aria-label={`Remove ${link.url}`}
+                onClick={() => saveLinks(links.filter((item) => item.url !== link.url))}
+              >
+                <Trash2 className="size-3.5 text-muted-foreground" />
+              </Button>
+            </div>
+          )
+        })}
+
+        {links.length === 0 && (
+          <p className="rounded-lg border border-dashed border-border px-3 py-4 text-center text-xs text-muted-foreground">
+            No links added yet.
+          </p>
+        )}
+      </div>
+
+      <form onSubmit={handleAddLink} className="mt-4 flex flex-col gap-2 sm:flex-row">
+        <Input
+          value={newUrl}
+          onChange={(event) => {
+            setNewUrl(event.target.value)
+            if (error) setError("")
+          }}
+          placeholder="https://your-profile.com"
+          aria-label="Website URL"
+          type="url"
+        />
+        <Button type="submit" className="sm:w-auto">
+          <Plus className="size-4" />
+          Add Link
+        </Button>
+      </form>
+      {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
+    </section>
+  )
+}
+
+export function ProfilePage({ onNavigate, balance, userId }: ProfilePageProps) {
+  const { playerId } = useParams<{ playerId: string }>()
+  const effectiveUserId = userId ?? playerId
+  const { logout } = useAuth()
+  const { data: profile, loading: profileLoading, error: profileError } = useApiQuery<UserProfile>((signal) =>
+    profileService.getProfile(effectiveUserId, { signal }),
+  )
+
+  const { data: stats, loading: statsLoading } = useApiQuery<ProfileStats>((signal) =>
+    profileService.getStats(effectiveUserId, { signal }),
+  )
+
+  const { data: recentMatches, loading: matchesLoading } = useApiQuery<ProfileRecentMatch[]>((signal) =>
+    profileService.getRecentMatches(effectiveUserId, { signal }),
+  )
+
+  const handleLogout = () => {
+    void logout()
+  }
+
+  const statItems = stats ? [
+    { label: "Matches", value: stats.matches.toString(), icon: Crosshair },
+    { label: "Wins", value: stats.wins.toString(), icon: Trophy },
+    { label: "K/D Ratio", value: stats.kdRatio.toString(), icon: Target },
+    { label: "Rating", value: stats.rating.toString(), icon: TrendingUp },
+  ] : []
+
+  const faceitUsername = profile?.faceit?.username ?? profile?.username ?? "—"
+  const faceitElo = profile?.faceit?.elo ?? 0
+  const faceitLevel = profile?.faceit?.level ?? profile?.level ?? 0
+
+  return (
+    <div className="flex flex-col gap-6 p-6">
+      <div className="glass shiny-slow rounded-xl p-6">
+        {profileLoading ? (
+          <div className="flex items-center gap-5">
+            <div className="size-20 rounded-2xl bg-secondary/50 animate-pulse" />
+            <div className="flex-1 space-y-2">
+              <div className="h-6 w-40 rounded bg-secondary/50 animate-pulse" />
+              <div className="h-4 w-56 rounded bg-secondary/50 animate-pulse" />
+            </div>
+          </div>
+        ) : profileError ? (
+          <p className="text-sm text-destructive">{profileError.message}</p>
+        ) : profile ? (
+          <div className="flex items-center gap-5">
+            <div className="flex size-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/80 to-primary text-2xl font-bold text-primary-foreground">
+              {profile.avatar}
+            </div>
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold tracking-tight">{profile.username}</h1>
+              <p className="text-sm text-muted-foreground">LegacyX Member - Rank: {profile.rank}</p>
+              <div className="mt-2 flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => onNavigate("wallet")}>
+                  <Wallet className="size-3.5" />
+                  {balance > 0 ? balance.toLocaleString() : "—"}
+                </Button>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="icon" aria-label="Profile settings">
+                <Settings className="size-4" />
+              </Button>
+              <Button variant="outline" size="icon" aria-label="Log out" onClick={handleLogout}>
+                <LogOut className="size-4" />
+              </Button>
+            </div>
+          </div>
+        ) : null}
+      </div>
+
+      {profile && (
+        <section className="glass rounded-xl p-5">
+          <div className="mb-4 flex items-center gap-3">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-orange-500/10">
+              <img src="/assets/icons/faceit-logo-png_seeklogo-431631.png" alt="FACEIT" className="size-6 object-contain" />
+            </div>
+            <div>
+              <h2 className="font-semibold">FACEIT Stats</h2>
+              <p className="text-xs text-muted-foreground">Competitive profile overview</p>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-lg bg-secondary/50 p-4">
+              <div className="text-xs text-muted-foreground">FACEIT</div>
+              <a
+                href={`https://www.faceit.com/en/players/${encodeURIComponent(faceitUsername)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2 inline-flex max-w-full items-center gap-1.5 truncate text-sm font-semibold text-orange-400 hover:underline"
+              >
+                <span className="truncate">{faceitUsername}</span>
+                <ExternalLink className="size-3.5 shrink-0" />
+              </a>
+            </div>
+            <div className="rounded-lg bg-secondary/50 p-4">
+              <div className="text-xs text-muted-foreground">ELO</div>
+              <div className="mt-2 text-xl font-bold tabular-nums">{faceitElo.toLocaleString()}</div>
+            </div>
+            <div className="rounded-lg bg-secondary/50 p-4">
+              <div className="text-xs text-muted-foreground">Level</div>
+              <div className="mt-2 text-xl font-bold tabular-nums">{faceitLevel}</div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {profile && <ProfileLinks profile={profile} />}
+
+      {stats && (
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {statItems.map((stat) => (
+            <div key={stat.label} className="glass rounded-xl p-4 hover-lift transition-all">
+              <stat.icon className="size-4 text-muted-foreground" />
+              <div className="mt-3 text-2xl font-bold tabular-nums">{stat.value}</div>
+              <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+      {statsLoading && (
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="glass rounded-xl p-4">
+              <div className="size-4 rounded bg-secondary/50 animate-pulse" />
+              <div className="mt-3 h-7 w-20 rounded bg-secondary/50 animate-pulse" />
+              <div className="mt-1 h-3 w-16 rounded bg-secondary/50 animate-pulse" />
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="glass rounded-xl p-5">
+        <h2 className="mb-4 font-semibold">Recent Matches</h2>
+        <QueryState
+          loading={matchesLoading}
+          error={null}
+          empty={!matchesLoading && (recentMatches ?? []).length === 0}
+          emptyMessage="No recent matches yet."
+        />
+        {!matchesLoading && (recentMatches ?? []).length > 0 && (
+          <div className="flex flex-col gap-2">
+            {(recentMatches ?? []).map((match, idx) => (
+              <div key={idx} className="flex items-center justify-between rounded-lg bg-secondary/50 px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "flex size-8 items-center justify-center rounded-lg",
+                    match.result === "Win" ? "bg-chart-2/15" : "bg-destructive/15"
+                  )}>
+                    <Zap className={cn(
+                      "size-4",
+                      match.result === "Win" ? "text-chart-2" : "text-destructive"
+                    )} />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium">{match.map}</div>
+                    <div className="text-xs text-muted-foreground">K/D: {match.kd}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-medium tabular-nums">{match.score}</span>
+                  <span className={cn(
+                    "rounded-md px-2 py-0.5 text-xs font-bold",
+                    match.result === "Win" ? "bg-chart-2/15 text-chart-2" : "bg-destructive/15 text-destructive"
+                  )}>
+                    {match.result}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

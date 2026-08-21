@@ -1,0 +1,369 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-display: "Black Ops One", system-ui, sans-serif;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.269 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.32 0.015 250);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.185 0 0);
+  --sidebar-foreground: oklch(0.556 0 0);
+  --sidebar-primary: oklch(0.85 0 0);
+  --sidebar-primary-foreground: oklch(0.185 0 0);
+  --sidebar-accent: oklch(0.28 0.015 250);
+  --sidebar-accent-foreground: oklch(0.95 0 0);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+  img {
+    -webkit-user-drag: none;
+    user-drag: none;
+  }
+  input,
+  textarea,
+  [contenteditable="true"],
+  select {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    user-select: text;
+  }
+
+  /* Pointer cursor for any clickable / interactive element */
+  a,
+  button,
+  select,
+  summary,
+  [role="button"],
+  [data-slot="sidebar-menu-button"],
+  [data-slot="toggle"],
+  [data-slot="toggle-group-item"],
+  [data-slot="radio-group-item"],
+  [data-slot="checkbox"],
+  [data-slot="switch"],
+  [data-slot="accordion-trigger"],
+  [data-slot="dialog-close"],
+  [data-slot="tabs-trigger"],
+  [tabindex]:not([tabindex="-1"]),
+  label:has(input:not([type="hidden"])),
+  .cursor-pointer {
+    cursor: pointer;
+  }
+
+  /* Keep text caret where typing is expected */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  [contenteditable="true"] {
+    cursor: text;
+  }
+
+  input[type="range"] {
+    cursor: ew-resize;
+  }
+}
+
+/* ========================================
+   Glassmorphism
+   ======================================== */
+.glass {
+  background: color-mix(in oklch, var(--card) 60%, transparent);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid color-mix(in oklch, var(--border) 50%, transparent);
+}
+
+.glass-strong {
+  background: color-mix(in oklch, var(--card) 75%, transparent);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+}
+
+.glass-sidebar {
+  background: color-mix(in oklch, var(--sidebar) 70%, transparent);
+  backdrop-filter: blur(20px) saturate(170%);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+}
+
+/* ========================================
+   Shiny shimmer effect — cycles every 3s
+   Used on Shop, Leaders cards
+   ======================================== */
+.shiny {
+  position: relative;
+  overflow: hidden;
+}
+
+.shiny::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    color-mix(in oklch, var(--foreground) 8%, transparent) 45%,
+    color-mix(in oklch, var(--foreground) 18%, transparent) 50%,
+    color-mix(in oklch, var(--foreground) 8%, transparent) 55%,
+    transparent 70%
+  );
+  background-size: 240% 100%;
+  background-position: 240% 0;
+  animation: shiny-sweep 6s linear infinite;
+  will-change: background-position;
+  pointer-events: none;
+}
+
+@keyframes shiny-sweep {
+  0% { background-position: 240% 0; }
+  100% { background-position: -140% 0; }
+}
+
+/* Longer 4s variant for larger elements */
+.shiny-slow {
+  position: relative;
+  overflow: hidden;
+}
+
+.shiny-slow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    color-mix(in oklch, var(--foreground) 6%, transparent) 45%,
+    color-mix(in oklch, var(--foreground) 14%, transparent) 50%,
+    color-mix(in oklch, var(--foreground) 6%, transparent) 55%,
+    transparent 70%
+  );
+  background-size: 240% 100%;
+  background-position: 240% 0;
+  animation: shiny-sweep-slow 8s linear infinite;
+  will-change: background-position;
+  pointer-events: none;
+}
+
+@keyframes shiny-sweep-slow {
+  0% { background-position: 240% 0; }
+  100% { background-position: -140% 0; }
+}
+
+/* ========================================
+   Glow effect — Leaders leaderboard
+   ======================================== */
+.glow {
+  box-shadow:
+    0 0 20px color-mix(in oklch, var(--foreground) 8%, transparent),
+    0 0 40px color-mix(in oklch, var(--foreground) 4%, transparent);
+}
+
+.glow-accent {
+  box-shadow:
+    0 0 24px oklch(0.488 0.243 264.376 / 0.15),
+    0 0 48px oklch(0.488 0.243 264.376 / 0.08);
+}
+
+/* Section-specific accent glows — all muted, low opacity */
+.glow-amber {
+  box-shadow:
+    0 0 20px oklch(0.828 0.189 84.429 / 0.12),
+    0 0 40px oklch(0.828 0.189 84.429 / 0.06);
+}
+.glow-violet {
+  box-shadow:
+    0 0 20px oklch(0.627 0.265 303.9 / 0.12),
+    0 0 40px oklch(0.627 0.265 303.9 / 0.06);
+}
+.glow-blue {
+  box-shadow:
+    0 0 20px oklch(0.6 0.118 250 / 0.12),
+    0 0 40px oklch(0.6 0.118 250 / 0.06);
+}
+.glow-emerald {
+  box-shadow:
+    0 0 20px oklch(0.696 0.17 162.48 / 0.12),
+    0 0 40px oklch(0.696 0.17 162.48 / 0.06);
+}
+
+/* Hover lift — subtle, for interactive cards */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+/* ========================================
+   Custom scrollbar
+   ======================================== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: color-mix(in oklch, var(--muted-foreground) 30%, transparent);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklch, var(--muted-foreground) 50%, transparent);
+}
+
+/* Hide scrollbar for specific elements */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ========================================
+   Page transition — fade in on mount
+   ======================================== */
+.page-enter {
+  animation: page-flow-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes page-flow-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ========================================
+   Sidebar dropdown — smooth height transition
+   ======================================== */
+.submenu-animated {
+  transition: max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.22s ease;
+}
+
+.submenu-stagger-item {
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.submenu-animated[style*="opacity: 1"] .submenu-stagger-item {
+  opacity: 1;
+  transform: translateY(0);
+}

@@ -1,0 +1,329 @@
+import { useState, type ComponentProps } from "react"
+import { Crosshair, Flame, Crown, Trophy, TrendingUp, Server, Zap, Users, RefreshCw, ExternalLink, Globe2 } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+import { communityService, serversService } from "@/api"
+import type { CommunityCreator, CommunityPartner, HomeStats, PageId, ServerInfo } from "@/api/types"
+import { useApiQuery } from "@/hooks/use-api-query"
+import { QueryState } from "@/components/query-state"
+
+interface HomePageProps {
+  onNavigate: (page: PageId) => void
+}
+
+const MODE_CARDS: { id: PageId; label: string; desc: string; icon: typeof Crosshair; stat: string }[] = [
+  { id: "play-5vs5", label: "5vs5 Matches", desc: "Competitive ranked matches", icon: Crosshair, stat: "Live status from API" },
+  { id: "play-fun", label: "Fun Mode", desc: "Surf, aim, deathmatch and more", icon: Flame, stat: "Live status from API" },
+  { id: "play-proleague", label: "Pro League", desc: "Seasonal competitive league", icon: Crown, stat: "Live status from API" },
+  { id: "play-tournaments", label: "Tournaments", desc: "Scheduled prize tournaments", icon: Trophy, stat: "Live status from API" },
+]
+
+type IconProps = ComponentProps<"svg">
+
+function TikTokIcon({ className, ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true" {...props}>
+      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.73 2.89 2.89 0 0 1 2.31-4.61 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z" />
+    </svg>
+  )
+}
+
+function DiscordIcon({ className, ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true" {...props}>
+      <path d="M20.32 4.37A19.79 19.79 0 0 0 15.43 2.9a.07.07 0 0 0-.07.04c-.21.37-.44.85-.6 1.23a18.27 18.27 0 0 0-5.49 0c-.16-.39-.39-.86-.61-1.23a.07.07 0 0 0-.07-.04c-1.7.29-3.31.8-4.82 1.47a.07.07 0 0 0-.03.03C.53 9.05-.32 13.58.1 18.06a.08.08 0 0 0 .03.05 19.9 19.9 0 0 0 5.99 3.03.07.07 0 0 0 .08-.03c.46-.63.87-1.29 1.22-1.99a.07.07 0 0 0-.04-.1c-.65-.25-1.27-.55-1.87-.89a.07.07 0 0 1-.01-.12l.15-.12a.07.07 0 0 1 .07-.01c3.93 1.79 8.18 1.79 12.06 0a.07.07 0 0 1 .07.01l.15.12a.07.07 0 0 1-.01.12c-.6.34-1.22.64-1.87.89a.07.07 0 0 0-.04.1c.36.7.78 1.36 1.22 1.99a.07.07 0 0 0 .08.03 19.84 19.84 0 0 0 6-3.03.07.07 0 0 0 .03-.05c.5-5.18-.84-9.67-3.55-13.66a.07.07 0 0 0-.03-.03zM8.02 15.33c-1.18 0-2.16-1.08-2.16-2.42 0-1.33.96-2.42 2.16-2.42 1.21 0 2.18 1.1 2.16 2.42 0 1.34-.96 2.42-2.16 2.42zm7.97 0c-1.18 0-2.16-1.08-2.16-2.42 0-1.33.96-2.42 2.16-2.42 1.21 0 2.18 1.1 2.16 2.42 0 1.34-.95 2.42-2.16 2.42z" />
+    </svg>
+  )
+}
+
+type PartnerTab = "creators" | "partners"
+
+function PartnerSection() {
+  const [tab, setTab] = useState<PartnerTab>("creators")
+  const { data: content, loading, error, refetch } = useApiQuery((signal) =>
+    communityService.getContent({ signal }),
+  )
+
+  const creators = content?.creators ?? []
+  const partners = content?.partners ?? []
+
+  return (
+    <section className="glass rounded-xl p-5">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="font-semibold">Our Partners</h2>
+        <div className="relative inline-flex rounded-lg bg-secondary/60 p-1">
+          <span
+            className={cn(
+              "absolute inset-y-1 w-[calc(50%-0.25rem)] rounded-md bg-background shadow-sm transition-transform duration-300 ease-out",
+              tab === "partners" && "translate-x-[calc(100%+0.5rem)]"
+            )}
+          />
+          <button
+            onClick={() => setTab("creators")}
+            className={cn(
+              "relative z-10 rounded-md px-4 py-1.5 text-sm font-medium transition-colors duration-200",
+              tab === "creators" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Creators
+          </button>
+          <button
+            onClick={() => setTab("partners")}
+            className={cn(
+              "relative z-10 rounded-md px-4 py-1.5 text-sm font-medium transition-colors duration-200",
+              tab === "partners" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Partners
+          </button>
+        </div>
+      </div>
+
+      <QueryState
+        loading={loading}
+        error={error}
+        empty={!loading && !error && creators.length === 0 && partners.length === 0}
+        emptyMessage="No community content available yet."
+        onRetry={refetch}
+      />
+
+      {!loading && !error && tab === "creators" && creators.length > 0 && (
+        <div key="creators" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 page-enter">
+          {creators.map((creator) => (
+            <CreatorCard key={creator.id} creator={creator} />
+          ))}
+        </div>
+      )}
+
+      {!loading && !error && tab === "partners" && partners.length > 0 && (
+        <div key="partners" className="flex flex-col gap-2 page-enter">
+          {partners.map((partner) => (
+            <PartnerCard key={partner.id} partner={partner} />
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
+
+function CreatorCard({ creator }: { creator: CommunityCreator }) {
+  return (
+    <a
+      href={creator.url}
+      target="_blank"
+      rel="noreferrer"
+      className={cn(
+        "glass group flex flex-col items-center gap-2 rounded-lg p-4 text-center",
+        "transition-all hover:bg-secondary/40 hover:scale-[1.02]"
+      )}
+    >
+      <div className="flex size-11 items-center justify-center rounded-full bg-foreground/5 transition-colors group-hover:bg-foreground/10">
+        <TikTokIcon className="size-5 text-foreground" />
+      </div>
+      <div className="min-w-0 w-full">
+        <div className="truncate text-sm font-medium">{creator.name}</div>
+        <div className="truncate text-xs text-muted-foreground">{creator.handle}</div>
+      </div>
+    </a>
+  )
+}
+
+function PartnerCard({ partner }: { partner: CommunityPartner }) {
+  const isDiscord = partner.type === "discord"
+  return (
+    <a
+      href={partner.url}
+      target="_blank"
+      rel="noreferrer"
+      className={cn(
+        "glass group flex items-center gap-3 rounded-lg p-4 transition-all hover:bg-secondary/40"
+      )}
+    >
+      <div
+        className={cn(
+          "flex size-10 shrink-0 items-center justify-center rounded-lg",
+          isDiscord ? "bg-[#5865F2]/15" : "bg-secondary"
+        )}
+      >
+        {isDiscord ? (
+          <DiscordIcon className="size-5 text-[#5865F2]" />
+        ) : (
+          <Globe2 className="size-5 text-muted-foreground" />
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="text-sm font-medium">{partner.name}</div>
+        <div className="truncate text-xs text-muted-foreground">{partner.description}</div>
+      </div>
+      <ExternalLink className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
+    </a>
+  )
+}
+
+export function HomePage({ onNavigate }: HomePageProps) {
+  const { data: servers, loading, error, refetch } = useApiQuery<ServerInfo[]>((signal) =>
+    serversService.getServers(undefined, { signal }),
+  )
+  const { data: homeStats } = useApiQuery<HomeStats>((signal) =>
+    serversService.getHomeStats({ signal }),
+  )
+
+  const liveServers = (servers ?? []).filter((s) => s.status !== "offline")
+  const totalPlayers = homeStats?.playersOnline ?? (servers ?? []).reduce((acc, s) => acc + s.players, 0)
+
+  return (
+    <div className="flex flex-col gap-6 p-6">
+      {/* Hero */}
+      <div className={cn(
+        "glass shiny-slow relative flex flex-col gap-4 overflow-hidden rounded-xl p-8"
+      )}>
+        <img
+          src="/ChatGPT_Image_Aug_17,_2026,_08_22_42_PM.png"
+          onError={(event) => {
+            event.currentTarget.onerror = null
+            event.currentTarget.src = "/Pc_Fps_GIF_by_NVIDIA_GeForce.gif"
+          }}
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30"
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background/90 via-background/65 to-background/25" />
+        <div className="relative z-10 flex items-center gap-2">
+          <span className="flex size-2 rounded-full bg-chart-2 animate-pulse" />
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            Live Now
+          </span>
+        </div>
+        <h1 className="relative z-10 font-display text-3xl tracking-wide md:text-5xl">
+          LegacyX Ecosystem
+        </h1>
+        <p className="relative z-10 text-muted-foreground max-w-xl">
+          The premier CS2 / CSGO community server platform. Join matches, climb the
+          leaderboard, build your clan, and compete with the best.
+        </p>
+        <div className="relative z-10 flex flex-wrap gap-3 mt-2">
+          {MODE_CARDS.map((mode) => (
+            <button
+              key={mode.id}
+              onClick={() => onNavigate(mode.id)}
+              className={cn(
+                "glass group flex items-center gap-2 rounded-lg px-4 py-3",
+                "transition-all hover:bg-secondary/50 hover:border-sidebar-border/60"
+              )}
+            >
+              <mode.icon className="size-5 text-muted-foreground transition-colors group-hover:text-foreground" />
+              <span className="text-sm font-medium">{mode.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        {[
+          { label: "Players Online", value: totalPlayers.toString(), icon: Users },
+          { label: "Live Servers", value: (homeStats?.liveServers ?? liveServers.length).toString(), icon: Server },
+          { label: "Matches Today", value: homeStats?.matchesToday?.toLocaleString() ?? "—", icon: TrendingUp },
+          { label: "Active Clans", value: homeStats?.activeClans?.toString() ?? "—", icon: Zap },
+        ].map((stat) => (
+          <div key={stat.label} className="glass rounded-xl p-4 hover-lift transition-all">
+            <div className="flex items-center justify-between">
+              <stat.icon className="size-4 text-muted-foreground" />
+            </div>
+            <div className="mt-3 text-2xl font-bold tabular-nums">{stat.value}</div>
+            <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Mode cards */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {MODE_CARDS.map((mode) => (
+          <button
+            key={mode.id}
+            onClick={() => onNavigate(mode.id)}
+            className={cn(
+              "glass shiny group flex flex-col gap-3 rounded-xl p-5 text-left",
+              "transition-all hover:bg-secondary/30 hover:scale-[1.02]"
+            )}
+          >
+            <div className="flex size-10 items-center justify-center rounded-lg bg-secondary">
+              <mode.icon className="size-5" />
+            </div>
+            <div>
+              <div className="font-semibold">{mode.label}</div>
+              <div className="text-xs text-muted-foreground mt-1">{mode.desc}</div>
+            </div>
+            <div className="flex items-center gap-1.5 mt-auto">
+              <span className="flex size-1.5 rounded-full bg-chart-2 animate-pulse" />
+              <span className="text-xs text-muted-foreground">{mode.stat}</span>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Live server preview */}
+      <div className="glass rounded-xl p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-semibold">Live Servers</h2>
+          <div className="flex items-center gap-2">
+            {error && (
+              <button
+                onClick={refetch}
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <RefreshCw className="size-3" />
+                Retry
+              </button>
+            )}
+            <button
+              onClick={() => onNavigate("play-5vs5")}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              View all
+            </button>
+          </div>
+        </div>
+
+        <QueryState
+          loading={loading}
+          error={error}
+          empty={!loading && !error && liveServers.length === 0}
+          emptyMessage="No live servers right now."
+          onRetry={refetch}
+        />
+
+        {!loading && !error && liveServers.length > 0 && (
+          <div className="flex flex-col gap-2">
+            {liveServers.slice(0, 5).map((server) => (
+              <div
+                key={server.id}
+                className="flex items-center justify-between rounded-lg bg-secondary/50 px-4 py-3"
+              >
+                <div className="flex items-center gap-3">
+                  <Server className="size-4 text-muted-foreground" />
+                  <div>
+                    <div className="text-sm font-medium">{server.name}</div>
+                    <div className="text-xs text-muted-foreground">{server.map}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {server.players}/{server.maxPlayers}
+                  </span>
+                  <span className={cn(
+                    "flex size-2 rounded-full",
+                    server.status === "full" ? "bg-destructive" : "bg-chart-2"
+                  )} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Our Partners */}
+      <PartnerSection />
+    </div>
+  )
+}

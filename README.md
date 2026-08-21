@@ -1,13 +1,38 @@
 # LEGACY-X Frontend
 
-Энэ repository-г одоогоор зориуд хоосон үлдээсэн. Frontend implementation, UI framework болон AdminPlus dashboard source энд хараахан ороогүй.
+This repository contains the LEGACY-X community-facing React frontend. The original visual design, color system, routes, components, motion, and UI/UX are retained. Integration work is intentionally limited to endpoint adapters, environment configuration, and truthful loading/error/empty states.
 
-Одоогийн repository boundary:
+## Run locally
 
-| Repository | Role |
-|---|---|
-| `legacyxxx-backend` | LEGACY-X API, database, authentication, AdminPlus backend bridge |
-| `legacyxxx-plugins` | CS2 CounterStrikeSharp plugins, including LEGACY-X AdminPlus DLL |
-| `legacyxxx-frontend` | Дараагийн frontend implementation хийх reserved repository |
+Install with the checked-in lockfile, then supply only a public API origin. Browser environment files must never contain `API_SECRET`, plugin secrets, RCON credentials, or Supabase service-role credentials.
 
-Frontend эхлүүлэх үед backend API-ийн үндсэн prefix нь `/api/v1`, AdminPlus API нь тусдаа staff-only backend endpoint байна. Backend-ийн service-role key, RCON password болон API secret энэ repository руу хэзээ ч орохгүй.
+```bash
+npm ci
+VITE_API_URL=https://api.legacy-x.example npm run dev
+```
+
+Build the static bundle with:
+
+```bash
+npm run build
+```
+
+## Current public integrations
+
+The application’s data layer uses browser-safe, rate-limited read endpoints under `/api/public` for rank, XP, community, reconnect-heartbeat server directory, and overview statistics. These calls are made without operator or plugin credentials.
+
+| Frontend area | Browser-safe endpoint | State |
+|---|---|---|
+| Leaderboard | `GET /api/public/rank/leaderboard` + `GET /api/public/community/experience` | Integrated |
+| Live servers | `GET /api/public/servers` | Integrated from reconnect heartbeats |
+| Home statistics | `GET /api/public/overview` | Integrated from truthful server/clan/match read models |
+| Public player community data | `GET /api/public/community/players/:steamId` | Backend-ready adapter boundary |
+| Steam login, wallet, store, skinchanger, tournament and write actions | Future authenticated consumer API | Not fabricated; protected UI states remain in place |
+
+## Security boundary
+
+The existing AdminPlus operator API (`/api/*`) remains server/operator-only. It is not a browser API. The `x-api-secret` header and all plugin/server secrets stay outside the frontend bundle. Public CORS is restricted by the API’s `FRONTEND_PUBLIC_ORIGINS` allowlist; authenticated consumer endpoints will require a separate Steam-authenticated API layer.
+
+## Deployment note
+
+Set `VITE_API_URL` at build time to the production API origin. Configure the same frontend origin in the API host’s `FRONTEND_PUBLIC_ORIGINS` comma-separated allowlist. Do not use wildcard CORS for user-authenticated routes.
