@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Coins, Plus, QrCode, CreditCard, ShieldCheck, ArrowDown } from "lucide-react"
+import { Coins, Plus, CreditCard, ShieldCheck, ArrowDown } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { walletService } from "@/api"
@@ -133,7 +133,9 @@ export function WalletPage() {
                   : ""
               )}
             >
-              <QrCode className={cn("size-5", selectedMethod === "qpay" ? "text-chart-2" : "text-muted-foreground")} />
+              <span className="flex h-7 w-[76px] items-center justify-center rounded-md bg-white px-2 shadow-sm">
+                <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663648835859/vpfFvQwMVcAsXiZU.png" alt="QPay" className="h-5 w-full object-contain" />
+              </span>
               <span className={cn("text-sm font-medium", selectedMethod === "qpay" && "text-chart-2")}>QPay</span>
             </button>
             <button
