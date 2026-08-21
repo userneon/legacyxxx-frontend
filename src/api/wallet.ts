@@ -11,14 +11,14 @@ import type {
  */
 export const walletService = {
   async getBalance(options?: CallOptions): Promise<WalletBalance> {
-    return get<WalletBalance>("/wallet/balance", undefined, options)
+    return get<WalletBalance>("/api/v1/wallet/balance", undefined, options)
   },
 
   async getTransactions(options?: CallOptions): Promise<WalletTransaction[]> {
-    return get<WalletTransaction[]>("/wallet/transactions", undefined, options)
+    return get<WalletTransaction[]>("/api/v1/wallet/transactions", undefined, options)
   },
 
   async charge(payload: ChargeRequest, options?: CallOptions): Promise<WalletBalance> {
-    return post<WalletBalance>("/wallet/charge", payload, options)
+    return post<WalletBalance>("/api/v1/wallet/charge", payload, options)
   },
 }
