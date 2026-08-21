@@ -202,7 +202,7 @@ function FaceitProfileCard({ userId, isOwner }: { userId?: string; isOwner: bool
   return (
     <section className="glass rounded-xl p-5">
       <div className="mb-4 flex items-center gap-3">
-        <div className="flex size-9 items-center justify-center rounded-lg bg-orange-500/10"><img src="/assets/icons/faceit-logo-png_seeklogo-431631.png" alt="FACEIT" className="size-6 object-contain" /></div>
+        <div className="flex size-9 items-center justify-center rounded-lg bg-orange-500/10"><img src="/manus-storage/faceit-orange-mark-transparent_7c73ae12.png" alt="FACEIT" className="size-6 object-contain" /></div>
         <div><h2 className="font-semibold">FACEIT Stats</h2><p className="text-xs text-muted-foreground">Live CS2 competitive profile</p></div>
       </div>
       {loading ? <div className="grid gap-3 sm:grid-cols-3">{[0, 1, 2].map((item) => <div key={item} className="h-20 animate-pulse rounded-lg bg-secondary/50" />)}</div>
