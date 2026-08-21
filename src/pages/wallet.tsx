@@ -133,10 +133,7 @@ export function WalletPage() {
                   : ""
               )}
             >
-              <span className="flex h-7 w-[76px] items-center justify-center rounded-md bg-white px-2 shadow-sm">
-                <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663648835859/vpfFvQwMVcAsXiZU.png" alt="QPay" className="h-5 w-full object-contain" />
-              </span>
-              <span className={cn("text-sm font-medium", selectedMethod === "qpay" && "text-chart-2")}>QPay</span>
+              <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663648835859/tSKxQKYIsYSEHrNQ.png" alt="QPay" className="h-7 w-[96px] object-contain" />
             </button>
             <button
               onClick={() => setSelectedMethod("card")}
