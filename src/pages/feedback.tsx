@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { Star, Send } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -11,6 +12,7 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
 
 export function FeedbackPage() {
+  const navigate = useNavigate()
   const { data: existingFeedback, loading, error, refetch } = useApiQuery<FeedbackEntry[]>((signal) =>
     feedbackService.getFeedback({ signal }),
   )
@@ -103,15 +105,27 @@ export function FeedbackPage() {
           {allFeedback.map((entry) => (
             <div key={entry.id} className="glass rounded-xl p-4 hover-lift transition-all">
               <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-secondary to-muted font-bold text-sm">
-                    {entry.name[0]}
+                {entry.userId ? (
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/players/${entry.userId}`)}
+                    className="group flex items-center gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    aria-label={`Open ${entry.name}'s profile`}
+                  >
+                    <div className="flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-secondary to-muted text-sm font-bold transition-transform group-hover:scale-105">
+                      {entry.name[0]}
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium group-hover:text-primary group-hover:underline">{entry.name}</div>
+                      <div className="text-xs text-muted-foreground">{entry.date}</div>
+                    </div>
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-secondary to-muted text-sm font-bold">{entry.name[0]}</div>
+                    <div><div className="text-sm font-medium">{entry.name}</div><div className="text-xs text-muted-foreground">{entry.date}</div></div>
                   </div>
-                  <div>
-                    <div className="font-medium text-sm">{entry.name}</div>
-                    <div className="text-xs text-muted-foreground">{entry.date}</div>
-                  </div>
-                </div>
+                )}
                 <div className="flex gap-0.5">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star
