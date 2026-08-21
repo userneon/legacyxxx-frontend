@@ -26,6 +26,7 @@ export const authService = {
   },
 
   async me(options?: CallOptions): Promise<UserProfile> {
-    return get<UserProfile>("/api/v1/auth/me", undefined, options)
+    const payload = await get<UserProfile | { user: UserProfile }>("/api/v1/auth/me", undefined, options)
+    return "user" in payload ? payload.user : payload
   },
 }

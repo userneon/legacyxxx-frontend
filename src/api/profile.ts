@@ -14,22 +14,26 @@ import type {
  */
 export const profileService = {
   async getProfile(userId?: string, options?: CallOptions): Promise<UserProfile> {
-    return get<UserProfile>(`/profile/${userId ?? "me"}`, undefined, options)
+    const payload = await get<UserProfile | { profile: UserProfile }>(`/profile/${userId ?? "me"}`, undefined, options)
+    return "profile" in payload ? payload.profile : payload
   },
 
   async updateProfile(
     payload: Partial<Pick<UserProfile, "username" | "avatar">>,
     options?: CallOptions,
   ): Promise<UserProfile> {
-    return put<UserProfile>("/profile/me", payload, options)
+    const response = await put<UserProfile | { profile: UserProfile }>("/profile/me", payload, options)
+    return "profile" in response ? response.profile : response
   },
 
   async getStats(userId?: string, options?: CallOptions): Promise<ProfileStats> {
-    return get<ProfileStats>(`/profile/${userId ?? "me"}/stats`, undefined, options)
+    const payload = await get<ProfileStats | { stats: ProfileStats }>(`/profile/${userId ?? "me"}/stats`, undefined, options)
+    return "stats" in payload ? payload.stats : payload
   },
 
   async getRecentMatches(userId?: string, options?: CallOptions): Promise<ProfileRecentMatch[]> {
-    return get<ProfileRecentMatch[]>(`/profile/${userId ?? "me"}/matches`, undefined, options)
+    const payload = await get<ProfileRecentMatch[] | { data: ProfileRecentMatch[] }>(`/profile/${userId ?? "me"}/matches`, undefined, options)
+    return Array.isArray(payload) ? payload : payload.data
   },
 
   async updateLinks(links: ProfileLink[], options?: CallOptions): Promise<ProfileLink[]> {
@@ -39,6 +43,7 @@ export const profileService = {
   },
 
   async getPenalties(userId?: string, options?: CallOptions): Promise<PenaltyEntry[]> {
-    return get<PenaltyEntry[]>(`/profile/${userId ?? "me"}/penalties`, undefined, options)
+    const payload = await get<PenaltyEntry[] | { penalties: PenaltyEntry[] }>(`/profile/${userId ?? "me"}/penalties`, undefined, options)
+    return Array.isArray(payload) ? payload : payload.penalties
   },
 }
