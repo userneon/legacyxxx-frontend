@@ -5,6 +5,7 @@ import { leaderboardService } from "@/api"
 import type { LeaderPlayer } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
+import { PlayerAvatar } from "@/components/player-avatar"
 
 export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId: string) => void }) {
   const { data: leaders, loading, error, refetch } = useApiQuery<LeaderPlayer[]>((signal) =>
@@ -39,14 +40,12 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
                   idx === 2 && "sm:order-3",
                 )}
               >
-                <div className={cn(
+                <PlayerAvatar avatar={player.avatar} name={player.name} className={cn(
                   "flex size-16 items-center justify-center rounded-full text-xl font-bold",
                   player.rank === 1 && "bg-chart-4/20 text-chart-4 border border-chart-4/40",
                   player.rank === 2 && "bg-chart-1/20 text-chart-1 border border-chart-1/40",
                   player.rank === 3 && "bg-chart-5/20 text-chart-5 border border-chart-5/40",
-                )}>
-                  {player.avatar}
-                </div>
+                )} />
                 <div className="mt-3 font-semibold text-lg">{player.name}</div>
                 <div className="text-xs text-muted-foreground mt-1">Level {player.level} - Rank #{player.rank}</div>
                 <div className="flex gap-4 mt-4">
@@ -107,15 +106,13 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
                     </td>
                     <td className="px-3 py-3">
                       <div className="flex items-center gap-2.5">
-                        <div className={cn(
+                        <PlayerAvatar avatar={player.avatar} name={player.name} className={cn(
                           "flex size-8 items-center justify-center rounded-full text-xs font-bold shrink-0",
                           player.rank === 1 && "bg-chart-4/20 text-chart-4",
                           player.rank === 2 && "bg-chart-1/20 text-chart-1",
                           player.rank === 3 && "bg-chart-5/20 text-chart-5",
                           player.rank > 3 && "bg-secondary text-foreground"
-                        )}>
-                          {player.avatar}
-                        </div>
+                        )} />
                         <div>
                           <div className="text-sm font-medium">{player.name}</div>
                           <div className="text-[10px] text-muted-foreground">Lvl {player.level}</div>

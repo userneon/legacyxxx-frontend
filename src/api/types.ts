@@ -376,6 +376,7 @@ export interface FeedbackEntry {
   id: string
   /** Present only when the review was authored by a registered LEGACY-X user. */
   steamId?: string
+  avatar?: string
   name: string
   rating: number
   message: string

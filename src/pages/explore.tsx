@@ -6,6 +6,7 @@ import { searchService } from "@/api"
 import type { ClanCard, LeaderPlayer, SearchKind } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
+import { PlayerAvatar } from "@/components/player-avatar"
 
 // LEGACY-X visual system: keep the existing glass search panels while making every result lead to its true resource route.
 export function ExplorePage({ onProfileNavigate, onClanNavigate }: { onProfileNavigate: (userId: string) => void; onClanNavigate: (clanId: string) => void }) {
@@ -79,13 +80,14 @@ export function ExplorePage({ onProfileNavigate, onClanNavigate }: { onProfileNa
             ? (results as LeaderPlayer[]).map((player) => (
               <button
                 key={player.rank}
-                onClick={() => player.id && onProfileNavigate(player.id)}
-                disabled={!player.id}
+                onClick={() => {
+                  const identity = player.steamId ?? player.id
+                  if (identity) onProfileNavigate(identity)
+                }}
+                disabled={!(player.steamId ?? player.id)}
                 className="glass group flex w-full items-center gap-4 rounded-xl p-4 transition-all hover:bg-secondary/40 hover-lift cursor-pointer text-left"
               >
-                <div className="flex size-12 items-center justify-center rounded-full bg-gradient-to-br from-secondary to-muted text-lg font-bold">
-                  {player.avatar}
-                </div>
+                <PlayerAvatar avatar={player.avatar} name={player.name} className="size-12 rounded-full text-lg" />
                 <div className="flex-1">
                   <div className="font-medium">{player.name}</div>
                   <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">

@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
+import { PlayerAvatar } from "@/components/player-avatar"
 
 export function FeedbackPage() {
   const navigate = useNavigate()
@@ -112,9 +113,7 @@ export function FeedbackPage() {
                     className="group flex items-center gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     aria-label={`Open ${entry.name}'s profile`}
                   >
-                    <div className="flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-secondary to-muted text-sm font-bold transition-transform group-hover:scale-105">
-                      {entry.name[0]}
-                    </div>
+                    <PlayerAvatar avatar={entry.avatar} name={entry.name} className="size-10 rounded-full text-sm transition-transform group-hover:scale-105" />
                     <div>
                       <div className="text-sm font-medium group-hover:text-primary group-hover:underline">{entry.name}</div>
                       <div className="text-xs text-muted-foreground">{entry.date}</div>
@@ -122,7 +121,7 @@ export function FeedbackPage() {
                   </button>
                 ) : (
                   <div className="flex items-center gap-3">
-                    <div className="flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-secondary to-muted text-sm font-bold">{entry.name[0]}</div>
+                    <PlayerAvatar avatar={entry.avatar} name={entry.name} className="size-10 rounded-full text-sm" />
                     <div><div className="text-sm font-medium">{entry.name}</div><div className="text-xs text-muted-foreground">{entry.date}</div></div>
                   </div>
                 )}

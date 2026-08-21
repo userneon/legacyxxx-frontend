@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
+import { PlayerAvatar } from "@/components/player-avatar"
 import {
   Dialog,
   DialogContent,
@@ -230,7 +231,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
           <div className="flex flex-wrap items-center justify-between gap-3 p-5 text-sm"><p className="max-w-2xl text-muted-foreground">{clan.description || "This LEGACY-X clan has not added a public description yet."}</p><div className="rounded-lg bg-secondary px-3 py-2 font-semibold">{clan.currentPlayers}/{clan.maxPlayers} members</div></div>
         </section>
         <section className="flex flex-col gap-3"><div className="flex items-center gap-2"><Users className="size-4 text-muted-foreground" /><h2 className="font-semibold">Members</h2></div>
-          {members.length === 0 ? <div className="glass rounded-xl p-5 text-sm text-muted-foreground">Member roster will appear here as players join this clan.</div> : <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{members.map((member) => <button key={member.id} onClick={() => onProfileNavigate(member.id)} className="glass flex items-center gap-3 rounded-xl p-4 text-left transition-all hover:bg-secondary/40 hover-lift"><div className="flex size-10 items-center justify-center overflow-hidden rounded-full bg-secondary text-sm font-bold">{member.avatar ? <img src={member.avatar} alt="" className="size-full object-cover" /> : member.name.slice(0, 2).toUpperCase()}</div><div className="min-w-0"><div className="truncate font-medium">{member.name}</div><div className="text-xs text-muted-foreground">{member.role}</div></div></button>)}</div>}
+          {members.length === 0 ? <div className="glass rounded-xl p-5 text-sm text-muted-foreground">Member roster will appear here as players join this clan.</div> : <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{members.map((member) => <button key={member.id} onClick={() => onProfileNavigate(member.id)} className="glass flex items-center gap-3 rounded-xl p-4 text-left transition-all hover:bg-secondary/40 hover-lift"><PlayerAvatar avatar={member.avatar} name={member.name} className="size-10 rounded-full text-sm" /><div className="min-w-0"><div className="truncate font-medium">{member.name}</div><div className="text-xs text-muted-foreground">{member.role}</div></div></button>)}</div>}
         </section>
       </>}
     </div>

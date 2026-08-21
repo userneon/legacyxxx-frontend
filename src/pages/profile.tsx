@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
 import { useAuth } from "@/hooks/use-auth"
+import { PlayerAvatar } from "@/components/player-avatar"
 
 interface ProfilePageProps {
   onNavigate: (page: PageId) => void
@@ -219,9 +220,7 @@ export function ProfilePage({ onNavigate, balance, userId }: ProfilePageProps) {
           <p className="text-sm text-destructive">{profileError.message}</p>
         ) : profile ? (
           <div className="flex items-center gap-5">
-            <div className="flex size-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/80 to-primary text-2xl font-bold text-primary-foreground">
-              {profile.avatar}
-            </div>
+            <PlayerAvatar avatar={profile.avatar} name={profile.username} className="size-20 rounded-2xl bg-gradient-to-br from-primary/80 to-primary text-2xl text-primary-foreground" />
             <div className="flex-1">
               <h1 className="text-2xl font-bold tracking-tight">{profile.username}</h1>
               <p className="text-sm text-muted-foreground">LegacyX Member - Rank: {profile.rank}</p>

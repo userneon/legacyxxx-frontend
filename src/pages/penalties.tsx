@@ -7,6 +7,7 @@ import type { PenaltyEntry, PenaltyStats, PenaltyType } from "@/api/types"
 import { Badge } from "@/components/ui/badge"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
+import { PlayerAvatar } from "@/components/player-avatar"
 
 type PenaltyFilter = "all" | PenaltyType
 
@@ -161,9 +162,7 @@ function PenaltyRow({ penalty, onProfileNavigate }: { penalty: PenaltyEntry; onP
 
       {/* Player */}
       <div className="flex items-center gap-2">
-        <div className="flex size-7 items-center justify-center rounded-full bg-secondary text-xs font-bold shrink-0">
-          {penalty.avatar}
-        </div>
+        <PlayerAvatar avatar={penalty.avatar} name={penalty.player} className="size-7 rounded-full text-xs" />
         <span className="font-medium truncate text-left">
           {penalty.player}
         </span>
