@@ -22,22 +22,51 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
+const CALLBACK_TOKEN_KEYS = ["access_token", "accessToken", "token", "jwt"]
+
+function consumeSteamCallbackToken(): string | null {
+  const url = new URL(window.location.href)
+  const hash = new URLSearchParams(url.hash.startsWith("#") ? url.hash.slice(1) : url.hash)
+  let token: string | null = null
+  let changed = false
+
+  for (const key of CALLBACK_TOKEN_KEYS) {
+    const queryValue = url.searchParams.get(key)
+    const hashValue = hash.get(key)
+    if (!token && (queryValue || hashValue)) token = queryValue || hashValue
+    if (url.searchParams.has(key)) {
+      url.searchParams.delete(key)
+      changed = true
+    }
+    if (hash.has(key)) {
+      hash.delete(key)
+      changed = true
+    }
+  }
+
+  if (token) setAccessToken(token)
+  if (changed) {
+    const remainingHash = hash.toString()
+    const cleanUrl = `${url.pathname}${url.search}${remainingHash ? `#${remainingHash}` : ""}`
+    window.history.replaceState({}, document.title, cleanUrl)
+  }
+  return token
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
 
   const refreshUser = useCallback(async () => {
-    const token = getAccessToken()
-    if (!token) {
-      setUser(null)
-      setLoading(false)
-      return
-    }
+    const callbackToken = consumeSteamCallbackToken()
+    const token = callbackToken ?? getAccessToken()
     try {
-      const profile = await authService.me()
+      // A successful Steam callback can provide either a token or an HttpOnly cookie session.
+      // In both cases /auth/me is the authority for whether the user is signed in.
+      const profile = await authService.me({ skipAuth: !token })
       setUser(profile)
     } catch {
-      setAccessToken(null)
+      if (token) setAccessToken(null)
       setUser(null)
     } finally {
       setLoading(false)

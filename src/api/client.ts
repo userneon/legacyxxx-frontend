@@ -294,6 +294,9 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     method,
     headers: buildHeaders(options),
     signal: combinedSignal,
+    // Steam login may complete with a same-site HttpOnly session cookie.
+    // Bearer tokens remain optional and are attached only when present.
+    credentials: "include",
   }
 
   if (body !== undefined && method !== "GET") {
