@@ -163,9 +163,18 @@ async function toApiError(response: Response): Promise<ApiError> {
  * URL + header construction
  * ------------------------------------------------------------------------- */
 
-/** Builds a URL from a base, a path, and optional query parameters. */
+/**
+ * The consumer API is mounted under `/api/v1`. Public AdminPlus routes already
+ * include their own `/api/...` namespace, so they must bypass this prefix.
+ */
+function canonicalApiPath(path: string): string {
+  if (!path.startsWith("/")) return `/api/v1/${path}`
+  return path.startsWith("/api/") ? path : `/api/v1${path}`
+}
+
+/** Builds a URL from a base, a canonical API path, and optional query parameters. */
 function buildUrl(path: string, query?: QueryParams): string {
-  const url = `${BASE_URL}${path}`
+  const url = `${BASE_URL}${canonicalApiPath(path)}`
 
   if (!query) return url
 
