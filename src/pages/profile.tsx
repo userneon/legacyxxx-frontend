@@ -153,27 +153,12 @@ function ProfileLinks({ profile, isOwner }: { profile: UserProfile; isOwner: boo
   )
 }
 
-function FaceitProfileCard({ userId, isOwner }: { userId?: string; isOwner: boolean }) {
-  const [nickname, setNickname] = useState("")
-  const [linking, setLinking] = useState(false)
-  const [linkError, setLinkError] = useState("")
-  const { data: faceit, loading, error, refetch } = useApiQuery<FaceitProfileData>((signal) => profileService.getFaceitProfile(userId, { signal }))
+function FaceitProfileCard({ userId }: { userId?: string }) {
+  const { data: faceit, loading, error } = useApiQuery<FaceitProfileData>((signal) => profileService.getFaceitProfile(userId, { signal }))
 
-  const linkProfile = async () => {
-    const value = nickname.trim()
-    if (!value) return
-    setLinking(true)
-    setLinkError("")
-    try {
-      await profileService.linkFaceitProfile(value)
-      setNickname("")
-      refetch()
-    } catch (err) {
-      setLinkError(err instanceof Error ? err.message : "FACEIT profile could not be linked.")
-    } finally {
-      setLinking(false)
-    }
-  }
+  // The FACEIT section is opt-in through a real Steam-linked FACEIT profile.
+  // Do not render a placeholder, manual-link prompt, or error card otherwise.
+  if (loading || error || !faceit?.linked) return null
 
   return (
     <section className="glass rounded-xl p-5">
@@ -181,18 +166,13 @@ function FaceitProfileCard({ userId, isOwner }: { userId?: string; isOwner: bool
         <div className="flex size-9 items-center justify-center rounded-lg bg-orange-500/10"><img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663648835859/ymOFlGPrQuILrlBY.png" alt="FACEIT" className="size-6 object-contain" /></div>
         <div><h2 className="font-semibold">FACEIT Stats</h2><p className="text-xs text-muted-foreground">Live CS2 competitive profile</p></div>
       </div>
-      {loading ? <div className="grid gap-3 sm:grid-cols-3">{[0, 1, 2].map((item) => <div key={item} className="h-20 animate-pulse rounded-lg bg-secondary/50" />)}</div>
-        : error ? <p className="rounded-lg border border-dashed border-border px-3 py-4 text-sm text-muted-foreground">{error.message}</p>
-          : faceit?.linked ? <>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-lg bg-secondary/50 p-4"><div className="text-xs text-muted-foreground">FACEIT</div><a href={faceit.faceitUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex max-w-full items-center gap-1.5 truncate text-sm font-semibold text-orange-400 hover:underline"><span className="truncate">{faceit.nickname}</span><ExternalLink className="size-3.5 shrink-0" /></a><div className="mt-1 text-xs text-muted-foreground">{[faceit.country, faceit.region].filter(Boolean).join(" · ") || "CS2"}</div></div>
-              <div className="rounded-lg bg-secondary/50 p-4"><div className="text-xs text-muted-foreground">ELO</div><div className="mt-2 text-xl font-bold tabular-nums">{faceit.elo.toLocaleString()}</div><div className="mt-1 text-xs text-muted-foreground">Level {faceit.level}</div></div>
-              <div className="rounded-lg bg-secondary/50 p-4"><div className="text-xs text-muted-foreground">Win Rate</div><div className="mt-2 text-xl font-bold tabular-nums">{faceit.stats.winRate.toFixed(1)}%</div><div className="mt-1 text-xs text-muted-foreground">{faceit.stats.wins}/{faceit.stats.matches} wins</div></div>
-            </div>
-            <div className="mt-3 grid grid-cols-3 gap-3 text-center text-xs"><div className="rounded-lg bg-secondary/30 px-2 py-3"><div className="text-base font-semibold tabular-nums">{faceit.stats.averageKd.toFixed(2)}</div><div className="mt-1 text-muted-foreground">Avg K/D</div></div><div className="rounded-lg bg-secondary/30 px-2 py-3"><div className="text-base font-semibold tabular-nums">{faceit.stats.averageKills.toFixed(1)}</div><div className="mt-1 text-muted-foreground">Avg Kills</div></div><div className="rounded-lg bg-secondary/30 px-2 py-3"><div className="text-base font-semibold tabular-nums">{faceit.stats.headshots.toFixed(1)}%</div><div className="mt-1 text-muted-foreground">Headshots</div></div></div>
-            {faceit.recentMatches.length > 0 && <div className="mt-4 border-t border-border pt-3"><div className="mb-2 text-xs font-medium text-muted-foreground">Recent FACEIT matches</div><div className="flex flex-col gap-2">{faceit.recentMatches.slice(0, 3).map((match) => <a key={match.id} href={match.faceitUrl} target="_blank" rel="noreferrer" className="flex items-center justify-between rounded-lg bg-secondary/30 px-3 py-2 text-xs hover:bg-secondary/50"><span className="truncate font-medium">{match.competition || "FACEIT CS2"}</span><span className="ml-3 shrink-0 text-muted-foreground">{match.status || match.map || "Match"}</span></a>)}</div></div>}
-          </> : isOwner ? <div className="rounded-lg border border-dashed border-border p-4"><p className="text-sm text-muted-foreground">Link your FACEIT nickname to show live CS2 level, ELO and statistics.</p><div className="mt-3 flex flex-col gap-2 sm:flex-row"><Input value={nickname} onChange={(event) => setNickname(event.target.value)} placeholder="FACEIT nickname" maxLength={64} /><Button type="button" onClick={() => void linkProfile()} disabled={linking || !nickname.trim()}>{linking ? "Linking…" : "Link FACEIT"}</Button></div>{linkError && <p className="mt-2 text-xs text-destructive">{linkError}</p>}</div>
-            : <p className="rounded-lg border border-dashed border-border px-3 py-4 text-center text-sm text-muted-foreground">This player has not linked a FACEIT profile.</p>}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-lg bg-secondary/50 p-4"><div className="text-xs text-muted-foreground">FACEIT</div><a href={faceit.faceitUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex max-w-full items-center gap-1.5 truncate text-sm font-semibold text-orange-400 hover:underline"><span className="truncate">{faceit.nickname}</span><ExternalLink className="size-3.5 shrink-0" /></a><div className="mt-1 text-xs text-muted-foreground">{[faceit.country, faceit.region].filter(Boolean).join(" · ") || "CS2"}</div></div>
+        <div className="rounded-lg bg-secondary/50 p-4"><div className="text-xs text-muted-foreground">ELO</div><div className="mt-2 text-xl font-bold tabular-nums">{faceit.elo.toLocaleString()}</div><div className="mt-1 text-xs text-muted-foreground">Level {faceit.level}</div></div>
+        <div className="rounded-lg bg-secondary/50 p-4"><div className="text-xs text-muted-foreground">Win Rate</div><div className="mt-2 text-xl font-bold tabular-nums">{faceit.stats.winRate.toFixed(1)}%</div><div className="mt-1 text-xs text-muted-foreground">{faceit.stats.wins}/{faceit.stats.matches} wins</div></div>
+      </div>
+      <div className="mt-3 grid grid-cols-3 gap-3 text-center text-xs"><div className="rounded-lg bg-secondary/30 px-2 py-3"><div className="text-base font-semibold tabular-nums">{faceit.stats.averageKd.toFixed(2)}</div><div className="mt-1 text-muted-foreground">Avg K/D</div></div><div className="rounded-lg bg-secondary/30 px-2 py-3"><div className="text-base font-semibold tabular-nums">{faceit.stats.averageKills.toFixed(1)}</div><div className="mt-1 text-muted-foreground">Avg Kills</div></div><div className="rounded-lg bg-secondary/30 px-2 py-3"><div className="text-base font-semibold tabular-nums">{faceit.stats.headshots.toFixed(1)}%</div><div className="mt-1 text-muted-foreground">Headshots</div></div></div>
+      {faceit.recentMatches.length > 0 && <div className="mt-4 border-t border-border pt-3"><div className="mb-2 text-xs font-medium text-muted-foreground">Recent FACEIT matches</div><div className="flex flex-col gap-2">{faceit.recentMatches.slice(0, 3).map((match) => <a key={match.id} href={match.faceitUrl} target="_blank" rel="noreferrer" className="flex items-center justify-between rounded-lg bg-secondary/30 px-3 py-2 text-xs hover:bg-secondary/50"><span className="truncate font-medium">{match.competition || "FACEIT CS2"}</span><span className="ml-3 shrink-0 text-muted-foreground">{match.status || match.map || "Match"}</span></a>)}</div></div>}
     </section>
   )
 }
@@ -264,7 +244,7 @@ export function ProfilePage({ onNavigate, balance, userId }: ProfilePageProps) {
         ) : null}
       </div>
 
-      {profile && <FaceitProfileCard userId={effectiveUserId} isOwner={profile.id === authenticatedUser?.id} />}
+      {profile && <FaceitProfileCard userId={effectiveUserId} />}
 
       {profile && <ProfileLinks profile={profile} isOwner={profile.id === authenticatedUser?.id} />}
 
