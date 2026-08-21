@@ -105,10 +105,10 @@ export function FeedbackPage() {
           {allFeedback.map((entry) => (
             <div key={entry.id} className="glass rounded-xl p-4 hover-lift transition-all">
               <div className="flex items-start justify-between gap-4">
-                {entry.userId ? (
+                {entry.steamId ? (
                   <button
                     type="button"
-                    onClick={() => navigate(`/players/${entry.userId}`)}
+                    onClick={() => navigate(`/profile/${entry.steamId}`)}
                     className="group flex items-center gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     aria-label={`Open ${entry.name}'s profile`}
                   >

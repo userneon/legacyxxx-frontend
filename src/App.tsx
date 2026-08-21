@@ -31,11 +31,15 @@ export function App() {
   const currentPage = routeToPage(location.pathname)
 
   const handleNavigate = (page: PageId) => {
+    if (page === "profile" && user?.steamId) {
+      navigate(`/profile/${user.steamId}`)
+      return
+    }
     navigate(getRouteForPage(page))
   }
 
-  const handleProfileNavigate = (userId: string) => {
-    navigate(`/players/${userId}`)
+  const handleProfileNavigate = (steamId: string) => {
+    navigate(`/profile/${steamId}`)
   }
   const handleClanNavigate = (clanId: string) => {
     navigate(`/clans/${clanId}`)
@@ -82,7 +86,7 @@ export function App() {
                   <ProfilePage onNavigate={handleNavigate} balance={balance} />
                 </ProtectedPage>
               } />
-              <Route path="/players/:playerId" element={
+              <Route path="/profile/:steamId" element={
                 <ProtectedPage pageName="Profile">
                   <ProfilePage onNavigate={handleNavigate} balance={balance} />
                 </ProtectedPage>

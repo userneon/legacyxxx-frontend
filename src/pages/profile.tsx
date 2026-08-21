@@ -72,7 +72,7 @@ function ProfileLinkIcon({ url }: { url: string }) {
   )
 }
 
-function ProfileLinks({ profile }: { profile: UserProfile }) {
+function ProfileLinks({ profile, isOwner }: { profile: UserProfile; isOwner: boolean }) {
   const [links, setLinks] = useState<ProfileLink[]>(profile.links ?? [])
   const [newUrl, setNewUrl] = useState("")
   const [error, setError] = useState("")
@@ -136,15 +136,7 @@ function ProfileLinks({ profile }: { profile: UserProfile }) {
                 {domainLabel ?? getDomain(link.url)}
               </a>
               <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                aria-label={`Remove ${link.url}`}
-                onClick={() => saveLinks(links.filter((item) => item.url !== link.url))}
-              >
-                <Trash2 className="size-3.5 text-muted-foreground" />
-              </Button>
+              {isOwner && <Button type="button" variant="ghost" size="icon-xs" aria-label={`Remove ${link.url}`} onClick={() => saveLinks(links.filter((item) => item.url !== link.url))}><Trash2 className="size-3.5 text-muted-foreground" /></Button>}
             </div>
           )
         })}
@@ -156,23 +148,7 @@ function ProfileLinks({ profile }: { profile: UserProfile }) {
         )}
       </div>
 
-      <form onSubmit={handleAddLink} className="mt-4 flex flex-col gap-2 sm:flex-row">
-        <Input
-          value={newUrl}
-          onChange={(event) => {
-            setNewUrl(event.target.value)
-            if (error) setError("")
-          }}
-          placeholder="https://your-profile.com"
-          aria-label="Website URL"
-          type="url"
-        />
-        <Button type="submit" className="sm:w-auto">
-          <Plus className="size-4" />
-          Add Link
-        </Button>
-      </form>
-      {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
+      {isOwner && <><form onSubmit={handleAddLink} className="mt-4 flex flex-col gap-2 sm:flex-row"><Input value={newUrl} onChange={(event) => { setNewUrl(event.target.value); if (error) setError("") }} placeholder="https://your-profile.com" aria-label="Website URL" type="url" /><Button type="submit" className="sm:w-auto"><Plus className="size-4" />Add Link</Button></form>{error && <p className="mt-2 text-xs text-destructive">{error}</p>}</>}
     </section>
   )
 }
@@ -222,8 +198,8 @@ function FaceitProfileCard({ userId, isOwner }: { userId?: string; isOwner: bool
 }
 
 export function ProfilePage({ onNavigate, balance, userId }: ProfilePageProps) {
-  const { playerId } = useParams<{ playerId: string }>()
-  const effectiveUserId = userId ?? playerId
+  const { steamId } = useParams<{ steamId: string }>()
+  const effectiveUserId = userId ?? steamId
   const { logout, user: authenticatedUser } = useAuth()
   const { data: profile, loading: profileLoading, error: profileError } = useApiQuery<UserProfile>((signal) =>
     profileService.getProfile(effectiveUserId, { signal }),
@@ -290,7 +266,7 @@ export function ProfilePage({ onNavigate, balance, userId }: ProfilePageProps) {
 
       {profile && <FaceitProfileCard userId={effectiveUserId} isOwner={profile.id === authenticatedUser?.id} />}
 
-      {profile && <ProfileLinks profile={profile} />}
+      {profile && <ProfileLinks profile={profile} isOwner={profile.id === authenticatedUser?.id} />}
 
       {stats && (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">

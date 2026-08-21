@@ -118,6 +118,7 @@ export interface ProfileLinksPayload {
 
 export interface UserProfile {
   id: string
+  steamId: string
   username: string
   avatar: string
   level: number
@@ -374,7 +375,7 @@ export interface PenaltyFilters {
 export interface FeedbackEntry {
   id: string
   /** Present only when the review was authored by a registered LEGACY-X user. */
-  userId?: string
+  steamId?: string
   name: string
   rating: number
   message: string
