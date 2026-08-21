@@ -204,6 +204,7 @@ export function ProfilePage({ onNavigate, balance, userId }: ProfilePageProps) {
     { label: "K/D Ratio", value: stats.kdRatio.toString(), icon: Target },
     { label: "Rating", value: stats.rating.toString(), icon: TrendingUp },
   ] : []
+  const isOwner = profile?.id === authenticatedUser?.id
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -224,28 +225,28 @@ export function ProfilePage({ onNavigate, balance, userId }: ProfilePageProps) {
             <div className="flex-1">
               <h1 className="text-2xl font-bold tracking-tight">{profile.username}</h1>
               <p className="text-sm text-muted-foreground">LegacyX Member - Rank: {profile.rank}</p>
-              <div className="mt-2 flex items-center gap-2">
+              {isOwner && <div className="mt-2 flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={() => onNavigate("wallet")}>
                   <Wallet className="size-3.5" />
                   {balance > 0 ? balance.toLocaleString() : "—"}
                 </Button>
-              </div>
+              </div>}
             </div>
-            <div className="flex gap-2">
+            {isOwner && <div className="flex gap-2">
               <Button variant="outline" size="icon" aria-label="Profile settings">
                 <Settings className="size-4" />
               </Button>
               <Button variant="outline" size="icon" aria-label="Log out" onClick={handleLogout}>
                 <LogOut className="size-4" />
               </Button>
-            </div>
+            </div>}
           </div>
         ) : null}
       </div>
 
       {profile && <FaceitProfileCard userId={effectiveUserId} />}
 
-      {profile && <ProfileLinks profile={profile} isOwner={profile.id === authenticatedUser?.id} />}
+      {profile && <ProfileLinks profile={profile} isOwner={isOwner} />}
 
       {stats && (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
