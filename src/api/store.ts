@@ -8,17 +8,17 @@ import type { ShopFilters, ShopItem } from "./types"
 export const storeService = {
   async getItems(filters?: ShopFilters, options?: CallOptions): Promise<ShopItem[]> {
     return get<ShopItem[]>(
-      "/store/items",
+      "/api/v1/store/items",
       { category: filters?.category, rarity: filters?.rarity },
       options,
     )
   },
 
   async getItem(itemId: string, options?: CallOptions): Promise<ShopItem> {
-    return get<ShopItem>(`/store/items/${itemId}`, undefined, options)
+    return get<ShopItem>(`/api/v1/store/items/${itemId}`, undefined, options)
   },
 
   async purchaseItem(itemId: string, options?: CallOptions): Promise<void> {
-    await post<void>(`/store/items/${itemId}/purchase`, undefined, options)
+    await post<void>(`/api/v1/store/items/${itemId}/purchase`, undefined, options)
   },
 }
