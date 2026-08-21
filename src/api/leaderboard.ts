@@ -27,12 +27,12 @@ export const leaderboardService = {
   async getLeaderboard(filters?: LeaderboardFilters, options?: CallOptions): Promise<LeaderPlayer[]> {
     const [rankResponse, experienceResponse] = await Promise.all([
       get<{ entries: PublicRankEntry[] }>(
-        "/api/public/rank/leaderboard",
+        "/api/v1/public/rank/leaderboard",
         { season: filters?.mode === "5vs5" ? undefined : undefined, limit: 100 },
         { ...options, skipAuth: true },
       ),
       get<{ entries: PublicExperienceEntry[] }>(
-        "/api/public/community/experience",
+        "/api/v1/public/community/experience",
         { limit: 100 },
         { ...options, skipAuth: true },
       ),
