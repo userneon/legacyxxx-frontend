@@ -346,12 +346,14 @@ export interface PenaltyEntry {
   id: string
   type: PenaltyType
   player: string
+  playerSteamId?: string
   avatar: string
   reason: string
   term: string
   isPermanent: boolean
   isUnbanned: boolean
   admin: string
+  adminSteamId?: string
   date: string
 }
 

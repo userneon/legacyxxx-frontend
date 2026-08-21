@@ -146,13 +146,7 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
 
 function PenaltyRow({ penalty, onProfileNavigate }: { penalty: PenaltyEntry; onProfileNavigate: (userId: string) => void }) {
   return (
-    <div
-      onClick={() => onProfileNavigate(penalty.player)}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => { if (e.key === "Enter") onProfileNavigate(penalty.player) }}
-      className="grid grid-cols-2 gap-2 border-b border-border/50 px-4 py-3 text-sm transition-colors hover:bg-destructive/5 md:grid-cols-[3rem_1fr_2fr_1fr_5rem_1fr_5rem] md:items-center cursor-pointer"
-    >
+    <div className="grid grid-cols-2 gap-2 border-b border-border/50 px-4 py-3 text-sm transition-colors hover:bg-destructive/5 md:grid-cols-[3rem_1fr_2fr_1fr_5rem_1fr_5rem] md:items-center">
       {/* Type badge */}
       <div>
         <Badge variant="secondary" className={cn("text-[10px] font-bold uppercase px-1.5 py-0.5", getTypeColor(penalty.type))}>
@@ -161,12 +155,7 @@ function PenaltyRow({ penalty, onProfileNavigate }: { penalty: PenaltyEntry; onP
       </div>
 
       {/* Player */}
-      <div className="flex items-center gap-2">
-        <PlayerAvatar avatar={penalty.avatar} name={penalty.player} className="size-7 rounded-full text-xs" />
-        <span className="font-medium truncate text-left">
-          {penalty.player}
-        </span>
-      </div>
+      {penalty.playerSteamId ? <button type="button" onClick={() => onProfileNavigate(penalty.playerSteamId!)} className="flex min-w-0 items-center gap-2 text-left hover:opacity-80"><PlayerAvatar avatar={penalty.avatar} name={penalty.player} className="size-7 rounded-full text-xs" /><span className="truncate font-medium">{penalty.player}</span></button> : <div className="flex items-center gap-2"><PlayerAvatar avatar={penalty.avatar} name={penalty.player} className="size-7 rounded-full text-xs" /><span className="truncate font-medium">{penalty.player}</span></div>}
 
       {/* Reason */}
       <div className="col-span-2 text-muted-foreground truncate md:col-span-1">{penalty.reason}</div>
@@ -194,7 +183,7 @@ function PenaltyRow({ penalty, onProfileNavigate }: { penalty: PenaltyEntry; onP
       </div>
 
       {/* Admin */}
-      <div className="text-muted-foreground truncate">{penalty.admin}</div>
+      {penalty.adminSteamId ? <button type="button" onClick={() => onProfileNavigate(penalty.adminSteamId!)} className="truncate text-left text-muted-foreground hover:text-foreground">{penalty.admin}</button> : <div className="truncate text-muted-foreground">{penalty.admin}</div>}
 
       {/* Date */}
       <div className="text-muted-foreground text-xs whitespace-nowrap">{penalty.date}</div>
