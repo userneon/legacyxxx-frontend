@@ -20,6 +20,7 @@ import { useAuth } from "@/hooks/use-auth"
 import type { PageId } from "@/api/types"
 import { PAGE_TITLES, routeToPage } from "@/lib/routes"
 
+// LEGACY-X visual system: preserve the existing compact glass sidebar shell and route-level page transitions.
 export function App() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -35,6 +36,9 @@ export function App() {
 
   const handleProfileNavigate = (userId: string) => {
     navigate(`/players/${userId}`)
+  }
+  const handleClanNavigate = (clanId: string) => {
+    navigate(`/clans/${clanId}`)
   }
 
   useEffect(() => {
@@ -66,12 +70,12 @@ export function App() {
               <Route path="/play/proleague" element={<PlayPage mode="proleague" />} />
               <Route path="/tournaments" element={<PlayPage mode="tournaments" />} />
               <Route path="/leaderboard" element={<LeadersPage onProfileNavigate={handleProfileNavigate} />} />
-              <Route path="/clans" element={<ClanPage onProfileNavigate={handleProfileNavigate} />} />
-              <Route path="/clans/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} />} />
+              <Route path="/clans" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />
+              <Route path="/clans/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />
               <Route path="/shop" element={<ProtectedPage pageName="Shop"><ShopPage /></ProtectedPage>} />
               <Route path="/skinchanger" element={<ProtectedPage pageName="Skinchanger"><SkinchangerPage /></ProtectedPage>} />
               <Route path="/penalties" element={<PenaltiesPage onProfileNavigate={handleProfileNavigate} />} />
-              <Route path="/search" element={<ExplorePage onProfileNavigate={handleProfileNavigate} />} />
+              <Route path="/search" element={<ExplorePage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />
               <Route path="/feedback" element={<ProtectedPage pageName="Reviews"><FeedbackPage /></ProtectedPage>} />
               <Route path="/profile" element={
                 <ProtectedPage pageName="Profile">

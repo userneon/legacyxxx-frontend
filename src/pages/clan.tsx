@@ -1,5 +1,6 @@
 import { useState } from "react"
-import { Swords, Plus, Users, Upload, X, Globe, Shield, Crown, UserPlus } from "lucide-react"
+import { useNavigate, useParams } from "react-router-dom"
+import { ArrowLeft, Swords, Plus, Users, Upload, X, Globe, Shield, Crown, UserPlus } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { clansService } from "@/api"
@@ -19,12 +20,16 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-export function ClanPage({ onProfileNavigate }: { onProfileNavigate: (userId: string) => void }) {
+// LEGACY-X visual system: retain the dark glass card rhythm while exposing clan identity, roster, and member navigation as first-class flows.
+export function ClanPage({ onProfileNavigate, onClanNavigate }: { onProfileNavigate: (userId: string) => void; onClanNavigate: (clanId: string) => void }) {
+  const { clanId } = useParams()
   const [open, setOpen] = useState(false)
 
   const { data: clans, loading, error, refetch } = useApiQuery<ClanCard[]>((signal) =>
     clansService.getClans({ signal }),
   )
+
+  if (clanId) return <ClanDetailView clanId={clanId} onProfileNavigate={onProfileNavigate} />
 
   const list = clans ?? []
   const totalMembers = list.reduce((acc, c) => acc + c.currentPlayers, 0)
@@ -48,7 +53,7 @@ export function ClanPage({ onProfileNavigate }: { onProfileNavigate: (userId: st
                 Set up your clan. Logo and name are required, thumbnail is optional.
               </DialogDescription>
             </DialogHeader>
-            <CreateClanForm onClose={() => setOpen(false)} />
+            <CreateClanForm onClose={() => { setOpen(false); void refetch() }} />
           </DialogContent>
         </Dialog>
       </div>
@@ -81,7 +86,7 @@ export function ClanPage({ onProfileNavigate }: { onProfileNavigate: (userId: st
       {!loading && !error && list.length > 0 && (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((clan) => (
-            <ClanCardItem key={clan.id} clan={clan} onProfileNavigate={onProfileNavigate} />
+            <ClanCardItem key={clan.id} clan={clan} onClanNavigate={onClanNavigate} onChanged={refetch} />
           ))}
         </div>
       )}
@@ -89,7 +94,7 @@ export function ClanPage({ onProfileNavigate }: { onProfileNavigate: (userId: st
   )
 }
 
-function ClanCardItem({ clan, onProfileNavigate }: { clan: ClanCard; onProfileNavigate: (userId: string) => void }) {
+function ClanCardItem({ clan, onClanNavigate, onChanged }: { clan: ClanCard; onClanNavigate: (clanId: string) => void; onChanged: () => void }) {
   const isFull = clan.currentPlayers >= clan.maxPlayers
   const fillPercent = Math.round((clan.currentPlayers / clan.maxPlayers) * 100)
   const [joining, setJoining] = useState(false)
@@ -100,15 +105,16 @@ function ClanCardItem({ clan, onProfileNavigate }: { clan: ClanCard; onProfileNa
     setJoining(true)
     void clansService
       .joinClan(clan.id)
+      .then(() => onChanged())
       .finally(() => setJoining(false))
   }
 
   return (
     <div
-      onClick={() => onProfileNavigate(clan.id)}
+      onClick={() => onClanNavigate(clan.id)}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => { if (e.key === "Enter") onProfileNavigate(clan.id) }}
+      onKeyDown={(e) => { if (e.key === "Enter") onClanNavigate(clan.id) }}
       className="glass group flex flex-col overflow-hidden rounded-xl transition-all hover:glow-blue hover-lift cursor-pointer"
     >
       {/* Banner */}
@@ -196,6 +202,37 @@ function ClanCardItem({ clan, onProfileNavigate }: { clan: ClanCard; onProfileNa
           )}
         </Button>
       </div>
+    </div>
+  )
+}
+
+function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfileNavigate: (userId: string) => void }) {
+  const navigate = useNavigate()
+  const { data: clan, loading, error, refetch } = useApiQuery<ClanCard & { description?: string; members?: { id: string; name: string; role: string; avatar: string }[] }>(
+    (signal) => clansService.getClan(clanId, { signal }),
+  )
+  const members = clan?.members ?? []
+
+  return (
+    <div className="flex flex-col gap-6 p-6">
+      <div className="flex items-center justify-between gap-3">
+        <Button variant="outline" size="sm" onClick={() => navigate("/clans")}><ArrowLeft className="size-3.5" /> Back to Clans</Button>
+        {clan && <span className="text-xs font-semibold text-muted-foreground">[{clan.tag}] roster</span>}
+      </div>
+      <QueryState loading={loading} error={error} empty={!loading && !error && !clan} emptyMessage="Clan not found." onRetry={refetch} />
+      {!loading && !error && clan && <>
+        <section className="glass overflow-hidden rounded-xl">
+          <div className="relative h-40 bg-secondary">
+            {clan.thumbnail ? <img src={clan.thumbnail} alt={`${clan.name} banner`} className="size-full object-cover" /> : <div className="size-full bg-gradient-to-br from-secondary via-secondary/70 to-muted" />}
+            <div className="absolute inset-0 bg-gradient-to-t from-card via-card/10 to-transparent" />
+            <div className="absolute inset-x-5 bottom-5 flex items-end gap-4"><div className="size-16 overflow-hidden rounded-xl border-2 border-card bg-card shadow-lg"><img src={clan.logo} alt={`${clan.name} logo`} className="size-full object-cover" /></div><div><h1 className="text-xl font-bold">{clan.name}</h1><p className="text-sm text-muted-foreground">[{clan.tag}] · {clan.region}</p></div></div>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 p-5 text-sm"><p className="max-w-2xl text-muted-foreground">{clan.description || "This LEGACY-X clan has not added a public description yet."}</p><div className="rounded-lg bg-secondary px-3 py-2 font-semibold">{clan.currentPlayers}/{clan.maxPlayers} members</div></div>
+        </section>
+        <section className="flex flex-col gap-3"><div className="flex items-center gap-2"><Users className="size-4 text-muted-foreground" /><h2 className="font-semibold">Members</h2></div>
+          {members.length === 0 ? <div className="glass rounded-xl p-5 text-sm text-muted-foreground">Member roster will appear here as players join this clan.</div> : <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{members.map((member) => <button key={member.id} onClick={() => onProfileNavigate(member.id)} className="glass flex items-center gap-3 rounded-xl p-4 text-left transition-all hover:bg-secondary/40 hover-lift"><div className="flex size-10 items-center justify-center overflow-hidden rounded-full bg-secondary text-sm font-bold">{member.avatar ? <img src={member.avatar} alt="" className="size-full object-cover" /> : member.name.slice(0, 2).toUpperCase()}</div><div className="min-w-0"><div className="truncate font-medium">{member.name}</div><div className="text-xs text-muted-foreground">{member.role}</div></div></button>)}</div>}
+        </section>
+      </>}
     </div>
   )
 }

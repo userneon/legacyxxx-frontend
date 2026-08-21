@@ -165,6 +165,8 @@ export interface ServerFilters {
  * ------------------------------------------------------------------------- */
 
 export interface LeaderPlayer {
+  /** Stable user identifier. Present for search results and used for profile navigation. */
+  id?: string
   steamId?: string
   rank: number
   name: string

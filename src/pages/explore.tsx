@@ -7,7 +7,8 @@ import type { ClanCard, LeaderPlayer, SearchKind } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
 
-export function ExplorePage({ onProfileNavigate }: { onProfileNavigate: (userId: string) => void }) {
+// LEGACY-X visual system: keep the existing glass search panels while making every result lead to its true resource route.
+export function ExplorePage({ onProfileNavigate, onClanNavigate }: { onProfileNavigate: (userId: string) => void; onClanNavigate: (clanId: string) => void }) {
   const [tab, setTab] = useState<SearchKind>("players")
   const [query, setQuery] = useState("")
 
@@ -22,6 +23,7 @@ export function ExplorePage({ onProfileNavigate }: { onProfileNavigate: (userId:
         .searchClans(query, { signal })
         .then((res) => res.clans)
     },
+    { enabled: query.trim().length > 0 },
   )
 
   const results = data ?? []
@@ -77,7 +79,8 @@ export function ExplorePage({ onProfileNavigate }: { onProfileNavigate: (userId:
             ? (results as LeaderPlayer[]).map((player) => (
               <button
                 key={player.rank}
-                onClick={() => onProfileNavigate(player.name)}
+                onClick={() => player.id && onProfileNavigate(player.id)}
+                disabled={!player.id}
                 className="glass group flex w-full items-center gap-4 rounded-xl p-4 transition-all hover:bg-secondary/40 hover-lift cursor-pointer text-left"
               >
                 <div className="flex size-12 items-center justify-center rounded-full bg-gradient-to-br from-secondary to-muted text-lg font-bold">
@@ -96,10 +99,10 @@ export function ExplorePage({ onProfileNavigate }: { onProfileNavigate: (userId:
             : (results as ClanCard[]).map((clan) => (
               <div
                 key={clan.id}
-                onClick={() => onProfileNavigate(clan.id)}
+                onClick={() => onClanNavigate(clan.id)}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => { if (e.key === "Enter") onProfileNavigate(clan.id) }}
+                onKeyDown={(e) => { if (e.key === "Enter") onClanNavigate(clan.id) }}
                 className="glass group flex items-center gap-4 rounded-xl p-4 transition-all hover:bg-secondary/40 hover-lift cursor-pointer"
               >
                 <div className="size-12 rounded-xl overflow-hidden bg-secondary">
