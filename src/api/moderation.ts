@@ -8,17 +8,17 @@ import type { PenaltyEntry, PenaltyFilters, PenaltyStats } from "./types"
 export const moderationService = {
   async getPenalties(filters?: PenaltyFilters, options?: CallOptions): Promise<PenaltyEntry[]> {
     return get<PenaltyEntry[]>(
-      "/moderation/penalties",
+      "/api/v1/moderation/penalties",
       { type: filters?.type, query: filters?.query },
       options,
     )
   },
 
   async getPenalty(penaltyId: string, options?: CallOptions): Promise<PenaltyEntry> {
-    return get<PenaltyEntry>(`/penalties/${penaltyId}`, undefined, options)
+    return get<PenaltyEntry>(`/api/v1/penalties/${penaltyId}`, undefined, options)
   },
 
   async getStats(options?: CallOptions): Promise<PenaltyStats> {
-    return get<PenaltyStats>("/moderation/penalties/stats", undefined, options)
+    return get<PenaltyStats>("/api/v1/moderation/penalties/stats", undefined, options)
   },
 }
