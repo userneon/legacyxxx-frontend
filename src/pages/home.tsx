@@ -172,9 +172,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const totalPlayers = homeStats?.playersOnline ?? (servers ?? []).reduce((acc, s) => acc + s.players, 0)
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      {/* Hero */}
-      <div className={cn(
+      <div className="flex flex-col gap-6 p-6">
+        {/* Hero */}
+        <div className={cn(
         "glass shiny-slow relative flex flex-col gap-4 overflow-hidden rounded-xl p-8"
       )}>
         <img
@@ -215,10 +215,44 @@ export function HomePage({ onNavigate }: HomePageProps) {
               <span className="text-sm font-medium">{mode.label}</span>
             </button>
           ))}
+          </div>
         </div>
-      </div>
 
-      {/* Stats */}
+        {/* Discord community invite */}
+        <a
+          href="https://discord.gg/legacyx"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Join the LEGACY-X Discord community"
+          className={cn(
+            "group relative isolate flex min-h-40 overflow-hidden rounded-xl border border-[#5865F2]/25",
+            "bg-[#121526] p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#7289DA]/60 hover:shadow-[0_18px_48px_rgba(88,101,242,0.2)]",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7289DA] focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          )}
+        >
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(88,101,242,0.38),transparent_46%),linear-gradient(105deg,rgba(88,101,242,0.18),rgba(15,18,38,0.08)_55%,rgba(88,101,242,0.2))]" />
+          <div className="pointer-events-none absolute -right-12 -top-16 size-52 rounded-full bg-[#7289DA]/15 blur-3xl transition-transform duration-500 group-hover:scale-125" />
+          <div className="relative z-10 flex w-full flex-col justify-between gap-5 sm:flex-row sm:items-center">
+            <div className="flex items-center gap-4">
+              <div className="flex size-20 shrink-0 items-center justify-center rounded-[1.65rem] bg-[#5865F2]/20 text-[#7289DA] ring-1 ring-inset ring-[#7289DA]/25 shadow-inner shadow-[#5865F2]/20 transition-transform duration-300 group-hover:scale-105">
+                <DiscordIcon className="size-11" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="flex size-2 rounded-full bg-[#7ee787] shadow-[0_0_12px_rgba(126,231,135,0.9)]" />
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#b9c3ff]">Community hub</span>
+                </div>
+                <h2 className="mt-1 font-display text-2xl tracking-wide text-white">Join LEGACY-X Discord</h2>
+                <p className="mt-1 max-w-xl text-sm text-slate-300">Find teammates, receive announcements, share clips and stay connected with the Mongolian CS2 community.</p>
+              </div>
+            </div>
+            <span className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-lg border border-[#7289DA]/35 bg-[#5865F2]/15 px-4 py-2.5 text-sm font-semibold text-[#d9ddff] transition-colors group-hover:bg-[#5865F2]/30 sm:self-auto">
+              Join Discord <ExternalLink className="size-4" />
+            </span>
+          </div>
+        </a>
+
+        {/* Stats */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {[
           { label: "Players Online", value: totalPlayers.toString(), icon: Users },
