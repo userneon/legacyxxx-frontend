@@ -16,6 +16,12 @@ dist-ssr
 !.env.example
 .bolt
 
+# Imported archive-local material. Authoritative integration documentation lives in the backend repository.
+/.env.example
+/API_ENDPOINTS.md
+/DATABASE_ERD.md
+/DATABASE_SCHEMA.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
