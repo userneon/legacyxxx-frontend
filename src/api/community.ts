@@ -7,6 +7,6 @@ import type { CommunityContent } from "./types"
  */
 export const communityService = {
   async getContent(options?: CallOptions): Promise<CommunityContent> {
-    return get<CommunityContent>("/community/content", undefined, options)
+    return get<CommunityContent>("/api/v1/community/content", undefined, options)
   },
 }
