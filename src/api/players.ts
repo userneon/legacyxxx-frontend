@@ -7,12 +7,12 @@ import type { LeaderPlayer, LeaderboardFilters } from "./types"
  */
 export const playersService = {
   async getPlayer(playerId: string, options?: CallOptions): Promise<LeaderPlayer> {
-    return get<LeaderPlayer>(`/players/${playerId}`, undefined, options)
+    return get<LeaderPlayer>(`/api/v1/players/${playerId}`, undefined, options)
   },
 
   async getLeaderboard(filters?: LeaderboardFilters, options?: CallOptions): Promise<LeaderPlayer[]> {
     return get<LeaderPlayer[]>(
-      "/players/leaderboard",
+      "/api/v1/players/leaderboard",
       { mode: filters?.mode, region: filters?.region },
       options,
     )
