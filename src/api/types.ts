@@ -124,6 +124,7 @@ export interface UserProfile {
   level: number
   rank: string
   balance: number
+  role: "Owner" | "Founder" | "Manager" | "Admin" | "Player" | "Designer" | "Developer"
   faceit?: ProfileFaceitStats
   links?: ProfileLink[]
 }

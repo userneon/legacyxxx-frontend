@@ -224,7 +224,7 @@ export function ProfilePage({ onNavigate, balance, userId }: ProfilePageProps) {
             <PlayerAvatar avatar={profile.avatar} name={profile.username} className="size-20 rounded-2xl bg-gradient-to-br from-primary/80 to-primary text-2xl text-primary-foreground" />
             <div className="flex-1">
               <h1 className="text-2xl font-bold tracking-tight">{profile.username}</h1>
-              <p className="text-sm text-muted-foreground">LegacyX Member - Rank: {profile.rank}</p>
+              <p className="text-sm text-muted-foreground">{profile.role || "Player"} - Rank: {profile.rank}</p>
               {isOwner && <div className="mt-2 flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={() => onNavigate("wallet")}>
                   <Wallet className="size-3.5" />
