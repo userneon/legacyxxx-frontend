@@ -38,7 +38,7 @@ export const profileService = {
 
   async updateLinks(links: ProfileLink[], options?: CallOptions): Promise<ProfileLink[]> {
     const payload: ProfileLinksPayload = { links }
-    const res = await put<ProfileLinksPayload>("/api/v1/profile/me/links", payload, options)
+    const res = await put<ProfileLinksPayload>("/profile/me/links", payload, options)
     return res.links
   },
 
