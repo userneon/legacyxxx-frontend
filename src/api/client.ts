@@ -3,7 +3,9 @@ import type { ApiError } from "./types"
 /**
  * Base URL for all API requests. Configured via the VITE_API_URL env var.
  */
-const BASE_URL = import.meta.env.VITE_API_URL ?? ""
+const configuredApiUrl = import.meta.env.VITE_API_URL?.trim()
+const productionApiFallback = import.meta.env.PROD ? "https://api.legacyx.cc" : ""
+const BASE_URL = (configuredApiUrl || productionApiFallback).replace(/\/$/, "")
 
 /** localStorage key holding the access token. */
 export const ACCESS_TOKEN_KEY = "legacyx_access_token"
