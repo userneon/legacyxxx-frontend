@@ -78,6 +78,36 @@ export interface ProfileFaceitStats {
   level: number
 }
 
+export type FaceitProfileData =
+  | { linked: false }
+  | {
+      linked: true
+      playerId: string
+      nickname: string
+      avatar: string
+      country: string
+      region: string
+      elo: number
+      level: number
+      faceitUrl: string
+      stats: {
+        matches: number
+        wins: number
+        winRate: number
+        averageKd: number
+        averageKills: number
+        headshots: number
+      }
+      recentMatches: Array<{
+        id: string
+        competition: string
+        map: string
+        status: string
+        finishedAt: string
+        faceitUrl: string
+      }>
+    }
+
 export interface ProfileLink {
   url: string
 }

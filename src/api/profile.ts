@@ -1,5 +1,6 @@
 import { get, put, type CallOptions } from "./client"
 import type {
+  FaceitProfileData,
   PenaltyEntry,
   ProfileLink,
   ProfileLinksPayload,
@@ -40,6 +41,15 @@ export const profileService = {
     const payload: ProfileLinksPayload = { links }
     const res = await put<ProfileLinksPayload>("/api/v1/profile/me/links", payload, options)
     return res.links
+  },
+
+  async getFaceitProfile(userId?: string, options?: CallOptions): Promise<FaceitProfileData> {
+    return get<FaceitProfileData>(`/api/v1/profile/${userId ?? "me"}/faceit`, undefined, options)
+  },
+
+  async linkFaceitProfile(nickname: string, options?: CallOptions): Promise<{ username: string; elo: number; level: number }> {
+    const response = await put<{ faceit: { nickname: string; elo: number; level: number } }>("/api/v1/profile/me/faceit", { nickname }, options)
+    return { username: response.faceit.nickname, elo: response.faceit.elo, level: response.faceit.level }
   },
 
   async getPenalties(userId?: string, options?: CallOptions): Promise<PenaltyEntry[]> {
