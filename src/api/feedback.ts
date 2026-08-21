@@ -7,10 +7,10 @@ import type { CreateFeedbackRequest, FeedbackEntry } from "./types"
  */
 export const feedbackService = {
   async getFeedback(options?: CallOptions): Promise<FeedbackEntry[]> {
-    return get<FeedbackEntry[]>("/feedback", undefined, options)
+    return get<FeedbackEntry[]>("/api/v1/feedback", undefined, options)
   },
 
   async submitFeedback(payload: CreateFeedbackRequest, options?: CallOptions): Promise<FeedbackEntry> {
-    return post<FeedbackEntry>("/feedback", payload, options)
+    return post<FeedbackEntry>("/api/v1/feedback", payload, options)
   },
 }
