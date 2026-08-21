@@ -8,7 +8,7 @@ import type { HomeStats, ServerFilters, ServerInfo } from "./types"
 export const serversService = {
   async getServers(filters?: ServerFilters, options?: CallOptions): Promise<ServerInfo[]> {
     const response = await get<{ entries: ServerInfo[] }>(
-      "/api/public/servers",
+      "/api/v1/public/servers",
       { mode: filters?.mode, status: filters?.status },
       { ...options, skipAuth: true },
     )
@@ -16,7 +16,7 @@ export const serversService = {
   },
 
   async getServer(serverId: string, options?: CallOptions): Promise<ServerInfo> {
-    const response = await get<{ server: ServerInfo }>(`/api/public/servers/${serverId}`, undefined, { ...options, skipAuth: true })
+    const response = await get<{ server: ServerInfo }>(`/api/v1/public/servers/${serverId}`, undefined, { ...options, skipAuth: true })
     return response.server
   },
 
@@ -27,6 +27,6 @@ export const serversService = {
   },
 
   async getHomeStats(options?: CallOptions): Promise<HomeStats> {
-    return get<HomeStats>("/api/public/overview", undefined, { ...options, skipAuth: true })
+    return get<HomeStats>("/api/v1/public/overview", undefined, { ...options, skipAuth: true })
   },
 }
