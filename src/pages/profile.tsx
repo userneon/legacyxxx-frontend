@@ -31,6 +31,14 @@ interface ProfilePageProps {
   userId?: string
 }
 
+function SteamIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 496 512" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M496 256c0 137-111 248-248 248S0 393 0 256 111 8 248 8c137 0 248 111 248 248zm-165.6-43.4c-18.8 0-34.1 15.2-34.1 34.1 0 18.8 15.2 34.1 34.1 34.1 18.8 0 34.1-15.2 34.1-34.1 0-18.8-15.3-34.1-34.1-34.1zM113.7 370.7l65.7 27.3 48.8-39.7-14.8-6.2-41.4 33.7-37.7-15.7-20.6-56.3 42.3-26.6 47.6 19.8 9.5-7.7-55.2-23-60.7 38.1 26.5 72.3zm234.9-192.2l-48.8 39.7 14.8 6.2 41.4-33.7 37.7 15.7 20.6 56.3-42.3 26.6-47.6-19.8-9.5 7.7 55.2 23 60.7-38.1-26.5-72.3-65.8-27.4z" />
+    </svg>
+  )
+}
+
 const KNOWN_DOMAINS: Record<string, string> = {
   "facebook.com": "Facebook",
   "github.com": "GitHub",
@@ -219,6 +227,9 @@ export function ProfilePage({ onNavigate, balance, userId }: ProfilePageProps) {
     { label: "Rating", value: stats.rating.toString(), icon: TrendingUp },
   ] : []
   const isOwner = profile?.id === authenticatedUser?.id
+  const steamProfileUrl = profile && /^7656\d{13}$/.test(profile.steamId)
+    ? `https://steamcommunity.com/profiles/${profile.steamId}`
+    : null
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -239,11 +250,12 @@ export function ProfilePage({ onNavigate, balance, userId }: ProfilePageProps) {
             <div className="flex-1">
               <h1 className="text-2xl font-bold tracking-tight">{profile.username}</h1>
               <p className="text-sm text-muted-foreground">{profile.role || "Player"} - Rank: {profile.rank}</p>
-              {isOwner && <div className="mt-2 flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => onNavigate("wallet")}>
+              {(steamProfileUrl || isOwner) && <div className="mt-2 flex items-center gap-2">
+                {steamProfileUrl && <a href={steamProfileUrl} target="_blank" rel="noreferrer" aria-label={`Open ${profile.username}'s Steam profile`} title="Open Steam profile" className="inline-flex size-8 items-center justify-center text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"><SteamIcon className="size-4" /></a>}
+                {isOwner && <Button variant="outline" size="sm" onClick={() => onNavigate("wallet")}>
                   <Wallet className="size-3.5" />
                   {balance > 0 ? balance.toLocaleString() : "—"}
-                </Button>
+                </Button>}
               </div>}
             </div>
             {isOwner && <div className="flex gap-2">
