@@ -7,7 +7,7 @@ import type { PenaltyEntry, PenaltyStats, PenaltyType } from "@/api/types"
 import { Badge } from "@/components/ui/badge"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
-import { PlayerAvatar } from "@/components/player-avatar"
+import { PlayerModerationAvatar } from "@/components/player-moderation-avatar"
 
 type PenaltyFilter = "all" | PenaltyType
 
@@ -155,7 +155,7 @@ function PenaltyRow({ penalty, onProfileNavigate }: { penalty: PenaltyEntry; onP
       </div>
 
       {/* Player */}
-      {penalty.playerSteamId ? <button type="button" onClick={() => onProfileNavigate(penalty.playerSteamId!)} className="flex min-w-0 items-center gap-2 text-left hover:opacity-80"><PlayerAvatar avatar={penalty.avatar} name={penalty.player} className="size-7 rounded-full text-xs" /><span className="truncate font-medium">{penalty.player}</span></button> : <div className="flex items-center gap-2"><PlayerAvatar avatar={penalty.avatar} name={penalty.player} className="size-7 rounded-full text-xs" /><span className="truncate font-medium">{penalty.player}</span></div>}
+      {penalty.playerSteamId ? <button type="button" onClick={() => onProfileNavigate(penalty.playerSteamId!)} className="flex min-w-0 items-center gap-2 text-left hover:opacity-80"><PlayerModerationAvatar avatar={penalty.avatar} name={penalty.player} status={penalty.moderationStatus} className="size-7 rounded-md text-xs" /><span className="min-w-0"><span className="block truncate font-medium">{penalty.player}</span><span className="block text-[10px] text-muted-foreground">{penalty.moderationStatus}</span></span></button> : <div className="flex items-center gap-2"><PlayerModerationAvatar avatar={penalty.avatar} name={penalty.player} status={penalty.moderationStatus} className="size-7 rounded-md text-xs" /><span className="min-w-0"><span className="block truncate font-medium">{penalty.player}</span><span className="block text-[10px] text-muted-foreground">{penalty.moderationStatus}</span></span></div>}
 
       {/* Reason */}
       <div className="col-span-2 text-muted-foreground truncate md:col-span-1">{penalty.reason}</div>

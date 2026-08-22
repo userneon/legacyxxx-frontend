@@ -54,6 +54,7 @@ export const leaderboardService = {
         playedHours: 0,
         lastPlayed: entry.last_match_at ? new Date(entry.last_match_at).toLocaleDateString() : "—",
         avatar: entry.username.slice(0, 2).toUpperCase() || "LX",
+        moderationStatus: "Clear" as const,
       }
     })
   },

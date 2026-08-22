@@ -5,7 +5,7 @@ import { leaderboardService } from "@/api"
 import type { LeaderPlayer } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
-import { PlayerAvatar } from "@/components/player-avatar"
+import { PlayerModerationAvatar } from "@/components/player-moderation-avatar"
 
 export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId: string) => void }) {
   const { data: leaders, loading, error, refetch } = useApiQuery<LeaderPlayer[]>((signal) =>
@@ -40,14 +40,14 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
                   idx === 2 && "sm:order-3",
                 )}
               >
-                <PlayerAvatar avatar={player.avatar} name={player.name} className={cn(
+                <PlayerModerationAvatar avatar={player.avatar} name={player.name} status={player.moderationStatus} className={cn(
                   "flex size-16 items-center justify-center rounded-full text-xl font-bold",
                   player.rank === 1 && "bg-chart-4/20 text-chart-4 border border-chart-4/40",
                   player.rank === 2 && "bg-chart-1/20 text-chart-1 border border-chart-1/40",
                   player.rank === 3 && "bg-chart-5/20 text-chart-5 border border-chart-5/40",
                 )} />
                 <div className="mt-3 font-semibold text-lg">{player.name}</div>
-                <div className="text-xs text-muted-foreground mt-1">Level {player.level} - Rank #{player.rank}</div>
+                <div className="text-xs text-muted-foreground mt-1">Level {player.level} - Rank #{player.rank} - {player.moderationStatus}</div>
                 <div className="flex gap-4 mt-4">
                   <div>
                     <div className="text-sm font-bold tabular-nums">{player.experience.toLocaleString()}</div>
@@ -106,7 +106,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
                     </td>
                     <td className="px-3 py-3">
                       <div className="flex items-center gap-2.5">
-                        <PlayerAvatar avatar={player.avatar} name={player.name} className={cn(
+                        <PlayerModerationAvatar avatar={player.avatar} name={player.name} status={player.moderationStatus} className={cn(
                           "flex size-8 items-center justify-center rounded-full text-xs font-bold shrink-0",
                           player.rank === 1 && "bg-chart-4/20 text-chart-4",
                           player.rank === 2 && "bg-chart-1/20 text-chart-1",
@@ -115,7 +115,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
                         )} />
                         <div>
                           <div className="text-sm font-medium">{player.name}</div>
-                          <div className="text-[10px] text-muted-foreground">Lvl {player.level}</div>
+                          <div className="text-[10px] text-muted-foreground">Lvl {player.level} · {player.moderationStatus}</div>
                         </div>
                       </div>
                     </td>

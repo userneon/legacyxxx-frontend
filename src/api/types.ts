@@ -212,7 +212,10 @@ export interface LeaderPlayer {
   playedHours: number
   lastPlayed: string
   avatar: string
+  moderationStatus: ModerationStatus
 }
+
+export type ModerationStatus = "Banned" | "Muted" | "Clear"
 
 export interface LeaderboardFilters {
   mode?: PlaySubMode
@@ -350,6 +353,7 @@ export interface PenaltyEntry {
   player: string
   playerSteamId?: string
   avatar: string
+  moderationStatus: ModerationStatus
   reason: string
   term: string
   isPermanent: boolean
