@@ -193,6 +193,32 @@
   -webkit-backdrop-filter: blur(20px) saturate(170%);
 }
 
+/* Reviews star rating: tactile but intentionally subtle. */
+@media (prefers-reduced-motion: no-preference) {
+  .star-rating-button {
+    transition: transform 150ms cubic-bezier(0.23, 1, 0.32, 1), filter 150ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .star-rating-button:hover .star-rating-icon {
+    transform: scale(1.12) rotate(-5deg);
+    filter: drop-shadow(0 0 6px color-mix(in oklch, var(--chart-4) 45%, transparent));
+  }
+
+  .star-rating-button:active .star-rating-icon {
+    transform: scale(0.92);
+  }
+
+  .star-rating-pop {
+    animation: star-rating-pop 220ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  @keyframes star-rating-pop {
+    0% { transform: scale(0.9); }
+    60% { transform: scale(1.2) rotate(-7deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+}
+
 /* ========================================
    Shiny shimmer effect — cycles every 3s
    Used on Shop, Leaders cards

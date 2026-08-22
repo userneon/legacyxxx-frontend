@@ -57,11 +57,12 @@ export function FeedbackPage() {
                 onMouseEnter={() => setHoverRating(star)}
                 onMouseLeave={() => setHoverRating(0)}
                 onClick={() => setRating(star)}
-                className="p-1"
+                className="star-rating-button rounded-md p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <Star
                   className={cn(
-                    "size-6 transition-colors",
+                    "star-rating-icon size-6 transition-colors",
+                    rating === star && "star-rating-pop",
                     (hoverRating || rating) >= star
                       ? "fill-chart-4 text-chart-4"
                       : "text-muted-foreground"
