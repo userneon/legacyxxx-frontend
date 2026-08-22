@@ -32,7 +32,6 @@ interface ProfilePageProps {
 }
 
 const KNOWN_DOMAINS: Record<string, string> = {
-  "discord.com": "Discord",
   "facebook.com": "Facebook",
   "github.com": "GitHub",
   "instagram.com": "Instagram",
@@ -52,6 +51,15 @@ function getDomainLabel(url: string): string | null {
     return KNOWN_DOMAINS[getDomain(url)] ?? null
   } catch {
     return null
+  }
+}
+
+function isDiscordUrl(url: string) {
+  try {
+    const domain = getDomain(url)
+    return domain === "discord.com" || domain.endsWith(".discord.com") || domain === "discord.gg" || domain.endsWith(".discord.gg")
+  } catch {
+    return false
   }
 }
 
@@ -100,6 +108,10 @@ function ProfileLinks({ profile, isOwner }: { profile: UserProfile; isOwner: boo
       if (parsed.protocol !== "http:" && parsed.protocol !== "https:") throw new Error("Invalid protocol")
 
       const url = parsed.toString()
+      if (isDiscordUrl(url)) {
+        setError("Discord is available only through the Home community invite.")
+        return
+      }
       if (links.some((link) => link.url === url)) {
         setError("That link is already on your profile.")
         return
@@ -113,6 +125,8 @@ function ProfileLinks({ profile, isOwner }: { profile: UserProfile; isOwner: boo
     }
   }
 
+  const visibleLinks = links.filter((link) => !isDiscordUrl(link.url))
+
   return (
     <section className="glass rounded-xl p-5">
       <div className="mb-4">
@@ -121,7 +135,7 @@ function ProfileLinks({ profile, isOwner }: { profile: UserProfile; isOwner: boo
       </div>
 
       <div className="flex flex-col gap-2">
-        {links.map((link) => {
+        {visibleLinks.map((link) => {
           const domainLabel = getDomainLabel(link.url)
           return (
             <div key={link.url} className="flex items-center gap-3 rounded-lg bg-secondary/50 px-3 py-2.5">
@@ -142,7 +156,7 @@ function ProfileLinks({ profile, isOwner }: { profile: UserProfile; isOwner: boo
           )
         })}
 
-        {links.length === 0 && (
+        {visibleLinks.length === 0 && (
           <p className="rounded-lg border border-dashed border-border px-3 py-4 text-center text-xs text-muted-foreground">
             No links added yet.
           </p>

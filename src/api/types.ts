@@ -425,7 +425,7 @@ export interface CommunityPartner {
   id: string
   name: string
   description: string
-  type: "website" | "discord"
+  type: "website"
   url: string
 }
 

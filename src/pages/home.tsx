@@ -45,7 +45,7 @@ function PartnerSection() {
   )
 
   const creators = content?.creators ?? []
-  const partners = content?.partners ?? []
+  const partners = (content?.partners ?? []).filter((partner) => partner.type === "website")
 
   return (
     <section className="glass rounded-xl p-5">
@@ -129,7 +129,6 @@ function CreatorCard({ creator }: { creator: CommunityCreator }) {
 }
 
 function PartnerCard({ partner }: { partner: CommunityPartner }) {
-  const isDiscord = partner.type === "discord"
   return (
     <a
       href={partner.url}
@@ -142,14 +141,10 @@ function PartnerCard({ partner }: { partner: CommunityPartner }) {
       <div
         className={cn(
           "flex size-10 shrink-0 items-center justify-center rounded-lg",
-          isDiscord ? "bg-[#5865F2]/15" : "bg-secondary"
+          "bg-secondary"
         )}
       >
-        {isDiscord ? (
-          <DiscordIcon className="size-5 text-[#5865F2]" />
-        ) : (
-          <Globe2 className="size-5 text-muted-foreground" />
-        )}
+        <Globe2 className="size-5 text-muted-foreground" />
       </div>
       <div className="min-w-0 flex-1">
         <div className="text-sm font-medium">{partner.name}</div>
