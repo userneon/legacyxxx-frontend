@@ -241,7 +241,9 @@ export function ProfilePage({ onNavigate, balance, userId }: ProfilePageProps) {
           <p className="text-sm text-destructive">{profileError.message}</p>
         ) : profile ? (
           <div className="flex items-center gap-5">
-            <PlayerAvatar avatar={profile.avatar} name={profile.username} className="size-20 rounded-2xl bg-gradient-to-br from-primary/80 to-primary text-2xl text-primary-foreground" />
+            <div className="profile-avatar-frame size-20 rounded-2xl p-[2px]">
+              <PlayerAvatar avatar={profile.avatar} name={profile.username} className="size-full rounded-[14px] bg-gradient-to-br from-primary/80 to-primary text-2xl text-primary-foreground" />
+            </div>
             <div className="flex-1">
               <h1 className="text-2xl font-bold tracking-tight">{profile.username}</h1>
               <p className="text-sm text-muted-foreground">{profile.role || "Player"} - Rank: {profile.rank}</p>

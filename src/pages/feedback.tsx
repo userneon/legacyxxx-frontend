@@ -23,6 +23,7 @@ export function FeedbackPage() {
   const [message, setMessage] = useState("")
   const [hoverRating, setHoverRating] = useState(0)
   const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState("")
 
   const allFeedback = [...feedback, ...(existingFeedback ?? [])]
 
@@ -31,13 +32,17 @@ export function FeedbackPage() {
     if (!message.trim() || rating === 0) return
 
     setSubmitting(true)
+    setSubmitError("")
     try {
       const entry = await feedbackService.submitFeedback({ rating, message: message.trim() })
       setFeedback([entry, ...feedback])
       setMessage("")
       setRating(0)
-    } catch {
-      // Error is surfaced via the query state; submission failure is non-fatal here.
+    } catch (error) {
+      const message = error && typeof error === "object" && "message" in error && typeof error.message === "string"
+        ? error.message
+        : "Unable to submit feedback right now."
+      setSubmitError(message)
     } finally {
       setSubmitting(false)
     }
@@ -91,6 +96,7 @@ export function FeedbackPage() {
             Submit Feedback
           </Button>
         </div>
+        {submitError && <p role="alert" className="text-sm text-destructive">{submitError}</p>}
       </form>
 
       {/* Feedback list */}
