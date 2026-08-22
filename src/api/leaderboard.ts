@@ -25,6 +25,17 @@ interface PublicExperienceEntry {
  */
 export const leaderboardService = {
   async getLeaderboard(filters?: LeaderboardFilters, options?: CallOptions): Promise<LeaderPlayer[]> {
+    try {
+      return await get<LeaderPlayer[]>(
+        "/api/v1/players/leaderboard",
+        { mode: filters?.mode, region: filters?.region },
+        options,
+      )
+    } catch {
+      // Keep the public leaderboard visible for signed-out visitors. Moderation
+      // status is only available on the authenticated, status-aware endpoint.
+    }
+
     const [rankResponse, experienceResponse] = await Promise.all([
       get<{ entries: PublicRankEntry[] }>(
         "/api/v1/public/rank/leaderboard",
