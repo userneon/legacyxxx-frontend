@@ -8,7 +8,6 @@ import {
   TrendingUp,
   Settings,
   LogOut,
-  Wallet,
   Plus,
   Trash2,
   ExternalLink,
@@ -17,7 +16,7 @@ import {
 
 import { cn } from "@/lib/utils"
 import { profileService } from "@/api"
-import type { FaceitProfileData, PageId, ProfileLink, ProfileRecentMatch, ProfileStats, UserProfile } from "@/api/types"
+import type { FaceitProfileData, ProfileLink, ProfileRecentMatch, ProfileStats, UserProfile } from "@/api/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -26,8 +25,6 @@ import { useAuth } from "@/hooks/use-auth"
 import { PlayerAvatar } from "@/components/player-avatar"
 
 interface ProfilePageProps {
-  onNavigate: (page: PageId) => void
-  balance: number
   userId?: string
 }
 
@@ -192,7 +189,7 @@ function FaceitProfileCard({ userId }: { userId?: string }) {
   )
 }
 
-export function ProfilePage({ onNavigate, balance, userId }: ProfilePageProps) {
+export function ProfilePage({ userId }: ProfilePageProps) {
   const { steamId } = useParams<{ steamId: string }>()
   const effectiveUserId = userId ?? steamId
   const { logout, user: authenticatedUser } = useAuth()
@@ -247,13 +244,7 @@ export function ProfilePage({ onNavigate, balance, userId }: ProfilePageProps) {
             <div className="flex-1">
               <h1 className="text-2xl font-bold tracking-tight">{profile.username}</h1>
               <p className="text-sm text-muted-foreground">{profile.role || "Player"} - Rank: {profile.rank}</p>
-              {(steamProfileUrl || isOwner) && <div className="mt-2 flex items-center gap-2">
-                {isOwner && <Button variant="outline" size="sm" onClick={() => onNavigate("wallet")}>
-                  <Wallet className="size-3.5" />
-                  {balance > 0 ? balance.toLocaleString() : "—"}
-                </Button>}
-                {steamProfileUrl && <a href={steamProfileUrl} target="_blank" rel="noreferrer" aria-label={`Open ${profile.username}'s Steam profile`} title="Open Steam profile" className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-input bg-transparent transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"><img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663648835859/IuiahMvWnzZwYHmQ.png" alt="" className="size-4 object-contain invert" /></a>}
-              </div>}
+              {steamProfileUrl && <div className="mt-2"><a href={steamProfileUrl} target="_blank" rel="noreferrer" aria-label={`Open ${profile.username}'s Steam profile`} title="Open Steam profile" className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-input bg-transparent transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"><img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663648835859/IuiahMvWnzZwYHmQ.png" alt="" className="size-4 object-contain invert" /></a></div>}
             </div>
             {isOwner && <div className="flex gap-2">
               <Button variant="outline" size="icon" aria-label="Profile settings">

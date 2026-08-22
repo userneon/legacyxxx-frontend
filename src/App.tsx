@@ -26,7 +26,6 @@ export function App() {
   const location = useLocation()
   const mainRef = useRef<HTMLDivElement>(null)
   const { user } = useAuth()
-  const balance = user?.balance ?? 0
 
   const currentPage = routeToPage(location.pathname)
 
@@ -83,12 +82,12 @@ export function App() {
               <Route path="/feedback" element={<ProtectedPage pageName="Reviews"><FeedbackPage /></ProtectedPage>} />
               <Route path="/profile" element={
                 <ProtectedPage pageName="Profile">
-                  <ProfilePage onNavigate={handleNavigate} balance={balance} />
+                  <ProfilePage />
                 </ProtectedPage>
               } />
               <Route path="/profile/:steamId" element={
                 <ProtectedPage pageName="Profile">
-                  <ProfilePage onNavigate={handleNavigate} balance={balance} />
+                  <ProfilePage />
                 </ProtectedPage>
               } />
               <Route path="/wallet" element={<ProtectedPage pageName="Wallet"><WalletPage /></ProtectedPage>} />
