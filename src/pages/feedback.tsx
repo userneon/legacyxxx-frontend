@@ -21,7 +21,6 @@ export function FeedbackPage() {
   const [feedback, setFeedback] = useState<FeedbackEntry[]>([])
   const [rating, setRating] = useState(0)
   const [message, setMessage] = useState("")
-  const [hoverRating, setHoverRating] = useState(0)
   const [submitting, setSubmitting] = useState(false)
 
   const allFeedback = [...feedback, ...(existingFeedback ?? [])]
@@ -48,27 +47,40 @@ export function FeedbackPage() {
       {/* Submit form */}
       <form onSubmit={handleSubmit} className="glass rounded-xl p-6 flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <Label>Rating</Label>
-          <div className="flex gap-1">
-            {[1, 2, 3, 4, 5].map((star) => (
+          <Label id="feedback-rating-label">How was your experience?</Label>
+          <div className="flex flex-col gap-2">
+            <div role="radiogroup" aria-labelledby="feedback-rating-label" className="grid grid-cols-5 gap-2 sm:max-w-md">
+            {[1, 2, 3, 4, 5].map((value) => (
               <button
-                key={star}
+                key={value}
                 type="button"
-                onMouseEnter={() => setHoverRating(star)}
-                onMouseLeave={() => setHoverRating(0)}
-                onClick={() => setRating(star)}
-                className="p-1"
+                role="radio"
+                aria-checked={rating === value}
+                aria-label={`${value} out of 5`}
+                onClick={() => setRating(value)}
+                onKeyDown={(event) => {
+                  if (event.key === "ArrowRight" || event.key === "ArrowUp") {
+                    event.preventDefault()
+                    setRating(Math.min(5, value + 1))
+                  }
+                  if (event.key === "ArrowLeft" || event.key === "ArrowDown") {
+                    event.preventDefault()
+                    setRating(Math.max(1, value - 1))
+                  }
+                }}
+                className={cn(
+                  "relative flex h-11 items-center justify-center rounded-lg border text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                  rating === value
+                    ? "border-primary bg-primary/15 text-primary shadow-[0_0_18px_hsl(var(--primary)/0.18)]"
+                    : "border-border bg-secondary/40 text-muted-foreground hover:border-primary/50 hover:bg-secondary/70 hover:text-foreground"
+                )}
               >
-                <Star
-                  className={cn(
-                    "size-6 transition-colors",
-                    (hoverRating || rating) >= star
-                      ? "fill-chart-4 text-chart-4"
-                      : "text-muted-foreground"
-                  )}
-                />
+                {value}
+                {rating === value && <span aria-hidden="true" className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-chart-2 shadow-[0_0_8px_hsl(var(--chart-2))]" />}
               </button>
             ))}
+            </div>
+            <div className="flex max-w-md justify-between text-xs font-medium text-muted-foreground"><span>Not satisfied</span><span>Excellent</span></div>
           </div>
         </div>
 
