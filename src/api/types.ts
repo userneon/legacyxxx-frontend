@@ -125,6 +125,7 @@ export interface UserProfile {
   rank: string
   balance: number
   role: "Owner" | "Founder" | "Manager" | "Admin" | "Player" | "Designer" | "Developer"
+  steamBackground?: string | null
   faceit?: ProfileFaceitStats
   links?: ProfileLink[]
 }
