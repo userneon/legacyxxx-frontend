@@ -579,7 +579,8 @@ export function SkinchangerPage() {
                     : null
                   const savedCardItem = savedEntryForCard?.skinchanger_catalog_items ?? null
                   const itemImageUrl = catalogImageUrl(savedCardItem ?? item)
-                  const rarity = rarityStyle(savedCardItem ?? item)
+                  const hideUnsavedGloveFade = category === "glove" && isModelBrowse && !savedCardItem
+                  const rarity = hideUnsavedGloveFade ? null : rarityStyle(savedCardItem ?? item)
                   const isSelectedSkin = selected?.id === item.id
                   const cardTeamScope = isModelBrowse
                     ? savedEntryForCard?.team_scope ?? (isDefaultModel && defaultChoice === category ? teamScope : null)
