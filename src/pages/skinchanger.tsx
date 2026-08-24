@@ -44,16 +44,16 @@ type CollectionId = "skins" | Exclude<SkinchangerCategory, "weapon" | "agent">
 type CollectionMeta = { id: CollectionId; category: SkinchangerCategory; label: string; slot: SkinchangerSlot; icon: typeof Crosshair; iconAsset?: string; invertIcon?: boolean; firearmGroup?: SkinchangerFirearmGroup }
 
 const assetUrls = {
-  rifles: { production: "/manus-storage/rifles_9b1a21c3.png", local: "/rifles.png" },
-  midtier: { production: "/manus-storage/midtier_542f0a80.png", local: "/midtier.png" },
-  pistol: { production: "/manus-storage/pistol_1406abde.png", local: "/pistol.png" },
-  knife: { production: "/manus-storage/knife_4b1eec3d.png", local: "/knife.png" },
-  gloves: { production: "/manus-storage/gloves_6756d859.png", local: "/gloves.png" },
-  pins: { production: "/manus-storage/pins_90a04a68.png", local: "/pins.png" },
+  rifles: "/rifles.png",
+  midtier: "/midtier.png",
+  pistol: "/pistol.png",
+  knife: "/knife.png",
+  gloves: "/gloves.png",
+  pins: "/pins.png",
 } as const
 
 function collectionAsset(name: keyof typeof assetUrls) {
-  return assetUrls[name].production
+  return assetUrls[name]
 }
 
 const categories: CollectionMeta[] = [
@@ -94,8 +94,8 @@ const teamOptions: Array<{ id: TeamScope; label: string }> = [
 ]
 
 const agentTeamOptions: Array<{ id: "t" | "ct"; label: string; title: string; description: string; icon: string }> = [
-  { id: "t", label: "T", title: "T agents", description: "Browse Terrorist agent skins", icon: "/manus-storage/legacyx-t-icon_3d5665ca.webp" },
-  { id: "ct", label: "CT", title: "CT agents", description: "Browse Counter-Terrorist agent skins", icon: "/manus-storage/legacyx-ct-icon_639844c9.webp" },
+  { id: "t", label: "T", title: "T agents", description: "Browse Terrorist agent skins", icon: "/legacyx-t-icon.webp" },
+  { id: "ct", label: "CT", title: "CT agents", description: "Browse Counter-Terrorist agent skins", icon: "/legacyx-ct-icon.webp" },
 ]
 const tOnlyFirearms = new Set(["AK-47", "Galil AR", "SG 553", "G3SG1", "Glock-18", "Tec-9", "MAC-10", "Sawed-Off"])
 const ctOnlyFirearms = new Set(["AUG", "FAMAS", "M4A1-S", "M4A4", "SCAR-20", "USP-S", "P2000", "Five-SeveN", "MP9", "MAG-7"])
