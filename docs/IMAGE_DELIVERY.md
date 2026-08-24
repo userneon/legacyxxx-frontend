@@ -10,6 +10,8 @@ Each production image filename must include a content hash, for example `ak47-ap
 
 `OptimizedImage` is the standard raster image component. It supplies width and height, native lazy loading, asynchronous decoding, visible-card priority fetching, and a local SVG fallback that requires no retry request. Catalog requests remain paginated; the browser receives only the 36 current cards rather than an asset catalogue.
 
+Map card images use stable direct `/maps/<map-name>.webp` URLs. In this local Vite preview, those files must live under `/home/ubuntu/webdev-static-assets/maps/` because that directory is the configured `publicDir`; storing them only in the project `public/maps/` directory does not make them available at runtime.
+
 | Asset role | Format | Loading | Cache |
 |---|---|---|---|
 | Catalog skins, maps, banners, photos | WebP; AVIF may be added later | Lazy; first visible cards priority | 1 year immutable, content-hashed URL |
