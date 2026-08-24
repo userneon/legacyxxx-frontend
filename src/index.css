@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* LEGACY-X Skinchanger parity: include the migrated page's utility classes in the 5176 Tailwind build. */
+@source "/home/ubuntu/legacyxxx-frontend-skinchanger-live/src/pages/skinchanger.tsx";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
