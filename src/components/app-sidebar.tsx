@@ -59,8 +59,8 @@ const MAIN_NAV: NavItem[] = [
 
 const CONTENT_NAV: NavItem[] = [
   { id: "shop", label: "Shop", icon: Store },
-  { id: "skinchanger", label: "Skinchanger", icon: Paintbrush, badge: "new" },
-  { id: "clan", label: "Clan", icon: Swords, badge: "new" },
+  { id: "skinchanger", label: "Skinchanger", icon: Paintbrush },
+  { id: "clan", label: "Clan", icon: Swords },
 ]
 
 const COMMUNITY_NAV: NavItem[] = [
