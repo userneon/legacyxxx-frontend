@@ -16,6 +16,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
 
   const list = leaders ?? []
   const highlights = list.slice(0, 3)
+  const tableRows = list.slice(3)
   const totalMatches = list.reduce((sum, player) => sum + player.matches, 0)
   const totalWins = list.reduce((sum, player) => sum + player.wins, 0)
   const bestAim = [...list].sort((a, b) => b.headshots - a.headshots)[0]
@@ -59,10 +60,12 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
           <div className="overflow-x-auto rounded-xl border border-white/[0.08] bg-[#181818]">
             <table className="w-full min-w-[980px]">
               <thead><tr className="border-b border-white/[0.08]"><Header>Player</Header><Header>Rank</Header><Header align="right">Kills</Header><Header align="right">Deaths</Header><Header align="right">K/D</Header><Header align="right">HS</Header><Header align="right">Matches</Header><Header align="right">Wins</Header><Header align="right">Played</Header><Header align="right">Last played</Header></tr></thead>
-              <tbody>{list.map((player, index) => (
+              <tbody>{tableRows.map((player, index) => {
+                const rank = index + 4
+                return (
                 <tr key={player.steamId ?? player.id ?? player.name} onClick={() => onProfileNavigate(player.steamId ?? player.id ?? player.name)} className="cursor-pointer border-b border-white/[0.06] last:border-0 focus-within:outline-none">
-                  <td className="px-4 py-3.5"><div className="flex items-center gap-2.5"><PlayerModerationAvatar avatar={player.avatar} name={player.name} status={player.moderationStatus} className="size-9 shrink-0 rounded-md text-xs" /><div className="min-w-0"><div className="truncate text-sm font-semibold text-white/90">{player.name}</div><div className="mt-0.5 text-[10px] text-white/45">#{index + 1} · {player.moderationStatus}</div></div></div></td>
-                  <td className="px-3 py-3.5"><CsgoRankBadge position={index + 1} className="h-7 w-12" /></td>
+                  <td className="px-4 py-3.5"><div className="flex items-center gap-2.5"><PlayerModerationAvatar avatar={player.avatar} name={player.name} status={player.moderationStatus} className="size-9 shrink-0 rounded-md text-xs" /><div className="min-w-0"><div className="truncate text-sm font-semibold text-white/90">{player.name}</div><div className="mt-0.5 text-[10px] text-white/45">#{rank} · {player.moderationStatus}</div></div></div></td>
+                  <td className="px-3 py-3.5"><CsgoRankBadge position={rank} className="h-7 w-12" /></td>
                   <NumberCell icon={Crosshair} value={player.kills.toLocaleString()} />
                   <td className="px-3 py-3.5 text-right text-sm tabular-nums text-white/65">{player.deaths.toLocaleString()}</td>
                   <td className="px-3 py-3.5 text-right text-sm font-semibold tabular-nums text-white/95">{player.kd.toFixed(2)}</td>
@@ -72,7 +75,8 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
                   <td className="px-3 py-3.5 text-right text-sm tabular-nums text-white/55">{player.playedHours.toLocaleString()} hrs</td>
                   <td className="px-3 py-3.5 text-right text-xs text-white/55"><span className="inline-flex items-center gap-1"><Clock className="size-3" />{player.lastPlayed}</span></td>
                 </tr>
-              ))}</tbody>
+                )
+              })}</tbody>
             </table>
           </div>
         </>
@@ -120,6 +124,7 @@ function PodiumPlayer({ player, rank, onProfileNavigate }: { player?: CommunityP
     >
       <div className="relative z-10 -mb-3 flex flex-col items-center">
         <div className={cn("mb-1 flex size-7 items-center justify-center rounded-full border text-xs font-black shadow-lg shadow-black/25", tone.chip)}>{rank}</div>
+        <CsgoRankBadge position={rank} className="mb-1 h-8 w-14" />
         <PlayerModerationAvatar avatar={player.avatar} name={player.name} status={player.moderationStatus} className="size-14 rounded-md border-2 border-[#181818] text-base sm:size-16" />
       </div>
       <div className={cn("flex w-full min-w-0 flex-col items-center justify-end rounded-t-xl border px-2 pb-3 pt-5", tone.height, tone.surface)}>
