@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import type { CSSProperties } from "react"
-import { Users, Copy, Play as PlayIcon, Lock, Circle, CalendarDays, Trophy, Clock3, Crosshair, Flame, Crown, Map, MapPin, ArrowDown, ArrowUp, ArrowUpDown, Star, RefreshCw } from "lucide-react"
+import { Users, Copy, Play as PlayIcon, Lock, Circle, CalendarDays, Trophy, Clock3, Crosshair, Flame, Crown, Map, MapPin, ArrowDown, ArrowUp, ArrowUpDown, Star, RefreshCw, Info } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { competitiveService, playService, serversService, tournamentsService } from "@/api"
@@ -11,6 +11,7 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { QueryState } from "@/components/query-state"
 import { SteamLoginGate } from "@/components/steam-login-gate"
+import { ServerLiveMatchDialog } from "@/components/server-live-match-dialog"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { toast } from "sonner"
 
@@ -733,6 +734,7 @@ function ServerListView({ mode }: { mode: string }) {
 }
 
 function ServerCard({ server }: { server: ServerInfo }) {
+  const [matchOpen, setMatchOpen] = useState(false)
   const isFull = server.status === "full"
   const isOffline = server.status === "offline"
   const canConnect = Boolean(server.connectAddress) && !isOffline
@@ -750,8 +752,9 @@ function ServerCard({ server }: { server: ServerInfo }) {
       {mapBackground && <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-black/35 via-[#181818]/75 to-[#181818]" />}
       <div className="relative z-10 flex h-full min-h-44 flex-col justify-between p-4">
         <div className="flex items-start justify-between gap-2"><div className="min-w-0"><div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/45">{server.mode}</div><h3 className="mt-1 truncate text-sm font-semibold text-white/90">{server.name}</h3></div><span className={cn("shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide", statusTone)}>{isOffline ? "Offline" : isFull ? "Full" : "Live"}</span></div>
-        <div className="mt-auto flex items-end justify-between gap-3"><div className="min-w-0"><div className="font-mono text-xs font-medium text-white/65">{mapLabel(server.map)}</div><div className="mt-1 flex items-center gap-1.5 text-xs text-white/45 tabular-nums"><Users className="size-3" />{server.players}/{server.maxPlayers} players</div></div><div className="flex shrink-0 items-center gap-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"><button type="button" disabled={!server.connectAddress} onClick={() => void copyConnectionAddress(server.connectAddress, server.name)} className="inline-flex size-8 items-center justify-center rounded-md border border-white/10 bg-white/[0.05] text-white/65 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40" aria-label={`Copy ${server.name} server IP`} title={server.connectAddress ? `Copy ${server.connectAddress}` : "Server IP unavailable"}><Copy className="size-3.5" /></button><button type="button" disabled={!canConnect} onClick={handleConnect} className="inline-flex size-8 items-center justify-center rounded-md border border-emerald-300/35 bg-emerald-300/18 text-emerald-50 transition-colors hover:border-emerald-200/65 hover:bg-emerald-300/30 hover:text-white disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.04] disabled:text-white/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/60" aria-label={`Play ${server.name} in Steam`} title={canConnect ? `Connect through Steam to ${server.connectAddress}` : "Steam connection unavailable"}><PlayIcon className="size-3.5 fill-current" /></button></div></div>
+        <div className="mt-auto flex items-end justify-between gap-3"><div className="min-w-0"><div className="font-mono text-xs font-medium text-white/65">{mapLabel(server.map)}</div><div className="mt-1 flex items-center gap-1.5 text-xs text-white/45 tabular-nums"><Users className="size-3" />{server.players}/{server.maxPlayers} players</div></div><div className="flex shrink-0 items-center gap-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"><button type="button" onClick={() => setMatchOpen(true)} className="inline-flex size-8 items-center justify-center rounded-md border border-white/10 bg-white/[0.05] text-white/65 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40" aria-label={`View ${server.name} live match information`} title="Live server information"><Info className="size-3.5" /></button><button type="button" disabled={!server.connectAddress} onClick={() => void copyConnectionAddress(server.connectAddress, server.name)} className="inline-flex size-8 items-center justify-center rounded-md border border-white/10 bg-white/[0.05] text-white/65 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40" aria-label={`Copy ${server.name} server IP`} title={server.connectAddress ? `Copy ${server.connectAddress}` : "Server IP unavailable"}><Copy className="size-3.5" /></button><button type="button" disabled={!canConnect} onClick={handleConnect} className="inline-flex size-8 items-center justify-center rounded-md border border-emerald-300/35 bg-emerald-300/18 text-emerald-50 transition-colors hover:border-emerald-200/65 hover:bg-emerald-300/30 hover:text-white disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.04] disabled:text-white/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/60" aria-label={`Play ${server.name} in Steam`} title={canConnect ? `Connect through Steam to ${server.connectAddress}` : "Steam connection unavailable"}><PlayIcon className="size-3.5 fill-current" /></button></div></div>
       </div>
+      <ServerLiveMatchDialog server={server} open={matchOpen} onOpenChange={setMatchOpen} />
     </article>
   )
 }

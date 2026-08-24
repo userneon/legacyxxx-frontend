@@ -1,5 +1,5 @@
 import { get, type CallOptions } from "./client"
-import type { HomeStats, ServerFilters, ServerInfo } from "./types"
+import type { HomeStats, ServerFilters, ServerInfo, ServerLiveMatch } from "./types"
 
 /**
  * Servers service. Lists game servers, optionally filtered by mode/status,
@@ -18,6 +18,11 @@ export const serversService = {
   async getServer(serverId: string, options?: CallOptions): Promise<ServerInfo> {
     const response = await get<{ server: ServerInfo }>(`/api/v1/public/servers/${serverId}`, undefined, { ...options, skipAuth: true })
     return response.server
+  },
+
+  async getLiveMatch(serverId: string, options?: CallOptions): Promise<ServerLiveMatch> {
+    const response = await get<{ liveMatch: ServerLiveMatch }>(`/api/v1/public/servers/${serverId}/live-match`, undefined, { ...options, skipAuth: true })
+    return response.liveMatch
   },
 
   async joinServer(serverId: string, options?: CallOptions): Promise<void> {

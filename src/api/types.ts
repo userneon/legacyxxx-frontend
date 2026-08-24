@@ -235,6 +235,26 @@ export interface ServerInfo {
   connectAddress?: string
 }
 
+export interface ServerLiveMatchPlayer {
+  steamId: string
+  name: string
+  connected: boolean
+}
+
+export interface ServerLiveMatch {
+  serverId: string
+  serverName: string
+  map: string
+  mode: string
+  state: "waiting" | "live" | "paused" | "ended" | "unavailable"
+  round: number | null
+  score: { t: number; ct: number } | null
+  teams: { t: ServerLiveMatchPlayer[]; ct: ServerLiveMatchPlayer[] }
+  connectedPlayers: ServerLiveMatchPlayer[]
+  updatedAt: string | null
+  availability: "live_snapshot" | "roster_only" | "unavailable"
+}
+
 export interface ServerFilters {
   mode?: string
   status?: ServerStatus
