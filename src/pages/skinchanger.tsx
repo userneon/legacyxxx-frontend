@@ -207,6 +207,7 @@ export function SkinchangerPage() {
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<{ model: SkinchangerCatalogItem; entry: SkinchangerLoadoutEntry } | null>(null)
   const [saving, setSaving] = useState(false)
+  const [optimisticLoadoutEntries, setOptimisticLoadoutEntries] = useState<SkinchangerLoadoutEntry[] | null>(null)
 
   const activeCategory = categoryMeta(collection)
   const category: SkinchangerCategory = collection === "skins" && skinGroup === "agents" ? "agent" : activeCategory.category
@@ -232,7 +233,8 @@ export function SkinchangerPage() {
   const totalCatalogItems = catalog?.pagination.total ?? 0
   const pageSize = catalog?.pagination.limit ?? 36
   const categoryCounts = new Map((facets?.categories ?? []).map((entry) => [entry.category, entry.count]))
-  const loadoutEntries = loadoutResponse?.loadout.skinchanger_loadout_entries ?? []
+  const remoteLoadoutEntries = loadoutResponse?.loadout.skinchanger_loadout_entries ?? []
+  const loadoutEntries = optimisticLoadoutEntries ?? remoteLoadoutEntries
   const catalogTeamScope = activeWeapon ? teamScopeFromMetadata(activeWeapon) : "all"
   const selectedTeamScope: TeamScope = category === "agent" && agentTeam ? agentTeam : catalogTeamScope !== "all" ? catalogTeamScope : teamScope
   const showTeamSelector = Boolean(activeWeapon) && category !== "agent" && catalogTeamScope === "all"
@@ -252,6 +254,10 @@ export function SkinchangerPage() {
   const previewCharmItem = previewOptions?.charm ? previewAccessoryById.get(previewOptions.charm.catalogItemId) ?? null : null
   const accessoryCatalog = accessoryPicker === "sticker" ? stickerCatalog : charmCatalog
   const accessoriesLoading = accessoryPicker === "sticker" ? stickersLoading : charmsLoading
+
+  useEffect(() => {
+    if (loadoutResponse) setOptimisticLoadoutEntries(null)
+  }, [loadoutResponse?.loadout.version])
 
   useEffect(() => {
     if (!selected) {
@@ -303,6 +309,24 @@ export function SkinchangerPage() {
         options: customOptions,
       })
       await skinchangerService.saveLoadout({ entries: nextEntries })
+      const savedOptions: SkinchangerAppearanceOptions = {
+        ...customOptions,
+        stickers: [...(customOptions.stickers ?? [])],
+        charm: customOptions.charm ? { ...customOptions.charm } : undefined,
+      }
+      const savedEntry: SkinchangerLoadoutEntry = {
+        catalog_item_id: selected.id,
+        slot: activeSlot,
+        slot_key: selectedSlotKey,
+        team_scope: selectedTeamScope,
+        options: savedOptions,
+        skinchanger_catalog_items: selected,
+        resolved_accessories: Object.values(selectedAccessories),
+      }
+      setOptimisticLoadoutEntries([
+        ...loadoutEntries.filter((entry) => !(entry.slot_key === selectedSlotKey && entry.team_scope === selectedTeamScope)),
+        savedEntry,
+      ])
       toast.success("Your choice is ready for your next LEGACY-X game.")
       refetchLoadout()
     } catch {
@@ -325,6 +349,7 @@ export function SkinchangerPage() {
           options: entry.options,
         }))
       await skinchangerService.saveLoadout({ entries: nextEntries })
+      setOptimisticLoadoutEntries(loadoutEntries.filter((entry) => !(entry.slot === defaultCategory && entry.team_scope === selectedTeamScope)))
       setDefaultChoice(defaultCategory)
       setSelected(null)
       setCustomizeOpen(false)
@@ -352,6 +377,7 @@ export function SkinchangerPage() {
           options: current.options,
         }))
       await skinchangerService.saveLoadout({ entries: nextEntries })
+      setOptimisticLoadoutEntries(loadoutEntries.filter((current) => !(current.slot_key === entry.slot_key && current.team_scope === entry.team_scope)))
       if (activeWeapon?.weapon_class === model.weapon_class) {
         setSelected(null)
         setCustomizeOpen(false)
@@ -629,6 +655,14 @@ export function SkinchangerPage() {
                   <div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Wear</span><span className="text-xs text-muted-foreground">{wearName(customOptions.wear ?? defaultWear)} · {(customOptions.wear ?? defaultWear).toFixed(4)}</span></div>
                   <input aria-label="Skin wear" type="range" min={minWear} max={maxWear} step="0.0001" value={customOptions.wear ?? defaultWear} onChange={(event) => setCustomOptions((current) => ({ ...current, wear: Number(event.target.value) }))} className="h-2 w-full cursor-pointer accent-foreground" />
                   <div className="mt-1 flex justify-between text-[10px] text-muted-foreground"><span>Clean</span><span>Worn</span></div>
+                </div>
+                <div>
+                  <div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Pattern seed</span><span className="text-xs text-muted-foreground">{customOptions.seed ?? 0}</span></div>
+                  <Input aria-label="Skin pattern seed" type="number" min={0} max={1000} step={1} value={customOptions.seed ?? 0} onChange={(event) => {
+                    const seed = Math.max(0, Math.min(1000, Math.round(Number(event.target.value) || 0)))
+                    setCustomOptions((current) => ({ ...current, seed }))
+                  }} className="h-9 text-xs" />
+                  <p className="mt-1 text-[10px] text-muted-foreground">0–1000</p>
                 </div>
                 {canCustomizeAccessories && <div>
                   <div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Sticker slots</span><span className="text-[10px] text-muted-foreground">Up to 5</span></div>
