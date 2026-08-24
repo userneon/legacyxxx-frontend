@@ -35,3 +35,21 @@ export { walletService } from "./wallet"
 export { feedbackService } from "./feedback"
 export { searchService } from "./search"
 export { communityService } from "./community"
+export { skinchangerService } from "./skinchanger"
+export type {
+  SkinchangerActiveServerSession,
+  SkinchangerAppearanceOptions,
+  SkinchangerCatalogFacets,
+  SkinchangerCatalogItem,
+  SkinchangerCatalogPage,
+  SkinchangerCategory,
+  SkinchangerCharmOption,
+  SkinchangerFirearmGroup,
+  SkinchangerJob,
+  SkinchangerLoadout,
+  SkinchangerLoadoutEntry,
+  SkinchangerLoadoutInput,
+  SkinchangerSlot,
+  SkinchangerStickerOption,
+  TeamScope,
+} from "./skinchanger"

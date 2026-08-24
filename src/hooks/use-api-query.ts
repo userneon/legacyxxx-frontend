@@ -17,6 +17,8 @@ export interface ApiQueryState<T> {
 export interface UseApiQueryOptions {
   /** Skip the initial automatic fetch. Call `refetch()` to run it. */
   enabled?: boolean
+  /** Restarts the request and clears retained data when the logical query changes. */
+  queryKey?: string
 }
 
 /**
@@ -43,7 +45,7 @@ export function useApiQuery<T>(
   fetcher: ApiFetcher<T>,
   options: UseApiQueryOptions = {},
 ): ApiQueryState<T> & { refetch: () => void } {
-  const { enabled = true } = options
+  const { enabled = true, queryKey } = options
 
   const [state, setState] = useState<ApiQueryState<T>>({
     data: null,
@@ -61,6 +63,7 @@ export function useApiQuery<T>(
   // Token that identifies the current in-flight request. Any response from
   // an older request is discarded.
   const runIdRef = useRef(0)
+  const previousQueryKeyRef = useRef(queryKey)
   const [fetchToken, setFetchToken] = useState(0)
 
   const refetch = useCallback(() => {
@@ -76,7 +79,9 @@ export function useApiQuery<T>(
     const controller = new AbortController()
     const runId = ++runIdRef.current
 
-    setState((prev) => ({ data: prev.data, loading: true, error: null }))
+    const didQueryChange = previousQueryKeyRef.current !== queryKey
+    previousQueryKeyRef.current = queryKey
+    setState((prev) => ({ data: didQueryChange ? null : prev.data, loading: true, error: null }))
 
     const run = async () => {
       try {
@@ -102,7 +107,7 @@ export function useApiQuery<T>(
       controller.abort()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, fetchToken])
+  }, [enabled, fetchToken, queryKey])
 
   return { ...state, refetch }
 }

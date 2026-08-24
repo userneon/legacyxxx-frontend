@@ -21,8 +21,6 @@ import type { PageId } from "@/api/types"
 import { PAGE_TITLES, routeToPage } from "@/lib/routes"
 
 // LEGACY-X visual system: preserve the existing compact glass sidebar shell and route-level page transitions.
-const localSkinchangerPreviewUrl = "https://5177-ixb4ame4rc059l817o60r-b5eb73d9.us2.manus.computer/skinchanger"
-
 export function App() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -32,10 +30,6 @@ export function App() {
   const currentPage = routeToPage(location.pathname)
 
   const handleNavigate = (page: PageId) => {
-    if (page === "skinchanger") {
-      window.location.assign(localSkinchangerPreviewUrl)
-      return
-    }
     if (page === "profile" && user?.steamId) {
       navigate(`/profile/${user.steamId}`)
       return
@@ -82,7 +76,7 @@ export function App() {
               <Route path="/clans" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />
               <Route path="/clans/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />
               <Route path="/shop" element={<ProtectedPage pageName="Shop"><ShopPage /></ProtectedPage>} />
-              <Route path="/skinchanger" element={<ProtectedPage pageName="Skinchanger"><SkinchangerPage /></ProtectedPage>} />
+              <Route path="/skinchanger" element={<SkinchangerPage />} />
               <Route path="/penalties" element={<PenaltiesPage onProfileNavigate={handleProfileNavigate} />} />
               <Route path="/search" element={<ExplorePage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />
               <Route path="/feedback" element={<ProtectedPage pageName="Reviews"><FeedbackPage /></ProtectedPage>} />
