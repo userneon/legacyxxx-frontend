@@ -10,14 +10,14 @@ import {
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { communityLeadersService, profileService } from "@/api"
-import type { CommunityPlayer, FaceitProfileData, ProfileRecentMatch, ProfileStats, UserProfile } from "@/api/types"
+import { competitiveService, profileService } from "@/api"
+import type { CompetitiveProfile, FaceitProfileData, ProfileRecentMatch, ProfileStats, UserProfile } from "@/api/types"
 import { Button } from "@/components/ui/button"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
 import { useAuth } from "@/hooks/use-auth"
 import { PlayerAvatar } from "@/components/player-avatar"
-import { CsgoRankBadge } from "@/components/csgo-rank-badge"
+import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
 import { ModerationStatusIcon } from "@/components/moderation-status-icon"
 import { ProfileRoleIcon } from "@/components/profile-role-icon"
 import { SteamIcon } from "@/components/steam-login-gate"
@@ -65,8 +65,9 @@ export function ProfilePage({ userId }: ProfilePageProps) {
   const { data: recentMatches, loading: matchesLoading } = useApiQuery<ProfileRecentMatch[]>((signal) =>
     profileService.getRecentMatches(effectiveUserId, { signal }),
   )
-  const { data: leaders } = useApiQuery<CommunityPlayer[]>((signal) =>
-    communityLeadersService.getLeaders({ signal }),
+  const { data: competitive } = useApiQuery<CompetitiveProfile>((signal) =>
+    competitiveService.getPlayer(profile!.id, { signal }),
+    { enabled: Boolean(profile?.id && profile.role !== "Owner"), queryKey: profile?.id ?? "competitive-profile-pending" },
   )
 
   const handleLogout = () => {
@@ -82,9 +83,6 @@ export function ProfilePage({ userId }: ProfilePageProps) {
   const steamProfileUrl = profile && /^7656\d{13}$/.test(profile.steamId)
     ? `https://steamcommunity.com/profiles/${profile.steamId}`
     : null
-  const leaderboardPosition = profile && leaders
-    ? leaders.findIndex((player) => player.steamId === profile.steamId || player.id === profile.id) + 1
-    : 0
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -112,7 +110,7 @@ export function ProfilePage({ userId }: ProfilePageProps) {
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <ProfileRoleIcon role={profile.role} />
                 <ModerationStatusIcon status={profile.moderationStatus} />
-                {leaderboardPosition > 0 && <><CsgoRankBadge position={leaderboardPosition} /><span className="text-xs font-semibold text-white/72">Leaders · #{leaderboardPosition}</span></>}
+                {competitive && <><CompetitiveRankBadge rankId={competitive.rank_id} rankName={competitive.rank_name} imageKey={competitive.rank_image_key} /><span className="text-xs font-semibold text-white/72">{competitive.rank_name} · {competitive.current_exp.toLocaleString()} EXP</span></>}
               </div>
               {steamProfileUrl && <div className="mt-2"><a href={steamProfileUrl} target="_blank" rel="noreferrer" aria-label={`Open ${profile.username}'s Steam profile`} title="Open Steam profile" className="group inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-transparent text-white/55 transition-[color,opacity] hover:bg-transparent hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"><SteamIcon className="size-4 transition-opacity group-hover:opacity-100" /></a></div>}
             </div>

@@ -1,26 +1,27 @@
 import { Crosshair, Target, Clock, Trophy } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { communityLeadersService } from "@/api"
-import type { CommunityPlayer } from "@/api/types"
+import { competitiveService } from "@/api"
+import type { CompetitiveLeaderboardEntry } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
 import { PlayerModerationAvatar } from "@/components/player-moderation-avatar"
-import { CsgoRankBadge } from "@/components/csgo-rank-badge"
+import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
 
-// LEGACY-X visual system: Leaders celebrates current community performance, never rank, rating, XP, or level.
+// LEGACY-X visual system: existing performance layout with server-authoritative competitive rank artwork.
 export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId: string) => void }) {
-  const { data: leaders, loading, error, refetch } = useApiQuery<CommunityPlayer[]>((signal) =>
-    communityLeadersService.getLeaders({ signal }),
+  const { data: leaders, loading, error, refetch } = useApiQuery<CompetitiveLeaderboardEntry[]>((signal) =>
+    competitiveService.getLeaderboard({ signal }),
   )
 
   const list = leaders ?? []
   const highlights = list.slice(0, 3)
   const tableRows = list.slice(3)
-  const totalMatches = list.reduce((sum, player) => sum + player.matches, 0)
+  const totalMatches = list.reduce((sum, player) => sum + player.matches_completed, 0)
   const totalWins = list.reduce((sum, player) => sum + player.wins, 0)
-  const bestAim = [...list].sort((a, b) => b.headshots - a.headshots)[0]
-  const mostActive = [...list].sort((a, b) => b.playedHours - a.playedHours)[0]
+  const headshotRate = (player: CompetitiveLeaderboardEntry) => player.kills > 0 ? Math.round((player.headshot_kills / player.kills) * 100) : 0
+  const bestAim = [...list].sort((a, b) => headshotRate(b) - headshotRate(a))[0]
+  const mostActive = [...list].sort((a, b) => b.played_hours - a.played_hours)[0]
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -51,8 +52,8 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
               </div>
 
               <aside className="flex min-w-[170px] flex-1 flex-col justify-center gap-3 pb-2">
-                <PodiumInsight label="Sharpest aim" value={bestAim ? `${bestAim.headshots}%` : "—"} detail={bestAim ? `${bestAim.name} · HS rate` : "Headshot rate"} align="right" />
-                <PodiumInsight label="Most active" value={mostActive ? `${mostActive.playedHours}h` : "—"} detail={mostActive ? `${mostActive.name} · time played` : "Hours played"} align="right" />
+                <PodiumInsight label="Sharpest aim" value={bestAim ? `${headshotRate(bestAim)}%` : "—"} detail={bestAim ? `${bestAim.username} · HS rate` : "Headshot rate"} align="right" />
+                <PodiumInsight label="Most active" value={mostActive ? `${mostActive.played_hours}h` : "—"} detail={mostActive ? `${mostActive.username} · time played` : "Hours played"} align="right" />
               </aside>
             </div>
           </section>
@@ -60,20 +61,20 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
           <div className="overflow-x-auto rounded-xl border border-white/[0.08] bg-[#181818]">
             <table className="w-full min-w-[980px]">
               <thead><tr className="border-b border-white/[0.08]"><Header>Player</Header><Header>Rank</Header><Header align="right">Kills</Header><Header align="right">Deaths</Header><Header align="right">K/D</Header><Header align="right">HS</Header><Header align="right">Matches</Header><Header align="right">Wins</Header><Header align="right">Played</Header><Header align="right">Last played</Header></tr></thead>
-              <tbody>{tableRows.map((player, index) => {
-                const rank = index + 4
+              <tbody>{tableRows.map((player) => {
+                const rank = player.position
                 return (
-                <tr key={player.steamId ?? player.id ?? player.name} onClick={() => onProfileNavigate(player.steamId ?? player.id ?? player.name)} className="cursor-pointer border-b border-white/[0.06] last:border-0 focus-within:outline-none">
-                  <td className="px-4 py-3.5"><div className="flex items-center gap-2.5"><PlayerModerationAvatar avatar={player.avatar} name={player.name} status={player.moderationStatus} className="size-9 shrink-0 rounded-md text-xs" /><div className="min-w-0"><div className="truncate text-sm font-semibold text-white/90">{player.name}</div><div className="mt-0.5 text-[10px] text-white/45">#{rank} · {player.moderationStatus}</div></div></div></td>
-                  <td className="px-3 py-3.5"><CsgoRankBadge position={rank} className="h-7 w-12" /></td>
+                <tr key={player.user_id} onClick={() => onProfileNavigate(player.user_id)} className="cursor-pointer border-b border-white/[0.06] last:border-0 focus-within:outline-none">
+                  <td className="px-4 py-3.5"><div className="flex items-center gap-2.5"><PlayerModerationAvatar avatar={player.avatar} name={player.username} className="size-9 shrink-0 rounded-md text-xs" /><div className="min-w-0"><div className="truncate text-sm font-semibold text-white/90">{player.username}</div><div className="mt-0.5 text-[10px] text-white/45">#{rank} · {player.current_exp.toLocaleString()} EXP</div></div></div></td>
+                  <td className="px-3 py-3.5"><CompetitiveRankBadge rankId={player.rank_id} rankName={player.rank_name} imageKey={player.rank_image_key} /></td>
                   <NumberCell icon={Crosshair} value={player.kills.toLocaleString()} />
                   <td className="px-3 py-3.5 text-right text-sm tabular-nums text-white/65">{player.deaths.toLocaleString()}</td>
-                  <td className="px-3 py-3.5 text-right text-sm font-semibold tabular-nums text-white/95">{player.kd.toFixed(2)}</td>
-                  <NumberCell icon={Target} value={`${player.headshots}%`} />
-                  <td className="px-3 py-3.5 text-right text-sm tabular-nums text-white/75">{player.matches.toLocaleString()}</td>
+                  <td className="px-3 py-3.5 text-right text-sm font-semibold tabular-nums text-white/95">{player.kd_ratio.toFixed(2)}</td>
+                  <NumberCell icon={Target} value={player.kills > 0 ? `${Math.round((player.headshot_kills / player.kills) * 100)}%` : "0%"} />
+                  <td className="px-3 py-3.5 text-right text-sm tabular-nums text-white/75">{player.matches_completed.toLocaleString()}</td>
                   <td className="px-3 py-3.5 text-right text-sm tabular-nums text-white/75">{player.wins.toLocaleString()}</td>
-                  <td className="px-3 py-3.5 text-right text-sm tabular-nums text-white/55">{player.playedHours.toLocaleString()} hrs</td>
-                  <td className="px-3 py-3.5 text-right text-xs text-white/55"><span className="inline-flex items-center gap-1"><Clock className="size-3" />{player.lastPlayed}</span></td>
+                  <td className="px-3 py-3.5 text-right text-sm tabular-nums text-white/55">{player.played_hours.toLocaleString()} hrs</td>
+                  <td className="px-3 py-3.5 text-right text-xs text-white/55"><span className="inline-flex items-center gap-1"><Clock className="size-3" />{player.last_match_at ?? "—"}</span></td>
                 </tr>
                 )
               })}</tbody>
@@ -106,7 +107,7 @@ function PodiumInsight({
   )
 }
 
-function PodiumPlayer({ player, rank, onProfileNavigate }: { player?: CommunityPlayer; rank: 1 | 2 | 3; onProfileNavigate: (userId: string) => void }) {
+function PodiumPlayer({ player, rank, onProfileNavigate }: { player?: CompetitiveLeaderboardEntry; rank: 1 | 2 | 3; onProfileNavigate: (userId: string) => void }) {
   if (!player) return <div aria-hidden="true" />
 
   const tone = rank === 1
@@ -118,19 +119,19 @@ function PodiumPlayer({ player, rank, onProfileNavigate }: { player?: CommunityP
   return (
     <button
       type="button"
-      onClick={() => onProfileNavigate(player.steamId ?? player.id ?? player.name)}
+      onClick={() => onProfileNavigate(player.user_id)}
       className="group flex min-w-0 flex-col items-center text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-      aria-label={`Open ${player.name} profile`}
+      aria-label={`Open ${player.username} profile`}
     >
       <div className="relative z-10 -mb-3 flex flex-col items-center">
         <div className={cn("mb-1 flex size-7 items-center justify-center rounded-full border text-xs font-black shadow-lg shadow-black/25", tone.chip)}>{rank}</div>
-        <CsgoRankBadge position={rank} className="mb-1 h-8 w-14" />
-        <PlayerModerationAvatar avatar={player.avatar} name={player.name} status={player.moderationStatus} className="size-14 rounded-md border-2 border-[#181818] text-base sm:size-16" />
+        <CompetitiveRankBadge rankId={player.rank_id} rankName={player.rank_name} imageKey={player.rank_image_key} className="mb-1 h-8 w-14" />
+        <PlayerModerationAvatar avatar={player.avatar} name={player.username} className="size-14 rounded-md border-2 border-[#181818] text-base sm:size-16" />
       </div>
       <div className={cn("flex w-full min-w-0 flex-col items-center justify-end rounded-t-xl border px-2 pb-3 pt-5", tone.height, tone.surface)}>
         <p className={cn("text-[10px] font-bold uppercase tracking-[0.16em]", tone.text)}>{tone.label}</p>
-        <p className="mt-1 max-w-full truncate text-sm font-bold text-white/95 sm:text-base">{player.name}</p>
-        <div className="mt-2 flex items-baseline gap-1"><span className="text-lg font-black tabular-nums text-white">{player.kd.toFixed(2)}</span><span className="text-[10px] font-semibold uppercase tracking-wide text-white/50">K/D</span></div>
+        <p className="mt-1 max-w-full truncate text-sm font-bold text-white/95 sm:text-base">{player.username}</p>
+        <div className="mt-2 flex items-baseline gap-1"><span className="text-lg font-black tabular-nums text-white">{player.kd_ratio.toFixed(2)}</span><span className="text-[10px] font-semibold uppercase tracking-wide text-white/50">K/D</span></div>
         <p className="mt-1 text-[10px] tabular-nums text-white/55">{player.kills.toLocaleString()} kills · {player.wins.toLocaleString()} wins</p>
       </div>
     </button>

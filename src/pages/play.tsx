@@ -3,8 +3,8 @@ import type { CSSProperties } from "react"
 import { Users, Copy, Play as PlayIcon, Lock, Circle, CalendarDays, Trophy, Clock3, Crosshair, Flame, Crown, Map, MapPin, ArrowDown, ArrowUp, ArrowUpDown, Star, RefreshCw } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { playService, serversService, tournamentsService } from "@/api"
-import type { MatchInfo, PlaySubMode, ServerInfo, TournamentInfo, TournamentMatch } from "@/api/types"
+import { competitiveService, playService, serversService, tournamentsService } from "@/api"
+import type { CompetitiveAccess, MatchInfo, PlaySubMode, ServerInfo, TournamentInfo, TournamentMatch } from "@/api/types"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -182,6 +182,10 @@ function MongoliaFlag({ className }: { className?: string }) {
 export function PlayPage({ mode }: PlayPageProps) {
   const config = MODE_CONFIG[mode]
   const { isAuthenticated, loading: authLoading } = useAuth()
+  const { data: competitiveAccess, loading: competitiveLoading } = useApiQuery<CompetitiveAccess>((signal) => competitiveService.getMyAccess({ signal }), {
+    enabled: mode === "proleague" && isAuthenticated,
+    queryKey: mode === "proleague" && isAuthenticated ? "competitive-proleague-access" : "competitive-proleague-access-disabled",
+  })
 
   if (mode === "tournaments") {
     return <TournamentView />
@@ -189,6 +193,12 @@ export function PlayPage({ mode }: PlayPageProps) {
 
   if (mode === "proleague" && !authLoading && !isAuthenticated) {
     return <SteamLoginGate pageName="Pro League" />
+  }
+  if (mode === "proleague" && isAuthenticated && competitiveLoading) {
+    return <div className="p-6 text-sm text-muted-foreground">Checking competitive access…</div>
+  }
+  if (mode === "proleague" && isAuthenticated && competitiveAccess && !competitiveAccess.proLeagueUnlocked) {
+    return <div className="flex min-h-[320px] items-center justify-center p-6"><div className="glass max-w-md rounded-xl p-6 text-center"><Lock className="mx-auto size-6 text-white/70" /><h1 className="mt-3 font-semibold">Pro League is locked</h1><p className="mt-2 text-sm text-muted-foreground">Reach {competitiveAccess.requiredRankName} (Rank {competitiveAccess.requiredRankId}) through competitive gameplay to unlock this queue.</p></div></div>
   }
 
   if (config.useCards) {

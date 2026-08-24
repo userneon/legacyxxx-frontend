@@ -138,6 +138,40 @@ export interface UserProfile {
   links?: ProfileLink[]
 }
 
+export interface CompetitiveProfile {
+  user_id: string
+  steam_id: string
+  username: string
+  avatar: string
+  current_exp: number
+  rank_id: number
+  rank_slug: string
+  rank_name: string
+  rank_image_key: string
+  pro_league_unlocked: boolean
+  matches_completed: number
+  wins: number
+  losses: number
+  kills: number
+  assists: number
+  headshot_kills: number
+  last_match_at: string | null
+}
+
+export interface CompetitiveLeaderboardEntry extends CompetitiveProfile {
+  position: number
+  deaths: number
+  kd_ratio: number
+  played_hours: number
+}
+
+export interface CompetitiveAccess {
+  competitive: Pick<CompetitiveProfile, "current_exp" | "rank_id" | "rank_name" | "rank_image_key" | "pro_league_unlocked"> | null
+  proLeagueUnlocked: boolean
+  requiredRankId: number
+  requiredRankName: string
+}
+
 export interface ProfileStats {
   matches: number
   wins: number
