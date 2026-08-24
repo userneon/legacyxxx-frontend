@@ -231,13 +231,13 @@ export function SkinchangerPage() {
   const { data: facets } = useApiQuery((signal) => skinchangerService.getCatalogFacets(effectiveCategory, { signal }), { queryKey: effectiveCategory })
   const { data: loadoutResponse, refetch: refetchLoadout } =
     useApiQuery((signal) => skinchangerService.getLoadout({ signal }))
-  const { data: stickerCatalog, loading: stickersLoading } = useApiQuery(
+  const { data: stickerCatalog, loading: stickersLoading, error: stickerCatalogError, refetch: refetchStickers } = useApiQuery(
     (signal) => skinchangerService.getCatalog({ category: "sticker", query: accessoryQuery || undefined, limit: 18, offset: 0 }, { signal }),
-    { enabled: Boolean(selected && accessoryPicker === "sticker") },
+    { enabled: Boolean(selected && accessoryPicker === "sticker"), queryKey: `sticker:${accessoryQuery.trim()}` },
   )
-  const { data: charmCatalog, loading: charmsLoading } = useApiQuery(
+  const { data: charmCatalog, loading: charmsLoading, error: charmCatalogError, refetch: refetchCharms } = useApiQuery(
     (signal) => skinchangerService.getCatalog({ category: "charm", query: accessoryQuery || undefined, limit: 18, offset: 0 }, { signal }),
-    { enabled: Boolean(selected && accessoryPicker === "charm") },
+    { enabled: Boolean(selected && accessoryPicker === "charm"), queryKey: `charm:${accessoryQuery.trim()}` },
   )
 
   const catalogItems = catalog?.data ?? []
@@ -286,6 +286,8 @@ export function SkinchangerPage() {
   const previewCharmItem = previewOptions?.charm ? previewAccessoryById.get(previewOptions.charm.catalogItemId) ?? null : null
   const accessoryCatalog = accessoryPicker === "sticker" ? stickerCatalog : charmCatalog
   const accessoriesLoading = accessoryPicker === "sticker" ? stickersLoading : charmsLoading
+  const accessoryCatalogError = accessoryPicker === "sticker" ? stickerCatalogError : charmCatalogError
+  const refetchAccessoryCatalog = accessoryPicker === "sticker" ? refetchStickers : refetchCharms
 
   useEffect(() => {
     if (loadoutResponse && optimisticLoadoutVersion !== null && loadoutResponse.loadout.version >= optimisticLoadoutVersion) {
@@ -750,7 +752,7 @@ export function SkinchangerPage() {
                     <div className="mb-2 flex items-center justify-between gap-2"><p className="text-xs font-medium">{accessoryPicker === "sticker" ? `Sticker slot ${(editingStickerSlot ?? 0) + 1}` : "Choose charm"}</p><button onClick={() => { setAccessoryPicker(null); setEditingStickerSlot(null) }} className="rounded p-1 text-muted-foreground hover:bg-secondary hover:text-foreground"><X className="size-3.5" /></button></div>
                     <Input value={accessoryQuery} onChange={(event) => setAccessoryQuery(event.target.value)} placeholder={`Search ${accessoryPicker}s...`} className="h-8 text-xs" />
                     <div className="mt-2 grid max-h-52 grid-cols-3 gap-1 overflow-y-auto pr-1">
-                      {accessoriesLoading ? <div className="col-span-3 flex h-20 items-center justify-center"><Loader2 className="size-4 animate-spin text-muted-foreground" /></div> : (accessoryCatalog?.data ?? []).map((item) => <button key={item.id} onClick={() => chooseAccessory(item)} data-catalog-item-id={item.id} className="group rounded-md border border-border bg-card p-1.5 text-left hover:bg-secondary"><div className="flex h-12 items-center justify-center">{catalogImageUrl(item) ? <img src={catalogImageUrl(item) ?? undefined} alt={item.display_name} data-catalog-item-id={item.id} className="h-full w-full object-contain" loading="lazy" /> : <ImageOff className="size-4 text-muted-foreground" />}</div><p className="mt-1 line-clamp-2 text-[10px] font-medium leading-3">{item.display_name}</p></button>)}
+                      {accessoriesLoading ? <div className="col-span-3 flex h-20 items-center justify-center"><Loader2 className="size-4 animate-spin text-muted-foreground" /></div> : accessoryCatalogError ? <div className="col-span-3 flex h-20 flex-col items-center justify-center gap-2 text-center"><span className="text-[10px] text-muted-foreground">Could not load {accessoryPicker}s.</span><button type="button" onClick={refetchAccessoryCatalog} className="text-[10px] font-medium text-foreground underline underline-offset-2">Try again</button></div> : (accessoryCatalog?.data ?? []).map((item) => <button key={item.id} onClick={() => chooseAccessory(item)} data-catalog-item-id={item.id} className="group rounded-md border border-border bg-card p-1.5 text-left hover:bg-secondary"><div className="flex h-12 items-center justify-center">{catalogImageUrl(item) ? <img src={catalogImageUrl(item) ?? undefined} alt={item.display_name} data-catalog-item-id={item.id} className="h-full w-full object-contain" loading="lazy" /> : <ImageOff className="size-4 text-muted-foreground" />}</div><p className="mt-1 line-clamp-2 text-[10px] font-medium leading-3">{item.display_name}</p></button>)}
                     </div>
                   </div>
                 )}
