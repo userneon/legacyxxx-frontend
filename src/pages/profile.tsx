@@ -83,6 +83,12 @@ export function ProfilePage({ userId }: ProfilePageProps) {
   const steamProfileUrl = profile && /^7656\d{13}$/.test(profile.steamId)
     ? `https://steamcommunity.com/profiles/${profile.steamId}`
     : null
+  const visibleCompetitiveRank = profile?.role === "Owner" ? null : {
+    rankId: competitive?.rank_id ?? 1,
+    rankName: competitive?.rank_name ?? "Silver I",
+    imageKey: competitive?.rank_image_key ?? "rank-01",
+    currentExp: competitive?.current_exp ?? 0,
+  }
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -110,7 +116,7 @@ export function ProfilePage({ userId }: ProfilePageProps) {
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <ProfileRoleIcon role={profile.role} />
                 <ModerationStatusIcon status={profile.moderationStatus} />
-                {competitive && <><CompetitiveRankBadge rankId={competitive.rank_id} rankName={competitive.rank_name} imageKey={competitive.rank_image_key} /><span className="text-xs font-semibold text-white/72">{competitive.rank_name} · {competitive.current_exp.toLocaleString()} EXP</span></>}
+                {visibleCompetitiveRank && <><CompetitiveRankBadge rankId={visibleCompetitiveRank.rankId} rankName={visibleCompetitiveRank.rankName} imageKey={visibleCompetitiveRank.imageKey} currentExp={visibleCompetitiveRank.currentExp} /><span className="text-xs font-semibold text-white/72">{visibleCompetitiveRank.rankName} · {visibleCompetitiveRank.currentExp.toLocaleString()} EXP</span></>}
               </div>
               {steamProfileUrl && <div className="mt-2"><a href={steamProfileUrl} target="_blank" rel="noreferrer" aria-label={`Open ${profile.username}'s Steam profile`} title="Open Steam profile" className="group inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-transparent text-white/55 transition-[color,opacity] hover:bg-transparent hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"><SteamIcon className="size-4 transition-opacity group-hover:opacity-100" /></a></div>}
             </div>
