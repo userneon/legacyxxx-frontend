@@ -3,7 +3,7 @@ import { Search, Users, Swords, User } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { searchService } from "@/api"
-import type { ClanCard, LeaderPlayer, SearchKind } from "@/api/types"
+import type { ClanCard, CommunityPlayer, SearchKind } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
 import { PlayerAvatar } from "@/components/player-avatar"
@@ -13,7 +13,7 @@ export function ExplorePage({ onProfileNavigate, onClanNavigate }: { onProfileNa
   const [tab, setTab] = useState<SearchKind>("players")
   const [query, setQuery] = useState("")
 
-  const { data, loading, error, refetch } = useApiQuery<LeaderPlayer[] | ClanCard[]>(
+  const { data, loading, error, refetch } = useApiQuery<CommunityPlayer[] | ClanCard[]>(
     (signal) => {
       if (tab === "players") {
         return searchService
@@ -77,9 +77,9 @@ export function ExplorePage({ onProfileNavigate, onClanNavigate }: { onProfileNa
       {!loading && !error && results.length > 0 && (
         <div className="grid gap-3 sm:grid-cols-2">
           {tab === "players"
-            ? (results as LeaderPlayer[]).map((player) => (
+            ? (results as CommunityPlayer[]).map((player) => (
               <button
-                key={player.rank}
+                key={player.steamId ?? player.id ?? player.name}
                 onClick={() => {
                   const identity = player.steamId ?? player.id
                   if (identity) onProfileNavigate(identity)
@@ -87,13 +87,10 @@ export function ExplorePage({ onProfileNavigate, onClanNavigate }: { onProfileNa
                 disabled={!(player.steamId ?? player.id)}
                 className="glass group flex w-full items-center gap-4 rounded-xl p-4 transition-all hover:bg-secondary/40 hover-lift cursor-pointer text-left"
               >
-                <PlayerAvatar avatar={player.avatar} name={player.name} className="size-12 rounded-full text-lg" />
+                <PlayerAvatar avatar={player.avatar} name={player.name} className="size-12 rounded-md text-lg" />
                 <div className="flex-1">
                   <div className="font-medium">{player.name}</div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                    <span>XP: {player.experience.toLocaleString()}</span>
-                    <span>K/D: {player.kd}</span>
-                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">K/D: {player.kd}</div>
                 </div>
                 <Users className="size-4 text-muted-foreground" />
               </button>

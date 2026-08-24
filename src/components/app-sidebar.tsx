@@ -11,7 +11,7 @@ import {
   Flame,
   Crown,
   Paintbrush,
-  Skull,
+  Gavel,
   Play,
   type LucideIcon,
 } from "lucide-react"
@@ -47,7 +47,7 @@ interface NavItem {
 }
 
 const PLAY_SUB_ITEMS: NavItem[] = [
-  { id: "play-5vs5", label: "5vs5 Matches", icon: Crosshair },
+  { id: "play-5vs5", label: "5x5 MATCHES", icon: Crosshair },
   { id: "play-fun", label: "Fun Mode", icon: Flame },
   { id: "play-proleague", label: "Pro League", icon: Crown },
   { id: "play-tournaments", label: "Tournaments", icon: Trophy },
@@ -65,10 +65,17 @@ const CONTENT_NAV: NavItem[] = [
 
 const COMMUNITY_NAV: NavItem[] = [
   { id: "leaders", label: "Leaders", icon: Trophy },
-  { id: "penalties", label: "Penalties", icon: Skull },
+  { id: "penalties", label: "Penalties", icon: Gavel },
   { id: "feedback", label: "Reviews", icon: MessageSquare },
   { id: "explore", label: "Explore", icon: Search },
 ]
+
+function playSubItemAccent(id: PageId) {
+  if (id === "play-5vs5") return "text-sky-300"
+  if (id === "play-fun") return "text-pink-300"
+  if (id === "play-proleague") return "text-white"
+  return "text-amber-300"
+}
 
 function NavButton({ item, isActive, onClick }: { item: NavItem; isActive: boolean; onClick: () => void }) {
   return (
@@ -79,12 +86,12 @@ function NavButton({ item, isActive, onClick }: { item: NavItem; isActive: boole
         onClick={onClick}
         className={cn(
           "text-sidebar-foreground h-9 transition-all duration-200",
-          isActive && "text-sidebar-accent-foreground"
+          isActive && (item.id === "feedback" ? "text-amber-300" : "text-sidebar-accent-foreground")
         )}
       >
         <item.icon className={cn(
           "!size-[17px] shrink-0 transition-colors duration-200",
-          isActive ? "text-sidebar-accent-foreground" : "text-sidebar-foreground"
+          isActive ? (item.id === "feedback" ? "text-amber-300" : "text-sidebar-accent-foreground") : "text-sidebar-foreground"
         )} />
         <span className="text-[13px]">{item.label}</span>
         {item.badge && (
@@ -168,12 +175,12 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                   onClick={() => setPlayOpen((v) => !v)}
                   className={cn(
                     "text-sidebar-foreground h-9 transition-all duration-200",
-                    isPlayActive && "text-sidebar-accent-foreground"
+                    isPlayActive && "text-amber-300"
                   )}
                 >
                   <Play className={cn(
                     "!size-[17px] shrink-0 fill-current transition-all duration-200",
-                    isPlayActive ? "text-chart-4" : "text-chart-4/50"
+                    isPlayActive ? "text-amber-300" : "text-sidebar-foreground"
                   )} />
                   <span className="text-[13px]">Play</span>
                   <ChevronDown
@@ -195,12 +202,12 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                         onClick={() => onNavigate(item.id)}
                         className={cn(
                           "text-sidebar-foreground transition-colors duration-200",
-                          isActive(item.id) && "text-sidebar-accent-foreground"
+                          isActive(item.id) && playSubItemAccent(item.id)
                         )}
                       >
                         <item.icon className={cn(
                           "!size-[15px] shrink-0 transition-colors duration-200",
-                          isActive(item.id) ? "text-sidebar-accent-foreground" : "text-sidebar-foreground"
+                          isActive(item.id) ? playSubItemAccent(item.id) : "text-sidebar-foreground"
                         )} />
                         <span className="text-[13px]">{item.label}</span>
                       </SidebarMenuSubButton>
@@ -214,7 +221,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
 
         {/* Content */}
         <SidebarGroup className="py-1">
-          <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-medium px-3">
+          <SidebarGroupLabel className="text-sidebar-foreground/65 text-[10px] uppercase tracking-widest font-medium px-3">
             Content
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -228,7 +235,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
 
         {/* Community */}
         <SidebarGroup className="py-1">
-          <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-medium px-3">
+          <SidebarGroupLabel className="text-sidebar-foreground/65 text-[10px] uppercase tracking-widest font-medium px-3">
             Community
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -247,7 +254,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
             LegacyX
           </span>
           <span className="mx-1.5 text-sidebar-foreground/20">·</span>
-          <span className="text-[10px] font-bold tabular-nums text-chart-4">
+          <span className="text-[10px] font-bold tabular-nums text-sidebar-foreground/75">
             v1.0
           </span>
         </div>

@@ -1,52 +1,34 @@
-import { useState } from "react"
-
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
+import { cn } from "@/lib/utils"
 
 interface SteamLoginGateProps {
   pageName: string
 }
 
-const STEAM_LOGO_PATH = "/steam-logo-png_seeklogo-290636.png"
-
-export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
+export function SteamLoginGate({}: SteamLoginGateProps) {
   const { loginWithSteam } = useAuth()
-  const [logoAvailable, setLogoAvailable] = useState(true)
 
   return (
-    <div className="flex min-h-full flex-col items-center justify-center gap-5 p-12 md:min-h-[calc(100vh-3.5rem)]">
-      <div className="glass flex size-20 items-center justify-center rounded-2xl p-3">
-        {logoAvailable ? (
-          <img
-            src={STEAM_LOGO_PATH}
-            alt="Steam"
-            className="size-full rounded-full object-cover"
-            onError={() => setLogoAvailable(false)}
-          />
-        ) : (
-          <SteamIcon className="size-10 text-foreground" />
-        )}
-      </div>
-      <div className="text-center">
-        <h2 className="text-lg font-semibold">{pageName} requires sign-in</h2>
-        <p className="mt-1 max-w-xs text-sm text-muted-foreground">
-          Sign in with Steam to access this section.
-        </p>
-      </div>
-      <Button size="lg" onClick={loginWithSteam} className="gap-2">
-        {logoAvailable ? (
-          <img
-            src={STEAM_LOGO_PATH}
-            alt=""
-            className="size-5 rounded-full object-cover"
-            onError={() => setLogoAvailable(false)}
-          />
-        ) : (
-          <SteamIcon className="size-5" />
-        )}
-        Login with Steam
-      </Button>
+    <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center bg-[#0b0b0b] px-4 py-12 sm:px-6">
+      <section className="w-full max-w-[780px] text-center">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/55">Steam Required</p>
+        <h1 className="mt-3 text-4xl font-extrabold tracking-tight text-white">Access denied!</h1>
+        <div className="mt-6 flex h-[54px] items-center justify-center rounded-[14px] border border-white/[0.13] bg-black/45 px-5 text-sm font-semibold text-white/90 shadow-2xl shadow-black/40 backdrop-blur-md">
+          <span className="max-w-full truncate whitespace-nowrap">Sign in with Steam to unlock this feature and continue with LEGACY-X.</span>
+        </div>
+        <SteamLoginButton onClick={loginWithSteam} className="mt-6" />
+      </section>
     </div>
+  )
+}
+
+export function SteamLoginButton({ onClick, className, label = "Login with Steam" }: { onClick: () => void; className?: string; label?: string }) {
+  return (
+    <Button type="button" onClick={onClick} className={cn("h-11 min-w-[176px] gap-2 border border-sky-200/30 bg-[#4a9ce6] px-5 text-white shadow-lg shadow-sky-950/30 hover:bg-[#5aa8ef] focus-visible:ring-sky-200/80", className)}>
+      <SteamIcon className="size-5 shrink-0 text-white" />
+      {label}
+    </Button>
   )
 }
 

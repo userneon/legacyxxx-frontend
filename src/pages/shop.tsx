@@ -3,9 +3,9 @@ import { Clock, ShoppingBag } from "lucide-react"
 export function ShopPage() {
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="glass shiny-slow glow-violet flex flex-col items-center justify-center rounded-xl p-16 text-center">
-        <div className="mb-6 flex size-20 items-center justify-center rounded-2xl bg-chart-4/15">
-          <ShoppingBag className="size-10 text-chart-4" />
+      <div className="glass shiny-slow flex flex-col items-center justify-center rounded-xl p-16 text-center">
+        <div className="mb-6 flex size-20 items-center justify-center rounded-2xl bg-white/[0.06]">
+          <ShoppingBag className="size-10 text-white/75" />
         </div>
         <h2 className="mb-2 text-2xl font-bold tracking-tight">Coming Soon</h2>
         <p className="max-w-md text-muted-foreground">

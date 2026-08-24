@@ -6,13 +6,13 @@ export const PAGE_ROUTES: Record<PageId, string> = {
   "play-fun": "/play/fun",
   "play-proleague": "/play/proleague",
   "play-tournaments": "/tournaments",
-  leaders: "/leaderboard",
-  clan: "/clans",
+  leaders: "/leaders",
+  clan: "/clan",
   shop: "/shop",
   skinchanger: "/skinchanger",
   penalties: "/penalties",
-  explore: "/search",
-  feedback: "/feedback",
+  explore: "/explore",
+  feedback: "/reviews",
   profile: "/profile",
   wallet: "/wallet",
 }
@@ -40,7 +40,10 @@ export const PAGE_TITLES: Record<PageId, string> = {
 
 export function routeToPage(pathname: string): PageId {
   if (pathname.startsWith("/players/")) return "profile"
+  if (pathname.startsWith("/clan/")) return "clan"
   if (pathname.startsWith("/clans/")) return "clan"
+  if (pathname === "/search") return "explore"
+  if (pathname === "/feedback") return "feedback"
   if (pathname.startsWith("/servers/")) return "play-5vs5"
   return ROUTE_PAGES[pathname] ?? "home"
 }

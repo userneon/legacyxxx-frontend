@@ -1,10 +1,10 @@
 import { useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft, Swords, Plus, Users, Upload, X, Globe, Shield, Crown, UserPlus } from "lucide-react"
+import { ArrowLeft, Swords, Plus, Users, Upload, X, Globe, Shield, Crown, UserPlus, Coins } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { clansService } from "@/api"
-import type { ClanCard } from "@/api/types"
+import { clansService, walletService } from "@/api"
+import type { ClanCard, WalletBalance } from "@/api/types"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -22,12 +22,17 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 // LEGACY-X visual system: retain the dark glass card rhythm while exposing clan identity, roster, and member navigation as first-class flows.
+const CLAN_CREATE_COST = 10
+
 export function ClanPage({ onProfileNavigate, onClanNavigate }: { onProfileNavigate: (userId: string) => void; onClanNavigate: (clanId: string) => void }) {
   const { clanId } = useParams()
   const [open, setOpen] = useState(false)
 
   const { data: clans, loading, error, refetch } = useApiQuery<ClanCard[]>((signal) =>
     clansService.getClans({ signal }),
+  )
+  const { data: wallet, loading: walletLoading, refetch: refetchWallet } = useApiQuery<WalletBalance>((signal) =>
+    walletService.getBalance({ signal }),
   )
 
   if (clanId) return <ClanDetailView clanId={clanId} onProfileNavigate={onProfileNavigate} />
@@ -51,10 +56,18 @@ export function ClanPage({ onProfileNavigate, onClanNavigate }: { onProfileNavig
             <DialogHeader>
               <DialogTitle>Create a New Clan</DialogTitle>
               <DialogDescription>
-                Set up your clan. Logo and name are required, thumbnail is optional.
+                Set up your clan. Logo and name are required, thumbnail is optional. Clan creation costs 10 coins.
               </DialogDescription>
             </DialogHeader>
-            <CreateClanForm onClose={() => { setOpen(false); void refetch() }} />
+            <CreateClanForm
+              availableCoins={wallet?.balance ?? 0}
+              balanceLoading={walletLoading}
+              onClose={() => {
+                setOpen(false)
+                void refetch()
+                void refetchWallet()
+              }}
+            />
           </DialogContent>
         </Dialog>
       </div>
@@ -67,7 +80,7 @@ export function ClanPage({ onProfileNavigate, onClanNavigate }: { onProfileNavig
           { label: "Open Slots", value: (totalSlots - totalMembers).toString(), icon: UserPlus },
           { label: "Full Clans", value: fullClans.toString(), icon: Crown },
         ].map((stat) => (
-          <div key={stat.label} className="glass rounded-xl p-4 hover-lift hover:glow-blue">
+          <div key={stat.label} className="glass rounded-xl p-4 hover-lift">
             <stat.icon className="size-4 text-muted-foreground" />
             <div className="mt-2 text-xl font-bold tabular-nums">{stat.value}</div>
             <div className="text-xs text-muted-foreground mt-0.5">{stat.label}</div>
@@ -116,7 +129,7 @@ function ClanCardItem({ clan, onClanNavigate, onChanged }: { clan: ClanCard; onC
       role="button"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === "Enter") onClanNavigate(clan.id) }}
-      className="glass group flex flex-col overflow-hidden rounded-xl transition-all hover:glow-blue hover-lift cursor-pointer"
+      className="glass group flex flex-col overflow-hidden rounded-xl transition-all hover-lift cursor-pointer"
     >
       {/* Banner */}
       <div className="relative h-36 overflow-hidden">
@@ -231,24 +244,37 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
           <div className="flex flex-wrap items-center justify-between gap-3 p-5 text-sm"><p className="max-w-2xl text-muted-foreground">{clan.description || "This LEGACY-X clan has not added a public description yet."}</p><div className="rounded-lg bg-secondary px-3 py-2 font-semibold">{clan.currentPlayers}/{clan.maxPlayers} members</div></div>
         </section>
         <section className="flex flex-col gap-3"><div className="flex items-center gap-2"><Users className="size-4 text-muted-foreground" /><h2 className="font-semibold">Members</h2></div>
-          {members.length === 0 ? <div className="glass rounded-xl p-5 text-sm text-muted-foreground">Member roster will appear here as players join this clan.</div> : <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{members.map((member) => <button key={member.id} onClick={() => onProfileNavigate(member.id)} className="glass flex items-center gap-3 rounded-xl p-4 text-left transition-all hover:bg-secondary/40 hover-lift"><PlayerAvatar avatar={member.avatar} name={member.name} className="size-10 rounded-full text-sm" /><div className="min-w-0"><div className="truncate font-medium">{member.name}</div><div className="text-xs text-muted-foreground">{member.role}</div></div></button>)}</div>}
+          {members.length === 0 ? <div className="glass rounded-xl p-5 text-sm text-muted-foreground">Member roster will appear here as players join this clan.</div> : <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{members.map((member) => <button key={member.id} onClick={() => onProfileNavigate(member.id)} className="glass flex items-center gap-3 rounded-xl p-4 text-left transition-all hover:bg-secondary/40 hover-lift"><PlayerAvatar avatar={member.avatar} name={member.name} className="size-10 rounded-md text-sm" /><div className="min-w-0"><div className="truncate font-medium">{member.name}</div><div className="text-xs text-muted-foreground">{member.role}</div></div></button>)}</div>}
         </section>
       </>}
     </div>
   )
 }
 
-function CreateClanForm({ onClose }: { onClose: () => void }) {
+function CreateClanForm({
+  availableCoins,
+  balanceLoading,
+  onClose,
+}: {
+  availableCoins: number
+  balanceLoading: boolean
+  onClose: () => void
+}) {
   const [name, setName] = useState("")
   const [tag, setTag] = useState("")
   const [logo, setLogo] = useState("")
   const [thumbnail, setThumbnail] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
+  const canAfford = availableCoins >= CLAN_CREATE_COST
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim() || !tag.trim() || !logo) return
+    if (!canAfford) {
+      setError(`You need ${CLAN_CREATE_COST} coins to create a clan.`)
+      return
+    }
     setSubmitting(true)
     setError("")
     try {
@@ -259,8 +285,8 @@ function CreateClanForm({ onClose }: { onClose: () => void }) {
         thumbnail,
       })
       onClose()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create clan. Please try again.")
+    } catch {
+      setError("Unable to create the clan right now. Please try again.")
     } finally {
       setSubmitting(false)
     }
@@ -281,6 +307,19 @@ function CreateClanForm({ onClose }: { onClose: () => void }) {
 
   return (
     <form className="flex flex-col gap-4 mt-4" onSubmit={handleSubmit}>
+      <div className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.1] bg-white/[0.035] px-3 py-2.5">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Coins className="size-3.5 text-amber-200" />
+          <span>Clan creation fee</span>
+        </div>
+        <div className="text-right">
+          <div className="text-sm font-bold tabular-nums text-amber-100">{CLAN_CREATE_COST} coins</div>
+          <div className={cn("text-[11px]", canAfford ? "text-muted-foreground" : "text-destructive")}>
+            {balanceLoading ? "Checking balance..." : `${availableCoins.toLocaleString()} coins available`}
+          </div>
+        </div>
+      </div>
+
       <div className="flex flex-col gap-2">
         <Label>Clan Logo (Required)</Label>
         <div className="flex items-center gap-3">
@@ -350,9 +389,9 @@ function CreateClanForm({ onClose }: { onClose: () => void }) {
           <X className="size-3.5" />
           Cancel
         </Button>
-        <Button type="submit" disabled={submitting || !name.trim() || !tag.trim() || !logo}>
+        <Button type="submit" disabled={submitting || balanceLoading || !canAfford || !name.trim() || !tag.trim() || !logo}>
           <Plus className="size-3.5" />
-          {submitting ? "Creating..." : "Create Clan"}
+          {submitting ? "Creating..." : "Create Clan · 10 coins"}
         </Button>
       </div>
     </form>

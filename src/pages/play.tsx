@@ -1,15 +1,17 @@
-import { useState } from "react"
-import { Users, Copy, Play as PlayIcon, Lock, Circle, CalendarDays, Trophy, Clock3, Crosshair, Flame, Crown, List, Map, MapPin, SlidersHorizontal, ArrowUpNarrowWide, ArrowDownWideNarrow } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import type { CSSProperties } from "react"
+import { Users, Copy, Play as PlayIcon, Lock, Circle, CalendarDays, Trophy, Clock3, Crosshair, Flame, Crown, Map, MapPin, ArrowDown, ArrowUp, ArrowUpDown, Star, RefreshCw } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { playService, serversService, tournamentsService } from "@/api"
 import type { MatchInfo, PlaySubMode, ServerInfo, TournamentInfo, TournamentMatch } from "@/api/types"
-import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useApiQuery } from "@/hooks/use-api-query"
+import { useAuth } from "@/hooks/use-auth"
 import { QueryState } from "@/components/query-state"
+import { SteamLoginGate } from "@/components/steam-login-gate"
+import { toast } from "sonner"
 
 interface PlayPageProps {
   mode: PlaySubMode
@@ -21,13 +23,15 @@ const MODE_CONFIG: Record<PlaySubMode, {
   label: string
   description: string
   icon: typeof Crosshair
+  accent: "sky" | "pink" | "white" | "gold"
 }> = {
   "5vs5": {
-    filter: "5vs5",
+    filter: "5x5",
     useCards: true,
-    label: "5vs5 Matches",
-    description: "Competitive ranked matches",
+    label: "5x5 MATCHES",
+    description: "Competitive matches",
     icon: Crosshair,
+    accent: "sky",
   },
   fun: {
     filter: "Fun",
@@ -35,6 +39,7 @@ const MODE_CONFIG: Record<PlaySubMode, {
     label: "Fun Mode",
     description: "Surf, aim, deathmatch and more",
     icon: Flame,
+    accent: "pink",
   },
   proleague: {
     filter: "Pro League",
@@ -42,6 +47,7 @@ const MODE_CONFIG: Record<PlaySubMode, {
     label: "Pro League",
     description: "Seasonal competitive league",
     icon: Crown,
+    accent: "white",
   },
   tournaments: {
     filter: "Tournament",
@@ -49,11 +55,38 @@ const MODE_CONFIG: Record<PlaySubMode, {
     label: "Tournaments",
     description: "Scheduled prize tournaments",
     icon: Trophy,
+    accent: "gold",
   },
 }
 
+const MODE_ACCENTS = {
+  sky: {
+    headerGlow: "from-sky-400/15",
+    iconSurface: "border-sky-300/20 bg-sky-300/[0.1]",
+    iconColor: "text-sky-200",
+    cardKicker: "text-sky-100/75",
+  },
+  pink: {
+    headerGlow: "from-pink-400/15",
+    iconSurface: "border-pink-300/20 bg-pink-300/[0.1]",
+    iconColor: "text-pink-200",
+    cardKicker: "text-pink-100/75",
+  },
+  white: {
+    headerGlow: "from-white/10",
+    iconSurface: "border-white/20 bg-white/[0.09]",
+    iconColor: "text-white",
+    cardKicker: "text-white/70",
+  },
+  gold: {
+    headerGlow: "from-amber-300/10",
+    iconSurface: "border-amber-300/15 bg-amber-300/[0.08]",
+    iconColor: "text-amber-300",
+    cardKicker: "text-amber-200/75",
+  },
+} as const
+
 type MatchFilter = "all" | "live" | "waiting"
-type ViewMode = "table" | "block"
 type SortMode = "asc" | "desc"
 
 const MATCH_MAPS = [
@@ -68,16 +101,66 @@ const MATCH_MAPS = [
   { value: "de_train", label: "Train" },
 ]
 
-const MAP_COLORS: Record<string, string> = {
-  de_ancient: "from-emerald-900/40 to-emerald-950/80",
-  de_anubis: "from-yellow-900/40 to-yellow-950/80",
-  de_cache: "from-teal-900/40 to-teal-950/80",
-  de_dust2: "from-orange-900/40 to-orange-950/80",
-  de_inferno: "from-red-900/40 to-red-950/80",
-  de_mirage: "from-amber-900/40 to-amber-950/80",
-  de_nuke: "from-blue-900/40 to-blue-950/80",
-  de_overpass: "from-sky-900/40 to-sky-950/80",
-  de_train: "from-stone-900/40 to-stone-950/80",
+// Local WebP map artwork is used on Block cards and compact Table thumbnails; unknown maps retain a neutral fallback.
+const MAP_BACKGROUNDS: Record<string, string> = {
+  de_mirage: "/maps/de_mirage.webp",
+  de_inferno: "/maps/de_inferno.webp",
+  de_ancient: "/maps/de_ancient.webp",
+  de_nuke: "/maps/de_nuke.webp",
+}
+
+async function copyConnectionAddress(address: string | undefined, subject: string) {
+  if (!address) {
+    toast.error("Server IP unavailable", { description: `${subject} does not currently expose a connection address.` })
+    return
+  }
+
+  try {
+    if (!navigator.clipboard?.writeText) throw new Error("Clipboard API unavailable")
+    await Promise.race([
+      navigator.clipboard.writeText(address),
+      new Promise<void>((_, reject) => window.setTimeout(() => reject(new Error("Clipboard timeout")), 800)),
+    ])
+  } catch {
+    const textarea = document.createElement("textarea")
+    textarea.value = address
+    textarea.setAttribute("readonly", "")
+    textarea.style.position = "fixed"
+    textarea.style.opacity = "0"
+    document.body.appendChild(textarea)
+    textarea.select()
+    const copied = document.execCommand("copy")
+    textarea.remove()
+
+    if (!copied) {
+      toast.error("Copy failed", { description: "Please copy the connection address manually." })
+      return
+    }
+  }
+
+  toast.success("Server IP copied", { description: address })
+}
+
+function openSteamConnect(address: string | undefined, subject: string) {
+  const safeAddress = address?.trim()
+  if (!safeAddress || !/^[a-zA-Z0-9.-]+:\d{1,5}$/.test(safeAddress)) {
+    toast.error("Server IP unavailable", { description: `${subject} does not currently expose a valid connection address.` })
+    return
+  }
+
+  toast.info("Opening Steam…", { description: `Connecting to ${safeAddress}` })
+  window.location.assign(`steam://connect/${safeAddress}`)
+}
+
+function connectToMatchServer(match: MatchInfo) {
+  if (!match.connectAddress) {
+    openSteamConnect(undefined, `Match #${match.number}`)
+    return
+  }
+
+  // Record the join intent without delaying the user's Steam connection flow.
+  void playService.joinMatch(match.id).catch(() => undefined)
+  openSteamConnect(match.connectAddress, `Match #${match.number}`)
 }
 
 function mapLabel(value: string): string {
@@ -98,9 +181,14 @@ function MongoliaFlag({ className }: { className?: string }) {
 
 export function PlayPage({ mode }: PlayPageProps) {
   const config = MODE_CONFIG[mode]
+  const { isAuthenticated, loading: authLoading } = useAuth()
 
   if (mode === "tournaments") {
     return <TournamentView />
+  }
+
+  if (mode === "proleague" && !authLoading && !isAuthenticated) {
+    return <SteamLoginGate pageName="Pro League" />
   }
 
   if (config.useCards) {
@@ -110,19 +198,49 @@ export function PlayPage({ mode }: PlayPageProps) {
   return <ServerListView mode={config.filter} />
 }
 
+
 function MatchCardView({ mode }: { mode: PlaySubMode }) {
   const [filter, setFilter] = useState<MatchFilter>("all")
   const [mapFilter, setMapFilter] = useState("all")
   const [hideEmpty, setHideEmpty] = useState(false)
   const [favoritesOnly, setFavoritesOnly] = useState(false)
-  const [view, setView] = useState<ViewMode>("block")
   const [sort, setSort] = useState<SortMode>("asc")
+  const [favoriteOverrides, setFavoriteOverrides] = useState<Record<string, boolean>>({})
+  const [manualRefreshPulse, setManualRefreshPulse] = useState(false)
+  const refreshPulseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const { data: matches, loading, error, refetch } = useApiQuery<MatchInfo[]>((signal) =>
     playService.getMatchesByMode(mode, { signal }),
   )
 
-  const allMatches = matches ?? []
+  useEffect(() => () => {
+    if (refreshPulseTimerRef.current) clearTimeout(refreshPulseTimerRef.current)
+  }, [])
+
+  const triggerRefresh = () => {
+    if (loading || manualRefreshPulse) return
+
+    setManualRefreshPulse(true)
+    refetch()
+
+    if (refreshPulseTimerRef.current) clearTimeout(refreshPulseTimerRef.current)
+    refreshPulseTimerRef.current = setTimeout(() => {
+      setManualRefreshPulse(false)
+      refreshPulseTimerRef.current = null
+    }, 520)
+  }
+
+  const allMatches = (matches ?? []).map((match) => ({
+    ...match,
+    favorite: favoriteOverrides[match.id] ?? match.favorite,
+  }))
+
+  const toggleFavorite = (matchId: string) => {
+    setFavoriteOverrides((current) => ({
+      ...current,
+      [matchId]: !(current[matchId] ?? allMatches.find((match) => match.id === matchId)?.favorite ?? false),
+    }))
+  }
 
   const filtered = allMatches
     .filter((m) => {
@@ -133,29 +251,33 @@ function MatchCardView({ mode }: { mode: PlaySubMode }) {
       if (favoritesOnly && !m.favorite) return false
       return true
     })
-    .sort((a, b) => (sort === "asc" ? a.number - b.number : b.number - a.number))
+    .sort((a, b) => {
+      const playerDifference = sort === "asc" ? a.players - b.players : b.players - a.players
+      return playerDifference || (sort === "asc" ? a.number - b.number : b.number - a.number)
+    })
 
   const liveCount = allMatches.filter((m) => m.status === "live").length
   const waitingCount = allMatches.filter((m) => m.status === "waiting").length
+  const resultMotionKey = `${filter}:${mapFilter}:${hideEmpty}:${favoritesOnly}:${sort}:${filtered.map((match) => match.id).join("|")}`
 
   const modeConfig = MODE_CONFIG[mode]
 
   return (
     <div className="flex flex-col gap-5 p-6">
-      <ModeHeader config={modeConfig} liveCount={liveCount} waitingCount={waitingCount} />
+      <ModeHeader config={modeConfig} />
 
       <MatchToolbar
         mode={mode}
         mapFilter={mapFilter}
         hideEmpty={hideEmpty}
         favoritesOnly={favoritesOnly}
-        view={view}
         sort={sort}
         onMapChange={setMapFilter}
         onHideEmptyChange={setHideEmpty}
         onFavoritesOnlyChange={setFavoritesOnly}
-        onViewChange={setView}
         onSortChange={setSort}
+        isRefreshing={manualRefreshPulse || (loading && matches !== null)}
+        onRefresh={triggerRefresh}
       />
 
       {/* Filter tabs */}
@@ -175,20 +297,20 @@ function MatchCardView({ mode }: { mode: PlaySubMode }) {
 
       {/* Match content */}
       {!loading && !error && filtered.length > 0 && (
-        <>
-          {view === "block" ? (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-              {filtered.map((match) => (
-                <MatchCard key={match.id} match={match} />
-              ))}
+        <div key={resultMotionKey} className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {filtered.map((match, index) => (
+            <div key={match.id} className="play-filter-result" style={filterMotionStyle(index)}>
+              <MatchCard match={match} mode={mode} onToggleFavorite={toggleFavorite} />
             </div>
-          ) : (
-            <MatchTable matches={filtered} />
-          )}
-        </>
+          ))}
+        </div>
       )}
     </div>
   )
+}
+
+function filterMotionStyle(index: number): CSSProperties {
+  return { "--filter-delay": `${Math.min(index, 11) * 32}ms` } as CSSProperties
 }
 
 const triggerClass =
@@ -199,42 +321,30 @@ function MatchToolbar({
   mapFilter,
   hideEmpty,
   favoritesOnly,
-  view,
   sort,
   onMapChange,
   onHideEmptyChange,
   onFavoritesOnlyChange,
-  onViewChange,
   onSortChange,
+  isRefreshing,
+  onRefresh,
 }: {
   mode: PlaySubMode
   mapFilter: string
   hideEmpty: boolean
   favoritesOnly: boolean
-  view: ViewMode
   sort: SortMode
   onMapChange: (value: string) => void
   onHideEmptyChange: (value: boolean) => void
   onFavoritesOnlyChange: (value: boolean) => void
-  onViewChange: (value: ViewMode) => void
   onSortChange: (value: SortMode) => void
+  isRefreshing: boolean
+  onRefresh: () => void
 }) {
   const mapsDisabled = mode === "fun"
 
   return (
     <div className="glass flex flex-wrap items-center gap-2 rounded-xl p-2">
-      {/* View: table / block */}
-      <Select value={view} onValueChange={(v) => onViewChange(v as ViewMode)}>
-        <SelectTrigger className={triggerClass} aria-label="View">
-          <List className="size-3.5 text-muted-foreground" />
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent position="popper" align="start">
-          <SelectItem value="table">Table</SelectItem>
-          <SelectItem value="block">Block</SelectItem>
-        </SelectContent>
-      </Select>
-
       {/* Maps */}
       <Select
         value={mapsDisabled ? "" : mapFilter}
@@ -245,7 +355,7 @@ function MatchToolbar({
           <Map className="size-3.5 text-muted-foreground" />
           <SelectValue placeholder="Maps" />
         </SelectTrigger>
-        <SelectContent position="popper" align="start">
+        <SelectContent className="play-dropdown-content" position="popper" align="start">
           <SelectItem value="all">All maps</SelectItem>
           {MATCH_MAPS.map((m) => (
             <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
@@ -259,7 +369,7 @@ function MatchToolbar({
           <MapPin className="size-3.5 text-muted-foreground" />
           <SelectValue />
         </SelectTrigger>
-        <SelectContent position="popper" align="start">
+        <SelectContent className="play-dropdown-content" position="popper" align="start">
           <SelectItem value="mongolia">
             <MongoliaFlag className="size-4" />
             Mongolia
@@ -281,39 +391,51 @@ function MatchToolbar({
 
       {/* Sorting — ascending / descending */}
       <Select value={sort} onValueChange={(v) => onSortChange(v as SortMode)}>
-        <SelectTrigger className={cn(triggerClass, "ml-auto w-[140px]")}>
-          <SlidersHorizontal className="size-3.5 text-muted-foreground" />
-          <SelectValue />
+        <SelectTrigger
+          className="ml-auto flex size-9 shrink-0 items-center justify-center rounded-lg border-border/50 bg-secondary/45 p-0 text-muted-foreground hover:bg-secondary/70 hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring"
+          hideIndicator
+          aria-label={sort === "asc" ? "Sort players: fewest first" : "Sort players: most first"}
+          title={sort === "asc" ? "Sort players: fewest first" : "Sort players: most first"}
+        >
+          <ArrowUpDown className="size-3.5" />
         </SelectTrigger>
-        <SelectContent position="popper" align="end">
+        <SelectContent className="play-dropdown-content" position="popper" align="end">
           <SelectItem value="asc">
-            <ArrowUpNarrowWide className="size-3.5" />
-            Ascending
+            <ArrowUp className="size-3.5" />
+            Fewest players
           </SelectItem>
           <SelectItem value="desc">
-            <ArrowDownWideNarrow className="size-3.5" />
-            Descending
+            <ArrowDown className="size-3.5" />
+            Most players
           </SelectItem>
         </SelectContent>
       </Select>
+
+      <button
+        type="button"
+        onClick={onRefresh}
+        disabled={isRefreshing}
+        aria-label="Refresh server matches"
+        title="Refresh server matches"
+        className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-border/50 bg-secondary/45 text-muted-foreground transition-colors hover:bg-secondary/70 hover:text-foreground disabled:cursor-wait disabled:opacity-55 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+      >
+        <RefreshCw className={cn("size-3.5", isRefreshing && "animate-spin")} />
+      </button>
     </div>
   )
 }
 
 function ModeHeader({
   config,
-  liveCount,
-  waitingCount,
 }: {
   config: (typeof MODE_CONFIG)[PlaySubMode]
-  liveCount: number
-  waitingCount: number
 }) {
   const Icon = config.icon
+  const accent = MODE_ACCENTS[config.accent]
 
   return (
     <section className="glass shiny-slow relative overflow-hidden rounded-xl p-6">
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-primary/10 to-transparent" />
+      <div className={cn("pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l to-transparent", accent.headerGlow)} />
       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -321,18 +443,14 @@ function ModeHeader({
             Live Now
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex size-11 items-center justify-center rounded-xl bg-secondary">
-              <Icon className="size-5 text-foreground" />
+            <div className={cn("flex size-11 items-center justify-center rounded-xl border", accent.iconSurface)}>
+              <Icon className={cn("size-5", accent.iconColor)} />
             </div>
             <div>
               <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{config.label}</h1>
               <p className="mt-1 text-sm text-muted-foreground">{config.description}</p>
             </div>
           </div>
-        </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="rounded-md bg-chart-2/10 px-2 py-1.5 text-chart-2">{liveCount} live</span>
-          <span className="rounded-md bg-secondary px-2 py-1.5">{waitingCount} waiting</span>
         </div>
       </div>
     </section>
@@ -368,181 +486,45 @@ function FilterTab({ active, onClick, label, count, accent }: {
   )
 }
 
-function MatchCard({ match }: { match: MatchInfo }) {
+function MatchCard({ match, mode, onToggleFavorite }: { match: MatchInfo; mode: PlaySubMode; onToggleFavorite: (matchId: string) => void }) {
   const isLive = match.status === "live"
   const isLocked = match.status === "locked"
   const isFinished = match.status === "finished"
   const isWaiting = match.status === "waiting"
-  const fillPercent = Math.round((match.players / match.maxPlayers) * 100)
 
-  const mapGradient = MAP_COLORS[match.map] || "from-neutral-900/40 to-neutral-950/80"
+  const canDirectConnect = Boolean(match.connectAddress) && !isLocked
+  const mapBackground = MAP_BACKGROUNDS[match.map]
+  const accent = MODE_ACCENTS[MODE_CONFIG[mode].accent]
 
-  const statusColor = isLive
-    ? "bg-chart-2"
-    : isWaiting
-      ? "bg-chart-4"
-      : "bg-muted-foreground/40"
-
-  const handleJoin = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    void playService.joinMatch(match.id)
-  }
+  const statusTone = isLive ? "border-emerald-300/35 bg-emerald-300/12 text-emerald-100" : isWaiting ? "border-white/15 bg-black/25 text-white/65" : "border-white/10 bg-black/25 text-white/45"
+  const statusLabel = isLive ? "Live" : isWaiting ? "Warming" : "Locked"
+  const showStatus = !isFinished
 
   return (
-    <button
-      disabled={isLocked || isFinished}
-      onClick={handleJoin}
+    <article
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-xl border border-border/50 transition-all duration-200",
-        isLocked && "opacity-50 cursor-not-allowed",
-        isFinished && "opacity-60 cursor-not-allowed",
-        !isLocked && !isFinished && "hover:border-border hover:scale-[1.02] hover:shadow-lg hover:shadow-black/20"
+        "group relative isolate min-h-44 overflow-hidden rounded-xl border border-white/[0.08] bg-[#181818] transition-all duration-300",
+        isLocked && "cursor-not-allowed opacity-55",
+        !isLocked && "hover:-translate-y-0.5 hover:bg-[#1d1d1d] hover:shadow-lg hover:shadow-black/20"
       )}
     >
-      {/* Map background area */}
-      <div className={cn("relative h-28 bg-gradient-to-b", mapGradient)}>
-        {/* Match number */}
-        <div className="absolute top-2 left-2.5 flex items-center gap-1.5">
-          <span className="text-[11px] font-bold text-white/70 tabular-nums">
-            #{match.number}
-          </span>
+      {mapBackground && <img src={mapBackground} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-35 transition-transform duration-700 group-hover:scale-105" />}
+      {mapBackground && <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-black/35 via-[#181818]/75 to-[#181818]" />}
+      <div className="relative z-10 flex h-full min-h-44 flex-col justify-between p-4">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0"><div className={cn("text-[10px] font-semibold uppercase tracking-[0.16em]", accent.cardKicker)}>{MODE_CONFIG[mode].filter}</div><h3 className="mt-1 text-sm font-semibold text-white/90">Match #{match.number}</h3></div>
+          <div className="flex items-center gap-1.5"><button type="button" aria-label={match.favorite ? `Remove Match #${match.number} from favourites` : `Add Match #${match.number} to favourites`} aria-pressed={match.favorite} onClick={() => onToggleFavorite(match.id)} className={cn("inline-flex size-7 items-center justify-center rounded-md border border-white/10 bg-black/20 transition-colors hover:border-white/25 hover:bg-black/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40", match.favorite ? "text-white" : "text-white/40 hover:text-white/75")} title={match.favorite ? "Remove favourite" : "Add favourite"}><Star className={cn("size-3.5", match.favorite && "fill-current")} /></button>{showStatus && <span className={cn("shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide", statusTone)}>{isLocked ? <Lock className="mr-1 inline size-2.5" /> : null}{statusLabel}</span>}</div>
         </div>
-
-        {/* Status badge */}
-        <div className="absolute top-2 right-2.5">
-          {isLive && (
-            <span className="flex items-center gap-1 rounded bg-chart-2/20 px-1.5 py-0.5 text-[10px] font-bold text-chart-2 uppercase">
-              <Circle className="size-1.5 fill-current animate-pulse" />
-              Live
-            </span>
-          )}
-          {isLocked && <Lock className="size-3.5 text-white/30" />}
+        {(isLive || isFinished) && <div className="my-auto flex items-center justify-center gap-2"><span className="text-2xl font-black tabular-nums text-white/90">{match.scoreT}</span><span className="text-xs font-bold text-white/25">:</span><span className="text-2xl font-black tabular-nums text-white/65">{match.scoreCT}</span></div>}
+        <div className="mt-auto flex items-end justify-between gap-3">
+          <div className="min-w-0"><div className="font-mono text-xs font-medium text-white/65">{match.map}</div><div className="mt-1 flex items-center gap-1.5 text-xs text-white/45 tabular-nums"><Users className="size-3" />{match.players}/{match.maxPlayers} players</div></div>
+          <div className="flex shrink-0 items-center gap-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+            <button type="button" disabled={!match.connectAddress} onClick={() => void copyConnectionAddress(match.connectAddress, `Match #${match.number}`)} className="inline-flex size-8 items-center justify-center rounded-md border border-white/10 bg-white/[0.05] text-white/65 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40" aria-label={`Copy Match #${match.number} server IP`} title={match.connectAddress ? `Copy ${match.connectAddress}` : "Server IP unavailable"}><Copy className="size-3.5" /></button>
+            <button type="button" disabled={!canDirectConnect} onClick={() => connectToMatchServer(match)} className="inline-flex size-8 items-center justify-center rounded-md border border-emerald-300/35 bg-emerald-300/18 text-emerald-50 transition-colors hover:border-emerald-200/65 hover:bg-emerald-300/30 hover:text-white disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.04] disabled:text-white/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/60" aria-label={`Play Match #${match.number} in Steam`} title={canDirectConnect ? `Connect through Steam to ${match.connectAddress}` : "Steam connection unavailable"}><PlayIcon className="size-3.5 fill-current" /></button>
+          </div>
         </div>
-
-        {/* Score overlay — center */}
-        {(isLive || isFinished) && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-black tabular-nums text-orange-400/90">{match.scoreT}</span>
-              <span className="text-xs font-bold text-white/30">:</span>
-              <span className="text-2xl font-black tabular-nums text-blue-400/90">{match.scoreCT}</span>
-            </div>
-          </div>
-        )}
-
-        {/* Waiting state — player count center */}
-        {isWaiting && match.players > 0 && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="flex items-center gap-1 text-white/50">
-              <Users className="size-4" />
-              <span className="text-lg font-bold tabular-nums">{match.players}</span>
-              <span className="text-xs text-white/30">/ {match.maxPlayers}</span>
-            </div>
-          </div>
-        )}
-
-        {isWaiting && match.players === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-xs text-white/25 font-medium">Empty</span>
-          </div>
-        )}
-
-        {/* Map name */}
-        <div className="absolute bottom-2 left-2.5">
-          <span className="text-[11px] font-medium text-white/60">{mapLabel(match.map)}</span>
-        </div>
-
-        {/* Action buttons — bottom right */}
-        {!isLocked && !isFinished && (
-          <div className="absolute bottom-2 right-2.5 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <span className="flex size-6 items-center justify-center rounded-md bg-white/10 text-white/70 hover:bg-white/20 transition-colors">
-              <Copy className="size-3" />
-            </span>
-            <span className="flex size-6 items-center justify-center rounded-md bg-chart-2/80 text-white hover:bg-chart-2 transition-colors">
-              <PlayIcon className="size-3 fill-current" />
-            </span>
-          </div>
-        )}
       </div>
-
-      {/* Bottom progress bar */}
-      <div className="h-1 w-full bg-muted/50">
-        <div
-          className={cn("h-full transition-all duration-300", statusColor)}
-          style={{ width: `${fillPercent}%` }}
-        />
-      </div>
-    </button>
-  )
-}
-
-function MatchTable({ matches }: { matches: MatchInfo[] }) {
-  return (
-    <div className="glass overflow-hidden rounded-xl">
-      <Table>
-        <TableHeader>
-          <TableRow className="hover:bg-transparent">
-            <TableHead className="w-16 text-xs">#</TableHead>
-            <TableHead className="text-xs">Map</TableHead>
-            <TableHead className="w-32 text-xs">Players</TableHead>
-            <TableHead className="w-28 text-xs">Status</TableHead>
-            <TableHead className="w-28 text-right text-xs">Score</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {matches.map((match) => {
-            const isLive = match.status === "live"
-            const isLocked = match.status === "locked"
-            const isFinished = match.status === "finished"
-            const isWaiting = match.status === "waiting"
-            return (
-              <TableRow key={match.id} className={cn((isLocked || isFinished) && "opacity-60")}>
-                <TableCell className="font-mono text-xs tabular-nums text-muted-foreground">
-                  #{match.number}
-                </TableCell>
-                <TableCell className="text-sm font-medium">{mapLabel(match.map)}</TableCell>
-                <TableCell className="text-xs tabular-nums text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Users className="size-3" />
-                    {match.players}/{match.maxPlayers}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  {isLive ? (
-                    <span className="flex items-center gap-1 text-[10px] font-bold uppercase text-chart-2">
-                      <Circle className="size-1.5 fill-current animate-pulse" />
-                      Live
-                    </span>
-                  ) : isLocked ? (
-                    <span className="flex items-center gap-1 text-[10px] font-bold uppercase text-muted-foreground">
-                      <Lock className="size-2.5" />
-                      Locked
-                    </span>
-                  ) : isFinished ? (
-                    <span className="text-[10px] font-bold uppercase text-muted-foreground">Finished</span>
-                  ) : isWaiting ? (
-                    <span className="text-[10px] font-bold uppercase text-chart-4">Waiting</span>
-                  ) : (
-                    <span className="text-[10px] font-bold uppercase text-muted-foreground">—</span>
-                  )}
-                </TableCell>
-                <TableCell className="text-right text-sm font-bold tabular-nums">
-                  {(isLive || isFinished) ? (
-                    <span>
-                      <span className="text-orange-400/90">{match.scoreT}</span>
-                      <span className="text-muted-foreground"> : </span>
-                      <span className="text-blue-400/90">{match.scoreCT}</span>
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">—</span>
-                  )}
-                </TableCell>
-              </TableRow>
-            )
-          })}
-        </TableBody>
-      </Table>
-    </div>
+    </article>
   )
 }
 
@@ -564,10 +546,17 @@ function TournamentView() {
       <QueryState
         loading={loading}
         error={error}
-        empty={!loading && !error && all.length === 0}
-        emptyMessage="No tournament matches scheduled."
+        empty={false}
         onRetry={refetch}
       />
+
+      {!loading && !error && all.length === 0 && (
+        <div className="flex min-h-[calc(100dvh-7rem)] items-center justify-center">
+          <div className="w-fit rounded-lg border border-white/[0.1] bg-white/[0.035] px-4 py-2 text-sm font-semibold text-white/78">
+            Nothing is here!
+          </div>
+        </div>
+      )}
 
       {!loading && !error && all.length > 0 && (
         <>
@@ -584,7 +573,7 @@ function TournamentView() {
                   <h2 className="font-semibold">Match schedule</h2>
                   <p className="mt-1 text-xs text-muted-foreground">Live and upcoming tournament rounds</p>
                 </div>
-                <span className="rounded-md bg-chart-4/15 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-chart-4">{info?.season ?? "Season"}</span>
+                <span className="rounded-md border border-white/[0.12] bg-white/[0.05] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white/70">{info?.season ?? "Season"}</span>
               </div>
               <div className="flex flex-col gap-2">
                 {[...live, ...upcoming, ...completed].map((match) => <TournamentRow key={match.id} match={match} />)}
@@ -595,15 +584,11 @@ function TournamentView() {
               <div className="mb-5 flex items-center justify-between">
                 <div>
                   <h2 className="font-semibold">Playoff bracket</h2>
-                  <p className="mt-1 text-xs text-muted-foreground">Road to the season final</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Follow every round through to the final</p>
                 </div>
-                <span className="text-xs text-muted-foreground">{info?.format ?? "Best of 3"}</span>
+                <span className="shrink-0 whitespace-nowrap text-xs text-muted-foreground">{info?.format ?? "Best of 3"}</span>
               </div>
-              <div className="grid min-w-[560px] grid-cols-3 gap-3 overflow-x-auto pb-2">
-                <BracketColumn title="Quarterfinals" matches={all.slice(0, 4)} />
-                <BracketColumn title="Semifinals" matches={all.slice(4, 6)} />
-                <BracketColumn title="Final" matches={all.slice(6, 7)} />
-              </div>
+              <TournamentBracket matches={all} />
             </section>
           </div>
         </>
@@ -615,7 +600,7 @@ function TournamentView() {
 function TournamentStat({ icon: Icon, label, value }: { icon: typeof CalendarDays; label: string; value: string }) {
   return (
     <div className="glass rounded-xl p-4">
-      <Icon className="size-4 text-chart-4" />
+      <Icon className="size-4 text-muted-foreground" />
       <div className="mt-2 text-sm font-semibold">{value}</div>
       <div className="mt-1 text-xs text-muted-foreground">{label}</div>
     </div>
@@ -631,7 +616,7 @@ function TournamentRow({ match }: { match: TournamentMatch }) {
           {live ? <Circle className="size-2.5 fill-current animate-pulse" /> : <Clock3 className="size-3.5" />}
         </div>
         <div className="min-w-0">
-          <div className="truncate text-sm font-medium">{match.teamA} <span className="text-muted-foreground">vs</span> {match.teamB}</div>
+          <div className="text-sm font-medium leading-5">{match.teamA} <span className="text-muted-foreground">vs</span> {match.teamB}</div>
           <div className="mt-0.5 text-[11px] text-muted-foreground">{match.round} · {match.map}</div>
         </div>
       </div>
@@ -643,23 +628,76 @@ function TournamentRow({ match }: { match: TournamentMatch }) {
   )
 }
 
-function BracketColumn({ title, matches }: { title: string; matches: TournamentMatch[] }) {
+function TournamentBracket({ matches }: { matches: TournamentMatch[] }) {
+  const quarterfinals = matches.slice(0, 4)
+  const semifinals = matches.slice(4, 6)
+  const final = matches.slice(6, 7)
+
   return (
-    <div className="flex min-w-0 flex-col gap-3">
-      <div className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">{title}</div>
-      <div className="flex flex-1 flex-col justify-around gap-3">
-        {matches.map((match) => (
-          <div key={match.id} className="rounded-lg border border-border/60 bg-secondary/35 p-3 transition-colors hover:border-chart-4/40">
-            <div className="flex items-center justify-between gap-2 text-xs">
-              <span className="truncate font-medium">{match.teamA}</span><span className="tabular-nums text-muted-foreground">{match.score?.split("-")[0] ?? "-"}</span>
-            </div>
-            <div className="my-2 h-px bg-border/60" />
-            <div className="flex items-center justify-between gap-2 text-xs">
-              <span className="truncate font-medium">{match.teamB}</span><span className="tabular-nums text-muted-foreground">{match.score?.split("-")[1] ?? "-"}</span>
-            </div>
-          </div>
-        ))}
+    <div className="overflow-x-auto pb-2">
+      <div className="grid min-w-[660px] grid-cols-[minmax(150px,1fr)_32px_minmax(150px,1fr)_32px_minmax(150px,1fr)] items-stretch">
+        <BracketRound title="Quarterfinals" matches={quarterfinals} slots={4} />
+        <BracketConnectors count={2} />
+        <BracketRound title="Semifinals" matches={semifinals} slots={2} centered />
+        <BracketConnectors count={1} finalRound />
+        <BracketRound title="Final" matches={final} slots={1} centered finalRound />
       </div>
+    </div>
+  )
+}
+
+function BracketRound({ title, matches, slots, centered = false, finalRound = false }: { title: string; matches: TournamentMatch[]; slots: number; centered?: boolean; finalRound?: boolean }) {
+  const entries = Array.from({ length: slots }, (_, index) => matches[index])
+
+  return (
+    <div className="flex min-w-0 flex-col">
+      <div className={cn("mb-3 flex items-center gap-2", finalRound && "text-amber-300")}>
+        <span className={cn("h-px flex-1 bg-white/[0.08]", finalRound && "bg-amber-300/30")} />
+        <span className="text-[10px] font-bold uppercase tracking-[0.16em]">{title}</span>
+        <span className={cn("h-px flex-1 bg-white/[0.08]", finalRound && "bg-amber-300/30")} />
+      </div>
+      <div className={cn("flex min-h-[268px] flex-1 flex-col justify-around gap-4", centered && "justify-center")}>
+        {entries.map((match, index) => match ? <BracketMatch key={match.id} match={match} finalRound={finalRound} /> : <BracketEmpty key={`${title}-${index}`} />)}
+      </div>
+    </div>
+  )
+}
+
+function BracketMatch({ match, finalRound = false }: { match: TournamentMatch; finalRound?: boolean }) {
+  const [teamAScore, teamBScore] = match.score?.split("-") ?? ["-", "-"]
+  const live = match.status === "live"
+
+  return (
+    <div className={cn("rounded-lg border bg-black/20 p-3", finalRound ? "border-amber-300/30" : "border-white/[0.1]")}>
+      <div className="mb-2 flex items-center justify-between gap-2 text-[10px] font-medium uppercase tracking-wide text-white/45">
+        <span className="truncate">{match.round}</span>
+        <span className={cn("shrink-0", live && "text-emerald-300")}>{live ? "Live" : match.map}</span>
+      </div>
+      <BracketTeam name={match.teamA} score={teamAScore} />
+      <div className="my-2 h-px bg-white/[0.08]" />
+      <BracketTeam name={match.teamB} score={teamBScore} />
+    </div>
+  )
+}
+
+function BracketTeam({ name, score }: { name: string; score: string }) {
+  return <div className="flex items-center justify-between gap-3 text-sm"><span className="truncate font-semibold text-white/88">{name}</span><span className="shrink-0 tabular-nums text-white/55">{score}</span></div>
+}
+
+function BracketEmpty() {
+  return <div className="rounded-lg border border-dashed border-white/[0.08] bg-white/[0.015] px-3 py-5 text-center text-[10px] font-medium uppercase tracking-[0.14em] text-white/25">Awaiting match</div>
+}
+
+function BracketConnectors({ count, finalRound = false }: { count: number; finalRound?: boolean }) {
+  return (
+    <div className="flex min-h-[292px] flex-col justify-around px-2 pt-8">
+      {Array.from({ length: count }, (_, index) => (
+        <div key={index} className="relative h-16">
+          <span className={cn("absolute inset-y-0 right-1/2 border-r border-white/[0.14]", finalRound && "border-amber-300/35")} />
+          <span className={cn("absolute left-0 right-1/2 top-1/2 border-t border-white/[0.14]", finalRound && "border-amber-300/35")} />
+          <span className={cn("absolute left-1/2 right-0 top-1/2 border-t border-white/[0.14]", finalRound && "border-amber-300/35")} />
+        </div>
+      ))}
     </div>
   )
 }
@@ -693,45 +731,23 @@ function ServerListView({ mode }: { mode: string }) {
 function ServerCard({ server }: { server: ServerInfo }) {
   const isFull = server.status === "full"
   const isOffline = server.status === "offline"
-  const disabled = isFull || isOffline
-  const mapGradient = MAP_COLORS[server.map] || "from-neutral-900/40 to-neutral-950/80"
-
-  const [connecting, setConnecting] = useState(false)
+  const canConnect = Boolean(server.connectAddress) && !isOffline
+  const mapBackground = MAP_BACKGROUNDS[server.map]
+  const statusTone = isOffline ? "border-white/10 bg-black/25 text-white/45" : isFull ? "border-red-300/35 bg-red-300/12 text-red-100" : "border-emerald-300/35 bg-emerald-300/12 text-emerald-100"
 
   const handleConnect = () => {
-    setConnecting(true)
-    void serversService
-      .joinServer(server.id)
-      .finally(() => setConnecting(false))
+    void serversService.joinServer(server.id).catch(() => undefined)
+    openSteamConnect(server.connectAddress, server.name)
   }
 
   return (
-    <div className={cn(
-      "group flex flex-col overflow-hidden rounded-xl border border-border/50 transition-all duration-200",
-      !disabled && "hover:border-border hover:scale-[1.02] hover:shadow-lg hover:shadow-black/20",
-      disabled && "opacity-60"
-    )}>
-      <div
-        role="img"
-        aria-label={`${server.map} map`}
-        className={cn("h-36 bg-gradient-to-br", mapGradient)}
-      />
-      <h3 className="truncate px-3 pt-3 text-sm font-semibold tracking-tight">{mapLabel(server.map)}</h3>
-      <p className="px-3 pt-1 text-xs text-muted-foreground tabular-nums">
-        {server.players}/{server.maxPlayers} players
-      </p>
-      <div className="p-3">
-        <Button
-          size="sm"
-          className="w-full"
-          disabled={disabled || connecting}
-          variant={disabled ? "secondary" : "default"}
-          onClick={handleConnect}
-        >
-          {disabled ? (isFull ? "Full" : "Offline") : connecting ? "Connecting..." : "Connect"}
-          {!disabled && !connecting && <PlayIcon className="size-3.5 fill-current" />}
-        </Button>
+    <article className={cn("group relative isolate min-h-44 overflow-hidden rounded-xl border border-white/[0.08] bg-[#181818] transition-all duration-300", isOffline ? "opacity-60" : "hover:-translate-y-0.5 hover:bg-[#1d1d1d] hover:shadow-lg hover:shadow-black/20")}>
+      {mapBackground && <img src={mapBackground} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-35 transition-transform duration-700 group-hover:scale-105" />}
+      {mapBackground && <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-black/35 via-[#181818]/75 to-[#181818]" />}
+      <div className="relative z-10 flex h-full min-h-44 flex-col justify-between p-4">
+        <div className="flex items-start justify-between gap-2"><div className="min-w-0"><div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/45">{server.mode}</div><h3 className="mt-1 truncate text-sm font-semibold text-white/90">{server.name}</h3></div><span className={cn("shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide", statusTone)}>{isOffline ? "Offline" : isFull ? "Full" : "Live"}</span></div>
+        <div className="mt-auto flex items-end justify-between gap-3"><div className="min-w-0"><div className="font-mono text-xs font-medium text-white/65">{mapLabel(server.map)}</div><div className="mt-1 flex items-center gap-1.5 text-xs text-white/45 tabular-nums"><Users className="size-3" />{server.players}/{server.maxPlayers} players</div></div><div className="flex shrink-0 items-center gap-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"><button type="button" disabled={!server.connectAddress} onClick={() => void copyConnectionAddress(server.connectAddress, server.name)} className="inline-flex size-8 items-center justify-center rounded-md border border-white/10 bg-white/[0.05] text-white/65 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40" aria-label={`Copy ${server.name} server IP`} title={server.connectAddress ? `Copy ${server.connectAddress}` : "Server IP unavailable"}><Copy className="size-3.5" /></button><button type="button" disabled={!canConnect} onClick={handleConnect} className="inline-flex size-8 items-center justify-center rounded-md border border-emerald-300/35 bg-emerald-300/18 text-emerald-50 transition-colors hover:border-emerald-200/65 hover:bg-emerald-300/30 hover:text-white disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.04] disabled:text-white/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/60" aria-label={`Play ${server.name} in Steam`} title={canConnect ? `Connect through Steam to ${server.connectAddress}` : "Steam connection unavailable"}><PlayIcon className="size-3.5 fill-current" /></button></div></div>
       </div>
-    </div>
+    </article>
   )
 }

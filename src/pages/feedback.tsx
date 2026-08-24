@@ -1,5 +1,4 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
 import { Star, Send } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -11,9 +10,11 @@ import { Label } from "@/components/ui/label"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { useAuth } from "@/hooks/use-auth"
+import { SteamLoginButton } from "@/components/steam-login-gate"
 
-export function FeedbackPage() {
-  const navigate = useNavigate()
+export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamId: string) => void }) {
+  const { isAuthenticated, loginWithSteam } = useAuth()
   const { data: existingFeedback, loading, error, refetch } = useApiQuery<FeedbackEntry[]>((signal) =>
     feedbackService.getFeedback({ signal }),
   )
@@ -38,11 +39,8 @@ export function FeedbackPage() {
       setFeedback([entry, ...feedback])
       setMessage("")
       setRating(0)
-    } catch (error) {
-      const message = error && typeof error === "object" && "message" in error && typeof error.message === "string"
-        ? error.message
-        : "Unable to submit feedback right now."
-      setSubmitError(message)
+    } catch {
+      setSubmitError("Unable to submit feedback right now. Please try again.")
     } finally {
       setSubmitting(false)
     }
@@ -62,14 +60,14 @@ export function FeedbackPage() {
                 onMouseEnter={() => setHoverRating(star)}
                 onMouseLeave={() => setHoverRating(0)}
                 onClick={() => setRating(star)}
-                className="star-rating-button rounded-md p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="star-rating-button rounded-md p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <Star
                   className={cn(
                     "star-rating-icon size-6 transition-colors",
                     rating === star && "star-rating-pop",
                     (hoverRating || rating) >= star
-                      ? "fill-chart-4 text-chart-4"
+                      ? "fill-amber-300 text-amber-300"
                       : "text-muted-foreground"
                   )}
                 />
@@ -91,10 +89,14 @@ export function FeedbackPage() {
         </div>
 
         <div className="flex justify-end">
-          <Button type="submit" disabled={!message.trim() || rating === 0 || submitting}>
-            <Send className="size-3.5" />
-            Submit Feedback
-          </Button>
+          {isAuthenticated ? (
+            <Button type="submit" disabled={!message.trim() || rating === 0 || submitting}>
+              <Send className="size-3.5" />
+              Submit Feedback
+            </Button>
+          ) : (
+            <SteamLoginButton onClick={loginWithSteam} label="Login" />
+          )}
         </div>
         {submitError && <p role="alert" className="text-sm text-destructive">{submitError}</p>}
       </form>
@@ -116,11 +118,11 @@ export function FeedbackPage() {
                 {entry.steamId ? (
                   <button
                     type="button"
-                    onClick={() => navigate(`/profile/${entry.steamId}`)}
+                    onClick={() => onProfileNavigate(entry.steamId!)}
                     className="group flex items-center gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     aria-label={`Open ${entry.name}'s profile`}
                   >
-                    <PlayerAvatar avatar={entry.avatar} name={entry.name} className="size-10 rounded-full text-sm transition-transform group-hover:scale-105" />
+                    <PlayerAvatar avatar={entry.avatar} name={entry.name} className="size-10 rounded-md text-sm transition-transform group-hover:scale-105" />
                     <div>
                       <div className="text-sm font-medium group-hover:text-primary group-hover:underline">{entry.name}</div>
                       <div className="text-xs text-muted-foreground">{entry.date}</div>
@@ -128,7 +130,7 @@ export function FeedbackPage() {
                   </button>
                 ) : (
                   <div className="flex items-center gap-3">
-                    <PlayerAvatar avatar={entry.avatar} name={entry.name} className="size-10 rounded-full text-sm" />
+                    <PlayerAvatar avatar={entry.avatar} name={entry.name} className="size-10 rounded-md text-sm" />
                     <div><div className="text-sm font-medium">{entry.name}</div><div className="text-xs text-muted-foreground">{entry.date}</div></div>
                   </div>
                 )}
@@ -139,7 +141,7 @@ export function FeedbackPage() {
                       className={cn(
                         "size-3.5",
                         entry.rating >= star
-                          ? "fill-chart-4 text-chart-4"
+                          ? "fill-amber-300 text-amber-300"
                           : "text-muted-foreground/50"
                       )}
                     />

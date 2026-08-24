@@ -1,5 +1,4 @@
-import { Wallet, ShieldCheck, UserRound } from "lucide-react"
-
+import { Wallet, UserRound } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { PageId, UserProfile } from "@/api/types"
 import { useAuth } from "@/hooks/use-auth"
@@ -9,8 +8,7 @@ interface ProfileBlockProps {
 }
 
 export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
-  const { user } = useAuth()
-  const balance = user?.balance ?? 0
+  const { user, loginWithSteam } = useAuth()
 
   return (
     <div className="flex items-center gap-2">
@@ -19,27 +17,25 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
         onClick={() => onNavigate("wallet")}
         className={cn(
           "flex items-center gap-2 rounded-lg px-3 py-2",
-          "bg-chart-2/10 border border-chart-2/25",
-          "transition-all duration-200 hover:bg-chart-2/15 hover:border-chart-2/40",
+          "border border-white/[0.1] bg-white/[0.04]",
+          "transition-all duration-200 hover:bg-white/[0.08] hover:border-white/[0.18]",
           "group"
         )}
+        aria-label="Open Wallet"
       >
-        <Wallet className="size-4 text-chart-2 transition-transform group-hover:scale-110" />
-        <span className="text-sm font-semibold tabular-nums text-muted-foreground">
-          {balance > 0 ? balance.toLocaleString() : "—"}
-        </span>
-        <ShieldCheck className="size-3.5 text-chart-2/70" />
+        <Wallet className="size-4 text-white/70 transition-transform group-hover:scale-105" />
+        <span className="text-sm font-semibold text-white/82">Wallet</span>
       </button>
 
       {/* Avatar block */}
       <button
-        onClick={() => onNavigate("profile")}
+        onClick={() => user ? onNavigate("profile") : loginWithSteam()}
         className={cn(
           "glass-strong flex size-10 items-center justify-center rounded-lg",
           "transition-all hover:glow-accent",
           "relative overflow-hidden"
         )}
-        aria-label={user ? user.username : "Guest - sign in"}
+        aria-label={user ? user.username : "Sign in with Steam"}
       >
         {user ? <UserAvatar user={user} /> : <GuestAvatar />}
       </button>

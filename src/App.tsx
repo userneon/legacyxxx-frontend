@@ -38,7 +38,21 @@ export function App() {
   }
 
   const handleProfileNavigate = (steamId: string) => {
-    navigate(`/profile/${steamId}`)
+    const profilePath = `/profile/${encodeURIComponent(steamId)}`
+    if (user?.steamId === steamId) {
+      navigate(profilePath)
+      return
+    }
+
+    const profileTab = window.open(profilePath, "_blank")
+    if (profileTab) {
+      profileTab.opener = null
+      profileTab.focus()
+      return
+    }
+
+    // Popup blocking is not expected for direct click handlers, but retain a usable fallback.
+    navigate(profilePath)
   }
   const handleClanNavigate = (clanId: string) => {
     navigate(`/clans/${clanId}`)
@@ -64,7 +78,7 @@ export function App() {
           <ProfileBlock onNavigate={handleNavigate} />
         </header>
 
-        <div ref={mainRef} className="flex-1 overflow-auto">
+        <div ref={mainRef} className="scrollbar-hidden flex-1 overflow-auto">
           <div key={location.pathname} className="page-enter">
             <Routes>
               <Route path="/" element={<HomePage onNavigate={handleNavigate} />} />
@@ -72,14 +86,18 @@ export function App() {
               <Route path="/play/fun" element={<PlayPage mode="fun" />} />
               <Route path="/play/proleague" element={<PlayPage mode="proleague" />} />
               <Route path="/tournaments" element={<PlayPage mode="tournaments" />} />
-              <Route path="/leaderboard" element={<LeadersPage onProfileNavigate={handleProfileNavigate} />} />
+              <Route path="/leaders" element={<LeadersPage onProfileNavigate={handleProfileNavigate} />} />
+              <Route path="/clan" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />
               <Route path="/clans" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />
+              <Route path="/clan/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />
               <Route path="/clans/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />
               <Route path="/shop" element={<ProtectedPage pageName="Shop"><ShopPage /></ProtectedPage>} />
               <Route path="/skinchanger" element={<SkinchangerPage />} />
               <Route path="/penalties" element={<PenaltiesPage onProfileNavigate={handleProfileNavigate} />} />
+              <Route path="/explore" element={<ExplorePage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />
               <Route path="/search" element={<ExplorePage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />
-              <Route path="/feedback" element={<ProtectedPage pageName="Reviews"><FeedbackPage /></ProtectedPage>} />
+              <Route path="/reviews" element={<FeedbackPage onProfileNavigate={handleProfileNavigate} />} />
+              <Route path="/feedback" element={<FeedbackPage onProfileNavigate={handleProfileNavigate} />} />
               <Route path="/profile" element={
                 <ProtectedPage pageName="Profile">
                   <ProfilePage />
@@ -107,13 +125,13 @@ function getRouteForPage(page: PageId): string {
     case "play-fun": return "/play/fun"
     case "play-proleague": return "/play/proleague"
     case "play-tournaments": return "/tournaments"
-    case "leaders": return "/leaderboard"
-    case "clan": return "/clans"
+    case "leaders": return "/leaders"
+    case "clan": return "/clan"
     case "shop": return "/shop"
     case "skinchanger": return "/skinchanger"
     case "penalties": return "/penalties"
-    case "explore": return "/search"
-    case "feedback": return "/feedback"
+    case "explore": return "/explore"
+    case "feedback": return "/reviews"
     case "profile": return "/profile"
     case "wallet": return "/wallet"
     default: return "/"

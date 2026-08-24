@@ -124,8 +124,8 @@ function defaultMessageForStatus(status: number): string {
 
 /**
  * Converts a fetch response (or network failure) into a standardized
- * `ApiError`. Attempts to read a structured error body from the API but
- * always falls back to a safe, non-empty message.
+ * `ApiError`. Structured response fields may be retained for form handling,
+ * but backend-provided message strings are never exposed to the UI.
  */
 async function toApiError(response: Response): Promise<ApiError> {
   const status = response.status
@@ -138,14 +138,6 @@ async function toApiError(response: Response): Promise<ApiError> {
     if (contentType.includes("application/json")) {
       const body = await response.json()
       if (body && typeof body === "object") {
-        const apiMessage = (body as { message?: unknown }).message
-        if (typeof apiMessage === "string" && apiMessage.trim()) {
-          message = apiMessage
-        }
-        const apiError = (body as { error?: unknown }).error
-        if (typeof apiError === "string" && apiError.trim() && !apiMessage) {
-          message = apiError
-        }
         const apiFields = (body as { fields?: unknown }).fields
         if (apiFields && typeof apiFields === "object") {
           fields = apiFields as Record<string, string[]>

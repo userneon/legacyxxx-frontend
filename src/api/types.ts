@@ -121,10 +121,14 @@ export interface UserProfile {
   steamId: string
   username: string
   avatar: string
-  level: number
-  rank: string
   balance: number
   role: "Owner" | "Founder" | "Manager" | "Admin" | "Player" | "Designer" | "Developer"
+  moderationStatus?: ModerationStatus
+  clan?: {
+    id: string
+    name: string
+    tag: string
+  } | null
   steamBackground?: string | null
   faceit?: ProfileFaceitStats
   links?: ProfileLink[]
@@ -134,7 +138,6 @@ export interface ProfileStats {
   matches: number
   wins: number
   kdRatio: number
-  rating: number
 }
 
 export interface ProfileRecentMatch {
@@ -156,6 +159,8 @@ export interface MatchInfo {
   id: string
   number: number
   map: string
+  /** Exact server address when the match service exposes its assigned game server. */
+  connectAddress?: string
   players: number
   maxPlayers: number
   status: MatchStatus
@@ -194,33 +199,27 @@ export interface ServerFilters {
 }
 
 /* ----------------------------------------------------------------------------
- * Players / leaderboard
+ * Community player performance
  * ------------------------------------------------------------------------- */
 
-export interface LeaderPlayer {
+export interface CommunityPlayer {
   /** Stable user identifier. Present for search results and used for profile navigation. */
   id?: string
   steamId?: string
-  rank: number
   name: string
-  level: number
-  experience: number
   kills: number
   deaths: number
   kd: number
   headshots: number
+  matches: number
+  wins: number
   playedHours: number
   lastPlayed: string
   avatar: string
   moderationStatus: ModerationStatus
 }
 
-export type ModerationStatus = "Banned" | "Muted" | "Clear"
-
-export interface LeaderboardFilters {
-  mode?: PlaySubMode
-  region?: string
-}
+export type ModerationStatus = "Banned" | "Muted" | "Gag" | "Clear"
 
 /* ----------------------------------------------------------------------------
  * Clans
@@ -316,6 +315,50 @@ export interface ShopFilters {
 }
 
 /* ----------------------------------------------------------------------------
+ * Skinchanger catalog / local API flow
+ * ------------------------------------------------------------------------- */
+
+export type SkinCatalogCategory = "weapons" | "weapon_skins" | "knives" | "gloves" | "agents" | "music_kits" | "pins"
+
+export interface SkinCatalogItem {
+  id: string
+  name: string
+  category: SkinCatalogCategory
+  image: string
+  weapon?: string
+  rarity?: string
+  collection?: string
+}
+
+export interface SkinCatalogPage {
+  entries: SkinCatalogItem[]
+  total: number
+  page: number
+  pageSize: number
+}
+
+export interface SkinLoadout {
+  version: number
+  entries: SkinCatalogItem[]
+}
+
+export type SkinApplyState = "idle" | "queued" | "applied"
+
+export interface SkinApplyStatus {
+  state: SkinApplyState
+  jobId?: string
+  serverId: string
+  serverName: string
+  message: string
+  loadoutVersion: number
+}
+
+export interface SkinchangerApplyResponse {
+  loadout: SkinLoadout
+  status: SkinApplyStatus
+}
+
+/* ----------------------------------------------------------------------------
  * Wallet
  * ------------------------------------------------------------------------- */
 
@@ -345,7 +388,7 @@ export interface ChargeRequest {
  * Moderation / penalties
  * ------------------------------------------------------------------------- */
 
-export type PenaltyType = "ban" | "comm" | "gag"
+export type PenaltyType = "ban" | "mute" | "gag"
 
 export interface PenaltyEntry {
   id: string
@@ -367,7 +410,7 @@ export interface PenaltyStats {
   totalBans: number
   activeBans: number
   permanentBans: number
-  totalComms: number
+  totalMutes: number
   totalGags: number
 }
 
@@ -408,7 +451,7 @@ export interface SearchRequest {
 }
 
 export interface SearchPlayersResult {
-  players: LeaderPlayer[]
+  players: CommunityPlayer[]
 }
 
 export interface SearchClansResult {

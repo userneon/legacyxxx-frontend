@@ -1,22 +1,57 @@
 import { useState, type ComponentProps } from "react"
-import { Crosshair, Flame, Crown, Trophy, TrendingUp, Server, Zap, Users, RefreshCw, ExternalLink, Globe2 } from "lucide-react"
+import { Crosshair, Flame, Crown, Trophy, TrendingUp, Server, Zap, Users, RefreshCw, ExternalLink, Globe2, Copy, Play as PlayIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { communityService, serversService } from "@/api"
 import type { CommunityCreator, CommunityPartner, HomeStats, PageId, ServerInfo } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
+import { OptimizedImage } from "@/components/optimized-image"
+import { toast } from "sonner"
 
 interface HomePageProps {
   onNavigate: (page: PageId) => void
 }
 
 const MODE_CARDS: { id: PageId; label: string; desc: string; icon: typeof Crosshair; stat: string }[] = [
-  { id: "play-5vs5", label: "5vs5 Matches", desc: "Competitive ranked matches", icon: Crosshair, stat: "Live status from API" },
+  { id: "play-5vs5", label: "5vs5 Matches", desc: "Competitive matches", icon: Crosshair, stat: "Live status from API" },
   { id: "play-fun", label: "Fun Mode", desc: "Surf, aim, deathmatch and more", icon: Flame, stat: "Live status from API" },
   { id: "play-proleague", label: "Pro League", desc: "Seasonal competitive league", icon: Crown, stat: "Live status from API" },
   { id: "play-tournaments", label: "Tournaments", desc: "Scheduled prize tournaments", icon: Trophy, stat: "Live status from API" },
 ]
+
+// LEGACY-X visual system: compact dark glass server cards; map screenshots stay subdued behind an opaque contrast gradient.
+const MAP_BACKGROUNDS: Record<string, string> = {
+  de_mirage: "/maps/de_mirage.webp",
+  de_inferno: "/maps/de_inferno.webp",
+  de_ancient: "/maps/de_ancient.webp",
+  de_nuke: "/maps/de_nuke.webp",
+}
+
+async function copyServerAddress(server: ServerInfo) {
+  if (!server.connectAddress) {
+    toast.error("Server IP unavailable", { description: "This server does not currently expose a connection address." })
+    return
+  }
+
+  try {
+    await navigator.clipboard.writeText(server.connectAddress)
+    toast.success("Server IP copied", { description: server.connectAddress })
+  } catch {
+    toast.error("Copy failed", { description: "Please copy the connection address manually." })
+  }
+}
+
+function openServerInSteam(server: ServerInfo) {
+  const address = server.connectAddress?.trim()
+  if (!address || !/^[a-zA-Z0-9.-]+:\d{1,5}$/.test(address)) {
+    toast.error("Server IP unavailable", { description: "This server does not currently expose a valid connection address." })
+    return
+  }
+
+  toast.info("Opening Steam…", { description: `Connecting to ${address}` })
+  window.location.assign(`steam://connect/${address}`)
+}
 
 type IconProps = ComponentProps<"svg">
 
@@ -172,16 +207,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
         <div className={cn(
         "glass shiny-slow relative flex flex-col gap-4 overflow-hidden rounded-xl p-8"
       )}>
-        <img
-          src="/ChatGPT_Image_Aug_17,_2026,_08_22_42_PM.png"
-          onError={(event) => {
-            event.currentTarget.onerror = null
-            event.currentTarget.src = "/Pc_Fps_GIF_by_NVIDIA_GeForce.gif"
-          }}
-          alt=""
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30"
-        />
+        <picture className="pointer-events-none absolute inset-0">
+          <source media="(prefers-reduced-motion: reduce)" srcSet="/hero.webp" />
+          <OptimizedImage src="/legacyx-hero.webp" width={1920} height={720} priority alt="" aria-hidden="true" className="h-full w-full object-cover opacity-30" />
+        </picture>
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background/90 via-background/65 to-background/25" />
         <div className="relative z-10 flex items-center gap-2">
           <span className="flex size-2 rounded-full bg-chart-2 animate-pulse" />
@@ -193,8 +222,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
           LegacyX Ecosystem
         </h1>
         <p className="relative z-10 text-muted-foreground max-w-xl">
-          The premier CS2 / CSGO community server platform. Join matches, climb the
-          leaderboard, build your clan, and compete with the best.
+          The premier CS2 / CSGO community server platform. Join matches, build your
+          clan, and compete with the Mongolian CS2 community.
         </p>
         <div className="relative z-10 flex flex-wrap gap-3 mt-2">
           {MODE_CARDS.map((mode) => (
@@ -220,8 +249,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
           rel="noreferrer"
           aria-label="Join the LEGACY-X Discord community"
           className={cn(
-            "group relative isolate flex min-h-40 overflow-hidden rounded-xl border border-[#5865F2]/25",
-            "bg-[#121526] p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#7289DA]/60 hover:shadow-[0_18px_48px_rgba(88,101,242,0.2)]",
+            "group relative isolate flex min-h-40 overflow-hidden rounded-xl border border-[#5865F2]/25 bg-[#121526] p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#7289DA]/60 hover:shadow-[0_18px_48px_rgba(88,101,242,0.2)]",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7289DA] focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           )}
         >
@@ -323,30 +351,73 @@ export function HomePage({ onNavigate }: HomePageProps) {
         />
 
         {!loading && !error && liveServers.length > 0 && (
-          <div className="flex flex-col gap-2">
-            {liveServers.slice(0, 5).map((server) => (
-              <div
-                key={server.id}
-                className="flex items-center justify-between rounded-lg bg-secondary/50 px-4 py-3"
-              >
-                <div className="flex items-center gap-3">
-                  <Server className="size-4 text-muted-foreground" />
-                  <div>
-                    <div className="text-sm font-medium">{server.name}</div>
-                    <div className="text-xs text-muted-foreground">{server.map}</div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {liveServers.slice(0, 5).map((server) => {
+              const mapBackground = MAP_BACKGROUNDS[server.map.toLowerCase()]
+              const hasAddress = Boolean(server.connectAddress)
+              const isOffline = server.status === "offline"
+              const isFull = server.status === "full"
+
+              return (
+                <article
+                  key={server.id}
+                  className={cn(
+                    "group relative isolate min-h-44 overflow-hidden rounded-xl border border-border/60 bg-secondary/60 transition-all duration-300",
+                    isOffline ? "opacity-60" : "hover:-translate-y-0.5 hover:border-sidebar-border/90 hover:shadow-lg hover:shadow-black/20",
+                  )}
+                >
+                  {mapBackground && (
+                    <OptimizedImage
+                      src={mapBackground}
+                      width={640}
+                      height={360}
+                      alt=""
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-65 transition-transform duration-700 group-hover:scale-105"
+                    />
+                  )}
+                  <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-background/30 via-background/50 to-background/95" />
+
+                  <div className="relative z-10 flex h-full min-h-44 flex-col justify-between p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/60">
+                          <Server className="size-3" />
+                          {server.mode}
+                        </div>
+                        <h3 className="mt-1 truncate text-sm font-semibold text-white">{server.name}</h3>
+                      </div>
+                      <span className={cn(
+                        "shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+                        isOffline && "border-white/15 bg-white/10 text-white/45",
+                        isFull && "border-destructive/40 bg-destructive/15 text-destructive",
+                        !isOffline && !isFull && "border-emerald-300/40 bg-emerald-300/16 text-emerald-100",
+                      )}>
+                        {isOffline ? "Offline" : isFull ? "Full" : "Live"}
+                      </span>
+                    </div>
+
+                    <div className="mt-auto flex items-end justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="font-mono text-xs font-medium text-white/85">{server.map}</div>
+                        <div className="mt-1 flex items-center gap-1.5 text-xs text-white/60 tabular-nums">
+                          <Users className="size-3" />
+                          {server.players}/{server.maxPlayers} players
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+                        <button type="button" disabled={!hasAddress} onClick={() => void copyServerAddress(server)} className="inline-flex size-8 items-center justify-center rounded-md border border-white/20 bg-background/75 text-white/75 transition-colors hover:border-primary/70 hover:bg-primary/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={`Copy ${server.name} server IP`} title={hasAddress ? `Copy ${server.connectAddress}` : "Server IP unavailable"}>
+                          <Copy className="size-3.5" />
+                        </button>
+                        <button type="button" disabled={!hasAddress || isOffline} onClick={() => openServerInSteam(server)} className="inline-flex size-8 items-center justify-center rounded-md border border-emerald-300/45 bg-emerald-300/72 text-emerald-950 transition-colors hover:border-emerald-200 hover:bg-emerald-300 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/10 disabled:text-white/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/70" aria-label={`Play ${server.name} in Steam`} title={hasAddress && !isOffline ? `Connect through Steam to ${server.connectAddress}` : "Steam connection unavailable"}>
+                          <PlayIcon className="size-3.5 fill-current" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className="text-xs text-muted-foreground tabular-nums">
-                    {server.players}/{server.maxPlayers}
-                  </span>
-                  <span className={cn(
-                    "flex size-2 rounded-full",
-                    server.status === "full" ? "bg-destructive" : "bg-chart-2"
-                  )} />
-                </div>
-              </div>
-            ))}
+                </article>
+              )
+            })}
           </div>
         )}
       </div>

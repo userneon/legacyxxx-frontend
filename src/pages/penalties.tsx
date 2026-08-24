@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Search, ShieldAlert, Ban, MessageSquareOff, MicOff } from "lucide-react"
+import { Search, ShieldAlert, Ban, MicOff } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { moderationService } from "@/api"
@@ -14,22 +14,22 @@ type PenaltyFilter = "all" | PenaltyType
 const FILTERS: { id: PenaltyFilter; label: string; icon: typeof Ban }[] = [
   { id: "all", label: "All", icon: ShieldAlert },
   { id: "ban", label: "Bans", icon: Ban },
-  { id: "comm", label: "Comms", icon: MessageSquareOff },
+  { id: "mute", label: "Mutes", icon: MicOff },
   { id: "gag", label: "Gags", icon: MicOff },
 ]
 
 function getTypeColor(type: PenaltyType) {
   switch (type) {
     case "ban": return "bg-destructive/15 text-destructive"
-    case "comm": return "bg-chart-4/15 text-chart-4"
-    case "gag": return "bg-chart-1/15 text-chart-1"
+    case "mute": return "bg-white/10 text-white/75"
+    case "gag": return "bg-white/[0.06] text-white/65"
   }
 }
 
 function getTypeLabel(type: PenaltyType) {
   switch (type) {
     case "ban": return "BAN"
-    case "comm": return "COMM"
+    case "mute": return "MUTE"
     case "gag": return "GAG"
   }
 }
@@ -65,8 +65,8 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
     { label: "Total Bans", value: stats.totalBans.toLocaleString(), color: "text-destructive" },
     { label: "Active Bans", value: stats.activeBans.toLocaleString(), color: "text-chart-5" },
     { label: "Permanent", value: stats.permanentBans.toLocaleString(), color: "text-chart-4" },
-    { label: "Total Comms", value: stats.totalComms.toLocaleString(), color: "text-chart-1" },
-    { label: "Total Gags", value: stats.totalGags.toLocaleString(), color: "text-chart-2" },
+    { label: "Total Mutes", value: stats.totalMutes.toLocaleString(), color: "text-white/75" },
+    { label: "Total Gags", value: stats.totalGags.toLocaleString(), color: "text-white/65" },
   ] : []
 
   return (
@@ -163,9 +163,7 @@ function PenaltyRow({ penalty, onProfileNavigate }: { penalty: PenaltyEntry; onP
       {/* Term */}
       <div className="tabular-nums text-muted-foreground">
         {penalty.isPermanent ? (
-          <span className="text-destructive font-medium">Permanent</span>
-        ) : penalty.isUnbanned ? (
-          <span className="text-muted-foreground">-</span>
+          <span className="font-semibold uppercase tracking-wide text-destructive">Permanent</span>
         ) : (
           penalty.term
         )}
@@ -173,12 +171,12 @@ function PenaltyRow({ penalty, onProfileNavigate }: { penalty: PenaltyEntry; onP
 
       {/* Status */}
       <div>
-        {penalty.isUnbanned ? (
-          <Badge variant="secondary" className="bg-chart-2/15 text-chart-2 text-[10px]">Unbanned</Badge>
-        ) : penalty.isPermanent ? (
-          <Badge variant="secondary" className="bg-destructive/15 text-destructive text-[10px]">Active</Badge>
+        {penalty.isPermanent ? (
+          <Badge variant="secondary" className="bg-destructive/15 text-destructive text-[10px]">Permanent</Badge>
+        ) : penalty.isUnbanned ? (
+          <Badge variant="secondary" className="bg-white/10 text-white/65 text-[10px]">Inactive</Badge>
         ) : (
-          <Badge variant="secondary" className="bg-chart-4/15 text-chart-4 text-[10px]">Active</Badge>
+          <Badge variant="secondary" className="bg-emerald-500/15 text-emerald-300 text-[10px]">Active</Badge>
         )}
       </div>
 

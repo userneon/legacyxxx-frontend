@@ -1,4 +1,4 @@
-import { Loader2, Inbox, AlertTriangle, RefreshCw } from "lucide-react"
+import { Loader2, Inbox, RefreshCw } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -33,8 +33,8 @@ export function QueryState({
   if (error) {
     return (
       <div className={cn("glass flex flex-col items-center justify-center gap-3 rounded-xl p-12 text-center", className)}>
-        <AlertTriangle className="size-6 text-destructive" />
-        <span className="text-sm text-muted-foreground">{error.message}</span>
+        <Inbox className="size-6 text-muted-foreground" />
+        <span className="text-sm text-muted-foreground">Nothing to show right now.</span>
         {onRetry && (
           <Button variant="outline" size="sm" onClick={onRetry}>
             <RefreshCw className="size-3.5" />
