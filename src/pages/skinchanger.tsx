@@ -249,13 +249,25 @@ export function SkinchangerPage() {
   const loadoutVersion = optimisticLoadoutVersion ?? loadoutResponse?.loadout.version ?? 0
   const catalogTeamScope = activeWeapon ? teamScopeFromMetadata(activeWeapon) : "all"
   const selectedTeamScope: TeamScope = category === "agent" && agentTeam ? agentTeam : catalogTeamScope !== "all" ? catalogTeamScope : teamScope
-  const showTeamSelector = Boolean(activeWeapon) && category !== "agent" && catalogTeamScope === "all"
   const selectedSlotKey = activeWeapon ? slotKeyForCatalogItem(activeWeapon, category) : activeSlot
   const hasOtherEquippedKnifeOrGloveLook = Boolean(
     activeWeapon
     && (category === "knife" || category === "glove")
     && loadoutEntries.some((entry) => entry.slot === category && entry.slot_key !== selectedSlotKey),
   )
+  const automaticOppositeTeamScope = activeWeapon && (category === "knife" || category === "glove")
+    ? (() => {
+        const otherLook = loadoutEntries.find((entry) => entry.slot === category && entry.slot_key !== selectedSlotKey && (entry.team_scope === "t" || entry.team_scope === "ct"))
+        return otherLook?.team_scope === "t" ? "ct" as const : otherLook?.team_scope === "ct" ? "t" as const : null
+      })()
+    : null
+  const automaticOppositeTeamForModel = (model: SkinchangerCatalogItem): Exclude<TeamScope, "all"> | null => {
+    if (category !== "knife" && category !== "glove") return null
+    const modelSlotKey = slotKeyForCatalogItem(model, category)
+    const otherLook = loadoutEntries.find((entry) => entry.slot === category && entry.slot_key !== modelSlotKey && (entry.team_scope === "t" || entry.team_scope === "ct"))
+    return otherLook?.team_scope === "t" ? "ct" : otherLook?.team_scope === "ct" ? "t" : null
+  }
+  const showTeamSelector = Boolean(activeWeapon) && category !== "agent" && catalogTeamScope === "all" && !automaticOppositeTeamScope
   const minWear = Math.max(0, Math.min(1, metadataNumber(selected, "minWear", 0.0001)))
   const maxWear = Math.max(minWear, Math.min(1, metadataNumber(selected, "maxWear", 1)))
   const defaultWear = Math.max(minWear, Math.min(maxWear, 0.0001))
@@ -307,8 +319,12 @@ export function SkinchangerPage() {
   }, [catalogTeamScope, teamScope])
 
   useEffect(() => {
+    if (automaticOppositeTeamScope && teamScope !== automaticOppositeTeamScope) {
+      setTeamScope(automaticOppositeTeamScope)
+      return
+    }
     if (hasOtherEquippedKnifeOrGloveLook && teamScope === "all") setTeamScope("ct")
-  }, [hasOtherEquippedKnifeOrGloveLook, teamScope])
+  }, [automaticOppositeTeamScope, hasOtherEquippedKnifeOrGloveLook, teamScope])
 
   const selectedAlreadyEquipped = useMemo(
     () => selected ? loadoutEntries.some((entry) => entry.catalog_item_id === selected.id && entry.slot_key === selectedSlotKey && entry.team_scope === selectedTeamScope && normalizeAppearanceOptions(entry.options) === normalizeAppearanceOptions(customOptions)) : false,
@@ -633,7 +649,7 @@ export function SkinchangerPage() {
                   )}
                   <button
                     type="button"
-                    onClick={() => isDefaultModel && (category === "knife" || category === "glove") ? void equipDefaultModel(category) : isModelBrowse ? (savedEntryForCard && savedCardItem ? customizeSavedLook(item, savedEntryForCard) : (setDefaultChoice(null), setActiveWeapon(item), setSelected(null), setCustomizeOpen(false), setWeaponClass(""), setOffset(0))) : selectSkin(item, Boolean(activeWeapon))}
+                    onClick={() => isDefaultModel && (category === "knife" || category === "glove") ? void equipDefaultModel(category) : isModelBrowse ? (savedEntryForCard && savedCardItem ? customizeSavedLook(item, savedEntryForCard) : (setDefaultChoice(null), setTeamScope(automaticOppositeTeamForModel(item) ?? "all"), setActiveWeapon(item), setSelected(null), setCustomizeOpen(false), setWeaponClass(""), setOffset(0))) : selectSkin(item, Boolean(activeWeapon))}
                     title={isDefaultModel ? `Use ${item.display_name}` : isModelBrowse ? savedCardItem ? `Customize ${savedCardItem.display_name}` : `Browse ${item.display_name} skins` : `Choose ${item.display_name}`}
                     className="relative z-[2] block min-h-[11.25rem] w-full text-left"
                   >
