@@ -156,6 +156,10 @@ export interface CompetitiveProfile {
   assists: number
   headshot_kills: number
   last_match_at: string | null
+  current_rank_min_exp: number
+  next_rank_id: number | null
+  next_rank_name: string | null
+  next_rank_min_exp: number | null
 }
 
 export interface CompetitiveLeaderboardEntry extends CompetitiveProfile {

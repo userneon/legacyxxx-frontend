@@ -88,6 +88,8 @@ export function ProfilePage({ userId }: ProfilePageProps) {
     rankName: competitive?.rank_name ?? "Silver I",
     imageKey: competitive?.rank_image_key ?? "rank-01",
     currentExp: competitive?.current_exp ?? 0,
+    nextRankName: competitive?.next_rank_name ?? "Silver II",
+    nextRankExp: competitive?.next_rank_min_exp ?? 1_000,
   }
 
   return (
@@ -148,6 +150,18 @@ export function ProfilePage({ userId }: ProfilePageProps) {
               <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
             </div>
           ))}
+          {visibleCompetitiveRank && (
+            <div className="glass rounded-xl p-4 hover-lift transition-all">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-xs text-muted-foreground">Competitive Rank</div>
+                  <div className="mt-2 text-xl font-bold tabular-nums">{visibleCompetitiveRank.currentExp.toLocaleString()} / {visibleCompetitiveRank.nextRankExp?.toLocaleString() ?? "MAX"}</div>
+                </div>
+                <CompetitiveRankBadge rankId={visibleCompetitiveRank.rankId} rankName={visibleCompetitiveRank.rankName} imageKey={visibleCompetitiveRank.imageKey} currentExp={visibleCompetitiveRank.currentExp} className="h-12 w-20" />
+              </div>
+              <div className="mt-1 truncate text-xs text-muted-foreground">{visibleCompetitiveRank.nextRankExp === null ? "Global Elite reached" : `Until ${visibleCompetitiveRank.nextRankName}`}</div>
+            </div>
+          )}
         </div>
       )}
       {statsLoading && (
