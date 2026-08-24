@@ -1,11 +1,4 @@
 import { get, post, put, type CallOptions } from "./client"
-import {
-  getSkinchangerPreviewCatalog,
-  getSkinchangerPreviewFacets,
-  getSkinchangerPreviewLoadout,
-  isSkinchangerLocalPreview,
-  saveSkinchangerPreviewLoadout,
-} from "@/dev/skinchanger-production-preview"
 
 export type SkinchangerCategory = "weapon" | "weapon_skin" | "knife" | "glove" | "agent" | "music_kit" | "pin" | "sticker" | "charm"
 export type SkinchangerSlot = "weapon" | "knife" | "glove" | "agent" | "music_kit" | "pin"
@@ -26,31 +19,24 @@ export interface SkinchangerLoadoutInput { entries: Array<{ catalogItemId: strin
 
 export const skinchangerService = {
   getCatalog(filters: { category: SkinchangerCategory; weaponClass?: string; weaponGroup?: SkinchangerFirearmGroup; team?: "t" | "ct"; query?: string; limit?: number; offset?: number }, options?: CallOptions) {
-    if (isSkinchangerLocalPreview) return getSkinchangerPreviewCatalog(filters)
     return get<SkinchangerCatalogPage>("/skinchanger/catalog", filters, options)
   },
   getCatalogFacets(category: SkinchangerCategory, options?: CallOptions) {
-    if (isSkinchangerLocalPreview) return getSkinchangerPreviewFacets(category)
     return get<SkinchangerCatalogFacets>("/skinchanger/catalog/facets", { category }, options)
   },
   getLoadout(options?: CallOptions) {
-    if (isSkinchangerLocalPreview) return Promise.resolve({ loadout: getSkinchangerPreviewLoadout() })
     return get<{ loadout: SkinchangerLoadout }>("/skinchanger/loadout", undefined, options)
   },
   getActiveServer(options?: CallOptions) {
-    if (isSkinchangerLocalPreview) return Promise.resolve({ session: null })
     return get<{ session: SkinchangerActiveServerSession | null }>("/skinchanger/active-server", undefined, options)
   },
   saveLoadout(input: SkinchangerLoadoutInput, options?: CallOptions) {
-    if (isSkinchangerLocalPreview) return saveSkinchangerPreviewLoadout(input)
     return put<{ version: number; entryCount: number }>("/skinchanger/loadout", input, options)
   },
   queueApply(serverId: string, options?: CallOptions) {
-    if (isSkinchangerLocalPreview) return Promise.resolve({ jobId: "preview-no-server", status: "queued" as const })
     return post<{ jobId: string; status: "queued" }>("/skinchanger/apply", { serverId }, options)
   },
   getStatus(options?: CallOptions) {
-    if (isSkinchangerLocalPreview) return Promise.resolve({ jobs: [] })
     return get<{ jobs: SkinchangerJob[] }>("/skinchanger/status", undefined, options)
   },
 }
