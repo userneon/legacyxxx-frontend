@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner"
 
 import { skinchangerService, type SkinchangerAppearanceOptions, type SkinchangerCatalogItem, type SkinchangerCategory, type SkinchangerFirearmGroup, type SkinchangerLoadoutEntry, type SkinchangerSlot, type TeamScope } from "@/api"
+import type { ApiError } from "@/api/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -305,14 +306,44 @@ export function SkinchangerPage() {
     [customOptions, loadoutEntries, selected, selectedSlotKey, selectedTeamScope],
   )
 
+  const canUseLegacyLoadoutFallback = (error: unknown) => {
+    const apiError = error as Partial<ApiError>
+    return apiError.status === 404 || apiError.status === 405
+  }
+
+  const saveEntryWithCompatibility = async (entry: { catalogItemId: string; slot: SkinchangerSlot; slotKey: string; teamScope: TeamScope; options: SkinchangerAppearanceOptions }) => {
+    try {
+      return await skinchangerService.saveLoadoutEntry({ expectedVersion: loadoutVersion, entry })
+    } catch (error) {
+      if (!canUseLegacyLoadoutFallback(error)) throw error
+      const entries = loadoutEntries
+        .filter((current) => !(current.slot_key === entry.slotKey && current.team_scope === entry.teamScope))
+        .map((current) => ({ catalogItemId: current.catalog_item_id, slot: current.slot, slotKey: current.slot_key, teamScope: current.team_scope, options: current.options }))
+      entries.push(entry)
+      const result = await skinchangerService.saveLoadout({ entries })
+      return { version: result.version }
+    }
+  }
+
+  const removeEntryWithCompatibility = async (entry: Pick<SkinchangerLoadoutEntry, "slot_key" | "team_scope">, expectedVersion: number) => {
+    try {
+      return await skinchangerService.removeLoadoutEntry({ expectedVersion, slotKey: entry.slot_key, teamScope: entry.team_scope })
+    } catch (error) {
+      if (!canUseLegacyLoadoutFallback(error)) throw error
+      const retainedEntries = loadoutEntries
+        .filter((current) => !(current.slot_key === entry.slot_key && current.team_scope === entry.team_scope))
+        .map((current) => ({ catalogItemId: current.catalog_item_id, slot: current.slot, slotKey: current.slot_key, teamScope: current.team_scope, options: current.options }))
+      if (retainedEntries.length === loadoutEntries.length) throw error
+      const result = await skinchangerService.saveLoadout({ entries: retainedEntries })
+      return { version: result.version, removed: true }
+    }
+  }
+
   const equipSelected = async () => {
     if (!selected) return
     setSaving(true)
     try {
-      const result = await skinchangerService.saveLoadoutEntry({
-        expectedVersion: loadoutVersion,
-        entry: { catalogItemId: selected.id, slot: activeSlot, slotKey: selectedSlotKey, teamScope: selectedTeamScope, options: customOptions },
-      })
+      const result = await saveEntryWithCompatibility({ catalogItemId: selected.id, slot: activeSlot, slotKey: selectedSlotKey, teamScope: selectedTeamScope, options: customOptions })
       const savedOptions: SkinchangerAppearanceOptions = {
         ...customOptions,
         stickers: [...(customOptions.stickers ?? [])],
@@ -347,7 +378,7 @@ export function SkinchangerPage() {
       const entriesToRemove = loadoutEntries.filter((entry) => entry.slot === defaultCategory && entry.team_scope === selectedTeamScope)
       let expectedVersion = loadoutVersion
       for (const entry of entriesToRemove) {
-        const result = await skinchangerService.removeLoadoutEntry({ expectedVersion, slotKey: entry.slot_key, teamScope: entry.team_scope })
+        const result = await removeEntryWithCompatibility(entry, expectedVersion)
         expectedVersion = result.version
       }
       setOptimisticLoadoutEntries(loadoutEntries.filter((entry) => !(entry.slot === defaultCategory && entry.team_scope === selectedTeamScope)))
@@ -369,7 +400,7 @@ export function SkinchangerPage() {
     const { entry, model } = deleteConfirm
     setSaving(true)
     try {
-      const result = await skinchangerService.removeLoadoutEntry({ expectedVersion: loadoutVersion, slotKey: entry.slot_key, teamScope: entry.team_scope })
+      const result = await removeEntryWithCompatibility(entry, loadoutVersion)
       setOptimisticLoadoutEntries(loadoutEntries.filter((current) => !(current.slot_key === entry.slot_key && current.team_scope === entry.team_scope)))
       setOptimisticLoadoutVersion(result.version)
       if (activeWeapon?.weapon_class === model.weapon_class) {
