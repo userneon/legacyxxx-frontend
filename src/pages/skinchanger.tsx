@@ -10,7 +10,6 @@ import {
   Medal,
   RotateCcw,
   Search,
-  Settings2,
   ShieldCheck,
   Sticker,
   Sword,
@@ -63,6 +62,25 @@ const assetUrls = {
 
 function collectionAsset(name: keyof typeof assetUrls) {
   return assetUrls[name]
+}
+
+function CustomizeToggle({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={open ? "Hide customization" : "Show customization"}
+      aria-expanded={open}
+      title={open ? "Hide customization" : "Show customization"}
+      className="mt-3 flex h-10 w-full items-center justify-center rounded-md border border-border bg-transparent text-foreground transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <svg viewBox="0 0 60 60" aria-hidden="true" className={cn("h-7 w-7 transition-transform duration-[600ms] ease-[cubic-bezier(0.4,0,0.2,1)]", open && "-rotate-45")}>
+        <path d="M 10,12 H 50" className="fill-none stroke-foreground stroke-[3] [stroke-linecap:round] [stroke-linejoin:round] transition-[stroke-dasharray,stroke-dashoffset] duration-[600ms] ease-[cubic-bezier(0.4,0,0.2,1)]" />
+        <path d="M 10,30 H 50" className="fill-none stroke-foreground stroke-[3] [stroke-linecap:round] [stroke-linejoin:round] transition-[stroke-dasharray,stroke-dashoffset] duration-[600ms] ease-[cubic-bezier(0.4,0,0.2,1)]" />
+        <path d="M 10,48 H 50" className={cn("fill-none stroke-foreground stroke-[3] [stroke-linecap:round] [stroke-linejoin:round] [stroke-dasharray:12_63] transition-[stroke-dasharray,stroke-dashoffset] duration-[600ms] ease-[cubic-bezier(0.4,0,0.2,1)]", open && "[stroke-dasharray:20_300] [stroke-dashoffset:-32.42]")} />
+      </svg>
+    </button>
+  )
 }
 
 const categories: CollectionMeta[] = [
@@ -713,12 +731,12 @@ export function SkinchangerPage() {
               </div>
             )}
             {selected && activeWeapon && (
-              <Button variant="outline" className="mt-3 w-full" onClick={() => setCustomizeOpen((value) => !value)}>
-                <Settings2 className="size-4" /> {customizeOpen ? "Hide customize" : "Customize this skin"}
-              </Button>
+              <CustomizeToggle open={customizeOpen} onToggle={() => setCustomizeOpen((value) => !value)} />
             )}
-            {selected && activeWeapon && customizeOpen && (
-              <div className="mt-3 space-y-4 border-t border-border pt-4">
+            {selected && activeWeapon && (
+              <div className={cn("grid overflow-hidden transition-[grid-template-rows,opacity,margin] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none", customizeOpen ? "mt-3 grid-rows-[1fr] opacity-100" : "mt-0 grid-rows-[0fr] opacity-0 pointer-events-none")}>
+              <div className="min-h-0 overflow-hidden">
+              <div className="space-y-4 border-t border-border pt-4">
                 <div>
                   <div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Wear</span><span className="text-xs text-muted-foreground">{wearName(customOptions.wear ?? defaultWear)} · {(customOptions.wear ?? defaultWear).toFixed(4)}</span></div>
                   <input aria-label="Skin wear" type="range" min={minWear} max={maxWear} step="0.0001" value={customOptions.wear ?? defaultWear} onChange={(event) => setCustomOptions((current) => ({ ...current, wear: Number(event.target.value) }))} className="h-2 w-full cursor-pointer accent-foreground" />
@@ -756,6 +774,8 @@ export function SkinchangerPage() {
                     </div>
                   </div>
                 )}
+              </div>
+              </div>
               </div>
             )}
             <Button className="mt-4 w-full" disabled={!selected || saving || selectedAlreadyEquipped} onClick={equipSelected}>
