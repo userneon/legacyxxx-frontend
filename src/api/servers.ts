@@ -1,5 +1,5 @@
 import { get, type CallOptions } from "./client"
-import type { HomeStats, ServerFilters, ServerInfo, ServerLiveMatch } from "./types"
+import type { HomeStats, ReconnectMatch, ServerFilters, ServerInfo, ServerLiveMatch } from "./types"
 
 /**
  * Servers service. Lists game servers, optionally filtered by mode/status,
@@ -23,6 +23,11 @@ export const serversService = {
   async getLiveMatch(serverId: string, options?: CallOptions): Promise<ServerLiveMatch> {
     const response = await get<{ liveMatch: ServerLiveMatch }>(`/api/v1/public/servers/${serverId}/live-match`, undefined, { ...options, skipAuth: true })
     return response.liveMatch
+  },
+
+  async getMyReconnect(options?: CallOptions): Promise<ReconnectMatch | null> {
+    const response = await get<{ reconnect: ReconnectMatch | null }>("/api/v1/reconnect/me", undefined, options)
+    return response.reconnect
   },
 
   async joinServer(serverId: string, options?: CallOptions): Promise<void> {

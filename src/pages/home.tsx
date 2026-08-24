@@ -1,15 +1,21 @@
-import { useState, type ComponentProps } from "react"
-import { Crosshair, Flame, Crown, Trophy, TrendingUp, Server, Zap, Users, RefreshCw, ExternalLink, Globe2, Copy, Play as PlayIcon } from "lucide-react"
+/**
+ * LEGACY-X Home: neutral glass dashboard with map-led server cards. Reconnect
+ * appears only from the authenticated Root API and never from local mock state.
+ */
+import { useEffect, useState, type ComponentProps } from "react"
+import { Crosshair, Flame, Crown, Trophy, TrendingUp, Server, Zap, Users, RefreshCw, ExternalLink, Globe2, Copy, Play as PlayIcon, Info, RotateCcw } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { communityService, serversService } from "@/api"
-import type { CommunityCreator, CommunityPartner, HomeStats, PageId, ServerInfo } from "@/api/types"
+import type { CommunityCreator, CommunityPartner, HomeStats, PageId, ReconnectMatch, ServerInfo } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
 import { OptimizedImage } from "@/components/optimized-image"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { toast } from "sonner"
 import homeHeroGif from "@/assets/skinchanger/hero.gif"
+import { useAuth } from "@/hooks/use-auth"
+import { ServerLiveMatchDialog } from "@/components/server-live-match-dialog"
 
 interface HomePageProps {
   onNavigate: (page: PageId) => void
@@ -185,15 +191,63 @@ function PartnerCard({ partner }: { partner: CommunityPartner }) {
 }
 
 export function HomePage({ onNavigate }: HomePageProps) {
+  const { isAuthenticated, loading: authLoading } = useAuth()
+  const [infoServer, setInfoServer] = useState<ServerInfo | null>(null)
+  const [reconnectPending, setReconnectPending] = useState(false)
   const { data: servers, loading, error, refetch } = useApiQuery<ServerInfo[]>((signal) =>
     serversService.getServers(undefined, { signal }),
   )
   const { data: homeStats } = useApiQuery<HomeStats>((signal) =>
     serversService.getHomeStats({ signal }),
   )
+  const { data: reconnect, refetch: refetchReconnect } = useApiQuery<ReconnectMatch | null>(
+    (signal) => serversService.getMyReconnect({ signal }),
+    { enabled: isAuthenticated && !authLoading, queryKey: `home-reconnect:${isAuthenticated}` },
+  )
 
   const liveServers = (servers ?? []).filter((s) => s.status !== "offline")
   const totalPlayers = homeStats?.playersOnline ?? (servers ?? []).reduce((acc, s) => acc + s.players, 0)
+  const reconnectServer: ServerInfo | null = reconnect ? {
+    id: reconnect.serverId,
+    name: reconnect.serverName,
+    map: reconnect.map,
+    players: reconnect.playerCount,
+    maxPlayers: 10,
+    mode: reconnect.mode,
+    ping: 0,
+    status: "online",
+    connectAddress: reconnect.connectAddress,
+  } : null
+
+  useEffect(() => {
+    if (!reconnect) setReconnectPending(false)
+  }, [reconnect])
+
+  useEffect(() => {
+    if (!isAuthenticated) return
+    const refreshOnFocus = () => {
+      if (document.visibilityState === "visible") refetchReconnect()
+    }
+    window.addEventListener("focus", refreshOnFocus)
+    document.addEventListener("visibilitychange", refreshOnFocus)
+    return () => {
+      window.removeEventListener("focus", refreshOnFocus)
+      document.removeEventListener("visibilitychange", refreshOnFocus)
+    }
+  }, [isAuthenticated, refetchReconnect])
+
+  useEffect(() => {
+    if (!reconnectPending || !isAuthenticated) return
+    const timer = window.setInterval(refetchReconnect, 5_000)
+    return () => window.clearInterval(timer)
+  }, [isAuthenticated, reconnectPending, refetchReconnect])
+
+  const reconnectToMatch = () => {
+    if (!reconnectServer) return
+    setReconnectPending(true)
+    openServerInSteam(reconnectServer)
+    window.setTimeout(refetchReconnect, 1_200)
+  }
 
   return (
       <div className="flex flex-col gap-6 p-6">
@@ -233,9 +287,29 @@ export function HomePage({ onNavigate }: HomePageProps) {
             </button>
           ))}
           </div>
-        </div>
+	        </div>
 
-        {/* Discord community invite */}
+        {reconnect && reconnectServer && (
+          <section className="glass relative isolate overflow-hidden rounded-xl border border-amber-200/20 bg-amber-200/[0.045] p-5 shadow-lg shadow-black/10">
+            {cs2MapArtwork(reconnect.map) && <OptimizedImage src={cs2MapArtwork(reconnect.map)!} width={640} height={360} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-[0.12]" />}
+            <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-background/95 via-background/80 to-background/55" />
+            <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-amber-100/75"><RotateCcw className="size-3.5" />Temporary reconnect</div>
+                <h2 className="mt-1 truncate text-lg font-semibold">{reconnect.serverName}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">{cs2MapLabel(reconnect.map)} · {reconnect.mode} · {reconnect.playerCount} players</p>
+                <p className="mt-2 text-xs text-muted-foreground">Available until {new Date(reconnect.reconnectableUntil).toLocaleTimeString()}. This card clears only after the server confirms your rejoin.</p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <button type="button" onClick={() => setInfoServer(reconnectServer)} className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border/70 bg-background/55 px-3 text-xs font-semibold text-foreground transition-colors hover:border-primary/60 hover:bg-secondary/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={`View ${reconnect.serverName} live match information`}><Info className="size-3.5" />Info</button>
+                <button type="button" onClick={() => void copyServerAddress(reconnectServer)} className="inline-flex size-9 items-center justify-center rounded-lg border border-border/70 bg-background/55 text-foreground transition-colors hover:border-primary/60 hover:bg-secondary/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={`Copy ${reconnect.serverName} server IP`} title={`Copy ${reconnect.connectAddress}`}><Copy className="size-3.5" /></button>
+                <button type="button" onClick={reconnectToMatch} className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-emerald-300/35 bg-emerald-300/18 px-3 text-xs font-semibold text-emerald-50 transition-colors hover:border-emerald-200/65 hover:bg-emerald-300/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/60"><PlayIcon className="size-3.5 fill-current" />{reconnectPending ? "Connecting…" : "Reconnect"}</button>
+              </div>
+            </div>
+          </section>
+        )}
+
+	        {/* Discord community invite */}
         <a
           href="https://discord.gg/legacyx"
           target="_blank"
@@ -398,8 +472,11 @@ export function HomePage({ onNavigate }: HomePageProps) {
                           {server.players}/{server.maxPlayers} players
                         </div>
                       </div>
-                      <div className="flex shrink-0 items-center gap-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
-                        <button type="button" disabled={!hasAddress} onClick={() => void copyServerAddress(server)} className="inline-flex size-8 items-center justify-center rounded-md border border-white/20 bg-background/75 text-white/75 transition-colors hover:border-primary/70 hover:bg-primary/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={`Copy ${server.name} server IP`} title={hasAddress ? `Copy ${server.connectAddress}` : "Server IP unavailable"}>
+	                      <div className="flex shrink-0 items-center gap-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+	                        <button type="button" onClick={() => setInfoServer(server)} className="inline-flex size-8 items-center justify-center rounded-md border border-white/20 bg-background/75 text-white/75 transition-colors hover:border-primary/70 hover:bg-primary/25 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={`View ${server.name} live match information`} title="Live server information">
+	                          <Info className="size-3.5" />
+	                        </button>
+	                        <button type="button" disabled={!hasAddress} onClick={() => void copyServerAddress(server)} className="inline-flex size-8 items-center justify-center rounded-md border border-white/20 bg-background/75 text-white/75 transition-colors hover:border-primary/70 hover:bg-primary/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={`Copy ${server.name} server IP`} title={hasAddress ? `Copy ${server.connectAddress}` : "Server IP unavailable"}>
                           <Copy className="size-3.5" />
                         </button>
                         <button type="button" disabled={!hasAddress || isOffline} onClick={() => openServerInSteam(server)} className="inline-flex size-8 items-center justify-center rounded-md border border-emerald-300/45 bg-emerald-300/72 text-emerald-950 transition-colors hover:border-emerald-200 hover:bg-emerald-300 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/10 disabled:text-white/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/70" aria-label={`Play ${server.name} in Steam`} title={hasAddress && !isOffline ? `Connect through Steam to ${server.connectAddress}` : "Steam connection unavailable"}>
@@ -415,8 +492,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
         )}
       </div>
 
-      {/* Our Partners */}
-      <PartnerSection />
-    </div>
+	      {/* Our Partners */}
+	      <PartnerSection />
+	      {infoServer && <ServerLiveMatchDialog server={infoServer} open onOpenChange={(open) => { if (!open) setInfoServer(null) }} />}
+	    </div>
   )
 }

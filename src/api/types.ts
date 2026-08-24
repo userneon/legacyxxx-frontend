@@ -235,6 +235,19 @@ export interface ServerInfo {
   connectAddress?: string
 }
 
+/** A verified, player-specific reconnect opportunity from the Root API. */
+export interface ReconnectMatch {
+  sessionId: string
+  serverId: string
+  serverName: string
+  connectAddress: string
+  map: string
+  mode: string
+  disconnectedAt: string
+  reconnectableUntil: string
+  playerCount: number
+}
+
 export interface ServerLiveMatchPlayer {
   steamId: string
   name: string
