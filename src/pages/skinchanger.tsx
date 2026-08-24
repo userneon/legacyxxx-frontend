@@ -251,6 +251,11 @@ export function SkinchangerPage() {
   const selectedTeamScope: TeamScope = category === "agent" && agentTeam ? agentTeam : catalogTeamScope !== "all" ? catalogTeamScope : teamScope
   const showTeamSelector = Boolean(activeWeapon) && category !== "agent" && catalogTeamScope === "all"
   const selectedSlotKey = activeWeapon ? slotKeyForCatalogItem(activeWeapon, category) : activeSlot
+  const hasOtherEquippedKnifeOrGloveLook = Boolean(
+    activeWeapon
+    && (category === "knife" || category === "glove")
+    && loadoutEntries.some((entry) => entry.slot === category && entry.slot_key !== selectedSlotKey),
+  )
   const minWear = Math.max(0, Math.min(1, metadataNumber(selected, "minWear", 0.0001)))
   const maxWear = Math.max(minWear, Math.min(1, metadataNumber(selected, "maxWear", 1)))
   const defaultWear = Math.max(minWear, Math.min(maxWear, 0.0001))
@@ -300,6 +305,10 @@ export function SkinchangerPage() {
   useEffect(() => {
     if (catalogTeamScope !== "all" && teamScope !== catalogTeamScope) setTeamScope(catalogTeamScope)
   }, [catalogTeamScope, teamScope])
+
+  useEffect(() => {
+    if (hasOtherEquippedKnifeOrGloveLook && teamScope === "all") setTeamScope("ct")
+  }, [hasOtherEquippedKnifeOrGloveLook, teamScope])
 
   const selectedAlreadyEquipped = useMemo(
     () => selected ? loadoutEntries.some((entry) => entry.catalog_item_id === selected.id && entry.slot_key === selectedSlotKey && entry.team_scope === selectedTeamScope && normalizeAppearanceOptions(entry.options) === normalizeAppearanceOptions(customOptions)) : false,
@@ -358,8 +367,19 @@ export function SkinchangerPage() {
         skinchanger_catalog_items: selected,
         resolved_accessories: Object.values(selectedAccessories),
       }
+      const sharedLook = (activeSlot === "knife" || activeSlot === "glove") && selectedTeamScope !== "all"
+        ? loadoutEntries.find((entry) => entry.slot === activeSlot && entry.team_scope === "all")
+        : undefined
+      const reassignSharedLook = sharedLook && sharedLook.catalog_item_id !== selected.id
+        ? { ...sharedLook, team_scope: selectedTeamScope === "t" ? "ct" as const : "t" as const }
+        : undefined
       setOptimisticLoadoutEntries([
-        ...loadoutEntries.filter((entry) => !(entry.slot_key === selectedSlotKey && entry.team_scope === selectedTeamScope)),
+        ...loadoutEntries.filter((entry) => {
+          if (entry.slot_key === selectedSlotKey && entry.team_scope === selectedTeamScope) return false
+          if (sharedLook && entry.slot_key === sharedLook.slot_key && entry.team_scope === "all") return false
+          return true
+        }),
+        ...(reassignSharedLook ? [reassignSharedLook] : []),
         savedEntry,
       ])
       setOptimisticLoadoutVersion(result.version)
@@ -663,11 +683,14 @@ export function SkinchangerPage() {
               <div className="mt-4 flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">Team</span>
                 <div className="flex rounded-md border border-border p-0.5">
-                  {teamOptions.map((team) => (
-                    <button key={team.id} onClick={() => setTeamScope(team.id)} className={cn("rounded px-2 py-1 text-xs", teamScope === team.id ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground")}>
+                  {teamOptions.map((team) => {
+                    const isUnavailableBoth = team.id === "all" && hasOtherEquippedKnifeOrGloveLook
+                    return (
+                    <button key={team.id} disabled={isUnavailableBoth} onClick={() => setTeamScope(team.id)} title={isUnavailableBoth ? "Another knife/glove look already uses Both. Choose T or CT." : undefined} className={cn("rounded px-2 py-1 text-xs", teamScope === team.id ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground", isUnavailableBoth && "cursor-not-allowed opacity-35")}>
                       {team.label}
                     </button>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
             )}
