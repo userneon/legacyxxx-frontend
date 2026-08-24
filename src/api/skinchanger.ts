@@ -1,4 +1,4 @@
-import { get, post, put, type CallOptions } from "./client"
+import { get, post, put, request, type CallOptions } from "./client"
 
 export type SkinchangerCategory = "weapon" | "weapon_skin" | "knife" | "glove" | "agent" | "music_kit" | "pin" | "sticker" | "charm"
 export type SkinchangerSlot = "weapon" | "knife" | "glove" | "agent" | "music_kit" | "pin"
@@ -16,6 +16,8 @@ export interface SkinchangerLoadout { version: number; updated_at: string | null
 export interface SkinchangerJob { id: string; server_id: string; loadout_version: number; status: "queued" | "leased" | "applied" | "failed" | "cancelled"; attempts: number; failure_code: string | null; created_at: string; applied_at: string | null; updated_at: string }
 export interface SkinchangerActiveServerSession { server_id: string; player_name: string; connected_at: string; last_seen_at: string }
 export interface SkinchangerLoadoutInput { entries: Array<{ catalogItemId: string; slot: SkinchangerSlot; slotKey: string; teamScope: TeamScope; options: SkinchangerAppearanceOptions }> }
+export interface SkinchangerEntryMutationInput { expectedVersion: number; entry: { catalogItemId: string; slot: SkinchangerSlot; slotKey: string; teamScope: TeamScope; options: SkinchangerAppearanceOptions } }
+export interface SkinchangerEntryRemovalInput { expectedVersion: number; slotKey: string; teamScope: TeamScope }
 
 export const skinchangerService = {
   getCatalog(filters: { category: SkinchangerCategory; weaponClass?: string; weaponGroup?: SkinchangerFirearmGroup; team?: "t" | "ct"; query?: string; limit?: number; offset?: number }, options?: CallOptions) {
@@ -32,6 +34,12 @@ export const skinchangerService = {
   },
   saveLoadout(input: SkinchangerLoadoutInput, options?: CallOptions) {
     return put<{ version: number; entryCount: number }>("/skinchanger/loadout", input, options)
+  },
+  saveLoadoutEntry(input: SkinchangerEntryMutationInput, options?: CallOptions) {
+    return put<{ version: number }>("/skinchanger/loadout/entry", input, options)
+  },
+  removeLoadoutEntry(input: SkinchangerEntryRemovalInput, options?: CallOptions) {
+    return request<{ version: number; removed: boolean }>("/skinchanger/loadout/entry", { ...options, method: "DELETE", body: input })
   },
   queueApply(serverId: string, options?: CallOptions) {
     return post<{ jobId: string; status: "queued" }>("/skinchanger/apply", { serverId }, options)

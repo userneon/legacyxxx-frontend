@@ -3,7 +3,7 @@ import { Star, Send } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { feedbackService } from "@/api"
-import type { FeedbackEntry } from "@/api/types"
+import type { ApiError, FeedbackEntry } from "@/api/types"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -19,14 +19,13 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
     feedbackService.getFeedback({ signal }),
   )
 
-  const [feedback, setFeedback] = useState<FeedbackEntry[]>([])
   const [rating, setRating] = useState(0)
   const [message, setMessage] = useState("")
   const [hoverRating, setHoverRating] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState("")
 
-  const allFeedback = [...feedback, ...(existingFeedback ?? [])]
+  const allFeedback = existingFeedback ?? []
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,12 +34,20 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
     setSubmitting(true)
     setSubmitError("")
     try {
-      const entry = await feedbackService.submitFeedback({ rating, message: message.trim() })
-      setFeedback([entry, ...feedback])
+      await feedbackService.submitFeedback({ rating, message: message.trim() })
       setMessage("")
       setRating(0)
-    } catch {
-      setSubmitError("Unable to submit feedback right now. Please try again.")
+      refetch()
+    } catch (error) {
+      const apiError = error as Partial<ApiError>
+      if (apiError.reason === "weekly_cooldown") {
+        const date = apiError.retryAt ? new Date(apiError.retryAt) : null
+        setSubmitError(date && Number.isFinite(date.getTime()) ? `You can submit your next review after ${date.toLocaleString()}.` : "You can submit one review every 7 days.")
+      } else if (apiError.code === "unauthorized") {
+        setSubmitError("Please sign in with Steam before submitting a review.")
+      } else {
+        setSubmitError("Unable to submit feedback right now. Please try again.")
+      }
     } finally {
       setSubmitting(false)
     }

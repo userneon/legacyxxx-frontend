@@ -178,8 +178,9 @@ function wearName(wear: number) {
 }
 
 function slotKeyForCatalogItem(item: SkinchangerCatalogItem, category: SkinchangerCategory) {
-  if ((["glove", "knife"] as SkinchangerCategory[]).includes(category)) return category
-  return `weapon:${String(item.weapon_defindex ?? item.weapon_class ?? item.id).toLowerCase().replace(/[^a-z0-9_-]+/g, "-")}`
+  const modelKey = String(item.weapon_defindex ?? item.weapon_class ?? item.id).toLowerCase().replace(/[^a-z0-9_-]+/g, "-")
+  if ((["glove", "knife"] as SkinchangerCategory[]).includes(category)) return `${category}:${modelKey}`
+  return `weapon:${modelKey}`
 }
 
 function savedSkinLabel(item: SkinchangerCatalogItem) {
@@ -216,6 +217,7 @@ export function SkinchangerPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<{ model: SkinchangerCatalogItem; entry: SkinchangerLoadoutEntry } | null>(null)
   const [saving, setSaving] = useState(false)
   const [optimisticLoadoutEntries, setOptimisticLoadoutEntries] = useState<SkinchangerLoadoutEntry[] | null>(null)
+  const [optimisticLoadoutVersion, setOptimisticLoadoutVersion] = useState<number | null>(null)
 
   const activeCategory = categoryMeta(collection)
   const category: SkinchangerCategory = collection === "skins" && skinGroup === "agents" ? "agent" : activeCategory.category
@@ -243,6 +245,7 @@ export function SkinchangerPage() {
   const categoryCounts = new Map((facets?.categories ?? []).map((entry) => [entry.category, entry.count]))
   const remoteLoadoutEntries = loadoutResponse?.loadout.skinchanger_loadout_entries ?? []
   const loadoutEntries = optimisticLoadoutEntries ?? remoteLoadoutEntries
+  const loadoutVersion = optimisticLoadoutVersion ?? loadoutResponse?.loadout.version ?? 0
   const catalogTeamScope = activeWeapon ? teamScopeFromMetadata(activeWeapon) : "all"
   const selectedTeamScope: TeamScope = category === "agent" && agentTeam ? agentTeam : catalogTeamScope !== "all" ? catalogTeamScope : teamScope
   const showTeamSelector = Boolean(activeWeapon) && category !== "agent" && catalogTeamScope === "all"
@@ -251,6 +254,9 @@ export function SkinchangerPage() {
   const maxWear = Math.max(minWear, Math.min(1, metadataNumber(selected, "maxWear", 1)))
   const defaultWear = Math.max(minWear, Math.min(maxWear, 0.0001))
   const savedEntryForActiveSlot = loadoutEntries.find((entry) => entry.slot_key === selectedSlotKey && entry.team_scope === selectedTeamScope)
+    ?? ((category === "knife" || category === "glove")
+      ? loadoutEntries.find((entry) => entry.slot_key === category && entry.slot === category && entry.team_scope === selectedTeamScope && entry.skinchanger_catalog_items?.weapon_class === activeWeapon?.weapon_class)
+      : undefined)
   const savedItemForActiveSlot = savedEntryForActiveSlot?.skinchanger_catalog_items ?? null
   const previewChoice = selected ?? savedItemForActiveSlot ?? (defaultChoice === category ? defaultModelItem(defaultChoice) : null)
   const canCustomizeAccessories = Boolean(activeWeapon && category === "weapon")
@@ -264,8 +270,11 @@ export function SkinchangerPage() {
   const accessoriesLoading = accessoryPicker === "sticker" ? stickersLoading : charmsLoading
 
   useEffect(() => {
-    if (loadoutResponse) setOptimisticLoadoutEntries(null)
-  }, [loadoutResponse?.loadout.version])
+    if (loadoutResponse && optimisticLoadoutVersion !== null && loadoutResponse.loadout.version >= optimisticLoadoutVersion) {
+      setOptimisticLoadoutEntries(null)
+      setOptimisticLoadoutVersion(null)
+    }
+  }, [loadoutResponse?.loadout.version, optimisticLoadoutVersion])
 
   useEffect(() => {
     if (!selected) {
@@ -300,23 +309,10 @@ export function SkinchangerPage() {
     if (!selected) return
     setSaving(true)
     try {
-      const nextEntries = loadoutEntries
-        .filter((entry) => !(entry.slot_key === selectedSlotKey && entry.team_scope === selectedTeamScope))
-        .map((entry) => ({
-          catalogItemId: entry.catalog_item_id,
-          slot: entry.slot,
-          slotKey: entry.slot_key,
-          teamScope: entry.team_scope,
-          options: entry.options,
-        }))
-      nextEntries.push({
-        catalogItemId: selected.id,
-        slot: activeSlot,
-        slotKey: selectedSlotKey,
-        teamScope: selectedTeamScope,
-        options: customOptions,
+      const result = await skinchangerService.saveLoadoutEntry({
+        expectedVersion: loadoutVersion,
+        entry: { catalogItemId: selected.id, slot: activeSlot, slotKey: selectedSlotKey, teamScope: selectedTeamScope, options: customOptions },
       })
-      await skinchangerService.saveLoadout({ entries: nextEntries })
       const savedOptions: SkinchangerAppearanceOptions = {
         ...customOptions,
         stickers: [...(customOptions.stickers ?? [])],
@@ -335,6 +331,7 @@ export function SkinchangerPage() {
         ...loadoutEntries.filter((entry) => !(entry.slot_key === selectedSlotKey && entry.team_scope === selectedTeamScope)),
         savedEntry,
       ])
+      setOptimisticLoadoutVersion(result.version)
       toast.success("Your choice is ready for your next LEGACY-X game.")
       refetchLoadout()
     } catch {
@@ -347,17 +344,14 @@ export function SkinchangerPage() {
   const equipDefaultModel = async (defaultCategory: "knife" | "glove") => {
     setSaving(true)
     try {
-      const nextEntries = loadoutEntries
-        .filter((entry) => !(entry.slot === defaultCategory && entry.team_scope === selectedTeamScope))
-        .map((entry) => ({
-          catalogItemId: entry.catalog_item_id,
-          slot: entry.slot,
-          slotKey: entry.slot_key,
-          teamScope: entry.team_scope,
-          options: entry.options,
-        }))
-      await skinchangerService.saveLoadout({ entries: nextEntries })
+      const entriesToRemove = loadoutEntries.filter((entry) => entry.slot === defaultCategory && entry.team_scope === selectedTeamScope)
+      let expectedVersion = loadoutVersion
+      for (const entry of entriesToRemove) {
+        const result = await skinchangerService.removeLoadoutEntry({ expectedVersion, slotKey: entry.slot_key, teamScope: entry.team_scope })
+        expectedVersion = result.version
+      }
       setOptimisticLoadoutEntries(loadoutEntries.filter((entry) => !(entry.slot === defaultCategory && entry.team_scope === selectedTeamScope)))
+      setOptimisticLoadoutVersion(entriesToRemove.length ? expectedVersion : loadoutVersion)
       setDefaultChoice(defaultCategory)
       setSelected(null)
       setCustomizeOpen(false)
@@ -375,17 +369,9 @@ export function SkinchangerPage() {
     const { entry, model } = deleteConfirm
     setSaving(true)
     try {
-      const nextEntries = loadoutEntries
-        .filter((current) => !(current.slot_key === entry.slot_key && current.team_scope === entry.team_scope))
-        .map((current) => ({
-          catalogItemId: current.catalog_item_id,
-          slot: current.slot,
-          slotKey: current.slot_key,
-          teamScope: current.team_scope,
-          options: current.options,
-        }))
-      await skinchangerService.saveLoadout({ entries: nextEntries })
+      const result = await skinchangerService.removeLoadoutEntry({ expectedVersion: loadoutVersion, slotKey: entry.slot_key, teamScope: entry.team_scope })
       setOptimisticLoadoutEntries(loadoutEntries.filter((current) => !(current.slot_key === entry.slot_key && current.team_scope === entry.team_scope)))
+      setOptimisticLoadoutVersion(result.version)
       if (activeWeapon?.weapon_class === model.weapon_class) {
         setSelected(null)
         setCustomizeOpen(false)
@@ -557,6 +543,7 @@ export function SkinchangerPage() {
                   const canonicalCardTeamScope = teamScopeFromMetadata(item)
                   const savedEntryForCard = isModelBrowse
                     ? loadoutEntries.find((entry) => entry.slot_key === modelSlotKey && entry.skinchanger_catalog_items?.weapon_class === item.weapon_class && (canonicalCardTeamScope === "all" || entry.team_scope === canonicalCardTeamScope))
+                      ?? loadoutEntries.find((entry) => (category === "knife" || category === "glove") && entry.slot_key === category && entry.skinchanger_catalog_items?.weapon_class === item.weapon_class && (canonicalCardTeamScope === "all" || entry.team_scope === canonicalCardTeamScope))
                       ?? loadoutEntries.find((entry) => entry.slot_key === modelSlotKey && entry.skinchanger_catalog_items?.weapon_class === item.weapon_class)
                     : null
                   const savedCardItem = savedEntryForCard?.skinchanger_catalog_items ?? null

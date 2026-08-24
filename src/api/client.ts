@@ -132,6 +132,8 @@ async function toApiError(response: Response): Promise<ApiError> {
   const code = errorCodeForStatus(status)
   let message = defaultMessageForStatus(status)
   let fields: Record<string, string[]> | undefined
+  let reason: string | undefined
+  let retryAt: string | undefined
 
   try {
     const contentType = response.headers.get("content-type") ?? ""
@@ -142,13 +144,19 @@ async function toApiError(response: Response): Promise<ApiError> {
         if (apiFields && typeof apiFields === "object") {
           fields = apiFields as Record<string, string[]>
         }
+        if ((body as { error?: unknown }).error === "weekly_cooldown") {
+          reason = "weekly_cooldown"
+          const nextEligibleAt = (body as { nextEligibleAt?: unknown }).nextEligibleAt
+          if (typeof nextEligibleAt === "string" && Number.isFinite(Date.parse(nextEligibleAt))) retryAt = nextEligibleAt
+          message = "You can submit one review every 7 days."
+        }
       }
     }
   } catch {
     /* Response body could not be parsed; keep the default message. */
   }
 
-  return { status, code, message, fields }
+  return { status, code, message, fields, reason, retryAt }
 }
 
 /* ---------------------------------------------------------------------------

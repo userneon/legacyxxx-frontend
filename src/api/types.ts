@@ -35,6 +35,10 @@ export interface ApiError {
   message: string
   /** Field-level validation errors keyed by field name (422 responses). */
   fields?: Record<string, string[]>
+  /** A controlled backend error reason safe for page-specific handling. */
+  reason?: string
+  /** ISO timestamp used only by explicit retry/cooldown responses. */
+  retryAt?: string
 }
 
 /* ----------------------------------------------------------------------------
