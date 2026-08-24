@@ -7,6 +7,7 @@ import type { CommunityCreator, CommunityPartner, HomeStats, PageId, ServerInfo 
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
 import { OptimizedImage } from "@/components/optimized-image"
+import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { toast } from "sonner"
 import homeHeroGif from "@/assets/skinchanger/hero.gif"
 
@@ -20,14 +21,6 @@ const MODE_CARDS: { id: PageId; label: string; desc: string; icon: typeof Crossh
   { id: "play-proleague", label: "Pro League", desc: "Seasonal competitive league", icon: Crown, stat: "Live status from API" },
   { id: "play-tournaments", label: "Tournaments", desc: "Scheduled prize tournaments", icon: Trophy, stat: "Live status from API" },
 ]
-
-// LEGACY-X visual system: compact dark glass server cards; map screenshots stay subdued behind an opaque contrast gradient.
-const MAP_BACKGROUNDS: Record<string, string> = {
-  de_mirage: "/maps/de_mirage.webp",
-  de_inferno: "/maps/de_inferno.webp",
-  de_ancient: "/maps/de_ancient.webp",
-  de_nuke: "/maps/de_nuke.webp",
-}
 
 async function copyServerAddress(server: ServerInfo) {
   if (!server.connectAddress) {
@@ -353,7 +346,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
         {!loading && !error && liveServers.length > 0 && (
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {liveServers.slice(0, 5).map((server) => {
-              const mapBackground = MAP_BACKGROUNDS[server.map.toLowerCase()]
+              const mapBackground = cs2MapArtwork(server.map)
               const hasAddress = Boolean(server.connectAddress)
               const isOffline = server.status === "offline"
               const isFull = server.status === "full"
@@ -399,7 +392,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
                     <div className="mt-auto flex items-end justify-between gap-3">
                       <div className="min-w-0">
-                        <div className="font-mono text-xs font-medium text-white/85">{server.map}</div>
+                        <div className="font-mono text-xs font-medium text-white/85">{cs2MapLabel(server.map)}</div>
                         <div className="mt-1 flex items-center gap-1.5 text-xs text-white/60 tabular-nums">
                           <Users className="size-3" />
                           {server.players}/{server.maxPlayers} players

@@ -11,6 +11,7 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { QueryState } from "@/components/query-state"
 import { SteamLoginGate } from "@/components/steam-login-gate"
+import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { toast } from "sonner"
 
 interface PlayPageProps {
@@ -99,15 +100,8 @@ const MATCH_MAPS = [
   { value: "de_nuke", label: "Nuke" },
   { value: "de_overpass", label: "Overpass" },
   { value: "de_train", label: "Train" },
+  { value: "de_vertigo", label: "Vertigo" },
 ]
-
-// Local WebP map artwork is used on Block cards and compact Table thumbnails; unknown maps retain a neutral fallback.
-const MAP_BACKGROUNDS: Record<string, string> = {
-  de_mirage: "/maps/de_mirage.webp",
-  de_inferno: "/maps/de_inferno.webp",
-  de_ancient: "/maps/de_ancient.webp",
-  de_nuke: "/maps/de_nuke.webp",
-}
 
 async function copyConnectionAddress(address: string | undefined, subject: string) {
   if (!address) {
@@ -164,7 +158,7 @@ function connectToMatchServer(match: MatchInfo) {
 }
 
 function mapLabel(value: string): string {
-  return MATCH_MAPS.find((m) => m.value === value)?.label ?? value.replace("de_", "")
+  return cs2MapLabel(value)
 }
 
 function MongoliaFlag({ className }: { className?: string }) {
@@ -503,7 +497,7 @@ function MatchCard({ match, mode, onToggleFavorite }: { match: MatchInfo; mode: 
   const isWaiting = match.status === "waiting"
 
   const canDirectConnect = Boolean(match.connectAddress) && !isLocked
-  const mapBackground = MAP_BACKGROUNDS[match.map]
+  const mapBackground = cs2MapArtwork(match.map)
   const accent = MODE_ACCENTS[MODE_CONFIG[mode].accent]
 
   const statusTone = isLive ? "border-emerald-300/35 bg-emerald-300/12 text-emerald-100" : isWaiting ? "border-white/15 bg-black/25 text-white/65" : "border-white/10 bg-black/25 text-white/45"
@@ -742,7 +736,7 @@ function ServerCard({ server }: { server: ServerInfo }) {
   const isFull = server.status === "full"
   const isOffline = server.status === "offline"
   const canConnect = Boolean(server.connectAddress) && !isOffline
-  const mapBackground = MAP_BACKGROUNDS[server.map]
+  const mapBackground = cs2MapArtwork(server.map)
   const statusTone = isOffline ? "border-white/10 bg-black/25 text-white/45" : isFull ? "border-red-300/35 bg-red-300/12 text-red-100" : "border-emerald-300/35 bg-emerald-300/12 text-emerald-100"
 
   const handleConnect = () => {
