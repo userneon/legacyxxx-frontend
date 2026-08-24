@@ -38,18 +38,26 @@ import { QueryState } from "@/components/query-state"
 import { OptimizedImage } from "@/components/optimized-image"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cn } from "@/lib/utils"
+import riflesIcon from "@/assets/skinchanger/rifles.png"
+import midtierIcon from "@/assets/skinchanger/midtier.png"
+import pistolIcon from "@/assets/skinchanger/pistol.png"
+import knifeIcon from "@/assets/skinchanger/knife.png"
+import glovesIcon from "@/assets/skinchanger/gloves.png"
+import pinsIcon from "@/assets/skinchanger/pins.png"
+import teamTIcon from "@/assets/skinchanger/team-t.webp"
+import teamCtIcon from "@/assets/skinchanger/team-ct.webp"
 
 /** LEGACY-X neutral visual system: filename-matched collection icons, ordered Skins sub-groups, and lower-left rarity glow. */
 type CollectionId = "skins" | Exclude<SkinchangerCategory, "weapon" | "agent">
 type CollectionMeta = { id: CollectionId; category: SkinchangerCategory; label: string; slot: SkinchangerSlot; icon: typeof Crosshair; iconAsset?: string; invertIcon?: boolean; firearmGroup?: SkinchangerFirearmGroup }
 
 const assetUrls = {
-  rifles: "/rifles.png",
-  midtier: "/midtier.png",
-  pistol: "/pistol.png",
-  knife: "/knife.png",
-  gloves: "/gloves.png",
-  pins: "/pins.png",
+  rifles: riflesIcon,
+  midtier: midtierIcon,
+  pistol: pistolIcon,
+  knife: knifeIcon,
+  gloves: glovesIcon,
+  pins: pinsIcon,
 } as const
 
 function collectionAsset(name: keyof typeof assetUrls) {
@@ -94,8 +102,8 @@ const teamOptions: Array<{ id: TeamScope; label: string }> = [
 ]
 
 const agentTeamOptions: Array<{ id: "t" | "ct"; label: string; title: string; description: string; icon: string }> = [
-  { id: "t", label: "T", title: "T agents", description: "Browse Terrorist agent skins", icon: "/legacyx-t-icon.webp" },
-  { id: "ct", label: "CT", title: "CT agents", description: "Browse Counter-Terrorist agent skins", icon: "/legacyx-ct-icon.webp" },
+  { id: "t", label: "T", title: "T agents", description: "Browse Terrorist agent skins", icon: teamTIcon },
+  { id: "ct", label: "CT", title: "CT agents", description: "Browse Counter-Terrorist agent skins", icon: teamCtIcon },
 ]
 const tOnlyFirearms = new Set(["AK-47", "Galil AR", "SG 553", "G3SG1", "Glock-18", "Tec-9", "MAC-10", "Sawed-Off"])
 const ctOnlyFirearms = new Set(["AUG", "FAMAS", "M4A1-S", "M4A4", "SCAR-20", "USP-S", "P2000", "Five-SeveN", "MP9", "MAG-7"])

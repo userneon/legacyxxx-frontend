@@ -8,6 +8,7 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
 import { OptimizedImage } from "@/components/optimized-image"
 import { toast } from "sonner"
+import homeHeroGif from "@/assets/skinchanger/hero.gif"
 
 interface HomePageProps {
   onNavigate: (page: PageId) => void
@@ -208,8 +209,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
         "glass shiny-slow relative flex flex-col gap-4 overflow-hidden rounded-xl p-8"
       )}>
         <picture className="pointer-events-none absolute inset-0">
-          <source media="(prefers-reduced-motion: reduce)" srcSet="/legacyx-control-plate.webp" />
-          <OptimizedImage src="/legacyx-control-plate.webp" width={2560} height={1440} priority alt="" aria-hidden="true" className="h-full w-full object-cover opacity-30" />
+          <OptimizedImage src={homeHeroGif} width={480} height={268} priority alt="" aria-hidden="true" className="h-full w-full object-cover opacity-30" />
         </picture>
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background/90 via-background/65 to-background/25" />
         <div className="relative z-10 flex items-center gap-2">
