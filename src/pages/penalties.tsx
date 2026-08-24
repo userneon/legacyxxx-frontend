@@ -34,6 +34,11 @@ function getTypeLabel(type: PenaltyType) {
   }
 }
 
+function numericLabel(value: unknown) {
+  const numeric = typeof value === "number" ? value : Number(value)
+  return Number.isFinite(numeric) ? numeric.toLocaleString() : "0"
+}
+
 export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userId: string) => void }) {
   const [filter, setFilter] = useState<PenaltyFilter>("all")
   const [query, setQuery] = useState("")
@@ -53,20 +58,20 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
     if (query) {
       const q = query.toLowerCase()
       return (
-        p.player.toLowerCase().includes(q) ||
-        p.reason.toLowerCase().includes(q) ||
-        p.admin.toLowerCase().includes(q)
+        String(p.player ?? "").toLowerCase().includes(q) ||
+        String(p.reason ?? "").toLowerCase().includes(q) ||
+        String(p.admin ?? "").toLowerCase().includes(q)
       )
     }
     return true
   })
 
   const statItems = stats ? [
-    { label: "Total Bans", value: stats.totalBans.toLocaleString(), color: "text-destructive" },
-    { label: "Active Bans", value: stats.activeBans.toLocaleString(), color: "text-chart-5" },
-    { label: "Permanent", value: stats.permanentBans.toLocaleString(), color: "text-chart-4" },
-    { label: "Total Mutes", value: stats.totalMutes.toLocaleString(), color: "text-white/75" },
-    { label: "Total Gags", value: stats.totalGags.toLocaleString(), color: "text-white/65" },
+    { label: "Total Bans", value: numericLabel(stats.totalBans), color: "text-destructive" },
+    { label: "Active Bans", value: numericLabel(stats.activeBans), color: "text-chart-5" },
+    { label: "Permanent", value: numericLabel(stats.permanentBans), color: "text-chart-4" },
+    { label: "Total Mutes", value: numericLabel(stats.totalMutes), color: "text-white/75" },
+    { label: "Total Gags", value: numericLabel(stats.totalGags), color: "text-white/65" },
   ] : []
 
   return (

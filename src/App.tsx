@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { Component, useEffect, useRef, type ReactNode } from "react"
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom"
 
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
@@ -80,6 +80,7 @@ export function App() {
 
         <div ref={mainRef} className="scrollbar-hidden flex-1 overflow-auto">
           <div key={location.pathname} className="page-enter">
+            <RouteErrorBoundary resetKey={location.pathname}>
             <Routes>
               <Route path="/" element={<HomePage onNavigate={handleNavigate} />} />
               <Route path="/play/5vs5" element={<PlayPage mode="5vs5" />} />
@@ -111,11 +112,33 @@ export function App() {
               <Route path="/wallet" element={<ProtectedPage pageName="Wallet"><WalletPage /></ProtectedPage>} />
               <Route path="*" element={<HomePage onNavigate={handleNavigate} />} />
             </Routes>
+            </RouteErrorBoundary>
           </div>
         </div>
       </SidebarInset>
     </SidebarProvider>
   )
+}
+
+class RouteErrorBoundary extends Component<{ children: ReactNode; resetKey: string }, { hasError: boolean }> {
+  state = { hasError: false }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  componentDidUpdate(previousProps: Readonly<{ children: ReactNode; resetKey: string }>) {
+    if (previousProps.resetKey !== this.props.resetKey && this.state.hasError) {
+      this.setState({ hasError: false })
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <div className="flex min-h-[20rem] items-center justify-center p-6 text-sm text-muted-foreground">This page is temporarily unavailable.</div>
+    }
+    return this.props.children
+  }
 }
 
 function getRouteForPage(page: PageId): string {
