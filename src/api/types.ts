@@ -252,6 +252,11 @@ export interface ServerLiveMatchPlayer {
   steamId: string
   name: string
   connected: boolean
+  rankId: number | null
+  rankName: string | null
+  rankImageKey: string | null
+  adr: number | null
+  ping: number | null
 }
 
 export interface ServerLiveMatch {
@@ -263,6 +268,7 @@ export interface ServerLiveMatch {
   round: number | null
   score: { t: number; ct: number } | null
   teams: { t: ServerLiveMatchPlayer[]; ct: ServerLiveMatchPlayer[] }
+  spectators: ServerLiveMatchPlayer[]
   connectedPlayers: ServerLiveMatchPlayer[]
   updatedAt: string | null
   availability: "live_snapshot" | "roster_only" | "unavailable"

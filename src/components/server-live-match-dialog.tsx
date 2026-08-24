@@ -8,6 +8,7 @@ import { Map, RadioTower, RefreshCw, Users } from "lucide-react"
 import { serversService } from "@/api"
 import type { ServerInfo, ServerLiveMatchPlayer } from "@/api/types"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 
@@ -53,6 +54,9 @@ function PlayerList({ players, emptyLabel, side }: { players: ServerLiveMatchPla
     {players.map((player) => <li key={player.steamId} className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-sm text-white/85 ${rowTone}`}>
       <span className={player.connected ? "size-1.5 rounded-full bg-emerald-300" : "size-1.5 rounded-full bg-white/25"} />
       <span className="min-w-0 flex-1 truncate">{player.name}</span>
+      {player.rankId !== null && <CompetitiveRankBadge rankId={player.rankId} rankName={player.rankName} imageKey={player.rankImageKey} className="h-5 w-9" />}
+      {player.adr !== null && <span className="shrink-0 text-[10px] tabular-nums text-white/50">{player.adr.toFixed(1)} ADR</span>}
+      {player.ping !== null && <span title={`Ping: ${player.ping} ms`} className="shrink-0 cursor-help text-[10px] tabular-nums text-white/60">{player.ping}ms</span>}
     </li>)}
   </ul>
 }
@@ -111,6 +115,7 @@ export function ServerLiveMatchDialog({ server, open, onOpenChange }: { server: 
           {liveMatch.availability === "live_snapshot"
             ? <div className="grid gap-3 sm:grid-cols-2"><TeamPanel side="t" title="TERRORIST" players={liveMatch.teams.t} mapTone={palette.panel} /><TeamPanel side="ct" title="COUNTER-TERRORIST" players={liveMatch.teams.ct} mapTone={palette.panel} /></div>
             : <section className={`rounded-xl border bg-black/20 p-4 ${palette.panel}`}><div className="flex items-center gap-2 text-sm font-semibold text-white/85"><Users className="size-4 text-white/65" />Connected players</div><p className="mt-1 text-xs leading-5 text-white/45">Team and score snapshots have not been received from this server yet.</p><PlayerList players={liveMatch.connectedPlayers} emptyLabel="No current player snapshot received." /></section>}
+          {liveMatch.availability === "live_snapshot" && liveMatch.spectators.length > 0 && <section className={`rounded-xl border bg-black/20 p-3 ${palette.panel}`}><div className="flex items-center justify-between gap-2"><div className="flex items-center gap-2 text-[11px] font-bold tracking-[0.14em] text-white/80"><Users className="size-3.5 text-white/60" />SPECTATORS</div><span className="text-xs tabular-nums text-white/45">{liveMatch.spectators.length}</span></div><PlayerList players={liveMatch.spectators} emptyLabel="" /></section>}
           <div className="flex items-center justify-center gap-1.5 text-[11px] text-white/40"><RadioTower className="size-3" />{liveMatch.updatedAt ? `Updated ${new Date(liveMatch.updatedAt).toLocaleTimeString()}` : "Waiting for a server heartbeat"}</div>
         </div>}
       </div>
