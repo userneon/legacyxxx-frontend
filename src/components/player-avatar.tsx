@@ -1,7 +1,8 @@
-/** LEGACY-X dark glass UI: safe Steam avatar image with an identity fallback. */
+/** LEGACY-X dark glass UI: safe Steam avatar image that always fills its allocated box, with an identity fallback. */
 import { useState } from "react"
 
 import { cn } from "@/lib/utils"
+import { OptimizedImage } from "@/components/optimized-image"
 
 function validAvatarUrl(value?: string) {
   if (!value) return false
@@ -29,8 +30,8 @@ export function PlayerAvatar({
   const showImage = !failed && validAvatarUrl(avatar)
 
   return (
-    <div className={cn("flex shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br from-secondary to-muted font-bold", className)}>
-      {showImage ? <img src={avatar} alt="" className={cn("size-full object-cover", imageClassName)} onError={() => setFailed(true)} /> : initials}
+    <div className={cn("relative flex shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br from-secondary to-muted font-bold", className)}>
+      {showImage ? <OptimizedImage src={avatar!} width={96} height={96} alt="" className={cn("absolute inset-0 h-full w-full max-w-none object-cover object-center", imageClassName)} onError={() => setFailed(true)} /> : initials}
     </div>
   )
 }

@@ -23,6 +23,7 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
 import { useAuth } from "@/hooks/use-auth"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { SteamIcon } from "@/components/steam-login-gate"
 
 interface ProfilePageProps {
   userId?: string
@@ -244,7 +245,7 @@ export function ProfilePage({ userId }: ProfilePageProps) {
             <div className="flex-1">
               <h1 className="text-2xl font-bold tracking-tight">{profile.username}</h1>
               <p className="text-sm text-muted-foreground">{profile.role || "Player"} - Rank: {profile.rank}</p>
-              {steamProfileUrl && <div className="mt-2"><a href={steamProfileUrl} target="_blank" rel="noreferrer" aria-label={`Open ${profile.username}'s Steam profile`} title="Open Steam profile" className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-input bg-transparent transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"><img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663648835859/IuiahMvWnzZwYHmQ.png" alt="" className="size-4 object-contain invert" /></a></div>}
+              {steamProfileUrl && <div className="mt-2"><a href={steamProfileUrl} target="_blank" rel="noreferrer" aria-label={`Open ${profile.username}'s Steam profile`} title="Open Steam profile" className="group inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-transparent text-white/55 transition-[color,opacity] hover:bg-transparent hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"><SteamIcon className="size-4 transition-opacity group-hover:opacity-100" /></a></div>}
             </div>
             {isOwner && <div className="flex gap-2">
               <Button variant="outline" size="icon" aria-label="Profile settings">
