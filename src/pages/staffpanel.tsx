@@ -1,51 +1,62 @@
-// LEGACY-X Staff Panel: shadcn operational console; isolated staff auth and server-authoritative actions only.
+// LEGACY-X Staff Panel: player-first shadcn console; isolated staff auth, allowlisted queue payloads and no direct CS2 execution.
 import { useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import type { LucideIcon } from "lucide-react"
-import { AlertTriangle, Database, Loader2, LockKeyhole, Map, Megaphone, MonitorUp, PackagePlus, Power, RotateCcw, ServerCog, ShieldAlert, UserRoundCog, UsersRound } from "lucide-react"
+import { AlertTriangle, BellRing, Database, Gavel, Loader2, LockKeyhole, Map, Megaphone, MonitorUp, PackagePlus, Power, RefreshCw, RotateCcw, ServerCog, ShieldAlert, UserRoundCog, UsersRound } from "lucide-react"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Textarea } from "@/components/ui/textarea"
 import { setAccessToken } from "@/api/client"
 import { staffPanelService } from "@/api/staffpanel"
-import type { ApiError, StaffPanelAccess, StaffPanelActionRequest, StaffPanelDatabaseOverview, StaffPanelOverview, StaffPanelProduct } from "@/api/types"
+import type { ApiError, StaffPanelAccess, StaffPanelActionRequest, StaffPanelDatabaseOverview, StaffPanelOverview, StaffPanelProduct, StaffPanelRosterPlayer, StaffPanelServerRoster } from "@/api/types"
 
 const apiOrigin = (import.meta.env.VITE_API_URL?.trim() || (import.meta.env.PROD ? "https://api.legacyx.cc" : "")).replace(/\/$/, "")
+const banTerms: Array<NonNullable<StaffPanelActionRequest["banTerm"]>> = ["10m", "30m", "1h", "1d", "7d", "permanent"]
+const alertColors: Array<NonNullable<StaffPanelActionRequest["alertColor"]>> = ["gold", "sky", "red", "green", "neutral"]
+const alertColorClasses = { gold: "border-amber-300/50 bg-amber-300/10 text-amber-100", sky: "border-sky-300/50 bg-sky-300/10 text-sky-100", red: "border-red-300/50 bg-red-300/10 text-red-100", green: "border-emerald-300/50 bg-emerald-300/10 text-emerald-100", neutral: "border-border bg-muted text-foreground" } as const
 
 type ActionDefinition = {
   type: StaffPanelActionRequest["type"]
   label: string
   icon: LucideIcon
-  needsPlayer?: boolean
-  needsMessage?: boolean
-  needsMap?: boolean
+  scope: "player" | "server"
+  workflow: "ban" | "reason" | "mute" | "rename" | "hud" | "message" | "map" | "none"
   destructive?: boolean
 }
 
-const managerActions: ActionDefinition[] = [
-  { type: "ban", label: "Ban player", icon: ShieldAlert, needsPlayer: true, needsMessage: true, destructive: true },
-  { type: "unban", label: "Unban player", icon: ShieldAlert, needsPlayer: true, needsMessage: true, destructive: true },
-  { type: "kick", label: "Kick player", icon: UsersRound, needsPlayer: true, needsMessage: true, destructive: true },
-  { type: "mute", label: "Mute player", icon: LockKeyhole, needsPlayer: true, needsMessage: true, destructive: true },
-  { type: "rename", label: "Rename player", icon: UserRoundCog, needsPlayer: true, needsMessage: true },
-  { type: "map_change", label: "Change map", icon: Map, needsMap: true, destructive: true },
-  { type: "server_announcement", label: "Server announcement", icon: Megaphone, needsMessage: true },
-  { type: "match_announcement", label: "Match announcement", icon: Megaphone, needsMessage: true },
-  { type: "hud_announcement", label: "HUD announcement", icon: MonitorUp, needsMessage: true },
-  { type: "player_message", label: "Player message", icon: MonitorUp, needsPlayer: true, needsMessage: true },
+const managerPlayerActions: ActionDefinition[] = [
+  { type: "ban", label: "Ban", icon: Gavel, scope: "player", workflow: "ban", destructive: true },
+  { type: "unban", label: "Unban", icon: ShieldAlert, scope: "player", workflow: "reason", destructive: true },
+  { type: "kick", label: "Kick", icon: UsersRound, scope: "player", workflow: "reason", destructive: true },
+  { type: "mute", label: "Mute", icon: LockKeyhole, scope: "player", workflow: "mute", destructive: true },
+  { type: "rename", label: "Rename", icon: UserRoundCog, scope: "player", workflow: "rename" },
+  { type: "player_hud_alert", label: "HUD alert", icon: BellRing, scope: "player", workflow: "hud" },
+  { type: "player_message", label: "Direct message", icon: MonitorUp, scope: "player", workflow: "message" },
 ]
 
-const ownerActions: ActionDefinition[] = [
-  { type: "restart_all", label: "Restart all servers", icon: Power, destructive: true },
-  { type: "restart_server", label: "Restart selected server", icon: ServerCog, destructive: true },
-  { type: "start_server", label: "Start selected server", icon: Power, destructive: true },
-  { type: "stop_server", label: "Stop selected server", icon: Power, destructive: true },
-  { type: "timeout", label: "Timeout game", icon: LockKeyhole, needsMessage: true, destructive: true },
-  { type: "round_restart", label: "Restart round", icon: RotateCcw, destructive: true },
-  { type: "round_restore", label: "Restore round", icon: RotateCcw, destructive: true },
-  { type: "player_ip_lookup", label: "View player IP", icon: Database, needsPlayer: true, destructive: true },
+const managerServerActions: ActionDefinition[] = [
+  { type: "map_change", label: "Change map", icon: Map, scope: "server", workflow: "map", destructive: true },
+  { type: "match_announcement", label: "Match announcement", icon: Megaphone, scope: "server", workflow: "message" },
+  { type: "hud_announcement", label: "Server HUD alert", icon: MonitorUp, scope: "server", workflow: "hud" },
+]
+
+const ownerPlayerActions: ActionDefinition[] = [
+  { type: "player_ip_lookup", label: "View connection IP", icon: Database, scope: "player", workflow: "none", destructive: true },
+]
+
+const ownerServerActions: ActionDefinition[] = [
+  { type: "server_announcement", label: "Server announcement", icon: Megaphone, scope: "server", workflow: "message" },
+  { type: "restart_all", label: "Restart all servers", icon: Power, scope: "server", workflow: "none", destructive: true },
+  { type: "restart_server", label: "Restart selected server", icon: ServerCog, scope: "server", workflow: "none", destructive: true },
+  { type: "start_server", label: "Start selected server", icon: Power, scope: "server", workflow: "none", destructive: true },
+  { type: "stop_server", label: "Stop selected server", icon: Power, scope: "server", workflow: "none", destructive: true },
+  { type: "timeout", label: "Timeout game", icon: LockKeyhole, scope: "server", workflow: "message", destructive: true },
+  { type: "round_restart", label: "Restart round", icon: RotateCcw, scope: "server", workflow: "none", destructive: true },
+  { type: "round_restore", label: "Restore round", icon: RotateCcw, scope: "server", workflow: "none", destructive: true },
 ]
 
 function toUiError(error: unknown) {
@@ -53,23 +64,48 @@ function toUiError(error: unknown) {
   return api?.message || "Unable to complete the requested operation."
 }
 
+function teamClass(team: StaffPanelRosterPlayer["team"]) {
+  if (team === "T") return "border-amber-300/25 bg-amber-300/[0.06] text-amber-100"
+  if (team === "CT") return "border-sky-300/25 bg-sky-300/[0.06] text-sky-100"
+  if (team === "SPECTATOR") return "border-violet-300/25 bg-violet-300/[0.06] text-violet-100"
+  return "border-border bg-muted/30 text-muted-foreground"
+}
+
+function teamLabel(team: StaffPanelRosterPlayer["team"]) {
+  return team === "UNASSIGNED" ? "Connected" : team
+}
+
 export function StaffPanelPage() {
   const [params] = useSearchParams()
   const [access, setAccess] = useState<StaffPanelAccess | null>(null)
   const [overview, setOverview] = useState<StaffPanelOverview | null>(null)
+  const [roster, setRoster] = useState<StaffPanelServerRoster | null>(null)
+  const [selectedServer, setSelectedServer] = useState("")
+  const [selectedPlayer, setSelectedPlayer] = useState<StaffPanelRosterPlayer | null>(null)
+  const [activeAction, setActiveAction] = useState<ActionDefinition | null>(null)
+  const [pendingAction, setPendingAction] = useState<ActionDefinition | null>(null)
   const [database, setDatabase] = useState<StaffPanelDatabaseOverview | null>(null)
   const [products, setProducts] = useState<StaffPanelProduct[]>([])
-  const [selectedServer, setSelectedServer] = useState("")
-  const [playerSteamId, setPlayerSteamId] = useState("")
+  const [reason, setReason] = useState("")
   const [message, setMessage] = useState("")
   const [map, setMap] = useState("de_mirage")
+  const [banTerm, setBanTerm] = useState<NonNullable<StaffPanelActionRequest["banTerm"]>>("1d")
+  const [muteDuration, setMuteDuration] = useState("1800")
+  const [newName, setNewName] = useState("")
+  const [alertColor, setAlertColor] = useState<NonNullable<StaffPanelActionRequest["alertColor"]>>("gold")
+  const [countdownSeconds, setCountdownSeconds] = useState("0")
   const [notice, setNotice] = useState("")
   const [busy, setBusy] = useState(false)
-  const [pendingAction, setPendingAction] = useState<ActionDefinition | null>(null)
+  const [rosterLoading, setRosterLoading] = useState(false)
   const [pendingArchive, setPendingArchive] = useState<StaffPanelProduct | null>(null)
   const [productName, setProductName] = useState("")
   const [productCategory, setProductCategory] = useState("service")
   const [productPrice, setProductPrice] = useState("10")
+
+  const actorLabel = access?.role === "OWNER" ? "Owner" : "Manager"
+  const playerActions = useMemo(() => access?.role === "OWNER" ? [...managerPlayerActions, ...ownerPlayerActions] : managerPlayerActions, [access?.role])
+  const serverActions = useMemo(() => access?.role === "OWNER" ? [...managerServerActions, ...ownerServerActions] : managerServerActions, [access?.role])
+  const selectedServerName = roster?.server.name || overview?.servers.find((server) => server.server_id === selectedServer)?.name || selectedServer
 
   useEffect(() => {
     if (params.get("reauth") !== "done") {
@@ -100,35 +136,83 @@ export function StaffPanelPage() {
     }
   }
 
+  const loadRoster = async (serverId = selectedServer) => {
+    if (!serverId) return
+    setRosterLoading(true)
+    try {
+      setRoster(await staffPanelService.roster(serverId))
+    } catch (error) {
+      setRoster(null)
+      setNotice(toUiError(error))
+    } finally {
+      setRosterLoading(false)
+    }
+  }
+
   useEffect(() => {
     if (params.get("reauth") === "done") void load()
   }, [params])
 
-  const visibleActions = useMemo(() => access?.role === "OWNER" ? [...managerActions, ...ownerActions] : managerActions, [access?.role])
-  const selectedServerName = overview?.servers.find((server) => server.server_id === selectedServer)?.name || selectedServer
+  useEffect(() => {
+    setSelectedPlayer(null)
+    setActiveAction(null)
+    setPendingAction(null)
+    setRoster(null)
+    if (selectedServer) void loadRoster(selectedServer)
+  }, [selectedServer])
 
-  const requestAction = (action: ActionDefinition) => {
-    if (!selectedServer) return setNotice("Select a server first.")
-    if (action.needsPlayer && !/^\d{17}$/.test(playerSteamId)) return setNotice("Enter a valid 17-digit SteamID.")
-    if (action.needsMap && !map.trim()) return setNotice("Enter a map name.")
-    if (action.needsMessage && !message.trim()) return setNotice("Enter a reason or announcement.")
-    setPendingAction(action)
+  const resetActionFields = () => {
+    setReason("")
+    setMessage("")
+    setNewName("")
+    setAlertColor("gold")
+    setCountdownSeconds("0")
+    setMuteDuration("1800")
+  }
+
+  const chooseAction = (action: ActionDefinition) => {
+    if (action.scope === "player" && !selectedPlayer) return setNotice("Select a player from the roster first.")
+    resetActionFields()
+    setActiveAction(action)
+    setNotice("")
+  }
+
+  const requestConfirmation = () => {
+    if (!activeAction) return
+    if (activeAction.scope === "player" && !selectedPlayer) return setNotice("Select a player from the roster first.")
+    if (activeAction.workflow === "ban" && !reason.trim()) return setNotice("A ban reason is required.")
+    if (["reason", "mute"].includes(activeAction.workflow) && !reason.trim()) return setNotice("A reason is required.")
+    if (["hud", "message"].includes(activeAction.workflow) && !message.trim()) return setNotice("Text is required for this alert or message.")
+    if (activeAction.workflow === "map" && !map.trim()) return setNotice("Enter a map name.")
+    if (activeAction.workflow === "rename" && newName.trim().length < 2) return setNotice("Enter the player’s new name.")
+    if (activeAction.workflow === "hud" && (!Number.isInteger(Number(countdownSeconds)) || Number(countdownSeconds) < 0 || Number(countdownSeconds) > 600)) return setNotice("Countdown must be between 0 and 600 seconds.")
+    setPendingAction(activeAction)
   }
 
   const queuePendingAction = async () => {
     if (!pendingAction) return
     setBusy(true)
+    const moderationReason = ["ban", "unban", "kick", "mute"].includes(pendingAction.type) ? reason.trim() : undefined
     try {
       const result = await staffPanelService.queueAction({
         serverId: selectedServer,
         type: pendingAction.type,
-        playerSteamId: playerSteamId || undefined,
-        message: message || undefined,
-        map: map || undefined,
+        playerSteamId: selectedPlayer?.steamId,
+        playerName: selectedPlayer?.name,
+        message: moderationReason || message.trim() || undefined,
+        reason: moderationReason,
+        map: pendingAction.workflow === "map" ? map.trim() : undefined,
+        durationSeconds: pendingAction.type === "mute" ? Number(muteDuration) : undefined,
+        banTerm: pendingAction.type === "ban" ? banTerm : undefined,
+        enforceAfterSeconds: pendingAction.type === "ban" ? 10 : undefined,
+        alertColor: pendingAction.workflow === "hud" ? alertColor : undefined,
+        countdownSeconds: pendingAction.workflow === "hud" ? Number(countdownSeconds) : undefined,
+        newName: pendingAction.type === "rename" ? newName.trim() : undefined,
       })
-      setNotice(`${result.action.action_type.replaceAll("_", " ")} is queued and audited. It will run only after an authorized game server plugin acknowledges it.`)
+      setNotice(`${result.action.action_type.replaceAll("_", " ")} is queued and audited. The plugin must acknowledge it before it is marked complete.`)
       setPendingAction(null)
-      await load()
+      setActiveAction(null)
+      await Promise.all([load(), loadRoster()])
     } catch (error) {
       setNotice(toUiError(error))
     } finally {
@@ -169,28 +253,39 @@ export function StaffPanelPage() {
   if (!access) return <div className="flex min-h-[65vh] items-center justify-center gap-3 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Steam re-authentication required</div>
 
   return <main className="mx-auto w-full max-w-7xl space-y-6 p-4 md:p-7">
-    <section className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-sm">
-      <div className="absolute right-0 top-0 h-36 w-64 bg-primary/10 blur-3xl" />
-      <div className="relative flex flex-col justify-between gap-4 md:flex-row md:items-end">
-        <div><p className="text-xs font-semibold uppercase tracking-[.22em] text-primary">Isolated Steam staff session</p><h1 className="mt-2 text-3xl font-semibold text-foreground">Staff Panel</h1><p className="mt-2 text-sm text-muted-foreground">{access.username} · <span className="text-foreground">{access.role}</span> access</p></div>
-        <div className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-xs text-muted-foreground">Every operation requires confirmation, queueing and an audit record.</div>
-      </div>
-    </section>
-
+    <section className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-sm"><div className="absolute right-0 top-0 h-36 w-64 bg-primary/10 blur-3xl" /><div className="relative flex flex-col justify-between gap-4 md:flex-row md:items-end"><div><p className="text-xs font-semibold uppercase tracking-[.22em] text-primary">Isolated Steam staff session</p><h1 className="mt-2 text-3xl font-semibold text-foreground">Staff Panel</h1><p className="mt-2 text-sm text-muted-foreground">{access.username} · <span className="text-foreground">{access.role}</span> access</p></div><div className="max-w-sm rounded-lg border border-border bg-muted/40 px-4 py-3 text-xs text-muted-foreground">Select server, select player, configure one allowlisted action, then confirm the audited queue request.</div></div></section>
     {notice && <div className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-foreground">{notice}</div>}
-    <section className="grid gap-4 lg:grid-cols-[1.1fr_.9fr]">
-      <Card><CardHeader className="pb-3"><CardTitle>Server operations</CardTitle><CardDescription>Select a server, add only fields required by the operation, then review the confirmation.</CardDescription></CardHeader><CardContent>
-        <Label className="mb-2 block" htmlFor="staff-server">Target server</Label>
-        <select id="staff-server" value={selectedServer} onChange={(event) => setSelectedServer(event.target.value)} className="mb-4 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"><option value="">Select server</option>{overview?.servers.map((server) => <option key={server.server_id} value={server.server_id}>{server.name || server.server_id} · {server.mode} · {server.map_name}</option>)}</select>
-        <div className="grid gap-2 sm:grid-cols-2">{visibleActions.map((action) => { const Icon = action.icon; return <Button key={action.type} type="button" disabled={busy} onClick={() => requestAction(action)} variant={action.destructive ? "outline" : "secondary"} className="h-auto justify-start gap-3 px-3 py-3 text-left"><Icon className="h-4 w-4 shrink-0" />{action.label}</Button> })}</div>
-        <div className="mt-5 grid gap-3 sm:grid-cols-3"><div><Label className="mb-1.5 block" htmlFor="staff-steam-id">Player SteamID</Label><Input id="staff-steam-id" value={playerSteamId} onChange={(event) => setPlayerSteamId(event.target.value)} placeholder="7656119..." /></div><div><Label className="mb-1.5 block" htmlFor="staff-map">Map</Label><Input id="staff-map" value={map} onChange={(event) => setMap(event.target.value)} placeholder="de_mirage" /></div><div><Label className="mb-1.5 block" htmlFor="staff-message">Reason or announcement</Label><Input id="staff-message" value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Required by selected action" /></div></div>
+
+    <section className="grid gap-4 xl:grid-cols-[1.2fr_.8fr]">
+      <Card><CardHeader className="pb-3"><CardTitle className="flex items-center gap-2"><UsersRound className="h-4 w-4" />Server roster</CardTitle><CardDescription>Selecting a server loads only the current snapshot or connected-player fallback through the isolated staff session.</CardDescription></CardHeader><CardContent>
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end"><div className="min-w-0 flex-1"><Label className="mb-1.5 block" htmlFor="staff-server">Target server</Label><select id="staff-server" value={selectedServer} onChange={(event) => setSelectedServer(event.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"><option value="">Select server</option>{overview?.servers.map((server) => <option key={server.server_id} value={server.server_id}>{server.name || server.server_id} · {server.mode} · {server.map_name}</option>)}</select></div><Button type="button" variant="outline" disabled={!selectedServer || rosterLoading} onClick={() => void loadRoster()} className="gap-2"><RefreshCw className={`h-4 w-4 ${rosterLoading ? "animate-spin" : ""}`} />Refresh</Button></div>
+        {roster && <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground"><span>{roster.server.name} · {roster.server.mode} · {roster.server.map}</span><span>{roster.players.length} visible · {roster.server.availability.replaceAll("_", " ")}</span></div>}
+        {rosterLoading && <div className="flex min-h-44 items-center justify-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Loading roster</div>}
+        {!rosterLoading && !roster && <div className="flex min-h-44 items-center justify-center text-center text-sm text-muted-foreground">Choose a server to load its current player roster.</div>}
+        {!rosterLoading && roster && <div className="overflow-hidden rounded-lg border border-border"><Table><TableHeader><TableRow><TableHead>Player</TableHead><TableHead>Team</TableHead><TableHead className="text-right">ADR</TableHead><TableHead className="text-right">Ping</TableHead></TableRow></TableHeader><TableBody>{roster.players.length ? roster.players.map((player) => <TableRow key={`${player.steamId}-${player.team}`} data-state={selectedPlayer?.steamId === player.steamId ? "selected" : undefined} onClick={() => { setSelectedPlayer(player); setActiveAction(null); setPendingAction(null) }} className="cursor-pointer"><TableCell><div className="flex min-w-0 flex-col"><span className="truncate font-medium text-foreground">{player.name}</span><span className="font-mono text-[10px] text-muted-foreground">{player.steamId}</span></div></TableCell><TableCell><span className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold ${teamClass(player.team)}`}>{teamLabel(player.team)}</span></TableCell><TableCell className="text-right text-xs tabular-nums text-muted-foreground">{player.adr === null ? "—" : player.adr.toFixed(1)}</TableCell><TableCell className="text-right text-xs tabular-nums text-muted-foreground">{player.ping === null ? "—" : `${player.ping}ms`}</TableCell></TableRow>) : <TableRow><TableCell colSpan={4} className="h-24 text-center text-sm text-muted-foreground">No current player snapshot received.</TableCell></TableRow>}</TableBody></Table></div>}
       </CardContent></Card>
-      <Card><CardHeader className="pb-3"><CardTitle>Action queue</CardTitle><CardDescription>Game server acknowledgement is required before an operation is complete.</CardDescription></CardHeader><CardContent className="space-y-2">{overview?.pendingActions.length ? overview.pendingActions.map((action) => <div key={action.id} className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2 text-xs"><span className="min-w-0 truncate text-foreground">{action.action_type.replaceAll("_", " ")} · {action.server_id}</span><span className="uppercase text-muted-foreground">{action.status}</span></div>) : <p className="text-sm text-muted-foreground">No pending server operations.</p>}</CardContent></Card>
+
+      <Card><CardHeader className="pb-3"><CardTitle>Player actions</CardTitle><CardDescription>{selectedPlayer ? `${selectedPlayer.name} selected. Choose one action to configure.` : "Select a player from the roster to enable moderation and player alert actions."}</CardDescription></CardHeader><CardContent><div className="grid grid-cols-2 gap-2">{playerActions.map((action) => { const Icon = action.icon; return <Button key={action.type} type="button" disabled={!selectedPlayer || busy} onClick={() => chooseAction(action)} variant={action.destructive ? "outline" : "secondary"} className="h-auto justify-start gap-2 px-3 py-3 text-left"><Icon className="h-4 w-4 shrink-0" />{action.label}</Button> })}</div>{selectedPlayer && <div className="mt-4 rounded-lg border border-border bg-muted/30 p-3 text-xs"><p className="font-medium text-foreground">Selected target</p><p className="mt-1 text-muted-foreground">{selectedPlayer.name} · {selectedPlayer.steamId}</p><p className="mt-1 text-muted-foreground">{teamLabel(selectedPlayer.team)} · {selectedPlayer.connected ? "connected" : "disconnected"}</p></div>}</CardContent></Card>
     </section>
 
-    {access.role === "OWNER" && <section className="grid gap-4 lg:grid-cols-2"><Card><CardHeader className="pb-3"><CardTitle className="flex items-center gap-2"><Database className="h-4 w-4" />Database overview</CardTitle><CardDescription>Metadata only. Raw SQL is never exposed in the browser.</CardDescription></CardHeader><CardContent><div className="grid grid-cols-2 gap-2">{database?.tables.map((table) => <div key={table.name} className="rounded-lg border border-border px-3 py-3"><p className="text-xs text-muted-foreground">{table.name}</p><p className="mt-1 text-xl font-semibold text-foreground">{table.count}</p></div>)}</div></CardContent></Card><Card><CardHeader className="pb-3"><CardTitle className="flex items-center gap-2"><PackagePlus className="h-4 w-4" />Products</CardTitle><CardDescription>Owner-only management. Deployment controls remain server-side and are not exposed to the browser.</CardDescription></CardHeader><CardContent><div className="grid gap-2 sm:grid-cols-[1fr_.8fr_.5fr_auto]"><Input value={productName} onChange={(event) => setProductName(event.target.value)} placeholder="Product name" /><Input value={productCategory} onChange={(event) => setProductCategory(event.target.value)} placeholder="Category" /><Input value={productPrice} onChange={(event) => setProductPrice(event.target.value)} inputMode="numeric" placeholder="Coins" /><Button disabled={busy} onClick={() => void createProduct()} size="sm">Add</Button></div><div className="mt-3 space-y-2">{products.slice(0, 5).map((product) => <div key={product.id} className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2 text-sm"><span className="min-w-0 truncate text-foreground">{product.name}</span><span className={product.active ? "text-foreground" : "text-muted-foreground"}>{product.active ? `${product.price} coins` : "archived"}</span>{product.active && <Button disabled={busy} onClick={() => setPendingArchive(product)} variant="outline" size="sm">Archive</Button>}</div>)}</div></CardContent></Card></section>}
+    {activeAction && <Card className="border-primary/30"><CardHeader className="pb-3"><CardTitle className="flex items-center gap-2"><activeAction.icon className="h-4 w-4 text-primary" />Configure {activeAction.label}</CardTitle><CardDescription>{activeAction.scope === "player" ? `Target: ${selectedPlayer?.name} · ${selectedPlayer?.steamId}` : `Target server: ${selectedServerName}`}</CardDescription></CardHeader><CardContent className="space-y-4">
+      {activeAction.workflow === "ban" && <><div className="grid gap-3 sm:grid-cols-2"><div><Label className="mb-1.5 block" htmlFor="ban-term">Ban term</Label><select id="ban-term" value={banTerm} onChange={(event) => setBanTerm(event.target.value as typeof banTerm)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">{banTerms.map((term) => <option key={term} value={term}>{term}</option>)}</select></div><div className="rounded-lg border border-amber-300/25 bg-amber-300/[0.07] p-3 text-sm text-amber-100"><p className="font-medium">Player HUD notice</p><p className="mt-1 text-xs text-amber-100/75">{actorLabel} banned you · enforcement begins in 10 seconds.</p></div></div><div><Label className="mb-1.5 block" htmlFor="ban-reason">Reason</Label><Textarea id="ban-reason" value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Explain the moderation reason" /></div></>}
+      {activeAction.workflow === "reason" && <div><Label className="mb-1.5 block" htmlFor="action-reason">Reason</Label><Textarea id="action-reason" value={reason} onChange={(event) => setReason(event.target.value)} placeholder={activeAction.type === "kick" ? "This reason is shown in the player notice before removal" : "Explain this moderation change"} /><p className="mt-1.5 text-xs text-muted-foreground">{activeAction.type === "kick" ? `${actorLabel} will remove the player after confirmation. The reason is retained in the audit payload.` : "The reason is stored in the audited queue payload."}</p></div>}
+      {activeAction.workflow === "mute" && <div className="grid gap-3 sm:grid-cols-2"><div><Label className="mb-1.5 block" htmlFor="mute-term">Mute duration</Label><select id="mute-term" value={muteDuration} onChange={(event) => setMuteDuration(event.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="300">5 minutes</option><option value="1800">30 minutes</option><option value="3600">1 hour</option><option value="86400">1 day</option></select></div><div><Label className="mb-1.5 block" htmlFor="mute-reason">Reason</Label><Input id="mute-reason" value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Explain the communication restriction" /></div></div>}
+      {activeAction.workflow === "rename" && <div><Label className="mb-1.5 block" htmlFor="new-name">New player name</Label><Input id="new-name" value={newName} onChange={(event) => setNewName(event.target.value)} placeholder="New display name" /></div>}
+      {activeAction.workflow === "map" && <div><Label className="mb-1.5 block" htmlFor="target-map">Target map</Label><Input id="target-map" value={map} onChange={(event) => setMap(event.target.value)} placeholder="de_mirage" /></div>}
+      {["hud", "message"].includes(activeAction.workflow) && <div className="space-y-3"><div><Label className="mb-1.5 block" htmlFor="alert-text">{activeAction.workflow === "hud" ? "HUD text" : "Message"}</Label><Textarea id="alert-text" value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Write the player-facing text" /></div>{activeAction.workflow === "hud" && <div className="grid gap-3 sm:grid-cols-2"><div><Label className="mb-1.5 block">Alert color</Label><div className="flex flex-wrap gap-2">{alertColors.map((color) => <Button key={color} type="button" variant="outline" onClick={() => setAlertColor(color)} className={`capitalize ${alertColor === color ? alertColorClasses[color] : ""}`}>{color}</Button>)}</div></div><div><Label className="mb-1.5 block" htmlFor="alert-countdown">Optional countdown seconds</Label><Input id="alert-countdown" value={countdownSeconds} onChange={(event) => setCountdownSeconds(event.target.value)} inputMode="numeric" /><p className="mt-1.5 text-xs text-muted-foreground">Use 0 for no countdown.</p></div></div>}</div>}
+      {activeAction.workflow === "none" && <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm text-muted-foreground">This allowlisted operation has no editable browser command fields. Review its exact target in the confirmation dialog.</div>}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4"><p className="text-xs text-muted-foreground">All requests are audited. Queueing is not a CS2 execution success.</p><div className="flex gap-2"><Button type="button" variant="outline" disabled={busy} onClick={() => setActiveAction(null)}>Cancel</Button><Button type="button" disabled={busy} onClick={requestConfirmation}>Review and confirm</Button></div></div>
+    </CardContent></Card>}
 
-    <AlertDialog open={Boolean(pendingAction)} onOpenChange={(open) => { if (!open && !busy) setPendingAction(null) }}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle className="flex items-center gap-2"><AlertTriangle className="h-5 w-5" />Confirm queued operation</AlertDialogTitle><AlertDialogDescription>{pendingAction?.destructive ? "This operation can affect players, a match or server availability." : "Review the target before this operation is queued."}</AlertDialogDescription></AlertDialogHeader><div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3 text-sm"><p><span className="text-muted-foreground">Operation:</span> {pendingAction?.label}</p><p><span className="text-muted-foreground">Server:</span> {pendingAction?.type === "restart_all" ? `All configured servers; queue context: ${selectedServerName}` : selectedServerName}</p>{pendingAction?.needsPlayer && <p><span className="text-muted-foreground">Player:</span> {playerSteamId}</p>}{pendingAction?.needsMap && <p><span className="text-muted-foreground">Map:</span> {map}</p>}{pendingAction?.needsMessage && <p><span className="text-muted-foreground">Message:</span> {message}</p>}<p className="pt-1 text-xs text-muted-foreground">The operation is audited and remains pending until an authorized game-server plugin acknowledges it.</p></div><AlertDialogFooter><AlertDialogCancel disabled={busy}>Cancel</AlertDialogCancel><AlertDialogAction disabled={busy} onClick={(event) => { event.preventDefault(); void queuePendingAction() }}>{busy ? "Queueing" : "Confirm and queue"}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+    <Card><CardHeader className="pb-3"><CardTitle>Server actions</CardTitle><CardDescription>Server-scoped operations remain separate from the selected player workflow.</CardDescription></CardHeader><CardContent><div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{serverActions.map((action) => { const Icon = action.icon; return <Button key={action.type} type="button" disabled={!selectedServer || busy} onClick={() => chooseAction(action)} variant={action.destructive ? "outline" : "secondary"} className="h-auto justify-start gap-2 px-3 py-3 text-left"><Icon className="h-4 w-4 shrink-0" />{action.label}</Button> })}</div></CardContent></Card>
+
+    <Card><CardHeader className="pb-3"><CardTitle>Action queue</CardTitle><CardDescription>A scoped game-server plugin must acknowledge a request before the panel can treat it as complete.</CardDescription></CardHeader><CardContent className="space-y-2">{overview?.pendingActions.length ? overview.pendingActions.map((action) => <div key={action.id} className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2 text-xs"><span className="min-w-0 truncate text-foreground">{action.action_type.replaceAll("_", " ")} · {action.server_id}</span><span className="uppercase text-muted-foreground">{action.status}</span></div>) : <p className="text-sm text-muted-foreground">No pending server operations.</p>}</CardContent></Card>
+
+    {access.role === "OWNER" && <section className="grid gap-4 lg:grid-cols-2"><Card><CardHeader className="pb-3"><CardTitle className="flex items-center gap-2"><Database className="h-4 w-4" />Database overview</CardTitle><CardDescription>Metadata only. Raw SQL is never exposed in the browser.</CardDescription></CardHeader><CardContent><div className="grid grid-cols-2 gap-2">{database?.tables.map((table) => <div key={table.name} className="rounded-lg border border-border px-3 py-3"><p className="text-xs text-muted-foreground">{table.name}</p><p className="mt-1 text-xl font-semibold text-foreground">{table.count}</p></div>)}</div></CardContent></Card><Card><CardHeader className="pb-3"><CardTitle className="flex items-center gap-2"><PackagePlus className="h-4 w-4" />Products</CardTitle><CardDescription>Owner-only management. Deployment controls remain server-side.</CardDescription></CardHeader><CardContent><div className="grid gap-2 sm:grid-cols-[1fr_.8fr_.5fr_auto]"><Input value={productName} onChange={(event) => setProductName(event.target.value)} placeholder="Product name" /><Input value={productCategory} onChange={(event) => setProductCategory(event.target.value)} placeholder="Category" /><Input value={productPrice} onChange={(event) => setProductPrice(event.target.value)} inputMode="numeric" placeholder="Coins" /><Button disabled={busy} onClick={() => void createProduct()} size="sm">Add</Button></div><div className="mt-3 space-y-2">{products.slice(0, 5).map((product) => <div key={product.id} className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2 text-sm"><span className="min-w-0 truncate text-foreground">{product.name}</span><span className={product.active ? "text-foreground" : "text-muted-foreground"}>{product.active ? `${product.price} coins` : "archived"}</span>{product.active && <Button disabled={busy} onClick={() => setPendingArchive(product)} variant="outline" size="sm">Archive</Button>}</div>)}</div></CardContent></Card></section>}
+
+    <AlertDialog open={Boolean(pendingAction)} onOpenChange={(open) => { if (!open && !busy) setPendingAction(null) }}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle className="flex items-center gap-2"><AlertTriangle className="h-5 w-5" />Confirm queued operation</AlertDialogTitle><AlertDialogDescription>{pendingAction?.destructive ? "This operation affects a player, a match or server availability." : "Review the target and player-facing content before queueing."}</AlertDialogDescription></AlertDialogHeader><div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3 text-sm"><p><span className="text-muted-foreground">Operation:</span> {pendingAction?.label}</p><p><span className="text-muted-foreground">Server:</span> {pendingAction?.type === "restart_all" ? `All configured servers; queue context: ${selectedServerName}` : selectedServerName}</p>{pendingAction?.scope === "player" && <p><span className="text-muted-foreground">Player:</span> {selectedPlayer?.name} · {selectedPlayer?.steamId}</p>}{pendingAction?.type === "ban" && <><p><span className="text-muted-foreground">Term:</span> {banTerm}</p><p><span className="text-muted-foreground">Reason:</span> {reason}</p><p className="rounded-md border border-amber-300/25 bg-amber-300/[0.07] p-2 text-amber-100">Player HUD: {actorLabel} banned you · enforcement starts in 10 seconds.</p></>}{pendingAction?.type === "kick" && <><p><span className="text-muted-foreground">Reason:</span> {reason}</p><p className="rounded-md border border-border bg-background/40 p-2 text-muted-foreground">Player notice: {actorLabel} will remove you. Reason: {reason}</p></>}{pendingAction?.workflow === "mute" && <p><span className="text-muted-foreground">Mute:</span> {Math.round(Number(muteDuration) / 60)} minutes · {reason}</p>}{pendingAction?.workflow === "map" && <p><span className="text-muted-foreground">Map:</span> {map}</p>}{pendingAction?.workflow === "rename" && <p><span className="text-muted-foreground">New name:</span> {newName}</p>}{["hud", "message"].includes(pendingAction?.workflow || "") && <><p><span className="text-muted-foreground">Text:</span> {message}</p>{pendingAction?.workflow === "hud" && <p><span className="text-muted-foreground">HUD style:</span> {alertColor} · {Number(countdownSeconds) || "no"} second countdown</p>}</>}<p className="pt-1 text-xs text-muted-foreground">The request is audited and remains pending until an authorized game-server plugin acknowledges it.</p></div><AlertDialogFooter><AlertDialogCancel disabled={busy}>Cancel</AlertDialogCancel><AlertDialogAction disabled={busy} onClick={(event) => { event.preventDefault(); void queuePendingAction() }}>{busy ? "Queueing" : "Confirm and queue"}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
     <AlertDialog open={Boolean(pendingArchive)} onOpenChange={(open) => { if (!open && !busy) setPendingArchive(null) }}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Archive product</AlertDialogTitle><AlertDialogDescription>This hides the product from future purchases. Existing purchase history remains intact.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel disabled={busy}>Cancel</AlertDialogCancel><AlertDialogAction disabled={busy} onClick={(event) => { event.preventDefault(); void archiveProduct() }}>{busy ? "Archiving" : "Confirm archive"}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
   </main>
 }

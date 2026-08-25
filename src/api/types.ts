@@ -430,6 +430,24 @@ export interface StaffPanelOverview {
   pendingActions: StaffPanelAction[]
 }
 
+export interface StaffPanelRosterPlayer extends ServerLiveMatchPlayer {
+  team: "T" | "CT" | "SPECTATOR" | "UNASSIGNED"
+}
+
+export interface StaffPanelServerRoster {
+  server: {
+    id: string
+    name: string
+    map: string
+    mode: string
+    playerCount: number
+    state: "waiting" | "live" | "paused" | "ended" | "unavailable"
+    availability: "live_snapshot" | "roster_only" | "unavailable"
+    updatedAt: string | null
+  }
+  players: StaffPanelRosterPlayer[]
+}
+
 export interface StaffPanelProduct extends ShopItem {
   active: boolean
 }
@@ -440,13 +458,18 @@ export interface StaffPanelDatabaseOverview {
 
 export interface StaffPanelActionRequest {
   serverId: string
-  type: "ban" | "unban" | "kick" | "mute" | "rename" | "map_change" | "server_announcement" | "match_announcement" | "hud_announcement" | "player_message" | "restart_all" | "restart_server" | "start_server" | "stop_server" | "timeout" | "round_restart" | "round_restore" | "player_ip_lookup"
+  type: "ban" | "unban" | "kick" | "mute" | "rename" | "map_change" | "server_announcement" | "match_announcement" | "hud_announcement" | "player_hud_alert" | "player_message" | "restart_all" | "restart_server" | "start_server" | "stop_server" | "timeout" | "round_restart" | "round_restore" | "player_ip_lookup"
   playerSteamId?: string
   playerName?: string
   map?: string
   message?: string
   durationSeconds?: number
   reason?: string
+  banTerm?: "10m" | "30m" | "1h" | "1d" | "7d" | "permanent"
+  enforceAfterSeconds?: number
+  alertColor?: "gold" | "sky" | "red" | "green" | "neutral"
+  countdownSeconds?: number
+  newName?: string
 }
 
 /* ----------------------------------------------------------------------------
