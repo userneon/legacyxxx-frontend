@@ -1,9 +1,9 @@
 import { useState } from "react"
-import { Coins, Plus, CreditCard, ShieldCheck, ArrowDown } from "lucide-react"
+import { Coins, Plus, CreditCard, ShieldCheck, ArrowDown, TicketPercent, Sparkles } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { walletService } from "@/api"
-import type { WalletBalance, WalletTransaction } from "@/api/types"
+import type { PromotionQuote, WalletBalance, WalletTransaction } from "@/api/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -17,6 +17,10 @@ export function WalletPage() {
   const [coinAmount, setCoinAmount] = useState("")
   const [selectedMethod, setSelectedMethod] = useState<"qpay" | "card" | null>(null)
   const [charging, setCharging] = useState(false)
+  const [promoCode, setPromoCode] = useState("")
+  const [promoQuote, setPromoQuote] = useState<PromotionQuote | null>(null)
+  const [checkingPromo, setCheckingPromo] = useState(false)
+  const [redeemingPromo, setRedeemingPromo] = useState(false)
 
   const { data: balanceData, loading: balanceLoading, error: balanceError, refetch: refetchBalance } =
     useApiQuery<WalletBalance>((signal) => walletService.getBalance({ signal }))
@@ -30,6 +34,39 @@ export function WalletPage() {
   const chargeAmount = Number.parseInt(coinAmount, 10)
   const hasValidChargeAmount = Number.isInteger(chargeAmount) && chargeAmount >= 1
   const totalMnt = hasValidChargeAmount ? chargeAmount * COIN_TO_MNT : 0
+  const discountedMnt = promoQuote?.context === "wallet_topup" && promoQuote.currency === "MNT" ? promoQuote.finalAmount : totalMnt
+
+  const handlePromo = () => {
+    const code = promoCode.trim()
+    if (!code) return
+    setCheckingPromo(true)
+    setPromoQuote(null)
+    void walletService
+      .previewPromotion({ code, context: hasValidChargeAmount ? "wallet_topup" : "wallet_redeem", ...(hasValidChargeAmount ? { coinAmount: chargeAmount } : {}) })
+      .then((quote) => {
+        setPromoQuote(quote)
+        toast.success(quote.message)
+      })
+      .catch((err) => toast.error(err?.message ?? "Promo code could not be verified."))
+      .finally(() => setCheckingPromo(false))
+  }
+
+  const handleRedeem = () => {
+    if (!promoCode.trim() || !promoQuote?.redeemable) return
+    setRedeemingPromo(true)
+    const idempotencyKey = `wallet-promo-${crypto.randomUUID()}`
+    void walletService
+      .redeemPromotion({ code: promoCode.trim(), idempotencyKey })
+      .then((result) => {
+        toast.success(result.benefitType === "admin_role" ? "Admin entitlement was granted. Please sign in again to refresh access." : "Promotion redeemed successfully.")
+        refetchBalance()
+        refetchTx()
+        setPromoCode("")
+        setPromoQuote(null)
+      })
+      .catch((err) => toast.error(err?.message ?? "Promo code could not be redeemed."))
+      .finally(() => setRedeemingPromo(false))
+  }
 
   const handleCharge = () => {
     if (!hasValidChargeAmount || !selectedMethod) return
@@ -101,9 +138,44 @@ export function WalletPage() {
             <span>Payment total</span>
           </div>
           <div key={hasValidChargeAmount ? chargeAmount : "empty"} className="mt-1.5 flex items-baseline gap-1 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:duration-200">
-            <span className="text-2xl font-bold tabular-nums text-foreground">{totalMnt.toLocaleString()}₮</span>
+            <span className="text-2xl font-bold tabular-nums text-foreground">{discountedMnt.toLocaleString()}₮</span>
             {hasValidChargeAmount && <span className="text-xs text-muted-foreground">for {chargeAmount.toLocaleString()} coins</span>}
           </div>
+          {promoQuote?.context === "wallet_topup" && promoQuote.discountAmount > 0 && (
+            <p className="mt-1 text-xs text-emerald-300">{promoQuote.codeHint} applied · {promoQuote.discountAmount.toLocaleString()}₮ saved</p>
+          )}
+        </div>
+
+        <div className="mb-5 rounded-xl border border-white/[0.1] bg-white/[0.025] p-4">
+          <div className="flex items-center gap-2">
+            <TicketPercent className="size-4 text-chart-2" />
+            <h3 className="text-sm font-semibold">Promo code</h3>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">Creator, partner and LEGACY-X codes are verified securely by the server.</p>
+          <div className="mt-3 flex gap-2">
+            <Input
+              aria-label="Promo code"
+              placeholder="LEGACYX-..."
+              value={promoCode}
+              maxLength={48}
+              onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoQuote(null) }}
+              onKeyDown={(e) => { if (e.key === "Enter") handlePromo() }}
+            />
+            <Button type="button" variant="outline" onClick={handlePromo} disabled={!promoCode.trim() || checkingPromo}>
+              {checkingPromo ? "Checking…" : "Apply"}
+            </Button>
+          </div>
+          {promoQuote && (
+            <div className="mt-3 rounded-lg border border-chart-2/20 bg-chart-2/5 px-3 py-2 text-xs">
+              <div className="flex items-center gap-2 font-medium text-foreground"><Sparkles className="size-3.5 text-chart-2" />{promoQuote.campaignName}</div>
+              <p className="mt-1 text-muted-foreground">{promoQuote.message}</p>
+              {promoQuote.redeemable && (
+                <Button type="button" size="sm" className="mt-3" onClick={handleRedeem} disabled={redeemingPromo}>
+                  {redeemingPromo ? "Redeeming…" : promoQuote.benefitType === "admin_role" ? "Claim Admin access" : `Claim ${promoQuote.finalAmount.toLocaleString()} coins`}
+                </Button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Payment methods */}
