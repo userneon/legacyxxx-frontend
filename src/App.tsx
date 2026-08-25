@@ -16,6 +16,7 @@ import { FeedbackPage } from "@/pages/feedback"
 import { ProfilePage } from "@/pages/profile"
 import { WalletPage } from "@/pages/wallet"
 import { ConnectPage } from "@/pages/connect"
+import { StaffPanelPage } from "@/pages/staffpanel"
 import { ProtectedPage } from "@/components/protected-page"
 import { useAuth } from "@/hooks/use-auth"
 import type { PageId } from "@/api/types"
@@ -112,6 +113,7 @@ export function App() {
               } />
               <Route path="/wallet" element={<ProtectedPage pageName="Wallet"><WalletPage /></ProtectedPage>} />
               <Route path="/connect" element={<ConnectPage />} />
+              <Route path="/staffpanel" element={<StaffPanelPage />} />
               <Route path="*" element={<HomePage onNavigate={handleNavigate} />} />
             </Routes>
             </RouteErrorBoundary>

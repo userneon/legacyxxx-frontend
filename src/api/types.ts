@@ -396,6 +396,60 @@ export interface ShopFilters {
 }
 
 /* ----------------------------------------------------------------------------
+ * Staff panel
+ * ------------------------------------------------------------------------- */
+
+export type StaffPanelRole = "OWNER" | "MANAGER"
+
+export interface StaffPanelAccess {
+  role: StaffPanelRole
+  username: string
+  capabilities: string[]
+}
+
+export interface StaffPanelServer {
+  server_id: string
+  name: string
+  map_name: string
+  mode: string
+  player_count: number
+  last_heartbeat_at: string | null
+}
+
+export interface StaffPanelAction {
+  id: string
+  status: "pending" | "claimed" | "completed" | "failed" | "cancelled"
+  action_type: string
+  server_id: string
+  created_at: string
+}
+
+export interface StaffPanelOverview {
+  role: StaffPanelRole
+  servers: StaffPanelServer[]
+  pendingActions: StaffPanelAction[]
+}
+
+export interface StaffPanelProduct extends ShopItem {
+  active: boolean
+}
+
+export interface StaffPanelDatabaseOverview {
+  tables: Array<{ name: string; count: number }>
+}
+
+export interface StaffPanelActionRequest {
+  serverId: string
+  type: "ban" | "kick" | "mute" | "rename" | "map_change" | "server_announcement" | "match_announcement" | "hud_announcement" | "player_message" | "restart_all" | "restart_server" | "start_server" | "stop_server" | "timeout" | "player_ip_lookup"
+  playerSteamId?: string
+  playerName?: string
+  map?: string
+  message?: string
+  durationSeconds?: number
+  reason?: string
+}
+
+/* ----------------------------------------------------------------------------
  * Skinchanger catalog / local API flow
  * ------------------------------------------------------------------------- */
 
