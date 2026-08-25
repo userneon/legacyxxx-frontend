@@ -440,7 +440,7 @@ export interface StaffPanelDatabaseOverview {
 
 export interface StaffPanelActionRequest {
   serverId: string
-  type: "ban" | "kick" | "mute" | "rename" | "map_change" | "server_announcement" | "match_announcement" | "hud_announcement" | "player_message" | "restart_all" | "restart_server" | "start_server" | "stop_server" | "timeout" | "player_ip_lookup"
+  type: "ban" | "unban" | "kick" | "mute" | "rename" | "map_change" | "server_announcement" | "match_announcement" | "hud_announcement" | "player_message" | "restart_all" | "restart_server" | "start_server" | "stop_server" | "timeout" | "round_restart" | "round_restore" | "player_ip_lookup"
   playerSteamId?: string
   playerName?: string
   map?: string
