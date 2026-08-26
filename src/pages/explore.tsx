@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Search, Users, Swords, User } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -7,18 +7,25 @@ import type { ClanCard, CommunityPlayer, SearchKind } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { useFeatureFlags } from "@/hooks/use-feature-flags"
 
 // LEGACY-X visual system: keep the existing glass search panels while making every result lead to its true resource route.
 export function ExplorePage({ onProfileNavigate, onClanNavigate }: { onProfileNavigate: (userId: string) => void; onClanNavigate: (clanId: string) => void }) {
   const [tab, setTab] = useState<SearchKind>("players")
   const [query, setQuery] = useState("")
+  const { flags } = useFeatureFlags()
+  const clanEnabled = flags.clan
+
+  useEffect(() => {
+    if (!clanEnabled && tab === "clans") setTab("players")
+  }, [clanEnabled, tab])
 
   const { data, loading, error, refetch } = useApiQuery<CommunityPlayer[] | ClanCard[]>(
     (signal) => {
       if (tab === "players") {
-        return searchService
-          .searchPlayers(query, { signal })
-          .then((res) => res.players)
+      return searchService
+        .searchPlayers(query, { signal })
+        .then((res) => res.players)
       }
       return searchService
         .searchClans(query, { signal })
@@ -36,7 +43,7 @@ export function ExplorePage({ onProfileNavigate, onClanNavigate }: { onProfileNa
         <Search className="size-5 text-muted-foreground" />
         <input
           type="text"
-          placeholder="Search players or clans..."
+          placeholder={clanEnabled ? "Search players or clans..." : "Search players..."}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
@@ -47,7 +54,7 @@ export function ExplorePage({ onProfileNavigate, onClanNavigate }: { onProfileNa
       <div className="flex gap-2">
         {([
           { id: "players" as const, label: "Players", icon: User },
-          { id: "clans" as const, label: "Clans", icon: Swords },
+          ...(clanEnabled ? [{ id: "clans" as const, label: "Clans", icon: Swords }] : []),
         ]).map((t) => (
           <button
             key={t.id}

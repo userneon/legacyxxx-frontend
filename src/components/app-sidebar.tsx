@@ -33,10 +33,12 @@ import {
 } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
 import type { PageId } from "@/api/types"
+import type { PublicFeatureFlags } from "@/api/features"
 
 interface AppSidebarProps {
   currentPage: PageId
   onNavigate: (page: PageId) => void
+  features: PublicFeatureFlags
 }
 
 interface NavItem {
@@ -150,11 +152,12 @@ function AnimatedSubmenu({ open, children }: { open: boolean; children: React.Re
   )
 }
 
-export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
+export function AppSidebar({ currentPage, onNavigate, features }: AppSidebarProps) {
   const [playOpen, setPlayOpen] = useState(currentPage.startsWith("play-"))
 
   const isPlayActive = currentPage.startsWith("play-")
   const isActive = (id: PageId) => currentPage === id
+  const visibleContentNavigation = CONTENT_NAV.filter(item => (item.id !== "shop" || features.shop) && (item.id !== "clan" || features.clan))
 
   return (
     <Sidebar collapsible="icon" className="glass-sidebar border-sidebar-border">
@@ -226,7 +229,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {CONTENT_NAV.map((item) => (
+              {visibleContentNavigation.map((item) => (
                 <NavButton key={item.id} item={item} isActive={isActive(item.id)} onClick={() => onNavigate(item.id)} />
               ))}
             </SidebarMenu>

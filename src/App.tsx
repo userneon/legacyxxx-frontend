@@ -1,5 +1,5 @@
 import { Component, useEffect, useRef, type ReactNode } from "react"
-import { Routes, Route, useNavigate, useLocation } from "react-router-dom"
+import { Navigate, Routes, Route, useNavigate, useLocation } from "react-router-dom"
 
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
@@ -21,6 +21,7 @@ import { ProtectedPage } from "@/components/protected-page"
 import { useAuth } from "@/hooks/use-auth"
 import type { PageId } from "@/api/types"
 import { PAGE_TITLES, routeToPage } from "@/lib/routes"
+import { useFeatureFlags } from "@/hooks/use-feature-flags"
 
 // LEGACY-X visual system: preserve the existing compact glass sidebar shell and route-level page transitions.
 export function App() {
@@ -28,6 +29,7 @@ export function App() {
   const location = useLocation()
   const mainRef = useRef<HTMLDivElement>(null)
   const { user } = useAuth()
+  const { flags, loading: flagsLoading } = useFeatureFlags()
 
   const currentPage = routeToPage(location.pathname)
 
@@ -68,7 +70,7 @@ export function App() {
 
   return (
     <SidebarProvider defaultOpen>
-      <AppSidebar currentPage={currentPage} onNavigate={handleNavigate} />
+      <AppSidebar currentPage={currentPage} onNavigate={handleNavigate} features={flags} />
       <SidebarInset>
         <header className="glass sticky top-0 z-50 flex h-14 items-center justify-between px-4 border-b border-border/50">
           <div className="flex items-center gap-3">
@@ -77,7 +79,7 @@ export function App() {
               {PAGE_TITLES[currentPage]}
             </span>
           </div>
-          <ProfileBlock onNavigate={handleNavigate} />
+          <ProfileBlock onNavigate={handleNavigate} walletEnabled={flags.wallet && flags.credits} />
         </header>
 
         <div ref={mainRef} className="scrollbar-hidden flex-1 overflow-auto">
@@ -90,11 +92,11 @@ export function App() {
               <Route path="/play/proleague" element={<PlayPage mode="proleague" />} />
               <Route path="/tournaments" element={<PlayPage mode="tournaments" />} />
               <Route path="/leaders" element={<LeadersPage onProfileNavigate={handleProfileNavigate} />} />
-              <Route path="/clan" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />
-              <Route path="/clans" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />
-              <Route path="/clan/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />
-              <Route path="/clans/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />
-              <Route path="/shop" element={<ProtectedPage pageName="Shop"><ShopPage /></ProtectedPage>} />
+              <Route path="/clan" element={<DeferredFeatureRoute enabled={flags.clan} loading={flagsLoading}><ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} /></DeferredFeatureRoute>} />
+              <Route path="/clans" element={<DeferredFeatureRoute enabled={flags.clan} loading={flagsLoading}><ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} /></DeferredFeatureRoute>} />
+              <Route path="/clan/:clanId" element={<DeferredFeatureRoute enabled={flags.clan} loading={flagsLoading}><ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} /></DeferredFeatureRoute>} />
+              <Route path="/clans/:clanId" element={<DeferredFeatureRoute enabled={flags.clan} loading={flagsLoading}><ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} /></DeferredFeatureRoute>} />
+              <Route path="/shop" element={<DeferredFeatureRoute enabled={flags.shop} loading={flagsLoading}><ProtectedPage pageName="Shop"><ShopPage /></ProtectedPage></DeferredFeatureRoute>} />
               <Route path="/skinchanger" element={<ProtectedPage pageName="Skinchanger"><SkinchangerPage /></ProtectedPage>} />
               <Route path="/penalties" element={<PenaltiesPage onProfileNavigate={handleProfileNavigate} />} />
               <Route path="/explore" element={<ExplorePage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />
@@ -111,9 +113,9 @@ export function App() {
                   <ProfilePage />
                 </ProtectedPage>
               } />
-              <Route path="/wallet" element={<ProtectedPage pageName="Wallet"><WalletPage /></ProtectedPage>} />
+              <Route path="/wallet" element={<DeferredFeatureRoute enabled={flags.wallet && flags.credits} loading={flagsLoading}><ProtectedPage pageName="Wallet"><WalletPage /></ProtectedPage></DeferredFeatureRoute>} />
               <Route path="/connect" element={<ConnectPage />} />
-              <Route path="/staffpanel" element={<StaffPanelPage />} />
+              <Route path="/staffpanel" element={<DeferredFeatureRoute enabled={flags.staffPanel} loading={flagsLoading}><StaffPanelPage /></DeferredFeatureRoute>} />
               <Route path="*" element={<HomePage onNavigate={handleNavigate} />} />
             </Routes>
             </RouteErrorBoundary>
@@ -122,6 +124,11 @@ export function App() {
       </SidebarInset>
     </SidebarProvider>
   )
+}
+
+function DeferredFeatureRoute({ enabled, loading, children }: { enabled: boolean; loading: boolean; children: ReactNode }) {
+  if (loading) return <div className="flex min-h-[20rem] items-center justify-center p-6 text-sm text-muted-foreground">Checking availability…</div>
+  return enabled ? children : <Navigate to="/" replace />
 }
 
 class RouteErrorBoundary extends Component<{ children: ReactNode; resetKey: string }, { hasError: boolean }> {
