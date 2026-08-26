@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   BadgeCheck,
   Box,
+  CircleCheck,
   Crosshair,
   Headphones,
   ImageOff,
@@ -107,8 +108,10 @@ const agentTeamOptions: Array<{ id: "t" | "ct"; label: string; title: string; de
 ]
 const tOnlyFirearms = new Set(["AK-47", "Galil AR", "SG 553", "G3SG1", "Glock-18", "Tec-9", "MAC-10", "Sawed-Off"])
 const ctOnlyFirearms = new Set(["AUG", "FAMAS", "M4A1-S", "M4A4", "SCAR-20", "USP-S", "P2000", "Five-SeveN", "MP9", "MAG-7"])
-const defaultGloveVisual = "https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/weapons/base_weapons/ct_gloves_png.png"
-const defaultKnifeVisual = "https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/weapons/base_weapons/weapon_knife_png.png"
+// Local bundled fallback artwork keeps default knife/glove cards independent of
+// third-party catalog/CDN origins when an API-owned catalog asset is unavailable.
+const defaultGloveVisual = glovesIcon
+const defaultKnifeVisual = knifeIcon
 const wearSuffix = / \((Factory New|Minimal Wear|Field-Tested|Well-Worn|Battle-Scarred)\)$/i
 
 function defaultModelItem(category: "knife" | "glove"): SkinchangerCatalogItem {
@@ -133,6 +136,13 @@ function categoryMeta(collection: CollectionId) {
 
 function catalogImageUrl(item: SkinchangerCatalogItem) {
   if (!item.image_url) return null
+  try {
+    const resolved = new URL(item.image_url, window.location.origin)
+    const allowedHosts = new Set([window.location.host, "static.legacyx.cc"])
+    if (!allowedHosts.has(resolved.host)) return null
+  } catch {
+    return null
+  }
   const separator = item.image_url.includes("?") ? "&" : "?"
   return `${item.image_url}${separator}catalog_item_id=${encodeURIComponent(item.id)}`
 }
@@ -287,6 +297,14 @@ export function SkinchangerPage() {
   const accessoriesLoading = accessoryPicker === "sticker" ? stickersLoading : charmsLoading
   const accessoryCatalogError = accessoryPicker === "sticker" ? stickerCatalogError : charmCatalogError
   const refetchAccessoryCatalog = accessoryPicker === "sticker" ? refetchStickers : refetchCharms
+  const workspaceStep = activeWeapon ? selected ? 4 : 3 : 2
+  const workspaceHint = activeWeapon
+    ? selected
+      ? "Fine-tune the preview, then save this look."
+      : `Choose a skin for ${activeWeapon.display_name}.`
+    : category === "agent" && !agentTeam
+      ? "Choose T or CT first."
+      : "Choose a type to browse its available skins."
 
   useEffect(() => {
     if (loadoutResponse && optimisticLoadoutVersion !== null && loadoutResponse.loadout.version >= optimisticLoadoutVersion) {
@@ -531,6 +549,35 @@ export function SkinchangerPage() {
 
   return (
     <div className="flex flex-col gap-5 p-4 sm:p-6">
+      <section className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Loadout workspace</p>
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+              <p className="text-base font-semibold">{loadoutEntries.length ? `${loadoutEntries.length} saved choices` : "Build your first loadout"}</p>
+              <span className="text-sm text-muted-foreground">{workspaceHint}</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-4 gap-1.5 text-center text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground sm:flex sm:items-center">
+            {["Collection", "Type", "Skin", "Save"].map((step, index) => {
+              const active = index + 1 <= workspaceStep
+              return <span key={step} className={cn("rounded-md px-2.5 py-1.5", active ? "bg-foreground text-background" : "bg-secondary/70")}>{active && <CircleCheck className="mr-1 inline size-3" />}{step}</span>
+            })}
+          </div>
+        </div>
+        {loadoutEntries.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto border-t border-border bg-secondary/20 p-3 scrollbar-hidden">
+            {loadoutEntries.slice(0, 8).map((entry) => {
+              const item = entry.skinchanger_catalog_items
+              if (!item) return null
+              return <button key={`${entry.slot_key}:${entry.catalog_item_id}:${entry.team_scope}`} type="button" onClick={() => customizeSavedLook(item, entry)} className="group flex min-w-40 items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-2 text-left transition-colors hover:bg-secondary">
+                {catalogImageUrl(item) ? <OptimizedImage src={catalogImageUrl(item) ?? ""} width={38} height={38} alt="" className="size-9 shrink-0 object-contain" /> : <Box className="size-4 text-muted-foreground" />}
+                <span className="min-w-0"><span className="block truncate text-xs font-medium">{savedSkinLabel(item)}</span><span className="block truncate text-[10px] text-muted-foreground">{item.weapon_class} · {entry.team_scope.toUpperCase()}</span></span>
+              </button>
+            })}
+          </div>
+        )}
+      </section>
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         <section className="min-w-0 rounded-xl border border-border bg-card">
           <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -648,6 +695,7 @@ export function SkinchangerPage() {
                       <Trash2 className="size-3.5" />
                     </button>
                   )}
+                  {isSelectedSkin && !isModelBrowse && <span className="absolute right-2 top-2 z-[3] rounded-md bg-foreground px-2 py-1 text-[10px] font-semibold text-background shadow-sm">Previewing</span>}
                   <button
                     type="button"
                     onClick={() => isDefaultModel && (category === "knife" || category === "glove") ? void equipDefaultModel(category) : isModelBrowse ? (savedEntryForCard && savedCardItem ? customizeSavedLook(item, savedEntryForCard) : (setDefaultChoice(null), setTeamScope(automaticOppositeTeamForModel(item) ?? "all"), setActiveWeapon(item), setSelected(null), setCustomizeOpen(false), setWeaponClass(""), setOffset(0))) : selectSkin(item, Boolean(activeWeapon))}
@@ -683,17 +731,17 @@ export function SkinchangerPage() {
           </>}
         </section>
 
-          <aside className="flex flex-col gap-4 self-start xl:sticky xl:top-6">
+          <aside className="flex flex-col gap-4 self-start xl:sticky xl:top-20">
           <section className="rounded-xl border border-border bg-card p-4">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Your choice</p>
-                <p className="mt-1 text-sm font-semibold">{previewChoice?.display_name || "Choose a skin"}</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Step {workspaceStep} of 4 · Your choice</p>
+                <p className="mt-1 text-sm font-semibold">{previewChoice?.display_name || (activeWeapon ? `Skin for ${activeWeapon.display_name}` : "Choose a type")}</p>
               </div>
               <Box className="size-4 text-muted-foreground" />
             </div>
             <div className="relative flex h-40 items-center justify-center rounded-lg border border-border bg-background">
-              {previewChoice && catalogImageUrl(previewChoice) ? <OptimizedImage src={catalogImageUrl(previewChoice) ?? ""} width={320} height={160} priority alt={`${previewChoice.display_name} selected collectible`} data-catalog-item-id={previewChoice.id} className="h-full w-full object-contain p-3" /> : <ImageOff className="size-8 text-muted-foreground/50" />}
+              {previewChoice && catalogImageUrl(previewChoice) ? <OptimizedImage src={catalogImageUrl(previewChoice) ?? ""} width={320} height={160} priority alt={`${previewChoice.display_name} selected collectible`} data-catalog-item-id={previewChoice.id} className="h-full w-full object-contain p-3" /> : <div className="px-6 text-center"><ImageOff className="mx-auto size-7 text-muted-foreground/50" /><p className="mt-2 text-xs font-medium text-muted-foreground">{workspaceHint}</p></div>}
               {canCustomizeAccessories && (previewStickerItems.length > 0 || previewCharmItem) && <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-2"><div className="flex -space-x-1.5">{previewStickerItems.slice(0, 5).map((item) => catalogImageUrl(item) && <OptimizedImage key={item.id} src={catalogImageUrl(item) ?? ""} width={28} height={28} alt={`${item.display_name} selected sticker`} data-catalog-item-id={item.id} className="size-7 rounded-full border border-background bg-card object-contain p-0.5" />)}</div>{previewCharmItem && catalogImageUrl(previewCharmItem) && <OptimizedImage src={catalogImageUrl(previewCharmItem) ?? ""} width={32} height={32} alt={`${previewCharmItem.display_name} selected charm`} data-catalog-item-id={previewCharmItem.id} className="size-8 rounded-md border border-background bg-card object-contain p-0.5" />}</div>}
             </div>
             {showTeamSelector && (
