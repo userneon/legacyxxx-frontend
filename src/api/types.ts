@@ -126,7 +126,6 @@ export interface UserProfile {
   username: string
   avatar: string
   balance: number
-  role: "Owner" | "Founder" | "Manager" | "Admin" | "Player" | "Designer" | "Developer"
   moderationStatus?: ModerationStatus
   clan?: {
     id: string
@@ -596,7 +595,6 @@ export interface PromotionRedemption {
   benefitType: PromotionBenefitType
   benefitValue: number
   balance: number
-  role: UserProfile["role"]
   entitlementId?: string | null
 }
 

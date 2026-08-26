@@ -19,7 +19,6 @@ import { useAuth } from "@/hooks/use-auth"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
 import { ModerationStatusIcon } from "@/components/moderation-status-icon"
-import { ProfileRoleIcon } from "@/components/profile-role-icon"
 import { SteamIcon } from "@/components/steam-login-gate"
 
 interface ProfilePageProps {
@@ -67,7 +66,7 @@ export function ProfilePage({ userId }: ProfilePageProps) {
   )
   const { data: competitive } = useApiQuery<CompetitiveProfile>((signal) =>
     competitiveService.getPlayer(profile!.id, { signal }),
-    { enabled: Boolean(profile?.id && profile.role !== "Owner"), queryKey: profile?.id ?? "competitive-profile-pending" },
+    { enabled: Boolean(profile?.id), queryKey: profile?.id ?? "competitive-profile-pending" },
   )
 
   const handleLogout = () => {
@@ -83,7 +82,7 @@ export function ProfilePage({ userId }: ProfilePageProps) {
   const steamProfileUrl = profile && /^7656\d{13}$/.test(profile.steamId)
     ? `https://steamcommunity.com/profiles/${profile.steamId}`
     : null
-  const visibleCompetitiveRank = profile?.role === "Owner" ? null : {
+  const visibleCompetitiveRank = {
     rankId: competitive?.rank_id ?? 1,
     rankName: competitive?.rank_name ?? "Silver I",
     imageKey: competitive?.rank_image_key ?? "rank-01",
@@ -116,7 +115,6 @@ export function ProfilePage({ userId }: ProfilePageProps) {
             <div className="flex-1">
               <h1 className="text-2xl font-bold tracking-tight">{profile.username}</h1>
               <div className="mt-2 flex flex-wrap items-center gap-2">
-                <ProfileRoleIcon role={profile.role} />
                 <ModerationStatusIcon status={profile.moderationStatus} />
               </div>
               {steamProfileUrl && <div className="mt-2"><a href={steamProfileUrl} target="_blank" rel="noreferrer" aria-label={`Open ${profile.username}'s Steam profile`} title="Open Steam profile" className="group inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-transparent text-white/55 transition-[color,opacity] hover:bg-transparent hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"><SteamIcon className="size-4 transition-opacity group-hover:opacity-100" /></a></div>}
