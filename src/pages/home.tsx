@@ -63,14 +63,6 @@ function TikTokIcon({ className, ...props }: IconProps) {
   )
 }
 
-function DiscordIcon({ className, ...props }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true" {...props}>
-      <path d="M20.32 4.37A19.79 19.79 0 0 0 15.43 2.9a.07.07 0 0 0-.07.04c-.21.37-.44.85-.6 1.23a18.27 18.27 0 0 0-5.49 0c-.16-.39-.39-.86-.61-1.23a.07.07 0 0 0-.07-.04c-1.7.29-3.31.8-4.82 1.47a.07.07 0 0 0-.03.03C.53 9.05-.32 13.58.1 18.06a.08.08 0 0 0 .03.05 19.9 19.9 0 0 0 5.99 3.03.07.07 0 0 0 .08-.03c.46-.63.87-1.29 1.22-1.99a.07.07 0 0 0-.04-.1c-.65-.25-1.27-.55-1.87-.89a.07.07 0 0 1-.01-.12l.15-.12a.07.07 0 0 1 .07-.01c3.93 1.79 8.18 1.79 12.06 0a.07.07 0 0 1 .07.01l.15.12a.07.07 0 0 1-.01.12c-.6.34-1.22.64-1.87.89a.07.07 0 0 0-.04.1c.36.7.78 1.36 1.22 1.99a.07.07 0 0 0 .08.03 19.84 19.84 0 0 0 6-3.03.07.07 0 0 0 .03-.05c.5-5.18-.84-9.67-3.55-13.66a.07.07 0 0 0-.03-.03zM8.02 15.33c-1.18 0-2.16-1.08-2.16-2.42 0-1.33.96-2.42 2.16-2.42 1.21 0 2.18 1.1 2.16 2.42 0 1.34-.96 2.42-2.16 2.42zm7.97 0c-1.18 0-2.16-1.08-2.16-2.42 0-1.33.96-2.42 2.16-2.42 1.21 0 2.18 1.1 2.16 2.42 0 1.34-.95 2.42-2.16 2.42z" />
-    </svg>
-  )
-}
-
 type PartnerTab = "creators" | "partners"
 
 function PartnerSection() {
@@ -308,39 +300,6 @@ export function HomePage({ onNavigate }: HomePageProps) {
             </div>
           </section>
         )}
-
-	        {/* Discord community invite */}
-        <a
-          href="https://discord.gg/legacyx"
-          target="_blank"
-          rel="noreferrer"
-          aria-label="Join the LEGACY-X Discord community"
-          className={cn(
-            "group relative isolate flex min-h-40 overflow-hidden rounded-xl border border-[#5865F2]/25 bg-[#121526] p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#7289DA]/60 hover:shadow-[0_18px_48px_rgba(88,101,242,0.2)]",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7289DA] focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          )}
-        >
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(88,101,242,0.38),transparent_46%),linear-gradient(105deg,rgba(88,101,242,0.18),rgba(15,18,38,0.08)_55%,rgba(88,101,242,0.2))]" />
-          <div className="pointer-events-none absolute -right-12 -top-16 size-52 rounded-full bg-[#7289DA]/15 blur-3xl transition-transform duration-500 group-hover:scale-125" />
-          <div className="relative z-10 flex w-full flex-col justify-between gap-5 sm:flex-row sm:items-center">
-            <div className="flex items-center gap-4">
-              <div className="flex size-20 shrink-0 items-center justify-center rounded-[1.65rem] bg-[#5865F2]/20 text-[#7289DA] ring-1 ring-inset ring-[#7289DA]/25 shadow-inner shadow-[#5865F2]/20 transition-transform duration-300 group-hover:scale-105">
-                <DiscordIcon className="size-11" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="flex size-2 rounded-full bg-[#7ee787] shadow-[0_0_12px_rgba(126,231,135,0.9)]" />
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#b9c3ff]">Community hub</span>
-                </div>
-                <h2 className="mt-1 font-display text-2xl tracking-wide text-white">Join LEGACY-X Discord</h2>
-                <p className="mt-1 max-w-xl text-sm text-slate-300">Find teammates, receive announcements, share clips and stay connected with the Mongolian CS2 community.</p>
-              </div>
-            </div>
-            <span className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-lg border border-[#7289DA]/35 bg-[#5865F2]/15 px-4 py-2.5 text-sm font-semibold text-[#d9ddff] transition-colors group-hover:bg-[#5865F2]/30 sm:self-auto">
-              Join Discord <ExternalLink className="size-4" />
-            </span>
-          </div>
-        </a>
 
         {/* Stats */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
