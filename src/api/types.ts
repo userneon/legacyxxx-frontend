@@ -456,9 +456,39 @@ export interface StaffPanelDatabaseOverview {
   tables: Array<{ name: string; count: number }>
 }
 
+export interface StaffPanelMember {
+  id: string
+  userId: string
+  username: string
+  steamId: string
+  avatar: string
+  role: "OWNER" | "MANAGER" | "ADMIN" | "DEVELOPER" | "DESIGNER"
+  permissions: string[]
+  status: "active" | "suspended" | "revoked"
+  createdAt: string
+  updatedAt: string
+}
+
+export interface StaffPanelMaintenance {
+  website: "legacyx.cc"
+  enabled: boolean
+  updatedAt: string | null
+  availability: "configured" | "not_configured"
+}
+
+export interface StaffPanelHealth {
+  availability: "telemetry" | "unavailable"
+  cpuPercent: number | null
+  memoryPercent: number | null
+  diskPercent: number | null
+  loadAverage: number | null
+  healthy: boolean | null
+  updatedAt: string | null
+}
+
 export interface StaffPanelActionRequest {
   serverId: string
-  type: "ban" | "unban" | "kick" | "mute" | "rename" | "map_change" | "server_announcement" | "match_announcement" | "hud_announcement" | "player_hud_alert" | "player_message" | "restart_all" | "restart_server" | "start_server" | "stop_server" | "timeout" | "round_restart" | "round_restore" | "player_ip_lookup"
+  type: "ban" | "unban" | "kick" | "mute" | "rename" | "map_change" | "server_announcement" | "match_announcement" | "hud_announcement" | "player_hud_alert" | "player_message" | "restart_all" | "restart_server" | "start_server" | "stop_server" | "timeout" | "unpause" | "round_restart" | "round_restore" | "player_ip_lookup"
   playerSteamId?: string
   playerName?: string
   map?: string
