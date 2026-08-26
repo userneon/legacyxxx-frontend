@@ -470,6 +470,7 @@ export interface StaffPanelActionRequest {
   alertColor?: "gold" | "sky" | "red" | "green" | "neutral"
   countdownSeconds?: number
   newName?: string
+  mapImpactAcknowledged?: true
 }
 
 /* ----------------------------------------------------------------------------
