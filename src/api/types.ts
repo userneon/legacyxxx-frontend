@@ -464,6 +464,7 @@ export interface StaffPanelMember {
   role: "OWNER" | "MANAGER" | "ADMIN" | "DEVELOPER" | "DESIGNER"
   permissions: string[]
   gamePermissions: Array<"@css/generic" | "@css/kick" | "@css/ban" | "@css/unban" | "@css/slay" | "@css/changemap" | "@css/chat" | "@css/vote" | "@css/config" | "@css/cvar" | "@css/rcon" | "@css/cheats" | "@css/root">
+  stamina: number
   immunity: number
   status: "active" | "suspended" | "revoked"
   createdAt: string
