@@ -488,6 +488,41 @@ export interface StaffPanelHealth {
   updatedAt: string | null
 }
 
+export interface PhantomSuspensionCase {
+  id: string
+  match_reference: string
+  server_id: string
+  server_mode: string
+  steam_id: string
+  status: "ACTIVE" | "SUSPICIOUS" | "HIGH_CONFIDENCE" | "SUSPENDED" | "CLEARED" | "CONFIRMED"
+  suspicion_score: number
+  evidence_count: number
+  evidence_summary: { phantom_ids?: string[]; latest_interaction?: string; evidence_confidence?: number }
+  suspended_at: string
+  reviewed_at: string | null
+  review_note: string | null
+  reviewed_by_staff_id: string | null
+  updated_at: string
+}
+
+export interface PhantomEvidenceEntry {
+  id: string
+  event_id: string
+  match_reference: string
+  server_id: string
+  server_mode: string
+  steam_id: string
+  phantom_id: string
+  mapped_steam_id: string
+  round_number: number
+  tick: number
+  interaction_type: "aim_correlation" | "shot_correlation"
+  interaction_count: number
+  suspicion_score: number
+  evidence_confidence: number
+  occurred_at: string
+}
+
 export interface StaffPanelActionRequest {
   serverId: string
   type: "ban" | "unban" | "kick" | "mute" | "rename" | "map_change" | "server_announcement" | "match_announcement" | "hud_announcement" | "player_hud_alert" | "player_message" | "restart_all" | "restart_server" | "start_server" | "stop_server" | "timeout" | "unpause" | "round_restart" | "round_restore" | "player_ip_lookup"
