@@ -90,7 +90,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
 
           <section className="glass relative isolate overflow-hidden rounded-2xl px-4 pb-4 pt-8 @2xl:px-6" aria-label="Top three players">
             <div className="pointer-events-none absolute inset-x-6 bottom-0 -z-10 h-px bg-gradient-to-r from-transparent via-white/[0.12] to-transparent" />
-            <div className="mx-auto grid max-w-3xl grid-cols-3 items-end gap-2 @lg:gap-4">
+            <div className="mx-auto grid w-full max-w-3xl grid-cols-3 items-end gap-2 @lg:gap-4 @4xl:max-w-5xl @4xl:gap-8 @6xl:max-w-none @6xl:gap-12">
               <PodiumPlayer player={podium[1]} rank={2} onProfileNavigate={onProfileNavigate} />
               <PodiumPlayer player={podium[0]} rank={1} onProfileNavigate={onProfileNavigate} />
               <PodiumPlayer player={podium[2]} rank={3} onProfileNavigate={onProfileNavigate} />
@@ -237,7 +237,7 @@ function PodiumPlayer({ player, rank, onProfileNavigate }: { player?: Competitiv
     <button
       type="button"
       onClick={() => onProfileNavigate(player.user_id)}
-      className="group flex min-w-0 flex-col items-center text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+      className="group mx-auto flex w-full min-w-0 max-w-[17rem] flex-col items-center text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
       aria-label={`Open ${player.username} profile`}
     >
       <div className="relative z-10 -mb-3 flex flex-col items-center">
@@ -248,6 +248,7 @@ function PodiumPlayer({ player, rank, onProfileNavigate }: { player?: Competitiv
       <div className={cn("flex w-full min-w-0 flex-col items-center justify-end rounded-t-xl border px-2 pb-3 pt-5 transition-transform duration-300 group-hover:-translate-y-0.5", tone.height, tone.surface)}>
         <p className={cn("text-[10px] font-bold uppercase tracking-[0.16em]", tone.text)}>{tone.label}</p>
         <p className="mt-1 max-w-full truncate text-sm font-bold text-white/95 @lg:text-base">{player.username}</p>
+        <p className="mt-0.5 max-w-full truncate text-[10px] tabular-nums text-white/45">{player.rank_name} · {player.current_exp.toLocaleString()} EXP</p>
         <div className="mt-2 flex items-baseline gap-1">
           <span className="text-lg font-black tabular-nums text-white">{player.kd_ratio.toFixed(2)}</span>
           <span className="text-[10px] font-semibold uppercase tracking-wide text-white/50">K/D</span>
