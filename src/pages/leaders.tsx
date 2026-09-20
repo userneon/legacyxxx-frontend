@@ -1,109 +1,226 @@
-import { Crosshair, Target, Clock, Trophy } from "lucide-react"
+import { useState } from "react"
+import { Crosshair, Target, Trophy, Search, SearchX, Clock3, Users, Swords, Flame } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { competitiveService } from "@/api"
 import type { CompetitiveLeaderboardEntry } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
+import { useAuth } from "@/hooks/use-auth"
 import { QueryState } from "@/components/query-state"
 import { PlayerModerationAvatar } from "@/components/player-moderation-avatar"
 import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
+import { RelativeTime } from "@/components/relative-time"
+import { AnimatedNumber } from "@/components/animated-number"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 
-// LEGACY-X visual system: existing performance layout with server-authoritative competitive rank artwork.
+type SortKey = "rank" | "kd" | "kills" | "wins" | "hours"
+
+const SORTS: Array<{ id: SortKey; label: string }> = [
+  { id: "rank", label: "Rank" },
+  { id: "kd", label: "K/D" },
+  { id: "kills", label: "Kills" },
+  { id: "wins", label: "Wins" },
+  { id: "hours", label: "Hours" },
+]
+
+function headshotRate(player: CompetitiveLeaderboardEntry) {
+  return player.kills > 0 ? Math.round((player.headshot_kills / player.kills) * 100) : 0
+}
+
+function sortValue(player: CompetitiveLeaderboardEntry, key: SortKey) {
+  switch (key) {
+    case "kd": return player.kd_ratio
+    case "kills": return player.kills
+    case "wins": return player.wins
+    case "hours": return player.played_hours
+    // The server's own ordering; a lower position is better, so it is negated to share one comparator.
+    default: return -player.position
+  }
+}
+
+// LEGACY-X visual system: glass surfaces, container-query columns and server-authoritative rank artwork.
 export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId: string) => void }) {
   const { data: leaders, loading, error, refetch } = useApiQuery<CompetitiveLeaderboardEntry[]>((signal) =>
     competitiveService.getLeaderboard({ signal }),
   )
+  const { user } = useAuth()
+  const [query, setQuery] = useState("")
+  const [sort, setSort] = useState<SortKey>("rank")
 
   const list = leaders ?? []
-  const highlights = list.slice(0, 3)
-  const tableRows = list.slice(3)
+  const podium = [...list].sort((a, b) => a.position - b.position).slice(0, 3)
+  const search = query.trim().toLowerCase()
+  const narrowed = Boolean(search) || sort !== "rank"
+
+  const rows = list
+    .filter((player) => !search || player.username.toLowerCase().includes(search))
+    // Without a search or a different sort, the top three already stand on the podium above.
+    .filter((player) => narrowed || player.position > 3)
+    .sort((a, b) => sortValue(b, sort) - sortValue(a, sort))
+
   const totalMatches = list.reduce((sum, player) => sum + player.matches_completed, 0)
   const totalWins = list.reduce((sum, player) => sum + player.wins, 0)
-  const headshotRate = (player: CompetitiveLeaderboardEntry) => player.kills > 0 ? Math.round((player.headshot_kills / player.kills) * 100) : 0
   const bestAim = [...list].sort((a, b) => headshotRate(b) - headshotRate(a))[0]
   const mostActive = [...list].sort((a, b) => b.played_hours - a.played_hours)[0]
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="@container flex flex-col gap-5 p-4 @2xl:p-6">
+      <header>
+        <h1 className="text-xl font-bold tracking-tight @2xl:text-2xl">Leaders</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Competitive standings across LEGACY-X servers, ranked by experience.</p>
+      </header>
+
       <QueryState loading={loading} error={error} empty={!loading && !error && list.length === 0} emptyMessage="No player performance data available yet." onRetry={refetch} />
 
       {!loading && !error && list.length > 0 && (
         <>
-          <section className="relative isolate overflow-hidden rounded-xl border border-white/[0.08] bg-[#181818] px-4 pb-4 pt-8 sm:px-6" aria-label="Top three performance podium">
-            <div className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.025)_24%,transparent_46%,rgba(255,255,255,0.025)_70%,transparent_100%)]" />
+          <div className="-mx-4 -my-1 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 py-1 @4xl:mx-0 @4xl:my-0 @4xl:grid @4xl:grid-cols-4 @4xl:overflow-visible @4xl:px-0">
+            <StatTile icon={Users} label="Ranked players" value={list.length} tone="text-sky-300" />
+            <StatTile icon={Swords} label="Matches recorded" value={totalMatches} tone="text-white/90" />
+            <StatTile icon={Trophy} label="Community wins" value={totalWins} tone="text-amber-300" />
+            <StatTile
+              icon={Flame}
+              label={mostActive ? `${mostActive.username} · hours played` : "Hours played"}
+              value={mostActive?.played_hours ?? 0}
+              suffix="h"
+              tone="text-pink-300"
+            />
+          </div>
+
+          <section className="glass relative isolate overflow-hidden rounded-2xl px-4 pb-4 pt-8 @2xl:px-6" aria-label="Top three players">
             <div className="pointer-events-none absolute inset-x-6 bottom-0 -z-10 h-px bg-gradient-to-r from-transparent via-white/[0.12] to-transparent" />
-
-            <div className="mx-auto grid max-w-4xl grid-cols-3 items-end gap-2 xl:hidden sm:gap-4">
-              <PodiumPlayer player={highlights[2]} rank={3} onProfileNavigate={onProfileNavigate} />
-              <PodiumPlayer player={highlights[0]} rank={1} onProfileNavigate={onProfileNavigate} />
-              <PodiumPlayer player={highlights[1]} rank={2} onProfileNavigate={onProfileNavigate} />
+            <div className="mx-auto grid max-w-3xl grid-cols-3 items-end gap-2 @lg:gap-4">
+              <PodiumPlayer player={podium[1]} rank={2} onProfileNavigate={onProfileNavigate} />
+              <PodiumPlayer player={podium[0]} rank={1} onProfileNavigate={onProfileNavigate} />
+              <PodiumPlayer player={podium[2]} rank={3} onProfileNavigate={onProfileNavigate} />
             </div>
-
-            <div className="relative mx-auto hidden min-h-[264px] items-end gap-6 xl:flex">
-              <aside className="flex min-w-[170px] flex-1 flex-col justify-center gap-3 pb-2">
-                <PodiumInsight label="Match volume" value={totalMatches.toLocaleString()} detail="matches recorded" />
-                <PodiumInsight label="Win column" value={totalWins.toLocaleString()} detail="community wins" />
-              </aside>
-
-              <div className="grid w-[680px] shrink-0 grid-cols-3 items-end gap-4">
-                <PodiumPlayer player={highlights[2]} rank={3} onProfileNavigate={onProfileNavigate} />
-                <PodiumPlayer player={highlights[0]} rank={1} onProfileNavigate={onProfileNavigate} />
-                <PodiumPlayer player={highlights[1]} rank={2} onProfileNavigate={onProfileNavigate} />
-              </div>
-
-              <aside className="flex min-w-[170px] flex-1 flex-col justify-center gap-3 pb-2">
-                <PodiumInsight label="Sharpest aim" value={bestAim ? `${headshotRate(bestAim)}%` : "—"} detail={bestAim ? `${bestAim.username} · HS rate` : "Headshot rate"} align="right" />
-                <PodiumInsight label="Most active" value={mostActive ? `${mostActive.played_hours}h` : "—"} detail={mostActive ? `${mostActive.username} · time played` : "Hours played"} align="right" />
-              </aside>
-            </div>
+            {bestAim && (
+              <p className="mt-5 text-center text-xs text-muted-foreground">
+                Sharpest aim: <span className="font-semibold text-white/85">{bestAim.username}</span> · {headshotRate(bestAim)}% headshots
+              </p>
+            )}
           </section>
 
-          <div className="overflow-x-auto rounded-xl border border-white/[0.08] bg-[#181818]">
-            <table className="w-full min-w-[980px]">
-              <thead><tr className="border-b border-white/[0.08]"><Header>Player</Header><Header>Rank</Header><Header align="right">Kills</Header><Header align="right">Deaths</Header><Header align="right">K/D</Header><Header align="right">HS</Header><Header align="right">Matches</Header><Header align="right">Wins</Header><Header align="right">Played</Header><Header align="right">Last played</Header></tr></thead>
-              <tbody className="stagger-in">{tableRows.map((player) => {
-                const rank = player.position
-                return (
-                <tr key={player.user_id} onClick={() => onProfileNavigate(player.user_id)} className="cursor-pointer border-b border-white/[0.06] last:border-0 focus-within:outline-none">
-                  <td className="px-4 py-3.5"><div className="flex items-center gap-2.5"><PlayerModerationAvatar avatar={player.avatar} name={player.username} className="size-9 shrink-0 rounded-md text-xs" /><div className="min-w-0"><div className="truncate text-sm font-semibold text-white/90">{player.username}</div><div className="mt-0.5 text-[10px] text-white/45">#{rank} · {player.current_exp.toLocaleString()} EXP</div></div></div></td>
-                  <td className="px-3 py-3.5"><CompetitiveRankBadge rankId={player.rank_id} rankName={player.rank_name} imageKey={player.rank_image_key} /></td>
-                  <NumberCell icon={Crosshair} value={player.kills.toLocaleString()} />
-                  <td className="px-3 py-3.5 text-right text-sm tabular-nums text-white/65">{player.deaths.toLocaleString()}</td>
-                  <td className="px-3 py-3.5 text-right text-sm font-semibold tabular-nums text-white/95">{player.kd_ratio.toFixed(2)}</td>
-                  <NumberCell icon={Target} value={player.kills > 0 ? `${Math.round((player.headshot_kills / player.kills) * 100)}%` : "0%"} />
-                  <td className="px-3 py-3.5 text-right text-sm tabular-nums text-white/75">{player.matches_completed.toLocaleString()}</td>
-                  <td className="px-3 py-3.5 text-right text-sm tabular-nums text-white/75">{player.wins.toLocaleString()}</td>
-                  <td className="px-3 py-3.5 text-right text-sm tabular-nums text-white/55">{player.played_hours.toLocaleString()} hrs</td>
-                  <td className="px-3 py-3.5 text-right text-xs text-white/55"><span className="inline-flex items-center gap-1"><Clock className="size-3" />{player.last_match_at ?? "—"}</span></td>
-                </tr>
-                )
-              })}</tbody>
-            </table>
+          <div className="glass flex flex-col gap-3 rounded-2xl p-3 @2xl:flex-row @2xl:items-center @2xl:justify-between">
+            <label className="relative block @2xl:w-64">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search players..." className="h-9 pl-9 text-sm" />
+            </label>
+            <div className="flex min-w-0 gap-1 overflow-x-auto">
+              {SORTS.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => setSort(option.id)}
+                  aria-pressed={sort === option.id}
+                  className={cn(
+                    "h-8 shrink-0 rounded-lg px-3 text-xs font-medium transition-colors",
+                    sort === option.id ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
           </div>
+
+          <section className="@container glass overflow-hidden rounded-2xl">
+            <div className="hidden grid-cols-[3rem_minmax(0,1.4fr)_5rem_4rem_4.5rem_3.5rem_4rem_5.5rem] gap-x-3 border-b border-white/[0.06] px-4 py-2.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground @3xl:grid">
+              <span>#</span>
+              <span>Player</span>
+              <span>Rank</span>
+              <span className="text-right">K/D</span>
+              <span className="text-right">Kills</span>
+              <span className="text-right">HS</span>
+              <span className="text-right">Wins</span>
+              <span className="text-right">Last played</span>
+            </div>
+
+            {rows.length === 0 ? (
+              <div className="query-state-in flex flex-col items-center gap-3 p-10 text-center">
+                <SearchX className="size-6 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">No player matches this search.</p>
+                <Button variant="outline" size="sm" onClick={() => setQuery("")}>Clear search</Button>
+              </div>
+            ) : (
+              <div className="stagger-in flex flex-col">
+                {rows.map((player) => (
+                  <LeaderRow
+                    key={player.user_id}
+                    player={player}
+                    isSelf={Boolean(user && user.id === player.user_id)}
+                    onOpen={() => onProfileNavigate(player.user_id)}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
         </>
       )}
     </div>
   )
 }
 
-function PodiumInsight({
-  label,
-  value,
-  detail,
-  align = "left",
-}: {
-  label: string
-  value: string
-  detail: string
-  align?: "left" | "right"
-}) {
+function StatTile({ icon: Icon, label, value, tone, suffix }: { icon: typeof Trophy; label: string; value: number; tone: string; suffix?: string }) {
   return (
-    <div className={cn("relative overflow-hidden rounded-lg border border-white/[0.08] bg-black/15 px-4 py-3", align === "right" && "text-right")}>
-      <div className={cn("pointer-events-none absolute inset-y-0 w-px bg-white/[0.16]", align === "right" ? "right-0" : "left-0")} />
-      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/45">{label}</p>
-      <p className="mt-1 text-xl font-black tabular-nums text-white/95">{value}</p>
-      <p className="mt-0.5 truncate text-[11px] text-white/45">{detail}</p>
+    <div className="glass min-w-[9rem] shrink-0 snap-start rounded-2xl p-3.5 hover-lift @4xl:min-w-0 @4xl:p-4">
+      <span className={cn("flex size-8 items-center justify-center rounded-lg bg-white/[0.05]", tone)}><Icon className="size-4" /></span>
+      <div className={cn("mt-3 text-2xl font-bold tabular-nums", tone)}><AnimatedNumber value={value} suffix={suffix} /></div>
+      <div className="mt-0.5 truncate text-xs text-muted-foreground">{label}</div>
     </div>
+  )
+}
+
+function LeaderRow({ player, isSelf, onOpen }: { player: CompetitiveLeaderboardEntry; isSelf: boolean; onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-label={`Open ${player.username} profile`}
+      className={cn(
+        "group grid w-full grid-cols-[2.5rem_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 border-b border-white/[0.05] px-4 py-3 text-left transition-colors last:border-0",
+        "hover:bg-white/[0.03] focus-visible:bg-white/[0.04] focus-visible:outline-none",
+        "@3xl:grid-cols-[3rem_minmax(0,1.4fr)_5rem_4rem_4.5rem_3.5rem_4rem_5.5rem]",
+        isSelf && "bg-primary/[0.07] hover:bg-primary/[0.1]",
+      )}
+    >
+      <span className={cn("text-sm font-bold tabular-nums", player.position <= 10 ? "text-white/85" : "text-muted-foreground")}>
+        {player.position}
+      </span>
+
+      <span className="flex min-w-0 items-center gap-2.5">
+        <PlayerModerationAvatar avatar={player.avatar} name={player.username} className="size-9 shrink-0 rounded-md text-xs" />
+        <span className="min-w-0">
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span className="truncate text-sm font-semibold text-white/90">{player.username}</span>
+            {isSelf && <span className="shrink-0 rounded border border-primary/40 bg-primary/15 px-1 py-px text-[9px] font-bold uppercase text-white/85">You</span>}
+          </span>
+          <span className="mt-0.5 block truncate text-[11px] tabular-nums text-muted-foreground">
+            {player.current_exp.toLocaleString()} EXP
+            <span className="@3xl:hidden"> · {player.kd_ratio.toFixed(2)} K/D · {player.kills.toLocaleString()} kills</span>
+          </span>
+        </span>
+      </span>
+
+      <span className="justify-self-end @3xl:justify-self-start">
+        <CompetitiveRankBadge rankId={player.rank_id} rankName={player.rank_name} imageKey={player.rank_image_key} className="h-7 w-12" />
+      </span>
+
+      <span className="hidden text-right text-sm font-semibold tabular-nums text-white/95 @3xl:block">{player.kd_ratio.toFixed(2)}</span>
+      <span className="hidden text-right text-sm tabular-nums text-white/75 @3xl:block">
+        <span className="inline-flex items-center gap-1"><Crosshair className="size-3 text-white/35" />{player.kills.toLocaleString()}</span>
+      </span>
+      <span className="hidden text-right text-sm tabular-nums text-white/75 @3xl:block">
+        <span className="inline-flex items-center gap-1"><Target className="size-3 text-white/35" />{headshotRate(player)}%</span>
+      </span>
+      <span className="hidden text-right text-sm tabular-nums text-white/75 @3xl:block">{player.wins.toLocaleString()}</span>
+      <span className="hidden justify-end text-right text-xs text-muted-foreground @3xl:flex">
+        {player.last_match_at
+          ? <span className="inline-flex items-center gap-1"><Clock3 className="size-3 shrink-0" /><RelativeTime value={player.last_match_at} /></span>
+          : "—"}
+      </span>
+    </button>
   )
 }
 
@@ -111,10 +228,10 @@ function PodiumPlayer({ player, rank, onProfileNavigate }: { player?: Competitiv
   if (!player) return <div aria-hidden="true" />
 
   const tone = rank === 1
-    ? { label: "Gold", height: "h-44 sm:h-52", surface: "border-amber-300/45 bg-gradient-to-b from-amber-300/18 to-[#211c12]", text: "text-amber-200", chip: "border-amber-200/45 bg-amber-300 text-[#201a0d]" }
+    ? { label: "Gold", height: "min-h-40 @lg:min-h-52", surface: "border-amber-300/45 bg-gradient-to-b from-amber-300/18 to-amber-300/[0.02]", text: "text-amber-200", chip: "border-amber-200/45 bg-amber-300 text-[#201a0d]" }
     : rank === 2
-      ? { label: "Silver", height: "h-36 sm:h-44", surface: "border-slate-200/30 bg-gradient-to-b from-slate-200/[0.12] to-[#191b1f]", text: "text-slate-200", chip: "border-slate-100/35 bg-slate-200 text-[#20242b]" }
-      : { label: "Bronze", height: "h-28 sm:h-36", surface: "border-orange-300/35 bg-gradient-to-b from-orange-300/[0.13] to-[#211914]", text: "text-orange-200", chip: "border-orange-200/40 bg-orange-300 text-[#28170e]" }
+      ? { label: "Silver", height: "min-h-32 @lg:min-h-44", surface: "border-slate-200/30 bg-gradient-to-b from-slate-200/[0.12] to-slate-200/[0.02]", text: "text-slate-200", chip: "border-slate-100/35 bg-slate-200 text-[#20242b]" }
+      : { label: "Bronze", height: "min-h-28 @lg:min-h-36", surface: "border-orange-300/35 bg-gradient-to-b from-orange-300/[0.13] to-orange-300/[0.02]", text: "text-orange-200", chip: "border-orange-200/40 bg-orange-300 text-[#28170e]" }
 
   return (
     <button
@@ -126,17 +243,17 @@ function PodiumPlayer({ player, rank, onProfileNavigate }: { player?: Competitiv
       <div className="relative z-10 -mb-3 flex flex-col items-center">
         <div className={cn("mb-1 flex size-7 items-center justify-center rounded-full border text-xs font-black shadow-lg shadow-black/25", tone.chip)}>{rank}</div>
         <CompetitiveRankBadge rankId={player.rank_id} rankName={player.rank_name} imageKey={player.rank_image_key} className="mb-1 h-8 w-14" />
-        <PlayerModerationAvatar avatar={player.avatar} name={player.username} className="size-14 rounded-md border-2 border-[#181818] text-base sm:size-16" />
+        <PlayerModerationAvatar avatar={player.avatar} name={player.username} className="size-12 rounded-md border-2 border-card text-base @lg:size-16" />
       </div>
-      <div className={cn("flex w-full min-w-0 flex-col items-center justify-end rounded-t-xl border px-2 pb-3 pt-5", tone.height, tone.surface)}>
+      <div className={cn("flex w-full min-w-0 flex-col items-center justify-end rounded-t-xl border px-2 pb-3 pt-5 transition-transform duration-300 group-hover:-translate-y-0.5", tone.height, tone.surface)}>
         <p className={cn("text-[10px] font-bold uppercase tracking-[0.16em]", tone.text)}>{tone.label}</p>
-        <p className="mt-1 max-w-full truncate text-sm font-bold text-white/95 sm:text-base">{player.username}</p>
-        <div className="mt-2 flex items-baseline gap-1"><span className="text-lg font-black tabular-nums text-white">{player.kd_ratio.toFixed(2)}</span><span className="text-[10px] font-semibold uppercase tracking-wide text-white/50">K/D</span></div>
-        <p className="mt-1 text-[10px] tabular-nums text-white/55">{player.kills.toLocaleString()} kills · {player.wins.toLocaleString()} wins</p>
+        <p className="mt-1 max-w-full truncate text-sm font-bold text-white/95 @lg:text-base">{player.username}</p>
+        <div className="mt-2 flex items-baseline gap-1">
+          <span className="text-lg font-black tabular-nums text-white">{player.kd_ratio.toFixed(2)}</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-white/50">K/D</span>
+        </div>
+        <p className="mt-1 truncate text-[10px] tabular-nums text-white/55">{player.kills.toLocaleString()} kills · {player.wins.toLocaleString()} wins</p>
       </div>
     </button>
   )
 }
-
-function Header({ children, align = "left" }: { children: React.ReactNode; align?: "left" | "right" }) { return <th className={cn("px-3 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/45", align === "right" ? "text-right" : "text-left")}>{children}</th> }
-function NumberCell({ icon: Icon, value }: { icon: typeof Trophy; value: string }) { return <td className="px-3 py-3.5 text-right text-sm tabular-nums text-white/75"><span className="inline-flex items-center gap-1"><Icon className="size-3 text-white/35" />{value}</span></td> }
