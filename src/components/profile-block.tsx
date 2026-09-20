@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils"
 import type { PageId, UserProfile } from "@/api/types"
 import { useAuth } from "@/hooks/use-auth"
 import { isFeatureEnabled } from "@/lib/features"
+import { NotificationsMenu } from "@/components/notifications-menu"
 
 interface ProfileBlockProps {
   onNavigate: (page: PageId) => void
@@ -27,6 +28,8 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
         <Wallet className="size-4 text-white/70 transition-transform group-hover:scale-105" />
         <span className="text-sm font-semibold text-white/82">Wallet</span>
       </button>}
+
+      <NotificationsMenu />
 
       {/* Avatar block */}
       <button
