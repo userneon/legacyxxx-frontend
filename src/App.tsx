@@ -8,13 +8,11 @@ import { HomePage } from "@/pages/home"
 import { PlayPage } from "@/pages/play"
 import { LeadersPage } from "@/pages/leaders"
 import { ClanPage } from "@/pages/clan"
-import { ShopPage } from "@/pages/shop"
 import { SkinchangerPage } from "@/pages/skinchanger"
 import { PenaltiesPage } from "@/pages/penalties"
 import { ExplorePage } from "@/pages/explore"
 import { FeedbackPage } from "@/pages/feedback"
 import { ProfilePage } from "@/pages/profile"
-import { WalletPage } from "@/pages/wallet"
 import { ConnectPage } from "@/pages/connect"
 import { StaffPanelPage } from "@/pages/staffpanel"
 import { ProtectedPage } from "@/components/protected-page"
@@ -93,7 +91,6 @@ export function App() {
               {isFeatureEnabled("clan") && <Route path="/clans" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
               {isFeatureEnabled("clan") && <Route path="/clan/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
               {isFeatureEnabled("clan") && <Route path="/clans/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
-              {isFeatureEnabled("shop") && <Route path="/shop" element={<ProtectedPage pageName="Shop"><ShopPage /></ProtectedPage>} />}
               <Route path="/skinchanger" element={<ProtectedPage pageName="Skinchanger"><SkinchangerPage /></ProtectedPage>} />
               <Route path="/penalties" element={<PenaltiesPage onProfileNavigate={handleProfileNavigate} />} />
               <Route path="/explore" element={<ExplorePage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />
@@ -110,7 +107,6 @@ export function App() {
                   <ProfilePage />
                 </ProtectedPage>
               } />
-              {isFeatureEnabled("wallet") && <Route path="/wallet" element={<ProtectedPage pageName="Wallet"><WalletPage /></ProtectedPage>} />}
               <Route path="/connect" element={<ConnectPage />} />
               <Route path="/staffpanel" element={<StaffPanelPage />} />
               <Route path="*" element={<HomePage onNavigate={handleNavigate} />} />

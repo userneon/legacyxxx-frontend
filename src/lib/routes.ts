@@ -9,13 +9,11 @@ export const PAGE_ROUTES: Record<PageId, string> = {
   "play-tournaments": "/tournaments",
   leaders: "/leaders",
   clan: "/clan",
-  shop: "/shop",
   skinchanger: "/skinchanger",
   penalties: "/penalties",
   explore: "/explore",
   feedback: "/reviews",
   profile: "/profile",
-  wallet: "/wallet",
 }
 
 export const ROUTE_PAGES: Record<string, PageId> = Object.fromEntries(
@@ -30,13 +28,11 @@ export const PAGE_TITLES: Record<PageId, string> = {
   "play-tournaments": "Tournaments",
   leaders: "Leaders",
   clan: "Clan",
-  shop: "Shop",
   skinchanger: "Skinchanger",
   penalties: "Penalties",
   explore: "Explore",
   feedback: "Reviews",
   profile: "Profile",
-  wallet: "Wallet",
 }
 
 function matchPage(pathname: string): PageId {

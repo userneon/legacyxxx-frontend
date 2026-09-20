@@ -3,7 +3,6 @@ import {
   Home,
   Trophy,
   Swords,
-  Store,
   Search,
   MessageSquare,
   ChevronDown,
@@ -64,7 +63,6 @@ const MAIN_NAV: NavItem[] = enabledNav([
 ])
 
 const CONTENT_NAV: NavItem[] = enabledNav([
-  { id: "shop", label: "Shop", icon: Store },
   { id: "skinchanger", label: "Skinchanger", icon: Paintbrush },
   { id: "clan", label: "Clan", icon: Swords },
 ])

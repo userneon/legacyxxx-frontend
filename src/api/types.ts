@@ -53,13 +53,11 @@ export type PageId =
   | "play-tournaments"
   | "leaders"
   | "clan"
-  | "shop"
   | "skinchanger"
   | "penalties"
   | "explore"
   | "feedback"
   | "profile"
-  | "wallet"
 
 /* ----------------------------------------------------------------------------
  * Auth
@@ -125,7 +123,6 @@ export interface UserProfile {
   steamId: string
   username: string
   avatar: string
-  balance: number
   role: "Owner" | "Founder" | "Manager" | "Admin" | "Player" | "Designer" | "Developer"
   moderationStatus?: ModerationStatus
   clan?: {
@@ -439,26 +436,6 @@ export interface TournamentInfo {
 }
 
 /* ----------------------------------------------------------------------------
- * Store / shop
- * ------------------------------------------------------------------------- */
-
-export type ShopRarity = "Common" | "Rare" | "Epic" | "Legendary"
-
-export interface ShopItem {
-  id: string
-  name: string
-  category: string
-  price: number
-  image: string
-  rarity: ShopRarity
-}
-
-export interface ShopFilters {
-  category?: string
-  rarity?: ShopRarity
-}
-
-/* ----------------------------------------------------------------------------
  * Staff panel
  * ------------------------------------------------------------------------- */
 
@@ -491,10 +468,6 @@ export interface StaffPanelOverview {
   role: StaffPanelRole
   servers: StaffPanelServer[]
   pendingActions: StaffPanelAction[]
-}
-
-export interface StaffPanelProduct extends ShopItem {
-  active: boolean
 }
 
 export interface StaffPanelDatabaseOverview {
@@ -554,71 +527,6 @@ export interface SkinApplyStatus {
 export interface SkinchangerApplyResponse {
   loadout: SkinLoadout
   status: SkinApplyStatus
-}
-
-/* ----------------------------------------------------------------------------
- * Wallet
- * ------------------------------------------------------------------------- */
-
-export type WalletTransactionType = "Charge" | "Purchase"
-
-export interface WalletTransaction {
-  id: string
-  type: WalletTransactionType
-  amount: number
-  method: string
-  date: string
-}
-
-export interface WalletBalance {
-  balance: number
-  currency: string
-}
-
-export type PaymentMethod = "qpay" | "card"
-
-export interface ChargeRequest {
-  amount: number
-  method: PaymentMethod
-}
-
-export type PromotionContext = "wallet_topup" | "wallet_redeem" | "store_purchase"
-export type PromotionBenefitType = "wallet_credit" | "wallet_rate_override" | "wallet_percent" | "wallet_fixed" | "store_percent" | "store_fixed" | "admin_role"
-
-export interface PromotionQuote {
-  codeHint: string
-  campaignName: string
-  ownerKind: "legacyx" | "creator" | "partner"
-  benefitType: PromotionBenefitType
-  context: PromotionContext
-  baseAmount: number
-  finalAmount: number
-  discountAmount: number
-  currency: "MNT" | "coins"
-  redeemable: boolean
-  message: string
-}
-
-export interface PromotionRedemption {
-  redemptionId: string
-  alreadyRedeemed: boolean
-  benefitType: PromotionBenefitType
-  benefitValue: number
-  balance: number
-  role: UserProfile["role"]
-  entitlementId?: string | null
-}
-
-export interface PromotionHistoryItem {
-  id: string
-  context: Exclude<PromotionContext, "wallet_topup">
-  status: "redeemed" | "revoked"
-  benefitType: PromotionBenefitType
-  benefitValue: number
-  codeHint: string
-  createdAt: string
-  campaignName: string
-  ownerKind: "legacyx" | "creator" | "partner"
 }
 
 /* ----------------------------------------------------------------------------

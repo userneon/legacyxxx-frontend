@@ -1,8 +1,7 @@
-import { Wallet, UserRound } from "lucide-react"
+import { UserRound } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { PageId, UserProfile } from "@/api/types"
 import { useAuth } from "@/hooks/use-auth"
-import { isFeatureEnabled } from "@/lib/features"
 import { NotificationsMenu } from "@/components/notifications-menu"
 
 interface ProfileBlockProps {
@@ -14,21 +13,6 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
 
   return (
     <div className="flex items-center gap-2">
-      {/* Wallet block — only while the wallet feature is on. */}
-      {isFeatureEnabled("wallet") && <button
-        onClick={() => onNavigate("wallet")}
-        className={cn(
-          "flex items-center gap-2 rounded-lg px-3 py-2",
-          "border border-white/[0.1] bg-white/[0.04]",
-          "transition-all duration-200 hover:bg-white/[0.08] hover:border-white/[0.18]",
-          "group"
-        )}
-        aria-label="Open Wallet"
-      >
-        <Wallet className="size-4 text-white/70 transition-transform group-hover:scale-105" />
-        <span className="text-sm font-semibold text-white/82">Wallet</span>
-      </button>}
-
       <NotificationsMenu />
 
       {/* Avatar block */}

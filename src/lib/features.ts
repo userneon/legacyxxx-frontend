@@ -8,10 +8,6 @@ import type { PageId } from "@/api/types"
  * code that belongs to it stays in the repo and re-appears wherever `isFeatureEnabled` guards it.
  */
 export const FEATURES = {
-  /** Item store. Off until the store backend is live. */
-  shop: false,
-  /** Balance / top-up. Off until the wallet backend is live. */
-  wallet: false,
   /** Clans: clan pages, clan search, clan badges on profiles. Off until the clan backend is live. */
   clan: false,
   /** Live server roster dialog (who is on a server right now). Temporarily off. */
@@ -32,8 +28,6 @@ export function isFeatureEnabled(feature: FeatureName): boolean {
 
 /** Pages that belong to a feature switch. Pages absent from this map are always available. */
 const PAGE_FEATURES: Partial<Record<PageId, FeatureName>> = {
-  shop: "shop",
-  wallet: "wallet",
   clan: "clan",
   skinchanger: "skinchanger",
   penalties: "penalties",

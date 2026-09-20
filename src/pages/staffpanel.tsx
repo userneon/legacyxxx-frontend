@@ -1,10 +1,10 @@
 // LEGACY-X Staff Panel: dark neutral operational console; server-authoritative Owner/Manager RBAC, no client-side trust.
 import { useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import { Database, PackagePlus, Power, ShieldAlert, UserRoundCog, UsersRound, Map, Megaphone, MonitorUp, Loader2, LockKeyhole, ServerCog } from "lucide-react"
+import { Database, Power, ShieldAlert, UserRoundCog, UsersRound, Map, Megaphone, MonitorUp, Loader2, LockKeyhole, ServerCog } from "lucide-react"
 import { setAccessToken } from "@/api/client"
 import { staffPanelService } from "@/api/staffpanel"
-import type { ApiError, StaffPanelAccess, StaffPanelActionRequest, StaffPanelDatabaseOverview, StaffPanelOverview, StaffPanelProduct } from "@/api/types"
+import type { ApiError, StaffPanelAccess, StaffPanelActionRequest, StaffPanelDatabaseOverview, StaffPanelOverview } from "@/api/types"
 
 const apiOrigin = (import.meta.env.VITE_API_URL?.trim() || (import.meta.env.PROD ? "https://api.legacyx.cc" : "")).replace(/\/$/, "")
 
@@ -39,16 +39,12 @@ export function StaffPanelPage() {
   const [access, setAccess] = useState<StaffPanelAccess | null>(null)
   const [overview, setOverview] = useState<StaffPanelOverview | null>(null)
   const [database, setDatabase] = useState<StaffPanelDatabaseOverview | null>(null)
-  const [products, setProducts] = useState<StaffPanelProduct[]>([])
   const [selectedServer, setSelectedServer] = useState("")
   const [playerSteamId, setPlayerSteamId] = useState("")
   const [message, setMessage] = useState("")
   const [map, setMap] = useState("de_mirage")
   const [notice, setNotice] = useState("")
   const [busy, setBusy] = useState(false)
-  const [productName, setProductName] = useState("")
-  const [productCategory, setProductCategory] = useState("service")
-  const [productPrice, setProductPrice] = useState("10")
 
   useEffect(() => {
     if (params.get("reauth") !== "done") {
@@ -64,9 +60,7 @@ export function StaffPanelPage() {
       setOverview(nextOverview)
       setSelectedServer((current) => current || nextOverview.servers[0]?.server_id || "")
       if (nextAccess.role === "OWNER") {
-        const [nextDatabase, nextProducts] = await Promise.all([staffPanelService.database(), staffPanelService.products()])
-        setDatabase(nextDatabase)
-        setProducts(nextProducts)
+        setDatabase(await staffPanelService.database())
       }
     } catch (error) {
       const api = error as ApiError
@@ -98,34 +92,6 @@ export function StaffPanelPage() {
     }
   }
 
-  const createProduct = async () => {
-    if (!productName.trim()) return setNotice("Product name is required.")
-    setBusy(true)
-    try {
-      await staffPanelService.createProduct({ name: productName.trim(), category: productCategory.trim() || "service", price: Number(productPrice), image: "", rarity: "Common" })
-      setProductName("")
-      setNotice("Product created and audited.")
-      await load()
-    } catch (error) {
-      setNotice(toUiError(error))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const archiveProduct = async (itemId: string) => {
-    setBusy(true)
-    try {
-      await staffPanelService.archiveProduct(itemId)
-      setNotice("Product archived. Purchase history remains intact.")
-      await load()
-    } catch (error) {
-      setNotice(toUiError(error))
-    } finally {
-      setBusy(false)
-    }
-  }
-
   if (!access) return <div className="flex min-h-[65vh] items-center justify-center gap-3 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Steam re-authentication required…</div>
 
   return <main className="mx-auto w-full max-w-7xl space-y-6 p-4 md:p-7">
@@ -148,6 +114,6 @@ export function StaffPanelPage() {
       </div>
       <div className="rounded-2xl border border-white/10 bg-card/70 p-5"><h2 className="font-semibold">Queue</h2><div className="mt-4 space-y-2">{overview?.pendingActions.length ? overview.pendingActions.map((action) => <div key={action.id} className="flex items-center justify-between rounded-xl border border-white/10 px-3 py-2 text-xs"><span>{action.action_type} · {action.server_id}</span><span className="uppercase text-amber-300">{action.status}</span></div>) : <p className="text-sm text-muted-foreground">No pending server operations.</p>}</div></div>
     </section>
-    {access.role === "OWNER" && <section className="grid gap-4 lg:grid-cols-2"><div className="rounded-2xl border border-white/10 bg-card/70 p-5"><h2 className="flex items-center gap-2 font-semibold"><Database className="h-4 w-4 text-amber-300" />Database overview</h2><div className="mt-4 grid grid-cols-2 gap-2">{database?.tables.map((table) => <div key={table.name} className="rounded-xl border border-white/10 px-3 py-3"><p className="text-xs text-muted-foreground">{table.name}</p><p className="mt-1 text-xl font-semibold">{table.count}</p></div>)}</div><p className="mt-3 text-xs text-muted-foreground">Metadata only. Raw SQL is never exposed in the browser.</p></div><div className="rounded-2xl border border-white/10 bg-card/70 p-5"><h2 className="flex items-center gap-2 font-semibold"><PackagePlus className="h-4 w-4 text-amber-300" />Products</h2><div className="mt-3 grid gap-2 sm:grid-cols-[1fr_.8fr_.5fr_auto]"><input value={productName} onChange={(event) => setProductName(event.target.value)} placeholder="Product name" className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs" /><input value={productCategory} onChange={(event) => setProductCategory(event.target.value)} placeholder="Category" className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs" /><input value={productPrice} onChange={(event) => setProductPrice(event.target.value)} inputMode="numeric" placeholder="Coins" className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs" /><button disabled={busy} onClick={() => void createProduct()} className="rounded-lg border border-amber-300/30 bg-amber-300/10 px-3 py-2 text-xs text-amber-100 disabled:opacity-50">Add</button></div><div className="mt-3 space-y-2">{products.slice(0, 5).map((product) => <div key={product.id} className="flex items-center justify-between gap-3 rounded-xl border border-white/10 px-3 py-2 text-sm"><span className="min-w-0 truncate">{product.name}</span><span className={product.active ? "text-emerald-300" : "text-muted-foreground"}>{product.active ? `${product.price} coins` : "archived"}</span>{product.active && <button disabled={busy} onClick={() => void archiveProduct(product.id)} className="text-xs text-rose-200 disabled:opacity-50">Archive</button>}</div>)}</div><p className="mt-3 text-xs text-muted-foreground">Owner-only product create/archive. Repository download metadata is source-only; browser shell controls are not exposed.</p></div></section>}
+    {access.role === "OWNER" && <section className="grid gap-4"><div className="rounded-2xl border border-white/10 bg-card/70 p-5"><h2 className="flex items-center gap-2 font-semibold"><Database className="h-4 w-4 text-amber-300" />Database overview</h2><div className="mt-4 grid grid-cols-2 gap-2">{database?.tables.map((table) => <div key={table.name} className="rounded-xl border border-white/10 px-3 py-3"><p className="text-xs text-muted-foreground">{table.name}</p><p className="mt-1 text-xl font-semibold">{table.count}</p></div>)}</div><p className="mt-3 text-xs text-muted-foreground">Metadata only. Raw SQL is never exposed in the browser.</p></div></section>}
   </main>
 }

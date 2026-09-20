@@ -1,10 +1,10 @@
 import { useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft, Swords, Plus, Users, Upload, X, Globe, Shield, Crown, UserPlus, Coins } from "lucide-react"
+import { ArrowLeft, Swords, Plus, Users, Upload, X, Globe, Shield, Crown, UserPlus } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { clansService, walletService } from "@/api"
-import type { ClanCard, WalletBalance } from "@/api/types"
+import { clansService } from "@/api"
+import type { ClanCard } from "@/api/types"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -22,7 +22,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 // LEGACY-X visual system: retain the dark glass card rhythm while exposing clan identity, roster, and member navigation as first-class flows.
-const CLAN_CREATE_COST = 10
 
 export function ClanPage({ onProfileNavigate, onClanNavigate }: { onProfileNavigate: (userId: string) => void; onClanNavigate: (clanId: string) => void }) {
   const { clanId } = useParams()
@@ -30,9 +29,6 @@ export function ClanPage({ onProfileNavigate, onClanNavigate }: { onProfileNavig
 
   const { data: clans, loading, error, refetch } = useApiQuery<ClanCard[]>((signal) =>
     clansService.getClans({ signal }),
-  )
-  const { data: wallet, loading: walletLoading, refetch: refetchWallet } = useApiQuery<WalletBalance>((signal) =>
-    walletService.getBalance({ signal }),
   )
 
   if (clanId) return <ClanDetailView clanId={clanId} onProfileNavigate={onProfileNavigate} />
@@ -60,12 +56,10 @@ export function ClanPage({ onProfileNavigate, onClanNavigate }: { onProfileNavig
               </DialogDescription>
             </DialogHeader>
             <CreateClanForm
-              availableCoins={wallet?.balance ?? 0}
-              balanceLoading={walletLoading}
+
               onClose={() => {
                 setOpen(false)
                 void refetch()
-                void refetchWallet()
               }}
             />
           </DialogContent>
@@ -251,28 +245,19 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
   )
 }
 
-function CreateClanForm({
-  availableCoins,
-  balanceLoading,
-  onClose,
-}: {
-  availableCoins: number
-  balanceLoading: boolean
-  onClose: () => void
-}) {
+function CreateClanForm({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState("")
   const [tag, setTag] = useState("")
   const [logo, setLogo] = useState("")
   const [thumbnail, setThumbnail] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
-  const canAfford = availableCoins >= CLAN_CREATE_COST
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim() || !tag.trim() || !logo) return
-    if (!canAfford) {
-      setError(`You need ${CLAN_CREATE_COST} coins to create a clan.`)
+    if (false) {
+      setError("")
       return
     }
     setSubmitting(true)
@@ -307,19 +292,6 @@ function CreateClanForm({
 
   return (
     <form className="flex flex-col gap-4 mt-4" onSubmit={handleSubmit}>
-      <div className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.1] bg-white/[0.035] px-3 py-2.5">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Coins className="size-3.5 text-amber-200" />
-          <span>Clan creation fee</span>
-        </div>
-        <div className="text-right">
-          <div className="text-sm font-bold tabular-nums text-amber-100">{CLAN_CREATE_COST} coins</div>
-          <div className={cn("text-[11px]", canAfford ? "text-muted-foreground" : "text-destructive")}>
-            {balanceLoading ? "Checking balance..." : `${availableCoins.toLocaleString()} coins available`}
-          </div>
-        </div>
-      </div>
-
       <div className="flex flex-col gap-2">
         <Label>Clan Logo (Required)</Label>
         <div className="flex items-center gap-3">
@@ -389,7 +361,7 @@ function CreateClanForm({
           <X className="size-3.5" />
           Cancel
         </Button>
-        <Button type="submit" disabled={submitting || balanceLoading || !canAfford || !name.trim() || !tag.trim() || !logo}>
+        <Button type="submit" disabled={submitting || !name.trim() || !tag.trim() || !logo}>
           <Plus className="size-3.5" />
           {submitting ? "Creating..." : "Create Clan · 10 coins"}
         </Button>
