@@ -1,29 +1,57 @@
 import { useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
 
-/** Official CS:GO competitive badge sequence: 1 = Silver I, 18 = Global Elite. */
+import rank01 from "@/assets/ranks/rank-01.webp"
+import rank02 from "@/assets/ranks/rank-02.webp"
+import rank03 from "@/assets/ranks/rank-03.webp"
+import rank04 from "@/assets/ranks/rank-04.webp"
+import rank05 from "@/assets/ranks/rank-05.webp"
+import rank06 from "@/assets/ranks/rank-06.webp"
+import rank07 from "@/assets/ranks/rank-07.webp"
+import rank08 from "@/assets/ranks/rank-08.webp"
+import rank09 from "@/assets/ranks/rank-09.webp"
+import rank10 from "@/assets/ranks/rank-10.webp"
+import rank11 from "@/assets/ranks/rank-11.webp"
+import rank12 from "@/assets/ranks/rank-12.webp"
+import rank14 from "@/assets/ranks/rank-14.webp"
+import rank15 from "@/assets/ranks/rank-15.webp"
+import rank16 from "@/assets/ranks/rank-16.webp"
+import rank17 from "@/assets/ranks/rank-17.webp"
+import rank18 from "@/assets/ranks/rank-18.webp"
+
+/**
+ * Official CS:GO competitive badge sequence: 1 = Silver I, 18 = Global Elite (matches competitive_rank_definitions).
+ * Artwork is bundled from src/assets so it ships with every build. Rank 13 (Master Guardian Elite) has no artwork yet
+ * and renders the labelled fallback; add src/assets/ranks/rank-13.webp and import it here to replace it.
+ */
 const CSGO_RANK_ASSETS: Record<number, string> = {
-  1: "/manus-storage/1_94904039.png",
-  2: "/manus-storage/2_738f9f74.png",
-  3: "/manus-storage/3_4dab2883.png",
-  4: "/manus-storage/4_c099e2ae.png",
-  5: "/manus-storage/5_245c9833.png",
-  6: "/manus-storage/6_8c447d7d.png",
-  7: "/manus-storage/7_0691599a.png",
-  8: "/manus-storage/8_2060e7ad.png",
-  9: "/manus-storage/9_b6fd1c87.png",
-  10: "/manus-storage/10_c90851a1.png",
-  11: "/manus-storage/11_03a41531.png",
-  12: "/manus-storage/12_e91a0a00.png",
-  13: "/manus-storage/13_91f334f0.png",
-  14: "/manus-storage/14_d50fb4ce.png",
-  15: "/manus-storage/15_8bd87662.png",
-  16: "/manus-storage/16_22f9ab7d.png",
-  17: "/manus-storage/17_6b9072a8.png",
-  18: "/manus-storage/18_bb4ee74d.png",
+  1: rank01,
+  2: rank02,
+  3: rank03,
+  4: rank04,
+  5: rank05,
+  6: rank06,
+  7: rank07,
+  8: rank08,
+  9: rank09,
+  10: rank10,
+  11: rank11,
+  12: rank12,
+  14: rank14,
+  15: rank15,
+  16: rank16,
+  17: rank17,
+  18: rank18,
 }
 
-/** Uses verified CS:GO Rank1–Rank18 art; a compact numeric fallback avoids broken images. */
+/** Short labels for the fallback badge, e.g. "MGE" for Master Guardian Elite. */
+function rankInitials(rankName: string) {
+  const words = rankName.replace(/[^A-Za-z0-9 ]/g, "").split(/\s+/).filter(Boolean)
+  const initials = words.map((word) => (/^[IVX]+$/.test(word) ? word : word[0]!.toUpperCase())).join("")
+  return initials.slice(0, 4) || "?"
+}
+
+/** Uses CS:GO Rank1–Rank18 art; a labelled badge-shaped fallback avoids broken images. */
 export function CompetitiveRankBadge({
   rankId,
   rankName,
@@ -45,8 +73,19 @@ export function CompetitiveRankBadge({
   const tooltip = `${resolvedRankName} · ${(currentExp ?? 0).toLocaleString()} EXP`
 
   if (!source || failed) {
-    return <span title={tooltip} className={cn("inline-flex h-7 min-w-10 items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.04] px-1 text-[10px] font-black tabular-nums text-white/70", className)}>{resolvedRankId}</span>
+    return (
+      <span
+        title={tooltip}
+        aria-label={resolvedRankName}
+        className={cn(
+          "inline-flex h-7 w-12 shrink-0 items-center justify-center rounded-md border border-amber-200/25 bg-gradient-to-b from-slate-700/80 to-slate-900/90 text-[10px] font-black tracking-wider text-amber-100 shadow-inner shadow-black/40",
+          className
+        )}
+      >
+        {rankInitials(resolvedRankName)}
+      </span>
+    )
   }
 
-  return <img src={source} width={92} height={56} loading="lazy" decoding="async" onError={() => setFailed(true)} alt={resolvedRankName} title={tooltip} className={cn("h-7 w-12 shrink-0 object-contain", className)} />
+  return <img src={source} width={200} height={80} loading="lazy" decoding="async" onError={() => setFailed(true)} alt={resolvedRankName} title={tooltip} className={cn("h-7 w-12 shrink-0 object-contain", className)} />
 }

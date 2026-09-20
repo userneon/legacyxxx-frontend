@@ -23,7 +23,7 @@ export function QueryState({
 }: QueryStateProps) {
   if (loading) {
     return (
-      <div className={cn("glass flex flex-col items-center justify-center gap-3 rounded-xl p-12 text-center", className)}>
+      <div className={cn("query-state-in glass flex flex-col items-center justify-center gap-3 rounded-xl p-12 text-center", className)}>
         <Loader2 className="size-6 animate-spin text-muted-foreground" />
         <span className="text-sm text-muted-foreground">Loading...</span>
       </div>
@@ -32,7 +32,7 @@ export function QueryState({
 
   if (error) {
     return (
-      <div className={cn("glass flex flex-col items-center justify-center gap-3 rounded-xl p-12 text-center", className)}>
+      <div className={cn("query-state-in glass flex flex-col items-center justify-center gap-3 rounded-xl p-12 text-center", className)}>
         <Inbox className="size-6 text-muted-foreground" />
         <span className="text-sm text-muted-foreground">Nothing to show right now.</span>
         {onRetry && (
@@ -47,7 +47,7 @@ export function QueryState({
 
   if (empty) {
     return (
-      <div className={cn("glass flex flex-col items-center justify-center gap-3 rounded-xl p-12 text-center", className)}>
+      <div className={cn("query-state-in glass flex flex-col items-center justify-center gap-3 rounded-xl p-12 text-center", className)}>
         <Inbox className="size-6 text-muted-foreground" />
         <span className="text-sm text-muted-foreground">{emptyMessage}</span>
       </div>

@@ -1,18 +1,21 @@
-import { useEffect, useRef, useState } from "react"
-import type { CSSProperties } from "react"
-import { Users, Copy, Play as PlayIcon, Lock, Circle, CalendarDays, Trophy, Clock3, Crosshair, Flame, Crown, Map, MapPin, ArrowDown, ArrowUp, ArrowUpDown, Star, RefreshCw, Info } from "lucide-react"
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react"
+import type { ComponentProps, CSSProperties } from "react"
+import { Users, Copy, Play as PlayIcon, Lock, Circle, CalendarDays, Trophy, Clock3, Crosshair, Flame, Crown, Map, MapPin, ArrowDown, ArrowUp, ArrowUpDown, Star, RefreshCw, Loader2, FilterX } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { competitiveService, playService, serversService, tournamentsService } from "@/api"
 import type { CompetitiveAccess, MatchInfo, PlaySubMode, ServerInfo, TournamentInfo, TournamentMatch } from "@/api/types"
+import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { QueryState } from "@/components/query-state"
+import { AnimatedNumber } from "@/components/animated-number"
 import { SteamLoginGate } from "@/components/steam-login-gate"
 import { ServerLiveMatchDialog } from "@/components/server-live-match-dialog"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
+import { isFeatureEnabled } from "@/lib/features"
 import { toast } from "sonner"
 
 interface PlayPageProps {
@@ -204,19 +207,102 @@ export function PlayPage({ mode }: PlayPageProps) {
 }
 
 
+/** sessionStorage is cleared when the browser session ends, which is the lifetime guests' favourites should have. */
+const GUEST_FAVORITES_KEY = "legacyx_guest_favorite_matches"
+
+function readGuestFavorites(): Record<string, true> {
+  try {
+    const stored: unknown = JSON.parse(sessionStorage.getItem(GUEST_FAVORITES_KEY) ?? "{}")
+    return stored && typeof stored === "object" ? (stored as Record<string, true>) : {}
+  } catch {
+    return {}
+  }
+}
+
+function writeGuestFavorites(favorites: Record<string, true>) {
+  try {
+    sessionStorage.setItem(GUEST_FAVORITES_KEY, JSON.stringify(favorites))
+  } catch {
+    /* Storage may be unavailable (private mode); favourites then last until reload. */
+  }
+}
+
+/** Loose match between a play mode ("5x5") and the free-form mode a plugin reports ("5v5 Competitive"). */
+function normalizeMode(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]/g, "")
+}
+
+type PlayEntry =
+  | { kind: "match"; id: string; match: MatchInfo; server: ServerInfo | null; map: string; players: number; status: string; favorite: boolean; order: number }
+  | { kind: "server"; id: string; server: ServerInfo; map: string; players: number; status: string; favorite: boolean; order: number }
+
+/**
+ * One card list for the grid: every match, plus the live servers that do not already back one of
+ * those matches. A match linked to a live server (same connect address) carries that server so the
+ * card can open its roster.
+ */
+function playEntries(matches: MatchInfo[], servers: ServerInfo[], mode: PlaySubMode): PlayEntry[] {
+  if (!isFeatureEnabled("roster")) {
+    return matches.map<PlayEntry>((match) => ({ kind: "match", id: `match:${match.id}`, match, server: null, map: match.map, players: match.players, status: match.status, favorite: match.favorite, order: match.number }))
+  }
+
+  const wanted = normalizeMode(MODE_CONFIG[mode].filter)
+  const modeMatched = servers.filter((server) => {
+    const reported = normalizeMode(server.mode)
+    return Boolean(reported) && (reported.includes(wanted) || wanted.includes(reported))
+  })
+  // Plugins report free-form mode names and the API does not filter by mode, so rather than hide
+  // every server when none of the names line up, fall back to the full list.
+  const modeServers = modeMatched.length > 0 ? modeMatched : servers
+
+  // `Map` is the lucide icon in this module, so keep the address index as a plain record.
+  const byAddress: Record<string, ServerInfo> = {}
+  for (const server of modeServers) if (server.connectAddress) byAddress[server.connectAddress] = server
+
+  const linked = new Set<string>()
+  const matchEntries = matches.map<PlayEntry>((match) => {
+    const server = (match.connectAddress ? byAddress[match.connectAddress] : undefined) ?? null
+    if (server) linked.add(server.id)
+    return { kind: "match", id: `match:${match.id}`, match, server, map: match.map, players: match.players, status: match.status, favorite: match.favorite, order: match.number }
+  })
+
+  const serverEntries = modeServers
+    .filter((server) => !linked.has(server.id))
+    .map<PlayEntry>((server, index) => ({
+      kind: "server",
+      id: `server:${server.id}`,
+      server,
+      map: server.map,
+      players: server.players,
+      status: server.status === "offline" ? "locked" : server.players > 0 ? "live" : "waiting",
+      favorite: false,
+      order: 1_000 + index,
+    }))
+
+  return [...matchEntries, ...serverEntries]
+}
+
 function MatchCardView({ mode }: { mode: PlaySubMode }) {
   const [filter, setFilter] = useState<MatchFilter>("all")
   const [mapFilter, setMapFilter] = useState("all")
   const [hideEmpty, setHideEmpty] = useState(false)
   const [favoritesOnly, setFavoritesOnly] = useState(false)
   const [sort, setSort] = useState<SortMode>("asc")
+  const { isAuthenticated } = useAuth()
+  // Signed-in favourites are saved to the API (optimistic overrides); guest favourites live in this browser session only.
   const [favoriteOverrides, setFavoriteOverrides] = useState<Record<string, boolean>>({})
+  const [guestFavorites, setGuestFavorites] = useState<Record<string, true>>(readGuestFavorites)
   const [manualRefreshPulse, setManualRefreshPulse] = useState(false)
   const refreshPulseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const { data: matches, loading, error, refetch } = useApiQuery<MatchInfo[]>((signal) =>
     playService.getMatchesByMode(mode, { signal }),
   )
+  // Live servers share the same grid: a server that backs a listed match only adds its roster to that
+  // card, and a server without a match of its own becomes an ordinary card next to them.
+  const { data: servers, refetch: refetchServers } = useApiQuery<ServerInfo[]>((signal) =>
+    serversService.getServers(undefined, { signal }),
+  { enabled: isFeatureEnabled("roster"), queryKey: "play-live-servers" })
 
   useEffect(() => () => {
     if (refreshPulseTimerRef.current) clearTimeout(refreshPulseTimerRef.current)
@@ -227,6 +313,7 @@ function MatchCardView({ mode }: { mode: PlaySubMode }) {
 
     setManualRefreshPulse(true)
     refetch()
+    refetchServers()
 
     if (refreshPulseTimerRef.current) clearTimeout(refreshPulseTimerRef.current)
     refreshPulseTimerRef.current = setTimeout(() => {
@@ -237,38 +324,64 @@ function MatchCardView({ mode }: { mode: PlaySubMode }) {
 
   const allMatches = (matches ?? []).map((match) => ({
     ...match,
-    favorite: favoriteOverrides[match.id] ?? match.favorite,
+    favorite: isAuthenticated ? favoriteOverrides[match.id] ?? match.favorite : Boolean(guestFavorites[match.id]),
   }))
 
   const toggleFavorite = (matchId: string) => {
-    setFavoriteOverrides((current) => ({
-      ...current,
-      [matchId]: !(current[matchId] ?? allMatches.find((match) => match.id === matchId)?.favorite ?? false),
-    }))
+    const current = allMatches.find((match) => match.id === matchId)?.favorite ?? false
+    const next = !current
+
+    if (!isAuthenticated) {
+      setGuestFavorites((previous) => {
+        const updated = { ...previous }
+        if (next) updated[matchId] = true
+        else delete updated[matchId]
+        writeGuestFavorites(updated)
+        return updated
+      })
+      return
+    }
+
+    setFavoriteOverrides((overrides) => ({ ...overrides, [matchId]: next }))
+    playService.toggleFavorite(matchId, next).catch(() => {
+      setFavoriteOverrides((overrides) => ({ ...overrides, [matchId]: current }))
+      toast.error("Could not update favourite", { description: "Please try again." })
+    })
   }
 
-  const filtered = allMatches
-    .filter((m) => {
-      if (filter === "live" && m.status !== "live") return false
-      if (filter === "waiting" && m.status !== "waiting") return false
-      if (mapFilter !== "all" && m.map !== mapFilter) return false
-      if (hideEmpty && m.players === 0) return false
-      if (favoritesOnly && !m.favorite) return false
+  const entries = playEntries(allMatches, servers ?? [], mode)
+
+  const filtered = entries
+    .filter((entry) => {
+      if (filter === "live" && entry.status !== "live") return false
+      if (filter === "waiting" && entry.status !== "waiting") return false
+      if (mapFilter !== "all" && entry.map !== mapFilter) return false
+      if (hideEmpty && entry.players === 0) return false
+      if (favoritesOnly && !entry.favorite) return false
       return true
     })
     .sort((a, b) => {
       const playerDifference = sort === "asc" ? a.players - b.players : b.players - a.players
-      return playerDifference || (sort === "asc" ? a.number - b.number : b.number - a.number)
+      return playerDifference || (sort === "asc" ? a.order - b.order : b.order - a.order)
     })
 
-  const liveCount = allMatches.filter((m) => m.status === "live").length
-  const waitingCount = allMatches.filter((m) => m.status === "waiting").length
-  const resultMotionKey = `${filter}:${mapFilter}:${hideEmpty}:${favoritesOnly}:${sort}:${filtered.map((match) => match.id).join("|")}`
+  const liveCount = entries.filter((entry) => entry.status === "live").length
+  const waitingCount = entries.filter((entry) => entry.status === "waiting").length
+  const resultMotionKey = `${filter}:${mapFilter}:${hideEmpty}:${favoritesOnly}:${sort}:${filtered.map((entry) => entry.id).join("|")}`
 
   const modeConfig = MODE_CONFIG[mode]
 
+  const filtersActive = filter !== "all" || mapFilter !== "all" || hideEmpty || favoritesOnly
+  const clearFilters = () => {
+    setFilter("all")
+    setMapFilter("all")
+    setHideEmpty(false)
+    setFavoritesOnly(false)
+  }
+  const firstLoad = loading && matches === null
+
   return (
-    <div className="flex flex-col gap-5 p-6">
+    <div className="@container flex flex-col gap-5 p-4 @2xl:p-6">
       <ModeHeader config={modeConfig} />
 
       <MatchToolbar
@@ -285,31 +398,88 @@ function MatchCardView({ mode }: { mode: PlaySubMode }) {
         onRefresh={triggerRefresh}
       />
 
-      {/* Filter tabs */}
-      <div className="flex items-center gap-2">
-        <FilterTab active={filter === "all"} onClick={() => setFilter("all")} label="All" count={allMatches.length} />
-        <FilterTab active={filter === "live"} onClick={() => setFilter("live")} label="LIVE" count={liveCount} accent />
-        <FilterTab active={filter === "waiting"} onClick={() => setFilter("waiting")} label="Waiting" count={waitingCount} />
-      </div>
-
-      <QueryState
-        loading={loading}
-        error={error}
-        empty={!loading && !error && filtered.length === 0}
-        emptyMessage="No matches available right now."
-        onRetry={refetch}
+      <FilterTabs
+        value={filter}
+        onChange={setFilter}
+        items={[
+          { id: "all", label: "All", count: entries.length },
+          { id: "live", label: "LIVE", count: liveCount, accent: true },
+          { id: "waiting", label: "Waiting", count: waitingCount },
+        ]}
       />
 
-      {/* Match content */}
-      {!loading && !error && filtered.length > 0 && (
-        <div key={resultMotionKey} className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {filtered.map((match, index) => (
-            <div key={match.id} className="play-filter-result" style={filterMotionStyle(index)}>
-              <MatchCard match={match} mode={mode} onToggleFavorite={toggleFavorite} />
+      {firstLoad ? (
+        <div className="grid gap-3 @xl:grid-cols-2 @4xl:grid-cols-3 @6xl:grid-cols-4">
+          {[0, 1, 2, 3].map((i) => <MatchCardSkeleton key={i} />)}
+        </div>
+      ) : error && matches === null ? (
+        <QueryState loading={false} error={error} onRetry={refetch} />
+      ) : filtered.length === 0 ? (
+        filtersActive && entries.length > 0 ? (
+          <div className="query-state-in glass flex flex-col items-center gap-3 rounded-xl p-10 text-center">
+            <FilterX className="size-6 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">No matches fit these filters.</p>
+            <Button variant="outline" size="sm" onClick={clearFilters}>Clear filters</Button>
+          </div>
+        ) : (
+          <QueryState loading={false} error={null} empty emptyMessage="No matches or live servers are available right now." />
+        )
+      ) : (
+        <div key={resultMotionKey} className="grid gap-3 @xl:grid-cols-2 @4xl:grid-cols-3 @6xl:grid-cols-4">
+          {filtered.map((entry, index) => (
+            <div key={entry.id} className="play-filter-result" style={filterMotionStyle(index)}>
+              {entry.kind === "match"
+                ? <MatchCard match={entry.match} server={entry.server} mode={mode} onToggleFavorite={toggleFavorite} />
+                : <ServerCard server={entry.server} />}
             </div>
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+/** Segmented filter with a highlight that slides to the active tab; counts bump when they change. */
+function FilterTabs({ value, onChange, items }: {
+  value: MatchFilter
+  onChange: (value: MatchFilter) => void
+  items: { id: MatchFilter; label: string; count: number; accent?: boolean }[]
+}) {
+  const buttons = useRef<Partial<Record<MatchFilter, HTMLButtonElement | null>>>({})
+  const [indicator, setIndicator] = useState<{ left: number; width: number } | null>(null)
+  const countsKey = items.map((item) => item.count).join(",")
+
+  useLayoutEffect(() => {
+    const active = buttons.current[value]
+    if (active) setIndicator({ left: active.offsetLeft, width: active.offsetWidth })
+  }, [value, countsKey])
+
+  return (
+    <div className="relative inline-flex w-fit items-center gap-1 rounded-xl bg-secondary/30 p-1" role="tablist">
+      {indicator && <span className="filter-tab-indicator absolute inset-y-1 rounded-lg bg-secondary shadow-sm" style={{ left: indicator.left, width: indicator.width }} aria-hidden="true" />}
+      {items.map((item) => {
+        const active = item.id === value
+        return (
+          <button
+            key={item.id}
+            ref={(node) => { buttons.current[item.id] = node }}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange(item.id)}
+            className={cn(
+              "relative z-10 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors duration-200",
+              active ? "text-foreground" : "text-foreground/60 hover:text-foreground"
+            )}
+          >
+            {item.accent && <Circle className={cn("size-2", active ? "fill-chart-2 text-chart-2 animate-pulse" : "fill-chart-2/40 text-chart-2/40")} />}
+            {item.label}
+            <span key={item.count} className={cn("count-bump rounded px-1 py-0.5 text-[10px] tabular-nums", active ? "bg-muted text-muted-foreground" : "text-foreground/50")}>
+              {item.count}
+            </span>
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -320,6 +490,54 @@ function filterMotionStyle(index: number): CSSProperties {
 
 const triggerClass =
   "h-9 w-[130px] gap-2 rounded-lg border-border/50 bg-secondary/45 text-xs text-foreground hover:bg-secondary/70 focus-visible:ring-1 focus-visible:ring-ring"
+
+/** Must match the play-dropdown-close duration in index.css. */
+const DROPDOWN_EXIT_MS = 170
+const DropdownClosingContext = createContext(false)
+
+// Radix Select unmounts its content the instant it closes, so hold it open while the exit animation plays.
+function AnimatedSelect(props: ComponentProps<typeof Select>) {
+  const [open, setOpen] = useState(false)
+  const [closing, setClosing] = useState(false)
+  const exitTimer = useRef<number | undefined>(undefined)
+
+  useEffect(() => () => window.clearTimeout(exitTimer.current), [])
+
+  const handleOpenChange = (next: boolean) => {
+    window.clearTimeout(exitTimer.current)
+    if (next) {
+      setClosing(false)
+      setOpen(true)
+      return
+    }
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setClosing(false)
+      setOpen(false)
+      return
+    }
+    setClosing(true)
+    exitTimer.current = window.setTimeout(() => {
+      setOpen(false)
+      setClosing(false)
+    }, DROPDOWN_EXIT_MS)
+  }
+
+  return (
+    <DropdownClosingContext.Provider value={closing}>
+      <Select {...props} open={open} onOpenChange={handleOpenChange} />
+    </DropdownClosingContext.Provider>
+  )
+}
+
+function AnimatedSelectTrigger({ className, ...props }: ComponentProps<typeof SelectTrigger>) {
+  const closing = useContext(DropdownClosingContext)
+  return <SelectTrigger {...props} data-closing={closing ? "" : undefined} className={cn("play-dropdown-trigger", className)} />
+}
+
+function AnimatedSelectContent({ className, ...props }: ComponentProps<typeof SelectContent>) {
+  const closing = useContext(DropdownClosingContext)
+  return <SelectContent {...props} data-closing={closing ? "" : undefined} className={cn("play-dropdown-content", className)} />
+}
 
 function MatchToolbar({
   mode,
@@ -351,36 +569,36 @@ function MatchToolbar({
   return (
     <div className="glass flex flex-wrap items-center gap-2 rounded-xl p-2">
       {/* Maps */}
-      <Select
+      <AnimatedSelect
         value={mapsDisabled ? "" : mapFilter}
         onValueChange={onMapChange}
         disabled={mapsDisabled}
       >
-        <SelectTrigger className={triggerClass} aria-label="Maps">
+        <AnimatedSelectTrigger className={triggerClass} aria-label="Maps">
           <Map className="size-3.5 text-muted-foreground" />
           <SelectValue placeholder="Maps" />
-        </SelectTrigger>
-        <SelectContent className="play-dropdown-content" position="popper" align="start">
+        </AnimatedSelectTrigger>
+        <AnimatedSelectContent position="popper" align="start">
           <SelectItem value="all">All maps</SelectItem>
           {MATCH_MAPS.map((m) => (
             <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
           ))}
-        </SelectContent>
-      </Select>
+        </AnimatedSelectContent>
+      </AnimatedSelect>
 
       {/* Location — Mongolia only */}
-      <Select defaultValue="mongolia" aria-label="Location">
-        <SelectTrigger className={cn(triggerClass, "w-[150px]")}>
+      <AnimatedSelect defaultValue="mongolia" aria-label="Location">
+        <AnimatedSelectTrigger className={cn(triggerClass, "w-[150px]")}>
           <MapPin className="size-3.5 text-muted-foreground" />
           <SelectValue />
-        </SelectTrigger>
-        <SelectContent className="play-dropdown-content" position="popper" align="start">
+        </AnimatedSelectTrigger>
+        <AnimatedSelectContent position="popper" align="start">
           <SelectItem value="mongolia">
             <MongoliaFlag className="size-4" />
             Mongolia
           </SelectItem>
-        </SelectContent>
-      </Select>
+        </AnimatedSelectContent>
+      </AnimatedSelect>
 
       {/* Hide empty */}
       <label className="flex cursor-pointer items-center gap-2 rounded-lg bg-secondary/45 px-3 py-2 text-xs text-muted-foreground transition-colors hover:bg-secondary/70">
@@ -395,16 +613,16 @@ function MatchToolbar({
       </label>
 
       {/* Sorting — ascending / descending */}
-      <Select value={sort} onValueChange={(v) => onSortChange(v as SortMode)}>
-        <SelectTrigger
+      <AnimatedSelect value={sort} onValueChange={(v) => onSortChange(v as SortMode)}>
+        <AnimatedSelectTrigger
           className="ml-auto flex size-9 shrink-0 items-center justify-center rounded-lg border-border/50 bg-secondary/45 p-0 text-muted-foreground hover:bg-secondary/70 hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring"
           hideIndicator
           aria-label={sort === "asc" ? "Sort players: fewest first" : "Sort players: most first"}
           title={sort === "asc" ? "Sort players: fewest first" : "Sort players: most first"}
         >
           <ArrowUpDown className="size-3.5" />
-        </SelectTrigger>
-        <SelectContent className="play-dropdown-content" position="popper" align="end">
+        </AnimatedSelectTrigger>
+        <AnimatedSelectContent position="popper" align="end">
           <SelectItem value="asc">
             <ArrowUp className="size-3.5" />
             Fewest players
@@ -413,8 +631,8 @@ function MatchToolbar({
             <ArrowDown className="size-3.5" />
             Most players
           </SelectItem>
-        </SelectContent>
-      </Select>
+        </AnimatedSelectContent>
+      </AnimatedSelect>
 
       <button
         type="button"
@@ -462,74 +680,212 @@ function ModeHeader({
   )
 }
 
-function FilterTab({ active, onClick, label, count, accent }: {
-  active: boolean
-  onClick: () => void
-  label: string
-  count: number
-  accent?: boolean
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200",
-        active
-          ? "bg-secondary text-foreground"
-          : "text-foreground/70 hover:text-foreground hover:bg-secondary/50"
-      )}
-    >
-      {accent && <Circle className={cn("size-2", active ? "fill-chart-2 text-chart-2 animate-pulse" : "fill-chart-2/40 text-chart-2/40")} />}
-      {label}
-      <span className={cn(
-        "tabular-nums text-[10px] rounded px-1 py-0.5",
-        active ? "bg-muted text-muted-foreground" : "text-foreground/50"
-      )}>
-        {count}
-      </span>
-    </button>
-  )
-}
+const CONNECTING_FEEDBACK_MS = 2200
 
-function MatchCard({ match, mode, onToggleFavorite }: { match: MatchInfo; mode: PlaySubMode; onToggleFavorite: (matchId: string) => void }) {
+function MatchCard({ match, server, mode, onToggleFavorite }: { match: MatchInfo; server: ServerInfo | null; mode: PlaySubMode; onToggleFavorite: (matchId: string) => void }) {
+  const [rosterOpen, setRosterOpen] = useState(false)
   const isLive = match.status === "live"
   const isLocked = match.status === "locked"
   const isFinished = match.status === "finished"
   const isWaiting = match.status === "waiting"
+  const isFull = match.maxPlayers > 0 && match.players >= match.maxPlayers
+  const openSlots = Math.max(0, match.maxPlayers - match.players)
 
-  const canDirectConnect = Boolean(match.connectAddress) && !isLocked
+  const canDirectConnect = Boolean(match.connectAddress) && !isLocked && !isFinished && !isFull
   const mapBackground = cs2MapArtwork(match.map)
   const accent = MODE_ACCENTS[MODE_CONFIG[mode].accent]
+  const [connecting, setConnecting] = useState(false)
+  const [favoriteBurst, setFavoriteBurst] = useState(0)
+  const connectTimer = useRef<number | undefined>(undefined)
 
-  const statusTone = isLive ? "border-emerald-300/35 bg-emerald-300/12 text-emerald-100" : isWaiting ? "border-white/15 bg-black/25 text-white/65" : "border-white/10 bg-black/25 text-white/45"
-  const statusLabel = isLive ? "Live" : isWaiting ? "Warming" : "Locked"
-  const showStatus = !isFinished
+  useEffect(() => () => window.clearTimeout(connectTimer.current), [])
+
+  const status = isLive
+    ? { label: "Live", tone: "border-emerald-300/35 bg-emerald-300/12 text-emerald-100" }
+    : isLocked
+      ? { label: "Locked", tone: "border-white/10 bg-black/35 text-white/55" }
+      : isFinished
+        ? { label: "Finished", tone: "border-white/10 bg-black/35 text-white/45" }
+        : isFull
+          ? { label: "Full", tone: "border-amber-300/30 bg-amber-300/10 text-amber-100" }
+          : { label: "Waiting", tone: "border-white/15 bg-black/30 text-white/70" }
+
+  const joinLabel = connecting ? "Connecting…" : isLocked ? "Locked" : isFinished ? "Finished" : isFull ? "Full" : !match.connectAddress ? "Unavailable" : "Join"
+
+  const handleJoin = () => {
+    if (!canDirectConnect || connecting) return
+    setConnecting(true)
+    connectToMatchServer(match)
+    window.clearTimeout(connectTimer.current)
+    connectTimer.current = window.setTimeout(() => setConnecting(false), CONNECTING_FEEDBACK_MS)
+  }
+
+  const handleFavorite = () => {
+    if (!match.favorite) setFavoriteBurst((count) => count + 1)
+    onToggleFavorite(match.id)
+  }
 
   return (
     <article
       className={cn(
-        "group relative isolate min-h-44 overflow-hidden rounded-xl border border-white/[0.08] bg-[#181818] transition-all duration-300",
-        isLocked && "cursor-not-allowed opacity-55",
-        !isLocked && "hover:-translate-y-0.5 hover:bg-[#1d1d1d] hover:shadow-lg hover:shadow-black/20"
+        "match-card group relative isolate flex h-full min-h-56 flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-[#161616]",
+        isLive && "match-card-live",
+        isLocked || isFinished ? "opacity-60" : "hover:-translate-y-1 hover:border-white/20 hover:shadow-xl hover:shadow-black/40"
       )}
     >
-      {mapBackground && <img src={mapBackground} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-35 transition-transform duration-700 group-hover:scale-105" />}
-      {mapBackground && <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-black/35 via-[#181818]/75 to-[#181818]" />}
-      <div className="relative z-10 flex h-full min-h-44 flex-col justify-between p-4">
+      {mapBackground && <img src={mapBackground} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.style.display = "none" }} className="match-card-bg pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-40 group-hover:scale-110 group-hover:opacity-55" />}
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-black/30 via-[#161616]/80 to-[#161616]" />
+      <div className="match-card-shine pointer-events-none absolute inset-0 -z-10" aria-hidden="true" />
+
+      <div className="relative z-10 flex flex-1 flex-col p-4">
+        {/* Header: mode · number · status · favourite */}
         <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0"><div className={cn("text-[10px] font-semibold uppercase tracking-[0.16em]", accent.cardKicker)}>{MODE_CONFIG[mode].filter}</div><h3 className="mt-1 text-sm font-semibold text-white/90">Match #{match.number}</h3></div>
-          <div className="flex items-center gap-1.5"><button type="button" aria-label={match.favorite ? `Remove Match #${match.number} from favourites` : `Add Match #${match.number} to favourites`} aria-pressed={match.favorite} onClick={() => onToggleFavorite(match.id)} className={cn("inline-flex size-7 items-center justify-center rounded-md border border-white/10 bg-black/20 transition-colors hover:border-white/25 hover:bg-black/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40", match.favorite ? "text-white" : "text-white/40 hover:text-white/75")} title={match.favorite ? "Remove favourite" : "Add favourite"}><Star className={cn("size-3.5", match.favorite && "fill-current")} /></button>{showStatus && <span className={cn("shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide", statusTone)}>{isLocked ? <Lock className="mr-1 inline size-2.5" /> : null}{statusLabel}</span>}</div>
-        </div>
-        {(isLive || isFinished) && <div className="my-auto flex items-center justify-center gap-2"><span className="text-2xl font-black tabular-nums text-white/90">{match.scoreT}</span><span className="text-xs font-bold text-white/25">:</span><span className="text-2xl font-black tabular-nums text-white/65">{match.scoreCT}</span></div>}
-        <div className="mt-auto flex items-end justify-between gap-3">
-          <div className="min-w-0"><div className="font-mono text-xs font-medium text-white/65">{match.map}</div><div className="mt-1 flex items-center gap-1.5 text-xs text-white/45 tabular-nums"><Users className="size-3" />{match.players}/{match.maxPlayers} players</div></div>
-          <div className="flex shrink-0 items-center gap-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
-            <button type="button" disabled={!match.connectAddress} onClick={() => void copyConnectionAddress(match.connectAddress, `Match #${match.number}`)} className="inline-flex size-8 items-center justify-center rounded-md border border-white/10 bg-white/[0.05] text-white/65 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40" aria-label={`Copy Match #${match.number} server IP`} title={match.connectAddress ? `Copy ${match.connectAddress}` : "Server IP unavailable"}><Copy className="size-3.5" /></button>
-            <button type="button" disabled={!canDirectConnect} onClick={() => connectToMatchServer(match)} className="inline-flex size-8 items-center justify-center rounded-md border border-emerald-300/35 bg-emerald-300/18 text-emerald-50 transition-colors hover:border-emerald-200/65 hover:bg-emerald-300/30 hover:text-white disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.04] disabled:text-white/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/60" aria-label={`Play Match #${match.number} in Steam`} title={canDirectConnect ? `Connect through Steam to ${match.connectAddress}` : "Steam connection unavailable"}><PlayIcon className="size-3.5 fill-current" /></button>
+          <div className="min-w-0">
+            <div className={cn("text-[10px] font-semibold uppercase tracking-[0.16em]", accent.cardKicker)}>{MODE_CONFIG[mode].filter}</div>
+            <h3 className="mt-0.5 text-sm font-semibold text-white/90">Match #{match.number}</h3>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className={cn("inline-flex h-6 shrink-0 items-center gap-1.5 rounded-md border px-2 text-[10px] font-bold uppercase tracking-wide", status.tone)}>
+              {isLive && <span className="match-live-dot size-1.5 rounded-full bg-emerald-300" />}
+              {isLocked && <Lock className="size-2.5" />}
+              {status.label}
+            </span>
+            <button
+              type="button"
+              aria-label={match.favorite ? `Remove Match #${match.number} from favourites` : `Add Match #${match.number} to favourites`}
+              aria-pressed={match.favorite}
+              onClick={handleFavorite}
+              className={cn(
+                "relative inline-flex size-7 items-center justify-center rounded-md border border-white/10 bg-black/25 transition-colors hover:border-white/25 hover:bg-black/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40",
+                match.favorite ? "text-amber-300" : "text-white/40 hover:text-white/80"
+              )}
+              title={match.favorite ? "Remove favourite" : "Add favourite"}
+            >
+              <Star key={favoriteBurst} className={cn("size-3.5", match.favorite && "match-fav-pop fill-current")} />
+              {favoriteBurst > 0 && match.favorite && (
+                <span key={favoriteBurst} className="star-burst" aria-hidden="true">
+                  {Array.from({ length: 6 }, (_, i) => <span key={i} style={{ "--angle": `${i * 60}deg` } as CSSProperties} />)}
+                </span>
+              )}
+            </button>
           </div>
         </div>
+
+        {/* Centre: live/finished scoreboard, or how many players are still needed */}
+        <div className="my-auto py-4">
+          {isLive || isFinished ? (
+            <div className="flex items-center justify-center gap-4">
+              <div className="flex flex-col items-center">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-amber-300/70">T</span>
+                <span className="text-3xl font-black tabular-nums text-amber-100"><AnimatedNumber value={match.scoreT} durationMs={600} /></span>
+              </div>
+              <span className="pt-3 text-sm font-bold text-white/25">:</span>
+              <div className="flex flex-col items-center">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-sky-300/70">CT</span>
+                <span className="text-3xl font-black tabular-nums text-sky-100"><AnimatedNumber value={match.scoreCT} durationMs={600} /></span>
+              </div>
+            </div>
+          ) : isWaiting && !isFull ? (
+            <div className="text-center">
+              <div className="text-xs text-white/55">Waiting for players<span className="match-waiting-dots" aria-hidden="true" /></div>
+              <div className="mt-1 text-lg font-bold tabular-nums text-white/90">{openSlots} slot{openSlots === 1 ? "" : "s"} open</div>
+            </div>
+          ) : null}
+        </div>
+
+        {/* Footer: map, player slots, actions */}
+        <div className="flex items-end justify-between gap-2">
+          <div className="min-w-0">
+            <div className="truncate text-base font-bold text-white">{cs2MapLabel(match.map)}</div>
+            <div className="mt-0.5 flex items-center gap-1.5 text-xs tabular-nums text-white/55">
+              <Users className="size-3" />
+              {match.players}/{match.maxPlayers}
+            </div>
+          </div>
+        </div>
+
+        <PlayerSlots players={match.players} maxPlayers={match.maxPlayers} full={isFull} />
+
+        <div className="mt-3 flex items-center gap-2">
+          {isFeatureEnabled("roster") && server && (
+            <button
+              type="button"
+              onClick={() => setRosterOpen(true)}
+              className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-lg border border-white/12 bg-white/[0.06] text-sm font-semibold text-white/85 transition-colors hover:border-white/25 hover:bg-white/[0.12] hover:text-white active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+              aria-label={`View the roster on Match #${match.number}`}
+              title="Who is playing right now"
+            >
+              <Users className="size-3.5" />
+              Roster
+            </button>
+          )}
+          <button
+            type="button"
+            disabled={!canDirectConnect && !connecting}
+            onClick={handleJoin}
+            className={cn(
+              "match-join-button relative inline-flex h-9 flex-1 items-center justify-center gap-2 overflow-hidden rounded-lg border text-sm font-semibold active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/60",
+              canDirectConnect || connecting
+                ? "border-emerald-300/40 bg-emerald-400/20 text-emerald-50 hover:border-emerald-200/70 hover:bg-emerald-400/35"
+                : "cursor-not-allowed border-white/10 bg-white/[0.04] text-white/40"
+            )}
+            aria-label={`Join Match #${match.number} in Steam`}
+            title={canDirectConnect ? `Connect through Steam to ${match.connectAddress}` : joinLabel}
+          >
+            {connecting ? <Loader2 className="size-3.5 animate-spin" /> : isLocked ? <Lock className="size-3.5" /> : <PlayIcon className="size-3.5 fill-current" />}
+            {joinLabel}
+          </button>
+          <button
+            type="button"
+            disabled={!match.connectAddress}
+            onClick={() => void copyConnectionAddress(match.connectAddress, `Match #${match.number}`)}
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.05] text-white/65 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            aria-label={`Copy Match #${match.number} server IP`}
+            title={match.connectAddress ? `Copy ${match.connectAddress}` : "Server IP unavailable"}
+          >
+            <Copy className="size-3.5" />
+          </button>
+        </div>
       </div>
+
+      {isFeatureEnabled("roster") && server && <ServerLiveMatchDialog server={server} open={rosterOpen} onOpenChange={setRosterOpen} />}
     </article>
+  )
+}
+
+/** One pill per seat (up to 12) so fullness reads at a glance; larger lobbies fall back to a bar. */
+function PlayerSlots({ players, maxPlayers, full }: { players: number; maxPlayers: number; full: boolean }) {
+  const filledTone = full ? "bg-amber-300" : "bg-emerald-300"
+  if (maxPlayers > 0 && maxPlayers <= 12) {
+    return (
+      <div className="mt-2.5 flex gap-1" aria-hidden="true">
+        {Array.from({ length: maxPlayers }, (_, i) => (
+          <span
+            key={i}
+            style={{ "--slot-i": i } as CSSProperties}
+            className={cn("match-slot h-1.5 flex-1 rounded-full", i < players ? filledTone : "bg-white/10")}
+          />
+        ))}
+      </div>
+    )
+  }
+  const percent = maxPlayers > 0 ? Math.min(100, (players / maxPlayers) * 100) : 0
+  return (
+    <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-white/10" aria-hidden="true">
+      <div className={cn("h-full rounded-full transition-[width] duration-700", filledTone)} style={{ width: `${percent}%` }} />
+    </div>
+  )
+}
+
+function MatchCardSkeleton() {
+  return (
+    <div className="flex min-h-56 flex-col rounded-2xl border border-white/[0.06] bg-[#161616] p-4">
+      <div className="flex justify-between"><div className="h-8 w-20 animate-pulse rounded bg-white/[0.06]" /><div className="h-6 w-16 animate-pulse rounded bg-white/[0.06]" /></div>
+      <div className="mx-auto my-auto h-8 w-24 animate-pulse rounded bg-white/[0.06]" />
+      <div className="h-5 w-24 animate-pulse rounded bg-white/[0.06]" />
+      <div className="mt-2.5 h-1.5 animate-pulse rounded-full bg-white/[0.06]" />
+      <div className="mt-3 h-9 animate-pulse rounded-lg bg-white/[0.06]" />
+    </div>
   )
 }
 
@@ -734,27 +1090,100 @@ function ServerListView({ mode }: { mode: string }) {
 }
 
 function ServerCard({ server }: { server: ServerInfo }) {
-  const [matchOpen, setMatchOpen] = useState(false)
+  const [rosterOpen, setRosterOpen] = useState(false)
   const isFull = server.status === "full"
   const isOffline = server.status === "offline"
-  const canConnect = Boolean(server.connectAddress) && !isOffline
+  const isEmpty = server.players === 0
+  const canConnect = Boolean(server.connectAddress) && !isOffline && !isFull
   const mapBackground = cs2MapArtwork(server.map)
-  const statusTone = isOffline ? "border-white/10 bg-black/25 text-white/45" : isFull ? "border-red-300/35 bg-red-300/12 text-red-100" : "border-emerald-300/35 bg-emerald-300/12 text-emerald-100"
+
+  const status = isOffline
+    ? { label: "Offline", tone: "border-white/10 bg-black/35 text-white/50" }
+    : isFull
+      ? { label: "Full", tone: "border-amber-300/30 bg-amber-300/10 text-amber-100" }
+      : { label: "Live", tone: "border-emerald-300/35 bg-emerald-300/12 text-emerald-100" }
 
   const handleConnect = () => {
+    if (!canConnect) return
     void serversService.joinServer(server.id).catch(() => undefined)
     openSteamConnect(server.connectAddress, server.name)
   }
 
   return (
-    <article className={cn("group relative isolate min-h-44 overflow-hidden rounded-xl border border-white/[0.08] bg-[#181818] transition-all duration-300", isOffline ? "opacity-60" : "hover:-translate-y-0.5 hover:bg-[#1d1d1d] hover:shadow-lg hover:shadow-black/20")}>
-      {mapBackground && <img src={mapBackground} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-35 transition-transform duration-700 group-hover:scale-105" />}
-      {mapBackground && <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-black/35 via-[#181818]/75 to-[#181818]" />}
-      <div className="relative z-10 flex h-full min-h-44 flex-col justify-between p-4">
-        <div className="flex items-start justify-between gap-2"><div className="min-w-0"><div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/45">{server.mode}</div><h3 className="mt-1 truncate text-sm font-semibold text-white/90">{server.name}</h3></div><span className={cn("shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide", statusTone)}>{isOffline ? "Offline" : isFull ? "Full" : "Live"}</span></div>
-        <div className="mt-auto flex items-end justify-between gap-3"><div className="min-w-0"><div className="font-mono text-xs font-medium text-white/65">{mapLabel(server.map)}</div><div className="mt-1 flex items-center gap-1.5 text-xs text-white/45 tabular-nums"><Users className="size-3" />{server.players}/{server.maxPlayers} players</div></div><div className="flex shrink-0 items-center gap-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"><button type="button" onClick={() => setMatchOpen(true)} className="inline-flex size-8 items-center justify-center rounded-md border border-white/10 bg-white/[0.05] text-white/65 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40" aria-label={`View ${server.name} live match information`} title="Live server information"><Info className="size-3.5" /></button><button type="button" disabled={!server.connectAddress} onClick={() => void copyConnectionAddress(server.connectAddress, server.name)} className="inline-flex size-8 items-center justify-center rounded-md border border-white/10 bg-white/[0.05] text-white/65 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40" aria-label={`Copy ${server.name} server IP`} title={server.connectAddress ? `Copy ${server.connectAddress}` : "Server IP unavailable"}><Copy className="size-3.5" /></button><button type="button" disabled={!canConnect} onClick={handleConnect} className="inline-flex size-8 items-center justify-center rounded-md border border-emerald-300/35 bg-emerald-300/18 text-emerald-50 transition-colors hover:border-emerald-200/65 hover:bg-emerald-300/30 hover:text-white disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.04] disabled:text-white/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/60" aria-label={`Play ${server.name} in Steam`} title={canConnect ? `Connect through Steam to ${server.connectAddress}` : "Steam connection unavailable"}><PlayIcon className="size-3.5 fill-current" /></button></div></div>
+    <article
+      className={cn(
+        "match-card group relative isolate flex h-full min-h-52 flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-[#161616]",
+        isOffline ? "opacity-60" : "hover:-translate-y-1 hover:border-white/20 hover:shadow-xl hover:shadow-black/40",
+        !isOffline && !isEmpty && "match-card-live"
+      )}
+    >
+      {mapBackground && <img src={mapBackground} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.style.display = "none" }} className="match-card-bg pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-40 group-hover:scale-110 group-hover:opacity-55" />}
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-black/30 via-[#161616]/80 to-[#161616]" />
+      <div className="match-card-shine pointer-events-none absolute inset-0 -z-10" aria-hidden="true" />
+
+      <div className="relative z-10 flex flex-1 flex-col p-4">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <div className="truncate text-[10px] font-semibold uppercase tracking-[0.16em] text-white/45">{server.mode}</div>
+            <h3 className="mt-0.5 truncate text-sm font-semibold text-white/90">{server.name}</h3>
+          </div>
+          <span className={cn("inline-flex h-6 shrink-0 items-center gap-1.5 rounded-md border px-2 text-[10px] font-bold uppercase tracking-wide", status.tone)}>
+            {!isOffline && !isEmpty && <span className="match-live-dot size-1.5 rounded-full bg-emerald-300" />}
+            {status.label}
+          </span>
+        </div>
+
+        <div className="my-auto py-4 text-center">
+          <div className="text-3xl font-black tabular-nums text-white"><AnimatedNumber value={server.players} durationMs={600} />
+            <span className="text-base font-bold text-white/35">/{server.maxPlayers}</span>
+          </div>
+          <div className="mt-0.5 text-xs text-white/55">{isOffline ? "Server offline" : isEmpty ? "Waiting for players" : "players in game"}</div>
+        </div>
+
+        <div className="min-w-0">
+          <div className="truncate text-base font-bold text-white">{mapLabel(server.map)}</div>
+        </div>
+        <PlayerSlots players={server.players} maxPlayers={server.maxPlayers} full={isFull} />
+
+        <div className="mt-3 flex items-center gap-2">
+          {isFeatureEnabled("roster") && <button
+            type="button"
+            onClick={() => setRosterOpen(true)}
+            disabled={isOffline}
+            className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-lg border border-white/12 bg-white/[0.06] text-sm font-semibold text-white/85 transition-colors hover:border-white/25 hover:bg-white/[0.12] hover:text-white active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            aria-label={`View ${server.name} roster and live score`}
+          >
+            <Users className="size-3.5" />
+            Roster
+          </button>}
+          <button
+            type="button"
+            disabled={!canConnect}
+            onClick={handleConnect}
+            className={cn(
+              "match-join-button relative inline-flex h-9 flex-1 items-center justify-center gap-2 overflow-hidden rounded-lg border text-sm font-semibold active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/60",
+              canConnect ? "border-emerald-300/40 bg-emerald-400/20 text-emerald-50 hover:border-emerald-200/70 hover:bg-emerald-400/35" : "cursor-not-allowed border-white/10 bg-white/[0.04] text-white/40"
+            )}
+            aria-label={`Join ${server.name} in Steam`}
+            title={canConnect ? `Connect through Steam to ${server.connectAddress}` : isFull ? "Server is full" : "Steam connection unavailable"}
+          >
+            <PlayIcon className="size-3.5 fill-current" />
+            {isOffline ? "Offline" : isFull ? "Full" : "Join"}
+          </button>
+          <button
+            type="button"
+            disabled={!server.connectAddress}
+            onClick={() => void copyConnectionAddress(server.connectAddress, server.name)}
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.05] text-white/65 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            aria-label={`Copy ${server.name} server IP`}
+            title={server.connectAddress ? `Copy ${server.connectAddress}` : "Server IP unavailable"}
+          >
+            <Copy className="size-3.5" />
+          </button>
+        </div>
       </div>
-      <ServerLiveMatchDialog server={server} open={matchOpen} onOpenChange={setMatchOpen} />
+
+      {isFeatureEnabled("roster") && <ServerLiveMatchDialog server={server} open={rosterOpen} onOpenChange={setRosterOpen} />}
     </article>
   )
 }

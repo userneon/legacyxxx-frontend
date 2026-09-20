@@ -10,6 +10,7 @@ import {
   Medal,
   RotateCcw,
   Search,
+  Send,
   ShieldCheck,
   Sticker,
   Sword,
@@ -36,6 +37,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { QueryState } from "@/components/query-state"
 import { OptimizedImage } from "@/components/optimized-image"
+import { RelativeTime } from "@/components/relative-time"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cn } from "@/lib/utils"
 import riflesIcon from "@/assets/skinchanger/rifles.png"
@@ -169,6 +171,14 @@ function normalizeAppearanceOptions(options: SkinchangerAppearanceOptions) {
   })
 }
 
+const wearTiers: Array<{ label: string; short: string; from: number; to: number }> = [
+  { label: "Factory New", short: "FN", from: 0, to: 0.07 },
+  { label: "Minimal Wear", short: "MW", from: 0.07, to: 0.15 },
+  { label: "Field-Tested", short: "FT", from: 0.15, to: 0.38 },
+  { label: "Well-Worn", short: "WW", from: 0.38, to: 0.45 },
+  { label: "Battle-Scarred", short: "BS", from: 0.45, to: 1 },
+]
+
 function wearName(wear: number) {
   if (wear <= 0.07) return "Factory New"
   if (wear <= 0.15) return "Minimal Wear"
@@ -196,6 +206,51 @@ function appearanceSummary(options: SkinchangerAppearanceOptions | undefined) {
   return details.join(" · ")
 }
 
+const slotLabels: Record<SkinchangerSlot, string> = {
+  weapon: "Weapons",
+  knife: "Knife",
+  glove: "Gloves",
+  agent: "Agent",
+  music_kit: "Music kit",
+  pin: "Pin",
+}
+
+const slotOrder: SkinchangerSlot[] = ["weapon", "knife", "glove", "agent", "music_kit", "pin"]
+
+const teamChipTone: Record<TeamScope, string> = {
+  all: "border-white/12 bg-white/[0.06] text-white/70",
+  t: "border-amber-300/25 bg-amber-300/10 text-amber-100",
+  ct: "border-sky-300/25 bg-sky-300/10 text-sky-100",
+}
+
+/**
+ * Rebuilds the base model a saved entry belongs to. The slot key already encodes that model, so the
+ * reconstructed item produces exactly the same key and editing replaces the entry instead of adding one.
+ */
+function modelFromEntry(entry: SkinchangerLoadoutEntry): SkinchangerCatalogItem | null {
+  const skin = entry.skinchanger_catalog_items
+  if (!skin) return null
+  const key = entry.slot_key.includes(":") ? entry.slot_key.slice(entry.slot_key.indexOf(":") + 1) : entry.slot_key
+  const numericKey = /^\d+$/.test(key) ? Number(key) : null
+  return {
+    ...skin,
+    id: `model:${entry.slot_key}`,
+    display_name: skin.weapon_class ?? skin.display_name,
+    category: entry.slot === "weapon" ? "weapon" : (entry.slot as SkinchangerCategory),
+    weapon_defindex: numericKey,
+    weapon_class: numericKey === null ? key : skin.weapon_class,
+    metadata: { ...skin.metadata, rarity: undefined },
+  }
+}
+
+function collectionForSlot(slot: SkinchangerSlot): CollectionId {
+  if (slot === "knife") return "knife"
+  if (slot === "glove") return "glove"
+  if (slot === "music_kit") return "music_kit"
+  if (slot === "pin") return "pin"
+  return "skins"
+}
+
 export function SkinchangerPage() {
   const [collection, setCollection] = useState<CollectionId>("skins")
   const [skinGroup, setSkinGroup] = useState<SkinchangerFirearmGroup | "agents">("Rifles")
@@ -206,7 +261,6 @@ export function SkinchangerPage() {
   const [selected, setSelected] = useState<SkinchangerCatalogItem | null>(null)
   const [agentTeam, setAgentTeam] = useState<"t" | "ct" | null>(null)
   const [teamScope, setTeamScope] = useState<TeamScope>("all")
-  const [customizeOpen, setCustomizeOpen] = useState(false)
   const [defaultChoice, setDefaultChoice] = useState<"knife" | "glove" | null>(null)
   const [customOptions, setCustomOptions] = useState<SkinchangerAppearanceOptions>({ wear: 0.0001, seed: 0, statTrak: false, stickers: [] })
   const [selectedAccessories, setSelectedAccessories] = useState<Record<string, SkinchangerCatalogItem>>({})
@@ -216,6 +270,7 @@ export function SkinchangerPage() {
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<{ model: SkinchangerCatalogItem; entry: SkinchangerLoadoutEntry } | null>(null)
   const [saving, setSaving] = useState(false)
+  const [applying, setApplying] = useState(false)
   const [optimisticLoadoutEntries, setOptimisticLoadoutEntries] = useState<SkinchangerLoadoutEntry[] | null>(null)
   const [optimisticLoadoutVersion, setOptimisticLoadoutVersion] = useState<number | null>(null)
 
@@ -230,6 +285,9 @@ export function SkinchangerPage() {
   const { data: facets } = useApiQuery((signal) => skinchangerService.getCatalogFacets(effectiveCategory, { signal }), { queryKey: effectiveCategory })
   const { data: loadoutResponse, refetch: refetchLoadout } =
     useApiQuery((signal) => skinchangerService.getLoadout({ signal }))
+  // The loadout is only worth anything once it reaches the server the player is on.
+  const { data: activeServer } = useApiQuery((signal) => skinchangerService.getActiveServer({ signal }))
+  const { data: jobStatus, refetch: refetchJobs } = useApiQuery((signal) => skinchangerService.getStatus({ signal }))
   const { data: stickerCatalog, loading: stickersLoading, error: stickerCatalogError, refetch: refetchStickers } = useApiQuery(
     (signal) => skinchangerService.getCatalog({ category: "sticker", query: accessoryQuery || undefined, limit: 18, offset: 0 }, { signal }),
     { enabled: Boolean(selected && accessoryPicker === "sticker"), queryKey: `sticker:${accessoryQuery.trim()}` },
@@ -297,7 +355,6 @@ export function SkinchangerPage() {
 
   useEffect(() => {
     if (!selected) {
-      setCustomizeOpen(false)
       setAccessoryPicker(null)
       setEditingStickerSlot(null)
       return
@@ -422,7 +479,6 @@ export function SkinchangerPage() {
       setOptimisticLoadoutVersion(entriesToRemove.length ? expectedVersion : loadoutVersion)
       setDefaultChoice(defaultCategory)
       setSelected(null)
-      setCustomizeOpen(false)
       toast.success(`${defaultCategory === "knife" ? "Default knife" : "Default gloves"} selected.`)
       refetchLoadout()
     } catch {
@@ -442,7 +498,6 @@ export function SkinchangerPage() {
       setOptimisticLoadoutVersion(result.version)
       if (activeWeapon?.weapon_class === model.weapon_class) {
         setSelected(null)
-        setCustomizeOpen(false)
         setAccessoryPicker(null)
         setEditingStickerSlot(null)
       }
@@ -456,9 +511,51 @@ export function SkinchangerPage() {
     }
   }
 
-  const selectSkin = (item: SkinchangerCatalogItem, openCustomize = false) => {
+  const applyToServer = async () => {
+    const serverId = activeServer?.session?.server_id
+    if (!serverId || applying) return
+    setApplying(true)
+    try {
+      await skinchangerService.queueApply(serverId)
+      toast.success("Sent to your server. It applies on your next respawn.")
+      refetchJobs()
+    } catch {
+      toast.error("Could not send your loadout to the server. Try again.")
+    } finally {
+      setApplying(false)
+    }
+  }
+
+  /** Opens a saved look in the browser panel, ready to edit. */
+  const openSavedEntry = (entry: SkinchangerLoadoutEntry) => {
+    const savedItem = entry.skinchanger_catalog_items
+    if (!savedItem) return
+    setCollection(collectionForSlot(entry.slot))
+    setQuery("")
+    setWeaponClass("")
+    setOffset(0)
+    setDefaultChoice(null)
+    setAccessoryPicker(null)
+    setEditingStickerSlot(null)
+
+    if (entry.slot === "agent") {
+      setSkinGroup("agents")
+      setAgentTeam(entry.team_scope === "ct" ? "ct" : "t")
+      setActiveWeapon(null)
+      setSelected(savedItem)
+      setTeamScope(entry.team_scope)
+      return
+    }
+
+    const model = modelFromEntry(entry)
+    if (!model) return
+    if (entry.slot === "weapon") setSkinGroup((savedItem.metadata.weaponGroup as SkinchangerFirearmGroup | undefined) ?? "Rifles")
+    setAgentTeam(null)
+    customizeSavedLook(model, entry)
+  }
+
+  const selectSkin = (item: SkinchangerCatalogItem) => {
     setSelected(item)
-    setCustomizeOpen(openCustomize)
     setAccessoryPicker(null)
     setEditingStickerSlot(null)
   }
@@ -481,7 +578,6 @@ export function SkinchangerPage() {
     setSelectedAccessories(Object.fromEntries((entry.resolved_accessories ?? []).map((accessory) => [accessory.id, accessory])))
     setAccessoryPicker(null)
     setEditingStickerSlot(null)
-    setCustomizeOpen(true)
     setWeaponClass("")
     setOffset(0)
   }
@@ -529,8 +625,45 @@ export function SkinchangerPage() {
     setEditingStickerSlot(null)
   }
 
+  const session = activeServer?.session ?? null
+  const latestJob = jobStatus?.jobs?.[0] ?? null
+  const jobTone = latestJob?.status === "applied"
+    ? "border-emerald-300/25 bg-emerald-300/10 text-emerald-100"
+    : latestJob?.status === "failed"
+      ? "border-red-300/25 bg-red-300/10 text-red-100"
+      : "border-white/12 bg-white/[0.05] text-white/70"
+
   return (
     <div className="flex flex-col gap-5 p-4 sm:p-6">
+      <header className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-lg font-semibold tracking-tight">Skinchanger</h1>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {loadoutEntries.length === 0 ? "Nothing saved yet" : `${loadoutEntries.length} item${loadoutEntries.length === 1 ? "" : "s"} saved`}
+            {loadoutResponse?.loadout.updated_at ? " · updated " : ""}
+            {loadoutResponse?.loadout.updated_at ? <RelativeTime value={loadoutResponse.loadout.updated_at} /> : null}
+          </p>
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="flex min-w-0 items-center gap-2 rounded-lg border border-border bg-background px-3 py-2">
+            <span className={cn("size-2 shrink-0 rounded-full", session ? "bg-emerald-300" : "bg-white/25")} />
+            <div className="min-w-0">
+              <p className="truncate text-xs font-medium">{session ? session.server_id : "Not on a LEGACY-X server"}</p>
+              <p className="truncate text-[10px] text-muted-foreground">{session ? `Playing as ${session.player_name}` : "Join a server to apply your loadout"}</p>
+            </div>
+          </div>
+          {latestJob && (
+            <span className={cn("inline-flex h-7 shrink-0 items-center rounded-md border px-2 text-[10px] font-semibold uppercase tracking-wide", jobTone)}>
+              {latestJob.status}
+            </span>
+          )}
+          <Button onClick={() => void applyToServer()} disabled={!session || applying || loadoutEntries.length === 0} className="shrink-0">
+            {applying ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+            Apply to server
+          </Button>
+        </div>
+      </header>
+
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         <section className="min-w-0 rounded-xl border border-border bg-card">
           <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -544,7 +677,7 @@ export function SkinchangerPage() {
                 return (
                   <button
                     key={item.id}
-                    onClick={() => { setCollection(item.id); if (item.id === "skins") setSkinGroup("Rifles"); setWeaponClass(""); setAgentTeam(null); setTeamScope("all"); setOffset(0); setActiveWeapon(null); setSelected(null); setCustomizeOpen(false); setQuery("") }}
+                    onClick={() => { setCollection(item.id); if (item.id === "skins") setSkinGroup("Rifles"); setWeaponClass(""); setAgentTeam(null); setTeamScope("all"); setOffset(0); setActiveWeapon(null); setSelected(null); setQuery("") }}
                     className={cn(
                       "flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-xs font-medium transition-colors",
                       isActive ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary hover:text-foreground",
@@ -557,7 +690,7 @@ export function SkinchangerPage() {
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
               {activeWeapon && (
-                <button onClick={() => { setActiveWeapon(null); setSelected(null); setCustomizeOpen(false); setQuery(""); setOffset(0) }} className="flex h-9 items-center gap-2 rounded-md border border-border bg-background px-3 text-xs font-medium text-foreground hover:bg-secondary"><ArrowLeft className="size-3.5" /> {activeWeapon.display_name}</button>
+                <button onClick={() => { setActiveWeapon(null); setSelected(null); setQuery(""); setOffset(0) }} className="flex h-9 items-center gap-2 rounded-md border border-border bg-background px-3 text-xs font-medium text-foreground hover:bg-secondary"><ArrowLeft className="size-3.5" /> {activeWeapon.display_name}</button>
               )}
               {category === "agent" && agentTeam && (
                 <button onClick={() => { setAgentTeam(null); setTeamScope("all"); setSelected(null); setQuery(""); setOffset(0) }} className="flex h-9 items-center gap-2 rounded-md border border-border bg-background px-3 text-xs font-medium text-foreground hover:bg-secondary"><ArrowLeft className="size-3.5" /> {agentTeam === "t" ? "T agents" : "CT agents"}</button>
@@ -576,7 +709,7 @@ export function SkinchangerPage() {
                 const iconTone = group.invertIcon
                   ? (isActive ? "brightness-0" : "brightness-0 invert")
                   : (isActive ? "brightness-0" : "")
-                return <button key={group.id} onClick={() => { setSkinGroup(group.id); setAgentTeam(null); setTeamScope("all"); setOffset(0); setActiveWeapon(null); setSelected(null); setCustomizeOpen(false); setQuery("") }} className={cn("flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors", isActive ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary hover:text-foreground")}>{group.iconAsset ? <OptimizedImage src={group.iconAsset} width={12} height={12} alt="" priority className={cn("size-3 object-contain", iconTone)} /> : <Icon className="size-3" />} {group.label}</button>
+                return <button key={group.id} onClick={() => { setSkinGroup(group.id); setAgentTeam(null); setTeamScope("all"); setOffset(0); setActiveWeapon(null); setSelected(null); setQuery("") }} className={cn("flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors", isActive ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary hover:text-foreground")}>{group.iconAsset ? <OptimizedImage src={group.iconAsset} width={12} height={12} alt="" priority className={cn("size-3 object-contain", iconTone)} /> : <Icon className="size-3" />} {group.label}</button>
               })}
             </div>
           )}
@@ -584,7 +717,10 @@ export function SkinchangerPage() {
           {activeWeapon && (
             <div className="flex items-center gap-3 border-b border-border bg-secondary/20 px-4 py-3">
               {(category === "glove" ? `${defaultGloveVisual}?catalog_item_id=${encodeURIComponent(activeWeapon.id)}` : catalogImageUrl(activeWeapon)) && <OptimizedImage src={category === "glove" ? `${defaultGloveVisual}?catalog_item_id=${encodeURIComponent(activeWeapon.id)}` : catalogImageUrl(activeWeapon) ?? ""} width={40} height={40} priority alt={`${activeWeapon.display_name} base weapon`} data-catalog-item-id={activeWeapon.id} className="size-10 object-contain" />}
-              <div><p className="text-sm font-semibold">{activeWeapon.display_name}</p><p className="text-xs text-muted-foreground">Type → skin</p></div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold">{activeWeapon.display_name}</p>
+                <p className="text-xs text-muted-foreground">{savedItemForActiveSlot ? `Saved: ${savedSkinLabel(savedItemForActiveSlot)}` : "Choose a skin below"}</p>
+              </div>
             </div>
           )}
           {isAgentTeamBrowse ? (
@@ -622,9 +758,12 @@ export function SkinchangerPage() {
                   const cardTeamScope = isModelBrowse
                     ? savedEntryForCard?.team_scope ?? (isDefaultModel && defaultChoice === category ? teamScope : null)
                     : null
-                  const cardDetail = savedCardItem && savedEntryForCard
-                    ? `${savedSkinLabel(savedCardItem)} · ${appearanceSummary(savedEntryForCard.options)}`
-                    : item.weapon_class || activeCategory.label
+                  const cardKicker = isModelBrowse
+                    ? (item.metadata.weaponGroup as string | undefined) ?? item.weapon_class ?? activeCategory.label
+                    : item.weapon_class ?? activeCategory.label
+                  const cardTitle = isModelBrowse ? item.display_name : savedSkinLabel(item)
+                  const cardRarityName = typeof (savedCardItem ?? item).metadata.rarity === "string" ? (savedCardItem ?? item).metadata.rarity as string : null
+                  const cardTeamLabel = savedEntryForCard?.team_scope === "t" ? "T" : savedEntryForCard?.team_scope === "ct" ? "CT" : null
                   return (
                 <div
                   key={item.id}
@@ -632,10 +771,17 @@ export function SkinchangerPage() {
                   style={rarity ? { backgroundImage: `radial-gradient(ellipse 95% 78% at 0% 100%, ${isSelectedSkin ? strongerGlow(rarity.glow) : rarity.glow} 0%, transparent 68%)` } : undefined}
                   className={cn(
                     "group relative min-h-48 overflow-hidden bg-card p-3 text-left transition-colors hover:bg-card",
+                    isSelectedSkin && "ring-1 ring-inset ring-foreground/70",
                   )}
                 >
                   {rarity && <span aria-hidden="true" className={cn("pointer-events-none absolute inset-0 transition-opacity duration-200", isSelectedSkin ? "opacity-100" : "opacity-0 group-hover:opacity-100")} style={{ backgroundImage: `radial-gradient(ellipse 105% 88% at 0% 100%, ${strongerGlow(rarity.glow)} 0%, transparent 70%)` }} />}
                   {isModelBrowse && cardTeamScope && <span aria-hidden="true" className="pointer-events-none absolute inset-0 z-[1]" style={{ backgroundImage: teamScopeFade(cardTeamScope) }} />}
+                  {isModelBrowse && savedEntryForCard && (
+                    <span className="pointer-events-none absolute right-2 top-2 z-[3] inline-flex items-center gap-1 rounded-md border border-emerald-300/30 bg-emerald-300/12 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-100">
+                      <BadgeCheck className="size-3" />
+                      {cardTeamLabel ?? "Both"}
+                    </span>
+                  )}
                   {isModelBrowse && savedEntryForCard && savedCardItem && (
                     <button
                       type="button"
@@ -650,7 +796,7 @@ export function SkinchangerPage() {
                   )}
                   <button
                     type="button"
-                    onClick={() => isDefaultModel && (category === "knife" || category === "glove") ? void equipDefaultModel(category) : isModelBrowse ? (savedEntryForCard && savedCardItem ? customizeSavedLook(item, savedEntryForCard) : (setDefaultChoice(null), setTeamScope(automaticOppositeTeamForModel(item) ?? "all"), setActiveWeapon(item), setSelected(null), setCustomizeOpen(false), setWeaponClass(""), setOffset(0))) : selectSkin(item, Boolean(activeWeapon))}
+                    onClick={() => isDefaultModel && (category === "knife" || category === "glove") ? void equipDefaultModel(category) : isModelBrowse ? (savedEntryForCard && savedCardItem ? customizeSavedLook(item, savedEntryForCard) : (setDefaultChoice(null), setTeamScope(automaticOppositeTeamForModel(item) ?? "all"), setActiveWeapon(item), setSelected(null), setWeaponClass(""), setOffset(0))) : selectSkin(item)}
                     title={isDefaultModel ? `Use ${item.display_name}` : isModelBrowse ? savedCardItem ? `Customize ${savedCardItem.display_name}` : `Browse ${item.display_name} skins` : `Choose ${item.display_name}`}
                     className="relative z-[2] block min-h-[11.25rem] w-full text-left"
                   >
@@ -661,9 +807,17 @@ export function SkinchangerPage() {
                         <ImageOff className="size-8 text-muted-foreground/60" />
                       )}
                     </div>
-                    <p className="mt-3 line-clamp-2 text-sm font-semibold leading-5">{item.display_name}</p>
-                    <p className="mt-1 line-clamp-2 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">{cardDetail}</p>
-                    {!isModelBrowse && rarity && <p className="mt-1 truncate text-[10px] font-medium" style={{ color: rarity.accent }}>{typeof item.metadata.rarity === "string" ? item.metadata.rarity : ""}</p>}
+                    <p className="mt-3 truncate text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">{cardKicker}</p>
+                    <p className="mt-0.5 line-clamp-2 text-sm font-semibold leading-5">{cardTitle}</p>
+                    {cardRarityName && (
+                      <p className="mt-1.5 flex items-center gap-1.5 truncate text-[10px] font-medium" style={{ color: rarity?.accent ?? undefined }}>
+                        <span className="size-1.5 shrink-0 rounded-full" style={{ backgroundColor: rarity?.accent ?? "currentColor" }} />
+                        {cardRarityName}
+                      </p>
+                    )}
+                    {savedEntryForCard && savedCardItem && (
+                      <p className="mt-1 truncate text-[10px] text-muted-foreground">{savedSkinLabel(savedCardItem)} · {appearanceSummary(savedEntryForCard.options)}</p>
+                    )}
                   </button>
                 </div>
                   )
@@ -683,17 +837,18 @@ export function SkinchangerPage() {
           </>}
         </section>
 
-          <aside className="flex flex-col gap-4 self-start xl:sticky xl:top-6">
+          {/* On a phone the editor jumps above the catalog once something is selected, so Save is in reach. */}
+          <aside className={cn("flex flex-col gap-4 self-start xl:order-none xl:sticky xl:top-6", selected && "order-first")}>
           <section className="rounded-xl border border-border bg-card p-4">
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Your choice</p>
-                <p className="mt-1 text-sm font-semibold">{previewChoice?.display_name || "Choose a skin"}</p>
+                <p className="mt-1 text-sm font-semibold">{previewChoice?.display_name || (activeWeapon ? `Pick a ${activeWeapon.display_name} skin` : "Nothing selected")}</p>
               </div>
               <Box className="size-4 text-muted-foreground" />
             </div>
             <div className="relative flex h-40 items-center justify-center rounded-lg border border-border bg-background">
-              {previewChoice && catalogImageUrl(previewChoice) ? <OptimizedImage src={catalogImageUrl(previewChoice) ?? ""} width={320} height={160} priority alt={`${previewChoice.display_name} selected collectible`} data-catalog-item-id={previewChoice.id} className="h-full w-full object-contain p-3" /> : <ImageOff className="size-8 text-muted-foreground/50" />}
+              {previewChoice && catalogImageUrl(previewChoice) ? <OptimizedImage src={catalogImageUrl(previewChoice) ?? ""} width={320} height={160} priority alt={`${previewChoice.display_name} selected collectible`} data-catalog-item-id={previewChoice.id} className="h-full w-full object-contain p-3" /> : <span className="flex flex-col items-center gap-2 px-6 text-center"><ImageOff className="size-7 text-muted-foreground/50" /><span className="text-[11px] leading-4 text-muted-foreground">Open a weapon, choose a skin, then save the look.</span></span>}
               {canCustomizeAccessories && (previewStickerItems.length > 0 || previewCharmItem) && <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-2"><div className="flex -space-x-1.5">{previewStickerItems.slice(0, 5).map((item) => catalogImageUrl(item) && <OptimizedImage key={item.id} src={catalogImageUrl(item) ?? ""} width={28} height={28} alt={`${item.display_name} selected sticker`} data-catalog-item-id={item.id} className="size-7 rounded-full border border-background bg-card object-contain p-0.5" />)}</div>{previewCharmItem && catalogImageUrl(previewCharmItem) && <OptimizedImage src={catalogImageUrl(previewCharmItem) ?? ""} width={32} height={32} alt={`${previewCharmItem.display_name} selected charm`} data-catalog-item-id={previewCharmItem.id} className="size-8 rounded-md border border-background bg-card object-contain p-0.5" />}</div>}
             </div>
             {showTeamSelector && (
@@ -712,16 +867,34 @@ export function SkinchangerPage() {
               </div>
             )}
             {selected && activeWeapon && (
-              <Button variant="outline" className="mt-3 w-full" onClick={() => setCustomizeOpen((value) => !value)}>
-                {customizeOpen ? "Hide customize" : "Show customize"}
-              </Button>
-            )}
-            {selected && activeWeapon && (
-              <div className={cn("grid overflow-hidden transition-[grid-template-rows,opacity,margin] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none", customizeOpen ? "mt-3 grid-rows-[1fr] opacity-100" : "mt-0 grid-rows-[0fr] opacity-0 pointer-events-none")}>
+              <div className="mt-3 grid grid-rows-[1fr] overflow-hidden">
               <div className="min-h-0 overflow-hidden">
               <div className="space-y-4 border-t border-border pt-4">
                 <div>
                   <div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Wear</span><span className="text-xs text-muted-foreground">{wearName(customOptions.wear ?? defaultWear)} · {(customOptions.wear ?? defaultWear).toFixed(4)}</span></div>
+                  <div className="mb-2 grid grid-cols-5 gap-1">
+                    {wearTiers.map((tier) => {
+                      const available = tier.from < maxWear && tier.to > minWear
+                      const target = Math.min(maxWear, Math.max(minWear, tier.from === 0 ? 0.0001 : tier.from + 0.002))
+                      const isActive = wearName(customOptions.wear ?? defaultWear) === tier.label
+                      return (
+                        <button
+                          key={tier.short}
+                          type="button"
+                          disabled={!available}
+                          title={available ? tier.label : `${tier.label} is not available for this skin`}
+                          onClick={() => setCustomOptions((current) => ({ ...current, wear: target }))}
+                          className={cn(
+                            "h-7 rounded-md border text-[10px] font-semibold transition-colors",
+                            isActive ? "border-foreground bg-foreground text-background" : "border-border bg-background text-muted-foreground hover:text-foreground",
+                            !available && "cursor-not-allowed opacity-30",
+                          )}
+                        >
+                          {tier.short}
+                        </button>
+                      )
+                    })}
+                  </div>
                   <input aria-label="Skin wear" type="range" min={minWear} max={maxWear} step="0.0001" value={customOptions.wear ?? defaultWear} onChange={(event) => setCustomOptions((current) => ({ ...current, wear: Number(event.target.value) }))} className="h-2 w-full cursor-pointer accent-foreground" />
                   <div className="mt-1 flex justify-between text-[10px] text-muted-foreground"><span>Clean</span><span>Worn</span></div>
                 </div>
@@ -733,6 +906,26 @@ export function SkinchangerPage() {
                   }} className="h-9 text-xs" />
                   <p className="mt-1 text-[10px] text-muted-foreground">0–1000</p>
                 </div>
+                {canCustomizeAccessories && <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 py-2">
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium">StatTrak™</p>
+                    <p className="text-[10px] text-muted-foreground">Counts your kills in game</p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={Boolean(customOptions.statTrak)}
+                    aria-label="StatTrak"
+                    onClick={() => setCustomOptions((current) => ({ ...current, statTrak: !current.statTrak }))}
+                    className={cn("relative h-5 w-9 shrink-0 rounded-full border transition-colors", customOptions.statTrak ? "border-foreground bg-foreground" : "border-border bg-secondary")}
+                  >
+                    <span className={cn("absolute top-0.5 size-3.5 rounded-full transition-[left] duration-200", customOptions.statTrak ? "left-[1.1rem] bg-background" : "left-0.5 bg-muted-foreground")} />
+                  </button>
+                </div>}
+                {canCustomizeAccessories && <div>
+                  <div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Name tag</span>{customOptions.nameTag && <button onClick={() => setCustomOptions((current) => ({ ...current, nameTag: undefined }))} className="text-[10px] text-muted-foreground hover:text-foreground">Clear</button>}</div>
+                  <Input aria-label="Name tag" value={customOptions.nameTag ?? ""} maxLength={20} placeholder="Custom name (optional)" onChange={(event) => setCustomOptions((current) => ({ ...current, nameTag: event.target.value || undefined }))} className="h-9 text-xs" />
+                </div>}
                 {canCustomizeAccessories && <div>
                   <div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Sticker slots</span><span className="text-[10px] text-muted-foreground">Up to 5</span></div>
                   <div className="grid grid-cols-5 gap-1.5">
@@ -765,6 +958,70 @@ export function SkinchangerPage() {
               {saving ? <Loader2 className="size-4 animate-spin" /> : <BadgeCheck className="size-4" />}
               {selectedAlreadyEquipped ? "Selected" : activeWeapon ? "Save this look" : "Use this item"}
             </Button>
+          </section>
+
+          <section className="rounded-xl border border-border bg-card p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Your loadout</p>
+              <span className="text-[11px] tabular-nums text-muted-foreground">{loadoutEntries.length}</span>
+            </div>
+            {loadoutEntries.length === 0 ? (
+              <p className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-xs leading-5 text-muted-foreground">
+                Nothing saved yet. Pick a weapon, choose a skin, then save the look.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {slotOrder.map((slot) => {
+                  const slotEntries = loadoutEntries.filter((entry) => entry.slot === slot)
+                  if (slotEntries.length === 0) return null
+                  return (
+                    <div key={slot}>
+                      <p className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">{slotLabels[slot]}</p>
+                      <ul className="flex flex-col gap-1">
+                        {slotEntries.map((entry) => {
+                          const savedItem = entry.skinchanger_catalog_items
+                          if (!savedItem) return null
+                          const image = catalogImageUrl(savedItem)
+                          const teamText = entry.team_scope === "t" ? "T" : entry.team_scope === "ct" ? "CT" : "Both"
+                          const model = modelFromEntry(entry)
+                          return (
+                            <li key={`${entry.slot_key}:${entry.team_scope}`} className="group flex items-center gap-2 rounded-lg border border-border bg-background/60 p-1.5 transition-colors hover:border-foreground/25">
+                              <button
+                                type="button"
+                                onClick={() => openSavedEntry(entry)}
+                                className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                                title={`Edit ${savedItem.display_name}`}
+                              >
+                                <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-card">
+                                  {image ? <img src={image} alt="" data-catalog-item-id={savedItem.id} className="size-full object-contain p-0.5" /> : <ImageOff className="size-3.5 text-muted-foreground" />}
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                  <span className="block truncate text-xs font-semibold">{savedItem.weapon_class ?? savedItem.display_name}</span>
+                                  <span className="block truncate text-[10px] text-muted-foreground">{savedSkinLabel(savedItem)} · {appearanceSummary(entry.options)}</span>
+                                </span>
+                              </button>
+                              <span className={cn("shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold", teamChipTone[entry.team_scope])}>{teamText}</span>
+                              {model && (
+                                <button
+                                  type="button"
+                                  onClick={() => setDeleteConfirm({ model, entry })}
+                                  disabled={saving}
+                                  aria-label={`Remove ${savedItem.display_name}`}
+                                  title="Remove"
+                                  className="flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-destructive hover:text-destructive-foreground focus-visible:opacity-100 group-hover:opacity-100 disabled:pointer-events-none"
+                                >
+                                  <Trash2 className="size-3.5" />
+                                </button>
+                              )}
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </section>
 
         </aside>

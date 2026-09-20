@@ -10,12 +10,14 @@ import { communityService, serversService } from "@/api"
 import type { CommunityCreator, CommunityPartner, HomeStats, PageId, ReconnectMatch, ServerInfo } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
+import { AnimatedNumber } from "@/components/animated-number"
 import { OptimizedImage } from "@/components/optimized-image"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { toast } from "sonner"
 import homeHeroGif from "@/assets/skinchanger/hero.gif"
 import { useAuth } from "@/hooks/use-auth"
 import { ServerLiveMatchDialog } from "@/components/server-live-match-dialog"
+import { isFeatureEnabled } from "@/lib/features"
 
 interface HomePageProps {
   onNavigate: (page: PageId) => void
@@ -83,7 +85,7 @@ function PartnerSection() {
   const partners = (content?.partners ?? []).filter((partner) => partner.type === "website")
 
   return (
-    <section className="glass rounded-xl p-5">
+    <section className="scroll-reveal glass rounded-xl p-5">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="font-semibold">Our Partners</h2>
         <div className="relative inline-flex rounded-lg bg-secondary/60 p-1">
@@ -207,6 +209,13 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
   const liveServers = (servers ?? []).filter((s) => s.status !== "offline")
   const totalPlayers = homeStats?.playersOnline ?? (servers ?? []).reduce((acc, s) => acc + s.players, 0)
+  // The clan tile only belongs here while clans are part of the product.
+  const statTiles = [
+    { label: "Players Online", value: totalPlayers, icon: Users },
+    { label: "Live Servers", value: homeStats?.liveServers ?? liveServers.length, icon: Server },
+    { label: "Matches Today", value: homeStats?.matchesToday, icon: TrendingUp },
+    ...(isFeatureEnabled("clan") ? [{ label: "Active Clans", value: homeStats?.activeClans, icon: Zap }] : []),
+  ]
   const reconnectServer: ServerInfo | null = reconnect ? {
     id: reconnect.serverId,
     name: reconnect.serverName,
@@ -269,8 +278,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
           LegacyX Ecosystem
         </h1>
         <p className="relative z-10 text-muted-foreground max-w-xl">
-          The premier CS2 / CSGO community server platform. Join matches, build your
-          clan, and compete with the Mongolian CS2 community.
+          The premier CS2 / CSGO community server platform. Join matches{isFeatureEnabled("clan") ? ", build your clan," : ","} and
+          compete with the Mongolian CS2 community.
         </p>
         <div className="relative z-10 flex flex-wrap gap-3 mt-2">
           {MODE_CARDS.map((mode) => (
@@ -301,7 +310,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 <p className="mt-2 text-xs text-muted-foreground">Available until {new Date(reconnect.reconnectableUntil).toLocaleTimeString()}. This card clears only after the server confirms your rejoin.</p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <button type="button" onClick={() => setInfoServer(reconnectServer)} className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border/70 bg-background/55 px-3 text-xs font-semibold text-foreground transition-colors hover:border-primary/60 hover:bg-secondary/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={`View ${reconnect.serverName} live match information`}><Info className="size-3.5" />Info</button>
+                {isFeatureEnabled("roster") && <button type="button" onClick={() => setInfoServer(reconnectServer)} className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border/70 bg-background/55 px-3 text-xs font-semibold text-foreground transition-colors hover:border-primary/60 hover:bg-secondary/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={`View ${reconnect.serverName} live match information`}><Info className="size-3.5" />Info</button>}
                 <button type="button" onClick={() => void copyServerAddress(reconnectServer)} className="inline-flex size-9 items-center justify-center rounded-lg border border-border/70 bg-background/55 text-foreground transition-colors hover:border-primary/60 hover:bg-secondary/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={`Copy ${reconnect.serverName} server IP`} title={`Copy ${reconnect.connectAddress}`}><Copy className="size-3.5" /></button>
                 <button type="button" onClick={reconnectToMatch} className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-emerald-300/35 bg-emerald-300/18 px-3 text-xs font-semibold text-emerald-50 transition-colors hover:border-emerald-200/65 hover:bg-emerald-300/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/60"><PlayIcon className="size-3.5 fill-current" />{reconnectPending ? "Connecting…" : "Reconnect"}</button>
               </div>
@@ -343,25 +352,20 @@ export function HomePage({ onNavigate }: HomePageProps) {
         </a>
 
         {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {[
-          { label: "Players Online", value: totalPlayers.toString(), icon: Users },
-          { label: "Live Servers", value: (homeStats?.liveServers ?? liveServers.length).toString(), icon: Server },
-          { label: "Matches Today", value: homeStats?.matchesToday?.toLocaleString() ?? "—", icon: TrendingUp },
-          { label: "Active Clans", value: homeStats?.activeClans?.toString() ?? "—", icon: Zap },
-        ].map((stat) => (
+      <div className={cn("grid grid-cols-2 gap-4", statTiles.length === 4 ? "md:grid-cols-4" : "md:grid-cols-3")}>
+        {statTiles.map((stat) => (
           <div key={stat.label} className="glass rounded-xl p-4 hover-lift transition-all">
             <div className="flex items-center justify-between">
               <stat.icon className="size-4 text-muted-foreground" />
             </div>
-            <div className="mt-3 text-2xl font-bold tabular-nums">{stat.value}</div>
+            <div className="mt-3 text-2xl font-bold tabular-nums"><AnimatedNumber value={stat.value} /></div>
             <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
           </div>
         ))}
       </div>
 
       {/* Mode cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="stagger-in grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {MODE_CARDS.map((mode) => (
           <button
             key={mode.id}
@@ -387,7 +391,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
       </div>
 
       {/* Live server preview */}
-      <div className="glass rounded-xl p-5">
+      <div className="scroll-reveal glass rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold">Live Servers</h2>
           <div className="flex items-center gap-2">
@@ -418,7 +422,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
         />
 
         {!loading && !error && liveServers.length > 0 && (
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="stagger-in grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {liveServers.slice(0, 5).map((server) => {
               const mapBackground = cs2MapArtwork(server.map)
               const hasAddress = Boolean(server.connectAddress)
@@ -473,9 +477,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
                         </div>
                       </div>
 	                      <div className="flex shrink-0 items-center gap-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
-	                        <button type="button" onClick={() => setInfoServer(server)} className="inline-flex size-8 items-center justify-center rounded-md border border-white/20 bg-background/75 text-white/75 transition-colors hover:border-primary/70 hover:bg-primary/25 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={`View ${server.name} live match information`} title="Live server information">
+	                        {isFeatureEnabled("roster") && <button type="button" onClick={() => setInfoServer(server)} className="inline-flex size-8 items-center justify-center rounded-md border border-white/20 bg-background/75 text-white/75 transition-colors hover:border-primary/70 hover:bg-primary/25 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={`View ${server.name} live match information`} title="Live server information">
 	                          <Info className="size-3.5" />
-	                        </button>
+	                        </button>}
 	                        <button type="button" disabled={!hasAddress} onClick={() => void copyServerAddress(server)} className="inline-flex size-8 items-center justify-center rounded-md border border-white/20 bg-background/75 text-white/75 transition-colors hover:border-primary/70 hover:bg-primary/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={`Copy ${server.name} server IP`} title={hasAddress ? `Copy ${server.connectAddress}` : "Server IP unavailable"}>
                           <Copy className="size-3.5" />
                         </button>
@@ -494,7 +498,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
 	      {/* Our Partners */}
 	      <PartnerSection />
-	      {infoServer && <ServerLiveMatchDialog server={infoServer} open onOpenChange={(open) => { if (!open) setInfoServer(null) }} />}
+	      {isFeatureEnabled("roster") && infoServer && <ServerLiveMatchDialog server={infoServer} open onOpenChange={(open) => { if (!open) setInfoServer(null) }} />}
 	    </div>
   )
 }

@@ -61,7 +61,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
           <div className="overflow-x-auto rounded-xl border border-white/[0.08] bg-[#181818]">
             <table className="w-full min-w-[980px]">
               <thead><tr className="border-b border-white/[0.08]"><Header>Player</Header><Header>Rank</Header><Header align="right">Kills</Header><Header align="right">Deaths</Header><Header align="right">K/D</Header><Header align="right">HS</Header><Header align="right">Matches</Header><Header align="right">Wins</Header><Header align="right">Played</Header><Header align="right">Last played</Header></tr></thead>
-              <tbody>{tableRows.map((player) => {
+              <tbody className="stagger-in">{tableRows.map((player) => {
                 const rank = player.position
                 return (
                 <tr key={player.user_id} onClick={() => onProfileNavigate(player.user_id)} className="cursor-pointer border-b border-white/[0.06] last:border-0 focus-within:outline-none">

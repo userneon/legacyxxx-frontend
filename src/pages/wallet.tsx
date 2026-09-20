@@ -7,6 +7,7 @@ import type { PromotionQuote, WalletBalance, WalletTransaction } from "@/api/typ
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { RelativeTime } from "@/components/relative-time"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
 import { toast } from "sonner"
@@ -245,7 +246,7 @@ export function WalletPage() {
         />
 
         {!txLoading && !txError && txList.length > 0 && (
-          <div className="flex flex-col gap-2">
+          <div className="stagger-in flex flex-col gap-2">
             {txList.map((tx) => (
               <div
                 key={tx.id}
@@ -262,7 +263,7 @@ export function WalletPage() {
                   </div>
                   <div>
                     <div className="text-sm font-medium">{tx.type}</div>
-                    <div className="text-xs text-muted-foreground">{tx.date} - {tx.method}</div>
+                    <div className="text-xs text-muted-foreground"><RelativeTime value={tx.date} />{tx.method ? ` · ${tx.method}` : ""}</div>
                   </div>
                 </div>
                 <span className={cn(

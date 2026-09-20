@@ -1,4 +1,5 @@
 import { useState } from "react"
+import type { CSSProperties } from "react"
 import { Star, Send } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -10,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { RelativeTime } from "@/components/relative-time"
 import { useAuth } from "@/hooks/use-auth"
 import { SteamLoginButton } from "@/components/steam-login-gate"
 
@@ -22,6 +24,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
   const [rating, setRating] = useState(0)
   const [message, setMessage] = useState("")
   const [hoverRating, setHoverRating] = useState(0)
+  const [burst, setBurst] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState("")
 
@@ -60,26 +63,43 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
         <div className="flex flex-col gap-2">
           <Label>Rating</Label>
           <div className="flex gap-1">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <button
-                key={star}
-                type="button"
-                onMouseEnter={() => setHoverRating(star)}
-                onMouseLeave={() => setHoverRating(0)}
-                onClick={() => setRating(star)}
-                className="star-rating-button rounded-md p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-              >
-                <Star
-                  className={cn(
-                    "star-rating-icon size-6 transition-colors",
-                    rating === star && "star-rating-pop",
-                    (hoverRating || rating) >= star
-                      ? "fill-amber-300 text-amber-300"
-                      : "text-muted-foreground"
+            {[1, 2, 3, 4, 5].map((star) => {
+              const popped = burst > 0 && star <= rating
+              return (
+                <button
+                  key={star}
+                  type="button"
+                  onMouseEnter={() => setHoverRating(star)}
+                  onMouseLeave={() => setHoverRating(0)}
+                  onClick={() => {
+                    setRating(star)
+                    setBurst((count) => count + 1)
+                  }}
+                  style={{ "--star-i": star - 1 } as CSSProperties}
+                  className="star-rating-button relative rounded-md p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                >
+                  {/* Re-keying on every click restarts the cascade even when the same star is clicked again. */}
+                  <Star
+                    key={popped ? burst : 0}
+                    className={cn(
+                      "star-rating-icon size-6",
+                      popped && "star-rating-pop",
+                      hoverRating >= star && "star-rating-preview",
+                      (hoverRating || rating) >= star
+                        ? "fill-amber-300 text-amber-300"
+                        : "text-muted-foreground"
+                    )}
+                  />
+                  {burst > 0 && rating === star && (
+                    <span key={burst} className="star-burst" aria-hidden="true">
+                      {Array.from({ length: 8 }, (_, i) => (
+                        <span key={i} style={{ "--angle": `${i * 45}deg` } as CSSProperties} />
+                      ))}
+                    </span>
                   )}
-                />
-              </button>
-            ))}
+                </button>
+              )
+            })}
           </div>
         </div>
 
@@ -118,7 +138,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
       />
 
       {!loading && !error && allFeedback.length > 0 && (
-        <div className="flex flex-col gap-3">
+        <div className="stagger-in flex flex-col gap-3">
           {allFeedback.map((entry) => (
             <div key={entry.id} className="glass rounded-xl p-4 hover-lift transition-all">
               <div className="flex items-start justify-between gap-4">
@@ -132,21 +152,22 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
                     <PlayerAvatar avatar={entry.avatar} name={entry.name} className="size-10 rounded-md text-sm transition-transform group-hover:scale-105" />
                     <div>
                       <div className="text-sm font-medium group-hover:text-primary group-hover:underline">{entry.name}</div>
-                      <div className="text-xs text-muted-foreground">{entry.date}</div>
+                      <RelativeTime value={entry.date} className="block text-xs text-muted-foreground" />
                     </div>
                   </button>
                 ) : (
                   <div className="flex items-center gap-3">
                     <PlayerAvatar avatar={entry.avatar} name={entry.name} className="size-10 rounded-md text-sm" />
-                    <div><div className="text-sm font-medium">{entry.name}</div><div className="text-xs text-muted-foreground">{entry.date}</div></div>
+                    <div><div className="text-sm font-medium">{entry.name}</div><RelativeTime value={entry.date} className="block text-xs text-muted-foreground" /></div>
                   </div>
                 )}
                 <div className="flex gap-0.5">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star
                       key={star}
+                      style={{ "--star-i": star - 1 } as CSSProperties}
                       className={cn(
-                        "size-3.5",
+                        "review-star size-3.5",
                         entry.rating >= star
                           ? "fill-amber-300 text-amber-300"
                           : "text-muted-foreground/50"

@@ -1,195 +1,385 @@
-import { useState } from "react"
-import { Search, ShieldAlert, Ban, MicOff } from "lucide-react"
+import { useLayoutEffect, useMemo, useRef, useState } from "react"
+import { Search, ShieldAlert, Ban, MicOff, MessageSquareOff, Lock, X, ChevronRight, Shield, Clock3, CalendarDays, SearchX } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { moderationService } from "@/api"
 import type { PenaltyEntry, PenaltyStats, PenaltyType } from "@/api/types"
-import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
+import { RelativeTime } from "@/components/relative-time"
+import { AnimatedNumber } from "@/components/animated-number"
 import { PlayerModerationAvatar } from "@/components/player-moderation-avatar"
 
 type PenaltyFilter = "all" | PenaltyType
+type PenaltyStatus = "active" | "permanent" | "lifted"
 
-const FILTERS: { id: PenaltyFilter; label: string; icon: typeof Ban }[] = [
-  { id: "all", label: "All", icon: ShieldAlert },
-  { id: "ban", label: "Bans", icon: Ban },
-  { id: "mute", label: "Mutes", icon: MicOff },
-  { id: "gag", label: "Gags", icon: MicOff },
-]
+const PAGE_SIZE = 20
 
-function getTypeColor(type: PenaltyType) {
-  switch (type) {
-    case "ban": return "bg-destructive/15 text-destructive"
-    case "mute": return "bg-white/10 text-white/75"
-    case "gag": return "bg-white/[0.06] text-white/65"
-  }
+/** Penalty types as stored in legacy_x.penalty_type ("comm" is a voice mute). */
+const TYPE_META: Record<PenaltyType, { label: string; icon: typeof Ban; tone: string; iconTone: string }> = {
+  ban: { label: "Ban", icon: Ban, tone: "border-destructive/30 bg-destructive/12 text-destructive", iconTone: "bg-destructive/15 text-destructive" },
+  comm: { label: "Mute", icon: MicOff, tone: "border-amber-300/30 bg-amber-300/10 text-amber-200", iconTone: "bg-amber-300/12 text-amber-200" },
+  gag: { label: "Gag", icon: MessageSquareOff, tone: "border-sky-300/30 bg-sky-300/10 text-sky-200", iconTone: "bg-sky-300/12 text-sky-200" },
 }
 
-function getTypeLabel(type: PenaltyType) {
-  switch (type) {
-    case "ban": return "BAN"
-    case "mute": return "MUTE"
-    case "gag": return "GAG"
-  }
+const STATUS_META: Record<PenaltyStatus, { label: string; tone: string }> = {
+  active: { label: "Active", tone: "border-emerald-300/30 bg-emerald-400/10 text-emerald-200" },
+  permanent: { label: "Permanent", tone: "border-destructive/35 bg-destructive/12 text-destructive" },
+  lifted: { label: "Lifted", tone: "border-white/10 bg-white/[0.05] text-white/55" },
 }
 
-function numericLabel(value: unknown) {
-  const numeric = typeof value === "number" ? value : Number(value)
-  return Number.isFinite(numeric) ? numeric.toLocaleString() : "0"
+/** A lifted penalty is no longer in force even if it was issued as permanent. */
+function penaltyStatus(penalty: PenaltyEntry): PenaltyStatus {
+  if (penalty.isUnbanned) return "lifted"
+  return penalty.isPermanent ? "permanent" : "active"
 }
 
-export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userId: string) => void }) {
-  const [filter, setFilter] = useState<PenaltyFilter>("all")
-  const [query, setQuery] = useState("")
+function dayBucket(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return "Earlier"
+  const startOfToday = new Date()
+  startOfToday.setHours(0, 0, 0, 0)
+  const days = Math.floor((startOfToday.getTime() - new Date(date).setHours(0, 0, 0, 0)) / 86_400_000)
+  if (days <= 0) return "Today"
+  if (days === 1) return "Yesterday"
+  if (days < 7) return "This week"
+  return date.toLocaleDateString("en-US", { month: "long", year: "numeric" })
+}
 
-  const { data: penalties, loading, error, refetch } = useApiQuery<PenaltyEntry[]>((signal) =>
-    moderationService.getPenalties(undefined, { signal }),
-  )
-
-  const { data: stats } = useApiQuery<PenaltyStats>((signal) =>
-    moderationService.getStats({ signal }),
-  )
-
-  const allPenalties = penalties ?? []
-
-  const filtered = allPenalties.filter((p) => {
-    if (filter !== "all" && p.type !== filter) return false
-    if (query) {
-      const q = query.toLowerCase()
-      return (
-        String(p.player ?? "").toLowerCase().includes(q) ||
-        String(p.reason ?? "").toLowerCase().includes(q) ||
-        String(p.admin ?? "").toLowerCase().includes(q)
-      )
-    }
-    return true
-  })
-
-  const statItems = stats ? [
-    { label: "Total Bans", value: numericLabel(stats.totalBans), color: "text-destructive" },
-    { label: "Active Bans", value: numericLabel(stats.activeBans), color: "text-chart-5" },
-    { label: "Permanent", value: numericLabel(stats.permanentBans), color: "text-chart-4" },
-    { label: "Total Mutes", value: numericLabel(stats.totalMutes), color: "text-white/75" },
-    { label: "Total Gags", value: numericLabel(stats.totalGags), color: "text-white/65" },
-  ] : []
-
+function StatusPill({ status }: { status: PenaltyStatus }) {
+  const meta = STATUS_META[status]
   return (
-    <div className="flex flex-col gap-6 p-6">
-      {/* Stats row */}
-      {stats && (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-          {statItems.map((stat) => (
-            <div key={stat.label} className="glass rounded-xl p-4 hover-lift transition-all">
-              <div className={cn("text-xl font-bold tabular-nums", stat.color)}>{stat.value}</div>
-              <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-      )}
+    <span className={cn("inline-flex h-6 items-center gap-1.5 rounded-full border px-2 text-[11px] font-semibold", meta.tone)}>
+      {status === "active" && <span className="penalty-active-dot size-1.5 rounded-full bg-emerald-300" />}
+      {status === "permanent" && <Lock className="size-3" />}
+      {meta.label}
+    </span>
+  )
+}
 
-      {/* Filters + Search */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-2">
-          {FILTERS.map((f) => (
-            <button
-              key={f.id}
-              onClick={() => setFilter(f.id)}
-              className={cn(
-                "glass flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm transition-all",
-                filter === f.id
-                  ? "bg-primary text-primary-foreground border-transparent"
-                  : "hover:bg-secondary/60 hover:text-foreground"
-              )}
-            >
-              <f.icon className="size-3.5" />
-              {f.label}
-            </button>
-          ))}
-        </div>
+function TypeIcon({ type, className }: { type: PenaltyType; className?: string }) {
+  const meta = TYPE_META[type] ?? TYPE_META.ban
+  const Icon = meta.icon
+  return (
+    <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-xl", meta.iconTone, className)} title={meta.label}>
+      <Icon className="size-4" />
+    </span>
+  )
+}
 
-        <div className="glass flex items-center gap-2 rounded-lg px-3 py-2 max-w-xs w-full">
-          <Search className="size-4 text-muted-foreground shrink-0" />
-          <input
-            type="text"
-            placeholder="Search player, reason, or admin..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-          />
-        </div>
+function StatTile({ icon: Icon, label, value, tone, pulse }: { icon: typeof Ban; label: string; value: number | undefined; tone: string; pulse?: boolean }) {
+  return (
+    <div className="glass group relative min-w-[8.5rem] shrink-0 snap-start overflow-hidden rounded-2xl p-3.5 hover-lift @4xl:min-w-0 @4xl:p-4">
+      <div className="flex items-center justify-between">
+        <span className={cn("flex size-8 items-center justify-center rounded-lg bg-white/[0.05]", tone)}><Icon className="size-4" /></span>
+        {pulse && Boolean(value) && <span className="penalty-active-dot size-2 rounded-full bg-emerald-300" />}
       </div>
-
-      {/* Penalty list */}
-      <div className="glass rounded-xl overflow-hidden">
-        {/* Table header */}
-        <div className="hidden md:grid md:grid-cols-[3rem_1fr_2fr_1fr_5rem_1fr_5rem] border-b border-border px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-          <span>Type</span>
-          <span>Player</span>
-          <span>Reason</span>
-          <span>Term</span>
-          <span>Status</span>
-          <span>Admin</span>
-          <span>Date</span>
-        </div>
-
-        <QueryState
-          loading={loading}
-          error={error}
-          empty={!loading && !error && filtered.length === 0}
-          emptyMessage="No penalties found matching your search."
-          onRetry={refetch}
-        />
-
-        {!loading && !error && filtered.length > 0 && (
-          filtered.map((penalty) => <PenaltyRow key={penalty.id} penalty={penalty} onProfileNavigate={onProfileNavigate} />)
-        )}
-      </div>
+      <div className={cn("mt-3 text-2xl font-bold tabular-nums", tone)}><AnimatedNumber value={value ?? null} fallback="0" /></div>
+      <div className="mt-0.5 text-xs text-muted-foreground">{label}</div>
     </div>
   )
 }
 
-function PenaltyRow({ penalty, onProfileNavigate }: { penalty: PenaltyEntry; onProfileNavigate: (userId: string) => void }) {
+function FilterTabs({ value, onChange, counts }: { value: PenaltyFilter; onChange: (value: PenaltyFilter) => void; counts: Record<PenaltyFilter, number> }) {
+  const buttons = useRef<Partial<Record<PenaltyFilter, HTMLButtonElement | null>>>({})
+  const [indicator, setIndicator] = useState<{ left: number; width: number } | null>(null)
+  const items: { id: PenaltyFilter; label: string; icon: typeof Ban }[] = [
+    { id: "all", label: "All", icon: ShieldAlert },
+    { id: "ban", label: "Bans", icon: Ban },
+    { id: "comm", label: "Mutes", icon: MicOff },
+    { id: "gag", label: "Gags", icon: MessageSquareOff },
+  ]
+  const countsKey = items.map((item) => counts[item.id]).join(",")
+
+  useLayoutEffect(() => {
+    const active = buttons.current[value]
+    if (active) setIndicator({ left: active.offsetLeft, width: active.offsetWidth })
+  }, [value, countsKey])
+
   return (
-    <div className="grid grid-cols-2 gap-2 border-b border-border/50 px-4 py-3 text-sm transition-colors hover:bg-destructive/5 md:grid-cols-[3rem_1fr_2fr_1fr_5rem_1fr_5rem] md:items-center">
-      {/* Type badge */}
-      <div>
-        <Badge variant="secondary" className={cn("text-[10px] font-bold uppercase px-1.5 py-0.5", getTypeColor(penalty.type))}>
-          {getTypeLabel(penalty.type)}
-        </Badge>
+    <div className="scrollbar-hidden relative inline-flex w-fit max-w-full items-center gap-1 overflow-x-auto rounded-xl bg-secondary/30 p-1" role="tablist">
+      {indicator && <span className="filter-tab-indicator absolute inset-y-1 rounded-lg bg-secondary shadow-sm" style={{ left: indicator.left, width: indicator.width }} aria-hidden="true" />}
+      {items.map((item) => {
+        const active = item.id === value
+        return (
+          <button
+            key={item.id}
+            ref={(node) => { buttons.current[item.id] = node }}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange(item.id)}
+            className={cn("relative z-10 flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors", active ? "text-foreground" : "text-foreground/60 hover:text-foreground")}
+          >
+            <item.icon className="size-3.5" />
+            {item.label}
+            <span key={counts[item.id]} className={cn("count-bump rounded px-1 py-0.5 text-[10px] tabular-nums", active ? "bg-muted text-muted-foreground" : "text-foreground/45")}>{counts[item.id]}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function PenaltyRow({ penalty, onOpen }: { penalty: PenaltyEntry; onOpen: () => void }) {
+  const status = penaltyStatus(penalty)
+  const meta = TYPE_META[penalty.type] ?? TYPE_META.ban
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className={cn(
+        "group relative grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 border-b border-white/[0.05] px-4 py-3 text-left transition-colors hover:bg-white/[0.03] focus-visible:bg-white/[0.04] focus-visible:outline-none",
+        "@3xl:grid-cols-[auto_minmax(0,1.1fr)_minmax(0,1.6fr)_7.5rem_minmax(0,0.8fr)_5.5rem_1rem]",
+        status === "lifted" && "opacity-70"
+      )}
+    >
+      <TypeIcon type={penalty.type} />
+
+      {/* Player + (on narrow screens) reason */}
+      <div className="min-w-0">
+        <div className="flex min-w-0 items-center gap-2">
+          <PlayerModerationAvatar avatar={penalty.avatar} name={penalty.player} status={penalty.moderationStatus} className="size-6 rounded-md text-[9px]" />
+          <span className="truncate text-sm font-semibold">{penalty.player}</span>
+          <span className={cn("hidden shrink-0 rounded border px-1.5 py-px text-[10px] font-bold uppercase @md:inline", meta.tone)}>{meta.label}</span>
+        </div>
+        <p className="mt-1 truncate text-xs text-muted-foreground @3xl:hidden">{penalty.reason || "No reason given"}</p>
       </div>
 
-      {/* Player */}
-      {penalty.playerSteamId ? <button type="button" onClick={() => onProfileNavigate(penalty.playerSteamId!)} className="flex min-w-0 items-center gap-2 text-left hover:opacity-80"><PlayerModerationAvatar avatar={penalty.avatar} name={penalty.player} status={penalty.moderationStatus} className="size-7 rounded-md text-xs" /><span className="min-w-0"><span className="block truncate font-medium">{penalty.player}</span><span className="block text-[10px] text-muted-foreground">{penalty.moderationStatus}</span></span></button> : <div className="flex items-center gap-2"><PlayerModerationAvatar avatar={penalty.avatar} name={penalty.player} status={penalty.moderationStatus} className="size-7 rounded-md text-xs" /><span className="min-w-0"><span className="block truncate font-medium">{penalty.player}</span><span className="block text-[10px] text-muted-foreground">{penalty.moderationStatus}</span></span></div>}
+      {/* Narrow: status + date stacked on the right */}
+      <div className="flex flex-col items-end gap-1 @3xl:hidden">
+        <StatusPill status={status} />
+        <RelativeTime value={penalty.date} className="text-[11px] text-muted-foreground" />
+      </div>
 
-      {/* Reason */}
-      <div className="col-span-2 text-muted-foreground truncate md:col-span-1">{penalty.reason}</div>
+      {/* Wide columns */}
+      <p className="hidden truncate text-sm text-white/80 @3xl:block">{penalty.reason || <span className="text-muted-foreground">No reason given</span>}</p>
+      <span className="hidden text-xs tabular-nums text-muted-foreground @3xl:block">{penalty.isPermanent ? "Permanent" : penalty.term || "—"}</span>
+      <span className="hidden min-w-0 items-center gap-1.5 text-xs text-muted-foreground @3xl:flex"><Shield className="size-3 shrink-0" /><span className="truncate">{penalty.admin || "System"}</span></span>
+      <div className="hidden flex-col items-start gap-1 @3xl:flex">
+        <StatusPill status={status} />
+        <RelativeTime value={penalty.date} className="text-[11px] text-muted-foreground" />
+      </div>
+      <ChevronRight className="hidden size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 @3xl:block" />
+    </button>
+  )
+}
 
-      {/* Term */}
-      <div className="tabular-nums text-muted-foreground">
-        {penalty.isPermanent ? (
-          <span className="font-semibold uppercase tracking-wide text-destructive">Permanent</span>
-        ) : (
-          penalty.term
+function PenaltyDetailDialog({ penalty, onClose, onProfileNavigate }: { penalty: PenaltyEntry | null; onClose: () => void; onProfileNavigate: (steamId: string) => void }) {
+  const status = penalty ? penaltyStatus(penalty) : "active"
+  const meta = penalty ? TYPE_META[penalty.type] ?? TYPE_META.ban : TYPE_META.ban
+  const exact = penalty && !Number.isNaN(new Date(penalty.date).getTime())
+    ? new Date(penalty.date).toLocaleString("en-US", { dateStyle: "long", timeStyle: "short" })
+    : penalty?.date
+  const openProfile = (steamId?: string) => {
+    if (!steamId) return
+    onClose()
+    onProfileNavigate(steamId)
+  }
+
+  return (
+    <Dialog open={penalty !== null} onOpenChange={(open) => { if (!open) onClose() }}>
+      <DialogContent className="max-w-md gap-0 overflow-hidden p-0">
+        {penalty && (
+          <>
+            <div className={cn("relative px-6 pb-5 pt-6", penalty.type === "ban" && status !== "lifted" ? "bg-destructive/[0.08]" : "bg-white/[0.03]")}>
+              <DialogHeader className="items-start text-left">
+                <div className="flex items-center gap-3">
+                  <TypeIcon type={penalty.type} className="size-11" />
+                  <div>
+                    <DialogTitle className="text-lg">{meta.label} · {penalty.player}</DialogTitle>
+                    <DialogDescription className="mt-0.5">Issued <RelativeTime value={penalty.date} /></DialogDescription>
+                  </div>
+                </div>
+              </DialogHeader>
+              <div className="mt-4"><StatusPill status={status} /></div>
+            </div>
+            <dl className="grid grid-cols-[7rem_minmax(0,1fr)] gap-x-3 gap-y-3.5 px-6 py-5 text-sm">
+              <dt className="text-muted-foreground">Reason</dt>
+              <dd className="whitespace-pre-wrap break-words">{penalty.reason || "No reason given"}</dd>
+              <dt className="text-muted-foreground">Duration</dt>
+              <dd className="flex items-center gap-1.5">{penalty.isPermanent ? <><Lock className="size-3.5 text-destructive" />Permanent</> : <><Clock3 className="size-3.5 text-muted-foreground" />{penalty.term || "—"}</>}</dd>
+              <dt className="text-muted-foreground">Player</dt>
+              <dd>
+                <button type="button" disabled={!penalty.playerSteamId} onClick={() => openProfile(penalty.playerSteamId)} className="flex items-center gap-2 text-left enabled:hover:underline disabled:cursor-default">
+                  <PlayerModerationAvatar avatar={penalty.avatar} name={penalty.player} status={penalty.moderationStatus} className="size-6 rounded-md text-[9px]" />
+                  <span className="font-medium">{penalty.player}</span>
+                  <span className="text-xs text-muted-foreground">· {penalty.moderationStatus}</span>
+                </button>
+              </dd>
+              <dt className="text-muted-foreground">Issued by</dt>
+              <dd>
+                <button type="button" disabled={!penalty.adminSteamId} onClick={() => openProfile(penalty.adminSteamId)} className="flex items-center gap-1.5 text-left enabled:hover:underline disabled:cursor-default">
+                  <Shield className="size-3.5 text-muted-foreground" />{penalty.admin || "System"}
+                </button>
+              </dd>
+              <dt className="text-muted-foreground">Date</dt>
+              <dd className="flex items-center gap-1.5"><CalendarDays className="size-3.5 text-muted-foreground" />{exact}</dd>
+            </dl>
+          </>
         )}
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userId: string) => void }) {
+  const [filter, setFilter] = useState<PenaltyFilter>("all")
+  const [activeOnly, setActiveOnly] = useState(false)
+  const [query, setQuery] = useState("")
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [selected, setSelected] = useState<PenaltyEntry | null>(null)
+
+  const { data: penalties, loading, error, refetch } = useApiQuery<PenaltyEntry[]>((signal) =>
+    moderationService.getPenalties(undefined, { signal }),
+  )
+  const { data: stats } = useApiQuery<PenaltyStats>((signal) => moderationService.getStats({ signal }))
+
+  const allPenalties = useMemo(
+    () => [...(penalties ?? [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    [penalties],
+  )
+
+  const q = query.trim().toLowerCase()
+  const base = allPenalties.filter((penalty) =>
+    (!q || [penalty.player, penalty.reason, penalty.admin].some((field) => String(field ?? "").toLowerCase().includes(q))) &&
+    (!activeOnly || penaltyStatus(penalty) !== "lifted"),
+  )
+  const counts: Record<PenaltyFilter, number> = {
+    all: base.length,
+    ban: base.filter((penalty) => penalty.type === "ban").length,
+    comm: base.filter((penalty) => penalty.type === "comm").length,
+    gag: base.filter((penalty) => penalty.type === "gag").length,
+  }
+  const filtered = filter === "all" ? base : base.filter((penalty) => penalty.type === filter)
+  const visible = filtered.slice(0, visibleCount)
+  const groups = visible.reduce<{ label: string; items: PenaltyEntry[] }[]>((acc, penalty) => {
+    const label = dayBucket(penalty.date)
+    const last = acc[acc.length - 1]
+    if (last && last.label === label) last.items.push(penalty)
+    else acc.push({ label, items: [penalty] })
+    return acc
+  }, [])
+  const narrowed = Boolean(q) || activeOnly || filter !== "all"
+
+  const resetFilters = () => {
+    setQuery("")
+    setActiveOnly(false)
+    setFilter("all")
+  }
+
+  return (
+    <div className="@container flex flex-col gap-5 p-4 @2xl:p-6">
+      <section className="glass relative overflow-hidden rounded-2xl p-5 @2xl:p-6">
+        <div className="pointer-events-none absolute -right-16 -top-20 size-64 rounded-full bg-destructive/[0.10] blur-3xl" aria-hidden="true" />
+        <div className="relative flex items-center gap-3">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-destructive/25 bg-destructive/10 text-destructive"><ShieldAlert className="size-5" /></span>
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold tracking-tight @2xl:text-2xl">Penalties</h1>
+            <p className="text-sm text-muted-foreground">Public record of bans, mutes and gags on LEGACY-X servers.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* One swipeable row on narrow screens instead of a tall stack; a 5-column grid when there is room. */}
+      <div className="stagger-in scrollbar-hidden -mx-4 -my-1 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 py-1 @2xl:-mx-6 @2xl:scroll-px-6 @2xl:px-6 @4xl:mx-0 @4xl:grid @4xl:grid-cols-5 @4xl:overflow-visible @4xl:px-0">
+        <StatTile icon={Ban} label="Total bans" value={stats?.totalBans} tone="text-destructive" />
+        <StatTile icon={ShieldAlert} label="Active bans" value={stats?.activeBans} tone="text-emerald-300" pulse />
+        <StatTile icon={Lock} label="Permanent" value={stats?.permanentBans} tone="text-rose-300" />
+        <StatTile icon={MicOff} label="Mutes" value={stats?.totalComms} tone="text-amber-200" />
+        <StatTile icon={MessageSquareOff} label="Gags" value={stats?.totalGags} tone="text-sky-200" />
       </div>
 
-      {/* Status */}
-      <div>
-        {penalty.isPermanent ? (
-          <Badge variant="secondary" className="bg-destructive/15 text-destructive text-[10px]">Permanent</Badge>
-        ) : penalty.isUnbanned ? (
-          <Badge variant="secondary" className="bg-white/10 text-white/65 text-[10px]">Inactive</Badge>
+      <div className="flex flex-col gap-3 @3xl:flex-row @3xl:items-center @3xl:justify-between">
+        <div className="flex flex-wrap items-center gap-2">
+          <FilterTabs value={filter} onChange={(value) => { setFilter(value); setVisibleCount(PAGE_SIZE) }} counts={counts} />
+          <button
+            type="button"
+            aria-pressed={activeOnly}
+            onClick={() => { setActiveOnly((on) => !on); setVisibleCount(PAGE_SIZE) }}
+            className={cn(
+              "inline-flex h-9 items-center gap-2 rounded-xl border px-3 text-xs font-medium transition-colors",
+              activeOnly ? "border-emerald-300/40 bg-emerald-400/10 text-emerald-200" : "border-white/10 bg-secondary/30 text-foreground/60 hover:text-foreground"
+            )}
+          >
+            <span className={cn("size-1.5 rounded-full", activeOnly ? "penalty-active-dot bg-emerald-300" : "bg-white/30")} />
+            Active only
+          </button>
+        </div>
+
+        <label className="glass flex h-10 w-full items-center gap-2 rounded-xl px-3 transition-colors focus-within:border-white/25 @3xl:max-w-xs">
+          <Search className="size-4 shrink-0 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search player, reason or admin"
+            value={query}
+            onChange={(event) => { setQuery(event.target.value); setVisibleCount(PAGE_SIZE) }}
+            className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          />
+          {query && (
+            <button type="button" onClick={() => setQuery("")} aria-label="Clear search" className="rounded-md p-0.5 text-muted-foreground hover:text-foreground">
+              <X className="size-3.5" />
+            </button>
+          )}
+        </label>
+      </div>
+
+      <section className="glass overflow-hidden rounded-2xl">
+        <div className="hidden grid-cols-[auto_minmax(0,1.1fr)_minmax(0,1.6fr)_7.5rem_minmax(0,0.8fr)_5.5rem_1rem] gap-x-3 border-b border-white/[0.06] px-4 py-2.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground @3xl:grid">
+          <span className="w-9" />
+          <span>Player</span>
+          <span>Reason</span>
+          <span>Duration</span>
+          <span>Admin</span>
+          <span>Status</span>
+          <span />
+        </div>
+
+        {loading && !penalties ? (
+          <div className="flex flex-col">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex items-center gap-3 border-b border-white/[0.05] px-4 py-3">
+                <div className="size-9 animate-pulse rounded-xl bg-white/[0.06]" />
+                <div className="flex-1 space-y-2"><div className="h-3.5 w-40 animate-pulse rounded bg-white/[0.06]" /><div className="h-3 w-64 max-w-full animate-pulse rounded bg-white/[0.04]" /></div>
+                <div className="h-6 w-16 animate-pulse rounded-full bg-white/[0.06]" />
+              </div>
+            ))}
+          </div>
+        ) : error && !penalties ? (
+          <QueryState loading={false} error={error} onRetry={refetch} className="rounded-none border-0 bg-transparent" />
+        ) : filtered.length === 0 ? (
+          <div className="query-state-in flex flex-col items-center gap-3 px-4 py-14 text-center">
+            <span className="flex size-12 items-center justify-center rounded-full bg-white/[0.04]">{narrowed ? <SearchX className="size-5 text-muted-foreground" /> : <ShieldAlert className="size-5 text-emerald-300" />}</span>
+            <p className="text-sm font-medium">{narrowed ? "No penalties match these filters" : "No penalties on record"}</p>
+            <p className="max-w-xs text-xs text-muted-foreground">{narrowed ? "Try another search or show every penalty type." : "Every LEGACY-X player is currently in good standing."}</p>
+            {narrowed && <Button variant="outline" size="sm" onClick={resetFilters}>Clear filters</Button>}
+          </div>
         ) : (
-          <Badge variant="secondary" className="bg-emerald-500/15 text-emerald-300 text-[10px]">Active</Badge>
+          <>
+            {groups.map((group) => (
+              <div key={group.label}>
+                <div className="border-b border-white/[0.05] bg-white/[0.02] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {group.label}
+                </div>
+                <div className="stagger-in">
+                  {group.items.map((penalty) => <PenaltyRow key={penalty.id} penalty={penalty} onOpen={() => setSelected(penalty)} />)}
+                </div>
+              </div>
+            ))}
+            {filtered.length > visible.length && (
+              <div className="p-3">
+                <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}>
+                  Show more ({filtered.length - visible.length} remaining)
+                </Button>
+              </div>
+            )}
+          </>
         )}
-      </div>
+      </section>
 
-      {/* Admin */}
-      {penalty.adminSteamId ? <button type="button" onClick={() => onProfileNavigate(penalty.adminSteamId!)} className="truncate text-left text-muted-foreground hover:text-foreground">{penalty.admin}</button> : <div className="truncate text-muted-foreground">{penalty.admin}</div>}
-
-      {/* Date */}
-      <div className="text-muted-foreground text-xs whitespace-nowrap">{penalty.date}</div>
+      <PenaltyDetailDialog penalty={selected} onClose={() => setSelected(null)} onProfileNavigate={onProfileNavigate} />
     </div>
   )
 }

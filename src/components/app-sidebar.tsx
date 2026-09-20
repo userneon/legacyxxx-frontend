@@ -16,6 +16,7 @@ import {
   type LucideIcon,
 } from "lucide-react"
 
+import { isPageEnabled } from "@/lib/features"
 import {
   Sidebar,
   SidebarContent,
@@ -46,29 +47,34 @@ interface NavItem {
   badge?: string
 }
 
-const PLAY_SUB_ITEMS: NavItem[] = [
+/** Navigation only lists pages whose feature is switched on — a disabled page has no entry at all. */
+function enabledNav(items: NavItem[]): NavItem[] {
+  return items.filter((item) => isPageEnabled(item.id))
+}
+
+const PLAY_SUB_ITEMS: NavItem[] = enabledNav([
   { id: "play-5vs5", label: "5x5 MATCHES", icon: Crosshair },
   { id: "play-fun", label: "Fun Mode", icon: Flame },
   { id: "play-proleague", label: "Pro League", icon: Crown },
   { id: "play-tournaments", label: "Tournaments", icon: Trophy },
-]
+])
 
-const MAIN_NAV: NavItem[] = [
+const MAIN_NAV: NavItem[] = enabledNav([
   { id: "home", label: "Home", icon: Home },
-]
+])
 
-const CONTENT_NAV: NavItem[] = [
+const CONTENT_NAV: NavItem[] = enabledNav([
   { id: "shop", label: "Shop", icon: Store },
   { id: "skinchanger", label: "Skinchanger", icon: Paintbrush },
   { id: "clan", label: "Clan", icon: Swords },
-]
+])
 
-const COMMUNITY_NAV: NavItem[] = [
+const COMMUNITY_NAV: NavItem[] = enabledNav([
   { id: "leaders", label: "Leaders", icon: Trophy },
   { id: "penalties", label: "Penalties", icon: Gavel },
   { id: "feedback", label: "Reviews", icon: MessageSquare },
   { id: "explore", label: "Explore", icon: Search },
-]
+])
 
 function playSubItemAccent(id: PageId) {
   if (id === "play-5vs5") return "text-sky-300"
@@ -220,7 +226,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
         </SidebarGroup>
 
         {/* Content */}
-        <SidebarGroup className="py-1">
+        {CONTENT_NAV.length > 0 && <SidebarGroup className="py-1">
           <SidebarGroupLabel className="text-sidebar-foreground/65 text-[10px] uppercase tracking-widest font-medium px-3">
             Content
           </SidebarGroupLabel>
@@ -231,7 +237,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
-        </SidebarGroup>
+        </SidebarGroup>}
 
         {/* Community */}
         <SidebarGroup className="py-1">

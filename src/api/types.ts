@@ -134,6 +134,12 @@ export interface UserProfile {
     tag: string
   } | null
   steamBackground?: string | null
+  /** Equipped Steam Points Shop items; steamBackground is the still image / video poster. */
+  steamMedia?: {
+    backgroundVideo: { webm: string | null; mp4: string | null } | null
+    animatedAvatar: string | null
+    avatarFrame: string | null
+  } | null
   faceit?: ProfileFaceitStats
   links?: ProfileLink[]
 }
@@ -187,6 +193,63 @@ export interface ProfileRecentMatch {
   result: "Win" | "Loss"
   score: string
   kd: string
+  /** Present for MatchZy matches; needed to open match details. Legacy history rows omit them. */
+  matchId?: string
+  mapNumber?: number
+  playedAt?: string | null
+}
+
+export type MatchRoundOutcome = "elimination" | "bomb_exploded" | "bomb_defused" | "time_expired" | "surrender" | "other"
+
+/** One player's line on the match scoreboard. Detail stats are null for matches recorded before they were kept. */
+export interface MatchDetailPlayer {
+  userId: string | null
+  steamId: string
+  username: string
+  avatar: string
+  kills: number
+  deaths: number
+  assists: number
+  kdDiff: number
+  headshotPercent: number
+  adr: number | null
+  kastPercent: number | null
+  mvps: number | null
+  utilityDamage: number | null
+  enemiesFlashed: number | null
+  firstKills: number | null
+  firstDeaths: number | null
+  multiKills: { k3: number; k4: number; k5: number } | null
+  clutchesWon: number | null
+  ratingDelta: number
+  roundsPlayed: number
+}
+
+export interface MatchDetailTeam {
+  key: "team1" | "team2"
+  name: string
+  score: number
+  won: boolean
+  players: MatchDetailPlayer[]
+}
+
+export interface MatchDetailRound {
+  number: number
+  winnerTeam: "team1" | "team2" | null
+  winnerSide: "t" | "ct" | null
+  outcome: MatchRoundOutcome
+  score: { team1: number; team2: number }
+}
+
+/** GET /api/v1/public/matches/:matchId/maps/:mapNumber */
+export interface MatchDetail {
+  matchId: string
+  mapNumber: number
+  mapName: string
+  playedAt: string | null
+  winner: "team1" | "team2" | null
+  teams: MatchDetailTeam[]
+  rounds: MatchDetailRound[]
 }
 
 /* ----------------------------------------------------------------------------
@@ -562,7 +625,8 @@ export interface PromotionHistoryItem {
  * Moderation / penalties
  * ------------------------------------------------------------------------- */
 
-export type PenaltyType = "ban" | "mute" | "gag"
+/** Matches the legacy_x.penalty_type enum; "comm" is a voice/communication block (shown as MUTE). */
+export type PenaltyType = "ban" | "comm" | "gag"
 
 export interface PenaltyEntry {
   id: string
@@ -584,7 +648,8 @@ export interface PenaltyStats {
   totalBans: number
   activeBans: number
   permanentBans: number
-  totalMutes: number
+  /** Voice mutes (penalty type "comm"); the backend names the field after the enum value. */
+  totalComms: number
   totalGags: number
 }
 

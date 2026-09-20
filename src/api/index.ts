@@ -35,6 +35,7 @@ export { searchService } from "./search"
 export { communityService } from "./community"
 export { communityLeadersService } from "./community-leaders"
 export { competitiveService } from "./competitive"
+export { matchesService } from "./matches"
 export { skinchangerService } from "./skinchanger"
 export type {
   SkinchangerActiveServerSession,

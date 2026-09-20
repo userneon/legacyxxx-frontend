@@ -1,15 +1,29 @@
-/** LEGACY-X map visual system: normalize gameplay-server map keys to supplied CS2 artwork without changing card composition. */
+import deAncient from "@/assets/maps/de_ancient.webp"
+import deAnubis from "@/assets/maps/de_anubis.webp"
+import deCache from "@/assets/maps/de_cache.webp"
+import deDust2 from "@/assets/maps/de_dust2.webp"
+import deInferno from "@/assets/maps/de_inferno.webp"
+import deMirage from "@/assets/maps/de_mirage.webp"
+import deNuke from "@/assets/maps/de_nuke.webp"
+import deOverpass from "@/assets/maps/de_overpass.webp"
+import deTrain from "@/assets/maps/de_train.webp"
+import deVertigo from "@/assets/maps/de_vertigo.webp"
+
+/**
+ * LEGACY-X map visual system: normalize gameplay-server map keys to supplied CS2 artwork without changing card composition.
+ * Artwork is bundled from src/assets (hashed by Vite) so it ships with every build; the old /manus-storage paths never existed on the production host.
+ */
 const CS2_MAP_ARTWORK: Record<string, string> = {
-  de_ancient: "/manus-storage/de_ancient_5c295756.png",
-  de_anubis: "/manus-storage/de_anubis_7c7be7cb.png",
-  de_cache: "/manus-storage/de_cache_cca711a1.png",
-  de_dust2: "/manus-storage/de_dust2_c5ddfc57.jpg",
-  de_inferno: "/manus-storage/de_inferno_0621ddee.png",
-  de_mirage: "/manus-storage/de_mirage_35cb582f.png",
-  de_nuke: "/manus-storage/de_nuke_4cc74e3e.png",
-  de_overpass: "/manus-storage/de_overpass_7ac13682.png",
-  de_train: "/manus-storage/de_train_66abb588.png",
-  de_vertigo: "/manus-storage/de_vertigo_ffa95ee0.png",
+  de_ancient: deAncient,
+  de_anubis: deAnubis,
+  de_cache: deCache,
+  de_dust2: deDust2,
+  de_inferno: deInferno,
+  de_mirage: deMirage,
+  de_nuke: deNuke,
+  de_overpass: deOverpass,
+  de_train: deTrain,
+  de_vertigo: deVertigo,
 }
 
 const CS2_MAP_LABELS: Record<string, string> = {

@@ -20,7 +20,8 @@ import { StaffPanelPage } from "@/pages/staffpanel"
 import { ProtectedPage } from "@/components/protected-page"
 import { useAuth } from "@/hooks/use-auth"
 import type { PageId } from "@/api/types"
-import { PAGE_TITLES, routeToPage } from "@/lib/routes"
+import { PAGE_TITLES, routeToPage, pageToRoute } from "@/lib/routes"
+import { isFeatureEnabled } from "@/lib/features"
 
 // LEGACY-X visual system: preserve the existing compact glass sidebar shell and route-level page transitions.
 export function App() {
@@ -90,11 +91,11 @@ export function App() {
               <Route path="/play/proleague" element={<PlayPage mode="proleague" />} />
               <Route path="/tournaments" element={<PlayPage mode="tournaments" />} />
               <Route path="/leaders" element={<LeadersPage onProfileNavigate={handleProfileNavigate} />} />
-              <Route path="/clan" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />
-              <Route path="/clans" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />
-              <Route path="/clan/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />
-              <Route path="/clans/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />
-              <Route path="/shop" element={<ProtectedPage pageName="Shop"><ShopPage /></ProtectedPage>} />
+              {isFeatureEnabled("clan") && <Route path="/clan" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
+              {isFeatureEnabled("clan") && <Route path="/clans" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
+              {isFeatureEnabled("clan") && <Route path="/clan/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
+              {isFeatureEnabled("clan") && <Route path="/clans/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
+              {isFeatureEnabled("shop") && <Route path="/shop" element={<ProtectedPage pageName="Shop"><ShopPage /></ProtectedPage>} />}
               <Route path="/skinchanger" element={<ProtectedPage pageName="Skinchanger"><SkinchangerPage /></ProtectedPage>} />
               <Route path="/penalties" element={<PenaltiesPage onProfileNavigate={handleProfileNavigate} />} />
               <Route path="/explore" element={<ExplorePage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />
@@ -111,7 +112,7 @@ export function App() {
                   <ProfilePage />
                 </ProtectedPage>
               } />
-              <Route path="/wallet" element={<ProtectedPage pageName="Wallet"><WalletPage /></ProtectedPage>} />
+              {isFeatureEnabled("wallet") && <Route path="/wallet" element={<ProtectedPage pageName="Wallet"><WalletPage /></ProtectedPage>} />}
               <Route path="/connect" element={<ConnectPage />} />
               <Route path="/staffpanel" element={<StaffPanelPage />} />
               <Route path="*" element={<HomePage onNavigate={handleNavigate} />} />
@@ -146,23 +147,7 @@ class RouteErrorBoundary extends Component<{ children: ReactNode; resetKey: stri
 }
 
 function getRouteForPage(page: PageId): string {
-  switch (page) {
-    case "home": return "/"
-    case "play-5vs5": return "/play/5vs5"
-    case "play-fun": return "/play/fun"
-    case "play-proleague": return "/play/proleague"
-    case "play-tournaments": return "/tournaments"
-    case "leaders": return "/leaders"
-    case "clan": return "/clan"
-    case "shop": return "/shop"
-    case "skinchanger": return "/skinchanger"
-    case "penalties": return "/penalties"
-    case "explore": return "/explore"
-    case "feedback": return "/reviews"
-    case "profile": return "/profile"
-    case "wallet": return "/wallet"
-    default: return "/"
-  }
+  return pageToRoute(page)
 }
 
 export default App

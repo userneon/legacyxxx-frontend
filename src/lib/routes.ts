@@ -1,4 +1,5 @@
 import type { PageId } from "@/api/types"
+import { isPageEnabled } from "@/lib/features"
 
 export const PAGE_ROUTES: Record<PageId, string> = {
   home: "/",
@@ -38,8 +39,9 @@ export const PAGE_TITLES: Record<PageId, string> = {
   wallet: "Wallet",
 }
 
-export function routeToPage(pathname: string): PageId {
+function matchPage(pathname: string): PageId {
   if (pathname.startsWith("/players/")) return "profile"
+  if (pathname.startsWith("/profile/")) return "profile"
   if (pathname.startsWith("/clan/")) return "clan"
   if (pathname.startsWith("/clans/")) return "clan"
   if (pathname === "/search") return "explore"
@@ -48,6 +50,14 @@ export function routeToPage(pathname: string): PageId {
   return ROUTE_PAGES[pathname] ?? "home"
 }
 
+export function routeToPage(pathname: string): PageId {
+  // A disabled feature has no route, so its address falls through to the home page — and so must the
+  // page title in the header.
+  const page = matchPage(pathname)
+  return isPageEnabled(page) ? page : "home"
+}
+
 export function pageToRoute(page: PageId): string {
+  if (!isPageEnabled(page)) return "/"
   return PAGE_ROUTES[page] ?? "/"
 }

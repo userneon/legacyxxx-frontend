@@ -7,11 +7,17 @@ import type { ClanCard, CommunityPlayer, SearchKind } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { isFeatureEnabled } from "@/lib/features"
 
 // LEGACY-X visual system: keep the existing glass search panels while making every result lead to its true resource route.
 export function ExplorePage({ onProfileNavigate, onClanNavigate }: { onProfileNavigate: (userId: string) => void; onClanNavigate: (clanId: string) => void }) {
   const [tab, setTab] = useState<SearchKind>("players")
   const [query, setQuery] = useState("")
+  // Clan search only exists while the clan feature is on; without it there is a single kind of result.
+  const searchTabs = [
+    { id: "players" as const, label: "Players", icon: User },
+    ...(isFeatureEnabled("clan") ? [{ id: "clans" as const, label: "Clans", icon: Swords }] : []),
+  ]
 
   const { data, loading, error, refetch } = useApiQuery<CommunityPlayer[] | ClanCard[]>(
     (signal) => {
@@ -36,7 +42,7 @@ export function ExplorePage({ onProfileNavigate, onClanNavigate }: { onProfileNa
         <Search className="size-5 text-muted-foreground" />
         <input
           type="text"
-          placeholder="Search players or clans..."
+          placeholder={isFeatureEnabled("clan") ? "Search players or clans..." : "Search players..."}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
@@ -44,11 +50,8 @@ export function ExplorePage({ onProfileNavigate, onClanNavigate }: { onProfileNa
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2">
-        {([
-          { id: "players" as const, label: "Players", icon: User },
-          { id: "clans" as const, label: "Clans", icon: Swords },
-        ]).map((t) => (
+      {searchTabs.length > 1 && <div className="flex gap-2">
+        {searchTabs.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
@@ -63,7 +66,7 @@ export function ExplorePage({ onProfileNavigate, onClanNavigate }: { onProfileNa
             {t.label}
           </button>
         ))}
-      </div>
+      </div>}
 
       {/* Results */}
       <QueryState
@@ -75,7 +78,7 @@ export function ExplorePage({ onProfileNavigate, onClanNavigate }: { onProfileNa
       />
 
       {!loading && !error && results.length > 0 && (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="stagger-in grid gap-3 sm:grid-cols-2">
           {tab === "players"
             ? (results as CommunityPlayer[]).map((player) => (
               <button
