@@ -654,7 +654,7 @@ export function ProfilePage({ userId }: ProfilePageProps) {
     profileService.getStats(effectiveUserId, { signal }),
   )
 
-  const { data: penalties } = useApiQuery<PenaltyEntry[]>((signal) =>
+  const { data: penalties, loading: penaltiesLoading, error: penaltiesError } = useApiQuery<PenaltyEntry[]>((signal) =>
     profileService.getPenalties(effectiveUserId, { signal }),
   )
   const [openPenalty, setOpenPenalty] = useState<PenaltyEntry | null>(null)
@@ -882,9 +882,18 @@ export function ProfilePage({ userId }: ProfilePageProps) {
             </section>
           )}
 
-          {(penalties?.length ?? 0) > 0 && (
+          {/* Always present, so a clean record reads as one rather than as a missing section.
+              Hidden only when the list could not be read at all, which is never a "no penalties" answer. */}
+          {profile && !penaltiesError && (
             <section className="profile-rise glass rounded-2xl p-4">
               <h2 className="mb-3 text-sm font-semibold">Penalty History</h2>
+              {penaltiesLoading && !penalties ? (
+                <div className="flex flex-col gap-1.5" aria-busy="true">
+                  {[0, 1].map((index) => <div key={index} className="h-[3.25rem] animate-pulse rounded-xl bg-white/[0.05]" />)}
+                </div>
+              ) : (penalties?.length ?? 0) === 0 ? (
+                <p className="rounded-xl bg-secondary/40 px-3 py-4 text-center text-xs text-muted-foreground">No penalty history</p>
+              ) : (
               <ul className="stagger-in flex flex-col gap-1.5">
                 {(penalties ?? []).map((penalty) => (
                   <li key={penalty.id}>
@@ -903,6 +912,7 @@ export function ProfilePage({ userId }: ProfilePageProps) {
                   </li>
                 ))}
               </ul>
+              )}
             </section>
           )}
 
