@@ -72,7 +72,15 @@ export function PenaltyDetailDialog({ penalty, onClose, onProfileNavigate }: { p
 
   return (
     <Dialog open={penalty !== null} onOpenChange={(open) => { if (!open) onClose() }}>
-      <DialogContent className="max-w-md gap-0 overflow-hidden p-0">
+      {/* Opens and closes on the same eased curve, over a backdrop that only just softens the page. */}
+      <DialogContent
+        overlayClassName="bg-black/45 backdrop-blur-[3px] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:animate-none"
+        className={cn(
+          "max-w-md gap-0 overflow-hidden p-0",
+          "duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:animate-none",
+          "data-[state=open]:slide-in-from-bottom-2 data-[state=closed]:slide-out-to-bottom-2",
+        )}
+      >
         {penalty && (
           <>
             <div className={cn("relative px-6 pb-5 pt-6", penalty.type === "ban" && status === "active" ? "bg-destructive/[0.08]" : "bg-white/[0.03]")}>
