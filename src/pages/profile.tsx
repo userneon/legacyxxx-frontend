@@ -671,6 +671,18 @@ export function ProfilePage({ userId }: ProfilePageProps) {
     profileService.getFaceitProfile(effectiveUserId, { signal }),
   )
 
+  // Arriving by user id, or at your own SteamID64, rewrites the address to the canonical one.
+  useEffect(() => {
+    if (!profile || !steamId) return
+    if (authenticatedUser && profile.id === authenticatedUser.id) {
+      navigate("/profile", { replace: true })
+      return
+    }
+    if (profile.steamId && steamId !== profile.steamId) {
+      navigate(`/profile/${encodeURIComponent(profile.steamId)}`, { replace: true })
+    }
+  }, [authenticatedUser, navigate, profile, steamId])
+
   const handleLogout = () => {
     void logout()
   }

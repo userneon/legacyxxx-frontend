@@ -33,19 +33,17 @@ export function App() {
   const currentPage = routeToPage(location.pathname)
 
   const handleNavigate = (page: PageId) => {
-    if (page === "profile" && user?.steamId) {
-      navigate(`/profile/${user.steamId}`)
-      return
-    }
     navigate(getRouteForPage(page))
   }
 
-  const handleProfileNavigate = (steamId: string) => {
-    const profilePath = `/profile/${encodeURIComponent(steamId)}`
-    if (user?.steamId === steamId) {
-      navigate(profilePath)
+  /** A player is addressed by SteamID64; your own profile is simply /profile. */
+  const handleProfileNavigate = (identity: string) => {
+    if (identity === user?.steamId || identity === user?.id) {
+      navigate("/profile")
       return
     }
+
+    const profilePath = `/profile/${encodeURIComponent(identity)}`
 
     const profileTab = window.open(profilePath, "_blank")
     if (profileTab) {

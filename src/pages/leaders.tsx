@@ -150,7 +150,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
                     key={player.user_id}
                     player={player}
                     isSelf={Boolean(user && user.id === player.user_id)}
-                    onOpen={() => onProfileNavigate(player.user_id)}
+                    onOpen={() => onProfileNavigate(player.steam_id || player.user_id)}
                   />
                 ))}
               </div>
@@ -236,7 +236,7 @@ function PodiumPlayer({ player, rank, onProfileNavigate }: { player?: Competitiv
   return (
     <button
       type="button"
-      onClick={() => onProfileNavigate(player.user_id)}
+      onClick={() => onProfileNavigate(player.steam_id || player.user_id)}
       className="group mx-auto flex w-full min-w-0 max-w-[17rem] flex-col items-center text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
       aria-label={`Open ${player.username} profile`}
     >
