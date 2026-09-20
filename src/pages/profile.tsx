@@ -24,8 +24,9 @@ import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
 import { isFeatureEnabled } from "@/lib/features"
+import { PenaltyDetailDialog, TypeIcon, TYPE_META } from "@/components/penalty-detail-dialog"
 import { competitiveService, profileService } from "@/api"
-import type { ApiError, CompetitiveProfile, FaceitProfileData, ProfileRecentMatch, ProfileStats, UserProfile } from "@/api/types"
+import type { ApiError, CompetitiveProfile, FaceitProfileData, PenaltyEntry, ProfileRecentMatch, ProfileStats, UserProfile } from "@/api/types"
 import { Button } from "@/components/ui/button"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
@@ -653,6 +654,11 @@ export function ProfilePage({ userId }: ProfilePageProps) {
     profileService.getStats(effectiveUserId, { signal }),
   )
 
+  const { data: penalties } = useApiQuery<PenaltyEntry[]>((signal) =>
+    profileService.getPenalties(effectiveUserId, { signal }),
+  )
+  const [openPenalty, setOpenPenalty] = useState<PenaltyEntry | null>(null)
+
   const { data: recentMatches, loading: matchesLoading } = useApiQuery<ProfileRecentMatch[]>((signal) =>
     profileService.getRecentMatches(effectiveUserId, { signal }),
   )
@@ -876,6 +882,30 @@ export function ProfilePage({ userId }: ProfilePageProps) {
             </section>
           )}
 
+          {(penalties?.length ?? 0) > 0 && (
+            <section className="profile-rise glass rounded-2xl p-4">
+              <h2 className="mb-3 text-sm font-semibold">Penalty History</h2>
+              <ul className="stagger-in flex flex-col gap-1.5">
+                {(penalties ?? []).map((penalty) => (
+                  <li key={penalty.id}>
+                    <button
+                      type="button"
+                      onClick={() => setOpenPenalty(penalty)}
+                      className="group flex w-full items-center justify-between gap-3 rounded-xl bg-secondary/50 px-3 py-2.5 text-left transition-colors hover:bg-secondary/70"
+                      aria-label={`Open ${(TYPE_META[penalty.type] ?? TYPE_META.ban).label} details`}
+                    >
+                      <span className="flex min-w-0 items-center gap-3">
+                        <TypeIcon type={penalty.type} className="size-8 rounded-lg" />
+                        <span className="truncate text-sm font-medium">{(TYPE_META[penalty.type] ?? TYPE_META.ban).label}</span>
+                      </span>
+                      <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           {isFeatureEnabled("clan") && profile?.clan && (
             <button
               type="button"
@@ -913,6 +943,12 @@ export function ProfilePage({ userId }: ProfilePageProps) {
           )}
         </aside>
       </div>
+
+      <PenaltyDetailDialog
+        penalty={openPenalty}
+        onClose={() => setOpenPenalty(null)}
+        onProfileNavigate={(steamId) => navigate(`/profile/${encodeURIComponent(steamId)}`)}
+      />
     </div>
   )
 }
