@@ -36,8 +36,11 @@ function subscribeToMinuteTick(listener: () => void) {
   }
 }
 
-/** Human-friendly timestamp with the exact local date and time on hover. Unparseable values are shown as given. */
-export function RelativeTime({ value, className }: { value: string | null | undefined; className?: string }) {
+/**
+ * Human-friendly timestamp with the exact local date and time on hover. Unparseable values are shown
+ * as given. `prefix` puts the timestamp in context, e.g. "Issued 2 days ago".
+ */
+export function RelativeTime({ value, prefix, className }: { value: string | null | undefined; prefix?: string; className?: string }) {
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => subscribeToMinuteTick(() => setNow(Date.now())), [])
 
@@ -48,7 +51,7 @@ export function RelativeTime({ value, className }: { value: string | null | unde
   const exact = date.toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })
   return (
     <time dateTime={date.toISOString()} title={exact} className={cn("tabular-nums", className)}>
-      {formatRelativeTime(date, now)}
+      {prefix}{formatRelativeTime(date, now)}
     </time>
   )
 }

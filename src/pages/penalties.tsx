@@ -10,6 +10,7 @@ import { QueryState } from "@/components/query-state"
 import { RelativeTime } from "@/components/relative-time"
 import { AnimatedNumber } from "@/components/animated-number"
 import { PlayerModerationAvatar } from "@/components/player-moderation-avatar"
+import { PlayerAvatar } from "@/components/player-avatar"
 import { PenaltyDetailDialog, StatusPill, TypeIcon, TYPE_META, penaltyStatus } from "@/components/penalty-detail-dialog"
 
 type PenaltyFilter = "all" | PenaltyType
@@ -91,8 +92,8 @@ function PenaltyRow({ penalty, onOpen }: { penalty: PenaltyEntry; onOpen: () => 
       onClick={onOpen}
       className={cn(
         "group relative grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 border-b border-white/[0.05] px-4 py-3 text-left transition-colors hover:bg-white/[0.03] focus-visible:bg-white/[0.04] focus-visible:outline-none",
-        "@3xl:grid-cols-[auto_minmax(0,1.1fr)_minmax(0,1.6fr)_7.5rem_minmax(0,0.8fr)_5.5rem_1rem]",
-        status === "lifted" && "opacity-70"
+        "@3xl:grid-cols-[auto_minmax(0,1.1fr)_minmax(0,1.5fr)_7.5rem_minmax(0,0.9fr)_8.5rem_1rem]",
+        status !== "active" && "opacity-70"
       )}
     >
       <TypeIcon type={penalty.type} />
@@ -110,16 +111,25 @@ function PenaltyRow({ penalty, onOpen }: { penalty: PenaltyEntry; onOpen: () => 
       {/* Narrow: status + date stacked on the right */}
       <div className="flex flex-col items-end gap-1 @3xl:hidden">
         <StatusPill status={status} />
-        <RelativeTime value={penalty.date} className="text-[11px] text-muted-foreground" />
+        <RelativeTime value={penalty.date} prefix="Issued " className="text-[11px] text-muted-foreground" />
       </div>
 
       {/* Wide columns */}
       <p className="hidden truncate text-sm text-white/80 @3xl:block">{penalty.reason || <span className="text-muted-foreground">No reason given</span>}</p>
-      <span className="hidden text-xs tabular-nums text-muted-foreground @3xl:block">{penalty.isPermanent ? "Permanent" : penalty.term || "—"}</span>
-      <span className="hidden min-w-0 items-center gap-1.5 text-xs text-muted-foreground @3xl:flex"><Shield className="size-3 shrink-0" /><span className="truncate">{penalty.admin || "System"}</span></span>
+      <span className="hidden items-center gap-1.5 text-xs text-muted-foreground @3xl:flex">
+        {penalty.isPermanent
+          ? <><Lock className="size-3 shrink-0 text-destructive" /><span className="text-white/80">Permanent</span></>
+          : <span className="truncate tabular-nums">{penalty.term || "—"}</span>}
+      </span>
+      <span className="hidden min-w-0 items-center gap-2 text-xs text-muted-foreground @3xl:flex">
+        {penalty.admin
+          ? <PlayerAvatar avatar={penalty.adminAvatar} name={penalty.admin} className="size-5 shrink-0 rounded-md text-[8px]" />
+          : <Shield className="size-3 shrink-0" />}
+        <span className="truncate">{penalty.admin || "System"}</span>
+      </span>
       <div className="hidden flex-col items-start gap-1 @3xl:flex">
         <StatusPill status={status} />
-        <RelativeTime value={penalty.date} className="text-[11px] text-muted-foreground" />
+        <RelativeTime value={penalty.date} prefix="Issued " className="text-[11px] text-muted-foreground" />
       </div>
       <ChevronRight className="hidden size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 @3xl:block" />
     </button>
@@ -146,7 +156,7 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
   const q = query.trim().toLowerCase()
   const base = allPenalties.filter((penalty) =>
     (!q || [penalty.player, penalty.reason, penalty.admin].some((field) => String(field ?? "").toLowerCase().includes(q))) &&
-    (!activeOnly || penaltyStatus(penalty) !== "lifted"),
+    (!activeOnly || penaltyStatus(penalty) === "active"),
   )
   const counts: Record<PenaltyFilter, number> = {
     all: base.length,
@@ -228,12 +238,12 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
       </div>
 
       <section className="glass overflow-hidden rounded-2xl">
-        <div className="hidden grid-cols-[auto_minmax(0,1.1fr)_minmax(0,1.6fr)_7.5rem_minmax(0,0.8fr)_5.5rem_1rem] gap-x-3 border-b border-white/[0.06] px-4 py-2.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground @3xl:grid">
+        <div className="hidden grid-cols-[auto_minmax(0,1.1fr)_minmax(0,1.5fr)_7.5rem_minmax(0,0.9fr)_8.5rem_1rem] gap-x-3 border-b border-white/[0.06] px-4 py-2.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground @3xl:grid">
           <span className="w-9" />
           <span>Player</span>
           <span>Reason</span>
           <span>Duration</span>
-          <span>Admin</span>
+          <span>Issued by</span>
           <span>Status</span>
           <span />
         </div>

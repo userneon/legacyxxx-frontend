@@ -641,6 +641,9 @@ export interface PenaltyEntry {
   isUnbanned: boolean
   admin: string
   adminSteamId?: string
+  adminAvatar?: string
+  /** When a temporary penalty stops applying; null for permanent ones. */
+  expiresAt?: string | null
   date: string
 }
 

@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { RelativeTime } from "@/components/relative-time"
 import { PlayerModerationAvatar } from "@/components/player-moderation-avatar"
 
-export type PenaltyStatus = "active" | "permanent" | "lifted"
+export type PenaltyStatus = "active" | "expired" | "unbanned"
 
 /** Penalty types as stored in legacy_x.penalty_type ("comm" is a voice mute). */
 export const TYPE_META: Record<PenaltyType, { label: string; icon: typeof Ban; tone: string; iconTone: string }> = {
@@ -23,14 +23,19 @@ export const TYPE_META: Record<PenaltyType, { label: string; icon: typeof Ban; t
 
 export const STATUS_META: Record<PenaltyStatus, { label: string; tone: string }> = {
   active: { label: "Active", tone: "border-emerald-300/30 bg-emerald-400/10 text-emerald-200" },
-  permanent: { label: "Permanent", tone: "border-destructive/35 bg-destructive/12 text-destructive" },
-  lifted: { label: "Lifted", tone: "border-white/10 bg-white/[0.05] text-white/55" },
+  expired: { label: "Expired", tone: "border-white/10 bg-white/[0.05] text-white/55" },
+  unbanned: { label: "Unbanned", tone: "border-sky-300/25 bg-sky-300/10 text-sky-200" },
 }
 
-/** A lifted penalty is no longer in force even if it was issued as permanent. */
+/**
+ * Whether the penalty still applies. A lifted one is unbanned even if it was issued as permanent,
+ * and only a temporary one can run out. How long it lasts is the Duration column's job, not this.
+ */
 export function penaltyStatus(penalty: PenaltyEntry): PenaltyStatus {
-  if (penalty.isUnbanned) return "lifted"
-  return penalty.isPermanent ? "permanent" : "active"
+  if (penalty.isUnbanned) return "unbanned"
+  const expiresAt = penalty.expiresAt ? Date.parse(penalty.expiresAt) : Number.NaN
+  if (!penalty.isPermanent && Number.isFinite(expiresAt) && expiresAt <= Date.now()) return "expired"
+  return "active"
 }
 
 export function StatusPill({ status }: { status: PenaltyStatus }) {
@@ -38,7 +43,6 @@ export function StatusPill({ status }: { status: PenaltyStatus }) {
   return (
     <span className={cn("inline-flex h-6 items-center gap-1.5 rounded-full border px-2 text-[11px] font-semibold", meta.tone)}>
       {status === "active" && <span className="penalty-active-dot size-1.5 rounded-full bg-emerald-300" />}
-      {status === "permanent" && <Lock className="size-3" />}
       {meta.label}
     </span>
   )
@@ -71,7 +75,7 @@ export function PenaltyDetailDialog({ penalty, onClose, onProfileNavigate }: { p
       <DialogContent className="max-w-md gap-0 overflow-hidden p-0">
         {penalty && (
           <>
-            <div className={cn("relative px-6 pb-5 pt-6", penalty.type === "ban" && status !== "lifted" ? "bg-destructive/[0.08]" : "bg-white/[0.03]")}>
+            <div className={cn("relative px-6 pb-5 pt-6", penalty.type === "ban" && status === "active" ? "bg-destructive/[0.08]" : "bg-white/[0.03]")}>
               <DialogHeader className="items-start text-left">
                 <div className="flex items-center gap-3">
                   <TypeIcon type={penalty.type} className="size-11" />
