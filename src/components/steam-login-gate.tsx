@@ -1,23 +1,41 @@
+import { Lock, ShieldCheck } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
 
 interface SteamLoginGateProps {
+  /** The page the player was trying to open, so the gate can say what signing in opens. */
   pageName: string
 }
 
-export function SteamLoginGate({}: SteamLoginGateProps) {
+export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
   const { loginWithSteam } = useAuth()
 
   return (
-    <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center bg-[#0b0b0b] px-4 py-12 sm:px-6">
-      <section className="w-full max-w-[780px] text-center">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/55">Steam Required</p>
-        <h1 className="mt-3 text-4xl font-extrabold tracking-tight text-white">Access denied!</h1>
-        <div className="mt-6 flex h-[54px] items-center justify-center rounded-[14px] border border-white/[0.13] bg-black/45 px-5 text-sm font-semibold text-white/90 shadow-2xl shadow-black/40 backdrop-blur-md">
-          <span className="max-w-full truncate whitespace-nowrap">Sign in with Steam to unlock this feature and continue with LEGACY-X.</span>
+    <div className="flex min-h-[calc(100dvh-3.5rem)] items-center justify-center px-4 py-10 sm:px-6">
+      <section className="query-state-in glass relative w-full max-w-md overflow-hidden rounded-2xl p-6 text-center sm:p-8">
+        {/* One cool glow behind the lock, so the panel reads as a locked door rather than a crash. */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 -top-24 h-48 bg-[radial-gradient(ellipse_at_center,rgba(74,156,230,0.18),transparent_70%)]" />
+
+        <div className="relative">
+          <span className="mx-auto flex size-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-white/70">
+            <Lock className="size-5" />
+          </span>
+
+          <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/50">Steam required</p>
+          <h1 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">Access denied</h1>
+          <p className="mx-auto mt-3 max-w-xs text-sm leading-6 text-muted-foreground">
+            Sign in with Steam to open {pageName} and continue with LEGACY-X.
+          </p>
+
+          <SteamLoginButton onClick={loginWithSteam} className="mt-6 w-full sm:w-auto" />
+
+          <p className="mt-5 flex items-center justify-center gap-1.5 text-[11px] leading-4 text-muted-foreground">
+            <ShieldCheck className="size-3.5 shrink-0" />
+            Steam handles the sign-in. LEGACY-X never sees your password.
+          </p>
         </div>
-        <SteamLoginButton onClick={loginWithSteam} className="mt-6" />
       </section>
     </div>
   )
