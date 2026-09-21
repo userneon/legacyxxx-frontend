@@ -984,3 +984,18 @@
     60% { box-shadow: 0 0 0 5px rgb(110 231 183 / 0); }
   }
 }
+
+/* Top 1/2/3 avatar frame: a soft light in the frame's own metal, breathing slowly. */
+.top-rank-frame {
+  filter: drop-shadow(0 0 var(--frame-glow-size, 5px) var(--frame-glow, transparent));
+  animation: top-rank-frame-glow 3.2s ease-in-out infinite;
+}
+
+@keyframes top-rank-frame-glow {
+  0%, 100% { filter: drop-shadow(0 0 var(--frame-glow-size, 5px) var(--frame-glow, transparent)); }
+  50% { filter: drop-shadow(0 0 calc(var(--frame-glow-size, 5px) * 1.6) var(--frame-glow, transparent)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .top-rank-frame { animation: none; }
+}
