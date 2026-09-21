@@ -72,11 +72,11 @@ export function PenaltyDetailDialog({ penalty, onClose, onProfileNavigate }: { p
 
   return (
     <Dialog open={penalty !== null} onOpenChange={(open) => { if (!open) onClose() }}>
-      {/* Opens and closes on the same eased curve, over a backdrop that only just softens the page. */}
+      {/* A glass panel over a backdrop that only just softens the page; opens and closes on one eased curve. */}
       <DialogContent
-        overlayClassName="bg-black/45 backdrop-blur-[3px] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:animate-none"
+        overlayClassName="bg-black/40 backdrop-blur-[3px] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:animate-none"
         className={cn(
-          "max-w-md gap-0 overflow-hidden p-0",
+          "glass max-w-md gap-0 overflow-hidden rounded-2xl p-0 shadow-2xl shadow-black/50",
           "duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:animate-none",
           "data-[state=open]:slide-in-from-bottom-2 data-[state=closed]:slide-out-to-bottom-2",
         )}
