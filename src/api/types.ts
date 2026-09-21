@@ -37,6 +37,8 @@ export interface ApiError {
   fields?: Record<string, string[]>
   /** A controlled backend error reason safe for page-specific handling. */
   reason?: string
+  /** The backend reason text. Only the staff panel shows it (permission refusals such as "Target is above your rank"). */
+  detail?: string
   /** ISO timestamp used only by explicit retry/cooldown responses. */
   retryAt?: string
 }

@@ -1,4 +1,4 @@
-import { Component, useEffect, useRef, type ReactNode } from "react"
+import { Component, Suspense, lazy, useEffect, useRef, type ReactNode } from "react"
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom"
 
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
@@ -20,6 +20,14 @@ import { useAuth } from "@/hooks/use-auth"
 import type { PageId } from "@/api/types"
 import { PAGE_TITLES, routeToPage, pageToRoute } from "@/lib/routes"
 import { isFeatureEnabled } from "@/lib/features"
+
+// The staff panel is its own shell and bundle; players never download it.
+const PanelApp = lazy(() => import("@/panel/panel-app"))
+const StaffProfileApp = lazy(() => import("@/panel/panel-app").then((module) => ({ default: module.StaffProfileApp })))
+
+function PanelFallback() {
+  return <div className="flex min-h-dvh items-center justify-center"><div className="size-6 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-muted-foreground" /></div>
+}
 
 // LEGACY-X visual system: preserve the existing compact glass sidebar shell and route-level page transitions.
 export function App() {
@@ -62,6 +70,17 @@ export function App() {
       mainRef.current.scrollTo({ top: 0, behavior: "smooth" })
     }
   }, [location.pathname])
+
+  if (location.pathname === "/panel" || location.pathname.startsWith("/panel/") || location.pathname.startsWith("/u/")) {
+    return (
+      <Suspense fallback={<PanelFallback />}>
+        <Routes>
+          <Route path="/panel/*" element={<PanelApp />} />
+          <Route path="/u/:steamId" element={<StaffProfileApp />} />
+        </Routes>
+      </Suspense>
+    )
+  }
 
   return (
     <SidebarProvider defaultOpen>

@@ -134,6 +134,7 @@ async function toApiError(response: Response): Promise<ApiError> {
   let fields: Record<string, string[]> | undefined
   let reason: string | undefined
   let retryAt: string | undefined
+  let detail: string | undefined
 
   try {
     const contentType = response.headers.get("content-type") ?? ""
@@ -141,6 +142,8 @@ async function toApiError(response: Response): Promise<ApiError> {
       const body = await response.json()
       if (body && typeof body === "object") {
         const apiFields = (body as { fields?: unknown }).fields
+        const apiMessage = (body as { error?: unknown }).error
+        if (typeof apiMessage === "string" && apiMessage.length <= 240) detail = apiMessage
         if (apiFields && typeof apiFields === "object") {
           fields = apiFields as Record<string, string[]>
         }
@@ -156,7 +159,7 @@ async function toApiError(response: Response): Promise<ApiError> {
     /* Response body could not be parsed; keep the default message. */
   }
 
-  return { status, code, message, fields, reason, retryAt }
+  return { status, code, message, fields, reason, retryAt, detail }
 }
 
 /* ---------------------------------------------------------------------------
@@ -170,6 +173,11 @@ async function toApiError(response: Response): Promise<ApiError> {
 function canonicalApiPath(path: string): string {
   if (!path.startsWith("/")) return `/api/v1/${path}`
   return path.startsWith("/api/") ? path : `/api/v1${path}`
+}
+
+/** Absolute URL of an API path, for full-page navigations such as the Steam re-auth round trip. */
+export function apiUrl(path: string): string {
+  return `${BASE_URL}${canonicalApiPath(path)}`
 }
 
 /** Builds a URL from a base, a canonical API path, and optional query parameters. */

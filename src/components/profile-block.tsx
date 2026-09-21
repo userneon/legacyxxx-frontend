@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils"
 import type { PageId, UserProfile } from "@/api/types"
 import { useAuth } from "@/hooks/use-auth"
 import { NotificationsMenu } from "@/components/notifications-menu"
+import { StaffPanelButton } from "@/components/staff-panel-button"
 
 interface ProfileBlockProps {
   onNavigate: (page: PageId) => void
@@ -13,6 +14,8 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
 
   return (
     <div className="flex items-center gap-2">
+      {/* On phones the shortcut moves to the top of the navigation menu instead. */}
+      <StaffPanelButton className="hidden md:flex" />
       <NotificationsMenu />
 
       {/* Avatar block */}
