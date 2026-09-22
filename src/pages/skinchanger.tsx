@@ -704,17 +704,19 @@ export function SkinchangerPage() {
       <div
         key={id}
         data-slot-card={id}
+        inert={dimmed || undefined}
+        aria-disabled={dimmed || undefined}
         style={rarity ? { backgroundImage: `radial-gradient(ellipse 95% 78% at 0% 100%, ${rarity.glow} 0%, transparent 68%)` } : undefined}
         className={cn(
           "group relative aspect-square overflow-hidden rounded-lg border bg-background/60 transition-[border-color,opacity] duration-150 hover:border-foreground/30",
           savedItem ? "border-border" : "border-border/60",
-          dimmed && "opacity-45 hover:opacity-100",
+          dimmed && "pointer-events-none opacity-35 grayscale",
         )}
       >
         {rarity && <span aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100" style={{ backgroundImage: `radial-gradient(ellipse 105% 88% at 0% 100%, ${strongerGlow(rarity.glow)} 0%, transparent 70%)` }} />}
         {entry && savedItem && <span aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ backgroundImage: teamScopeFade(entry.team_scope) }} />}
 
-        <button type="button" onClick={onOpen} aria-label={openLabel} className="absolute inset-0 z-[1] rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground/60" />
+        <button type="button" disabled={dimmed} onClick={onOpen} aria-label={openLabel} className="absolute inset-0 z-[1] rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground/60" />
 
         <div className="pointer-events-none relative flex h-full flex-col p-2.5">
           <div className="flex min-h-0 flex-1 items-center justify-center">
@@ -734,6 +736,7 @@ export function SkinchangerPage() {
 
         <button
           type="button"
+          disabled={dimmed}
           onClick={(event) => { event.stopPropagation(); (onCustomize ?? onOpen)() }}
           aria-label={onCustomize && savedItem ? `Customize ${savedItem.display_name}` : openLabel}
           title={onCustomize && savedItem ? "Customize" : "Choose"}
@@ -746,7 +749,7 @@ export function SkinchangerPage() {
           <button
             type="button"
             onClick={(event) => { event.stopPropagation(); onRemove() }}
-            disabled={saving}
+            disabled={saving || dimmed}
             aria-label={`Remove ${savedItem.display_name}`}
             title="Remove"
             className="absolute right-1.5 top-1.5 z-[2] flex size-7 items-center justify-center rounded-md border border-border bg-background/90 text-muted-foreground opacity-0 shadow-sm backdrop-blur transition-[opacity,color,background-color] duration-150 hover:bg-destructive hover:text-destructive-foreground group-hover:opacity-100 focus-visible:opacity-100 disabled:pointer-events-none [@media(hover:none)]:opacity-100"
@@ -779,7 +782,7 @@ export function SkinchangerPage() {
       subtitle: savedItem ? savedSkinLabel(savedItem) : "Default",
       savedItem,
       entry,
-      // A T-only firearm while the switch is on CT (or the reverse) stays visible, but dimmed.
+      // A T-only firearm while the switch is on CT (or the reverse) stays visible, but cannot be opened.
       dimmed: kind === "weapon" && lockedTeam !== "all" && teamScope !== "all" && lockedTeam !== teamScope,
       openLabel: savedItem ? `Change ${item.display_name} skin (${savedSkinLabel(savedItem)})` : `Choose a ${item.display_name} skin`,
       onOpen: () => openModelPicker(item, kind),
@@ -874,7 +877,6 @@ export function SkinchangerPage() {
                 {savedItemForActiveSlot ? `Saved: ${activeWeapon ? savedSkinLabel(savedItemForActiveSlot) : savedItemForActiveSlot.display_name}` : activeWeapon ? "Choose a skin" : "Choose one"}
               </DialogDescription>
             </div>
-            {(activeWeapon || category === "music_kit" || category === "pin") && <div className="hidden sm:block">{renderTeamSwitch(true)}</div>}
           </div>
 
           <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,1fr)_340px]">
@@ -938,7 +940,6 @@ export function SkinchangerPage() {
               {previewChoice && catalogImageUrl(previewChoice) ? <OptimizedImage src={catalogImageUrl(previewChoice) ?? ""} width={320} height={160} priority alt={`${previewChoice.display_name} selected collectible`} data-catalog-item-id={previewChoice.id} className="h-full w-full object-contain p-3" /> : <span className="flex flex-col items-center gap-2 px-6 text-center"><ImageOff className="size-7 text-muted-foreground/50" /><span className="text-[11px] leading-4 text-muted-foreground">Pick one from the list.</span></span>}
               {canCustomizeAccessories && (previewStickerItems.length > 0 || previewCharmItem) && <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-2"><div className="flex -space-x-1.5">{previewStickerItems.slice(0, 5).map((item) => catalogImageUrl(item) && <OptimizedImage key={item.id} src={catalogImageUrl(item) ?? ""} width={28} height={28} alt={`${item.display_name} selected sticker`} data-catalog-item-id={item.id} className="size-7 rounded-full border border-background bg-card object-contain p-0.5" />)}</div>{previewCharmItem && catalogImageUrl(previewCharmItem) && <OptimizedImage src={catalogImageUrl(previewCharmItem) ?? ""} width={32} height={32} alt={`${previewCharmItem.display_name} selected charm`} data-catalog-item-id={previewCharmItem.id} className="size-8 rounded-md border border-background bg-card object-contain p-0.5" />}</div>}
             </div>
-              {(activeWeapon || category === "music_kit" || category === "pin") && <div className="mt-3 flex items-center justify-between sm:hidden"><span className="text-xs text-muted-foreground">Team</span>{renderTeamSwitch(true)}</div>}
             {selected && activeWeapon && (
               <div className="mt-3 grid grid-rows-[1fr] overflow-hidden">
               <div className="min-h-0 overflow-hidden">
