@@ -397,12 +397,9 @@ export function SkinchangerPage() {
     setSaving(true)
     try {
       // The server keeps one knife and one glove per team, so the team's previous one is removed first.
-      // A music kit or pin saved for Both replaces the T and CT ones, so it really plays for both sides.
       const replaced = slotTeam
         ? loadoutEntries.filter((entry) => entry.slot === activeSlot && entry.team_scope === slotTeam && !(entry.slot_key === selectedSlotKey && entry.catalog_item_id === selected.id))
-        : (activeSlot === "music_kit" || activeSlot === "pin") && selectedTeamScope === "all"
-          ? loadoutEntries.filter((entry) => entry.slot === activeSlot && entry.team_scope !== "all")
-          : []
+        : []
       let expectedVersion = loadoutVersion
       for (const entry of replaced) {
         const removed = await removeEntryWithCompatibility(entry, expectedVersion)
@@ -577,7 +574,7 @@ export function SkinchangerPage() {
     setSelected(agentEntryFor(team)?.skinchanger_catalog_items ?? null)
   }
 
-  /** Music kit and pin halves: the dialog starts on that half's team and can switch to T, CT or Both. */
+  /** Music kit and pin halves: the dialog saves for that half's team. */
   const openSinglePicker = (slot: SingleSlot, team: "t" | "ct") => {
     beginPicker()
     setCollection(slot)
@@ -1025,7 +1022,6 @@ export function SkinchangerPage() {
                 {savedItemForActiveSlot ? `Saved: ${activeWeapon ? savedSkinLabel(savedItemForActiveSlot) : savedItemForActiveSlot.display_name}` : activeWeapon ? "Choose a skin" : "Choose one"}
               </DialogDescription>
             </div>
-            {(category === "music_kit" || category === "pin") && renderTeamSwitch(true)}
           </div>
 
           <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,1fr)_340px]">
