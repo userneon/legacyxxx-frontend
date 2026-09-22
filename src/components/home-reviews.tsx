@@ -42,7 +42,7 @@ function Stars({ value, className }: { value: number; className?: string }) {
 
 function ReviewCard({ entry }: { entry: FeedbackEntry }) {
   return (
-    <article className="glass flex min-w-0 flex-col rounded-xl p-4">
+    <article className="glass flex min-w-0 flex-col rounded-2xl p-4">
       <div className="flex items-center gap-3">
         <PlayerAvatar avatar={entry.avatar} name={entry.name} className="size-10 rounded-md text-sm" />
         <div className="min-w-0">
@@ -94,7 +94,7 @@ export function HomeReviews({ onWriteReview }: { onWriteReview: () => void }) {
         <QueryState loading={loading} error={error} empty={false} onRetry={refetch} />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="glass flex flex-col justify-between gap-4 rounded-xl p-5">
+          <div className="glass flex flex-col justify-between gap-4 rounded-2xl p-5">
             {total > 0 ? (
               <div>
                 <div className="flex items-center gap-4">

@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils"
 import { serversService } from "@/api"
 import type { HomeStats, PageId, ReconnectMatch, ServerInfo } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
-import { AnimatedNumber } from "@/components/animated-number"
 import { OptimizedImage } from "@/components/optimized-image"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { toast } from "sonner"
@@ -17,6 +16,7 @@ import homeHeroGif from "@/assets/skinchanger/hero.gif"
 import { useAuth } from "@/hooks/use-auth"
 import { ServerLiveMatchDialog } from "@/components/server-live-match-dialog"
 import { HomeReviews } from "@/components/home-reviews"
+import { StatTile } from "@/components/page-kit"
 import { isFeatureEnabled } from "@/lib/features"
 
 interface HomePageProps {
@@ -84,10 +84,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const totalPlayers = homeStats?.playersOnline ?? (servers ?? []).reduce((acc, s) => acc + s.players, 0)
   // The clan tile only belongs here while clans are part of the product.
   const statTiles = [
-    { label: "Players Online", value: totalPlayers, icon: Users },
-    { label: "Live Servers", value: homeStats?.liveServers ?? liveServers.length, icon: Server },
-    { label: "Matches Today", value: homeStats?.matchesToday, icon: Gamepad2 },
-    ...(isFeatureEnabled("clan") ? [{ label: "Active Clans", value: homeStats?.activeClans, icon: Swords }] : []),
+    { label: "Players Online", value: totalPlayers, icon: Users, tone: "text-sky-300" },
+    { label: "Live Servers", value: homeStats?.liveServers ?? liveServers.length, icon: Server, tone: "text-emerald-300" },
+    { label: "Matches Today", value: homeStats?.matchesToday, icon: Gamepad2, tone: "text-white/90" },
+    ...(isFeatureEnabled("clan") ? [{ label: "Active Clans", value: homeStats?.activeClans, icon: Swords, tone: "text-amber-300" }] : []),
   ]
   const reconnectServer: ServerInfo | null = reconnect ? {
     id: reconnect.serverId,
@@ -132,10 +132,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
   }
 
   return (
-      <div className="flex flex-col gap-6 p-6">
+      <div className="@container flex flex-col gap-5 p-4 @2xl:p-6">
         {/* Hero */}
         <div className={cn(
-        "glass shiny-slow relative flex flex-col gap-4 overflow-hidden rounded-xl p-8"
+        "glass shiny-slow relative flex flex-col gap-4 overflow-hidden rounded-2xl p-8"
       )}>
         <picture className="pointer-events-none absolute inset-0">
           <OptimizedImage src={homeHeroGif} width={480} height={268} priority alt="" aria-hidden="true" className="h-full w-full object-cover opacity-30" />
@@ -172,7 +172,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 	        </div>
 
         {reconnect && reconnectServer && (
-          <section className="glass relative isolate overflow-hidden rounded-xl border border-amber-200/20 bg-amber-200/[0.045] p-5 shadow-lg shadow-black/10">
+          <section className="glass relative isolate overflow-hidden rounded-2xl border border-amber-200/20 bg-amber-200/[0.045] p-5 shadow-lg shadow-black/10">
             {cs2MapArtwork(reconnect.map) && <OptimizedImage src={cs2MapArtwork(reconnect.map)!} width={640} height={360} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-[0.12]" />}
             <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-background/95 via-background/80 to-background/55" />
             <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -198,7 +198,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
           rel="noreferrer"
           aria-label="Join the LEGACY-X Discord community"
           className={cn(
-            "group relative isolate flex min-h-40 overflow-hidden rounded-xl border border-[#5865F2]/25 bg-[#121526] p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#7289DA]/60 hover:shadow-[0_18px_48px_rgba(88,101,242,0.2)]",
+            "group relative isolate flex min-h-40 overflow-hidden rounded-2xl border border-[#5865F2]/25 bg-[#121526] p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#7289DA]/60 hover:shadow-[0_18px_48px_rgba(88,101,242,0.2)]",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7289DA] focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           )}
         >
@@ -225,16 +225,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
         </a>
 
         {/* Stats */}
-      <div className={cn("grid grid-cols-2 gap-4", statTiles.length === 4 ? "md:grid-cols-4" : "md:grid-cols-3")}>
-        {statTiles.map((stat) => (
-          <div key={stat.label} className="glass rounded-xl p-4 hover-lift transition-all">
-            <div className="flex items-center justify-between">
-              <stat.icon className="size-4 text-muted-foreground" />
-            </div>
-            <div className="mt-3 text-2xl font-bold tabular-nums"><AnimatedNumber value={stat.value} /></div>
-            <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
-          </div>
-        ))}
+      <div className={cn("grid grid-cols-2 gap-3", statTiles.length === 4 ? "@3xl:grid-cols-4" : "@3xl:grid-cols-3")}>
+        {statTiles.map((stat) => <StatTile key={stat.label} icon={stat.icon} label={stat.label} value={stat.value} tone={stat.tone} />)}
       </div>
 
       {/* Mode cards */}
@@ -244,7 +236,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
             key={mode.id}
             onClick={() => onNavigate(mode.id)}
             className={cn(
-              "glass shiny group flex flex-col gap-3 rounded-xl p-5 text-left",
+              "glass shiny group flex flex-col gap-3 rounded-2xl p-5 text-left",
               "transition-all hover:bg-secondary/30 hover:scale-[1.02]"
             )}
           >

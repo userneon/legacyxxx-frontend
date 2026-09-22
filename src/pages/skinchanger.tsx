@@ -33,6 +33,8 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { Checkbox } from "@/components/ui/checkbox"
 import { OptimizedImage } from "@/components/optimized-image"
 import { RelativeTime } from "@/components/relative-time"
+import { KnifeIcon } from "@/components/mask-icons"
+import { PageHeader, segmentGroupClass, segmentItemClass, stickyToolbarClass, toolbarSearchClass } from "@/components/page-kit"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cn } from "@/lib/utils"
 import pinsIcon from "@/assets/skinchanger/pins.png"
@@ -706,7 +708,7 @@ export function SkinchangerPage() {
     const teamLocked = Boolean(activeWeapon) && !showTeamSelector
     const shownTeam = teamLocked ? selectedTeamScope : teamScope
     return (
-      <div role="radiogroup" aria-label="Team" className="flex rounded-lg border border-border bg-background p-1">
+      <div role="radiogroup" aria-label="Team" className={segmentGroupClass}>
         {teamOptions.map((team) => {
           const isActive = shownTeam === team.id
           const isUnavailableBoth = team.id === "all" && hasOtherEquippedKnifeOrGloveLook
@@ -722,9 +724,8 @@ export function SkinchangerPage() {
               title={isUnavailableBoth ? "Another knife/glove look already uses Both. Choose T or CT." : teamLocked ? "This model's side is fixed" : undefined}
               style={isActive ? { backgroundImage: teamScopeFade(team.id) } : undefined}
               className={cn(
-                "flex items-center gap-1.5 rounded-md font-semibold transition-colors",
-                compact ? "h-7 px-2 text-[11px]" : "h-8 px-3 text-xs",
-                isActive ? "bg-secondary text-foreground ring-1 ring-inset ring-white/15" : "text-muted-foreground hover:text-foreground",
+                segmentItemClass(isActive),
+                compact && "px-2 text-[11px]",
                 disabled && !isActive && "cursor-not-allowed opacity-35",
                 disabled && isActive && "cursor-default",
               )}
@@ -937,20 +938,22 @@ export function SkinchangerPage() {
   const equippedIn = (items: SkinchangerCatalogItem[], kind: ModelKind) => items.filter((item) => gridEntryFor(item, kind)?.skinchanger_catalog_items).length
 
   return (
-    <div className="flex flex-col gap-4 p-4 sm:p-6">
-      <header className="flex flex-col gap-1">
-        <h1 className="text-lg font-semibold tracking-tight">Skinchanger</h1>
-        <p className="text-xs text-muted-foreground">
+    <div className="@container flex flex-col gap-5 p-4 @2xl:p-6">
+      <PageHeader
+        icon={KnifeIcon}
+        accent="sky"
+        title="Skinchanger"
+        description={<>
           {loadoutEntries.length === 0 ? "Nothing saved yet — pick any card to choose a look." : `${loadoutEntries.length} item${loadoutEntries.length === 1 ? "" : "s"} saved`}
           {loadoutResponse?.loadout.updated_at ? " · updated " : ""}
           {loadoutResponse?.loadout.updated_at ? <RelativeTime value={loadoutResponse.loadout.updated_at} /> : null}
-        </p>
-      </header>
+        </>}
+      />
 
-      <div className="sticky top-[4.25rem] z-20 -mx-1 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card/95 px-3 py-2.5 backdrop-blur">
-        <label className="relative block min-w-0 flex-1 sm:max-w-xs">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input value={gridQuery} onChange={(event) => setGridQuery(event.target.value)} placeholder="Search weapons, knives, gloves..." className="h-9 pl-9 text-xs" />
+      <div className={stickyToolbarClass}>
+        <label className={toolbarSearchClass}>
+          <Search className="size-4 shrink-0 text-muted-foreground" />
+          <input value={gridQuery} onChange={(event) => setGridQuery(event.target.value)} placeholder="Search weapons, knives, gloves..." className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
         </label>
         {renderTeamSwitch()}
       </div>

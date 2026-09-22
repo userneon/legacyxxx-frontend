@@ -1,6 +1,7 @@
-import { useState, type ComponentType } from "react"
+import { useState } from "react"
 import { Target, Search, SearchX, Clock3, Users, Medal, Gamepad2, Skull } from "lucide-react"
-import { StopwatchIcon } from "@/components/mask-icons"
+import { PodiumIcon, StopwatchIcon } from "@/components/mask-icons"
+import { PageHeader, StatTile, segmentGroupClass, segmentItemClass, toolbarClass, toolbarSearchClass } from "@/components/page-kit"
 
 import { cn } from "@/lib/utils"
 import { competitiveService } from "@/api"
@@ -11,8 +12,6 @@ import { QueryState } from "@/components/query-state"
 import { PlayerModerationAvatar } from "@/components/player-moderation-avatar"
 import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
 import { RelativeTime } from "@/components/relative-time"
-import { AnimatedNumber } from "@/components/animated-number"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
 type SortKey = "rank" | "kd" | "kills" | "wins" | "hours"
@@ -67,10 +66,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
 
   return (
     <div className="@container flex flex-col gap-5 p-4 @2xl:p-6">
-      <header>
-        <h1 className="text-xl font-bold tracking-tight @2xl:text-2xl">Leaders</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Competitive standings across LEGACY-X servers, ranked by experience.</p>
-      </header>
+      <PageHeader icon={PodiumIcon} accent="amber" title="Leaders" description="Competitive standings across LEGACY-X servers, ranked by experience." />
 
       <QueryState loading={loading} error={error} empty={!loading && !error && list.length === 0} emptyMessage="No player performance data available yet." onRetry={refetch} />
 
@@ -103,22 +99,19 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
             )}
           </section>
 
-          <div className="glass flex flex-col gap-3 rounded-2xl p-3 @2xl:flex-row @2xl:items-center @2xl:justify-between">
-            <label className="relative block @2xl:w-64">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search players..." className="h-9 pl-9 text-sm" />
+          <div className={toolbarClass}>
+            <label className={toolbarSearchClass}>
+              <Search className="size-4 shrink-0 text-muted-foreground" />
+              <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search players..." className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
             </label>
-            <div className="flex min-w-0 gap-1 overflow-x-auto">
+            <div className={segmentGroupClass}>
               {SORTS.map((option) => (
                 <button
                   key={option.id}
                   type="button"
                   onClick={() => setSort(option.id)}
                   aria-pressed={sort === option.id}
-                  className={cn(
-                    "h-8 shrink-0 rounded-lg px-3 text-xs font-medium transition-colors",
-                    sort === option.id ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary hover:text-foreground",
-                  )}
+                  className={segmentItemClass(sort === option.id)}
                 >
                   {option.label}
                 </button>
@@ -159,16 +152,6 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
           </section>
         </>
       )}
-    </div>
-  )
-}
-
-function StatTile({ icon: Icon, label, value, tone, suffix }: { icon: ComponentType<{ className?: string }>; label: string; value: number; tone: string; suffix?: string }) {
-  return (
-    <div className="glass min-w-[9rem] shrink-0 snap-start rounded-2xl p-3.5 hover-lift @4xl:min-w-0 @4xl:p-4">
-      <span className={cn("flex size-8 items-center justify-center rounded-lg bg-white/[0.05]", tone)}><Icon className="size-4" /></span>
-      <div className={cn("mt-3 text-2xl font-bold tabular-nums", tone)}><AnimatedNumber value={value} suffix={suffix} /></div>
-      <div className="mt-0.5 truncate text-xs text-muted-foreground">{label}</div>
     </div>
   )
 }
