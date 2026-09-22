@@ -2,7 +2,8 @@ import { useState } from "react"
 import { Target, Search, SearchX, Clock3, Users, Medal, Gamepad2, Skull } from "lucide-react"
 import { StopwatchIcon } from "@/components/mask-icons"
 import { StatTile, toolbarClass, toolbarSearchClass } from "@/components/page-kit"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { SelectItem, SelectValue } from "@/components/ui/select"
+import { AnimatedSelect, AnimatedSelectContent, AnimatedSelectTrigger, dropdownTriggerClass } from "@/components/animated-select"
 
 import { cn } from "@/lib/utils"
 import { competitiveService } from "@/api"
@@ -116,26 +117,26 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
               <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search players..." className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
             </label>
             <div className="flex flex-wrap items-center gap-2">
-              <Select value="5v5">
-                <SelectTrigger aria-label="Mode" className="w-[11.5rem] bg-background/40">
+              <AnimatedSelect value="5v5">
+                <AnimatedSelectTrigger aria-label="Mode" className={cn(dropdownTriggerClass, "w-[10.5rem]")}>
                   <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
+                </AnimatedSelectTrigger>
+                <AnimatedSelectContent>
                   {MODES.map((mode) => (
                     <SelectItem key={mode.id} value={mode.id} disabled={!mode.available}>
                       {mode.label}{!mode.available && <span className="ml-1 text-[10px] text-muted-foreground">soon</span>}
                     </SelectItem>
                   ))}
-                </SelectContent>
-              </Select>
-              <Select value={sort} onValueChange={(value) => setSort(value as SortKey)}>
-                <SelectTrigger aria-label="Rank by" className="w-[10.5rem] bg-background/40">
+                </AnimatedSelectContent>
+              </AnimatedSelect>
+              <AnimatedSelect value={sort} onValueChange={(value) => setSort(value as SortKey)}>
+                <AnimatedSelectTrigger aria-label="Rank by" className={cn(dropdownTriggerClass, "w-[9.5rem]")}>
                   <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
+                </AnimatedSelectTrigger>
+                <AnimatedSelectContent>
                   {SORTS.map((option) => <SelectItem key={option.id} value={option.id}>{option.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
+                </AnimatedSelectContent>
+              </AnimatedSelect>
             </div>
           </div>
 

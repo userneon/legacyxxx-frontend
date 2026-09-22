@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react"
-import type { ComponentProps, CSSProperties } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
+import type { CSSProperties } from "react"
 import { Users, Copy, Play as PlayIcon, Lock, Circle, CalendarDays, Trophy, Clock3, Crosshair, Flame, Crown, Map, MapPin, ArrowDown, ArrowUp, ArrowUpDown, RefreshCw, Loader2, FilterX, Coins, Heart } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -7,7 +7,8 @@ import { competitiveService, playService, serversService, tournamentsService } f
 import type { CompetitiveAccess, MatchInfo, PlaySubMode, ServerInfo, TournamentInfo, TournamentMatch } from "@/api/types"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { SelectItem, SelectValue } from "@/components/ui/select"
+import { AnimatedSelect, AnimatedSelectContent, AnimatedSelectTrigger, dropdownTriggerClass } from "@/components/animated-select"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { QueryState } from "@/components/query-state"
@@ -488,56 +489,7 @@ function filterMotionStyle(index: number): CSSProperties {
   return { "--filter-delay": `${Math.min(index, 11) * 32}ms` } as CSSProperties
 }
 
-const triggerClass =
-  "h-9 w-[130px] gap-2 rounded-lg border-border/50 bg-secondary/45 text-xs text-foreground hover:bg-secondary/70 focus-visible:ring-1 focus-visible:ring-ring"
-
-/** Must match the play-dropdown-close duration in index.css. */
-const DROPDOWN_EXIT_MS = 170
-const DropdownClosingContext = createContext(false)
-
-// Radix Select unmounts its content the instant it closes, so hold it open while the exit animation plays.
-function AnimatedSelect(props: ComponentProps<typeof Select>) {
-  const [open, setOpen] = useState(false)
-  const [closing, setClosing] = useState(false)
-  const exitTimer = useRef<number | undefined>(undefined)
-
-  useEffect(() => () => window.clearTimeout(exitTimer.current), [])
-
-  const handleOpenChange = (next: boolean) => {
-    window.clearTimeout(exitTimer.current)
-    if (next) {
-      setClosing(false)
-      setOpen(true)
-      return
-    }
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setClosing(false)
-      setOpen(false)
-      return
-    }
-    setClosing(true)
-    exitTimer.current = window.setTimeout(() => {
-      setOpen(false)
-      setClosing(false)
-    }, DROPDOWN_EXIT_MS)
-  }
-
-  return (
-    <DropdownClosingContext.Provider value={closing}>
-      <Select {...props} open={open} onOpenChange={handleOpenChange} />
-    </DropdownClosingContext.Provider>
-  )
-}
-
-function AnimatedSelectTrigger({ className, ...props }: ComponentProps<typeof SelectTrigger>) {
-  const closing = useContext(DropdownClosingContext)
-  return <SelectTrigger {...props} data-closing={closing ? "" : undefined} className={cn("play-dropdown-trigger", className)} />
-}
-
-function AnimatedSelectContent({ className, ...props }: ComponentProps<typeof SelectContent>) {
-  const closing = useContext(DropdownClosingContext)
-  return <SelectContent {...props} data-closing={closing ? "" : undefined} className={cn("play-dropdown-content", className)} />
-}
+const triggerClass = dropdownTriggerClass
 
 function MatchToolbar({
   mode,
