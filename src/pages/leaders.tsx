@@ -1,7 +1,8 @@
 import { useState } from "react"
 import { Target, Search, SearchX, Clock3, Users, Medal, Gamepad2, Skull } from "lucide-react"
 import { StopwatchIcon } from "@/components/mask-icons"
-import { StatTile, segmentGroupClass, segmentItemClass, toolbarClass, toolbarSearchClass } from "@/components/page-kit"
+import { StatTile, toolbarClass, toolbarSearchClass } from "@/components/page-kit"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 import { cn } from "@/lib/utils"
 import { competitiveService } from "@/api"
@@ -14,15 +15,24 @@ import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
 import { RelativeTime } from "@/components/relative-time"
 import { Button } from "@/components/ui/button"
 
-type SortKey = "rank" | "kd" | "kills" | "wins" | "hours"
+type SortKey = "rank" | "kd" | "kills" | "headshots" | "wins" | "matches" | "hours"
 
 const SORTS: Array<{ id: SortKey; label: string }> = [
-  { id: "rank", label: "Rank" },
-  { id: "kd", label: "K/D" },
+  { id: "rank", label: "Rank (EXP)" },
+  { id: "kd", label: "K/D ratio" },
   { id: "kills", label: "Kills" },
+  { id: "headshots", label: "Headshot %" },
   { id: "wins", label: "Wins" },
-  { id: "hours", label: "Hours" },
+  { id: "matches", label: "Matches" },
+  { id: "hours", label: "Hours played" },
 ]
+
+/** Ladders by game mode. Only competitive 5v5 is tracked today; the others are listed as coming. */
+const MODES = [
+  { id: "5v5", label: "5v5 Competitive", available: true },
+  { id: "fun", label: "Fun Mode", available: false },
+  { id: "proleague", label: "Pro League", available: false },
+] as const
 
 function headshotRate(player: CompetitiveLeaderboardEntry) {
   return player.kills > 0 ? Math.round((player.headshot_kills / player.kills) * 100) : 0
@@ -32,7 +42,9 @@ function sortValue(player: CompetitiveLeaderboardEntry, key: SortKey) {
   switch (key) {
     case "kd": return player.kd_ratio
     case "kills": return player.kills
+    case "headshots": return headshotRate(player)
     case "wins": return player.wins
+    case "matches": return player.matches_completed
     case "hours": return player.played_hours
     // The server's own ordering; a lower position is better, so it is negated to share one comparator.
     default: return -player.position
@@ -102,18 +114,27 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
               <Search className="size-4 shrink-0 text-muted-foreground" />
               <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search players..." className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
             </label>
-            <div className={segmentGroupClass}>
-              {SORTS.map((option) => (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => setSort(option.id)}
-                  aria-pressed={sort === option.id}
-                  className={segmentItemClass(sort === option.id)}
-                >
-                  {option.label}
-                </button>
-              ))}
+            <div className="flex flex-wrap items-center gap-2">
+              <Select value="5v5">
+                <SelectTrigger aria-label="Mode" className="w-[11.5rem] bg-background/40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {MODES.map((mode) => (
+                    <SelectItem key={mode.id} value={mode.id} disabled={!mode.available}>
+                      {mode.label}{!mode.available && <span className="ml-1 text-[10px] text-muted-foreground">soon</span>}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={sort} onValueChange={(value) => setSort(value as SortKey)}>
+                <SelectTrigger aria-label="Rank by" className="w-[10.5rem] bg-background/40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SORTS.map((option) => <SelectItem key={option.id} value={option.id}>{option.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
