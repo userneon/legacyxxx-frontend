@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef, useEffect, useCallback, type ComponentType } from "react"
 import {
   Home,
   Trophy,
@@ -9,13 +9,13 @@ import {
   Crosshair,
   Flame,
   Crown,
-  Paintbrush,
   Gavel,
   Play,
   type LucideIcon,
 } from "lucide-react"
 
 import { isPageEnabled } from "@/lib/features"
+import { KnifeIcon } from "@/components/knife-icon"
 import {
   Sidebar,
   SidebarContent,
@@ -42,7 +42,7 @@ interface AppSidebarProps {
 interface NavItem {
   id: PageId
   label: string
-  icon: LucideIcon
+  icon: LucideIcon | ComponentType<{ className?: string }>
   badge?: string
 }
 
@@ -63,7 +63,7 @@ const MAIN_NAV: NavItem[] = enabledNav([
 ])
 
 const CONTENT_NAV: NavItem[] = enabledNav([
-  { id: "skinchanger", label: "Skinchanger", icon: Paintbrush },
+  { id: "skinchanger", label: "Skinchanger", icon: KnifeIcon },
   { id: "clan", label: "Clan", icon: Swords },
 ])
 
