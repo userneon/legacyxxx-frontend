@@ -209,12 +209,6 @@ function savedSkinLabel(item: SkinchangerCatalogItem) {
   return skin.trim().replace(wearSuffix, "")
 }
 
-const teamChipTone: Record<TeamScope, string> = {
-  all: "border-white/12 bg-white/[0.06] text-white/70",
-  t: "border-amber-300/25 bg-amber-300/10 text-amber-100",
-  ct: "border-sky-300/25 bg-sky-300/10 text-sky-100",
-}
-
 export function SkinchangerPage() {
   const [collection, setCollection] = useState<CollectionId>("skins")
   const [skinGroup, setSkinGroup] = useState<SkinchangerFirearmGroup | "agents">("Rifles")
@@ -794,7 +788,10 @@ export function SkinchangerPage() {
         </div>
 
         {entry && savedItem && (
-          <span className={cn("pointer-events-none absolute left-1.5 top-1.5 z-[2] rounded border px-1 py-px text-[9px] font-semibold", teamChipTone[entry.team_scope])}>{teamLabel}</span>
+          <span role="img" aria-label={`Saved for ${teamLabel}`} title={teamLabel} className="pointer-events-none absolute left-1.5 top-1.5 z-[2] flex -space-x-1.5 rounded-md bg-black/45 p-0.5 backdrop-blur-sm">
+            {entry.team_scope !== "ct" && <img src={teamTIcon} alt="" className="size-4 object-contain" />}
+            {entry.team_scope !== "t" && <img src={teamCtIcon} alt="" className="size-4 object-contain" />}
+          </span>
         )}
 
         <button
