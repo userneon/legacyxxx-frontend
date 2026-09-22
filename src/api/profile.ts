@@ -20,7 +20,7 @@ export const profileService = {
   },
 
   async updateProfile(
-    payload: Partial<Pick<UserProfile, "username" | "avatar">>,
+    payload: Partial<Pick<UserProfile, "username" | "avatar" | "hiddenSections">>,
     options?: CallOptions,
   ): Promise<UserProfile> {
     const response = await put<UserProfile | { profile: UserProfile }>("/api/v1/profile/me", payload, options)

@@ -17,12 +17,11 @@ import {
   Sparkles,
   Skull,
   HandHelping,
-  CircleSlash,
   Medal,
   Gamepad2,
   Gauge,
+  Settings,
 } from "lucide-react"
-import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
 import { isFeatureEnabled } from "@/lib/features"
@@ -36,12 +35,13 @@ import { PlayerAvatar } from "@/components/player-avatar"
 import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
 import { ModerationStatusIcon } from "@/components/moderation-status-icon"
 import { ProfileRoleIcon } from "@/components/profile-role-icon"
-import { SteamIcon } from "@/components/steam-login-gate"
 import { AnimatedNumber } from "@/components/animated-number"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import faceitLogo from "@/assets/brand/faceit.webp"
 import { MatchDetailsDialog } from "@/components/match-details-dialog"
 import { RelativeTime } from "@/components/relative-time"
+import { ProfileIds, copyText, steamProfileUrl as steamLinkFor } from "@/components/profile-ids"
+import { ProfilePrivacyDialog } from "@/components/profile-privacy-dialog"
 
 interface ProfilePageProps {
   userId?: string
@@ -62,30 +62,6 @@ function useFillIn(value: number) {
     return () => cancelAnimationFrame(frame)
   }, [value])
   return shown
-}
-
-async function copyText(value: string, label: string) {
-  try {
-    if (!navigator.clipboard?.writeText) throw new Error("Clipboard API unavailable")
-    await navigator.clipboard.writeText(value)
-  } catch {
-    // Same fallback as the Play page: some browsers block the async clipboard API.
-    const textarea = document.createElement("textarea")
-    textarea.value = value
-    textarea.setAttribute("readonly", "")
-    textarea.style.position = "fixed"
-    textarea.style.opacity = "0"
-    document.body.appendChild(textarea)
-    textarea.select()
-    const copied = document.execCommand("copy")
-    textarea.remove()
-    if (!copied) {
-      toast.error("Copy failed", { description: "Please copy it manually." })
-      return false
-    }
-  }
-  toast.success(`${label} copied`, { description: value })
-  return true
 }
 
 function linkHost(url: string) {
@@ -171,52 +147,6 @@ function ProfileAvatar({ profile }: { profile: UserProfile }) {
         />
       )}
     </div>
-  )
-}
-
-/** Same frame as the FACEIT stats card, shown when no FACEIT account is linked to the player's Steam profile. */
-function FaceitNotConnectedCard() {
-  return (
-    <section className="profile-rise glass @container relative overflow-hidden rounded-2xl">
-      <div className="pointer-events-none absolute -left-16 -top-24 size-64 rounded-full bg-orange-500/[0.06] blur-3xl" aria-hidden="true" />
-
-      <header className="relative flex items-center justify-between gap-3 px-5 pt-5">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-orange-500/10"><img src={faceitLogo} alt="FACEIT" className="size-6 object-contain opacity-70" /></div>
-          <div className="min-w-0">
-            <h2 className="font-semibold">FACEIT Stats</h2>
-            <p className="truncate text-xs text-muted-foreground">Live CS2 competitive profile</p>
-          </div>
-        </div>
-        <span className="shrink-0 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white/55">
-          Not connected
-        </span>
-      </header>
-
-      <div className="relative flex flex-row items-center gap-4 px-5 pt-4">
-        <FaceitLevelBadge level={null} className="size-20 opacity-80" />
-        <div className="min-w-0 flex-1">
-          <div className="font-semibold text-white/70">Not connected</div>
-          <div className="mt-1 flex items-baseline gap-2">
-            <span className="text-3xl font-black tabular-nums tracking-tight text-white/20">—</span>
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">ELO</span>
-          </div>
-          <p className="mt-0.5 text-xs text-muted-foreground">No FACEIT account is linked to this Steam profile.</p>
-        </div>
-      </div>
-
-      <div className="relative grid grid-cols-2 gap-2 px-5 pb-5 pt-4 @sm:grid-cols-3 @xl:grid-cols-5">
-        {[
-          { label: "Matches" },
-          { label: "Win Rate", percent: 0 },
-          { label: "Avg K/D" },
-          { label: "Avg Kills" },
-          { label: "Headshots", percent: 0 },
-        ].map((stat) => (
-          <FaceitStat key={stat.label} label={stat.label} percent={stat.percent} tone="text-white/25">—</FaceitStat>
-        ))}
-      </div>
-    </section>
   )
 }
 
@@ -312,113 +242,57 @@ function FaceitLevelBadge({ level, className }: { level: number | null; classNam
   )
 }
 
-function FaceitStat({ label, children, percent, tone }: { label: string; children: React.ReactNode; percent?: number; tone?: string }) {
-  const shown = useFillIn(percent ?? 0)
+function FaceitStat({ label, children, tone }: { label: string; children: React.ReactNode; tone?: string }) {
   return (
-    <div className="min-w-0 rounded-xl bg-white/[0.04] px-3 py-2.5">
+    <div className="min-w-0">
+      <div className={cn("text-base font-bold tabular-nums", tone)}>{children}</div>
       <div className="truncate text-[11px] text-muted-foreground">{label}</div>
-      <div className={cn("mt-1 text-lg font-bold tabular-nums", tone)}>{children}</div>
-      {percent !== undefined && (
-        <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-white/[0.08]">
-          <div className="profile-progress-bar h-full rounded-full bg-orange-400" style={{ width: `${shown}%` }} />
-        </div>
-      )}
     </div>
   )
 }
 
-function FaceitProfileCard({ faceit, loading, error }: { faceit: FaceitProfileData | null; loading: boolean; error: ApiError | null }) {
-  const [avatarFailed, setAvatarFailed] = useState(false)
-
-  // Players without FACEIT get the same card marked "Not connected"; request errors (e.g. FACEIT API down) hide it.
-  if (loading || error) return null
-  if (!faceit?.linked) return <FaceitNotConnectedCard />
+/**
+ * FACEIT at a glance: level, ELO with progress to the next level, and four stats.
+ * Not linked: a single line on your own profile, nothing on someone else's.
+ */
+function FaceitProfileCard({ faceit, loading, error, isOwner }: { faceit: FaceitProfileData | null; loading: boolean; error: ApiError | null; isOwner: boolean }) {
+  if (loading || error || !faceit) return null
+  if (!faceit.linked) {
+    if (!isOwner || faceit.hidden) return null
+    return (
+      <section className="profile-rise glass flex items-center gap-3 rounded-2xl px-4 py-3">
+        <img src={faceitLogo} alt="" className="size-6 object-contain opacity-60" />
+        <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground">No FACEIT account is linked to your Steam profile.</p>
+      </section>
+    )
+  }
 
   const progress = faceitLevelProgress(faceit.level, faceit.elo)
-  const kdTone = faceit.stats.averageKd >= 1 ? "text-chart-2" : "text-destructive"
-
   return (
-    <section className="profile-rise glass @container relative overflow-hidden rounded-2xl">
-      <div className="pointer-events-none absolute -left-16 -top-24 size-64 rounded-full bg-orange-500/[0.12] blur-3xl" aria-hidden="true" />
-
-      <header className="relative flex items-center justify-between gap-3 px-5 pt-5">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-orange-500/10"><img src={faceitLogo} alt="FACEIT" className="size-6 object-contain" /></div>
-          <div className="min-w-0">
-            <h2 className="font-semibold">FACEIT Stats</h2>
-            <p className="truncate text-xs text-muted-foreground">Live CS2 competitive profile</p>
-          </div>
-        </div>
-        <Button variant="outline" size="sm" asChild className="shrink-0 border-orange-400/25 hover:border-orange-400/50 hover:bg-orange-500/10">
-          <a href={faceit.faceitUrl} target="_blank" rel="noreferrer">
-            <span className="hidden @sm:inline">Open FACEIT</span>
-            <ExternalLink className="size-3.5" />
-          </a>
-        </Button>
-      </header>
-
-      {/* Identity: level ring, avatar, nickname, ELO and distance to the next level */}
-      <div className="relative flex flex-row items-center gap-4 px-5 pt-4">
-        <FaceitLevelBadge level={faceit.level} className="size-20" />
+    <section className="profile-rise glass @container rounded-2xl p-4">
+      <div className="flex items-center gap-3">
+        <FaceitLevelBadge level={faceit.level} className="size-12" />
         <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-center gap-2">
-            {faceit.avatar && !avatarFailed && (
-              <img src={faceit.avatar} alt="" onError={() => setAvatarFailed(true)} className="size-6 shrink-0 rounded-md object-cover" />
-            )}
-            <a href={faceit.faceitUrl} target="_blank" rel="noreferrer" className="truncate font-semibold text-orange-300 transition-colors hover:text-orange-200">
-              {faceit.nickname}
-            </a>
-            {[faceit.country, faceit.region].filter(Boolean).map((tag) => (
-              <span key={tag} className="shrink-0 rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[10px] font-semibold uppercase text-white/60">{tag}</span>
-            ))}
+          <a href={faceit.faceitUrl} target="_blank" rel="noreferrer" className="group inline-flex max-w-full items-center gap-1.5 text-sm font-semibold text-orange-300 hover:text-orange-200">
+            <img src={faceitLogo} alt="FACEIT" className="size-4 shrink-0 object-contain" />
+            <span className="truncate">{faceit.nickname}</span>
+            <ExternalLink className="size-3 shrink-0 opacity-60 group-hover:opacity-100" />
+          </a>
+          <div className="mt-1 flex items-center gap-2">
+            <span className="text-lg font-black tabular-nums"><AnimatedNumber value={faceit.elo} /></span>
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">ELO</span>
+            <div className="h-1 min-w-12 flex-1 overflow-hidden rounded-full bg-white/[0.08]" title={progress.nextLevel === null ? "Max level" : `${progress.toNext.toLocaleString()} ELO to level ${progress.nextLevel}`}>
+              <div className="profile-progress-bar h-full rounded-full" style={{ width: `${progress.percent}%`, backgroundColor: progress.color }} />
+            </div>
           </div>
-          <div className="mt-1 flex items-baseline gap-2">
-            <span className="text-3xl font-black tabular-nums tracking-tight"><AnimatedNumber value={faceit.elo} /></span>
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">ELO</span>
-          </div>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {progress.nextLevel === null ? "Max level reached" : <><span className="font-semibold text-foreground">{progress.toNext.toLocaleString()}</span> ELO to Level {progress.nextLevel}</>}
-          </p>
         </div>
       </div>
-
-      <div className="stagger-in relative grid grid-cols-2 gap-2 px-5 pt-4 @sm:grid-cols-3 @xl:grid-cols-5">
+      <div className="mt-3 grid grid-cols-4 gap-2 border-t border-white/[0.06] pt-3">
         <FaceitStat label="Matches"><AnimatedNumber value={faceit.stats.matches} /></FaceitStat>
-        <FaceitStat label="Win Rate" percent={faceit.stats.winRate}><AnimatedNumber value={faceit.stats.winRate} decimals={1} suffix="%" /></FaceitStat>
-        <FaceitStat label="Avg K/D" tone={kdTone}><AnimatedNumber value={faceit.stats.averageKd} decimals={2} /></FaceitStat>
-        <FaceitStat label="Avg Kills"><AnimatedNumber value={faceit.stats.averageKills} decimals={1} /></FaceitStat>
-        <FaceitStat label="Headshots" percent={faceit.stats.headshots}><AnimatedNumber value={faceit.stats.headshots} decimals={1} suffix="%" /></FaceitStat>
+        <FaceitStat label="Win rate"><AnimatedNumber value={faceit.stats.winRate} decimals={1} suffix="%" /></FaceitStat>
+        <FaceitStat label="K/D" tone={faceit.stats.averageKd >= 1 ? "text-chart-2" : "text-destructive"}><AnimatedNumber value={faceit.stats.averageKd} decimals={2} /></FaceitStat>
+        <FaceitStat label="Headshots"><AnimatedNumber value={faceit.stats.headshots} decimals={1} suffix="%" /></FaceitStat>
       </div>
-
-      {faceit.recentMatches.length > 0 ? (
-        <div className="relative px-5 pb-5 pt-4">
-          <div className="mb-2 text-xs font-medium text-muted-foreground">Recent FACEIT matches</div>
-          <div className="stagger-in grid gap-2 @md:grid-cols-3">
-            {faceit.recentMatches.slice(0, 3).map((match) => {
-              const art = cs2MapArtwork(match.map)
-              return (
-                <a
-                  key={match.id}
-                  href={match.faceitUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="faceit-match group relative isolate flex h-16 items-end overflow-hidden rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-2 hover-lift hover:border-orange-400/30"
-                >
-                  {art && <img src={art} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.style.display = "none" }} className="match-card-bg absolute inset-0 -z-10 h-full w-full object-cover opacity-35 group-hover:scale-110 group-hover:opacity-50" />}
-                  <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold text-white">{match.map ? cs2MapLabel(match.map) : match.competition || "FACEIT CS2"}</div>
-                    <div className="truncate text-[11px] text-white/55">{match.competition || "FACEIT CS2"}</div>
-                  </div>
-                  <span className="ml-2 shrink-0 rounded border border-white/10 bg-black/40 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-white/65">{match.status || "Match"}</span>
-                </a>
-              )
-            })}
-          </div>
-        </div>
-      ) : (
-        <div className="pb-5" />
-      )}
     </section>
   )
 }
@@ -647,7 +521,8 @@ export function ProfilePage({ userId }: ProfilePageProps) {
   const effectiveUserId = userId ?? steamId
   const navigate = useNavigate()
   const { logout, user: authenticatedUser } = useAuth()
-  const [idCopied, setIdCopied] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const { data: profile, loading: profileLoading, error: profileError, refetch: refetchProfile } = useApiQuery<UserProfile>((signal) =>
     profileService.getProfile(effectiveUserId, { signal }),
   )
@@ -689,16 +564,19 @@ export function ProfilePage({ userId }: ProfilePageProps) {
     void logout()
   }
 
-  const handleCopyId = async (value: string) => {
-    if (!(await copyText(value, "SteamID"))) return
-    setIdCopied(true)
-    window.setTimeout(() => setIdCopied(false), 1600)
+  const handleCopyLink = async (value: string) => {
+    if (!(await copyText(value, "Steam link"))) return
+    setLinkCopied(true)
+    window.setTimeout(() => setLinkCopied(false), 1600)
   }
 
   const isOwner = profile?.id === authenticatedUser?.id
-  const steamProfileUrl = profile && /^7656\d{13}$/.test(profile.steamId)
-    ? `https://steamcommunity.com/profiles/${profile.steamId}`
-    : null
+  const steamProfileUrl = profile ? steamLinkFor(profile.steamId) : null
+  // Boxes the player hid in profile settings disappear for everyone, the owner included.
+  const hidden = new Set(profile?.hiddenSections ?? [])
+  const showFaceit = !hidden.has("faceit")
+  const showRecentMatches = !hidden.has("recent_matches")
+  const showCombat = !hidden.has("kills")
   const visibleCompetitiveRank: VisibleRank | null = profile?.role === "Owner" ? null : {
     rankId: competitive?.rank_id ?? 1,
     rankName: competitive?.rank_name ?? "Silver I",
@@ -709,7 +587,6 @@ export function ProfilePage({ userId }: ProfilePageProps) {
     nextRankExp: competitive ? competitive.next_rank_min_exp : 1_000,
   }
   const winRate = stats && stats.matches > 0 ? (stats.wins / stats.matches) * 100 : null
-  const losses = stats ? Math.max(0, stats.matches - stats.wins) : 0
   const headshotRate = competitive && competitive.kills > 0 ? (competitive.headshot_kills / competitive.kills) * 100 : null
   const links = profile?.links ?? []
 
@@ -763,7 +640,7 @@ export function ProfilePage({ userId }: ProfilePageProps) {
                     {visibleCompetitiveRank.rankName}
                   </span>
                 )}
-                {faceit?.linked && (
+                {showFaceit && faceit?.linked && (
                   <span
                     title={`FACEIT level ${faceit.level} · ${faceit.elo.toLocaleString()} ELO`}
                     className="inline-flex h-6 items-center gap-1 rounded-md border border-white/[0.1] bg-black/20 pl-0.5 pr-2 text-xs font-medium text-white/80"
@@ -777,22 +654,21 @@ export function ProfilePage({ userId }: ProfilePageProps) {
 
             <div className="flex w-full shrink-0 items-center gap-1.5 pb-0.5 @sm:w-auto @2xl:gap-2 @2xl:pb-1">
               {steamProfileUrl && (
-                <Button variant="outline" size="sm" asChild>
-                  <a href={steamProfileUrl} target="_blank" rel="noreferrer" aria-label={`Open ${profile.username}'s Steam profile`} title="Steam profile">
-                    <SteamIcon className="size-3.5" />
-                    <span className="hidden @xl:inline">Steam</span>
-                  </a>
+                <Button
+                  variant="outline"
+                  size="icon-sm"
+                  aria-label="Copy Steam profile link"
+                  title="Copy Steam profile link"
+                  onClick={() => void handleCopyLink(steamProfileUrl)}
+                >
+                  {linkCopied ? <Check className="size-3.5 text-chart-2" /> : <Copy className="size-3.5" />}
                 </Button>
               )}
-              <Button
-                variant="outline"
-                size="icon-sm"
-                aria-label="Copy SteamID"
-                title="Copy SteamID"
-                onClick={() => void handleCopyId(profile.steamId)}
-              >
-                {idCopied ? <Check className="size-3.5 text-chart-2" /> : <Copy className="size-3.5" />}
-              </Button>
+              {isOwner && (
+                <Button variant="outline" size="icon-sm" aria-label="Profile settings" title="Profile settings" onClick={() => setSettingsOpen(true)}>
+                  <Settings className="size-3.5" />
+                </Button>
+              )}
               {isOwner && (
                 <Button
                   variant="outline"
@@ -825,47 +701,49 @@ export function ProfilePage({ userId }: ProfilePageProps) {
               {[0, 1, 2, 3].map((i) => <div key={i} className="glass h-[96px] animate-pulse rounded-2xl" />)}
             </div>
           ) : stats ? (
-            <div className="stagger-in grid h-full grid-cols-2 gap-3 @md:grid-cols-4 @2xl:gap-4">
-              <StatTile icon={Gamepad2} label="Matches" accent="bg-sky-400/20" hint={`${losses.toLocaleString()} losses`}>
-                <AnimatedNumber value={stats.matches} />
-              </StatTile>
-              <StatTile icon={Medal} label="Wins" accent="bg-amber-300/20" hint="All modes">
+            <div className="stagger-in grid h-full grid-cols-2 gap-3 @md:auto-cols-fr @md:grid-flow-col @2xl:gap-4">
+              {!hidden.has("matches") && (
+                <StatTile icon={Gamepad2} label="Matches" accent="bg-sky-400/20">
+                  <AnimatedNumber value={stats.matches} />
+                </StatTile>
+              )}
+              <StatTile icon={Medal} label="Wins" accent="bg-amber-300/20">
                 <AnimatedNumber value={stats.wins} />
               </StatTile>
               <StatTile
                 icon={Percent}
                 label="Win Rate"
                 accent="bg-emerald-400/20"
-                hint={winRate === null ? "No matches yet" : `${stats.wins}/${stats.matches}`}
                 corner={winRate !== null ? <span className="hidden @2xl:block"><WinRateRing percent={winRate} /></span> : undefined}
               >
                 <AnimatedNumber value={winRate} decimals={1} suffix="%" />
               </StatTile>
-              <StatTile icon={Gauge} label="K/D Ratio" accent={stats.kdRatio >= 1 ? "bg-emerald-400/20" : "bg-red-400/20"} hint={stats.matches > 0 ? (stats.kdRatio >= 1 ? "Positive" : "Below even") : "—"}>
-                <span className={cn(stats.matches > 0 && (stats.kdRatio >= 1 ? "text-chart-2" : "text-destructive"))}>
-                  <AnimatedNumber value={stats.kdRatio} decimals={2} />
-                </span>
-              </StatTile>
+              {!hidden.has("kd") && (
+                <StatTile icon={Gauge} label="K/D Ratio" accent={stats.kdRatio >= 1 ? "bg-emerald-400/20" : "bg-red-400/20"}>
+                  <span className={cn(stats.matches > 0 && (stats.kdRatio >= 1 ? "text-chart-2" : "text-destructive"))}>
+                    <AnimatedNumber value={stats.kdRatio} decimals={2} />
+                  </span>
+                </StatTile>
+              )}
             </div>
           ) : null}
         </div>
 
         <div className="flex min-w-0 flex-col gap-4 @2xl:gap-5 @5xl:col-span-8">
-          {profile && <FaceitProfileCard faceit={faceit} loading={faceitLoading} error={faceitError} />}
-          <RecentMatches matches={recentMatches ?? []} loading={matchesLoading} steamId={profile?.steamId} />
+          {profile && showFaceit && <FaceitProfileCard faceit={faceit} loading={faceitLoading} error={faceitError} isOwner={isOwner} />}
+          {showRecentMatches && <RecentMatches matches={recentMatches ?? []} loading={matchesLoading} steamId={profile?.steamId} />}
         </div>
 
         {/* Sidebar: two columns when there is room below the matches, a single stack beside them on wide screens. */}
         <aside className="grid content-start gap-4 @md:grid-cols-2 @2xl:gap-5 @5xl:col-span-4 @5xl:grid-cols-1">
-          {competitive && competitive.matches_completed > 0 && (
+          {showCombat && competitive && competitive.matches_completed > 0 && (
             <section className="profile-rise glass rounded-2xl p-4 @md:col-span-2 @5xl:col-span-1">
               <h2 className="mb-3 text-sm font-semibold">Combat</h2>
-              <div className="grid grid-cols-2 gap-2 @md:grid-cols-4 @5xl:grid-cols-2">
+              <div className="grid grid-cols-3 gap-2 @5xl:grid-cols-3">
                 {[
                   { label: "Kills", icon: Skull, value: competitive.kills, decimals: 0, suffix: "" },
                   { label: "Assists", icon: HandHelping, value: competitive.assists, decimals: 0, suffix: "" },
                   { label: "Headshot %", icon: Target, value: headshotRate, decimals: 1, suffix: "%" },
-                  { label: "Losses", icon: CircleSlash, value: competitive.losses, decimals: 0, suffix: "" },
                 ].map((item) => (
                   <div key={item.label} className="flex items-center gap-2.5 rounded-xl bg-secondary/40 px-3 py-2.5">
                     <item.icon className="size-4 shrink-0 text-muted-foreground" />
@@ -879,22 +757,7 @@ export function ProfilePage({ userId }: ProfilePageProps) {
             </section>
           )}
 
-          {profile && (
-            <section className="profile-rise glass rounded-2xl p-4">
-              <h2 className="mb-3 text-sm font-semibold">Player ID</h2>
-              <button
-                type="button"
-                onClick={() => void handleCopyId(profile.steamId)}
-                className="group flex w-full items-center justify-between gap-3 rounded-xl bg-secondary/50 px-3 py-2.5 text-left transition-colors hover:bg-secondary/70"
-              >
-                <div className="min-w-0">
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">SteamID64</div>
-                  <div className="truncate font-mono text-sm">{profile.steamId}</div>
-                </div>
-                {idCopied ? <Check className="size-4 shrink-0 text-chart-2" /> : <Copy className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />}
-              </button>
-            </section>
-          )}
+          {profile && <ProfileIds steamId64={profile.steamId} />}
 
           {/* Always present, so a clean record reads as one rather than as a missing section.
               Hidden only when the list could not be read at all, which is never a "no penalties" answer. */}
@@ -967,6 +830,8 @@ export function ProfilePage({ userId }: ProfilePageProps) {
           )}
         </aside>
       </div>
+
+      {profile && isOwner && <ProfilePrivacyDialog profile={profile} open={settingsOpen} onOpenChange={setSettingsOpen} onSaved={refetchProfile} />}
 
       <PenaltyDetailDialog
         penalty={openPenalty}

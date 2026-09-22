@@ -13,6 +13,8 @@ const STATUS_META: Record<ModerationStatus, { label: string; className: string; 
 
 // LEGACY-X visual system: profile moderation state stays icon-only; the full status appears only in an explicit tooltip.
 export function ModerationStatusIcon({ status = "Clear", className }: { status?: ModerationStatus; className?: string }) {
+  // A clean record needs no badge; only active penalties are flagged.
+  if (status === "Clear") return null
   const meta = STATUS_META[status]
   const Icon = meta.icon
 

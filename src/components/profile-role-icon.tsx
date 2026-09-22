@@ -1,36 +1,32 @@
-import { Code2, Palette, Shield, Gem, ShieldUser, UserRound } from "lucide-react"
+import { Code2, Palette, Shield, Gem, ShieldUser } from "lucide-react"
 
 import type { UserProfile } from "@/api/types"
 import { cn } from "@/lib/utils"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 type ProfileRole = UserProfile["role"]
+type StaffRole = Exclude<ProfileRole, "Player">
 
-const ROLE_META: Record<ProfileRole, { className: string; icon: typeof Gem }> = {
-  Owner: { className: "text-amber-200", icon: Gem },
-  Founder: { className: "text-amber-200", icon: Gem },
-  Manager: { className: "text-sky-200", icon: Shield },
-  Admin: { className: "text-sky-200", icon: ShieldUser },
-  Player: { className: "text-white/70", icon: UserRound },
-  Designer: { className: "text-fuchsia-200", icon: Palette },
-  Developer: { className: "text-emerald-200", icon: Code2 },
+const ROLE_META: Record<StaffRole, { className: string; icon: typeof Gem }> = {
+  Owner: { className: "border-amber-300/40 bg-amber-300/[0.12] text-amber-200 shadow-[0_0_14px_rgba(252,211,77,0.18)]", icon: Gem },
+  Founder: { className: "border-amber-300/40 bg-amber-300/[0.12] text-amber-200 shadow-[0_0_14px_rgba(252,211,77,0.18)]", icon: Gem },
+  Manager: { className: "border-sky-300/35 bg-sky-300/[0.10] text-sky-200", icon: Shield },
+  Admin: { className: "border-sky-300/35 bg-sky-300/[0.10] text-sky-200", icon: ShieldUser },
+  Designer: { className: "border-fuchsia-300/35 bg-fuchsia-300/[0.10] text-fuchsia-200", icon: Palette },
+  Developer: { className: "border-emerald-300/35 bg-emerald-300/[0.10] text-emerald-200", icon: Code2 },
 }
 
-// LEGACY-X visual system: Profile role is a quiet icon-only identity signal; full role text appears only on hover/focus.
+/** LEGACY-X staff badge next to the profile name; regular players get none. */
 export function ProfileRoleIcon({ role = "Player", className }: { role?: ProfileRole; className?: string }) {
-  const meta = ROLE_META[role]
+  if (role === "Player" || !(role in ROLE_META)) return null
+  const meta = ROLE_META[role as StaffRole]
   const Icon = meta.icon
-
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span tabIndex={0} aria-label={`Profile role: ${role}`} className={cn("inline-flex size-6 shrink-0 items-center justify-center rounded-md border border-white/[0.1] bg-black/20", meta.className, className)}>
-            <Icon className="size-3.5" />
-          </span>
-        </TooltipTrigger>
-        <TooltipContent side="top" sideOffset={6}>{role}</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <span
+      aria-label={`LEGACY-X ${role}`}
+      className={cn("inline-flex h-6 shrink-0 items-center gap-1 rounded-md border px-2 text-[11px] font-bold uppercase tracking-[0.12em]", meta.className, className)}
+    >
+      <Icon className="size-3.5" />
+      {role}
+    </span>
   )
 }
