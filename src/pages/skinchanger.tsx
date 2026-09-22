@@ -959,7 +959,7 @@ export function SkinchangerPage() {
         </p>
       </header>
 
-      <div className="sticky top-0 z-20 -mx-1 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card/95 px-3 py-2.5 backdrop-blur">
+      <div className="sticky top-[4.25rem] z-20 -mx-1 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card/95 px-3 py-2.5 backdrop-blur">
         <label className="relative block min-w-0 flex-1 sm:max-w-xs">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input value={gridQuery} onChange={(event) => setGridQuery(event.target.value)} placeholder="Search weapons, knives, gloves..." className="h-9 pl-9 text-xs" />
