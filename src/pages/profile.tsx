@@ -21,6 +21,7 @@ import {
   Gamepad2,
   Gauge,
   Settings,
+  EyeOff,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -418,6 +419,29 @@ function MapThumb({ src }: { src: string | null }) {
   )
 }
 
+/** In place of a value the player hid in profile settings. */
+function HiddenValue() {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-base font-semibold text-muted-foreground">
+      <EyeOff className="size-4" />
+      Hidden
+    </span>
+  )
+}
+
+/** A whole box the player hid: the frame stays so the profile keeps its shape. */
+function HiddenSection({ title, className }: { title: string; className?: string }) {
+  return (
+    <section className={cn("profile-rise glass rounded-2xl p-4", className)}>
+      <h2 className="text-sm font-semibold">{title}</h2>
+      <div className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-secondary/40 px-3 py-4 text-sm text-muted-foreground">
+        <EyeOff className="size-4" />
+        Hidden
+      </div>
+    </section>
+  )
+}
+
 function RecentMatches({ matches, loading, steamId }: { matches: ProfileRecentMatch[]; loading: boolean; steamId?: string }) {
   const [expanded, setExpanded] = useState(false)
   const [openMatch, setOpenMatch] = useState<{ matchId: string; mapNumber: number } | null>(null)
@@ -701,12 +725,10 @@ export function ProfilePage({ userId }: ProfilePageProps) {
               {[0, 1, 2, 3].map((i) => <div key={i} className="glass h-[96px] animate-pulse rounded-2xl" />)}
             </div>
           ) : stats ? (
-            <div className="stagger-in grid h-full grid-cols-2 gap-3 @md:auto-cols-fr @md:grid-flow-col @2xl:gap-4">
-              {!hidden.has("matches") && (
-                <StatTile icon={Gamepad2} label="Matches" accent="bg-sky-400/20">
-                  <AnimatedNumber value={stats.matches} />
-                </StatTile>
-              )}
+            <div className="stagger-in grid h-full grid-cols-2 gap-3 @md:grid-cols-4 @2xl:gap-4">
+              <StatTile icon={Gamepad2} label="Matches" accent="bg-sky-400/20">
+                {hidden.has("matches") ? <HiddenValue /> : <AnimatedNumber value={stats.matches} />}
+              </StatTile>
               <StatTile icon={Medal} label="Wins" accent="bg-amber-300/20">
                 <AnimatedNumber value={stats.wins} />
               </StatTile>
@@ -718,24 +740,25 @@ export function ProfilePage({ userId }: ProfilePageProps) {
               >
                 <AnimatedNumber value={winRate} decimals={1} suffix="%" />
               </StatTile>
-              {!hidden.has("kd") && (
-                <StatTile icon={Gauge} label="K/D Ratio" accent={stats.kdRatio >= 1 ? "bg-emerald-400/20" : "bg-red-400/20"}>
+              <StatTile icon={Gauge} label="K/D Ratio" accent={hidden.has("kd") ? undefined : stats.kdRatio >= 1 ? "bg-emerald-400/20" : "bg-red-400/20"}>
+                {hidden.has("kd") ? <HiddenValue /> : (
                   <span className={cn(stats.matches > 0 && (stats.kdRatio >= 1 ? "text-chart-2" : "text-destructive"))}>
                     <AnimatedNumber value={stats.kdRatio} decimals={2} />
                   </span>
-                </StatTile>
-              )}
+                )}
+              </StatTile>
             </div>
           ) : null}
         </div>
 
         <div className="flex min-w-0 flex-col gap-4 @2xl:gap-5 @5xl:col-span-8">
-          {profile && showFaceit && <FaceitProfileCard faceit={faceit} loading={faceitLoading} error={faceitError} isOwner={isOwner} />}
-          {showRecentMatches && <RecentMatches matches={recentMatches ?? []} loading={matchesLoading} steamId={profile?.steamId} />}
+          {profile && (showFaceit ? <FaceitProfileCard faceit={faceit} loading={faceitLoading} error={faceitError} isOwner={isOwner} /> : <HiddenSection title="FACEIT" />)}
+          {showRecentMatches ? <RecentMatches matches={recentMatches ?? []} loading={matchesLoading} steamId={profile?.steamId} /> : <HiddenSection title="Recent Matches" />}
         </div>
 
         {/* Sidebar: two columns when there is room below the matches, a single stack beside them on wide screens. */}
         <aside className="grid content-start gap-4 @md:grid-cols-2 @2xl:gap-5 @5xl:col-span-4 @5xl:grid-cols-1">
+          {profile && !showCombat && <HiddenSection title="Combat" className="@md:col-span-2 @5xl:col-span-1" />}
           {showCombat && competitive && competitive.matches_completed > 0 && (
             <section className="profile-rise glass rounded-2xl p-4 @md:col-span-2 @5xl:col-span-1">
               <h2 className="mb-3 text-sm font-semibold">Combat</h2>

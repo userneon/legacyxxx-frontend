@@ -16,7 +16,7 @@ const SECTIONS: { id: ProfileSection; label: string }[] = [
   { id: "recent_matches", label: "Recent matches" },
 ]
 
-/** Profile settings: which boxes other players see. Unchecking a box removes it from the profile. */
+/** Profile settings: which boxes other players see. An unchecked box stays on the profile and reads Hidden. */
 export function ProfilePrivacyDialog({ profile, open, onOpenChange, onSaved }: {
   profile: UserProfile
   open: boolean
