@@ -15,7 +15,7 @@ import {
 } from "lucide-react"
 
 import { isPageEnabled } from "@/lib/features"
-import { KnifeIcon } from "@/components/knife-icon"
+import { KnifeIcon, PodiumIcon } from "@/components/mask-icons"
 import {
   Sidebar,
   SidebarContent,
@@ -68,7 +68,7 @@ const CONTENT_NAV: NavItem[] = enabledNav([
 ])
 
 const COMMUNITY_NAV: NavItem[] = enabledNav([
-  { id: "leaders", label: "Leaders", icon: Trophy },
+  { id: "leaders", label: "Leaders", icon: PodiumIcon },
   { id: "penalties", label: "Penalties", icon: Gavel },
   { id: "feedback", label: "Reviews", icon: MessageSquare },
   { id: "explore", label: "Explore", icon: Search },

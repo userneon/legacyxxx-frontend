@@ -1,5 +1,6 @@
-import { useState } from "react"
-import { Crosshair, Target, Trophy, Search, SearchX, Clock3, Users, Swords, Flame } from "lucide-react"
+import { useState, type ComponentType } from "react"
+import { Crosshair, Target, Trophy, Search, SearchX, Clock3, Users, Swords } from "lucide-react"
+import { StopwatchIcon } from "@/components/mask-icons"
 
 import { cn } from "@/lib/utils"
 import { competitiveService } from "@/api"
@@ -80,7 +81,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
             <StatTile icon={Swords} label="Matches recorded" value={totalMatches} tone="text-white/90" />
             <StatTile icon={Trophy} label="Community wins" value={totalWins} tone="text-amber-300" />
             <StatTile
-              icon={Flame}
+              icon={StopwatchIcon}
               label={mostActive ? `${mostActive.username} · hours played` : "Hours played"}
               value={mostActive?.played_hours ?? 0}
               suffix="h"
@@ -162,7 +163,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
   )
 }
 
-function StatTile({ icon: Icon, label, value, tone, suffix }: { icon: typeof Trophy; label: string; value: number; tone: string; suffix?: string }) {
+function StatTile({ icon: Icon, label, value, tone, suffix }: { icon: ComponentType<{ className?: string }>; label: string; value: number; tone: string; suffix?: string }) {
   return (
     <div className="glass min-w-[9rem] shrink-0 snap-start rounded-2xl p-3.5 hover-lift @4xl:min-w-0 @4xl:p-4">
       <span className={cn("flex size-8 items-center justify-center rounded-lg bg-white/[0.05]", tone)}><Icon className="size-4" /></span>
