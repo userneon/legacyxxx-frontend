@@ -830,7 +830,7 @@ export function SkinchangerPage() {
         <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{title}</h2>
         <span className="text-[10px] tabular-nums text-muted-foreground/70">{equipped}/{total} equipped</span>
       </div>
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-2">{cards}</div>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(0,9.5rem))] max-sm:grid-cols-2 gap-2">{cards}</div>
     </section>
   )
 
