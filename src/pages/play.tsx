@@ -853,57 +853,45 @@ function TournamentView() {
   const upcoming = all.filter((match) => match.status === "upcoming")
   const live = all.filter((match) => match.status === "live")
   const completed = all.filter((match) => match.status === "completed")
+  const schedule = [...live, ...upcoming, ...completed]
 
   return (
-    <div className="flex flex-col gap-5 p-6">
-      <QueryState
-        loading={loading}
-        error={error}
-        empty={false}
-        onRetry={refetch}
-      />
-
-      {!loading && !error && all.length === 0 && (
-        <div className="flex min-h-[calc(100dvh-7rem)] items-center justify-center">
-          <div className="w-fit rounded-lg border border-white/[0.1] bg-white/[0.035] px-4 py-2 text-sm font-semibold text-white/78">
-            Nothing is here!
-          </div>
-        </div>
-      )}
-
-      {!loading && !error && all.length > 0 && (
+    <div className="@container flex flex-col gap-5 p-4 @2xl:p-6">
+      {error ? (
+        <QueryState loading={false} error={error} empty={false} onRetry={refetch} />
+      ) : (
         <>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <TournamentStat icon={CalendarDays} label="Next match" value={info?.nextMatchTime ?? upcoming[0]?.time ?? "TBD"} />
-            <TournamentStat icon={Users} label="Registered clans" value={`${info?.registeredClans ?? all.length} clans`} />
-            <TournamentStat icon={Coins} label="Prize pool" value={info?.prizePool ?? "—"} />
+          <div className="grid gap-3 @2xl:grid-cols-3">
+            <TournamentStat icon={CalendarDays} label="Next match" value={info?.nextMatchTime || upcoming[0]?.time || "TBD"} />
+            <TournamentStat icon={Users} label="Registered clans" value={info ? `${info.registeredClans} clans` : "—"} />
+            <TournamentStat icon={Coins} label="Prize pool" value={info?.prizePool || "—"} />
           </div>
 
-          <div className="grid gap-5 xl:grid-cols-[1.05fr_1.4fr]">
-            <section className="glass rounded-xl p-5">
-              <div className="mb-4 flex items-center justify-between">
-                <div>
-                  <h2 className="font-semibold">Match schedule</h2>
-                  <p className="mt-1 text-xs text-muted-foreground">Live and upcoming tournament rounds</p>
-                </div>
-                <span className="rounded-md border border-white/[0.12] bg-white/[0.05] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white/70">{info?.season ?? "Season"}</span>
+          {/* The bracket is always drawn; empty slots read TBD until the draw and results fill them. */}
+          <section className="glass rounded-2xl p-5">
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <h2 className="font-semibold">Playoff bracket</h2>
+                <span className="rounded-md border border-white/[0.12] bg-white/[0.05] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white/70">{info?.season || "Season"}</span>
               </div>
-              <div className="flex flex-col gap-2">
-                {[...live, ...upcoming, ...completed].map((match) => <TournamentRow key={match.id} match={match} />)}
-              </div>
-            </section>
+              <span className="text-xs text-muted-foreground">{info?.format || "Best of 3"}</span>
+            </div>
+            {loading && !matches ? <div className="h-[420px] animate-pulse rounded-xl bg-white/[0.03]" /> : <TournamentBracket matches={all} />}
+            {!loading && all.length === 0 && (
+              <p className="mt-4 text-center text-xs text-muted-foreground">The bracket fills in once the tournament draw is made.</p>
+            )}
+          </section>
 
-            <section className="glass rounded-xl p-5">
-              <div className="mb-5 flex items-center justify-between">
-                <div>
-                  <h2 className="font-semibold">Playoff bracket</h2>
-                  <p className="mt-1 text-xs text-muted-foreground">Follow every round through to the final</p>
-                </div>
-                <span className="shrink-0 whitespace-nowrap text-xs text-muted-foreground">{info?.format ?? "Best of 3"}</span>
+          <section className="glass rounded-2xl p-5">
+            <h2 className="mb-3 font-semibold">Match schedule</h2>
+            {schedule.length > 0 ? (
+              <div className="grid gap-2 @3xl:grid-cols-2">
+                {schedule.map((match) => <TournamentRow key={match.id} match={match} />)}
               </div>
-              <TournamentBracket matches={all} />
-            </section>
-          </div>
+            ) : (
+              <p className="rounded-lg bg-secondary/40 px-3 py-4 text-center text-sm text-muted-foreground">{loading ? "Loading matches…" : "No matches scheduled yet."}</p>
+            )}
+          </section>
         </>
       )}
     </div>
@@ -912,10 +900,12 @@ function TournamentView() {
 
 function TournamentStat({ icon: Icon, label, value }: { icon: typeof CalendarDays; label: string; value: string }) {
   return (
-    <div className="glass rounded-xl p-4">
-      <Icon className="size-4 text-muted-foreground" />
-      <div className="mt-2 text-sm font-semibold">{value}</div>
-      <div className="mt-1 text-xs text-muted-foreground">{label}</div>
+    <div className="glass flex items-center gap-3 rounded-2xl p-4">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/[0.05] text-muted-foreground"><Icon className="size-4" /></span>
+      <div className="min-w-0">
+        <div className="truncate text-sm font-semibold">{value}</div>
+        <div className="text-xs text-muted-foreground">{label}</div>
+      </div>
     </div>
   )
 }
@@ -929,7 +919,7 @@ function TournamentRow({ match }: { match: TournamentMatch }) {
           {live ? <Circle className="size-2.5 fill-current animate-pulse" /> : <Clock3 className="size-3.5" />}
         </div>
         <div className="min-w-0">
-          <div className="text-sm font-medium leading-5">{match.teamA} <span className="text-muted-foreground">vs</span> {match.teamB}</div>
+          <div className="truncate text-sm font-medium leading-5">{match.teamA} <span className="text-muted-foreground">vs</span> {match.teamB}</div>
           <div className="mt-0.5 text-[11px] text-muted-foreground">{match.round} · {match.map}</div>
         </div>
       </div>
@@ -941,76 +931,103 @@ function TournamentRow({ match }: { match: TournamentMatch }) {
   )
 }
 
+/** Scores of a finished match, and which side won ("a", "b" or null while it is not decided). */
+function matchResult(match: TournamentMatch | undefined) {
+  const [a, b] = (match?.score ?? "").split("-").map((part) => Number.parseInt(part.trim(), 10))
+  const scored = Number.isFinite(a) && Number.isFinite(b)
+  const winner = match?.status === "completed" && scored && a !== b ? (a > b ? "a" : "b") : null
+  return { a: scored ? String(a) : "", b: scored ? String(b) : "", winner }
+}
+
+const BRACKET_ROUNDS = [
+  { title: "Quarterfinals", slots: 4, from: 0 },
+  { title: "Semifinals", slots: 2, from: 4 },
+  { title: "Final", slots: 1, from: 6 },
+] as const
+
+/**
+ * Single-elimination bracket on an 8-row grid: quarterfinals take two rows each, semifinals four and
+ * the final all eight, so every match sits level with the pair that feeds it. Connectors join each
+ * pair to the next round, and the champion card closes the tree.
+ */
 function TournamentBracket({ matches }: { matches: TournamentMatch[] }) {
-  const quarterfinals = matches.slice(0, 4)
-  const semifinals = matches.slice(4, 6)
-  const final = matches.slice(6, 7)
+  const final = matches[6]
+  const finalResult = matchResult(final)
+  const champion = finalResult.winner === "a" ? final?.teamA : finalResult.winner === "b" ? final?.teamB : null
 
   return (
-    <div className="overflow-x-auto pb-2">
-      <div className="grid min-w-[660px] grid-cols-[minmax(150px,1fr)_32px_minmax(150px,1fr)_32px_minmax(150px,1fr)] items-stretch">
-        <BracketRound title="Quarterfinals" matches={quarterfinals} slots={4} />
-        <BracketConnectors count={2} />
-        <BracketRound title="Semifinals" matches={semifinals} slots={2} centered />
-        <BracketConnectors count={1} finalRound />
-        <BracketRound title="Final" matches={final} slots={1} centered finalRound />
-      </div>
-    </div>
-  )
-}
+    <div className="overflow-x-auto pb-1">
+      <div className="grid min-w-[760px] grid-cols-[minmax(150px,1fr)_28px_minmax(150px,1fr)_28px_minmax(150px,1fr)_28px_minmax(140px,0.9fr)] grid-rows-[auto_repeat(8,minmax(52px,1fr))]">
+        {[...BRACKET_ROUNDS.map((round) => round.title), "Champion"].map((title, index) => (
+          <div key={title} style={{ gridColumn: index * 2 + 1 }} className={cn("mb-3 text-center text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground", title === "Final" && "text-amber-300/90", title === "Champion" && "text-amber-300")}>
+            {title}
+          </div>
+        ))}
 
-function BracketRound({ title, matches, slots, centered = false, finalRound = false }: { title: string; matches: TournamentMatch[]; slots: number; centered?: boolean; finalRound?: boolean }) {
-  const entries = Array.from({ length: slots }, (_, index) => matches[index])
+        {BRACKET_ROUNDS.map((round, roundIndex) => {
+          const span = 8 / round.slots
+          return Array.from({ length: round.slots }, (_, slot) => {
+            const match = matches[round.from + slot]
+            return (
+              <div key={`${round.title}-${slot}`} style={{ gridColumn: roundIndex * 2 + 1, gridRow: `${slot * span + 2} / span ${span}` }} className="flex items-center py-1.5">
+                <BracketMatch match={match} finalRound={round.title === "Final"} />
+              </div>
+            )
+          })
+        })}
 
-  return (
-    <div className="flex min-w-0 flex-col">
-      <div className={cn("mb-3 flex items-center gap-2", finalRound && "text-amber-300")}>
-        <span className={cn("h-px flex-1 bg-white/[0.08]", finalRound && "bg-amber-300/30")} />
-        <span className="text-[10px] font-bold uppercase tracking-[0.16em]">{title}</span>
-        <span className={cn("h-px flex-1 bg-white/[0.08]", finalRound && "bg-amber-300/30")} />
-      </div>
-      <div className={cn("flex min-h-[268px] flex-1 flex-col justify-around gap-4", centered && "justify-center")}>
-        {entries.map((match, index) => match ? <BracketMatch key={match.id} match={match} finalRound={finalRound} /> : <BracketEmpty key={`${title}-${index}`} />)}
-      </div>
-    </div>
-  )
-}
-
-function BracketMatch({ match, finalRound = false }: { match: TournamentMatch; finalRound?: boolean }) {
-  const [teamAScore, teamBScore] = match.score?.split("-") ?? ["-", "-"]
-  const live = match.status === "live"
-
-  return (
-    <div className={cn("rounded-lg border bg-black/20 p-3", finalRound ? "border-amber-300/30" : "border-white/[0.1]")}>
-      <div className="mb-2 flex items-center justify-between gap-2 text-[10px] font-medium uppercase tracking-wide text-white/45">
-        <span className="truncate">{match.round}</span>
-        <span className={cn("shrink-0", live && "text-emerald-300")}>{live ? "Live" : match.map}</span>
-      </div>
-      <BracketTeam name={match.teamA} score={teamAScore} />
-      <div className="my-2 h-px bg-white/[0.08]" />
-      <BracketTeam name={match.teamB} score={teamBScore} />
-    </div>
-  )
-}
-
-function BracketTeam({ name, score }: { name: string; score: string }) {
-  return <div className="flex items-center justify-between gap-3 text-sm"><span className="truncate font-semibold text-white/88">{name}</span><span className="shrink-0 tabular-nums text-white/55">{score}</span></div>
-}
-
-function BracketEmpty() {
-  return <div className="rounded-lg border border-dashed border-white/[0.08] bg-white/[0.015] px-3 py-5 text-center text-[10px] font-medium uppercase tracking-[0.14em] text-white/25">Awaiting match</div>
-}
-
-function BracketConnectors({ count, finalRound = false }: { count: number; finalRound?: boolean }) {
-  return (
-    <div className="flex min-h-[292px] flex-col justify-around px-2 pt-8">
-      {Array.from({ length: count }, (_, index) => (
-        <div key={index} className="relative h-16">
-          <span className={cn("absolute inset-y-0 right-1/2 border-r border-white/[0.14]", finalRound && "border-amber-300/35")} />
-          <span className={cn("absolute left-0 right-1/2 top-1/2 border-t border-white/[0.14]", finalRound && "border-amber-300/35")} />
-          <span className={cn("absolute left-1/2 right-0 top-1/2 border-t border-white/[0.14]", finalRound && "border-amber-300/35")} />
+        {/* Quarterfinal pairs → semifinals, semifinal pair → final. */}
+        {[0, 1].map((pair) => <BracketJoin key={`qf-${pair}`} column={2} rowStart={pair * 4 + 2} span={4} />)}
+        <BracketJoin column={4} rowStart={2} span={8} final />
+        {/* Final → champion. */}
+        <div style={{ gridColumn: 6, gridRow: "2 / span 8" }} className="relative">
+          <span className="absolute inset-x-0 top-1/2 border-t border-amber-300/35" />
         </div>
-      ))}
+
+        <div style={{ gridColumn: 7, gridRow: "2 / span 8" }} className="flex items-center">
+          <div className={cn("w-full rounded-xl border p-4 text-center", champion ? "border-amber-300/40 bg-amber-300/[0.08] shadow-[0_0_24px_rgba(252,211,77,0.12)]" : "border-dashed border-amber-300/25 bg-amber-300/[0.03]")}>
+            <Trophy className={cn("mx-auto size-7", champion ? "text-amber-300" : "text-amber-300/40")} />
+            <div className={cn("mt-2 truncate font-semibold", champion ? "text-amber-100" : "text-white/35")}>{champion ?? "TBD"}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/** Bracket-shaped line from the centres of two matches to the centre of the next one. */
+function BracketJoin({ column, rowStart, span, final = false }: { column: number; rowStart: number; span: number; final?: boolean }) {
+  const tone = final ? "border-amber-300/35" : "border-white/[0.14]"
+  return (
+    <div style={{ gridColumn: column, gridRow: `${rowStart} / span ${span}` }} className="relative">
+      <span className={cn("absolute bottom-1/4 left-0 right-1/2 top-1/4 rounded-r-md border-y border-r", tone)} />
+      <span className={cn("absolute left-1/2 right-0 top-1/2 border-t", tone)} />
+    </div>
+  )
+}
+
+function BracketMatch({ match, finalRound = false }: { match?: TournamentMatch; finalRound?: boolean }) {
+  const result = matchResult(match)
+  const live = match?.status === "live"
+  return (
+    <div className={cn("w-full overflow-hidden rounded-lg border", match ? "bg-black/20" : "border-dashed bg-white/[0.015]", finalRound ? "border-amber-300/30" : "border-white/[0.1]")}>
+      <BracketTeam name={match?.teamA} score={result.a} won={result.winner === "a"} lost={result.winner === "b"} />
+      <div className="h-px bg-white/[0.07]" />
+      <BracketTeam name={match?.teamB} score={result.b} won={result.winner === "b"} lost={result.winner === "a"} />
+      {match && (live || match.status === "upcoming") && (
+        <div className={cn("border-t border-white/[0.06] px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide", live ? "text-emerald-300" : "text-white/40")}>
+          {live ? "Live" : match.time || "Scheduled"}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function BracketTeam({ name, score, won, lost }: { name?: string; score: string; won: boolean; lost: boolean }) {
+  return (
+    <div className={cn("flex items-center justify-between gap-3 px-2.5 py-1.5 text-sm", won && "bg-amber-300/[0.06]")}>
+      <span className={cn("truncate", name ? "font-semibold text-white/88" : "text-white/25", lost && "text-white/45", won && "text-amber-100")}>{name || "TBD"}</span>
+      <span className={cn("shrink-0 tabular-nums", won ? "font-bold text-amber-200" : "text-white/45")}>{score || "–"}</span>
     </div>
   )
 }
