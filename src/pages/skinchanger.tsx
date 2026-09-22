@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   ArrowLeft,
   BadgeCheck,
@@ -12,6 +12,7 @@ import {
   Search,
   Send,
   ShieldCheck,
+  SlidersHorizontal,
   Sticker,
   Sword,
   Tag,
@@ -40,9 +41,6 @@ import { OptimizedImage } from "@/components/optimized-image"
 import { RelativeTime } from "@/components/relative-time"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cn } from "@/lib/utils"
-import riflesIcon from "@/assets/skinchanger/rifles.png"
-import midtierIcon from "@/assets/skinchanger/midtier.png"
-import pistolIcon from "@/assets/skinchanger/pistol.png"
 import knifeIcon from "@/assets/skinchanger/knife.png"
 import glovesIcon from "@/assets/skinchanger/gloves.png"
 import pinsIcon from "@/assets/skinchanger/pins.png"
@@ -54,9 +52,6 @@ type CollectionId = "skins" | Exclude<SkinchangerCategory, "weapon" | "agent">
 type CollectionMeta = { id: CollectionId; category: SkinchangerCategory; label: string; slot: SkinchangerSlot; icon: typeof Crosshair; iconAsset?: string; invertIcon?: boolean; firearmGroup?: SkinchangerFirearmGroup }
 
 const assetUrls = {
-  rifles: riflesIcon,
-  midtier: midtierIcon,
-  pistol: pistolIcon,
   knife: knifeIcon,
   gloves: glovesIcon,
   pins: pinsIcon,
@@ -74,12 +69,44 @@ const categories: CollectionMeta[] = [
   { id: "pin", category: "pin", label: "Pins", slot: "pin", icon: Medal, iconAsset: collectionAsset("pins") },
 ]
 
-const skinGroups: Array<{ id: SkinchangerFirearmGroup | "agents"; label: string; icon: typeof Crosshair; iconAsset?: string; invertIcon?: boolean }> = [
-  { id: "Rifles", label: "Rifles", icon: Crosshair, iconAsset: collectionAsset("rifles"), invertIcon: true },
-  { id: "Mid Tier", label: "Mid Tier", icon: Crosshair, iconAsset: collectionAsset("midtier"), invertIcon: true },
-  { id: "Pistols", label: "Pistols", icon: Crosshair, iconAsset: collectionAsset("pistol"), invertIcon: true },
-  { id: "agents", label: "Agents", icon: UserRound },
+/** Top-level browse tabs. Firearms and knives share one category grid; the rest keep their own views. */
+type BrowseTab = "weapons" | "glove" | "agents" | "music_kit" | "pin"
+const browseTabs: Array<{ id: BrowseTab; label: string; icon: typeof Crosshair; iconAsset?: string; invertIcon?: boolean; countCategory?: SkinchangerCategory }> = [
+  { id: "weapons", label: "Weapons", icon: Crosshair },
+  { id: "glove", label: "Gloves", icon: ShieldCheck, iconAsset: collectionAsset("gloves"), invertIcon: true, countCategory: "glove" },
+  { id: "agents", label: "Agents", icon: UserRound, countCategory: "agent" },
+  { id: "music_kit", label: "Music", icon: Headphones, countCategory: "music_kit" },
+  { id: "pin", label: "Pins", icon: Medal, iconAsset: collectionAsset("pins"), countCategory: "pin" },
 ]
+
+type WeaponGridGroup = "Pistols" | "SMGs" | "Rifles" | "Sniper Rifles" | "Heavy" | "Knives"
+const weaponGridGroups: WeaponGridGroup[] = ["Pistols", "SMGs", "Rifles", "Sniper Rifles", "Heavy", "Knives"]
+
+/** weapon_class values exactly as stored in skinchanger_catalog_items (category "weapon"). */
+const firearmGridGroup: Record<string, Exclude<WeaponGridGroup, "Knives">> = {
+  "Glock-18": "Pistols", "USP-S": "Pistols", "P2000": "Pistols", "P250": "Pistols", "Desert Eagle": "Pistols",
+  "Dual Berettas": "Pistols", "Five-SeveN": "Pistols", "Tec-9": "Pistols", "CZ75-Auto": "Pistols", "R8 Revolver": "Pistols",
+  "MAC-10": "SMGs", "MP9": "SMGs", "MP7": "SMGs", "MP5-SD": "SMGs", "UMP-45": "SMGs", "P90": "SMGs", "PP-Bizon": "SMGs",
+  "AK-47": "Rifles", "M4A4": "Rifles", "M4A1-S": "Rifles", "FAMAS": "Rifles", "Galil AR": "Rifles", "AUG": "Rifles", "SG 553": "Rifles",
+  "AWP": "Sniper Rifles", "SSG 08": "Sniper Rifles", "SCAR-20": "Sniper Rifles", "G3SG1": "Sniper Rifles",
+  "Nova": "Heavy", "XM1014": "Heavy", "MAG-7": "Heavy", "Sawed-Off": "Heavy", "Negev": "Heavy", "M249": "Heavy",
+}
+
+const firearmClassOrder = Object.keys(firearmGridGroup)
+
+/** Buy-menu order inside a section; unknown firearms go last. */
+function firearmOrder(item: SkinchangerCatalogItem) {
+  const index = firearmClassOrder.indexOf(item.weapon_class ?? item.display_name)
+  return index === -1 ? firearmClassOrder.length : index
+}
+
+/** Falls back to the catalogue's own weaponGroup so a firearm added later still lands in a section. */
+function gridGroupForFirearm(item: SkinchangerCatalogItem): Exclude<WeaponGridGroup, "Knives"> {
+  const mapped = firearmGridGroup[item.weapon_class ?? item.display_name]
+  if (mapped) return mapped
+  const group = item.metadata.weaponGroup
+  return group === "Pistols" || group === "SMGs" || group === "Heavy" ? group : "Rifles"
+}
 
 const rarityStyles: Record<string, { rank: number; glow: string; accent: string }> = {
   Covert: { rank: 1, glow: "rgba(239, 68, 68, 0.30)", accent: "#fb7185" },
@@ -273,6 +300,8 @@ export function SkinchangerPage() {
   const [applying, setApplying] = useState(false)
   const [optimisticLoadoutEntries, setOptimisticLoadoutEntries] = useState<SkinchangerLoadoutEntry[] | null>(null)
   const [optimisticLoadoutVersion, setOptimisticLoadoutVersion] = useState<number | null>(null)
+  // Opening a team-locked model moves the switch to that side; going back to the grid restores it.
+  const gridTeamRef = useRef<TeamScope | null>(null)
 
   const activeCategory = categoryMeta(collection)
   const category: SkinchangerCategory = collection === "skins" && skinGroup === "agents" ? "agent" : activeCategory.category
@@ -280,8 +309,15 @@ export function SkinchangerPage() {
   const effectiveCategory: SkinchangerCategory = activeWeapon ? (["glove", "knife"] as SkinchangerCategory[]).includes(category) ? category : "weapon_skin" : category
   const effectiveWeaponClass = activeWeapon?.weapon_class ?? (weaponClass || undefined)
   const catalogQueryKey = `${collection}:${skinGroup}:${effectiveCategory}:${effectiveWeaponClass ?? ""}:${category === "agent" ? agentTeam ?? "" : ""}:${query}:${offset}`
+  // Firearms and knives are browsed as one category grid; every other view keeps the paged catalogue.
+  const isGridView = !activeWeapon && (collection === "skins" || collection === "knife") && skinGroup !== "agents"
+  const activeTab: BrowseTab = collection === "skins" || collection === "knife" ? (skinGroup === "agents" ? "agents" : "weapons") : collection as BrowseTab
   const { data: catalog, loading: catalogLoading, error: catalogError, refetch: refetchCatalog } =
-    useApiQuery((signal) => skinchangerService.getCatalog({ category: effectiveCategory, weaponClass: effectiveWeaponClass, weaponGroup: !activeWeapon && collection === "skins" && category === "weapon" ? skinGroup as SkinchangerFirearmGroup : undefined, team: category === "agent" ? agentTeam ?? undefined : undefined, query: query || undefined, limit: 36, offset }, { signal }), { queryKey: catalogQueryKey })
+    useApiQuery((signal) => skinchangerService.getCatalog({ category: effectiveCategory, weaponClass: effectiveWeaponClass, team: category === "agent" ? agentTeam ?? undefined : undefined, query: query || undefined, limit: 36, offset }, { signal }), { queryKey: catalogQueryKey, enabled: !isGridView })
+  const { data: firearmModels, loading: firearmsLoading, error: firearmsError, refetch: refetchFirearms } =
+    useApiQuery((signal) => skinchangerService.getCatalog({ category: "weapon", limit: 100, offset: 0 }, { signal }), { queryKey: "grid:firearms", enabled: isGridView })
+  const { data: knifeModels, loading: knivesLoading, error: knivesError, refetch: refetchKnives } =
+    useApiQuery((signal) => skinchangerService.getCatalog({ category: "knife", limit: 100, offset: 0 }, { signal }), { queryKey: "grid:knives", enabled: isGridView })
   const { data: facets } = useApiQuery((signal) => skinchangerService.getCatalogFacets(effectiveCategory, { signal }), { queryKey: effectiveCategory })
   const { data: loadoutResponse, refetch: refetchLoadout } =
     useApiQuery((signal) => skinchangerService.getLoadout({ signal }))
@@ -582,6 +618,62 @@ export function SkinchangerPage() {
     setOffset(0)
   }
 
+  /* -------------------------------------------------------------------------
+   * Category grid (firearms + knives)
+   * ---------------------------------------------------------------------- */
+
+  /**
+   * The saved look a grid card shows for the team selected at the top. Team-locked firearms always
+   * show their own team; a "Both" look counts for either side.
+   */
+  const gridEntryFor = (item: SkinchangerCatalogItem, gridCategory: "weapon" | "knife") => {
+    const slotKey = slotKeyForCatalogItem(item, gridCategory)
+    const lockedTeam = teamScopeFromMetadata(item)
+    const viewTeam: TeamScope = lockedTeam !== "all" ? lockedTeam : teamScope
+    const matchesModel = (entry: SkinchangerLoadoutEntry) => entry.slot_key === slotKey
+      // Older knife looks were stored under the plain "knife" slot key.
+      || (gridCategory === "knife" && entry.slot === "knife" && entry.slot_key === "knife" && entry.skinchanger_catalog_items?.weapon_class === item.weapon_class)
+    return loadoutEntries.find((entry) => matchesModel(entry) && entry.team_scope === viewTeam)
+      ?? (viewTeam !== "all" ? loadoutEntries.find((entry) => matchesModel(entry) && entry.team_scope === "all") : undefined)
+  }
+
+  /** Card body: open the skin picker for this model, keeping the team chosen at the top. */
+  const openGridPicker = (item: SkinchangerCatalogItem, gridCategory: "weapon" | "knife") => {
+    gridTeamRef.current = teamScope
+    setCollection(gridCategory === "knife" ? "knife" : "skins")
+    setDefaultChoice(null)
+    setActiveWeapon(item)
+    setSelected(null)
+    setWeaponClass("")
+    setQuery("")
+    setOffset(0)
+  }
+
+  /** Customize icon: edit the saved skin's wear, stickers, charm, StatTrak and name tag. */
+  const customizeGridItem = (item: SkinchangerCatalogItem, gridCategory: "weapon" | "knife", entry: SkinchangerLoadoutEntry | undefined) => {
+    if (!entry?.skinchanger_catalog_items) {
+      openGridPicker(item, gridCategory)
+      return
+    }
+    gridTeamRef.current = teamScope
+    setCollection(gridCategory === "knife" ? "knife" : "skins")
+    setQuery("")
+    customizeSavedLook(item, entry)
+  }
+
+  const gridSearch = query.trim().toLowerCase()
+  const gridSections = weaponGridGroups.map((group) => {
+    const source = group === "Knives"
+      ? (knifeModels?.data ?? []).filter((item) => item.display_name !== "Knife")
+      : (firearmModels?.data ?? []).filter((item) => gridGroupForFirearm(item) === group)
+    const items = source
+      .filter((item) => !gridSearch || item.display_name.toLowerCase().includes(gridSearch))
+      .sort((a, b) => group === "Knives" ? a.display_name.localeCompare(b.display_name) : firearmOrder(a) - firearmOrder(b))
+    return { group, gridCategory: group === "Knives" ? "knife" as const : "weapon" as const, items }
+  }).filter((section) => section.items.length > 0)
+  const gridLoading = firearmsLoading || knivesLoading
+  const gridError = firearmsError ?? knivesError
+
   const isModelBrowse = (category === "weapon" || category === "glove" || category === "knife") && !activeWeapon
   const isAgentTeamBrowse = category === "agent" && !agentTeam
   const defaultModelCard = category === "knife" || category === "glove" ? defaultModelItem(category) : null
@@ -664,55 +756,106 @@ export function SkinchangerPage() {
         </div>
       </header>
 
+      {(activeTab === "weapons" || activeTab === "glove") && (() => {
+        // One team switch for the whole page. Team-locked models (e.g. AK-47, M4A4) and knife/glove
+        // pairs keep the existing automatic rules; the switch then shows the side that will be used.
+        const teamLocked = Boolean(activeWeapon) && !showTeamSelector
+        const shownTeam = teamLocked ? selectedTeamScope : teamScope
+        const hint = teamLocked && activeWeapon
+          ? `${activeWeapon.display_name} saves for ${selectedTeamScope === "t" ? "T" : selectedTeamScope === "ct" ? "CT" : "both sides"}`
+          : isGridView ? "Cards show the look saved for this side" : "This look saves for the selected side"
+        return (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Team</p>
+              <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{hint}</p>
+            </div>
+            <div role="radiogroup" aria-label="Team" className="flex rounded-lg border border-border bg-background p-1">
+              {teamOptions.map((team) => {
+                const isActive = shownTeam === team.id
+                const isUnavailableBoth = team.id === "all" && hasOtherEquippedKnifeOrGloveLook
+                const disabled = teamLocked || isUnavailableBoth
+                return (
+                  <button
+                    key={team.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={isActive}
+                    disabled={disabled}
+                    onClick={() => setTeamScope(team.id)}
+                    title={isUnavailableBoth ? "Another knife/glove look already uses Both. Choose T or CT." : teamLocked ? "This model's side is fixed" : undefined}
+                    style={isActive ? { backgroundImage: teamScopeFade(team.id) } : undefined}
+                    className={cn(
+                      "flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-semibold transition-colors",
+                      isActive ? "bg-secondary text-foreground ring-1 ring-inset ring-white/15" : "text-muted-foreground hover:text-foreground",
+                      disabled && !isActive && "cursor-not-allowed opacity-35",
+                      disabled && isActive && "cursor-default",
+                    )}
+                  >
+                    {team.id === "all" ? (
+                      <span className="flex -space-x-1.5">
+                        <img src={teamTIcon} alt="" className="size-4 object-contain" />
+                        <img src={teamCtIcon} alt="" className="size-4 object-contain" />
+                      </span>
+                    ) : (
+                      <img src={team.id === "t" ? teamTIcon : teamCtIcon} alt="" className="size-4 object-contain" />
+                    )}
+                    {team.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })()}
+
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         <section className="min-w-0 rounded-xl border border-border bg-card">
           <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 gap-1 overflow-x-auto pb-1 sm:pb-0">
-              {categories.map((item) => {
+              {browseTabs.map((item) => {
                 const Icon = item.icon
-                const isActive = collection === item.id
+                const isActive = activeTab === item.id
                 const iconTone = item.invertIcon
                   ? (isActive ? "brightness-0" : "brightness-0 invert")
                   : (isActive ? "brightness-0" : "")
                 return (
                   <button
                     key={item.id}
-                    onClick={() => { setCollection(item.id); if (item.id === "skins") setSkinGroup("Rifles"); setWeaponClass(""); setAgentTeam(null); setTeamScope("all"); setOffset(0); setActiveWeapon(null); setSelected(null); setQuery("") }}
+                    onClick={() => {
+                      setCollection(item.id === "weapons" || item.id === "agents" ? "skins" : item.id)
+                      setSkinGroup(item.id === "agents" ? "agents" : "Rifles")
+                      setWeaponClass("")
+                      setAgentTeam(null)
+                      setTeamScope("all")
+                      setOffset(0)
+                      setActiveWeapon(null)
+                      setSelected(null)
+                      setQuery("")
+                    }}
                     className={cn(
                       "flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-xs font-medium transition-colors",
                       isActive ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                     )}
                   >
-                    {item.iconAsset ? <OptimizedImage src={item.iconAsset} width={14} height={14} alt="" priority className={cn("size-3.5 object-contain", iconTone)} /> : <Icon className="size-3.5" />} {item.label} {item.category !== "weapon" && <span className="text-[10px] opacity-65">{categoryCounts.get(item.category) ?? "—"}</span>}
+                    {item.iconAsset ? <OptimizedImage src={item.iconAsset} width={14} height={14} alt="" priority className={cn("size-3.5 object-contain", iconTone)} /> : <Icon className="size-3.5" />} {item.label} {item.countCategory && <span className="text-[10px] opacity-65">{categoryCounts.get(item.countCategory) ?? "—"}</span>}
                   </button>
                 )
               })}
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
               {activeWeapon && (
-                <button onClick={() => { setActiveWeapon(null); setSelected(null); setQuery(""); setOffset(0) }} className="flex h-9 items-center gap-2 rounded-md border border-border bg-background px-3 text-xs font-medium text-foreground hover:bg-secondary"><ArrowLeft className="size-3.5" /> {activeWeapon.display_name}</button>
+                <button onClick={() => { if (collection === "knife") setCollection("skins"); if (gridTeamRef.current) { setTeamScope(gridTeamRef.current); gridTeamRef.current = null } setActiveWeapon(null); setSelected(null); setQuery(""); setOffset(0) }} className="flex h-9 items-center gap-2 rounded-md border border-border bg-background px-3 text-xs font-medium text-foreground hover:bg-secondary"><ArrowLeft className="size-3.5" /> {activeWeapon.display_name}</button>
               )}
               {category === "agent" && agentTeam && (
                 <button onClick={() => { setAgentTeam(null); setTeamScope("all"); setSelected(null); setQuery(""); setOffset(0) }} className="flex h-9 items-center gap-2 rounded-md border border-border bg-background px-3 text-xs font-medium text-foreground hover:bg-secondary"><ArrowLeft className="size-3.5" /> {agentTeam === "t" ? "T agents" : "CT agents"}</button>
               )}
               {!isAgentTeamBrowse && <label className="relative block sm:w-56">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-              <Input value={query} onChange={(event) => { setQuery(event.target.value); setOffset(0) }} placeholder={`Search ${activeWeapon ? `${activeWeapon.display_name} skins` : category === "agent" ? "agents" : activeCategory.label.toLowerCase()}...`} className="h-9 pl-9 text-xs" />
+              <Input value={query} onChange={(event) => { setQuery(event.target.value); setOffset(0) }} placeholder={`Search ${activeWeapon ? `${activeWeapon.display_name} skins` : isGridView ? "weapons" : category === "agent" ? "agents" : activeCategory.label.toLowerCase()}...`} className="h-9 pl-9 text-xs" />
               </label>}
             </div>
           </div>
-          {collection === "skins" && (
-            <div className="flex min-w-0 gap-1 overflow-x-auto border-b border-border bg-secondary/20 px-4 py-2">
-              {skinGroups.map((group) => {
-                const Icon = group.icon
-                const isActive = skinGroup === group.id
-                const iconTone = group.invertIcon
-                  ? (isActive ? "brightness-0" : "brightness-0 invert")
-                  : (isActive ? "brightness-0" : "")
-                return <button key={group.id} onClick={() => { setSkinGroup(group.id); setAgentTeam(null); setTeamScope("all"); setOffset(0); setActiveWeapon(null); setSelected(null); setQuery("") }} className={cn("flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors", isActive ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary hover:text-foreground")}>{group.iconAsset ? <OptimizedImage src={group.iconAsset} width={12} height={12} alt="" priority className={cn("size-3 object-contain", iconTone)} /> : <Icon className="size-3" />} {group.label}</button>
-              })}
-            </div>
-          )}
 
           {activeWeapon && (
             <div className="flex items-center gap-3 border-b border-border bg-secondary/20 px-4 py-3">
@@ -723,7 +866,115 @@ export function SkinchangerPage() {
               </div>
             </div>
           )}
-          {isAgentTeamBrowse ? (
+          {isGridView ? (
+            gridError || (gridLoading && gridSections.length === 0) || gridSections.length === 0 ? (
+              <QueryState
+                loading={gridLoading}
+                error={gridError ? { ...gridError, message: "Could not load weapons. Please try again." } : null}
+                empty={!gridLoading && !gridError && gridSections.length === 0}
+                onRetry={() => { refetchFirearms(); refetchKnives() }}
+                emptyMessage={gridSearch ? "No weapons match this search." : "No weapons available."}
+              />
+            ) : (
+              <div className="flex flex-col gap-6 p-4">
+                {gridSections.map((section) => {
+                  const equippedCount = section.items.filter((item) => gridEntryFor(item, section.gridCategory)?.skinchanger_catalog_items).length
+                  return (
+                    <section key={section.group} aria-label={section.group}>
+                      <div className="mb-2.5 flex items-baseline justify-between gap-2">
+                        <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{section.group}</h3>
+                        <span className="text-[10px] tabular-nums text-muted-foreground/70">{equippedCount}/{section.items.length} equipped</span>
+                      </div>
+                      <div className="grid grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-2">
+                        {section.items.map((item) => {
+                          const entry = gridEntryFor(item, section.gridCategory)
+                          const savedItem = entry?.skinchanger_catalog_items ?? null
+                          const rarity = savedItem ? rarityStyle(savedItem) : null
+                          const image = catalogImageUrl(savedItem ?? item)
+                          const lockedTeam = teamScopeFromMetadata(item)
+                          // A T-only rifle while the switch is on CT (or the reverse) is shown, but dimmed.
+                          const offSide = section.gridCategory === "weapon" && lockedTeam !== "all" && teamScope !== "all" && lockedTeam !== teamScope
+                          const teamLabel = entry?.team_scope === "t" ? "T" : entry?.team_scope === "ct" ? "CT" : "Both"
+                          return (
+                            <div
+                              key={item.id}
+                              data-catalog-item-id={item.id}
+                              style={rarity ? { backgroundImage: `radial-gradient(ellipse 95% 78% at 0% 100%, ${rarity.glow} 0%, transparent 68%)` } : undefined}
+                              className={cn(
+                                "group relative aspect-square overflow-hidden rounded-lg border bg-background/60 transition-[border-color,opacity] duration-150 hover:border-foreground/30",
+                                savedItem ? "border-border" : "border-border/60",
+                                offSide && "opacity-45 hover:opacity-100",
+                              )}
+                            >
+                              {rarity && <span aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100" style={{ backgroundImage: `radial-gradient(ellipse 105% 88% at 0% 100%, ${strongerGlow(rarity.glow)} 0%, transparent 70%)` }} />}
+                              {entry && <span aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ backgroundImage: teamScopeFade(entry.team_scope) }} />}
+
+                              {/* Card body: opens the skin picker for this model. */}
+                              <button
+                                type="button"
+                                onClick={() => openGridPicker(item, section.gridCategory)}
+                                aria-label={savedItem ? `Change ${item.display_name} skin (${savedSkinLabel(savedItem)})` : `Choose a ${item.display_name} skin`}
+                                className="absolute inset-0 z-[1] rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground/60"
+                              />
+
+                              <div className="pointer-events-none relative flex h-full flex-col p-2.5">
+                                <div className="flex min-h-0 flex-1 items-center justify-center">
+                                  {image ? (
+                                    <OptimizedImage
+                                      src={image}
+                                      width={200}
+                                      height={150}
+                                      alt=""
+                                      data-catalog-item-id={(savedItem ?? item).id}
+                                      className="max-h-full w-full object-contain transition-[filter,transform] duration-150 group-hover:scale-[1.03] group-hover:blur-[4px] group-has-[:focus-visible]:blur-[4px]"
+                                    />
+                                  ) : (
+                                    <ImageOff className="size-7 text-muted-foreground/50" />
+                                  )}
+                                </div>
+                                <p className="mt-1 truncate text-xs font-semibold">{item.display_name}</p>
+                                <p className="truncate text-[10px] text-muted-foreground" style={rarity ? { color: rarity.accent } : undefined}>
+                                  {savedItem ? savedSkinLabel(savedItem) : "Default"}
+                                </p>
+                              </div>
+
+                              {entry && savedItem && (
+                                <span className={cn("pointer-events-none absolute left-1.5 top-1.5 z-[2] rounded border px-1 py-px text-[9px] font-semibold", teamChipTone[entry.team_scope])}>{teamLabel}</span>
+                              )}
+
+                              {/* Customize: edits the equipped skin; without one it simply opens the picker. */}
+                              <button
+                                type="button"
+                                onClick={(event) => { event.stopPropagation(); customizeGridItem(item, section.gridCategory, entry) }}
+                                aria-label={savedItem ? `Customize ${savedItem.display_name}` : `Choose a ${item.display_name} skin`}
+                                title={savedItem ? "Customize" : "Choose a skin"}
+                                className="absolute left-1/2 top-[42%] z-[2] flex size-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/55 text-white opacity-0 shadow-lg backdrop-blur-sm transition-opacity duration-150 group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
+                              >
+                                <SlidersHorizontal className="size-4" />
+                              </button>
+
+                              {entry && savedItem && (
+                                <button
+                                  type="button"
+                                  onClick={(event) => { event.stopPropagation(); setDeleteConfirm({ model: item, entry }) }}
+                                  disabled={saving}
+                                  aria-label={`Remove ${savedItem.display_name}`}
+                                  title="Remove saved look"
+                                  className="absolute right-1.5 top-1.5 z-[2] flex size-7 items-center justify-center rounded-md border border-border bg-background/90 text-muted-foreground opacity-0 shadow-sm backdrop-blur transition-[opacity,color,background-color] duration-150 hover:bg-destructive hover:text-destructive-foreground group-hover:opacity-100 focus-visible:opacity-100 disabled:pointer-events-none [@media(hover:none)]:opacity-100"
+                                >
+                                  <Trash2 className="size-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </section>
+                  )
+                })}
+              </div>
+            )
+          ) : isAgentTeamBrowse ? (
             <div className="grid grid-cols-2 gap-px bg-background">
               {agentTeamOptions.map((team) => (
                 <button key={team.id} onClick={() => { setAgentTeam(team.id); setTeamScope(team.id); setSelected(null); setQuery(""); setOffset(0) }} className="group relative min-h-56 overflow-hidden bg-card p-5 text-left transition-colors hover:bg-secondary/50">
@@ -851,21 +1102,6 @@ export function SkinchangerPage() {
               {previewChoice && catalogImageUrl(previewChoice) ? <OptimizedImage src={catalogImageUrl(previewChoice) ?? ""} width={320} height={160} priority alt={`${previewChoice.display_name} selected collectible`} data-catalog-item-id={previewChoice.id} className="h-full w-full object-contain p-3" /> : <span className="flex flex-col items-center gap-2 px-6 text-center"><ImageOff className="size-7 text-muted-foreground/50" /><span className="text-[11px] leading-4 text-muted-foreground">Open a weapon, choose a skin, then save the look.</span></span>}
               {canCustomizeAccessories && (previewStickerItems.length > 0 || previewCharmItem) && <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-2"><div className="flex -space-x-1.5">{previewStickerItems.slice(0, 5).map((item) => catalogImageUrl(item) && <OptimizedImage key={item.id} src={catalogImageUrl(item) ?? ""} width={28} height={28} alt={`${item.display_name} selected sticker`} data-catalog-item-id={item.id} className="size-7 rounded-full border border-background bg-card object-contain p-0.5" />)}</div>{previewCharmItem && catalogImageUrl(previewCharmItem) && <OptimizedImage src={catalogImageUrl(previewCharmItem) ?? ""} width={32} height={32} alt={`${previewCharmItem.display_name} selected charm`} data-catalog-item-id={previewCharmItem.id} className="size-8 rounded-md border border-background bg-card object-contain p-0.5" />}</div>}
             </div>
-            {showTeamSelector && (
-              <div className="mt-4 flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Team</span>
-                <div className="flex rounded-md border border-border p-0.5">
-                  {teamOptions.map((team) => {
-                    const isUnavailableBoth = team.id === "all" && hasOtherEquippedKnifeOrGloveLook
-                    return (
-                    <button key={team.id} disabled={isUnavailableBoth} onClick={() => setTeamScope(team.id)} title={isUnavailableBoth ? "Another knife/glove look already uses Both. Choose T or CT." : undefined} className={cn("rounded px-2 py-1 text-xs", teamScope === team.id ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground", isUnavailableBoth && "cursor-not-allowed opacity-35")}>
-                      {team.label}
-                    </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
             {selected && activeWeapon && (
               <div className="mt-3 grid grid-rows-[1fr] overflow-hidden">
               <div className="min-h-0 overflow-hidden">
