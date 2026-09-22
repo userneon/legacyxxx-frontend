@@ -10,11 +10,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
-import { PlayerAvatar } from "@/components/player-avatar"
-import { RelativeTime } from "@/components/relative-time"
 import { useAuth } from "@/hooks/use-auth"
 import { SteamLoginButton } from "@/components/steam-login-gate"
 import { RatingSummary } from "@/components/rating-summary"
+import { ReviewCard } from "@/components/home-reviews"
+import { StarOutlineIcon } from "@/components/mask-icons"
+import { PageHeader } from "@/components/page-kit"
 
 export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamId: string) => void }) {
   const { isAuthenticated, loginWithSteam } = useAuth()
@@ -58,10 +59,12 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className={cn("grid gap-6", allFeedback.length > 0 && "lg:grid-cols-[minmax(0,1fr)_18rem]")}>
+    <div className="@container flex flex-col gap-5 p-4 @2xl:p-6">
+      <PageHeader icon={StarOutlineIcon} accent="amber" title="Reviews" description="What players say about LEGACY-X servers. One review per player every 7 days." />
+
+      <div className={cn("grid gap-5", allFeedback.length > 0 && "@4xl:grid-cols-[minmax(0,1fr)_18rem]")}>
       {/* Submit form */}
-      <form onSubmit={handleSubmit} className="glass rounded-xl p-6 flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="glass rounded-2xl p-6 flex flex-col gap-4">
         <div className="flex flex-col gap-2">
           <Label>Rating</Label>
           <div className="flex gap-1">
@@ -131,7 +134,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
       </form>
 
       {allFeedback.length > 0 && (
-        <aside aria-label="Rating summary" className="glass flex items-center rounded-xl p-6">
+        <aside aria-label="Rating summary" className="glass flex items-center rounded-2xl p-6">
           <RatingSummary ratings={allFeedback.map((entry) => entry.rating)} className="mx-auto max-w-xs" />
         </aside>
       )}
@@ -147,47 +150,8 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
       />
 
       {!loading && !error && allFeedback.length > 0 && (
-        <div className="stagger-in flex flex-col gap-3">
-          {allFeedback.map((entry) => (
-            <div key={entry.id} className="glass rounded-xl p-4 hover-lift transition-all">
-              <div className="flex items-start justify-between gap-4">
-                {entry.steamId ? (
-                  <button
-                    type="button"
-                    onClick={() => onProfileNavigate(entry.steamId!)}
-                    className="group flex items-center gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                    aria-label={`Open ${entry.name}'s profile`}
-                  >
-                    <PlayerAvatar avatar={entry.avatar} name={entry.name} className="size-10 rounded-md text-sm transition-transform group-hover:scale-105" />
-                    <div>
-                      <div className="text-sm font-medium group-hover:text-primary group-hover:underline">{entry.name}</div>
-                      <RelativeTime value={entry.date} className="block text-xs text-muted-foreground" />
-                    </div>
-                  </button>
-                ) : (
-                  <div className="flex items-center gap-3">
-                    <PlayerAvatar avatar={entry.avatar} name={entry.name} className="size-10 rounded-md text-sm" />
-                    <div><div className="text-sm font-medium">{entry.name}</div><RelativeTime value={entry.date} className="block text-xs text-muted-foreground" /></div>
-                  </div>
-                )}
-                <div className="flex gap-0.5">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star
-                      key={star}
-                      style={{ "--star-i": star - 1 } as CSSProperties}
-                      className={cn(
-                        "review-star size-3.5",
-                        entry.rating >= star
-                          ? "fill-amber-300 text-amber-300"
-                          : "text-muted-foreground/50"
-                      )}
-                    />
-                  ))}
-                </div>
-              </div>
-              <p className="text-sm text-muted-foreground mt-3">{entry.message}</p>
-            </div>
-          ))}
+        <div className="stagger-in grid gap-3 @2xl:grid-cols-2 @5xl:grid-cols-3">
+          {allFeedback.map((entry) => <ReviewCard key={entry.id} entry={entry} onOpenProfile={onProfileNavigate} />)}
         </div>
       )}
     </div>

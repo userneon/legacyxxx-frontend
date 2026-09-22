@@ -40,19 +40,29 @@ function Stars({ value, className }: { value: number; className?: string }) {
   )
 }
 
-function ReviewCard({ entry }: { entry: FeedbackEntry }) {
-  return (
-    <article className="glass flex min-w-0 flex-col rounded-2xl p-4">
-      <div className="flex items-center gap-3">
-        <PlayerAvatar avatar={entry.avatar} name={entry.name} className="size-10 rounded-md text-sm" />
-        <div className="min-w-0">
-          <div className="truncate text-sm font-semibold text-sky-400">{entry.name}</div>
-          <div className="mt-0.5 flex items-center gap-1.5">
-            <Stars value={entry.rating} className="size-3.5" />
-            <span className="text-xs font-medium tabular-nums">{entry.rating.toFixed(1)}</span>
-          </div>
+/** One review: author, stars and score, the message and its date. Used on Home and the Reviews page. */
+export function ReviewCard({ entry, onOpenProfile }: { entry: FeedbackEntry; onOpenProfile?: (steamId: string) => void }) {
+  const author = (
+    <>
+      <PlayerAvatar avatar={entry.avatar} name={entry.name} className="size-10 rounded-md text-sm transition-transform group-hover:scale-105" />
+      <div className="min-w-0">
+        <div className="truncate text-sm font-semibold text-sky-400 group-hover:underline">{entry.name}</div>
+        <div className="mt-0.5 flex items-center gap-1.5">
+          <Stars value={entry.rating} className="size-3.5" />
+          <span className="text-xs font-medium tabular-nums">{entry.rating.toFixed(1)}</span>
         </div>
       </div>
+    </>
+  )
+  return (
+    <article className="glass flex min-w-0 flex-col rounded-2xl p-4">
+      {entry.steamId && onOpenProfile ? (
+        <button type="button" onClick={() => onOpenProfile(entry.steamId!)} aria-label={`Open ${entry.name}'s profile`} className="group flex items-center gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-primary">
+          {author}
+        </button>
+      ) : (
+        <div className="flex items-center gap-3">{author}</div>
+      )}
       <p className="mt-3 line-clamp-4 min-h-20 flex-1 rounded-lg bg-background/50 px-3 py-2.5 text-xs leading-5 text-muted-foreground">{entry.message}</p>
       <div className="mt-2 text-center text-[11px] text-muted-foreground/70 tabular-nums">{reviewDate(entry.date)}</div>
     </article>
