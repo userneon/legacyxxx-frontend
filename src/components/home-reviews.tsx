@@ -1,5 +1,4 @@
-import { useState } from "react"
-import { ChevronsLeft, ChevronsRight, Star } from "lucide-react"
+import { ArrowRight, Quote, Star } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { feedbackService } from "@/api"
@@ -7,16 +6,7 @@ import type { FeedbackEntry } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
 import { PlayerAvatar } from "@/components/player-avatar"
-
-const PAGE_SIZE = 3
-
-function ratingLabel(average: number) {
-  if (average >= 4.5) return "Excellent"
-  if (average >= 3.5) return "Good"
-  if (average >= 2.5) return "Average"
-  if (average >= 1.5) return "Poor"
-  return "Bad"
-}
+import { Skeleton } from "@/components/ui/skeleton"
 
 /** 19.09.2026, at 14:06 */
 function reviewDate(value: string) {
@@ -40,7 +30,7 @@ function Stars({ value, className }: { value: number; className?: string }) {
   )
 }
 
-/** One review: author, stars and score, the message and its date. Used on Home and the Reviews page. */
+/** One review on the Reviews page: author, stars and score, the message and its date. */
 export function ReviewCard({ entry, onOpenProfile }: { entry: FeedbackEntry; onOpenProfile?: (steamId: string) => void }) {
   const author = (
     <>
@@ -69,61 +59,75 @@ export function ReviewCard({ entry, onOpenProfile }: { entry: FeedbackEntry; onO
   )
 }
 
-/** Home "Our reviews": score summary plus the latest reviews, three at a time. */
+/** Quote card in the Home strip: the words first, the author underneath. */
+function QuoteCard({ entry }: { entry: FeedbackEntry }) {
+  return (
+    <figure className="glass flex w-72 shrink-0 flex-col justify-between gap-4 rounded-2xl p-4">
+      <blockquote className="relative">
+        <Quote className="absolute -left-0.5 -top-0.5 size-5 text-white/10" aria-hidden="true" />
+        <p className="line-clamp-3 pl-6 text-sm leading-6 text-foreground/85">{entry.message}</p>
+      </blockquote>
+      <figcaption className="flex items-center gap-2.5">
+        <PlayerAvatar avatar={entry.avatar} name={entry.name} className="size-7 rounded-md text-[10px]" />
+        <span className="min-w-0 flex-1 truncate text-xs font-medium text-white/70">{entry.name}</span>
+        <Stars value={entry.rating} className="size-3" />
+      </figcaption>
+    </figure>
+  )
+}
+
+const STRIP_SIZE = 10
+
+/** Home "What players say": a slow strip of the latest reviews and a link to all of them. */
 export function HomeReviews({ onWriteReview }: { onWriteReview: () => void }) {
-  const [page, setPage] = useState(0)
   const { data, loading, error, refetch } = useApiQuery<FeedbackEntry[]>((signal) => feedbackService.getFeedback({ signal }))
 
   const reviews = [...(data ?? [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   const total = reviews.length
   const average = total ? reviews.reduce((sum, entry) => sum + entry.rating, 0) / total : 0
-  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE))
-  const current = Math.min(page, pageCount - 1)
-  const shown = reviews.slice(current * PAGE_SIZE, current * PAGE_SIZE + PAGE_SIZE)
-  const from = total ? current * PAGE_SIZE + 1 : 0
-  const to = current * PAGE_SIZE + shown.length
+  const latest = reviews.slice(0, STRIP_SIZE)
+  // The strip scrolls one full copy, then repeats seamlessly; a short list is not animated.
+  const animated = latest.length >= 4
 
   return (
-    <section className="scroll-reveal flex flex-col gap-4" aria-label="Our reviews">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="font-display text-2xl tracking-wide text-foreground/90">Our reviews</h2>
-        {pageCount > 1 && (
-          <div className="flex items-center gap-2">
-            <button type="button" onClick={() => setPage(current - 1)} disabled={current === 0} aria-label="Newer reviews" className="flex size-10 items-center justify-center rounded-full bg-secondary/70 text-foreground transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-35">
-              <ChevronsLeft className="size-4" />
-            </button>
-            <span className="min-w-12 text-center font-display text-xl text-sky-400 tabular-nums" aria-live="polite">{from}-{to}</span>
-            <button type="button" onClick={() => setPage(current + 1)} disabled={current >= pageCount - 1} aria-label="Older reviews" className="flex size-10 items-center justify-center rounded-full bg-secondary/70 text-foreground transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-35">
-              <ChevronsRight className="size-4" />
-            </button>
-          </div>
-        )}
+    <section className="scroll-reveal flex flex-col gap-3" aria-label="What players say">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-semibold">What players say</h2>
+          {total > 0 && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/20 bg-amber-300/[0.08] px-2.5 py-1 text-xs text-amber-100">
+              <Star className="size-3 fill-amber-300 text-amber-300" aria-hidden="true" />
+              <span className="font-semibold tabular-nums">{average.toFixed(1)}</span>
+              <span className="text-amber-100/60">· {total.toLocaleString()} review{total === 1 ? "" : "s"}</span>
+            </span>
+          )}
+        </div>
+        <button type="button" onClick={onWriteReview} className="group inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
+          {total > 0 ? "All reviews" : "Write the first review"}
+          <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+        </button>
       </div>
 
       {loading || error ? (
-        <QueryState loading={loading} error={error} empty={false} onRetry={refetch} />
+        <QueryState
+          loading={loading}
+          error={error}
+          empty={false}
+          onRetry={refetch}
+          skeleton={
+            <div className="flex gap-3 overflow-hidden">
+              {[0, 1, 2, 3].map((index) => <Skeleton key={index} className="h-36 w-72 shrink-0 rounded-2xl bg-white/[0.05]" />)}
+            </div>
+          }
+        />
+      ) : total === 0 ? (
+        <p className="glass rounded-2xl px-4 py-6 text-center text-sm text-muted-foreground">No reviews yet.</p>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="glass flex flex-col justify-between gap-4 rounded-2xl p-5">
-            {total > 0 ? (
-              <div>
-                <div className="flex items-center gap-4">
-                  <span className="font-display text-4xl text-sky-400 tabular-nums">{average.toFixed(2)}</span>
-                  <div>
-                    <div className="font-semibold">{ratingLabel(average)}</div>
-                    <div className="text-[11px] text-muted-foreground">Based on {total.toLocaleString()} review{total === 1 ? "" : "s"}</div>
-                  </div>
-                </div>
-                <div className="mt-4"><Stars value={average} className="size-5" /></div>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">No reviews yet. Be the first to share your thoughts!</p>
-            )}
-            <button type="button" onClick={onWriteReview} className="h-11 rounded-lg bg-secondary/70 text-sm font-medium transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-              Write a review
-            </button>
+        <div className="review-strip -mx-4 overflow-hidden px-4 [mask-image:linear-gradient(to_right,transparent,black_4%,black_96%,transparent)] @2xl:-mx-6 @2xl:px-6">
+          <div className={cn("flex w-max gap-3", animated && "review-strip-track")}>
+            {latest.map((entry) => <QuoteCard key={entry.id} entry={entry} />)}
+            {animated && latest.map((entry) => <div key={`copy-${entry.id}`} aria-hidden="true" className="contents"><QuoteCard entry={entry} /></div>)}
           </div>
-          {shown.map((entry) => <ReviewCard key={entry.id} entry={entry} />)}
         </div>
       )}
     </section>

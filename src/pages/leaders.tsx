@@ -10,6 +10,7 @@ import type { CompetitiveLeaderboardEntry } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { QueryState } from "@/components/query-state"
+import { BlockSkeleton, RowsSkeleton, StatTilesSkeleton } from "@/components/skeletons"
 import { PlayerModerationAvatar } from "@/components/player-moderation-avatar"
 import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
 import { RelativeTime } from "@/components/relative-time"
@@ -78,7 +79,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
 
   return (
     <div className="@container flex flex-col gap-5 p-4 @2xl:p-6">
-      <QueryState loading={loading} error={error} empty={!loading && !error && list.length === 0} emptyMessage="No player performance data available yet." onRetry={refetch} />
+      <QueryState skeleton={<div className="flex flex-col gap-5"><StatTilesSkeleton count={4} /><BlockSkeleton className="h-72" /><RowsSkeleton rows={8} /></div>} loading={loading} error={error} empty={!loading && !error && list.length === 0} emptyMessage="No player performance data available yet." onRetry={refetch} />
 
       {!loading && !error && list.length > 0 && (
         <>

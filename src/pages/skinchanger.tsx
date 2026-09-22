@@ -29,6 +29,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { QueryState } from "@/components/query-state"
+import { CardGridSkeleton } from "@/components/skeletons"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
 import { OptimizedImage } from "@/components/optimized-image"
@@ -954,7 +956,7 @@ export function SkinchangerPage() {
       {gridError ? (
         <QueryState loading={false} error={{ ...gridError, message: "Could not load the collection. Please try again." }} empty={false} onRetry={() => { refetchFirearms(); refetchKnives(); refetchGloves() }} />
       ) : gridLoading && !firearmModels ? (
-        <QueryState loading error={null} empty={false} onRetry={() => undefined} />
+        <QueryState loading error={null} empty={false} skeleton={<div className="flex flex-col gap-7">{[10, 7, 7].map((count, index) => <div key={index} className="flex flex-col gap-2.5"><Skeleton className="h-3 w-20 bg-white/[0.06]" /><CardGridSkeleton count={count} /></div>)}</div>} />
       ) : (
         <div className="flex flex-col gap-7">
           {modelSections.map((section) => renderSection(section.group, equippedIn(section.items, section.kind), section.items.length, section.items.map((item) => modelCard(item, section.kind))))}
@@ -1058,7 +1060,7 @@ export function SkinchangerPage() {
                 </label>
               </div>
               <div className="min-h-0 flex-1 overflow-y-auto p-3">
-                <QueryState loading={catalogLoading} error={catalogError ? { ...catalogError, message: "Could not load the collection. Please try again." } : null} empty={!catalogLoading && !catalogError && displayedCatalogItems.length === 0} onRetry={refetchCatalog} emptyMessage="Nothing matches this search." />
+                <QueryState skeleton={<CardGridSkeleton count={12} className="grid-cols-[repeat(auto-fill,minmax(8rem,1fr))]" />} loading={catalogLoading} error={catalogError ? { ...catalogError, message: "Could not load the collection. Please try again." } : null} empty={!catalogLoading && !catalogError && displayedCatalogItems.length === 0} onRetry={refetchCatalog} emptyMessage="Nothing matches this search." />
                 {!catalogLoading && !catalogError && displayedCatalogItems.length > 0 && (
                   <div className="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-2">
                     {displayedCatalogItems.map((item) => {

@@ -984,3 +984,21 @@
     60% { box-shadow: 0 0 0 5px rgb(110 231 183 / 0); }
   }
 }
+
+/* Home review strip: the first copy scrolls past, then its duplicate takes its place. Hover pauses it. */
+@media (prefers-reduced-motion: no-preference) {
+  .review-strip-track {
+    animation: review-strip 70s linear infinite;
+  }
+  .review-strip:hover .review-strip-track,
+  .review-strip:focus-within .review-strip-track {
+    animation-play-state: paused;
+  }
+  /* Half the track plus half a gap (gap-3), so the loop joins without a jump. */
+  @keyframes review-strip {
+    to { transform: translateX(calc(-50% - 0.375rem)); }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .review-strip { overflow-x: auto; }
+}

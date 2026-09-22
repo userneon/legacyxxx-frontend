@@ -1,7 +1,9 @@
-import { Loader2, Inbox, RefreshCw } from "lucide-react"
+import type { ReactNode } from "react"
+import { Inbox, RefreshCw } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { BlockSkeleton } from "@/components/skeletons"
 import type { ApiError } from "@/api/types"
 
 interface QueryStateProps {
@@ -11,6 +13,8 @@ interface QueryStateProps {
   emptyMessage?: string
   onRetry?: () => void
   className?: string
+  /** Placeholder shaped like the content; a generic block when omitted. */
+  skeleton?: ReactNode
 }
 
 export function QueryState({
@@ -20,12 +24,12 @@ export function QueryState({
   emptyMessage = "Nothing here yet.",
   onRetry,
   className,
+  skeleton,
 }: QueryStateProps) {
   if (loading) {
     return (
-      <div className={cn("query-state-in glass flex flex-col items-center justify-center gap-3 rounded-xl p-12 text-center", className)}>
-        <Loader2 className="size-6 animate-spin text-muted-foreground" />
-        <span className="text-sm text-muted-foreground">Loading...</span>
+      <div role="status" aria-label="Loading" aria-busy="true" className={className}>
+        {skeleton ?? <BlockSkeleton />}
       </div>
     )
   }

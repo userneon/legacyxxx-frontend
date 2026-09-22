@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
+import { ReviewCardsSkeleton } from "@/components/skeletons"
 import { useAuth } from "@/hooks/use-auth"
 import { SteamLoginButton } from "@/components/steam-login-gate"
 import { RatingSummary } from "@/components/rating-summary"
@@ -137,7 +138,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
       </div>
 
       {/* Feedback list */}
-      <QueryState
+      <QueryState skeleton={<ReviewCardsSkeleton count={6} className="@2xl:grid-cols-2 @5xl:grid-cols-3" />}
         loading={loading}
         error={error}
         empty={!loading && !error && allFeedback.length === 0}
