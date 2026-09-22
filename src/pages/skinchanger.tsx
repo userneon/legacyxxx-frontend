@@ -188,6 +188,9 @@ function slotKeyForCatalogItem(item: SkinchangerCatalogItem, category: Skinchang
   return `weapon:${modelKey}`
 }
 
+/** Fade for a card's look when it changes (team switch, new save); keyed elements replay it. */
+const swapIn = "animate-in fade-in-0 [animation-duration:350ms] ease-out motion-reduce:animate-none"
+
 function savedSkinLabel(item: SkinchangerCatalogItem) {
   const [, skin = item.display_name] = item.display_name.split("|")
   return skin.trim().replace(wearSuffix, "")
@@ -763,28 +766,29 @@ export function SkinchangerPage() {
         data-slot-card={id}
         inert={dimmed || undefined}
         aria-disabled={dimmed || undefined}
-        style={rarity ? { backgroundImage: `radial-gradient(ellipse 95% 78% at 0% 100%, ${rarity.glow} 0%, transparent 68%)` } : undefined}
         className={cn(
-          "group relative aspect-square overflow-hidden rounded-lg border bg-background/60 transition-[border-color,opacity] duration-[400ms] ease-out hover:duration-[250ms] hover:border-foreground/30",
+          "group relative aspect-square overflow-hidden rounded-lg border bg-background/60 transition-[border-color,opacity,filter] duration-[400ms] ease-out hover:duration-[250ms] hover:border-foreground/30",
           savedItem ? "border-border" : "border-border/60",
           dimmed && "pointer-events-none opacity-35 grayscale",
         )}
       >
+        {/* Keyed by the look, so switching team fades the new skin in instead of swapping it. */}
+        {rarity && <span key={`glow:${savedItem?.id}`} aria-hidden="true" className={cn("pointer-events-none absolute inset-0", swapIn)} style={{ backgroundImage: `radial-gradient(ellipse 95% 78% at 0% 100%, ${rarity.glow} 0%, transparent 68%)` }} />}
         {rarity && <span aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-[400ms] ease-out group-hover:opacity-100 group-hover:duration-[250ms]" style={{ backgroundImage: `radial-gradient(ellipse 105% 88% at 0% 100%, ${strongerGlow(rarity.glow)} 0%, transparent 70%)` }} />}
-        {entry && savedItem && <span aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ backgroundImage: teamScopeFade(entry.team_scope) }} />}
+        {entry && savedItem && <span key={`team:${entry.team_scope}:${savedItem.id}`} aria-hidden="true" className={cn("pointer-events-none absolute inset-0", swapIn)} style={{ backgroundImage: teamScopeFade(entry.team_scope) }} />}
 
         <button type="button" disabled={dimmed} onClick={onOpen} aria-label={openLabel} className="absolute inset-0 z-[1] rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground/60" />
 
         <div className="pointer-events-none relative flex h-full flex-col p-2.5">
           <div className="flex min-h-0 flex-1 items-center justify-center">
             {src ? (
-              <OptimizedImage src={src} width={200} height={150} alt="" className={cn("max-h-full w-full object-contain transition-[filter,scale] duration-[400ms] ease-out group-hover:duration-[250ms] group-hover:scale-[1.03] group-hover:blur-[4px] group-has-[:focus-visible]:blur-[4px]", !savedItem && fallback && !image && "p-4 opacity-80")} />
+              <OptimizedImage key={src} src={src} width={200} height={150} alt="" className={cn("max-h-full w-full object-contain transition-[filter,scale] duration-[400ms] ease-out group-hover:duration-[250ms] group-hover:scale-[1.03] group-hover:blur-[4px] group-has-[:focus-visible]:blur-[4px]", swapIn, "zoom-in-95", !savedItem && fallback && !image && "p-4 opacity-80")} />
             ) : (
               <ImageOff className="size-7 text-muted-foreground/50" />
             )}
           </div>
           <p className="mt-1 truncate text-xs font-semibold">{title}</p>
-          <p className="truncate text-[10px] text-muted-foreground" style={rarity ? { color: rarity.accent } : undefined}>{subtitle}</p>
+          <p key={subtitle} className={cn("truncate text-[10px] text-muted-foreground", swapIn)} style={rarity ? { color: rarity.accent } : undefined}>{subtitle}</p>
         </div>
 
         {entry && savedItem && (
