@@ -80,7 +80,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
                 >
                   {/* Re-keying on every click restarts the cascade even when the same star is clicked again. */}
                   <Star
-                    key={popped ? burst : 0}
+                    key={popped ? `star-${burst}` : "star"}
                     className={cn(
                       "star-rating-icon size-6",
                       popped && "star-rating-pop",
@@ -91,7 +91,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
                     )}
                   />
                   {burst > 0 && rating === star && (
-                    <span key={burst} className="star-burst" aria-hidden="true">
+                    <span key={`burst-${burst}`} className="star-burst" aria-hidden="true">
                       {Array.from({ length: 8 }, (_, i) => (
                         <span key={i} style={{ "--angle": `${i * 45}deg` } as CSSProperties} />
                       ))}
