@@ -14,6 +14,7 @@ import { PlayerAvatar } from "@/components/player-avatar"
 import { RelativeTime } from "@/components/relative-time"
 import { useAuth } from "@/hooks/use-auth"
 import { SteamLoginButton } from "@/components/steam-login-gate"
+import { RatingSummary } from "@/components/rating-summary"
 
 export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamId: string) => void }) {
   const { isAuthenticated, loginWithSteam } = useAuth()
@@ -58,6 +59,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
 
   return (
     <div className="flex flex-col gap-6 p-6">
+      <div className={cn("grid gap-6", allFeedback.length > 0 && "lg:grid-cols-[minmax(0,1fr)_18rem]")}>
       {/* Submit form */}
       <form onSubmit={handleSubmit} className="glass rounded-xl p-6 flex flex-col gap-4">
         <div className="flex flex-col gap-2">
@@ -127,6 +129,13 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
         </div>
         {submitError && <p role="alert" className="text-sm text-destructive">{submitError}</p>}
       </form>
+
+      {allFeedback.length > 0 && (
+        <aside aria-label="Rating summary" className="glass flex items-center rounded-xl p-6">
+          <RatingSummary ratings={allFeedback.map((entry) => entry.rating)} className="mx-auto max-w-xs" />
+        </aside>
+      )}
+      </div>
 
       {/* Feedback list */}
       <QueryState
