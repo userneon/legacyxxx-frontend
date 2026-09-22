@@ -863,8 +863,8 @@ export function SkinchangerPage() {
       const savedItem = entry?.skinchanger_catalog_items ?? null
       const teamName = team === "t" ? "T" : "CT"
       const otherName = team === "t" ? "CT" : "T"
-      // "Both" on the page switch saves one skin for both teams; otherwise the face decides.
-      const saveTeam: TeamScope = pageTeam === "all" ? "all" : team
+      // Each face only ever changes its own team.
+      const saveTeam: TeamScope = team
       return renderCard({
         id: `${id}:${team}`,
         image: catalogImageUrl(savedItem ?? item),
@@ -1134,7 +1134,8 @@ export function SkinchangerPage() {
                     {displayedCatalogItems.map((item) => {
                       const rarity = rarityStyle(item)
                       const isSelected = selected?.id === item.id
-                      const isSaved = savedItemForActiveSlot?.id === item.id
+                      // Once another skin is picked, the old one is no longer marked, so only the new choice stands out.
+                      const isSaved = savedItemForActiveSlot?.id === item.id && (!selected || isSelected)
                       const image = catalogImageUrl(item)
                       return (
                         <button
