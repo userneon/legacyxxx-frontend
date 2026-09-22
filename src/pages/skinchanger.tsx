@@ -767,12 +767,12 @@ export function SkinchangerPage() {
         aria-disabled={dimmed || undefined}
         style={rarity ? { backgroundImage: `radial-gradient(ellipse 95% 78% at 0% 100%, ${rarity.glow} 0%, transparent 68%)` } : undefined}
         className={cn(
-          "group relative aspect-square overflow-hidden rounded-lg border bg-background/60 transition-[border-color,opacity] duration-150 hover:border-foreground/30",
+          "group relative aspect-square overflow-hidden rounded-lg border bg-background/60 transition-[border-color,opacity] duration-[400ms] ease-out hover:duration-[250ms] hover:border-foreground/30",
           savedItem ? "border-border" : "border-border/60",
           dimmed && "pointer-events-none opacity-35 grayscale",
         )}
       >
-        {rarity && <span aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100" style={{ backgroundImage: `radial-gradient(ellipse 105% 88% at 0% 100%, ${strongerGlow(rarity.glow)} 0%, transparent 70%)` }} />}
+        {rarity && <span aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-[400ms] ease-out group-hover:opacity-100 group-hover:duration-[250ms]" style={{ backgroundImage: `radial-gradient(ellipse 105% 88% at 0% 100%, ${strongerGlow(rarity.glow)} 0%, transparent 70%)` }} />}
         {entry && savedItem && <span aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ backgroundImage: teamScopeFade(entry.team_scope) }} />}
 
         <button type="button" disabled={dimmed} onClick={onOpen} aria-label={openLabel} className="absolute inset-0 z-[1] rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground/60" />
@@ -780,7 +780,7 @@ export function SkinchangerPage() {
         <div className="pointer-events-none relative flex h-full flex-col p-2.5">
           <div className="flex min-h-0 flex-1 items-center justify-center">
             {src ? (
-              <OptimizedImage src={src} width={200} height={150} alt="" className={cn("max-h-full w-full object-contain transition-[filter,transform] duration-150 group-hover:scale-[1.03] group-hover:blur-[4px] group-has-[:focus-visible]:blur-[4px]", !savedItem && fallback && !image && "p-4 opacity-80")} />
+              <OptimizedImage src={src} width={200} height={150} alt="" className={cn("max-h-full w-full object-contain transition-[filter,scale] duration-[400ms] ease-out group-hover:duration-[250ms] group-hover:scale-[1.03] group-hover:blur-[4px] group-has-[:focus-visible]:blur-[4px]", !savedItem && fallback && !image && "p-4 opacity-80")} />
             ) : (
               <ImageOff className="size-7 text-muted-foreground/50" />
             )}
@@ -799,7 +799,7 @@ export function SkinchangerPage() {
           onClick={(event) => { event.stopPropagation(); (onCustomize ?? onOpen)() }}
           aria-label={onCustomize && savedItem ? `Customize ${savedItem.display_name}` : openLabel}
           title={onCustomize && savedItem ? "Customize" : "Choose"}
-          className="absolute left-1/2 top-[42%] z-[2] flex size-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/55 text-white opacity-0 shadow-lg backdrop-blur-sm transition-opacity duration-150 group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
+          className="absolute left-1/2 top-[42%] z-[2] flex size-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/55 text-white opacity-0 shadow-lg backdrop-blur-sm transition-opacity duration-[400ms] ease-out group-hover:duration-[250ms] group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
         >
           <SlidersHorizontal className="size-4" />
         </button>
@@ -811,7 +811,7 @@ export function SkinchangerPage() {
             disabled={saving || dimmed}
             aria-label={`Remove ${savedItem.display_name}`}
             title="Remove"
-            className="absolute right-1.5 top-1.5 z-[2] flex size-7 items-center justify-center rounded-md border border-border bg-background/90 text-muted-foreground opacity-0 shadow-sm backdrop-blur transition-[opacity,color,background-color] duration-150 hover:bg-destructive hover:text-destructive-foreground group-hover:opacity-100 focus-visible:opacity-100 disabled:pointer-events-none [@media(hover:none)]:opacity-100"
+            className="absolute right-1.5 top-1.5 z-[2] flex size-7 items-center justify-center rounded-md border border-border bg-background/90 text-muted-foreground opacity-0 shadow-sm backdrop-blur transition-[opacity,color,background-color] duration-[400ms] ease-out group-hover:duration-[250ms] hover:bg-destructive hover:text-destructive-foreground group-hover:opacity-100 focus-visible:opacity-100 disabled:pointer-events-none [@media(hover:none)]:opacity-100"
           >
             <Trash2 className="size-3.5" />
           </button>
