@@ -7,7 +7,6 @@ import {
   ImageOff,
   Loader2,
   Medal,
-  RefreshCw,
   RotateCcw,
   Search,
   ShieldCheck,
@@ -36,6 +35,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { QueryState } from "@/components/query-state"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
+import { Checkbox } from "@/components/ui/checkbox"
 import { OptimizedImage } from "@/components/optimized-image"
 import { RelativeTime } from "@/components/relative-time"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -114,7 +114,6 @@ function rarityStyle(item: SkinchangerCatalogItem) {
 }
 
 const teamOptions: Array<{ id: TeamScope; label: string }> = [
-  { id: "all", label: "Both" },
   { id: "t", label: "T" },
   { id: "ct", label: "CT" },
 ]
@@ -219,7 +218,7 @@ export function SkinchangerPage() {
   const [activeWeapon, setActiveWeapon] = useState<SkinchangerCatalogItem | null>(null)
   const [selected, setSelected] = useState<SkinchangerCatalogItem | null>(null)
   const [agentTeam, setAgentTeam] = useState<"t" | "ct" | null>(null)
-  const [teamScope, setTeamScope] = useState<TeamScope>("all")
+  const [teamScope, setTeamScope] = useState<TeamScope>("t")
   const [defaultChoice, setDefaultChoice] = useState<"knife" | "glove" | null>(null)
   const [customOptions, setCustomOptions] = useState<SkinchangerAppearanceOptions>({ wear: 0.0001, seed: 0, statTrak: false, stickers: [] })
   const [selectedAccessories, setSelectedAccessories] = useState<Record<string, SkinchangerCatalogItem>>({})
@@ -233,8 +232,8 @@ export function SkinchangerPage() {
   // Knife and glove dialogs are opened per team (T knife, CT gloves...) and always save for that team.
   const [slotTeam, setSlotTeam] = useState<"t" | "ct" | null>(null)
   const [gridQuery, setGridQuery] = useState("")
-  // Weapons both teams can buy show T on the front and CT on the back; this holds the cards turned over.
-  const [flippedCards, setFlippedCards] = useState<Record<string, boolean>>({})
+  // "Also use for the other team" in the picker: saves one look for both teams.
+  const [alsoOtherTeam, setAlsoOtherTeam] = useState(false)
   const [optimisticLoadoutEntries, setOptimisticLoadoutEntries] = useState<SkinchangerLoadoutEntry[] | null>(null)
   const [optimisticLoadoutVersion, setOptimisticLoadoutVersion] = useState<number | null>(null)
   // Opening a team-locked model moves the switch to that side; going back to the grid restores it.
@@ -351,9 +350,14 @@ export function SkinchangerPage() {
     if (hasOtherEquippedKnifeOrGloveLook && teamScope === "all") setTeamScope("ct")
   }, [automaticOppositeTeamScope, hasOtherEquippedKnifeOrGloveLook, teamScope, slotTeam])
 
+  // Anything but agents and team-locked firearms can be given to both teams at once.
+  const canUseForBothTeams = category !== "agent" && catalogTeamScope === "all" && selectedTeamScope !== "all"
+  const saveScope: TeamScope = alsoOtherTeam && canUseForBothTeams ? "all" : selectedTeamScope
+  const otherTeamName = selectedTeamScope === "ct" ? "T" : "CT"
+
   const selectedAlreadyEquipped = useMemo(
-    () => selected ? loadoutEntries.some((entry) => entry.catalog_item_id === selected.id && entry.slot_key === selectedSlotKey && (entry.team_scope === selectedTeamScope || (fallsBackToBoth && entry.team_scope === "all")) && normalizeAppearanceOptions(entry.options) === normalizeAppearanceOptions(customOptions)) : false,
-    [customOptions, loadoutEntries, selected, selectedSlotKey, selectedTeamScope, fallsBackToBoth],
+    () => selected ? loadoutEntries.some((entry) => entry.catalog_item_id === selected.id && entry.slot_key === selectedSlotKey && (entry.team_scope === saveScope || (saveScope !== "all" && fallsBackToBoth && entry.team_scope === "all")) && normalizeAppearanceOptions(entry.options) === normalizeAppearanceOptions(customOptions)) : false,
+    [customOptions, loadoutEntries, selected, selectedSlotKey, saveScope, fallsBackToBoth],
   )
 
   const canUseLegacyLoadoutFallback = (error: unknown) => {
@@ -393,11 +397,13 @@ export function SkinchangerPage() {
     if (!selected) return false
     setSaving(true)
     try {
-      // The server keeps one knife and one glove per team, so the team's previous one is removed first.
-      // A weapon saved for Both replaces its T and CT looks, so the same skin really shows on both sides.
-      const replaced = slotTeam
-        ? loadoutEntries.filter((entry) => entry.slot === activeSlot && entry.team_scope === slotTeam && !(entry.slot_key === selectedSlotKey && entry.catalog_item_id === selected.id))
-        : activeSlot === "weapon" && selectedTeamScope === "all"
+      // The server keeps one knife and one glove per team, so that team's previous one is removed first;
+      // a look for both teams replaces every knife/glove. Any other look for both teams replaces its T and
+      // CT versions, so the same skin really shows on both sides.
+      const isSameEntry = (entry: SkinchangerLoadoutEntry) => entry.slot_key === selectedSlotKey && entry.catalog_item_id === selected.id && entry.team_scope === saveScope
+      const replaced = (activeSlot === "knife" || activeSlot === "glove")
+        ? loadoutEntries.filter((entry) => entry.slot === activeSlot && (saveScope === "all" || entry.team_scope === saveScope) && !isSameEntry(entry))
+        : saveScope === "all"
           ? loadoutEntries.filter((entry) => entry.slot_key === selectedSlotKey && entry.team_scope !== "all")
           : []
       let expectedVersion = loadoutVersion
@@ -405,7 +411,7 @@ export function SkinchangerPage() {
         const removed = await removeEntryWithCompatibility(entry, expectedVersion)
         expectedVersion = removed.version
       }
-      const result = await saveEntryWithCompatibility({ catalogItemId: selected.id, slot: activeSlot, slotKey: selectedSlotKey, teamScope: selectedTeamScope, options: customOptions }, expectedVersion, replaced)
+      const result = await saveEntryWithCompatibility({ catalogItemId: selected.id, slot: activeSlot, slotKey: selectedSlotKey, teamScope: saveScope, options: customOptions }, expectedVersion, replaced)
       const savedOptions: SkinchangerAppearanceOptions = {
         ...customOptions,
         stickers: [...(customOptions.stickers ?? [])],
@@ -415,20 +421,20 @@ export function SkinchangerPage() {
         catalog_item_id: selected.id,
         slot: activeSlot,
         slot_key: selectedSlotKey,
-        team_scope: selectedTeamScope,
+        team_scope: saveScope,
         options: savedOptions,
         skinchanger_catalog_items: selected,
         resolved_accessories: Object.values(selectedAccessories),
       }
-      const sharedLook = (activeSlot === "knife" || activeSlot === "glove") && selectedTeamScope !== "all"
+      const sharedLook = (activeSlot === "knife" || activeSlot === "glove") && saveScope !== "all"
         ? loadoutEntries.find((entry) => entry.slot === activeSlot && entry.team_scope === "all")
         : undefined
       const reassignSharedLook = sharedLook && sharedLook.catalog_item_id !== selected.id
-        ? { ...sharedLook, team_scope: selectedTeamScope === "t" ? "ct" as const : "t" as const }
+        ? { ...sharedLook, team_scope: saveScope === "t" ? "ct" as const : "t" as const }
         : undefined
       setOptimisticLoadoutEntries([
         ...loadoutEntries.filter((entry) => {
-          if (entry.slot_key === selectedSlotKey && entry.team_scope === selectedTeamScope) return false
+          if (entry.slot_key === selectedSlotKey && entry.team_scope === saveScope) return false
           if (replaced.includes(entry)) return false
           if (sharedLook && entry.slot_key === sharedLook.slot_key && entry.team_scope === "all") return false
           return true
@@ -526,6 +532,7 @@ export function SkinchangerPage() {
   /** Remembers the page's team so a team-locked model or a single-slot item cannot change it for good. */
   const beginPicker = () => {
     if (gridTeamRef.current === null) gridTeamRef.current = teamScope
+    setAlsoOtherTeam(false)
     setDefaultChoice(null)
     setWeaponClass("")
     setQuery("")
@@ -724,7 +731,7 @@ export function SkinchangerPage() {
               role="radio"
               aria-checked={isActive}
               disabled={disabled}
-              onClick={() => { setTeamScope(team.id); setFlippedCards({}) }}
+              onClick={() => setTeamScope(team.id)}
               title={isUnavailableBoth ? "Another knife/glove look already uses Both. Choose T or CT." : teamLocked ? "This model's side is fixed" : undefined}
               style={isActive ? { backgroundImage: teamScopeFade(team.id) } : undefined}
               className={cn(
@@ -749,7 +756,7 @@ export function SkinchangerPage() {
   }
 
   /** A square slot card. Hover blurs the render; Customize and remove sit on top of the card button. */
-  const renderCard = ({ id, image, fallback, title, subtitle, savedItem, entry, dimmed, openLabel, onOpen, onCustomize, onRemove, className, titleIcon, hidden, corner }: {
+  const renderCard = ({ id, image, fallback, title, subtitle, savedItem, entry, dimmed, openLabel, onOpen, onCustomize, onRemove }: {
     id: string
     image: string | null
     fallback?: string
@@ -762,11 +769,6 @@ export function SkinchangerPage() {
     onOpen: () => void
     onCustomize?: () => void
     onRemove?: () => void
-    className?: string
-    titleIcon?: string
-    /** The back of a flip card: kept out of clicks and keyboard focus. */
-    hidden?: boolean
-    corner?: ReactNode
   }) => {
     const rarity = savedItem ? rarityStyle(savedItem) : null
     const teamLabel = entry?.team_scope === "t" ? "T" : entry?.team_scope === "ct" ? "CT" : "Both"
@@ -775,15 +777,13 @@ export function SkinchangerPage() {
       <div
         key={id}
         data-slot-card={id}
-        inert={dimmed || hidden || undefined}
+        inert={dimmed || undefined}
         aria-disabled={dimmed || undefined}
-        aria-hidden={hidden || undefined}
         style={rarity ? { backgroundImage: `radial-gradient(ellipse 95% 78% at 0% 100%, ${rarity.glow} 0%, transparent 68%)` } : undefined}
         className={cn(
           "group relative aspect-square overflow-hidden rounded-lg border bg-background/60 transition-[border-color,opacity] duration-[400ms] ease-out hover:duration-[250ms] hover:border-foreground/30",
           savedItem ? "border-border" : "border-border/60",
           dimmed && "pointer-events-none opacity-35 grayscale",
-          className,
         )}
       >
         {rarity && <span aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-[400ms] ease-out group-hover:opacity-100 group-hover:duration-[250ms]" style={{ backgroundImage: `radial-gradient(ellipse 105% 88% at 0% 100%, ${strongerGlow(rarity.glow)} 0%, transparent 70%)` }} />}
@@ -799,11 +799,8 @@ export function SkinchangerPage() {
               <ImageOff className="size-7 text-muted-foreground/50" />
             )}
           </div>
-          <p className={cn("mt-1 flex items-center gap-1 text-xs font-semibold", corner && "pr-7")}>
-            {titleIcon && <img src={titleIcon} alt="" className="size-3.5 shrink-0 object-contain" />}
-            <span className="truncate">{title}</span>
-          </p>
-          <p className={cn("truncate text-[10px] text-muted-foreground", corner && "pr-7")} style={rarity ? { color: rarity.accent } : undefined}>{subtitle}</p>
+          <p className="mt-1 truncate text-xs font-semibold">{title}</p>
+          <p className="truncate text-[10px] text-muted-foreground" style={rarity ? { color: rarity.accent } : undefined}>{subtitle}</p>
         </div>
 
         {entry && savedItem && (
@@ -836,7 +833,6 @@ export function SkinchangerPage() {
             <Trash2 className="size-3.5" />
           </button>
         )}
-        {corner}
       </div>
     )
   }
@@ -851,60 +847,7 @@ export function SkinchangerPage() {
     </section>
   )
 
-  /** A firearm both teams can buy: T on the front, CT on the back, turned over with the corner button. */
-  const flipCard = (item: SkinchangerCatalogItem) => {
-    const id = `weapon:${item.id}`
-    const pageTeam = gridTeamRef.current ?? teamScope
-    const showingCt = (pageTeam === "ct") !== Boolean(flippedCards[id])
-    const entries = { t: gridEntryFor(item, "weapon", "t"), ct: gridEntryFor(item, "weapon", "ct") }
-    const sidesDiffer = entries.t?.catalog_item_id !== entries.ct?.catalog_item_id
-    const face = (team: "t" | "ct") => {
-      const entry = entries[team]
-      const savedItem = entry?.skinchanger_catalog_items ?? null
-      const teamName = team === "t" ? "T" : "CT"
-      const otherName = team === "t" ? "CT" : "T"
-      // Each face only ever changes its own team.
-      const saveTeam: TeamScope = team
-      return renderCard({
-        id: `${id}:${team}`,
-        image: catalogImageUrl(savedItem ?? item),
-        title: item.display_name,
-        titleIcon: team === "t" ? teamTIcon : teamCtIcon,
-        subtitle: savedItem ? savedSkinLabel(savedItem) : "Default",
-        savedItem,
-        entry,
-        hidden: (team === "ct") !== showingCt,
-        className: cn("absolute inset-0 bg-background [backface-visibility:hidden]", team === "ct" && "[transform:rotateY(180deg)]"),
-        openLabel: savedItem ? `Change ${teamName} ${item.display_name} skin (${savedSkinLabel(savedItem)})` : `Choose a ${teamName} ${item.display_name} skin`,
-        onOpen: () => openModelPicker(item, "weapon", saveTeam),
-        onCustomize: () => openModelCustomize(item, "weapon", entry, saveTeam),
-        onRemove: entry ? () => setDeleteConfirm({ model: item, entry }) : undefined,
-        corner: (
-          <button
-            type="button"
-            onClick={(event) => { event.stopPropagation(); setFlippedCards((current) => ({ ...current, [id]: !current[id] })) }}
-            aria-label={`Show the ${otherName} side`}
-            title={`Show ${otherName}`}
-            className="absolute bottom-1.5 right-1.5 z-[2] flex size-7 items-center justify-center rounded-md border border-white/15 bg-black/55 text-white/75 backdrop-blur-sm transition-colors hover:border-white/35 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
-          >
-            <RefreshCw className="size-3.5" />
-            {sidesDiffer && <span aria-hidden="true" className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-emerald-400" />}
-          </button>
-        ),
-      })
-    }
-    return (
-      <div key={id} data-slot-card={id} data-face={showingCt ? "ct" : "t"} className="relative aspect-square [perspective:900px]">
-        <div className={cn("relative size-full transition-transform duration-500 ease-out [transform-style:preserve-3d] motion-reduce:transition-none", showingCt && "[transform:rotateY(180deg)]")}>
-          {face("t")}
-          {face("ct")}
-        </div>
-      </div>
-    )
-  }
-
   const modelCard = (item: SkinchangerCatalogItem, kind: ModelKind) => {
-    if (kind === "weapon" && teamScopeFromMetadata(item) === "all") return flipCard(item)
     const entry = gridEntryFor(item, kind)
     const savedItem = entry?.skinchanger_catalog_items ?? null
     const lockedTeam = teamScopeFromMetadata(item)
@@ -1087,7 +1030,10 @@ export function SkinchangerPage() {
               </button>
             )}
             <div className="min-w-0 flex-1">
-              <DialogTitle className="truncate text-base">{pickerTitle}</DialogTitle>
+              <DialogTitle className="flex items-center gap-2 truncate text-base">
+                {selectedTeamScope !== "all" && <img src={selectedTeamScope === "t" ? teamTIcon : teamCtIcon} alt={selectedTeamScope === "t" ? "T" : "CT"} className="size-5 shrink-0 object-contain" />}
+                <span className="truncate">{pickerTitle}</span>
+              </DialogTitle>
               <DialogDescription className="truncate text-xs">
                 {savedItemForActiveSlot ? `Saved: ${activeWeapon ? savedSkinLabel(savedItemForActiveSlot) : savedItemForActiveSlot.display_name}` : activeWeapon ? "Choose a skin" : "Choose one"}
               </DialogDescription>
@@ -1270,6 +1216,13 @@ export function SkinchangerPage() {
             )}
               {/* Save stays in reach while the options scroll. */}
               <div className="sticky bottom-0 -mx-4 mt-4 border-t border-border bg-card/95 px-4 py-3 backdrop-blur">
+                {canUseForBothTeams && (
+                  <label className="mb-3 flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+                    <Checkbox checked={alsoOtherTeam} onCheckedChange={(checked) => setAlsoOtherTeam(checked === true)} disabled={!selected} />
+                    <span>Also use for {otherTeamName}</span>
+                    <img src={otherTeamName === "T" ? teamTIcon : teamCtIcon} alt="" className="size-4 object-contain" />
+                  </label>
+                )}
                 <Button className="w-full" disabled={!selected || saving || selectedAlreadyEquipped} onClick={() => void saveAndClose()}>
                   {saving ? <Loader2 className="size-4 animate-spin" /> : <BadgeCheck className="size-4" />}
                   {selectedAlreadyEquipped ? "Saved" : "Save"}
