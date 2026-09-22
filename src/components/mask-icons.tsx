@@ -2,6 +2,7 @@ import type { CSSProperties } from "react"
 
 import knifeIcon from "@/assets/icons/knife.png"
 import podiumIcon from "@/assets/icons/podium.png"
+import starIcon from "@/assets/icons/star.png"
 import stopwatchIcon from "@/assets/icons/stopwatch.png"
 import { cn } from "@/lib/utils"
 
@@ -27,4 +28,5 @@ function maskIcon(src: string) {
 
 export const KnifeIcon = maskIcon(knifeIcon)
 export const PodiumIcon = maskIcon(podiumIcon)
+export const StarOutlineIcon = maskIcon(starIcon)
 export const StopwatchIcon = maskIcon(stopwatchIcon)

@@ -4,7 +4,6 @@ import {
   Trophy,
   Swords,
   Search,
-  MessageSquare,
   ChevronDown,
   Crosshair,
   Flame,
@@ -15,7 +14,7 @@ import {
 } from "lucide-react"
 
 import { isPageEnabled } from "@/lib/features"
-import { KnifeIcon, PodiumIcon } from "@/components/mask-icons"
+import { KnifeIcon, PodiumIcon, StarOutlineIcon } from "@/components/mask-icons"
 import {
   Sidebar,
   SidebarContent,
@@ -70,7 +69,7 @@ const CONTENT_NAV: NavItem[] = enabledNav([
 const COMMUNITY_NAV: NavItem[] = enabledNav([
   { id: "leaders", label: "Leaders", icon: PodiumIcon },
   { id: "penalties", label: "Penalties", icon: Gavel },
-  { id: "feedback", label: "Reviews", icon: MessageSquare },
+  { id: "feedback", label: "Reviews", icon: StarOutlineIcon },
   { id: "explore", label: "Explore", icon: Search },
 ])
 
