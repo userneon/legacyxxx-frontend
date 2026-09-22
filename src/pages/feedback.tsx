@@ -14,8 +14,6 @@ import { useAuth } from "@/hooks/use-auth"
 import { SteamLoginButton } from "@/components/steam-login-gate"
 import { RatingSummary } from "@/components/rating-summary"
 import { ReviewCard } from "@/components/home-reviews"
-import { StarOutlineIcon } from "@/components/mask-icons"
-import { PageHeader } from "@/components/page-kit"
 
 export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamId: string) => void }) {
   const { isAuthenticated, loginWithSteam } = useAuth()
@@ -60,8 +58,6 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
 
   return (
     <div className="@container flex flex-col gap-5 p-4 @2xl:p-6">
-      <PageHeader icon={StarOutlineIcon} accent="amber" title="Reviews" description="What players say about LEGACY-X servers. One review per player every 7 days." />
-
       <div className={cn("grid gap-5", allFeedback.length > 0 && "@4xl:grid-cols-[minmax(0,1fr)_18rem]")}>
       {/* Submit form */}
       <form onSubmit={handleSubmit} className="glass rounded-2xl p-6 flex flex-col gap-4">

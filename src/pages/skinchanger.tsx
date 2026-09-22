@@ -33,8 +33,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { Checkbox } from "@/components/ui/checkbox"
 import { OptimizedImage } from "@/components/optimized-image"
 import { RelativeTime } from "@/components/relative-time"
-import { KnifeIcon } from "@/components/mask-icons"
-import { PageHeader, segmentGroupClass, segmentItemClass, stickyToolbarClass, toolbarSearchClass } from "@/components/page-kit"
+import { segmentGroupClass, segmentItemClass, stickyToolbarClass, toolbarSearchClass } from "@/components/page-kit"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cn } from "@/lib/utils"
 import pinsIcon from "@/assets/skinchanger/pins.png"
@@ -939,22 +938,16 @@ export function SkinchangerPage() {
 
   return (
     <div className="@container flex flex-col gap-5 p-4 @2xl:p-6">
-      <PageHeader
-        icon={KnifeIcon}
-        accent="sky"
-        title="Skinchanger"
-        description={<>
-          {loadoutEntries.length === 0 ? "Nothing saved yet — pick any card to choose a look." : `${loadoutEntries.length} item${loadoutEntries.length === 1 ? "" : "s"} saved`}
-          {loadoutResponse?.loadout.updated_at ? " · updated " : ""}
-          {loadoutResponse?.loadout.updated_at ? <RelativeTime value={loadoutResponse.loadout.updated_at} /> : null}
-        </>}
-      />
-
       <div className={stickyToolbarClass}>
         <label className={toolbarSearchClass}>
           <Search className="size-4 shrink-0 text-muted-foreground" />
           <input value={gridQuery} onChange={(event) => setGridQuery(event.target.value)} placeholder="Search weapons, knives, gloves..." className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
         </label>
+        <p className="text-xs text-muted-foreground @2xl:ml-auto">
+          {loadoutEntries.length === 0 ? "Nothing saved yet" : `${loadoutEntries.length} saved`}
+          {loadoutResponse?.loadout.updated_at ? " · " : ""}
+          {loadoutResponse?.loadout.updated_at ? <RelativeTime value={loadoutResponse.loadout.updated_at} /> : null}
+        </p>
         {renderTeamSwitch()}
       </div>
 

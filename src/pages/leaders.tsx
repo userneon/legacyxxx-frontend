@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { Target, Search, SearchX, Clock3, Users, Medal, Gamepad2, Skull } from "lucide-react"
-import { PodiumIcon, StopwatchIcon } from "@/components/mask-icons"
-import { PageHeader, StatTile, segmentGroupClass, segmentItemClass, toolbarClass, toolbarSearchClass } from "@/components/page-kit"
+import { StopwatchIcon } from "@/components/mask-icons"
+import { StatTile, segmentGroupClass, segmentItemClass, toolbarClass, toolbarSearchClass } from "@/components/page-kit"
 
 import { cn } from "@/lib/utils"
 import { competitiveService } from "@/api"
@@ -66,8 +66,6 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
 
   return (
     <div className="@container flex flex-col gap-5 p-4 @2xl:p-6">
-      <PageHeader icon={PodiumIcon} accent="amber" title="Leaders" description="Competitive standings across LEGACY-X servers, ranked by experience." />
-
       <QueryState loading={loading} error={error} empty={!loading && !error && list.length === 0} emptyMessage="No player performance data available yet." onRetry={refetch} />
 
       {!loading && !error && list.length > 0 && (

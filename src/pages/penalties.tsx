@@ -11,7 +11,7 @@ import { RelativeTime } from "@/components/relative-time"
 import { PlayerModerationAvatar } from "@/components/player-moderation-avatar"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { PenaltyDetailDialog, StatusPill, TypeIcon, TYPE_META, penaltyStatus } from "@/components/penalty-detail-dialog"
-import { PageHeader, StatTile, segmentGroupClass, segmentItemClass, toolbarClass, toolbarSearchClass } from "@/components/page-kit"
+import { StatTile, segmentGroupClass, segmentItemClass, toolbarClass, toolbarSearchClass } from "@/components/page-kit"
 
 type PenaltyFilter = "all" | PenaltyType
 
@@ -171,8 +171,6 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
 
   return (
     <div className="@container flex flex-col gap-5 p-4 @2xl:p-6">
-      <PageHeader icon={ShieldAlert} accent="red" title="Penalties" description="Public record of bans, mutes and gags on LEGACY-X servers." />
-
       {/* One swipeable row on narrow screens instead of a tall stack; a 5-column grid when there is room. */}
       <div className="stagger-in scrollbar-hidden -mx-4 -my-1 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 py-1 @2xl:-mx-6 @2xl:scroll-px-6 @2xl:px-6 @4xl:mx-0 @4xl:grid @4xl:grid-cols-5 @4xl:overflow-visible @4xl:px-0">
         <StatTile icon={Ban} label="Total bans" value={stats?.totalBans} fallback="0" tone="text-destructive" />

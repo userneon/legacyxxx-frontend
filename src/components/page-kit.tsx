@@ -1,36 +1,13 @@
 /**
- * LEGACY-X page building blocks shared by Home, Leaders, Penalties and Skinchanger, so every page
- * opens with the same header, stat tiles, toolbar and segmented controls.
+ * LEGACY-X page building blocks shared by Home, Leaders, Penalties and Skinchanger: the same stat
+ * tiles, toolbar and segmented controls everywhere.
  */
-import type { ComponentType, ReactNode } from "react"
+import type { ComponentType } from "react"
 
 import { cn } from "@/lib/utils"
 import { AnimatedNumber } from "@/components/animated-number"
 
 type IconComponent = ComponentType<{ className?: string }>
-
-const ACCENTS = {
-  red: { tile: "border-destructive/25 bg-destructive/10 text-destructive", glow: "bg-destructive/[0.10]" },
-  amber: { tile: "border-amber-300/25 bg-amber-300/10 text-amber-300", glow: "bg-amber-300/[0.08]" },
-  sky: { tile: "border-sky-300/25 bg-sky-300/10 text-sky-300", glow: "bg-sky-300/[0.08]" },
-} as const
-
-/** Page title card: accent icon tile, title and a one-line description. */
-export function PageHeader({ icon: Icon, title, description, accent }: { icon: IconComponent; title: string; description: ReactNode; accent: keyof typeof ACCENTS }) {
-  const tone = ACCENTS[accent]
-  return (
-    <section className="glass relative overflow-hidden rounded-2xl p-5 @2xl:p-6">
-      <div className={cn("pointer-events-none absolute -right-16 -top-20 size-64 rounded-full blur-3xl", tone.glow)} aria-hidden="true" />
-      <div className="relative flex items-center gap-3">
-        <span className={cn("flex size-11 shrink-0 items-center justify-center rounded-xl border", tone.tile)}><Icon className="size-5" /></span>
-        <div className="min-w-0">
-          <h1 className="text-xl font-bold tracking-tight @2xl:text-2xl">{title}</h1>
-          <p className="text-sm text-muted-foreground">{description}</p>
-        </div>
-      </div>
-    </section>
-  )
-}
 
 /** Number tile: tinted icon, animated value and a label. */
 export function StatTile({ icon: Icon, label, value, tone, suffix, pulse, fallback }: {
