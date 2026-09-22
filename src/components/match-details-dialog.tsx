@@ -4,7 +4,7 @@
  */
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Bomb, Clock3, Crosshair, Flag, Scissors, Skull, Trophy, Circle, Star, Zap, Target } from "lucide-react"
+import { Bomb, Clock3, Flag, Scissors, Skull, Circle, Zap, Target, Medal, Award } from "lucide-react"
 
 import { matchesService } from "@/api"
 import type { MatchDetail, MatchDetailPlayer, MatchDetailRound, MatchDetailTeam, MatchRoundOutcome } from "@/api/types"
@@ -212,9 +212,9 @@ function TeamComparison({ detail, onPlayer }: { detail: MatchDetail; onPlayer: (
   const best = (pick: (player: MatchDetailPlayer) => number | null) =>
     everyone.filter(({ player }) => pick(player) !== null).sort((a, b) => (pick(b.player) ?? 0) - (pick(a.player) ?? 0))[0]
   const leaders = [
-    { label: "Most kills", icon: Crosshair, entry: best((player) => player.kills), value: (player: MatchDetailPlayer) => `${player.kills} kills` },
+    { label: "Most kills", icon: Skull, entry: best((player) => player.kills), value: (player: MatchDetailPlayer) => `${player.kills} kills` },
     { label: "Highest ADR", icon: Zap, entry: best((player) => player.adr), value: (player: MatchDetailPlayer) => `${dash(player.adr)} ADR` },
-    { label: "Most MVPs", icon: Star, entry: best((player) => player.mvps), value: (player: MatchDetailPlayer) => `${dash(player.mvps)} MVP` },
+    { label: "Most MVPs", icon: Award, entry: best((player) => player.mvps), value: (player: MatchDetailPlayer) => `${dash(player.mvps)} MVP` },
     { label: "Best HS%", icon: Target, entry: best((player) => (player.kills >= 5 ? player.headshotPercent : null)), value: (player: MatchDetailPlayer) => `${player.headshotPercent}% HS` },
   ].filter((leader) => leader.entry)
 
@@ -297,7 +297,7 @@ export function MatchDetailsDialog({ matchId, mapNumber, highlightSteamId, onOpe
               <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
                 <div className="min-w-0 text-right">
                   <div className={cn("truncate text-sm font-semibold", TEAM_TONE.team1.text)}>{team1.name}</div>
-                  {team1.won && <div className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-bold uppercase text-chart-2"><Trophy className="size-3" />Winner</div>}
+                  {team1.won && <div className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-bold uppercase text-chart-2"><Medal className="size-3" />Winner</div>}
                 </div>
                 <div className="match-score-pop flex items-center gap-3 rounded-xl border border-white/10 bg-black/40 px-4 py-2 backdrop-blur">
                   <span className={cn("text-3xl font-black tabular-nums", team1.won ? "text-white" : "text-white/50")}>{team1.score}</span>
@@ -306,7 +306,7 @@ export function MatchDetailsDialog({ matchId, mapNumber, highlightSteamId, onOpe
                 </div>
                 <div className="min-w-0 text-left">
                   <div className={cn("truncate text-sm font-semibold", TEAM_TONE.team2.text)}>{team2.name}</div>
-                  {team2.won && <div className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-bold uppercase text-chart-2"><Trophy className="size-3" />Winner</div>}
+                  {team2.won && <div className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-bold uppercase text-chart-2"><Medal className="size-3" />Winner</div>}
                 </div>
               </div>
             )}

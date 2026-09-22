@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react"
-import { Search, ShieldAlert, Ban, MicOff, MessageSquareOff, Lock, X, ChevronRight, Shield, SearchX } from "lucide-react"
+import { Search, ShieldAlert, Ban, MicOff, MessageSquareOff, Lock, X, ChevronRight, SearchX, ShieldUser } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { moderationService } from "@/api"
@@ -124,7 +124,7 @@ function PenaltyRow({ penalty, onOpen }: { penalty: PenaltyEntry; onOpen: () => 
       <span className="hidden min-w-0 items-center gap-2 text-xs text-muted-foreground @3xl:flex">
         {penalty.admin
           ? <PlayerAvatar avatar={penalty.adminAvatar} name={penalty.admin} className="size-5 shrink-0 rounded-md text-[8px]" />
-          : <Shield className="size-3 shrink-0" />}
+          : <ShieldUser className="size-3 shrink-0" />}
         <span className="truncate">{penalty.admin || "System"}</span>
       </span>
       <div className="hidden flex-col items-start gap-1 @3xl:flex">

@@ -1,5 +1,5 @@
 import { useState, type ComponentType } from "react"
-import { Crosshair, Target, Trophy, Search, SearchX, Clock3, Users, Swords } from "lucide-react"
+import { Target, Search, SearchX, Clock3, Users, Medal, Gamepad2, Skull } from "lucide-react"
 import { StopwatchIcon } from "@/components/mask-icons"
 
 import { cn } from "@/lib/utils"
@@ -78,8 +78,8 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
         <>
           <div className="-mx-4 -my-1 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 py-1 @4xl:mx-0 @4xl:my-0 @4xl:grid @4xl:grid-cols-4 @4xl:overflow-visible @4xl:px-0">
             <StatTile icon={Users} label="Ranked players" value={list.length} tone="text-sky-300" />
-            <StatTile icon={Swords} label="Matches recorded" value={totalMatches} tone="text-white/90" />
-            <StatTile icon={Trophy} label="Community wins" value={totalWins} tone="text-amber-300" />
+            <StatTile icon={Gamepad2} label="Matches recorded" value={totalMatches} tone="text-white/90" />
+            <StatTile icon={Medal} label="Community wins" value={totalWins} tone="text-amber-300" />
             <StatTile
               icon={StopwatchIcon}
               label={mostActive ? `${mostActive.username} · hours played` : "Hours played"}
@@ -210,7 +210,7 @@ function LeaderRow({ player, isSelf, onOpen }: { player: CompetitiveLeaderboardE
 
       <span className="hidden text-right text-sm font-semibold tabular-nums text-white/95 @3xl:block">{player.kd_ratio.toFixed(2)}</span>
       <span className="hidden text-right text-sm tabular-nums text-white/75 @3xl:block">
-        <span className="inline-flex items-center gap-1"><Crosshair className="size-3 text-white/35" />{player.kills.toLocaleString()}</span>
+        <span className="inline-flex items-center gap-1"><Skull className="size-3 text-white/35" />{player.kills.toLocaleString()}</span>
       </span>
       <span className="hidden text-right text-sm tabular-nums text-white/75 @3xl:block">
         <span className="inline-flex items-center gap-1"><Target className="size-3 text-white/35" />{headshotRate(player)}%</span>

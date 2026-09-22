@@ -2,17 +2,12 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import {
   ArrowLeft,
   BadgeCheck,
-  Crosshair,
-  Headphones,
   ImageOff,
   Loader2,
-  Medal,
   RotateCcw,
   Search,
-  ShieldCheck,
   SlidersHorizontal,
   Sticker,
-  Sword,
   Tag,
   Trash2,
   X,
@@ -40,32 +35,21 @@ import { OptimizedImage } from "@/components/optimized-image"
 import { RelativeTime } from "@/components/relative-time"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cn } from "@/lib/utils"
-import knifeIcon from "@/assets/skinchanger/knife.png"
-import glovesIcon from "@/assets/skinchanger/gloves.png"
 import pinsIcon from "@/assets/skinchanger/pins.png"
 import teamTIcon from "@/assets/skinchanger/team-t.webp"
 import teamCtIcon from "@/assets/skinchanger/team-ct.webp"
 
 /** LEGACY-X neutral visual system: filename-matched collection icons, ordered Skins sub-groups, and lower-left rarity glow. */
 type CollectionId = "skins" | Exclude<SkinchangerCategory, "weapon" | "agent">
-type CollectionMeta = { id: CollectionId; category: SkinchangerCategory; label: string; slot: SkinchangerSlot; icon: typeof Crosshair; iconAsset?: string; invertIcon?: boolean; firearmGroup?: SkinchangerFirearmGroup }
+type CollectionMeta = { id: CollectionId; category: SkinchangerCategory; label: string; slot: SkinchangerSlot; firearmGroup?: SkinchangerFirearmGroup }
 
-const assetUrls = {
-  knife: knifeIcon,
-  gloves: glovesIcon,
-  pins: pinsIcon,
-} as const
-
-function collectionAsset(name: keyof typeof assetUrls) {
-  return assetUrls[name]
-}
 
 const categories: CollectionMeta[] = [
-  { id: "skins", category: "weapon", label: "Skins", slot: "weapon", icon: Crosshair },
-  { id: "knife", category: "knife", label: "Knives", slot: "knife", icon: Sword, iconAsset: collectionAsset("knife"), invertIcon: true },
-  { id: "glove", category: "glove", label: "Gloves", slot: "glove", icon: ShieldCheck, iconAsset: collectionAsset("gloves"), invertIcon: true },
-  { id: "music_kit", category: "music_kit", label: "Music", slot: "music_kit", icon: Headphones },
-  { id: "pin", category: "pin", label: "Pins", slot: "pin", icon: Medal, iconAsset: collectionAsset("pins") },
+  { id: "skins", category: "weapon", label: "Skins", slot: "weapon" },
+  { id: "knife", category: "knife", label: "Knives", slot: "knife" },
+  { id: "glove", category: "glove", label: "Gloves", slot: "glove" },
+  { id: "music_kit", category: "music_kit", label: "Music", slot: "music_kit" },
+  { id: "pin", category: "pin", label: "Pins", slot: "pin" },
 ]
 
 type WeaponGridGroup = "Pistols" | "SMGs" | "Rifles" | "Sniper Rifles" | "Heavy"

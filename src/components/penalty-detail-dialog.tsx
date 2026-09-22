@@ -4,7 +4,7 @@
  * It lives here so the profile's Penalty History opens the very same dialog the Penalties page
  * opens — one detail UI, not two.
  */
-import { Ban, MicOff, MessageSquareOff, Lock, Shield, Clock3, CalendarDays } from "lucide-react"
+import { Ban, MicOff, MessageSquareOff, Lock, Clock3, CalendarDays, ShieldUser } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import type { PenaltyEntry, PenaltyType } from "@/api/types"
@@ -111,7 +111,7 @@ export function PenaltyDetailDialog({ penalty, onClose, onProfileNavigate }: { p
               <dt className="text-muted-foreground">Issued by</dt>
               <dd>
                 <button type="button" disabled={!penalty.adminSteamId} onClick={() => openProfile(penalty.adminSteamId)} className="flex items-center gap-1.5 text-left enabled:hover:underline disabled:cursor-default">
-                  <Shield className="size-3.5 text-muted-foreground" />{penalty.admin || "System"}
+                  <ShieldUser className="size-3.5 text-muted-foreground" />{penalty.admin || "System"}
                 </button>
               </dd>
               <dt className="text-muted-foreground">Date</dt>

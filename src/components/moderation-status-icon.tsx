@@ -1,11 +1,11 @@
-import { Ban, MessageSquareOff, ShieldCheck, VolumeX } from "lucide-react"
+import { Ban, MessageSquareOff, VolumeX, CircleCheck } from "lucide-react"
 
 import type { ModerationStatus } from "@/api/types"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
-const STATUS_META: Record<ModerationStatus, { label: string; className: string; icon: typeof ShieldCheck }> = {
-  Clear: { label: "Clear", className: "text-emerald-300", icon: ShieldCheck },
+const STATUS_META: Record<ModerationStatus, { label: string; className: string; icon: typeof CircleCheck }> = {
+  Clear: { label: "Clear", className: "text-emerald-300", icon: CircleCheck },
   Banned: { label: "Banned", className: "text-red-300", icon: Ban },
   Muted: { label: "Muted", className: "text-white/65", icon: VolumeX },
   Gag: { label: "Gag", className: "text-white/65", icon: MessageSquareOff },

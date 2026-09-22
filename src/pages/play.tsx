@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react"
 import type { ComponentProps, CSSProperties } from "react"
-import { Users, Copy, Play as PlayIcon, Lock, Circle, CalendarDays, Trophy, Clock3, Crosshair, Flame, Crown, Map, MapPin, ArrowDown, ArrowUp, ArrowUpDown, Star, RefreshCw, Loader2, FilterX } from "lucide-react"
+import { Users, Copy, Play as PlayIcon, Lock, Circle, CalendarDays, Trophy, Clock3, Crosshair, Flame, Crown, Map, MapPin, ArrowDown, ArrowUp, ArrowUpDown, RefreshCw, Loader2, FilterX, Coins, Heart } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { competitiveService, playService, serversService, tournamentsService } from "@/api"
@@ -761,7 +761,7 @@ function MatchCard({ match, server, mode, onToggleFavorite }: { match: MatchInfo
               )}
               title={match.favorite ? "Remove favourite" : "Add favourite"}
             >
-              <Star key={favoriteBurst} className={cn("size-3.5", match.favorite && "match-fav-pop fill-current")} />
+              <Heart key={favoriteBurst} className={cn("size-3.5", match.favorite && "match-fav-pop fill-current")} />
               {favoriteBurst > 0 && match.favorite && (
                 <span key={favoriteBurst} className="star-burst" aria-hidden="true">
                   {Array.from({ length: 6 }, (_, i) => <span key={i} style={{ "--angle": `${i * 60}deg` } as CSSProperties} />)}
@@ -924,7 +924,7 @@ function TournamentView() {
           <div className="grid gap-3 sm:grid-cols-3">
             <TournamentStat icon={CalendarDays} label="Next match" value={info?.nextMatchTime ?? upcoming[0]?.time ?? "TBD"} />
             <TournamentStat icon={Users} label="Registered clans" value={`${info?.registeredClans ?? all.length} clans`} />
-            <TournamentStat icon={Trophy} label="Prize pool" value={info?.prizePool ?? "—"} />
+            <TournamentStat icon={Coins} label="Prize pool" value={info?.prizePool ?? "—"} />
           </div>
 
           <div className="grid gap-5 xl:grid-cols-[1.05fr_1.4fr]">

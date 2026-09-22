@@ -3,7 +3,7 @@
  * appears only from the authenticated Root API and never from local mock state.
  */
 import { useEffect, useState, type ComponentProps } from "react"
-import { Crosshair, Flame, Crown, Trophy, TrendingUp, Server, Zap, Users, ExternalLink, Copy, Play as PlayIcon, Info, RotateCcw } from "lucide-react"
+import { Crosshair, Flame, Crown, Trophy, Server, Users, ExternalLink, Copy, Play as PlayIcon, Info, RotateCcw, Swords, Gamepad2 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { serversService } from "@/api"
@@ -86,8 +86,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const statTiles = [
     { label: "Players Online", value: totalPlayers, icon: Users },
     { label: "Live Servers", value: homeStats?.liveServers ?? liveServers.length, icon: Server },
-    { label: "Matches Today", value: homeStats?.matchesToday, icon: TrendingUp },
-    ...(isFeatureEnabled("clan") ? [{ label: "Active Clans", value: homeStats?.activeClans, icon: Zap }] : []),
+    { label: "Matches Today", value: homeStats?.matchesToday, icon: Gamepad2 },
+    ...(isFeatureEnabled("clan") ? [{ label: "Active Clans", value: homeStats?.activeClans, icon: Swords }] : []),
   ]
   const reconnectServer: ServerInfo | null = reconnect ? {
     id: reconnect.serverId,

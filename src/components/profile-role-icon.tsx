@@ -1,4 +1,4 @@
-import { Code2, Crown, Gamepad2, Palette, Shield, ShieldCheck } from "lucide-react"
+import { Code2, Palette, Shield, Gem, ShieldUser, UserRound } from "lucide-react"
 
 import type { UserProfile } from "@/api/types"
 import { cn } from "@/lib/utils"
@@ -6,12 +6,12 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 type ProfileRole = UserProfile["role"]
 
-const ROLE_META: Record<ProfileRole, { className: string; icon: typeof Crown }> = {
-  Owner: { className: "text-amber-200", icon: Crown },
-  Founder: { className: "text-amber-200", icon: Crown },
+const ROLE_META: Record<ProfileRole, { className: string; icon: typeof Gem }> = {
+  Owner: { className: "text-amber-200", icon: Gem },
+  Founder: { className: "text-amber-200", icon: Gem },
   Manager: { className: "text-sky-200", icon: Shield },
-  Admin: { className: "text-sky-200", icon: ShieldCheck },
-  Player: { className: "text-white/70", icon: Gamepad2 },
+  Admin: { className: "text-sky-200", icon: ShieldUser },
+  Player: { className: "text-white/70", icon: UserRound },
   Designer: { className: "text-fuchsia-200", icon: Palette },
   Developer: { className: "text-emerald-200", icon: Code2 },
 }

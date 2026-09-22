@@ -2,7 +2,6 @@ import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import {
   Trophy,
-  Crosshair,
   Target,
   Percent,
   LogOut,
@@ -19,6 +18,9 @@ import {
   Skull,
   HandHelping,
   CircleSlash,
+  Medal,
+  Gamepad2,
+  Gauge,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -575,7 +577,7 @@ function RecentMatches({ matches, loading, steamId }: { matches: ProfileRecentMa
         </div>
       ) : matches.length === 0 ? (
         <div className="query-state-in flex flex-col items-center gap-2 rounded-xl border border-dashed border-border/70 px-4 py-10 text-center">
-          <Crosshair className="size-5 text-muted-foreground" />
+          <Gamepad2 className="size-5 text-muted-foreground" />
           <p className="text-sm font-medium">No matches played yet</p>
           <p className="text-xs text-muted-foreground">Finished matches on LEGACY-X servers will show up here.</p>
         </div>
@@ -824,10 +826,10 @@ export function ProfilePage({ userId }: ProfilePageProps) {
             </div>
           ) : stats ? (
             <div className="stagger-in grid h-full grid-cols-2 gap-3 @md:grid-cols-4 @2xl:gap-4">
-              <StatTile icon={Crosshair} label="Matches" accent="bg-sky-400/20" hint={`${losses.toLocaleString()} losses`}>
+              <StatTile icon={Gamepad2} label="Matches" accent="bg-sky-400/20" hint={`${losses.toLocaleString()} losses`}>
                 <AnimatedNumber value={stats.matches} />
               </StatTile>
-              <StatTile icon={Trophy} label="Wins" accent="bg-amber-300/20" hint="All modes">
+              <StatTile icon={Medal} label="Wins" accent="bg-amber-300/20" hint="All modes">
                 <AnimatedNumber value={stats.wins} />
               </StatTile>
               <StatTile
@@ -839,7 +841,7 @@ export function ProfilePage({ userId }: ProfilePageProps) {
               >
                 <AnimatedNumber value={winRate} decimals={1} suffix="%" />
               </StatTile>
-              <StatTile icon={Target} label="K/D Ratio" accent={stats.kdRatio >= 1 ? "bg-emerald-400/20" : "bg-red-400/20"} hint={stats.matches > 0 ? (stats.kdRatio >= 1 ? "Positive" : "Below even") : "—"}>
+              <StatTile icon={Gauge} label="K/D Ratio" accent={stats.kdRatio >= 1 ? "bg-emerald-400/20" : "bg-red-400/20"} hint={stats.matches > 0 ? (stats.kdRatio >= 1 ? "Positive" : "Below even") : "—"}>
                 <span className={cn(stats.matches > 0 && (stats.kdRatio >= 1 ? "text-chart-2" : "text-destructive"))}>
                   <AnimatedNumber value={stats.kdRatio} decimals={2} />
                 </span>
