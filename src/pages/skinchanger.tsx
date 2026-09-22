@@ -292,12 +292,13 @@ export function SkinchangerPage() {
   const minWear = Math.max(0, Math.min(1, metadataNumber(selected, "minWear", 0.0001)))
   const maxWear = Math.max(minWear, Math.min(1, metadataNumber(selected, "maxWear", 1)))
   const defaultWear = Math.max(minWear, Math.min(maxWear, 0.0001))
+  // Per-team knife, glove, music kit and pin: a "Both" look also counts as the T and the CT one.
+  const fallsBackToBoth = selectedTeamScope !== "all" && (slotTeam !== null || category === "music_kit" || category === "pin")
   const savedEntryForActiveSlot = loadoutEntries.find((entry) => entry.slot_key === selectedSlotKey && entry.team_scope === selectedTeamScope)
     ?? ((category === "knife" || category === "glove")
       ? loadoutEntries.find((entry) => entry.slot_key === category && entry.slot === category && entry.team_scope === selectedTeamScope && entry.skinchanger_catalog_items?.weapon_class === activeWeapon?.weapon_class)
       : undefined)
-    // A "Both" knife or glove also counts as the T and the CT one.
-    ?? (slotTeam ? loadoutEntries.find((entry) => entry.slot_key === selectedSlotKey && entry.team_scope === "all") : undefined)
+    ?? (fallsBackToBoth ? loadoutEntries.find((entry) => entry.slot_key === selectedSlotKey && entry.team_scope === "all") : undefined)
   const savedItemForActiveSlot = savedEntryForActiveSlot?.skinchanger_catalog_items ?? null
   const previewChoice = selected ?? savedItemForActiveSlot ?? (defaultChoice === category ? defaultModelItem(defaultChoice) : null)
   const canCustomizeAccessories = Boolean(activeWeapon && category === "weapon")
@@ -327,7 +328,7 @@ export function SkinchangerPage() {
     }
     const matchesSelected = (entry: SkinchangerLoadoutEntry) => entry.catalog_item_id === selected.id && entry.slot_key === selectedSlotKey
     const savedOptions = (loadoutEntries.find((entry) => matchesSelected(entry) && entry.team_scope === selectedTeamScope)
-      ?? (slotTeam ? loadoutEntries.find((entry) => matchesSelected(entry) && entry.team_scope === "all") : undefined))?.options
+      ?? (fallsBackToBoth ? loadoutEntries.find((entry) => matchesSelected(entry) && entry.team_scope === "all") : undefined))?.options
     setCustomOptions({
       wear: savedOptions?.wear ?? Math.max(0, Math.min(1, metadataNumber(selected, "minWear", 0.0001))),
       seed: savedOptions?.seed ?? 0,
@@ -338,7 +339,7 @@ export function SkinchangerPage() {
     })
     setAccessoryPicker(null)
     setEditingStickerSlot(null)
-  }, [loadoutEntries, selected, selectedSlotKey, selectedTeamScope, slotTeam])
+  }, [loadoutEntries, selected, selectedSlotKey, selectedTeamScope, fallsBackToBoth])
 
   useEffect(() => {
     if (catalogTeamScope !== "all" && teamScope !== catalogTeamScope) setTeamScope(catalogTeamScope)
@@ -354,8 +355,8 @@ export function SkinchangerPage() {
   }, [automaticOppositeTeamScope, hasOtherEquippedKnifeOrGloveLook, teamScope, slotTeam])
 
   const selectedAlreadyEquipped = useMemo(
-    () => selected ? loadoutEntries.some((entry) => entry.catalog_item_id === selected.id && entry.slot_key === selectedSlotKey && (entry.team_scope === selectedTeamScope || (slotTeam !== null && entry.team_scope === "all")) && normalizeAppearanceOptions(entry.options) === normalizeAppearanceOptions(customOptions)) : false,
-    [customOptions, loadoutEntries, selected, selectedSlotKey, selectedTeamScope, slotTeam],
+    () => selected ? loadoutEntries.some((entry) => entry.catalog_item_id === selected.id && entry.slot_key === selectedSlotKey && (entry.team_scope === selectedTeamScope || (fallsBackToBoth && entry.team_scope === "all")) && normalizeAppearanceOptions(entry.options) === normalizeAppearanceOptions(customOptions)) : false,
+    [customOptions, loadoutEntries, selected, selectedSlotKey, selectedTeamScope, fallsBackToBoth],
   )
 
   const canUseLegacyLoadoutFallback = (error: unknown) => {
@@ -396,9 +397,12 @@ export function SkinchangerPage() {
     setSaving(true)
     try {
       // The server keeps one knife and one glove per team, so the team's previous one is removed first.
+      // A music kit or pin saved for Both replaces the T and CT ones, so it really plays for both sides.
       const replaced = slotTeam
         ? loadoutEntries.filter((entry) => entry.slot === activeSlot && entry.team_scope === slotTeam && !(entry.slot_key === selectedSlotKey && entry.catalog_item_id === selected.id))
-        : []
+        : (activeSlot === "music_kit" || activeSlot === "pin") && selectedTeamScope === "all"
+          ? loadoutEntries.filter((entry) => entry.slot === activeSlot && entry.team_scope !== "all")
+          : []
       let expectedVersion = loadoutVersion
       for (const entry of replaced) {
         const removed = await removeEntryWithCompatibility(entry, expectedVersion)
@@ -558,7 +562,10 @@ export function SkinchangerPage() {
   }
 
   const agentEntryFor = (team: "t" | "ct") => loadoutEntries.find((entry) => entry.slot === "agent" && entry.team_scope === team)
-  const singleEntryFor = (slot: "music_kit" | "pin") => loadoutEntries.find((entry) => entry.slot === slot)
+  type SingleSlot = "music_kit" | "pin"
+  const singleEntryFor = (slot: SingleSlot, team: "t" | "ct") =>
+    loadoutEntries.find((entry) => entry.slot === slot && entry.team_scope === team)
+    ?? loadoutEntries.find((entry) => entry.slot === slot && entry.team_scope === "all")
 
   const openAgentPicker = (team: "t" | "ct") => {
     beginPicker()
@@ -570,15 +577,15 @@ export function SkinchangerPage() {
     setSelected(agentEntryFor(team)?.skinchanger_catalog_items ?? null)
   }
 
-  /** Music kits and pins are one per player, so they always save for both sides. */
-  const openSinglePicker = (slot: "music_kit" | "pin") => {
+  /** Music kit and pin halves: the dialog starts on that half's team and can switch to T, CT or Both. */
+  const openSinglePicker = (slot: SingleSlot, team: "t" | "ct") => {
     beginPicker()
     setCollection(slot)
     setSkinGroup("Rifles")
     setAgentTeam(null)
-    setTeamScope(singleEntryFor(slot)?.team_scope ?? "all")
+    setTeamScope(team)
     setActiveWeapon(null)
-    setSelected(singleEntryFor(slot)?.skinchanger_catalog_items ?? null)
+    setSelected(singleEntryFor(slot, team)?.skinchanger_catalog_items ?? null)
   }
 
   type SlotKind = "knife" | "glove"
@@ -850,6 +857,78 @@ export function SkinchangerPage() {
     })
   }
 
+  /** Music kit and pin: one card split in two, T on the left and CT on the right. */
+  const renderSplitCard = (slot: SingleSlot) => {
+    const label = slot === "music_kit" ? "Music kit" : "Pin"
+    return (
+      <div key={slot} data-slot-card={slot} className="col-span-2 grid grid-cols-2 overflow-hidden rounded-lg border border-border bg-background/60">
+        {(["t", "ct"] as const).map((team) => {
+          const entry = singleEntryFor(slot, team)
+          const savedItem = entry?.skinchanger_catalog_items ?? null
+          const rarity = savedItem ? rarityStyle(savedItem) : null
+          const image = savedItem ? catalogImageUrl(savedItem) : slot === "pin" ? pinsIcon : null
+          const teamName = team === "t" ? "T" : "CT"
+          const dimmed = teamScope !== "all" && teamScope !== team
+          const backgrounds = [teamScopeFade(team), rarity ? `radial-gradient(ellipse 95% 78% at ${team === "t" ? "0%" : "100%"} 100%, ${rarity.glow} 0%, transparent 68%)` : null].filter(Boolean).join(", ")
+          return (
+            <div
+              key={team}
+              data-slot-half={`${slot}:${team}`}
+              inert={dimmed || undefined}
+              aria-disabled={dimmed || undefined}
+              style={{ backgroundImage: backgrounds }}
+              className={cn(
+                "group relative aspect-square min-w-0 overflow-hidden transition-opacity duration-[400ms] ease-out",
+                team === "ct" && "border-l border-border",
+                dimmed && "pointer-events-none opacity-35 grayscale",
+              )}
+            >
+              <button type="button" disabled={dimmed} onClick={() => openSinglePicker(slot, team)} aria-label={savedItem ? `Change ${teamName} ${label.toLowerCase()} (${savedItem.display_name})` : `Choose a ${teamName} ${label.toLowerCase()}`} className="absolute inset-0 z-[1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground/60" />
+              <div className={cn("pointer-events-none relative flex h-full flex-col p-2.5", team === "ct" && "items-end text-right")}>
+                <span className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <img src={team === "t" ? teamTIcon : teamCtIcon} alt="" className="size-3.5 object-contain" />{teamName}
+                </span>
+                <div className="flex min-h-0 w-full flex-1 items-center justify-center">
+                  {image ? (
+                    <OptimizedImage src={image} width={160} height={120} alt="" className={cn("max-h-full w-full object-contain transition-[filter,scale] duration-[400ms] ease-out group-hover:duration-[250ms] group-hover:scale-[1.03] group-hover:blur-[4px] group-has-[:focus-visible]:blur-[4px]", !savedItem && "p-4 opacity-80")} />
+                  ) : (
+                    <ImageOff className="size-7 text-muted-foreground/50" />
+                  )}
+                </div>
+                <p className="mt-1 w-full truncate text-xs font-semibold">{label}</p>
+                <p className="w-full truncate text-[10px] text-muted-foreground" style={rarity ? { color: rarity.accent } : undefined}>
+                  {savedItem ? savedItem.display_name : "Default"}{entry?.team_scope === "all" ? " · Both" : ""}
+                </p>
+              </div>
+              <button
+                type="button"
+                disabled={dimmed}
+                onClick={(event) => { event.stopPropagation(); openSinglePicker(slot, team) }}
+                aria-label={`Choose a ${teamName} ${label.toLowerCase()}`}
+                title="Choose"
+                className="absolute left-1/2 top-[42%] z-[2] flex size-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/55 text-white opacity-0 shadow-lg backdrop-blur-sm transition-opacity duration-[400ms] ease-out group-hover:opacity-100 group-hover:duration-[250ms] focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
+              >
+                <SlidersHorizontal className="size-4" />
+              </button>
+              {entry && savedItem && (
+                <button
+                  type="button"
+                  onClick={(event) => { event.stopPropagation(); setDeleteConfirm({ model: savedItem, entry }) }}
+                  disabled={saving || dimmed}
+                  aria-label={`Remove ${savedItem.display_name}`}
+                  title={entry.team_scope === "all" ? "Remove (both teams)" : "Remove"}
+                  className={cn("absolute top-1.5 z-[2] flex size-7 items-center justify-center rounded-md border border-border bg-background/90 text-muted-foreground opacity-0 shadow-sm backdrop-blur transition-[opacity,color,background-color] duration-[400ms] ease-out group-hover:duration-[250ms] hover:bg-destructive hover:text-destructive-foreground group-hover:opacity-100 focus-visible:opacity-100 disabled:pointer-events-none [@media(hover:none)]:opacity-100", team === "t" ? "right-1.5" : "left-1.5")}
+                >
+                  <Trash2 className="size-3.5" />
+                </button>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
   const pickerTitle = slotTeam
     ? `${slotTeam === "t" ? "T" : "CT"} ${category === "glove" ? "gloves" : "knife"}`
     : activeWeapon
@@ -920,22 +999,12 @@ export function SkinchangerPage() {
               onRemove: entry && savedItem ? () => setDeleteConfirm({ model: savedItem, entry }) : undefined,
             })
           }))}
-          {(showMusic || showPin) && renderSection("Music kit & pin", [singleEntryFor("music_kit"), singleEntryFor("pin")].filter(Boolean).length, 2, ([["music_kit", showMusic], ["pin", showPin]] as const).filter(([, visible]) => visible).map(([slot]) => {
-            const entry = singleEntryFor(slot)
-            const savedItem = entry?.skinchanger_catalog_items ?? null
-            return renderCard({
-              id: slot,
-              image: savedItem ? catalogImageUrl(savedItem) : null,
-              fallback: slot === "pin" ? pinsIcon : undefined,
-              title: slot === "music_kit" ? "Music kit" : "Pin",
-              subtitle: savedItem ? savedItem.display_name : "Default",
-              savedItem,
-              entry,
-              openLabel: slot === "music_kit" ? "Choose a music kit" : "Choose a pin",
-              onOpen: () => openSinglePicker(slot),
-              onRemove: entry && savedItem ? () => setDeleteConfirm({ model: savedItem, entry }) : undefined,
-            })
-          }))}
+          {(showMusic || showPin) && renderSection(
+            "Music kit & pin",
+            (["music_kit", "pin"] as const).flatMap((slot) => (["t", "ct"] as const).filter((team) => singleEntryFor(slot, team))).length,
+            4,
+            ([["music_kit", showMusic], ["pin", showPin]] as const).filter(([, visible]) => visible).map(([slot]) => renderSplitCard(slot)),
+          )}
           {modelSections.every((section) => section.items.length === 0) && !showKnives && !showGloves && !showAgents && !showMusic && !showPin && (
             <p className="rounded-xl border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">Nothing matches “{gridQuery}”.</p>
           )}
@@ -956,6 +1025,7 @@ export function SkinchangerPage() {
                 {savedItemForActiveSlot ? `Saved: ${activeWeapon ? savedSkinLabel(savedItemForActiveSlot) : savedItemForActiveSlot.display_name}` : activeWeapon ? "Choose a skin" : "Choose one"}
               </DialogDescription>
             </div>
+            {(category === "music_kit" || category === "pin") && renderTeamSwitch(true)}
           </div>
 
           <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,1fr)_340px]">
