@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router-dom"
 import { Database, Power, ShieldAlert, UserRoundCog, UsersRound, Map, Megaphone, MonitorUp, Loader2, LockKeyhole, ServerCog } from "lucide-react"
 import { setAccessToken } from "@/api/client"
 import { staffPanelService } from "@/api/staffpanel"
+import { StaffPhantomReview } from "@/components/staff-phantom-review"
 import type { ApiError, StaffPanelAccess, StaffPanelActionRequest, StaffPanelDatabaseOverview, StaffPanelOverview } from "@/api/types"
 
 const apiOrigin = (import.meta.env.VITE_API_URL?.trim() || (import.meta.env.PROD ? "https://api.legacyx.cc" : "")).replace(/\/$/, "")
@@ -113,6 +114,7 @@ export function StaffPanelPage() {
       </div>
       <div className="rounded-2xl border border-white/10 bg-card/70 p-5"><h2 className="font-semibold">Queue</h2><div className="mt-4 space-y-2">{overview?.pendingActions.length ? overview.pendingActions.map((action) => <div key={action.id} className="flex items-center justify-between rounded-xl border border-white/10 px-3 py-2 text-xs"><span>{action.action_type} · {action.server_id}</span><span className="uppercase text-text-2">{action.status}</span></div>) : <p className="text-sm text-muted-foreground">No pending server operations.</p>}</div></div>
     </section>
+    <StaffPhantomReview />
     {access.role === "OWNER" && <section className="grid gap-4"><div className="rounded-2xl border border-white/10 bg-card/70 p-5"><h2 className="flex items-center gap-2 font-semibold"><Database className="h-4 w-4 text-text-2" />Database overview</h2><div className="mt-4 grid grid-cols-2 gap-2">{database?.tables.map((table) => <div key={table.name} className="rounded-xl border border-white/10 px-3 py-3"><p className="text-xs text-muted-foreground">{table.name}</p><p className="mt-1 text-xl font-semibold">{table.count}</p></div>)}</div><p className="mt-3 text-xs text-muted-foreground">Metadata only. Raw SQL is never exposed in the browser.</p></div></section>}
   </main>
 }
