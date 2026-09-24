@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import { LoaderCircle, ServerCrash } from "lucide-react"
+import { ServerCrash, Loader2 } from "lucide-react"
 
 import { serversService } from "@/api/servers"
 
@@ -40,8 +40,8 @@ export function ConnectPage() {
 
   return (
     <div className="flex min-h-[20rem] items-center justify-center p-6">
-      {state.status === "loading" && <div className="text-center"><LoaderCircle className="mx-auto size-6 animate-spin text-chart-2" /><p className="mt-3 text-sm font-medium">Opening Steam…</p><p className="mt-1 text-xs text-muted-foreground">Checking the LEGACY-X server route.</p></div>}
-      {state.status === "ready" && <div className="text-center"><LoaderCircle className="mx-auto size-6 animate-spin text-chart-2" /><p className="mt-3 text-sm font-medium">Connecting to {state.name}</p><p className="mt-1 font-mono text-xs text-muted-foreground">{state.address}</p></div>}
+      {state.status === "loading" && <div className="text-center"><Loader2 className="mx-auto size-6 animate-spin text-chart-2" /><p className="mt-3 text-sm font-medium">Opening Steam…</p><p className="mt-1 text-xs text-muted-foreground">Checking the LEGACY-X server route.</p></div>}
+      {state.status === "ready" && <div className="text-center"><Loader2 className="mx-auto size-6 animate-spin text-chart-2" /><p className="mt-3 text-sm font-medium">Connecting to {state.name}</p><p className="mt-1 font-mono text-xs text-muted-foreground">{state.address}</p></div>}
       {state.status === "error" && <div className="max-w-sm text-center"><ServerCrash className="mx-auto size-6 text-destructive" /><p className="mt-3 text-sm font-medium">Server connection unavailable</p><p className="mt-1 text-xs text-muted-foreground">{state.message}</p></div>}
     </div>
   )

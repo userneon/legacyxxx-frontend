@@ -81,7 +81,8 @@ export interface ProfileFaceitStats {
 }
 
 export type FaceitProfileData =
-  | { linked: false }
+  /** hidden: the player hid their FACEIT box from other viewers. */
+  | { linked: false; hidden?: boolean }
   | {
       linked: true
       playerId: string
@@ -118,6 +119,9 @@ export interface ProfileLinksPayload {
   links: ProfileLink[]
 }
 
+/** Profile boxes a player may hide. Penalty history, SteamID, Steam link and rank are always shown. */
+export type ProfileSection = "kd" | "matches" | "kills" | "faceit" | "recent_matches"
+
 export interface UserProfile {
   id: string
   steamId: string
@@ -125,6 +129,8 @@ export interface UserProfile {
   avatar: string
   role: "Owner" | "Founder" | "Manager" | "Admin" | "Player" | "Designer" | "Developer"
   moderationStatus?: ModerationStatus
+  /** Profile boxes the player hid; absent on older backends (nothing hidden). */
+  hiddenSections?: ProfileSection[]
   clan?: {
     id: string
     name: string

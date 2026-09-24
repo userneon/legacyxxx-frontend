@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft, Swords, Plus, Users, Upload, X, Globe, Shield, Crown, UserPlus } from "lucide-react"
+import { ArrowLeft, Swords, Plus, Users, Upload, X, Globe, UserPlus, BatteryFull } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { clansService } from "@/api"
@@ -69,10 +69,10 @@ export function ClanPage({ onProfileNavigate, onClanNavigate }: { onProfileNavig
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {[
-          { label: "Active Clans", value: list.length.toString(), icon: Shield },
+          { label: "Active Clans", value: list.length.toString(), icon: Swords },
           { label: "Total Members", value: totalMembers.toString(), icon: Users },
           { label: "Open Slots", value: (totalSlots - totalMembers).toString(), icon: UserPlus },
-          { label: "Full Clans", value: fullClans.toString(), icon: Crown },
+          { label: "Full Clans", value: fullClans.toString(), icon: BatteryFull },
         ].map((stat) => (
           <div key={stat.label} className="glass rounded-xl p-4 hover-lift">
             <stat.icon className="size-4 text-muted-foreground" />
@@ -197,7 +197,7 @@ function ClanCardItem({ clan, onClanNavigate, onChanged }: { clan: ClanCard; onC
         >
           {isFull ? (
             <>
-              <Shield className="size-3.5" />
+              <BatteryFull className="size-3.5" />
               Clan Full
             </>
           ) : joining ? (

@@ -1,4 +1,4 @@
-import { Component, useEffect, useRef, type ReactNode } from "react"
+import { Component, useEffect, type ReactNode } from "react"
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom"
 
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
@@ -25,7 +25,6 @@ import { isFeatureEnabled } from "@/lib/features"
 export function App() {
   const navigate = useNavigate()
   const location = useLocation()
-  const mainRef = useRef<HTMLDivElement>(null)
   const { user } = useAuth()
 
   const currentPage = routeToPage(location.pathname)
@@ -57,10 +56,9 @@ export function App() {
     navigate(`/clans/${clanId}`)
   }
 
+  // The page itself scrolls (the content area only clips sideways), so go back to the top on navigation.
   useEffect(() => {
-    if (mainRef.current) {
-      mainRef.current.scrollTo({ top: 0, behavior: "smooth" })
-    }
+    window.scrollTo({ top: 0, behavior: "smooth" })
   }, [location.pathname])
 
   return (
@@ -77,7 +75,8 @@ export function App() {
           <ProfileBlock onNavigate={handleNavigate} />
         </header>
 
-        <div ref={mainRef} className="scrollbar-hidden flex-1 overflow-auto">
+        {/* overflow-x-clip, not overflow-auto: a scroll container here would stop sticky toolbars from sticking. */}
+        <div className="flex-1 overflow-x-clip">
           <div key={location.pathname} className="page-enter">
             <RouteErrorBoundary resetKey={location.pathname}>
             <Routes>

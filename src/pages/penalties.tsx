@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react"
-import { Search, ShieldAlert, Ban, MicOff, MessageSquareOff, Lock, X, ChevronRight, Shield, SearchX } from "lucide-react"
+import { Search, ShieldAlert, Ban, MicOff, MessageSquareOff, Lock, X, ChevronRight, SearchX, ShieldUser } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { moderationService } from "@/api"
@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
 import { RelativeTime } from "@/components/relative-time"
-import { AnimatedNumber } from "@/components/animated-number"
 import { PlayerModerationAvatar } from "@/components/player-moderation-avatar"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { PenaltyDetailDialog, StatusPill, TypeIcon, TYPE_META, penaltyStatus } from "@/components/penalty-detail-dialog"
+import { StatTile, segmentGroupClass, segmentItemClass, toolbarClass, toolbarSearchClass } from "@/components/page-kit"
 
 type PenaltyFilter = "all" | PenaltyType
 
@@ -27,19 +27,6 @@ function dayBucket(value: string) {
   if (days === 1) return "Yesterday"
   if (days < 7) return "This week"
   return date.toLocaleDateString("en-US", { month: "long", year: "numeric" })
-}
-
-function StatTile({ icon: Icon, label, value, tone, pulse }: { icon: typeof Ban; label: string; value: number | undefined; tone: string; pulse?: boolean }) {
-  return (
-    <div className="glass group relative min-w-[8.5rem] shrink-0 snap-start overflow-hidden rounded-2xl p-3.5 hover-lift @4xl:min-w-0 @4xl:p-4">
-      <div className="flex items-center justify-between">
-        <span className={cn("flex size-8 items-center justify-center rounded-lg bg-white/[0.05]", tone)}><Icon className="size-4" /></span>
-        {pulse && Boolean(value) && <span className="penalty-active-dot size-2 rounded-full bg-emerald-300" />}
-      </div>
-      <div className={cn("mt-3 text-2xl font-bold tabular-nums", tone)}><AnimatedNumber value={value ?? null} fallback="0" /></div>
-      <div className="mt-0.5 text-xs text-muted-foreground">{label}</div>
-    </div>
-  )
 }
 
 function FilterTabs({ value, onChange, counts }: { value: PenaltyFilter; onChange: (value: PenaltyFilter) => void; counts: Record<PenaltyFilter, number> }) {
@@ -59,7 +46,7 @@ function FilterTabs({ value, onChange, counts }: { value: PenaltyFilter; onChang
   }, [value, countsKey])
 
   return (
-    <div className="scrollbar-hidden relative inline-flex w-fit max-w-full items-center gap-1 overflow-x-auto rounded-xl bg-secondary/30 p-1" role="tablist">
+    <div className={segmentGroupClass} role="tablist">
       {indicator && <span className="filter-tab-indicator absolute inset-y-1 rounded-lg bg-secondary shadow-sm" style={{ left: indicator.left, width: indicator.width }} aria-hidden="true" />}
       {items.map((item) => {
         const active = item.id === value
@@ -71,7 +58,8 @@ function FilterTabs({ value, onChange, counts }: { value: PenaltyFilter; onChang
             role="tab"
             aria-selected={active}
             onClick={() => onChange(item.id)}
-            className={cn("relative z-10 flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors", active ? "text-foreground" : "text-foreground/60 hover:text-foreground")}
+            // The sliding indicator paints the active background.
+            className={cn(segmentItemClass(false), active && "text-foreground")}
           >
             <item.icon className="size-3.5" />
             {item.label}
@@ -124,7 +112,7 @@ function PenaltyRow({ penalty, onOpen }: { penalty: PenaltyEntry; onOpen: () => 
       <span className="hidden min-w-0 items-center gap-2 text-xs text-muted-foreground @3xl:flex">
         {penalty.admin
           ? <PlayerAvatar avatar={penalty.adminAvatar} name={penalty.admin} className="size-5 shrink-0 rounded-md text-[8px]" />
-          : <Shield className="size-3 shrink-0" />}
+          : <ShieldUser className="size-3 shrink-0" />}
         <span className="truncate">{penalty.admin || "System"}</span>
       </span>
       <div className="hidden flex-col items-start gap-1 @3xl:flex">
@@ -183,27 +171,32 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
 
   return (
     <div className="@container flex flex-col gap-5 p-4 @2xl:p-6">
-      <section className="glass relative overflow-hidden rounded-2xl p-5 @2xl:p-6">
-        <div className="pointer-events-none absolute -right-16 -top-20 size-64 rounded-full bg-destructive/[0.10] blur-3xl" aria-hidden="true" />
-        <div className="relative flex items-center gap-3">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-destructive/25 bg-destructive/10 text-destructive"><ShieldAlert className="size-5" /></span>
-          <div className="min-w-0">
-            <h1 className="text-xl font-bold tracking-tight @2xl:text-2xl">Penalties</h1>
-            <p className="text-sm text-muted-foreground">Public record of bans, mutes and gags on LEGACY-X servers.</p>
-          </div>
-        </div>
-      </section>
-
       {/* One swipeable row on narrow screens instead of a tall stack; a 5-column grid when there is room. */}
       <div className="stagger-in scrollbar-hidden -mx-4 -my-1 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 py-1 @2xl:-mx-6 @2xl:scroll-px-6 @2xl:px-6 @4xl:mx-0 @4xl:grid @4xl:grid-cols-5 @4xl:overflow-visible @4xl:px-0">
-        <StatTile icon={Ban} label="Total bans" value={stats?.totalBans} tone="text-destructive" />
-        <StatTile icon={ShieldAlert} label="Active bans" value={stats?.activeBans} tone="text-emerald-300" pulse />
-        <StatTile icon={Lock} label="Permanent" value={stats?.permanentBans} tone="text-rose-300" />
-        <StatTile icon={MicOff} label="Mutes" value={stats?.totalComms} tone="text-amber-200" />
-        <StatTile icon={MessageSquareOff} label="Gags" value={stats?.totalGags} tone="text-sky-200" />
+        <StatTile icon={Ban} label="Total bans" value={stats?.totalBans} fallback="0" tone="text-destructive" />
+        <StatTile icon={ShieldAlert} label="Active bans" value={stats?.activeBans} fallback="0" tone="text-emerald-300" pulse />
+        <StatTile icon={Lock} label="Permanent" value={stats?.permanentBans} fallback="0" tone="text-rose-300" />
+        <StatTile icon={MicOff} label="Mutes" value={stats?.totalComms} fallback="0" tone="text-amber-200" />
+        <StatTile icon={MessageSquareOff} label="Gags" value={stats?.totalGags} fallback="0" tone="text-sky-200" />
       </div>
 
-      <div className="flex flex-col gap-3 @3xl:flex-row @3xl:items-center @3xl:justify-between">
+      <div className={toolbarClass}>
+        <label className={toolbarSearchClass}>
+          <Search className="size-4 shrink-0 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search player, reason or admin"
+            value={query}
+            onChange={(event) => { setQuery(event.target.value); setVisibleCount(PAGE_SIZE) }}
+            className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          />
+          {query && (
+            <button type="button" onClick={() => setQuery("")} aria-label="Clear search" className="rounded-md p-0.5 text-muted-foreground hover:text-foreground">
+              <X className="size-3.5" />
+            </button>
+          )}
+        </label>
+
         <div className="flex flex-wrap items-center gap-2">
           <FilterTabs value={filter} onChange={(value) => { setFilter(value); setVisibleCount(PAGE_SIZE) }} counts={counts} />
           <button
@@ -219,22 +212,6 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
             Active only
           </button>
         </div>
-
-        <label className="glass flex h-10 w-full items-center gap-2 rounded-xl px-3 transition-colors focus-within:border-white/25 @3xl:max-w-xs">
-          <Search className="size-4 shrink-0 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search player, reason or admin"
-            value={query}
-            onChange={(event) => { setQuery(event.target.value); setVisibleCount(PAGE_SIZE) }}
-            className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-          />
-          {query && (
-            <button type="button" onClick={() => setQuery("")} aria-label="Clear search" className="rounded-md p-0.5 text-muted-foreground hover:text-foreground">
-              <X className="size-3.5" />
-            </button>
-          )}
-        </label>
       </div>
 
       <section className="glass overflow-hidden rounded-2xl">

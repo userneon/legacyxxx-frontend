@@ -1,5 +1,9 @@
 import { useState } from "react"
-import { Crosshair, Target, Trophy, Search, SearchX, Clock3, Users, Swords, Flame } from "lucide-react"
+import { Target, Search, SearchX, Clock3, Users, Medal, Gamepad2, Skull } from "lucide-react"
+import { StopwatchIcon } from "@/components/mask-icons"
+import { StatTile, toolbarClass, toolbarSearchClass } from "@/components/page-kit"
+import { SelectItem, SelectValue } from "@/components/ui/select"
+import { AnimatedSelect, AnimatedSelectContent, AnimatedSelectTrigger, dropdownTriggerClass } from "@/components/animated-select"
 
 import { cn } from "@/lib/utils"
 import { competitiveService } from "@/api"
@@ -7,22 +11,30 @@ import type { CompetitiveLeaderboardEntry } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { QueryState } from "@/components/query-state"
+import { BlockSkeleton, RowsSkeleton, StatTilesSkeleton } from "@/components/skeletons"
 import { PlayerModerationAvatar } from "@/components/player-moderation-avatar"
 import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
 import { RelativeTime } from "@/components/relative-time"
-import { AnimatedNumber } from "@/components/animated-number"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
-type SortKey = "rank" | "kd" | "kills" | "wins" | "hours"
+type SortKey = "rank" | "kd" | "kills" | "headshots" | "wins" | "matches" | "hours"
 
 const SORTS: Array<{ id: SortKey; label: string }> = [
-  { id: "rank", label: "Rank" },
-  { id: "kd", label: "K/D" },
+  { id: "rank", label: "Rank (EXP)" },
+  { id: "kd", label: "K/D ratio" },
   { id: "kills", label: "Kills" },
+  { id: "headshots", label: "Headshot %" },
   { id: "wins", label: "Wins" },
-  { id: "hours", label: "Hours" },
+  { id: "matches", label: "Matches" },
+  { id: "hours", label: "Hours played" },
 ]
+
+/** Ladders by game mode. Only competitive 5v5 is tracked today; the others are listed as coming. */
+const MODES = [
+  { id: "5v5", label: "5v5 Competitive", available: true },
+  { id: "fun", label: "Fun Mode", available: false },
+  { id: "proleague", label: "Pro League", available: false },
+] as const
 
 function headshotRate(player: CompetitiveLeaderboardEntry) {
   return player.kills > 0 ? Math.round((player.headshot_kills / player.kills) * 100) : 0
@@ -32,7 +44,9 @@ function sortValue(player: CompetitiveLeaderboardEntry, key: SortKey) {
   switch (key) {
     case "kd": return player.kd_ratio
     case "kills": return player.kills
+    case "headshots": return headshotRate(player)
     case "wins": return player.wins
+    case "matches": return player.matches_completed
     case "hours": return player.played_hours
     // The server's own ordering; a lower position is better, so it is negated to share one comparator.
     default: return -player.position
@@ -66,21 +80,16 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
 
   return (
     <div className="@container flex flex-col gap-5 p-4 @2xl:p-6">
-      <header>
-        <h1 className="text-xl font-bold tracking-tight @2xl:text-2xl">Leaders</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Competitive standings across LEGACY-X servers, ranked by experience.</p>
-      </header>
-
-      <QueryState loading={loading} error={error} empty={!loading && !error && list.length === 0} emptyMessage="No player performance data available yet." onRetry={refetch} />
+      <QueryState skeleton={<div className="flex flex-col gap-5"><StatTilesSkeleton count={4} /><BlockSkeleton className="h-72" /><RowsSkeleton rows={8} /></div>} loading={loading} error={error} empty={!loading && !error && list.length === 0} emptyMessage="No player performance data available yet." onRetry={refetch} />
 
       {!loading && !error && list.length > 0 && (
         <>
           <div className="-mx-4 -my-1 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 py-1 @4xl:mx-0 @4xl:my-0 @4xl:grid @4xl:grid-cols-4 @4xl:overflow-visible @4xl:px-0">
             <StatTile icon={Users} label="Ranked players" value={list.length} tone="text-sky-300" />
-            <StatTile icon={Swords} label="Matches recorded" value={totalMatches} tone="text-white/90" />
-            <StatTile icon={Trophy} label="Community wins" value={totalWins} tone="text-amber-300" />
+            <StatTile icon={Gamepad2} label="Matches recorded" value={totalMatches} tone="text-white/90" />
+            <StatTile icon={Medal} label="Community wins" value={totalWins} tone="text-amber-300" />
             <StatTile
-              icon={Flame}
+              icon={StopwatchIcon}
               label={mostActive ? `${mostActive.username} · hours played` : "Hours played"}
               value={mostActive?.played_hours ?? 0}
               suffix="h"
@@ -102,26 +111,32 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
             )}
           </section>
 
-          <div className="glass flex flex-col gap-3 rounded-2xl p-3 @2xl:flex-row @2xl:items-center @2xl:justify-between">
-            <label className="relative block @2xl:w-64">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search players..." className="h-9 pl-9 text-sm" />
+          <div className={toolbarClass}>
+            <label className={toolbarSearchClass}>
+              <Search className="size-4 shrink-0 text-muted-foreground" />
+              <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search players..." className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
             </label>
-            <div className="flex min-w-0 gap-1 overflow-x-auto">
-              {SORTS.map((option) => (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => setSort(option.id)}
-                  aria-pressed={sort === option.id}
-                  className={cn(
-                    "h-8 shrink-0 rounded-lg px-3 text-xs font-medium transition-colors",
-                    sort === option.id ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary hover:text-foreground",
-                  )}
-                >
-                  {option.label}
-                </button>
-              ))}
+            <div className="flex flex-wrap items-center gap-2">
+              <AnimatedSelect value="5v5">
+                <AnimatedSelectTrigger aria-label="Mode" className={cn(dropdownTriggerClass, "w-[10.5rem]")}>
+                  <SelectValue />
+                </AnimatedSelectTrigger>
+                <AnimatedSelectContent>
+                  {MODES.map((mode) => (
+                    <SelectItem key={mode.id} value={mode.id} disabled={!mode.available}>
+                      {mode.label}{!mode.available && <span className="ml-1 text-[10px] text-muted-foreground">soon</span>}
+                    </SelectItem>
+                  ))}
+                </AnimatedSelectContent>
+              </AnimatedSelect>
+              <AnimatedSelect value={sort} onValueChange={(value) => setSort(value as SortKey)}>
+                <AnimatedSelectTrigger aria-label="Rank by" className={cn(dropdownTriggerClass, "w-[9.5rem]")}>
+                  <SelectValue />
+                </AnimatedSelectTrigger>
+                <AnimatedSelectContent>
+                  {SORTS.map((option) => <SelectItem key={option.id} value={option.id}>{option.label}</SelectItem>)}
+                </AnimatedSelectContent>
+              </AnimatedSelect>
             </div>
           </div>
 
@@ -158,16 +173,6 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
           </section>
         </>
       )}
-    </div>
-  )
-}
-
-function StatTile({ icon: Icon, label, value, tone, suffix }: { icon: typeof Trophy; label: string; value: number; tone: string; suffix?: string }) {
-  return (
-    <div className="glass min-w-[9rem] shrink-0 snap-start rounded-2xl p-3.5 hover-lift @4xl:min-w-0 @4xl:p-4">
-      <span className={cn("flex size-8 items-center justify-center rounded-lg bg-white/[0.05]", tone)}><Icon className="size-4" /></span>
-      <div className={cn("mt-3 text-2xl font-bold tabular-nums", tone)}><AnimatedNumber value={value} suffix={suffix} /></div>
-      <div className="mt-0.5 truncate text-xs text-muted-foreground">{label}</div>
     </div>
   )
 }
@@ -209,7 +214,7 @@ function LeaderRow({ player, isSelf, onOpen }: { player: CompetitiveLeaderboardE
 
       <span className="hidden text-right text-sm font-semibold tabular-nums text-white/95 @3xl:block">{player.kd_ratio.toFixed(2)}</span>
       <span className="hidden text-right text-sm tabular-nums text-white/75 @3xl:block">
-        <span className="inline-flex items-center gap-1"><Crosshair className="size-3 text-white/35" />{player.kills.toLocaleString()}</span>
+        <span className="inline-flex items-center gap-1"><Skull className="size-3 text-white/35" />{player.kills.toLocaleString()}</span>
       </span>
       <span className="hidden text-right text-sm tabular-nums text-white/75 @3xl:block">
         <span className="inline-flex items-center gap-1"><Target className="size-3 text-white/35" />{headshotRate(player)}%</span>
