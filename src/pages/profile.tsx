@@ -43,6 +43,7 @@ import { MatchDetailsDialog } from "@/components/match-details-dialog"
 import { RelativeTime } from "@/components/relative-time"
 import { ProfileIds, copyText, steamProfileUrl as steamLinkFor } from "@/components/profile-ids"
 import { ProfilePrivacyDialog } from "@/components/profile-privacy-dialog"
+import { TopRankFrame, isTopRank, type TopRank } from "@/components/top-rank-frame"
 
 interface ProfilePageProps {
   userId?: string
@@ -106,12 +107,26 @@ function ProfileCover({ profile }: { profile: UserProfile }) {
 }
 
 /** Steam avatar (animated when equipped) with the player's Steam avatar frame drawn around it. */
-function ProfileAvatar({ profile }: { profile: UserProfile }) {
+function ProfileAvatar({ profile, topRank }: { profile: UserProfile; topRank?: TopRank | null }) {
   const frame = profile.steamMedia?.avatarFrame
   const animated = profile.steamMedia?.animatedAvatar
   const [frameFailed, setFrameFailed] = useState(false)
   const [animatedReady, setAnimatedReady] = useState(false)
   const showFrame = Boolean(frame) && !frameFailed
+
+  // A Leaders top-3 place outranks the Steam frame: it is the one frame the player earned here.
+  if (topRank) {
+    return (
+      <TopRankFrame rank={topRank} className="profile-avatar-pop mr-3 size-20 shrink-0 @2xl:mr-4 @2xl:size-28">
+        <div className="relative size-full">
+          <PlayerAvatar avatar={profile.avatar} name={profile.username} className="size-full rounded-none bg-gradient-to-br from-primary/80 to-primary text-2xl text-primary-foreground @2xl:text-3xl" />
+          {animated && (
+            <img src={animated} alt="" aria-hidden="true" onLoad={() => setAnimatedReady(true)} className={cn("absolute inset-0 size-full object-cover transition-opacity duration-500", animatedReady ? "opacity-100" : "opacity-0")} />
+          )}
+        </div>
+      </TopRankFrame>
+    )
+  }
 
   return (
     <div className="profile-avatar-pop relative size-20 shrink-0 @2xl:size-28">
@@ -567,6 +582,10 @@ export function ProfilePage({ userId }: ProfilePageProps) {
     competitiveService.getPlayer(profile!.id, { signal }),
     { enabled: Boolean(profile?.id && profile.role !== "Owner"), queryKey: profile?.id ?? "competitive-profile-pending" },
   )
+  // Only the podium is needed to know whether this player wears a TOP 1/2/3 frame.
+  const { data: podium } = useApiQuery((signal) => competitiveService.getLeaderboard({ signal }, 3), { enabled: Boolean(profile?.id), queryKey: "leaders-podium" })
+  const podiumPosition = podium?.find((entry) => entry.user_id === profile?.id)?.position
+  const topRank = isTopRank(podiumPosition) ? podiumPosition : null
   // Fetched at page level so the hero can show the FACEIT level chip next to the name.
   const { data: faceit, loading: faceitLoading, error: faceitError } = useApiQuery<FaceitProfileData>((signal) =>
     profileService.getFaceitProfile(effectiveUserId, { signal }),
@@ -641,7 +660,7 @@ export function ProfilePage({ userId }: ProfilePageProps) {
 
           {/* Identity row stays horizontal at every width: avatar · name/chips · actions. */}
           <div className="relative -mt-10 flex flex-row flex-wrap items-end gap-3 px-4 pb-4 @sm:flex-nowrap @2xl:-mt-14 @2xl:gap-5 @2xl:px-6 @2xl:pb-5">
-            <ProfileAvatar profile={profile} />
+            <ProfileAvatar profile={profile} topRank={topRank} />
 
             <div className="min-w-0 flex-1 pb-0.5 @2xl:pb-1">
               <h1 className="profile-name truncate font-display text-xl tracking-wide @2xl:text-3xl">{profile.username}</h1>

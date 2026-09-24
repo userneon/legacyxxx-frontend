@@ -6,6 +6,7 @@ import "./index.css"
 import App from "./App.tsx"
 import { ThemeProvider } from "@/components/theme-provider.tsx"
 import { AuthProvider } from "@/hooks/use-auth.tsx"
+import { StaffProvider } from "@/hooks/use-staff"
 import { Toaster } from "@/components/ui/sonner"
 
 createRoot(document.getElementById("root")!).render(
@@ -13,7 +14,9 @@ createRoot(document.getElementById("root")!).render(
     <BrowserRouter>
       <ThemeProvider defaultTheme="dark">
         <AuthProvider>
-          <App />
+          <StaffProvider>
+            <App />
+          </StaffProvider>
           <Toaster richColors position="top-center" />
         </AuthProvider>
       </ThemeProvider>

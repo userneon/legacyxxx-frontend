@@ -10,11 +10,16 @@ import {
   Crown,
   Gavel,
   Play,
+  ShieldCheck,
   type LucideIcon,
 } from "lucide-react"
 
+import { Link } from "react-router-dom"
 import { isPageEnabled } from "@/lib/features"
 import { KnifeIcon, PodiumIcon, StarOutlineIcon } from "@/components/mask-icons"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { useStaff } from "@/hooks/use-staff"
+import { useStaffBadgeCount } from "@/components/staff-panel-button"
 import {
   Sidebar,
   SidebarContent,
@@ -153,6 +158,25 @@ function AnimatedSubmenu({ open, children }: { open: boolean; children: React.Re
   )
 }
 
+/** Phones have no room in the header, so staff get the panel as the first menu item. */
+function MobileStaffPanelItem() {
+  const isMobile = useIsMobile()
+  const { ready, staff, can } = useStaff()
+  const count = useStaffBadgeCount()
+  if (!isMobile || !ready || !staff || !can("panel.access")) return null
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild tooltip="Staff Panel" className="h-9 text-amber-300">
+        <Link to="/panel" aria-label="Staff Panel">
+          <ShieldCheck className="!size-[17px] shrink-0" />
+          <span className="text-[13px]">Staff Panel</span>
+          {count > 0 && <SidebarMenuBadge><span className="rounded-full bg-amber-300 px-1.5 text-[10px] font-bold text-black">{count > 99 ? "99+" : count}</span></SidebarMenuBadge>}
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  )
+}
+
 export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
   const [playOpen, setPlayOpen] = useState(currentPage.startsWith("play-"))
 
@@ -166,6 +190,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
         <SidebarGroup className="py-1">
           <SidebarGroupContent>
             <SidebarMenu>
+              <MobileStaffPanelItem />
               {MAIN_NAV.map((item) => (
                 <NavButton key={item.id} item={item} isActive={isActive(item.id)} onClick={() => onNavigate(item.id)} />
               ))}

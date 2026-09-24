@@ -14,6 +14,7 @@ import { QueryState } from "@/components/query-state"
 import { BlockSkeleton, RowsSkeleton, StatTilesSkeleton } from "@/components/skeletons"
 import { PlayerModerationAvatar } from "@/components/player-moderation-avatar"
 import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
+import { TopRankFrame, isTopRank } from "@/components/top-rank-frame"
 import { RelativeTime } from "@/components/relative-time"
 import { Button } from "@/components/ui/button"
 
@@ -195,7 +196,9 @@ function LeaderRow({ player, isSelf, onOpen }: { player: CompetitiveLeaderboardE
       </span>
 
       <span className="flex min-w-0 items-center gap-2.5">
-        <PlayerModerationAvatar avatar={player.avatar} name={player.username} className="size-9 shrink-0 rounded-md text-xs" />
+        {isTopRank(player.position)
+          ? <TopRankFrame rank={player.position} label={false} className="size-9 shrink-0"><PlayerModerationAvatar avatar={player.avatar} name={player.username} className="size-full rounded-none text-xs" /></TopRankFrame>
+          : <PlayerModerationAvatar avatar={player.avatar} name={player.username} className="size-9 shrink-0 rounded-md text-xs" />}
         <span className="min-w-0">
           <span className="flex min-w-0 items-center gap-1.5">
             <span className="truncate text-sm font-semibold text-white/90">{player.username}</span>
@@ -245,12 +248,14 @@ function PodiumPlayer({ player, rank, onProfileNavigate }: { player?: Competitiv
       className="group mx-auto flex w-full min-w-0 max-w-[17rem] flex-col items-center text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
       aria-label={`Open ${player.username} profile`}
     >
-      <div className="relative z-10 -mb-3 flex flex-col items-center">
-        <div className={cn("mb-1 flex size-7 items-center justify-center rounded-full border text-xs font-black shadow-lg shadow-black/25", tone.chip)}>{rank}</div>
-        <CompetitiveRankBadge rankId={player.rank_id} rankName={player.rank_name} imageKey={player.rank_image_key} className="mb-1 h-8 w-14" />
-        <PlayerModerationAvatar avatar={player.avatar} name={player.username} className="size-12 rounded-md border-2 border-card text-base @lg:size-16" />
+      {/* The TOP n frame carries the place, so the old number chip is gone. */}
+      <div className="relative z-10 -mb-2 flex flex-col items-center">
+        <CompetitiveRankBadge rankId={player.rank_id} rankName={player.rank_name} imageKey={player.rank_image_key} className={cn("h-8 w-14", rank === 1 ? "mb-8 @lg:mb-9" : "mb-6 @lg:mb-7")} />
+        <TopRankFrame rank={rank} className="size-20 transition-transform duration-300 group-hover:-translate-y-0.5 @lg:size-24">
+          <PlayerModerationAvatar avatar={player.avatar} name={player.username} className="size-full rounded-none text-lg" />
+        </TopRankFrame>
       </div>
-      <div className={cn("flex w-full min-w-0 flex-col items-center justify-end rounded-t-xl border px-2 pb-3 pt-5 transition-transform duration-300 group-hover:-translate-y-0.5", tone.height, tone.surface)}>
+      <div className={cn("flex w-full min-w-0 flex-col items-center justify-end rounded-t-xl border px-2 pb-3 pt-8 transition-transform duration-300 group-hover:-translate-y-0.5", tone.height, tone.surface)}>
         <p className={cn("text-[10px] font-bold uppercase tracking-[0.16em]", tone.text)}>{tone.label}</p>
         <p className="mt-1 max-w-full truncate text-sm font-bold text-white/95 @lg:text-base">{player.username}</p>
         <p className="mt-0.5 max-w-full truncate text-[10px] tabular-nums text-white/45">{player.rank_name} · {player.current_exp.toLocaleString()} EXP</p>

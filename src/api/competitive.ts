@@ -9,8 +9,8 @@ function toNumber(value: unknown) {
 
 /** Competitive state is read-only in the browser; gameplay servers alone mutate EXP. */
 export const competitiveService = {
-  async getLeaderboard(options?: CallOptions): Promise<CompetitiveLeaderboardEntry[]> {
-    const response = await get<{ entries?: CompetitiveLeaderboardEntry[] }>("/api/v1/public/competitive/leaderboard", undefined, options)
+  async getLeaderboard(options?: CallOptions, limit?: number): Promise<CompetitiveLeaderboardEntry[]> {
+    const response = await get<{ entries?: CompetitiveLeaderboardEntry[] }>("/api/v1/public/competitive/leaderboard", limit ? { limit } : undefined, options)
     if (!Array.isArray(response.entries)) return []
     return response.entries.map(entry => ({ ...entry, kd_ratio: toNumber(entry.kd_ratio), played_hours: toNumber(entry.played_hours) }))
   },
