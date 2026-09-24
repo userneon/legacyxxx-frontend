@@ -2,6 +2,7 @@ import { get, put, type CallOptions } from "./client"
 import type {
   FaceitProfileData,
   PenaltyEntry,
+  ProfileLoadoutShowcase,
   ProfileLink,
   ProfileLinksPayload,
   NotificationPrefs,
@@ -59,5 +60,9 @@ export const profileService = {
   async getPenalties(userId?: string, options?: CallOptions): Promise<PenaltyEntry[]> {
     const payload = await get<PenaltyEntry[] | { penalties: PenaltyEntry[] }>(`/api/v1/profile/${userId ?? "me"}/penalties`, undefined, options)
     return Array.isArray(payload) ? payload : payload.penalties
+  },
+
+  async getLoadoutShowcase(userId?: string, options?: CallOptions): Promise<ProfileLoadoutShowcase> {
+    return get<ProfileLoadoutShowcase>(`/api/v1/profile/${userId ?? "me"}/loadout`, undefined, options)
   },
 }

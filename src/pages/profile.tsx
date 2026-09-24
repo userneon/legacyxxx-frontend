@@ -1,878 +1,799 @@
-import { useEffect, useState } from "react"
-import { useNavigate, useParams } from "react-router-dom"
-import {
-  Trophy,
-  Target,
-  Percent,
-  LogOut,
-  ExternalLink,
-  Swords,
-  Copy,
-  Check,
-  Link2,
-  UserX,
-  ChevronDown,
-  ChevronRight,
-  Map as MapIcon,
-  Sparkles,
-  Skull,
-  HandHelping,
-  Medal,
-  Gamepad2,
-  Gauge,
-  Settings,
-  EyeOff,
-} from "lucide-react"
+/**
+ * Profile (docs/design/profile, profile-lower, profile-me, profile-me-privacy, profile-owner, profile-hidden-stats,
+ * profile-ranks). Same layout for every visitor: the owner gets "Profile settings" (what others can see), others get
+ * "Report player", staff profiles add the Legacy-X team card. Hidden sections are omitted by the API; the page only
+ * renders the "hidden by player" placeholders.
+ */
+import { useMemo, useState, type ReactNode } from "react"
+import { Link, useParams } from "react-router-dom"
+import { ChevronRight, Crown, ExternalLink, Eye, EyeOff, Flag, Link2, MessageCircle, MoreHorizontal, Play, ShieldAlert, ShieldCheck } from "lucide-react"
+import { toast } from "sonner"
 
+import {
+  competitiveService,
+  profileService,
+  type CompetitiveProfile,
+  type FaceitProfileData,
+  type PenaltyEntry,
+  type ProfileLoadoutShowcase,
+  type ProfileSection,
+  type RankedMatch,
+  type UserProfile,
+} from "@/api"
+import { DISCORD_REPORT_URL, DISCORD_STAFF_CONTACT_URL } from "@/lib/config"
+import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
+import { formatDate, formatInt, formatPercent, formatRatio, formatSigned } from "@/lib/format"
+import { RANK_TIER_COLORS, rankById, rankProgress } from "@/lib/ranks"
+import { steamProfileUrl } from "@/lib/steam"
 import { cn } from "@/lib/utils"
-import { isFeatureEnabled } from "@/lib/features"
-import { PenaltyDetailDialog, TypeIcon, TYPE_META } from "@/components/penalty-detail-dialog"
-import { competitiveService, profileService } from "@/api"
-import type { ApiError, CompetitiveProfile, FaceitProfileData, PenaltyEntry, ProfileRecentMatch, ProfileStats, UserProfile } from "@/api/types"
+import { penaltyStatus } from "@/pages/penalties"
+import { Card } from "@/components/page"
+import { PlayerAvatar } from "@/components/player-avatar"
+import { RankEmblem, RankName } from "@/components/rank"
+import { RelativeTime } from "@/components/relative-time"
+import { EmptyState, ErrorState, Skeleton } from "@/components/states"
 import { Button } from "@/components/ui/button"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Switch } from "@/components/ui/switch"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
-import { PlayerAvatar } from "@/components/player-avatar"
-import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
-import { ModerationStatusIcon } from "@/components/moderation-status-icon"
-import { ProfileRoleIcon } from "@/components/profile-role-icon"
-import { AnimatedNumber } from "@/components/animated-number"
-import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
-import faceitLogo from "@/assets/brand/faceit.webp"
-import { RelativeTime } from "@/components/relative-time"
-import { ProfileIds, copyText, steamProfileUrl as steamLinkFor } from "@/components/profile-ids"
-import { ProfilePrivacyDialog } from "@/components/profile-privacy-dialog"
-import { TopRankFrame, isTopRank, type TopRank } from "@/components/top-rank-frame"
 
-interface ProfilePageProps {
-  userId?: string
+const ROLE_BLURB: Record<string, string> = {
+  Owner: "Runs the servers and the community.",
+  Founder: "Founded Legacy-X.",
+  Manager: "Manages the staff team and the servers.",
+  Admin: "Keeps matches fair and handles reports.",
+  Developer: "Builds the website, plugins and API.",
+  Designer: "Designs the website and the brand.",
 }
 
-const RECENT_MATCHES_COLLAPSED = 5
+/* ----------------------------------------------------------------------------
+ * Small building blocks
+ * ------------------------------------------------------------------------- */
 
-/** Starts at 0 and moves to `value` on the next frame, so bars and rings fill in with a CSS transition. */
-function useFillIn(value: number) {
-  const [shown, setShown] = useState(0)
-  useEffect(() => {
-    // Hidden tabs pause requestAnimationFrame; show the final value instead of leaving the bar empty.
-    if (document.visibilityState === "hidden") {
-      setShown(value)
-      return
-    }
-    const frame = requestAnimationFrame(() => setShown(value))
-    return () => cancelAnimationFrame(frame)
-  }, [value])
-  return shown
-}
-
-function linkHost(url: string) {
-  try {
-    return new URL(url).hostname.replace(/^www\./, "")
-  } catch {
-    return url
-  }
-}
-
-const prefersReducedMotion = () =>
-  typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
-
-/** Steam profile background: the animated video when the player equipped one, otherwise the still image. */
-function ProfileCover({ profile }: { profile: UserProfile }) {
-  const video = profile.steamMedia?.backgroundVideo
-  const [videoFailed, setVideoFailed] = useState(false)
-  const still = profile.steamBackground
-
-  if (video && !videoFailed && !prefersReducedMotion()) {
-    return (
-      <video
-        className="profile-cover-video absolute inset-0 h-full w-full object-cover"
-        autoPlay
-        muted
-        loop
-        playsInline
-        poster={still ?? undefined}
-        onError={() => setVideoFailed(true)}
-        aria-hidden="true"
-      >
-        {video.webm && <source src={video.webm} type="video/webm" />}
-        {video.mp4 && <source src={video.mp4} type="video/mp4" />}
-      </video>
-    )
-  }
-  if (still) {
-    return <div className="profile-cover absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url("${still}")` }} aria-hidden="true" />
-  }
-  return <div className="profile-cover profile-cover-fallback absolute inset-0" aria-hidden="true" />
-}
-
-/** Steam avatar (animated when equipped) with the player's Steam avatar frame drawn around it. */
-function ProfileAvatar({ profile, topRank }: { profile: UserProfile; topRank?: TopRank | null }) {
-  const frame = profile.steamMedia?.avatarFrame
-  const animated = profile.steamMedia?.animatedAvatar
-  const [frameFailed, setFrameFailed] = useState(false)
-  const [animatedReady, setAnimatedReady] = useState(false)
-  const showFrame = Boolean(frame) && !frameFailed
-
-  // A Leaders top-3 place outranks the Steam frame: it is the one frame the player earned here.
-  if (topRank) {
-    return (
-      <TopRankFrame rank={topRank} className="profile-avatar-pop mr-3 size-20 shrink-0 @2xl:mr-4 @2xl:size-28">
-        <div className="relative size-full">
-          <PlayerAvatar avatar={profile.avatar} name={profile.username} className="size-full rounded-none bg-gradient-to-br from-primary/80 to-primary text-2xl text-primary-foreground @2xl:text-3xl" />
-          {animated && (
-            <img src={animated} alt="" aria-hidden="true" onLoad={() => setAnimatedReady(true)} className={cn("absolute inset-0 size-full object-cover transition-opacity duration-500", animatedReady ? "opacity-100" : "opacity-0")} />
-          )}
-        </div>
-      </TopRankFrame>
-    )
-  }
-
+function HiddenCard({ label, className }: { label: string; className?: string }) {
   return (
-    <div className="profile-avatar-pop relative size-20 shrink-0 @2xl:size-28">
-      <div className={cn(
-        "size-full",
-        // Steam frames are drawn for square avatars, so the animated LEGACY-X ring is used only without one.
-        showFrame ? "rounded-sm ring-4 ring-background" : "profile-avatar-frame rounded-2xl p-[3px] ring-4 ring-background"
-      )}>
-        <div className={cn("relative size-full overflow-hidden", showFrame ? "rounded-sm" : "rounded-[0.9rem]")}>
-          {/* The still Steam avatar shows at once; the heavier animated GIF fades in over it once loaded. */}
-          <PlayerAvatar
-            avatar={profile.avatar}
-            name={profile.username}
-            className="size-full bg-gradient-to-br from-primary/80 to-primary text-2xl text-primary-foreground @2xl:text-3xl"
-          />
-          {animated && (
-            <img
-              src={animated}
-              alt=""
-              aria-hidden="true"
-              onLoad={() => setAnimatedReady(true)}
-              className={cn("absolute inset-0 size-full object-cover transition-opacity duration-500", animatedReady ? "opacity-100" : "opacity-0")}
-            />
-          )}
-        </div>
-      </div>
-      {showFrame && (
-        <img
-          src={frame!}
-          alt=""
-          aria-hidden="true"
-          onError={() => setFrameFailed(true)}
-          className="pointer-events-none absolute left-1/2 top-1/2 size-[122%] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain"
-        />
-      )}
+    <div className={cn("flex h-12 items-center gap-2.5 rounded-xl border border-line-soft bg-card px-4 text-[13px] text-text-dim", className)}>
+      <EyeOff className="size-4" aria-hidden />
+      {label} hidden by player
     </div>
   )
 }
 
-/**
- * FACEIT CS2 skill levels: minimum ELO, icon colour, and how much of the gauge the official icon fills
- * (the icon fill is not linear in the level; values measured from FACEIT's own level icons).
- */
-const FACEIT_LEVELS = [
-  { level: 1, min: 100, color: "#eeeeee", fill: 0 },
-  { level: 2, min: 501, color: "#46e070", fill: 6 },
-  { level: 3, min: 751, color: "#46e070", fill: 11 },
-  { level: 4, min: 901, color: "#ffcd29", fill: 27 },
-  { level: 5, min: 1051, color: "#ffcd29", fill: 45 },
-  { level: 6, min: 1201, color: "#ffcd29", fill: 60 },
-  { level: 7, min: 1351, color: "#ffcd29", fill: 69 },
-  { level: 8, min: 1531, color: "#ff6f20", fill: 81 },
-  { level: 9, min: 1751, color: "#ff6f20", fill: 92 },
-  { level: 10, min: 2001, color: "#e8002b", fill: 100 },
-] as const
-
-function faceitLevelProgress(level: number, elo: number) {
-  const current = FACEIT_LEVELS.find((entry) => entry.level === level) ?? FACEIT_LEVELS[0]
-  const next = FACEIT_LEVELS.find((entry) => entry.level === current.level + 1)
-  if (!next) return { color: current.color, percent: 100, toNext: 0, nextLevel: null as number | null }
-  const span = next.min - current.min
-  const percent = Math.max(0, Math.min(100, ((elo - current.min) / span) * 100))
-  return { color: current.color, percent, toNext: Math.max(0, next.min - elo), nextLevel: next.level }
-}
-
-/** 270° gauge with the gap at the bottom, drawn clockwise from bottom-left like FACEIT's level icons. */
-const FACEIT_GAUGE_RADIUS = 37
-/** Real arc length; used instead of pathLength, which some SVG renderers ignore for dash patterns. */
-const FACEIT_GAUGE_LENGTH = FACEIT_GAUGE_RADIUS * 1.5 * Math.PI
-const FACEIT_GAUGE_PATH = (() => {
-  const radius = FACEIT_GAUGE_RADIUS
-  const point = (degrees: number) => {
-    const radians = (degrees * Math.PI) / 180
-    return `${(50 + radius * Math.cos(radians)).toFixed(3)} ${(50 + radius * Math.sin(radians)).toFixed(3)}`
-  }
-  return `M ${point(135)} A ${radius} ${radius} 0 1 1 ${point(45)}`
-})()
-const FACEIT_GAUGE_START = { x: 50 + FACEIT_GAUGE_RADIUS * Math.cos((135 * Math.PI) / 180), y: 50 + FACEIT_GAUGE_RADIUS * Math.sin((135 * Math.PI) / 180) }
-
-/**
- * Vector recreation of the FACEIT skill level icon (crisp at any size). The coloured arc fills to the level on mount:
- * level 1 is a dot at the start, level 10 the full gauge. `level={null}` renders the empty "not connected" badge.
- */
-function FaceitLevelBadge({ level, className }: { level: number | null; className?: string }) {
-  const entry = level === null ? null : FACEIT_LEVELS.find((item) => item.level === level) ?? null
-  const target = entry?.fill ?? 0
-  const shown = useFillIn(target)
-  const color = entry?.color ?? "#5b5b60"
-
+function CardHeader({ title, action }: { title: string; action?: ReactNode }) {
   return (
-    <svg
-      viewBox="0 0 100 100"
-      role="img"
-      aria-label={entry ? `FACEIT level ${entry.level}` : "FACEIT not connected"}
-      className={cn("faceit-level-badge shrink-0", className)}
-    >
-      <circle cx="50" cy="50" r="49" fill="#131315" />
-      <path d={FACEIT_GAUGE_PATH} fill="none" stroke="#2a2a2f" strokeWidth="10" strokeLinecap="round" />
-      {/* Level 1 is a single dot at the start of the gauge, as in the official icon. */}
-      {entry?.level === 1 && <circle cx={FACEIT_GAUGE_START.x} cy={FACEIT_GAUGE_START.y} r="5" fill={color} className="faceit-level-dot" />}
-      {entry && entry.level > 1 && (
-        <path
-          d={FACEIT_GAUGE_PATH}
-          fill="none"
-          stroke={color}
-          strokeWidth="10"
-          strokeLinecap="round"
-          strokeDasharray={`${FACEIT_GAUGE_LENGTH} ${FACEIT_GAUGE_LENGTH}`}
-          strokeDashoffset={FACEIT_GAUGE_LENGTH * (1 - shown / 100)}
-          className="faceit-level-fill"
-          style={{ filter: `drop-shadow(0 0 3px ${color}99)` }}
-        />
-      )}
-      <text
-        key={entry?.level ?? "none"}
-        x="50"
-        y="52"
-        textAnchor="middle"
-        dominantBaseline="central"
-        fill={color}
-        fontSize={entry?.level === 10 ? 33 : 40}
-        fontWeight={900}
-        fontFamily="ui-sans-serif, system-ui, sans-serif"
-        className="faceit-level-number"
-      >
-        {entry ? entry.level : "–"}
-      </text>
-    </svg>
-  )
-}
-
-function FaceitStat({ label, children, tone }: { label: string; children: React.ReactNode; tone?: string }) {
-  return (
-    <div className="min-w-0">
-      <div className={cn("text-base font-bold tabular-nums", tone)}>{children}</div>
-      <div className="truncate text-[11px] text-muted-foreground">{label}</div>
+    <div className="flex items-center justify-between gap-3">
+      <h2 className="m-0 text-[15px] font-semibold text-text">{title}</h2>
+      {action}
     </div>
   )
 }
 
-/**
- * FACEIT at a glance: level, ELO with progress to the next level, and four stats.
- * Not linked: a single line on your own profile, nothing on someone else's.
- */
-function FaceitProfileCard({ faceit, loading, error, isOwner }: { faceit: FaceitProfileData | null; loading: boolean; error: ApiError | null; isOwner: boolean }) {
-  if (loading || error || !faceit) return null
-  if (!faceit.linked) {
-    if (!isOwner || faceit.hidden) return null
-    return (
-      <section className="profile-rise glass flex items-center gap-3 rounded-2xl px-4 py-3">
-        <img src={faceitLogo} alt="" className="size-6 object-contain opacity-60" />
-        <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground">No FACEIT account is linked to your Steam profile.</p>
-      </section>
-    )
-  }
-
-  const progress = faceitLevelProgress(faceit.level, faceit.elo)
+function StatTile({ label, value }: { label: string; value: string }) {
   return (
-    <section className="profile-rise glass @container rounded-2xl p-4">
-      <div className="flex items-center gap-3">
-        <FaceitLevelBadge level={faceit.level} className="size-12" />
-        <div className="min-w-0 flex-1">
-          <a href={faceit.faceitUrl} target="_blank" rel="noreferrer" className="group inline-flex max-w-full items-center gap-1.5 text-sm font-semibold text-orange-300 hover:text-orange-200">
-            <img src={faceitLogo} alt="FACEIT" className="size-4 shrink-0 object-contain" />
-            <span className="truncate">{faceit.nickname}</span>
-            <ExternalLink className="size-3 shrink-0 opacity-60 group-hover:opacity-100" />
-          </a>
-          <div className="mt-1 flex items-center gap-2">
-            <span className="text-lg font-black tabular-nums"><AnimatedNumber value={faceit.elo} /></span>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">ELO</span>
-            <div className="h-1 min-w-12 flex-1 overflow-hidden rounded-full bg-white/[0.08]" title={progress.nextLevel === null ? "Max level" : `${progress.toNext.toLocaleString()} ELO to level ${progress.nextLevel}`}>
-              <div className="profile-progress-bar h-full rounded-full" style={{ width: `${progress.percent}%`, backgroundColor: progress.color }} />
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="mt-3 grid grid-cols-4 gap-2 border-t border-white/[0.06] pt-3">
-        <FaceitStat label="Matches"><AnimatedNumber value={faceit.stats.matches} /></FaceitStat>
-        <FaceitStat label="Win rate"><AnimatedNumber value={faceit.stats.winRate} decimals={1} suffix="%" /></FaceitStat>
-        <FaceitStat label="K/D" tone={faceit.stats.averageKd >= 1 ? "text-chart-2" : "text-destructive"}><AnimatedNumber value={faceit.stats.averageKd} decimals={2} /></FaceitStat>
-        <FaceitStat label="Headshots"><AnimatedNumber value={faceit.stats.headshots} decimals={1} suffix="%" /></FaceitStat>
-      </div>
-    </section>
-  )
-}
-
-function ProfileHeroSkeleton() {
-  return (
-    <section className="glass overflow-hidden rounded-2xl">
-      <div className="h-36 animate-pulse bg-secondary/40 sm:h-44" />
-      <div className="-mt-12 flex items-end gap-5 px-5 pb-5 sm:px-6">
-        <div className="size-24 shrink-0 animate-pulse rounded-2xl bg-secondary/70 ring-4 ring-background sm:size-28" />
-        <div className="flex-1 space-y-2 pb-1">
-          <div className="h-7 w-44 animate-pulse rounded bg-secondary/50" />
-          <div className="h-5 w-28 animate-pulse rounded bg-secondary/50" />
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function StatTile({ icon: Icon, label, children, hint, accent, corner }: { icon: typeof Trophy; label: string; children: React.ReactNode; hint?: React.ReactNode; accent?: string; corner?: React.ReactNode }) {
-  return (
-    <div className="glass group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl p-3.5 hover-lift @4xl:p-4">
-      <div className={cn("pointer-events-none absolute -right-6 -top-6 size-20 rounded-full opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-100", accent ?? "bg-white/10")} />
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
-          <Icon className="size-3.5 shrink-0" />
-          <span className="truncate">{label}</span>
-        </div>
-        {corner}
-      </div>
-      <div className="mt-auto pt-3 text-xl font-bold tabular-nums tracking-tight @4xl:text-2xl">{children}</div>
-      {hint && <div className="mt-0.5 truncate text-xs text-muted-foreground">{hint}</div>}
+    <div className="flex flex-col gap-2 rounded-xl border border-line-soft bg-card px-4 py-3.5">
+      <span className="text-xs text-text-muted">{label}</span>
+      <span className="text-xl font-semibold tabular-nums text-text">{value}</span>
     </div>
   )
 }
 
-function WinRateRing({ percent }: { percent: number }) {
-  const radius = 16
-  const circumference = 2 * Math.PI * radius
-  const shown = useFillIn(Math.max(0, Math.min(100, percent)))
+function RankPill({ rankId }: { rankId: number }) {
+  const rank = rankById(rankId)
+  if (!rank) return null
   return (
-    <svg viewBox="0 0 40 40" className="size-7 shrink-0 -rotate-90" aria-hidden="true">
-      <circle cx="20" cy="20" r={radius} fill="none" strokeWidth="4" className="stroke-secondary" />
-      <circle
-        cx="20"
-        cy="20"
-        r={radius}
-        fill="none"
-        strokeWidth="4"
-        strokeLinecap="round"
-        className="profile-ring stroke-chart-2"
-        strokeDasharray={circumference}
-        strokeDashoffset={circumference * (1 - shown / 100)}
-      />
-    </svg>
-  )
-}
-
-type VisibleRank = {
-  rankId: number
-  rankName: string
-  imageKey: string
-  currentExp: number
-  currentMinExp: number
-  nextRankName: string | null
-  nextRankExp: number | null
-}
-
-function RankProgressCard({ rank, proLeagueUnlocked }: { rank: VisibleRank; proLeagueUnlocked: boolean }) {
-  const nextRankExp = rank.nextRankExp
-  const maxed = nextRankExp === null
-  const span = maxed ? 1 : Math.max(1, nextRankExp - rank.currentMinExp)
-  const percent = maxed ? 100 : Math.max(0, Math.min(100, ((rank.currentExp - rank.currentMinExp) / span) * 100))
-  const shown = useFillIn(percent)
-  const remaining = maxed ? 0 : Math.max(0, nextRankExp - rank.currentExp)
-
-  return (
-    <section className="profile-rise glass shiny-slow relative flex h-full items-center overflow-hidden rounded-2xl p-4 @4xl:p-5">
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-amber-300/[0.07] to-transparent" />
-      <div className="relative flex w-full flex-row items-center gap-4 @2xl:gap-5">
-        <div className="profile-rank-badge flex shrink-0 items-center justify-center">
-          <CompetitiveRankBadge rankId={rank.rankId} rankName={rank.rankName} imageKey={rank.imageKey} currentExp={rank.currentExp} className="h-12 w-20 @2xl:h-16 @2xl:w-28" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Competitive Rank</span>
-            {proLeagueUnlocked && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-amber-300/25 bg-amber-300/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-200">
-                <Sparkles className="size-3" /> Pro League
-              </span>
-            )}
-          </div>
-          <div className="mt-1 truncate font-display text-xl tracking-wide @2xl:text-2xl">{rank.rankName}</div>
-          <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-secondary/70">
-            <div
-              className="profile-progress-bar h-full rounded-full bg-gradient-to-r from-amber-500 via-amber-300 to-amber-100"
-              style={{ width: `${shown}%` }}
-            />
-          </div>
-          <div className="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
-            <span className="tabular-nums">
-              <span className="font-semibold text-foreground"><AnimatedNumber value={rank.currentExp} /></span>
-              {maxed ? " EXP" : <> / {nextRankExp.toLocaleString()} EXP</>}
-            </span>
-            <span className="truncate">{maxed ? "Global Elite reached" : <>{remaining.toLocaleString()} EXP to <span className="text-foreground">{rank.nextRankName}</span></>}</span>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function MapThumb({ src }: { src: string | null }) {
-  const [failed, setFailed] = useState(false)
-  return (
-    <div className="relative ml-1 h-11 w-16 shrink-0 overflow-hidden rounded-lg bg-secondary">
-      {src && !failed ? (
-        <img src={src} alt="" loading="lazy" onError={() => setFailed(true)} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
-      ) : (
-        <div className="flex h-full w-full items-center justify-center"><MapIcon className="size-4 text-muted-foreground" /></div>
-      )}
-    </div>
-  )
-}
-
-/** In place of a value the player hid in profile settings. */
-function HiddenValue() {
-  return (
-    <span className="inline-flex items-center gap-1.5 text-base font-semibold text-muted-foreground">
-      <EyeOff className="size-4" />
-      Hidden
+    <span className="inline-flex h-6 items-center gap-1.5 rounded-full border border-line bg-raised pr-2.5 pl-1">
+      <RankEmblem rank={rank} size={16} />
+      <RankName rank={rank} className="text-xs font-semibold" />
     </span>
   )
 }
 
-/** A whole box the player hid: the frame stays so the profile keeps its shape. */
-function HiddenSection({ title, className }: { title: string; className?: string }) {
+function RolePill({ role }: { role: UserProfile["role"] }) {
+  if (role === "Player") return null
+  if (role === "Owner") {
+    return (
+      <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-accent px-2.5 text-xs font-semibold text-accent-contrast">
+        <Crown className="size-3.5" aria-hidden />
+        Owner
+      </span>
+    )
+  }
+  return <span className="inline-flex h-6 items-center rounded-full border border-line-strong bg-raised px-2.5 text-xs font-medium text-text-2">{role}</span>
+}
+
+async function copyText(text: string, label: string) {
+  try {
+    await navigator.clipboard.writeText(text)
+    toast.success(`${label} copied`)
+  } catch {
+    toast.error("Copy failed", { description: text })
+  }
+}
+
+/* ----------------------------------------------------------------------------
+ * Header
+ * ------------------------------------------------------------------------- */
+
+const PRIVACY_GROUPS: Array<{ label: string; sections: ProfileSection[] }> = [
+  { label: "Legacy-X stats", sections: ["kd", "matches", "kills"] },
+  { label: "Recent matches & maps", sections: ["recent_matches"] },
+  { label: "FACEIT stats", sections: ["faceit"] },
+  { label: "Loadout", sections: ["loadout"] },
+]
+
+function PrivacyPopover({ profile, onSaved }: { profile: UserProfile; onSaved: (hidden: ProfileSection[]) => void }) {
+  const [hidden, setHidden] = useState<ProfileSection[]>(profile.hiddenSections ?? [])
+  const [error, setError] = useState<string | null>(null)
+
+  const toggle = async (sections: ProfileSection[], visible: boolean) => {
+    const previous = hidden
+    const next = visible ? hidden.filter((section) => !sections.includes(section)) : [...new Set([...hidden, ...sections])]
+    setHidden(next)
+    setError(null)
+    try {
+      const saved = await profileService.updateProfile({ hiddenSections: next })
+      onSaved(saved.hiddenSections ?? next)
+    } catch {
+      setHidden(previous)
+      setError("Couldn't save. Try again.")
+    }
+  }
+
   return (
-    <section className={cn("profile-rise glass rounded-2xl p-4", className)}>
-      <h2 className="text-sm font-semibold">{title}</h2>
-      <div className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-secondary/40 px-3 py-4 text-sm text-muted-foreground">
-        <EyeOff className="size-4" />
-        Hidden
-      </div>
-    </section>
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline">
+          <Eye className="size-3.5" aria-hidden />
+          Profile settings
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-[320px] p-4">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-sm font-semibold text-text">What others can see</span>
+          <span className="text-xs text-text-dim">Applies to everyone except you and staff.</span>
+        </div>
+        <div className="mt-3 flex flex-col">
+          {PRIVACY_GROUPS.map((group) => {
+            const visible = !group.sections.some((section) => hidden.includes(section))
+            return (
+              <div key={group.label} className="flex h-10 items-center justify-between gap-3 text-[13px] text-text">
+                {group.label}
+                <Switch checked={visible} onCheckedChange={(value) => void toggle(group.sections, value)} aria-label={`Show ${group.label}`} />
+              </div>
+            )
+          })}
+        </div>
+        {error && (
+          <p className="m-0 mt-1 text-xs text-text-2" role="status">
+            {error}
+          </p>
+        )}
+        <p className="m-0 mt-3 border-t border-line-soft pt-3 text-xs leading-[18px] text-text-dim">Rank, leaderboard position and penalty history are always public.</p>
+      </PopoverContent>
+    </Popover>
   )
 }
 
-function RecentMatches({ matches, loading, steamId }: { matches: ProfileRecentMatch[]; loading: boolean; steamId?: string }) {
-  const [expanded, setExpanded] = useState(false)
-  const [openMatch, setOpenMatch] = useState<{ matchId: string; mapNumber: number } | null>(null)
-  const visible = expanded ? matches : matches.slice(0, RECENT_MATCHES_COLLAPSED)
-  const form = matches.slice(0, 10)
-  const wins = form.filter((match) => match.result === "Win").length
+function ProfileHeader({
+  profile,
+  competitive,
+  isOwner,
+  onPrivacySaved,
+}: {
+  profile: UserProfile
+  competitive: CompetitiveProfile | null
+  isOwner: boolean
+  onPrivacySaved: (hidden: ProfileSection[]) => void
+}) {
+  const link = `${window.location.origin}/profile/${profile.steamId}`
+  const position = competitive?.leaderboard_position
+  const playing = profile.playingNow
 
   return (
-    <section className="profile-rise glass rounded-2xl p-5">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="font-semibold">Recent Matches</h2>
-          {form.length > 0 && <p className="mt-0.5 text-xs text-muted-foreground">{wins}W · {form.length - wins}L in the last {form.length}</p>}
+    <>
+      <div aria-hidden className="relative h-[132px] overflow-hidden bg-[linear-gradient(180deg,#1c1c1c_0%,#121212_100%)]">
+        {profile.steamBackground && <img src={profile.steamBackground} alt="" className="size-full object-cover opacity-60" />}
+        <span className="absolute inset-0 bg-gradient-to-b from-transparent to-panel" />
+      </div>
+      <header className="relative z-[1] -mt-14 flex flex-col gap-4 px-4 sm:px-6 md:flex-row md:items-end md:gap-5">
+        <PlayerAvatar
+          avatar={profile.steamMedia?.animatedAvatar || profile.avatar}
+          name={profile.username}
+          size={104}
+          className={cn("border-4 border-panel", profile.role === "Owner" && "outline-2 outline-accent")}
+        />
+        <div className="flex min-w-0 flex-1 flex-col gap-2.5 pb-1.5">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="m-0 truncate text-[22px] font-semibold tracking-[-0.3px] text-text" title={profile.username}>
+              {profile.username}
+            </h1>
+            <RolePill role={profile.role} />
+            {competitive && <RankPill rankId={competitive.rank_id} />}
+          </div>
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[13px] text-text-muted">
+            {position ? (
+              <Link to={`/leaders?q=${encodeURIComponent(profile.username)}`} className="hover:text-text">
+                <span className="font-medium tabular-nums text-text-2">#{formatInt(position)}</span> on leaderboard
+              </Link>
+            ) : (
+              <span>Not on the leaderboard yet</span>
+            )}
+            {profile.memberSince && (
+              <>
+                <span aria-hidden className="text-text-faint">
+                  ·
+                </span>
+                <span>
+                  Member since <span className="text-text-2">{formatDate(profile.memberSince, { month: "short", year: "numeric" })}</span>
+                </span>
+              </>
+            )}
+            {competitive?.last_match_at && (
+              <>
+                <span aria-hidden className="text-text-faint">
+                  ·
+                </span>
+                <span>
+                  Last played <RelativeTime value={competitive.last_match_at} className="text-text-2" />
+                </span>
+              </>
+            )}
+          </div>
         </div>
-        {form.length > 0 && (
-          <div className="stagger-in flex items-center gap-1" aria-label="Recent form">
-            {form.map((match, idx) => (
+        <div className="flex flex-wrap items-center gap-2 pb-1.5">
+          {playing && (
+            <>
               <span
-                key={idx}
-                title={`${cs2MapLabel(match.map)} · ${match.result}`}
-                className={cn("h-5 w-1.5 rounded-full", match.result === "Win" ? "bg-chart-2" : "bg-destructive/80")}
-              />
-            ))}
+                className="inline-flex h-[34px] items-center gap-1.5 rounded-lg bg-live/12 px-3 text-[13px] font-semibold text-live"
+                title={`${playing.serverName} · ${cs2MapLabel(playing.map)}`}
+              >
+                <span className="size-1.5 rounded-full bg-live" aria-hidden />
+                Playing now
+              </span>
+              {playing.connectAddress && (
+                <Button onClick={() => window.location.assign(`steam://connect/${playing.connectAddress}`)}>
+                  <Play className="size-3" aria-hidden />
+                  Join
+                </Button>
+              )}
+            </>
+          )}
+          {isOwner && <PrivacyPopover profile={profile} onSaved={onPrivacySaved} />}
+          <Button variant="outline" onClick={() => void copyText(link, "Profile link")}>
+            <Link2 className="size-3.5" aria-hidden />
+            Copy link
+          </Button>
+          <Button variant="outline" size="icon" asChild>
+            <a href={steamProfileUrl(profile.steamId)} target="_blank" rel="noreferrer" aria-label="Steam profile">
+              <ExternalLink className="size-3.5" aria-hidden />
+            </a>
+          </Button>
+          {!isOwner && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" aria-label="More">
+                  <MoreHorizontal className="size-4" aria-hidden />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <a href={DISCORD_REPORT_URL} target="_blank" rel="noreferrer">
+                    <Flag className="size-4" aria-hidden />
+                    Report player
+                  </a>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => void copyText(profile.steamId, "SteamID")}>
+                  <Link2 className="size-4" aria-hidden />
+                  Copy SteamID
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+      </header>
+    </>
+  )
+}
+
+function StaffCard({ profile }: { profile: UserProfile }) {
+  if (profile.role === "Player") return null
+  return (
+    <Card className="flex flex-col gap-3 px-[18px] py-3.5 md:flex-row md:items-center md:gap-4">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-raised text-text">
+        <Crown className="size-4" aria-hidden />
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="text-sm font-semibold text-text">Legacy-X team · {profile.role}</span>
+        <span className="text-[13px] text-text-muted">{ROLE_BLURB[profile.role] ?? "Part of the Legacy-X team."} Staff never ask for your password or items.</span>
+      </span>
+      <span className="flex flex-wrap items-center gap-3">
+        {typeof profile.penaltiesIssued === "number" && (
+          <Link to={`/penalties?admin=${encodeURIComponent(profile.username)}`} className="inline-flex items-center gap-1 text-[13px] text-text-muted hover:text-text">
+            Penalties issued <span className="font-semibold tabular-nums text-text">{formatInt(profile.penaltiesIssued)}</span>
+            <ChevronRight className="size-3.5" aria-hidden />
+          </Link>
+        )}
+        <Button variant="outline" asChild>
+          <a href={DISCORD_STAFF_CONTACT_URL} target="_blank" rel="noreferrer">
+            <MessageCircle className="size-3.5" aria-hidden />
+            Contact on Discord
+          </a>
+        </Button>
+      </span>
+    </Card>
+  )
+}
+
+/* ----------------------------------------------------------------------------
+ * Rank, trust, stats
+ * ------------------------------------------------------------------------- */
+
+function RankCard({ competitive, username }: { competitive: CompetitiveProfile; username: string }) {
+  const rank = rankById(competitive.rank_id)
+  if (!rank) return null
+  const { next, progress } = rankProgress(competitive.current_exp, rank)
+  return (
+    <Card className="flex items-center gap-[18px] p-[18px]">
+      <RankEmblem rank={rank} size={64} />
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-[13px] text-text-muted">Rank</span>
+          <Link to={`/leaders?q=${encodeURIComponent(username)}`} className="inline-flex items-center gap-1 text-[13px] text-text-2 hover:text-text">
+            Leaderboard
+            <ChevronRight className="size-3.5" aria-hidden />
+          </Link>
+        </div>
+        <span className="text-xl leading-none font-bold" style={{ color: RANK_TIER_COLORS[rank.tier] }}>
+          {rank.name}
+        </span>
+        <span className="mt-1 h-1.5 overflow-hidden rounded-full bg-line-soft" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)} aria-label="Progress to next rank">
+          <span className="block h-full rounded-full transition-[width] duration-500" style={{ width: `${progress * 100}%`, background: RANK_TIER_COLORS[rank.tier] }} />
+        </span>
+        <div className="flex items-center justify-between text-xs text-text-dim">
+          <span>
+            EXP <span className="font-medium tabular-nums text-text-2">{formatInt(competitive.current_exp)}</span>
+          </span>
+          {next ? (
+            <span>
+              Next <span className="font-medium tabular-nums text-text-2">{formatInt(next.minimumExp)}</span> · {next.name}
+            </span>
+          ) : (
+            <span>Highest rank</span>
+          )}
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+function TrustCard({ profile, penalties }: { profile: UserProfile; penalties: PenaltyEntry[] | null }) {
+  const active = (penalties ?? []).find((penalty) => {
+    const status = penaltyStatus(penalty)
+    return status === "Active" || status === "Permanent"
+  })
+  const row = "flex h-[35px] items-center justify-between gap-3 border-b border-line-soft text-[13px] last:border-b-0"
+  return (
+    <Card className="flex flex-col justify-center px-[18px] py-3">
+      <div className={row}>
+        <span className="text-text-2">On Legacy-X since</span>
+        <span className="tabular-nums text-text">{profile.memberSince ? formatDate(profile.memberSince) : "—"}</span>
+      </div>
+      <div className={row}>
+        <span className="text-text-2">Record</span>
+        {penalties === null ? (
+          <Skeleton className="h-2.5 w-14" />
+        ) : active ? (
+          <Link to={`/penalties?q=${profile.steamId}&penalty=${active.id}`} className="inline-flex items-center gap-1.5 font-medium text-text hover:underline">
+            <ShieldAlert className="size-3.5" aria-hidden />
+            Active penalty
+          </Link>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 font-medium text-live">
+            <ShieldCheck className="size-3.5" aria-hidden />
+            Clean
+          </span>
+        )}
+      </div>
+    </Card>
+  )
+}
+
+function StatsTiles({ competitive }: { competitive: CompetitiveProfile }) {
+  if (competitive.stats_hidden) return <HiddenCard label="Stats" />
+  const matches = competitive.matches_completed ?? 0
+  if (!matches) return <EmptyState className="rounded-xl border border-line-soft bg-card py-6">No ranked matches yet.</EmptyState>
+  const deaths = competitive.deaths ?? 0
+  const tiles: Array<[string, string]> = [
+    ["Matches", formatInt(matches)],
+    ["Win rate", formatPercent(competitive.wins / matches)],
+    ["K/D", formatRatio(deaths ? competitive.kills / deaths : competitive.kills)],
+    ["HS %", formatPercent(competitive.kills ? competitive.headshot_kills / competitive.kills : 0)],
+    ["Avg kills", formatRatio(competitive.kills / matches, 1)],
+  ]
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      {tiles.map(([label, value]) => (
+        <StatTile key={label} label={label} value={value} />
+      ))}
+    </div>
+  )
+}
+
+/* ----------------------------------------------------------------------------
+ * Recent matches and maps
+ * ------------------------------------------------------------------------- */
+
+const OUTCOME_LABEL: Record<RankedMatch["outcome"], string> = { win: "W", loss: "L", draw: "D" }
+
+function ExpCell({ match }: { match: RankedMatch }) {
+  const b = match.breakdown
+  const value = <span className={cn("font-semibold tabular-nums", match.expDelta > 0 ? "text-text" : "text-text-muted")}>{match.countsAsRanked ? formatSigned(match.expDelta) : "—"}</span>
+  if (!match.countsAsRanked || !b) return value
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span tabIndex={0} className="cursor-default">
+          {value}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent className="flex flex-col gap-0.5 text-xs">
+        {b.reason === "leaver" ? (
+          <span>Left the match early</span>
+        ) : b.reason !== "ranked" ? (
+          <span>{b.reason === "low_participation" ? "Played under half the match" : "Match didn't count"}</span>
+        ) : (
+          <>
+            <span>Result {formatSigned(b.result)}</span>
+            <span>Margin {formatSigned(b.margin)}</span>
+            <span>Performance {formatSigned(b.performance)}</span>
+            {b.bonus ? <span>Bonus {formatSigned(b.bonus)}</span> : null}
+            {b.calibration > 1 ? <span>Calibration ×{b.calibration}</span> : null}
+          </>
+        )}
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
+const MATCH_COLUMNS = "grid grid-cols-[minmax(0,1fr)_44px_64px] items-center gap-3 px-4 md:grid-cols-[minmax(0,1fr)_60px_70px_60px_60px_90px]"
+
+function RecentMatches({ matches }: { matches: RankedMatch[] }) {
+  const [all, setAll] = useState(false)
+  const form = matches.slice(0, 10)
+  const rows = all ? matches : matches.slice(0, 6)
+  return (
+    <Card className="overflow-hidden">
+      <div className="flex flex-col gap-3 px-4 pt-4 pb-3.5">
+        <CardHeader
+          title="Recent matches"
+          action={
+            matches.length > 6 ? (
+              <button type="button" onClick={() => setAll((open) => !open)} className="text-[13px] text-text-2 hover:text-text">
+                {all ? "Show less" : "All matches"}
+              </button>
+            ) : null
+          }
+        />
+        {matches.length > 0 && (
+          <div className="flex items-center gap-2.5">
+            <span className="text-xs text-text-dim">Form</span>
+            <span className="flex gap-1.5" aria-label={`Last ${form.length} results: ${form.map((match) => OUTCOME_LABEL[match.outcome]).join(" ")}`}>
+              {form.map((match) => (
+                <span
+                  key={match.eventId}
+                  title={match.outcome}
+                  className={cn(
+                    "size-[18px] rounded-[5px] border",
+                    match.outcome === "win" ? "border-accent bg-accent" : match.outcome === "draw" ? "border-line-strong bg-line" : "border-line-strong bg-transparent",
+                  )}
+                />
+              ))}
+            </span>
           </div>
         )}
       </div>
-
-      {loading ? (
-        <div className="flex flex-col gap-2">
-          {[0, 1, 2].map((i) => <div key={i} className="h-16 animate-pulse rounded-xl bg-secondary/40" />)}
-        </div>
-      ) : matches.length === 0 ? (
-        <div className="query-state-in flex flex-col items-center gap-2 rounded-xl border border-dashed border-border/70 px-4 py-10 text-center">
-          <Gamepad2 className="size-5 text-muted-foreground" />
-          <p className="text-sm font-medium">No matches played yet</p>
-          <p className="text-xs text-muted-foreground">Finished matches on LEGACY-X servers will show up here.</p>
-        </div>
+      {matches.length === 0 ? (
+        <EmptyState className="border-t border-line-soft py-8">No ranked matches yet.</EmptyState>
       ) : (
-        <>
-          <div className="stagger-in flex flex-col gap-2">
-            {visible.map((match, idx) => {
-              const win = match.result === "Win"
-              const art = cs2MapArtwork(match.map)
-              // MatchZy matches open the scoreboard; legacy history rows have no match reference.
-              const openable = Boolean(match.matchId)
-              return (
-                <div
-                  key={match.matchId ? `${match.matchId}:${match.mapNumber}` : idx}
-                  role={openable ? "button" : undefined}
-                  tabIndex={openable ? 0 : undefined}
-                  onClick={openable ? () => setOpenMatch({ matchId: match.matchId!, mapNumber: match.mapNumber ?? 1 }) : undefined}
-                  onKeyDown={openable ? (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setOpenMatch({ matchId: match.matchId!, mapNumber: match.mapNumber ?? 1 }) } } : undefined}
-                  aria-label={openable ? `Open ${cs2MapLabel(match.map)} match details` : undefined}
-                  className={cn(
-                    "group relative flex items-center gap-3 overflow-hidden rounded-xl border border-white/[0.06] bg-secondary/40 py-2.5 pl-3 pr-4 transition-colors hover:bg-secondary/60",
-                    openable && "cursor-pointer hover:border-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    "before:absolute before:inset-y-0 before:left-0 before:w-1",
-                    win ? "before:bg-chart-2" : "before:bg-destructive/80"
-                  )}
-                >
-                  <MapThumb src={art} />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold">{cs2MapLabel(match.map)}</div>
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <span>K/D <span className="tabular-nums text-foreground/80">{match.kd}</span></span>
-                      {match.playedAt && <><span aria-hidden="true">·</span><RelativeTime value={match.playedAt} /></>}
-                    </div>
-                  </div>
-                  <span className="text-base font-bold tabular-nums">{match.score}</span>
-                  <span className={cn(
-                    "w-12 rounded-md py-0.5 text-center text-xs font-bold",
-                    win ? "bg-chart-2/15 text-chart-2" : "bg-destructive/15 text-destructive"
-                  )}>
-                    {match.result}
-                  </span>
-                  {openable && <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />}
-                </div>
-              )
-            })}
+        <div role="table" aria-label="Recent matches">
+          <div role="row" className={cn(MATCH_COLUMNS, "h-[34px] border-y border-line-soft text-[11px] text-text-dim")}>
+            <span>Map</span>
+            <span>Result</span>
+            <span className="hidden md:block">Score</span>
+            <span className="hidden md:block">K/D</span>
+            <span className="text-right md:text-left">EXP</span>
+            <span className="hidden md:block">Date</span>
           </div>
-          {matches.length > RECENT_MATCHES_COLLAPSED && (
-            <Button variant="ghost" size="sm" className="mt-3 w-full text-muted-foreground" onClick={() => setExpanded((open) => !open)}>
-              {expanded ? "Show less" : `Show all ${matches.length} matches`}
-              <ChevronDown className={cn("size-4 transition-transform duration-300", expanded && "rotate-180")} />
-            </Button>
-          )}
-        </>
+          {rows.map((match) => {
+            const art = cs2MapArtwork(match.map)
+            return (
+              <div role="row" key={match.eventId} className={cn(MATCH_COLUMNS, "h-[53px] border-b border-raised text-[13px] last:border-b-0")}>
+                <span className="flex min-w-0 items-center gap-2.5">
+                  <span className="h-7 w-[52px] shrink-0 overflow-hidden rounded-md bg-raised">{art && <img src={art} alt="" className="size-full object-cover" loading="lazy" />}</span>
+                  <span className="truncate text-text">{cs2MapLabel(match.map)}</span>
+                </span>
+                <span>
+                  <span
+                    className={cn(
+                      "inline-flex h-[22px] min-w-[26px] items-center justify-center rounded-md px-1.5 text-xs font-semibold",
+                      match.outcome === "win" ? "bg-accent text-accent-contrast" : "border border-line-strong text-text-muted",
+                    )}
+                  >
+                    {OUTCOME_LABEL[match.outcome]}
+                  </span>
+                </span>
+                <span className="hidden tabular-nums text-text-2 md:block">{match.score ? `${match.score.for} : ${match.score.against}` : "—"}</span>
+                <span className="hidden tabular-nums text-text-2 md:block">{formatRatio(match.kd)}</span>
+                <span className="text-right md:text-left">
+                  <ExpCell match={match} />
+                </span>
+                <span className="hidden text-text-dim md:block">{match.playedAt ? formatDate(match.playedAt, { day: "numeric", month: "short" }) : "—"}</span>
+              </div>
+            )
+          })}
+        </div>
       )}
-    </section>
+    </Card>
   )
 }
 
-export function ProfilePage({ userId }: ProfilePageProps) {
-  const { steamId } = useParams<{ steamId: string }>()
-  const effectiveUserId = userId ?? steamId
-  const navigate = useNavigate()
-  const { logout, user: authenticatedUser } = useAuth()
-  const [linkCopied, setLinkCopied] = useState(false)
-  const [settingsOpen, setSettingsOpen] = useState(false)
-  const { data: profile, loading: profileLoading, error: profileError, refetch: refetchProfile } = useApiQuery<UserProfile>((signal) =>
-    profileService.getProfile(effectiveUserId, { signal }),
-  )
-
-  const { data: stats, loading: statsLoading } = useApiQuery<ProfileStats>((signal) =>
-    profileService.getStats(effectiveUserId, { signal }),
-  )
-
-  const { data: penalties, loading: penaltiesLoading, error: penaltiesError } = useApiQuery<PenaltyEntry[]>((signal) =>
-    profileService.getPenalties(effectiveUserId, { signal }),
-  )
-  const [openPenalty, setOpenPenalty] = useState<PenaltyEntry | null>(null)
-
-  const { data: recentMatches, loading: matchesLoading } = useApiQuery<ProfileRecentMatch[]>((signal) =>
-    profileService.getRecentMatches(effectiveUserId, { signal }),
-  )
-  const { data: competitive } = useApiQuery<CompetitiveProfile>((signal) =>
-    competitiveService.getPlayer(profile!.id, { signal }),
-    { enabled: Boolean(profile?.id && profile.role !== "Owner"), queryKey: profile?.id ?? "competitive-profile-pending" },
-  )
-  // Only the podium is needed to know whether this player wears a TOP 1/2/3 frame.
-  const { data: podium } = useApiQuery((signal) => competitiveService.getLeaderboard({ signal }, 3), { enabled: Boolean(profile?.id), queryKey: "leaders-podium" })
-  const podiumPosition = podium?.find((entry) => entry.user_id === profile?.id)?.position
-  const topRank = isTopRank(podiumPosition) ? podiumPosition : null
-  // Fetched at page level so the hero can show the FACEIT level chip next to the name.
-  const { data: faceit, loading: faceitLoading, error: faceitError } = useApiQuery<FaceitProfileData>((signal) =>
-    profileService.getFaceitProfile(effectiveUserId, { signal }),
-  )
-
-  // Arriving by user id, or at your own SteamID64, rewrites the address to the canonical one.
-  useEffect(() => {
-    if (!profile || !steamId) return
-    if (authenticatedUser && profile.id === authenticatedUser.id) {
-      navigate("/profile", { replace: true })
-      return
+function MapsCard({ matches }: { matches: RankedMatch[] }) {
+  const maps = useMemo(() => {
+    const byMap = new Map<string, { played: number; wins: number }>()
+    for (const match of matches) {
+      const entry = byMap.get(match.map) ?? { played: 0, wins: 0 }
+      entry.played += 1
+      if (match.outcome === "win") entry.wins += 1
+      byMap.set(match.map, entry)
     }
-    if (profile.steamId && steamId !== profile.steamId) {
-      navigate(`/profile/${encodeURIComponent(profile.steamId)}`, { replace: true })
-    }
-  }, [authenticatedUser, navigate, profile, steamId])
+    return [...byMap.entries()]
+      .filter(([, entry]) => entry.played >= 3)
+      .map(([map, entry]) => ({ map, ...entry, rate: entry.wins / entry.played }))
+      .sort((a, b) => b.rate - a.rate || b.played - a.played)
+  }, [matches])
 
-  const handleLogout = () => {
-    void logout()
-  }
-
-  const handleCopyLink = async (value: string) => {
-    if (!(await copyText(value, "Steam link"))) return
-    setLinkCopied(true)
-    window.setTimeout(() => setLinkCopied(false), 1600)
-  }
-
-  const isOwner = profile?.id === authenticatedUser?.id
-  const steamProfileUrl = profile ? steamLinkFor(profile.steamId) : null
-  // Boxes the player hid in profile settings disappear for everyone, the owner included.
-  const hidden = new Set(profile?.hiddenSections ?? [])
-  const showFaceit = !hidden.has("faceit")
-  const showRecentMatches = !hidden.has("recent_matches")
-  const showCombat = !hidden.has("kills")
-  const visibleCompetitiveRank: VisibleRank | null = profile?.role === "Owner" ? null : {
-    rankId: competitive?.rank_id ?? 1,
-    rankName: competitive?.rank_name ?? "Silver I",
-    imageKey: competitive?.rank_image_key ?? "rank-01",
-    currentExp: competitive?.current_exp ?? 0,
-    currentMinExp: competitive?.current_rank_min_exp ?? 0,
-    nextRankName: competitive ? competitive.next_rank_name : "Silver II",
-    nextRankExp: competitive ? competitive.next_rank_min_exp : 1_000,
-  }
-  const winRate = stats && stats.matches > 0 ? (stats.wins / stats.matches) * 100 : null
-  const headshotRate = competitive && competitive.kills > 0 ? (competitive.headshot_kills / competitive.kills) * 100 : null
-  const links = profile?.links ?? []
-
-  if (profileError && !profile) {
-    const notFound = profileError.code === "not_found"
-    return (
-      <div className="flex min-h-[420px] items-center justify-center p-6">
-        <div className="query-state-in glass flex max-w-sm flex-col items-center gap-3 rounded-2xl p-8 text-center">
-          <div className="flex size-12 items-center justify-center rounded-full bg-secondary/60"><UserX className="size-5 text-muted-foreground" /></div>
-          <h1 className="font-semibold">{notFound ? "Player not found" : "Profile unavailable"}</h1>
-          <p className="text-sm text-muted-foreground">{notFound ? "This player does not have a LEGACY-X profile yet." : profileError.message}</p>
-          {!notFound && <Button variant="outline" size="sm" onClick={refetchProfile}>Try again</Button>}
+  return (
+    <Card className="flex flex-col gap-4 p-4">
+      <CardHeader title="Maps" action={<span className="text-[13px] text-text-muted">Win rate · min. 3 matches</span>} />
+      {maps.length === 0 ? (
+        <p className="m-0 py-3 text-[13px] text-text-dim">Play 3 matches on a map to see it here.</p>
+      ) : (
+        <div className="flex flex-col gap-3.5">
+          {maps.map((entry) => (
+            <div key={entry.map} className="grid grid-cols-[90px_minmax(0,1fr)_72px] items-center gap-3 text-[13px]">
+              <span className="truncate text-text-2">{cs2MapLabel(entry.map)}</span>
+              <span className="h-1.5 overflow-hidden rounded-full bg-line-soft">
+                <span className="block h-full rounded-full bg-text-2" style={{ width: `${entry.rate * 100}%` }} />
+              </span>
+              <span className="text-right tabular-nums text-text">
+                {formatPercent(entry.rate)} <span className="text-text-dim">({entry.played})</span>
+              </span>
+            </div>
+          ))}
         </div>
+      )}
+    </Card>
+  )
+}
+
+/* ----------------------------------------------------------------------------
+ * Right column
+ * ------------------------------------------------------------------------- */
+
+function FaceitCard({ faceit }: { faceit: Extract<FaceitProfileData, { linked: true }> }) {
+  const tiles: Array<[string, string]> = [
+    ["Win rate", `${formatInt(faceit.stats.winRate)}%`],
+    ["Avg K/D", formatRatio(faceit.stats.averageKd)],
+    ["Avg kills", formatRatio(faceit.stats.averageKills, 1)],
+    ["HS %", `${formatInt(faceit.stats.headshots)}%`],
+  ]
+  return (
+    <Card className="flex flex-col gap-3.5 p-4">
+      <CardHeader
+        title="FACEIT"
+        action={
+          <a href={faceit.faceitUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[13px] text-text-2 hover:text-text">
+            Open
+            <ExternalLink className="size-3" aria-hidden />
+          </a>
+        }
+      />
+      <div className="flex items-center gap-3">
+        <span className="flex size-11 items-center justify-center rounded-full border-2 border-line-strong bg-raised text-base font-bold tabular-nums text-text" aria-label={`Level ${faceit.level}`}>
+          {faceit.level}
+        </span>
+        <span className="flex flex-col gap-0.5">
+          <span className="text-xs text-text-dim">Level · ELO</span>
+          <span className="text-[15px] font-semibold tabular-nums text-text">
+            {faceit.level} · {formatInt(faceit.elo)}
+          </span>
+        </span>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        {tiles.map(([label, value]) => (
+          <div key={label} className="flex flex-col gap-1.5 rounded-[10px] border border-line-soft bg-panel px-3 py-2.5">
+            <span className="text-[11px] text-text-dim">{label}</span>
+            <span className="text-sm font-semibold tabular-nums text-text">{value}</span>
+          </div>
+        ))}
+      </div>
+    </Card>
+  )
+}
+
+function PenaltyHistory({ penalties, steamId }: { penalties: PenaltyEntry[]; steamId: string }) {
+  const sorted = [...penalties].sort((a, b) => {
+    const activeA = ["Active", "Permanent"].includes(penaltyStatus(a)) ? 1 : 0
+    const activeB = ["Active", "Permanent"].includes(penaltyStatus(b)) ? 1 : 0
+    return activeB - activeA || Date.parse(b.date) - Date.parse(a.date)
+  })
+  return (
+    <Card className="flex flex-col gap-1 p-4">
+      <CardHeader
+        title="Penalty history"
+        action={
+          <Link to={`/penalties?q=${steamId}`} className="text-[13px] text-text-2 hover:text-text">
+            View all
+          </Link>
+        }
+      />
+      <div className="mt-2 flex flex-col">
+        {sorted.slice(0, 4).map((penalty) => {
+          const status = penaltyStatus(penalty)
+          const active = status === "Active" || status === "Permanent"
+          return (
+            <Link
+              key={penalty.id}
+              to={`/penalties?q=${steamId}&penalty=${penalty.id}`}
+              className="flex items-center gap-3 border-t border-line-soft py-2.5 text-[13px] first:border-t-0 hover:[&_.chev]:translate-x-0.5"
+            >
+              <span className={cn("inline-flex h-[22px] w-12 shrink-0 items-center justify-center rounded-md text-[11px] font-semibold uppercase", active ? "bg-accent text-accent-contrast" : "border border-line text-text-muted")}>
+                {penalty.type}
+              </span>
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="truncate text-text">{penalty.reason || "No reason given"}</span>
+                <span className="truncate text-xs text-text-dim">
+                  {status} · {formatDate(penalty.date)}
+                </span>
+              </span>
+              <ChevronRight className="chev size-4 shrink-0 text-text-dim transition-transform duration-150" aria-hidden />
+            </Link>
+          )
+        })}
+      </div>
+    </Card>
+  )
+}
+
+const LOADOUT_LABEL: Record<ProfileLoadoutShowcase["items"][number]["slot"], string> = { knife: "Knife", gloves: "Gloves", ak47: "AK-47", awp: "AWP" }
+
+function LoadoutCard({ loadout }: { loadout: ProfileLoadoutShowcase }) {
+  return (
+    <Card className="flex flex-col gap-3.5 p-4">
+      <CardHeader title="Loadout" action={loadout.side ? <span className="text-[13px] text-text-muted">{loadout.side.toUpperCase()} side</span> : null} />
+      <div className="grid grid-cols-2 gap-2.5">
+        {loadout.items.map((item) => (
+          <div key={item.slot} className="flex flex-col gap-1.5">
+            <span className="flex h-[58px] items-center justify-center overflow-hidden rounded-[10px] border border-line-soft bg-panel" title={item.name}>
+              {item.imageUrl ? <img src={item.imageUrl} alt={item.name} className="max-h-full max-w-full object-contain p-1.5" loading="lazy" /> : <span className="px-2 text-center text-xs text-text-2">{item.name}</span>}
+            </span>
+            <span className="truncate text-[11px] text-text-dim">{LOADOUT_LABEL[item.slot]}</span>
+          </div>
+        ))}
+      </div>
+    </Card>
+  )
+}
+
+/* ----------------------------------------------------------------------------
+ * Page
+ * ------------------------------------------------------------------------- */
+
+function ProfileSkeleton() {
+  return (
+    <div aria-busy="true" aria-label="Loading profile">
+      <div className="h-[132px] bg-[linear-gradient(180deg,#1c1c1c_0%,#121212_100%)]" />
+      <div className="-mt-14 flex flex-col gap-4 px-4 pb-8 sm:px-6">
+        <div className="flex items-end gap-5">
+          <Skeleton className="size-[104px] rounded-[26px] border-4 border-panel bg-line" />
+          <div className="flex flex-col gap-3 pb-2">
+            <Skeleton className="h-5 w-48 bg-line" />
+            <Skeleton className="h-2.5 w-72" />
+          </div>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
+          <Skeleton className="h-[134px] rounded-xl" />
+          <Skeleton className="h-[134px] rounded-xl" />
+        </div>
+        <Skeleton className="h-[72px] rounded-xl" />
+        <Skeleton className="h-[300px] rounded-xl" />
+      </div>
+    </div>
+  )
+}
+
+export function ProfilePage() {
+  const { identity } = useParams<{ identity?: string }>()
+  const { user } = useAuth()
+  const target = identity ?? "me"
+
+  const profileQuery = useApiQuery<UserProfile>((signal) => profileService.getProfile(target, { signal }), { queryKey: `${target}|${user?.id ?? ""}` })
+  const profile = profileQuery.data
+  const userId = profile?.id ?? ""
+  const enabled = Boolean(userId)
+  const key = `${userId}|${user?.id ?? ""}`
+
+  const competitiveQuery = useApiQuery<CompetitiveProfile>((signal) => competitiveService.getPlayer(userId, { signal }), { enabled, queryKey: key })
+  const matchesQuery = useApiQuery((signal) => competitiveService.getPlayerMatches(userId, 30, { signal }), { enabled, queryKey: key })
+  const faceitQuery = useApiQuery<FaceitProfileData>((signal) => profileService.getFaceitProfile(userId, { signal }), { enabled, queryKey: key })
+  const penaltiesQuery = useApiQuery<PenaltyEntry[]>((signal) => profileService.getPenalties(userId, { signal }), { enabled, queryKey: key })
+  const loadoutQuery = useApiQuery<ProfileLoadoutShowcase>((signal) => profileService.getLoadoutShowcase(userId, { signal }), { enabled, queryKey: key })
+  const [hiddenOverride, setHiddenOverride] = useState<ProfileSection[] | null>(null)
+
+  if (profileQuery.loading && !profile) return <ProfileSkeleton />
+  if (!profile) {
+    return (
+      <div className="p-6">
+        {profileQuery.error?.status === 404 ? <EmptyState>This player doesn't exist on Legacy-X.</EmptyState> : <ErrorState onRetry={profileQuery.refetch} />}
       </div>
     )
   }
 
+  const isOwner = Boolean(user && user.id === profile.id)
+  const competitive = competitiveQuery.data
+  const matches = matchesQuery.data
+  const faceit = faceitQuery.data
+  const penalties = penaltiesQuery.data ?? (penaltiesQuery.error ? [] : null)
+  const loadout = loadoutQuery.data
+  const hidden = hiddenOverride ?? profile.hiddenSections ?? []
+
   return (
-    <div className="@container flex w-full flex-col gap-4 p-4 @2xl:gap-5 @2xl:p-6">
-      {profileLoading || !profile ? (
-        <ProfileHeroSkeleton />
-      ) : (
-        <section className="glass relative overflow-hidden rounded-2xl">
-          <div className="relative h-28 overflow-hidden [mask-image:linear-gradient(to_bottom,black_45%,transparent)] @2xl:h-44 @6xl:h-56">
-            <ProfileCover profile={profile} />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/30 to-background/95" aria-hidden="true" />
-          </div>
-
-          {/* Identity row stays horizontal at every width: avatar · name/chips · actions. */}
-          <div className="relative -mt-10 flex flex-row flex-wrap items-end gap-3 px-4 pb-4 @sm:flex-nowrap @2xl:-mt-14 @2xl:gap-5 @2xl:px-6 @2xl:pb-5">
-            <ProfileAvatar profile={profile} topRank={topRank} />
-
-            <div className="min-w-0 flex-1 pb-0.5 @2xl:pb-1">
-              <h1 className="profile-name truncate font-display text-xl tracking-wide @2xl:text-3xl">{profile.username}</h1>
-              <div className="stagger-in mt-1.5 flex flex-wrap items-center gap-1.5 @2xl:mt-2 @2xl:gap-2">
-                <ProfileRoleIcon role={profile.role} />
-                <ModerationStatusIcon status={profile.moderationStatus} />
-                {isFeatureEnabled("clan") && profile.clan && (
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/clans/${profile.clan!.id}`)}
-                    className="inline-flex h-6 items-center gap-1.5 rounded-md border border-white/[0.1] bg-black/20 px-2 text-xs text-white/80 transition-colors hover:border-white/25 hover:text-white"
-                  >
-                    <Swords className="size-3" />
-                    <span className="font-semibold">[{profile.clan.tag}]</span>
-                    <span className="hidden max-w-[10rem] truncate text-white/60 @lg:inline">{profile.clan.name}</span>
-                  </button>
-                )}
-                {visibleCompetitiveRank && competitive && (
-                  <span className="inline-flex h-6 items-center rounded-md border border-amber-300/20 bg-amber-300/[0.08] px-2 text-xs font-medium text-amber-100">
-                    {visibleCompetitiveRank.rankName}
-                  </span>
-                )}
-                {showFaceit && faceit?.linked && (
-                  <span
-                    title={`FACEIT level ${faceit.level} · ${faceit.elo.toLocaleString()} ELO`}
-                    className="inline-flex h-6 items-center gap-1 rounded-md border border-white/[0.1] bg-black/20 pl-0.5 pr-2 text-xs font-medium text-white/80"
-                  >
-                    <FaceitLevelBadge level={faceit.level} className="size-5" />
-                    <span className="tabular-nums">{faceit.elo.toLocaleString()}</span>
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <div className="flex w-full shrink-0 items-center gap-1.5 pb-0.5 @sm:w-auto @2xl:gap-2 @2xl:pb-1">
-              {steamProfileUrl && (
-                <Button
-                  variant="outline"
-                  size="icon-sm"
-                  aria-label="Copy Steam profile link"
-                  title="Copy Steam profile link"
-                  onClick={() => void handleCopyLink(steamProfileUrl)}
-                >
-                  {linkCopied ? <Check className="size-3.5 text-chart-2" /> : <Copy className="size-3.5" />}
-                </Button>
-              )}
-              {isOwner && (
-                <Button variant="outline" size="icon-sm" aria-label="Profile settings" title="Profile settings" onClick={() => setSettingsOpen(true)}>
-                  <Settings className="size-3.5" />
-                </Button>
-              )}
-              {isOwner && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="hover:border-destructive/40 hover:bg-destructive/15 hover:text-white"
-                  aria-label="Log out"
-                  title="Log out"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="size-3.5" />
-                  <span className="hidden @3xl:inline">Log out</span>
-                </Button>
-              )}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Wide: rank + stats share a row, matches sit beside the sidebar. Narrow: each block keeps a horizontal layout. */}
-      <div className="grid grid-cols-1 gap-4 @2xl:gap-5 @5xl:grid-cols-12">
-        {profile && visibleCompetitiveRank && (
-          <div className="@5xl:col-span-5">
-            <RankProgressCard rank={visibleCompetitiveRank} proLeagueUnlocked={Boolean(competitive?.pro_league_unlocked)} />
-          </div>
-        )}
-
-        <div className={cn(profile && visibleCompetitiveRank ? "@5xl:col-span-7" : "@5xl:col-span-12")}>
-          {statsLoading ? (
-            <div className="grid h-full grid-cols-2 gap-3 @md:grid-cols-4 @2xl:gap-4">
-              {[0, 1, 2, 3].map((i) => <div key={i} className="glass h-[96px] animate-pulse rounded-2xl" />)}
-            </div>
-          ) : stats ? (
-            <div className="stagger-in grid h-full grid-cols-2 gap-3 @md:grid-cols-4 @2xl:gap-4">
-              <StatTile icon={Gamepad2} label="Matches" accent="bg-sky-400/20">
-                {hidden.has("matches") ? <HiddenValue /> : <AnimatedNumber value={stats.matches} />}
-              </StatTile>
-              <StatTile icon={Medal} label="Wins" accent="bg-amber-300/20">
-                <AnimatedNumber value={stats.wins} />
-              </StatTile>
-              <StatTile
-                icon={Percent}
-                label="Win Rate"
-                accent="bg-emerald-400/20"
-                corner={winRate !== null ? <span className="hidden @2xl:block"><WinRateRing percent={winRate} /></span> : undefined}
-              >
-                <AnimatedNumber value={winRate} decimals={1} suffix="%" />
-              </StatTile>
-              <StatTile icon={Gauge} label="K/D Ratio" accent={hidden.has("kd") ? undefined : stats.kdRatio >= 1 ? "bg-emerald-400/20" : "bg-red-400/20"}>
-                {hidden.has("kd") ? <HiddenValue /> : (
-                  <span className={cn(stats.matches > 0 && (stats.kdRatio >= 1 ? "text-chart-2" : "text-destructive"))}>
-                    <AnimatedNumber value={stats.kdRatio} decimals={2} />
-                  </span>
-                )}
-              </StatTile>
-            </div>
-          ) : null}
-        </div>
-
-        <div className="flex min-w-0 flex-col gap-4 @2xl:gap-5 @5xl:col-span-8">
-          {profile && (showFaceit ? <FaceitProfileCard faceit={faceit} loading={faceitLoading} error={faceitError} isOwner={isOwner} /> : <HiddenSection title="FACEIT" />)}
-          {showRecentMatches ? <RecentMatches matches={recentMatches ?? []} loading={matchesLoading} steamId={profile?.steamId} /> : <HiddenSection title="Recent Matches" />}
-        </div>
-
-        {/* Sidebar: two columns when there is room below the matches, a single stack beside them on wide screens. */}
-        <aside className="grid content-start gap-4 @md:grid-cols-2 @2xl:gap-5 @5xl:col-span-4 @5xl:grid-cols-1">
-          {profile && !showCombat && <HiddenSection title="Combat" className="@md:col-span-2 @5xl:col-span-1" />}
-          {showCombat && competitive && competitive.matches_completed > 0 && (
-            <section className="profile-rise glass rounded-2xl p-4 @md:col-span-2 @5xl:col-span-1">
-              <h2 className="mb-3 text-sm font-semibold">Combat</h2>
-              <div className="grid grid-cols-3 gap-2 @5xl:grid-cols-3">
-                {[
-                  { label: "Kills", icon: Skull, value: competitive.kills, decimals: 0, suffix: "" },
-                  { label: "Assists", icon: HandHelping, value: competitive.assists, decimals: 0, suffix: "" },
-                  { label: "Headshot %", icon: Target, value: headshotRate, decimals: 1, suffix: "%" },
-                ].map((item) => (
-                  <div key={item.label} className="flex items-center gap-2.5 rounded-xl bg-secondary/40 px-3 py-2.5">
-                    <item.icon className="size-4 shrink-0 text-muted-foreground" />
-                    <div className="min-w-0">
-                      <div className="text-base font-bold tabular-nums"><AnimatedNumber value={item.value} decimals={item.decimals} suffix={item.suffix} /></div>
-                      <div className="truncate text-[11px] text-muted-foreground">{item.label}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {profile && <ProfileIds steamId64={profile.steamId} />}
-
-          {/* Always present, so a clean record reads as one rather than as a missing section.
-              Hidden only when the list could not be read at all, which is never a "no penalties" answer. */}
-          {profile && !penaltiesError && (
-            <section className="profile-rise glass rounded-2xl p-4">
-              <h2 className="mb-3 text-sm font-semibold">Penalty History</h2>
-              {penaltiesLoading && !penalties ? (
-                <div className="flex flex-col gap-1.5" aria-busy="true">
-                  {[0, 1].map((index) => <div key={index} className="h-[3.25rem] animate-pulse rounded-xl bg-white/[0.05]" />)}
-                </div>
-              ) : (penalties?.length ?? 0) === 0 ? (
-                <p className="rounded-xl bg-secondary/40 px-3 py-4 text-center text-xs text-muted-foreground">No penalty history</p>
-              ) : (
-              <ul className="stagger-in flex flex-col gap-1.5">
-                {(penalties ?? []).map((penalty) => (
-                  <li key={penalty.id}>
-                    <button
-                      type="button"
-                      onClick={() => setOpenPenalty(penalty)}
-                      className="group flex w-full items-center justify-between gap-3 rounded-xl bg-secondary/50 px-3 py-2.5 text-left transition-colors hover:bg-secondary/70"
-                      aria-label={`Open ${(TYPE_META[penalty.type] ?? TYPE_META.ban).label} details`}
-                    >
-                      <span className="flex min-w-0 items-center gap-3">
-                        <TypeIcon type={penalty.type} className="size-8 rounded-lg" />
-                        <span className="truncate text-sm font-medium">{(TYPE_META[penalty.type] ?? TYPE_META.ban).label}</span>
-                      </span>
-                      <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-              )}
-            </section>
-          )}
-
-          {isFeatureEnabled("clan") && profile?.clan && (
-            <button
-              type="button"
-              onClick={() => navigate(`/clans/${profile.clan!.id}`)}
-              className="profile-rise glass group flex items-center gap-3 rounded-2xl p-4 text-left hover-lift"
-            >
-              <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-white/[0.1] bg-white/[0.04] text-white/75 transition-colors group-hover:text-white"><Swords className="size-4" /></div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs text-muted-foreground">Current Clan</p>
-                <p className="mt-0.5 truncate text-sm font-semibold text-white/90">{profile.clan.name} <span className="text-white/45">[{profile.clan.tag}]</span></p>
-              </div>
-              <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-            </button>
-          )}
-
-          {links.length > 0 && (
-            <section className="profile-rise glass rounded-2xl p-4">
-              <h2 className="mb-3 text-sm font-semibold">Links</h2>
-              <div className="stagger-in flex flex-col gap-2">
-                {links.map((link) => (
-                  <a
-                    key={link.url}
-                    href={link.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group flex items-center gap-2.5 rounded-lg bg-secondary/40 px-3 py-2 text-sm transition-colors hover:bg-secondary/70"
-                  >
-                    <Link2 className="size-3.5 shrink-0 text-muted-foreground" />
-                    <span className="min-w-0 flex-1 truncate">{linkHost(link.url)}</span>
-                    <ExternalLink className="size-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-                  </a>
-                ))}
-              </div>
-            </section>
-          )}
-        </aside>
-      </div>
-
-      {profile && isOwner && <ProfilePrivacyDialog profile={profile} open={settingsOpen} onOpenChange={setSettingsOpen} onSaved={refetchProfile} />}
-
-      <PenaltyDetailDialog
-        penalty={openPenalty}
-        onClose={() => setOpenPenalty(null)}
-        onProfileNavigate={(steamId) => navigate(`/profile/${encodeURIComponent(steamId)}`)}
+    <div className="pb-8">
+      <ProfileHeader
+        profile={{ ...profile, hiddenSections: hidden }}
+        competitive={competitive ?? null}
+        isOwner={isOwner}
+        onPrivacySaved={(next) => {
+          setHiddenOverride(next)
+          competitiveQuery.refetch()
+        }}
       />
+      <div className="mt-4 flex flex-col gap-4 px-4 sm:px-6">
+        <StaffCard profile={profile} />
+
+        <div className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
+          {competitive ? <RankCard competitive={competitive} username={profile.username} /> : <Skeleton className="h-[134px] rounded-xl" />}
+          <TrustCard profile={profile} penalties={penalties} />
+        </div>
+
+        {competitive ? <StatsTiles competitive={competitive} /> : <Skeleton className="h-[72px] rounded-xl" />}
+
+        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="flex min-w-0 flex-col gap-4">
+            {!matches ? (
+              matchesQuery.error ? <ErrorState onRetry={matchesQuery.refetch} /> : <Skeleton className="h-[300px] rounded-xl" />
+            ) : matches.hidden ? (
+              <>
+                <HiddenCard label="Recent matches" />
+                <HiddenCard label="Maps" />
+              </>
+            ) : (
+              <>
+                <RecentMatches matches={matches.entries} />
+                <MapsCard matches={matches.entries} />
+              </>
+            )}
+          </div>
+          <div className="flex min-w-0 flex-col gap-4">
+            {faceit && "hidden" in faceit && faceit.hidden ? <HiddenCard label="FACEIT stats" /> : faceit?.linked ? <FaceitCard faceit={faceit} /> : null}
+            {penalties && penalties.length > 0 && <PenaltyHistory penalties={penalties} steamId={profile.steamId} />}
+            {loadout?.hidden ? <HiddenCard label="Loadout" /> : loadout && loadout.items.length > 0 ? <LoadoutCard loadout={loadout} /> : null}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

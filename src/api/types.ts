@@ -122,7 +122,7 @@ export interface ProfileLinksPayload {
 }
 
 /** Profile boxes a player may hide. Penalty history, SteamID, Steam link and rank are always shown. */
-export type ProfileSection = "kd" | "matches" | "kills" | "faceit" | "recent_matches"
+export type ProfileSection = "kd" | "matches" | "kills" | "faceit" | "recent_matches" | "loadout"
 
 export interface UserProfile {
   id: string
@@ -144,6 +144,18 @@ export interface UserProfile {
   } | null
   faceit?: ProfileFaceitStats
   links?: ProfileLink[]
+  /** When the account was created on Legacy-X. */
+  memberSince?: string | null
+  /** Present when the player is on a live server right now. */
+  playingNow?: { serverId: string; serverName: string; map: string; connectAddress: string | null } | null
+  /** Staff only: penalties issued (public accountability). */
+  penaltiesIssued?: number | null
+}
+
+export interface ProfileLoadoutShowcase {
+  hidden: boolean
+  side: "t" | "ct" | null
+  items: Array<{ slot: "knife" | "gloves" | "ak47" | "awp"; name: string; imageUrl: string | null }>
 }
 
 export interface NotificationPrefs {
@@ -178,6 +190,8 @@ export interface CompetitiveProfile {
   deaths?: number
   /** Position on the EXP ladder; null when unknown. */
   leaderboard_position?: number | null
+  /** The player hid their Legacy-X stats; the match stat fields are then absent. */
+  stats_hidden?: boolean
 }
 
 export interface CompetitiveLeaderboardEntry extends CompetitiveProfile {
