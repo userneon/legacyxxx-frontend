@@ -1,33 +1,27 @@
-import { get, post, type CallOptions } from "./client"
-import type {
-  TournamentBracket,
-  TournamentInfo,
-  TournamentMatch,
-  TournamentMatchStatus,
-} from "./types"
+import { del, get, post, type CallOptions } from "./client"
+import type { TournamentDetail, TournamentsOverview } from "./types"
 
-/**
- * Tournaments service. Powers the Tournaments play page: the live/upcoming
- * match schedule, the playoff bracket, and clan registration.
- */
+/** Tournaments with player-based registration: solo (auto-balanced by EXP) or as a team. */
 export const tournamentsService = {
-  async getMatches(status?: TournamentMatchStatus, options?: CallOptions): Promise<TournamentMatch[]> {
-    return get<TournamentMatch[]>("/api/v1/tournaments/matches", { status }, options)
+  getOverview(options?: CallOptions): Promise<TournamentsOverview> {
+    return get<TournamentsOverview>("/api/v1/tournaments", undefined, options)
   },
-
-  async getMatch(matchId: string, options?: CallOptions): Promise<TournamentMatch> {
-    return get<TournamentMatch>(`/api/v1/tournaments/matches/${matchId}`, undefined, options)
+  getTournament(tournamentId: string, options?: CallOptions): Promise<TournamentDetail> {
+    return get<TournamentDetail>(`/api/v1/tournaments/${tournamentId}`, undefined, options)
   },
-
-  async getBracket(options?: CallOptions): Promise<TournamentBracket[]> {
-    return get<TournamentBracket[]>("/api/v1/tournaments/bracket", undefined, options)
+  registerSolo(tournamentId: string, options?: CallOptions) {
+    return post<{ registered: true }>(`/api/v1/tournaments/${tournamentId}/register`, { mode: "solo" }, options)
   },
-
-  async getInfo(options?: CallOptions): Promise<TournamentInfo> {
-    return get<TournamentInfo>("/api/v1/tournaments/info", undefined, options)
+  registerTeam(tournamentId: string, teamName: string, options?: CallOptions) {
+    return post<{ registered: true; teamId: string }>(`/api/v1/tournaments/${tournamentId}/register`, { mode: "team", teamName }, options)
   },
-
-  async registerClan(clanId: string, options?: CallOptions): Promise<void> {
-    await post<void>("/api/v1/tournaments/register", { clanId }, options)
+  joinTeam(tournamentId: string, teamId: string, options?: CallOptions) {
+    return post<{ registered: true }>(`/api/v1/tournaments/${tournamentId}/teams/${teamId}/join`, undefined, options)
+  },
+  checkIn(tournamentId: string, options?: CallOptions) {
+    return post<{ checkedIn: true }>(`/api/v1/tournaments/${tournamentId}/check-in`, undefined, options)
+  },
+  leave(tournamentId: string, options?: CallOptions) {
+    return del<void>(`/api/v1/tournaments/${tournamentId}/registration`, options)
   },
 }

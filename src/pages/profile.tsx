@@ -39,7 +39,6 @@ import { ProfileRoleIcon } from "@/components/profile-role-icon"
 import { AnimatedNumber } from "@/components/animated-number"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import faceitLogo from "@/assets/brand/faceit.webp"
-import { MatchDetailsDialog } from "@/components/match-details-dialog"
 import { RelativeTime } from "@/components/relative-time"
 import { ProfileIds, copyText, steamProfileUrl as steamLinkFor } from "@/components/profile-ids"
 import { ProfilePrivacyDialog } from "@/components/profile-privacy-dialog"
@@ -537,12 +536,6 @@ function RecentMatches({ matches, loading, steamId }: { matches: ProfileRecentMa
               )
             })}
           </div>
-          <MatchDetailsDialog
-            matchId={openMatch?.matchId ?? null}
-            mapNumber={openMatch?.mapNumber ?? 1}
-            highlightSteamId={steamId}
-            onOpenChange={(open) => { if (!open) setOpenMatch(null) }}
-          />
           {matches.length > RECENT_MATCHES_COLLAPSED && (
             <Button variant="ghost" size="sm" className="mt-3 w-full text-muted-foreground" onClick={() => setExpanded((open) => !open)}>
               {expanded ? "Show less" : `Show all ${matches.length} matches`}

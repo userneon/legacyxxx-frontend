@@ -9,7 +9,7 @@ export const moderationService = {
   async getPenalties(filters?: PenaltyFilters, options?: CallOptions): Promise<PenaltyEntry[]> {
     return get<PenaltyEntry[]>(
       "/api/v1/moderation/penalties",
-      { type: filters?.type, query: filters?.query },
+      { type: filters?.type, query: filters?.query, admin: filters?.admin },
       options,
     )
   },

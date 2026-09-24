@@ -1,270 +1,241 @@
-import { useState } from "react"
-import { Target, Search, SearchX, Clock3, Users, Medal, Gamepad2, Skull } from "lucide-react"
-import { StopwatchIcon } from "@/components/mask-icons"
-import { StatTile, toolbarClass, toolbarSearchClass } from "@/components/page-kit"
-import { SelectItem, SelectValue } from "@/components/ui/select"
-import { AnimatedSelect, AnimatedSelectContent, AnimatedSelectTrigger, dropdownTriggerClass } from "@/components/animated-select"
+/**
+ * Leaders (docs/design/leaders, leaders-sort-kd, leaders-ranks): sort EXP / K/D / Win rate, top-3 cards, the
+ * table from #4 with a sticky header, and the viewer's pinned "You" row. K/D and win rate only rank players with
+ * 10+ completed matches (decided server-side). Sort and search live in the URL.
+ */
+import { useNavigate } from "react-router-dom"
+import { useEffect, useState, type KeyboardEvent } from "react"
+import { Search } from "lucide-react"
 
+import { competitiveService, type CompetitiveLeaderboard, type CompetitiveLeaderboardEntry, type LeaderboardSort } from "@/api"
+import { formatInt, formatPercent, formatRatio } from "@/lib/format"
+import { profilePath } from "@/lib/routes"
 import { cn } from "@/lib/utils"
-import { competitiveService } from "@/api"
-import type { CompetitiveLeaderboardEntry } from "@/api/types"
+import { PageHeader, SearchField } from "@/components/page"
+import { PlayerAvatar } from "@/components/player-avatar"
+import { RankBadge, RankEmblem } from "@/components/rank"
+import { RelativeTime } from "@/components/relative-time"
+import { EmptyState, ErrorState, InlineLoader, Skeleton } from "@/components/states"
+import { Segmented } from "@/components/ui/segmented"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
-import { QueryState } from "@/components/query-state"
-import { BlockSkeleton, RowsSkeleton, StatTilesSkeleton } from "@/components/skeletons"
-import { PlayerModerationAvatar } from "@/components/player-moderation-avatar"
-import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
-import { TopRankFrame, isTopRank } from "@/components/top-rank-frame"
-import { RelativeTime } from "@/components/relative-time"
-import { Button } from "@/components/ui/button"
+import { useDebounced } from "@/hooks/use-debounced"
+import { useIncremental } from "@/hooks/use-incremental"
+import { useUrlState } from "@/hooks/use-url-state"
 
-type SortKey = "rank" | "kd" | "kills" | "headshots" | "wins" | "matches" | "hours"
+const SORTS = ["exp", "kd", "win"] as const
+const SORT_LABEL: Record<LeaderboardSort, string> = { exp: "EXP", kd: "K/D", win: "Win rate" }
+const COLUMNS = "grid grid-cols-[40px_minmax(0,1fr)_88px] @3xl:grid-cols-[56px_minmax(220px,1fr)_150px_110px_90px_100px_90px] gap-4 items-center px-4 @3xl:px-6"
 
-const SORTS: Array<{ id: SortKey; label: string }> = [
-  { id: "rank", label: "Rank (EXP)" },
-  { id: "kd", label: "K/D ratio" },
-  { id: "kills", label: "Kills" },
-  { id: "headshots", label: "Headshot %" },
-  { id: "wins", label: "Wins" },
-  { id: "matches", label: "Matches" },
-  { id: "hours", label: "Hours played" },
-]
-
-/** Ladders by game mode. Only competitive 5v5 is tracked today; the others are listed as coming. */
-const MODES = [
-  { id: "5v5", label: "5v5 Competitive", available: true },
-  { id: "fun", label: "Fun Mode", available: false },
-  { id: "proleague", label: "Pro League", available: false },
-] as const
-
-function headshotRate(player: CompetitiveLeaderboardEntry) {
-  return player.kills > 0 ? Math.round((player.headshot_kills / player.kills) * 100) : 0
+function metric(entry: CompetitiveLeaderboardEntry, sort: LeaderboardSort) {
+  if (sort === "kd") return formatRatio(entry.kd_ratio)
+  if (sort === "win") return formatPercent(entry.win_rate)
+  return formatInt(entry.current_exp)
 }
 
-function sortValue(player: CompetitiveLeaderboardEntry, key: SortKey) {
-  switch (key) {
-    case "kd": return player.kd_ratio
-    case "kills": return player.kills
-    case "headshots": return headshotRate(player)
-    case "wins": return player.wins
-    case "matches": return player.matches_completed
-    case "hours": return player.played_hours
-    // The server's own ordering; a lower position is better, so it is negated to share one comparator.
-    default: return -player.position
-  }
+function subtitle(sort: LeaderboardSort, minimum: number) {
+  if (sort === "exp") return "Ranked by EXP from completed matches."
+  return `Ranked by ${sort === "kd" ? "K/D" : "win rate"} · minimum ${minimum || 10} matches.`
 }
 
-// LEGACY-X visual system: glass surfaces, container-query columns and server-authoritative rank artwork.
-export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId: string) => void }) {
-  const { data: leaders, loading, error, refetch } = useApiQuery<CompetitiveLeaderboardEntry[]>((signal) =>
-    competitiveService.getLeaderboard({ signal }),
-  )
-  const { user } = useAuth()
-  const [query, setQuery] = useState("")
-  const [sort, setSort] = useState<SortKey>("rank")
-
-  const list = leaders ?? []
-  const podium = [...list].sort((a, b) => a.position - b.position).slice(0, 3)
-  const search = query.trim().toLowerCase()
-  const narrowed = Boolean(search) || sort !== "rank"
-
-  const rows = list
-    .filter((player) => !search || player.username.toLowerCase().includes(search))
-    // Without a search or a different sort, the top three already stand on the podium above.
-    .filter((player) => narrowed || player.position > 3)
-    .sort((a, b) => sortValue(b, sort) - sortValue(a, sort))
-
-  const totalMatches = list.reduce((sum, player) => sum + player.matches_completed, 0)
-  const totalWins = list.reduce((sum, player) => sum + player.wins, 0)
-  const bestAim = [...list].sort((a, b) => headshotRate(b) - headshotRate(a))[0]
-  const mostActive = [...list].sort((a, b) => b.played_hours - a.played_hours)[0]
-
-  return (
-    <div className="@container flex flex-col gap-5 p-4 @2xl:p-6">
-      <QueryState skeleton={<div className="flex flex-col gap-5"><StatTilesSkeleton count={4} /><BlockSkeleton className="h-72" /><RowsSkeleton rows={8} /></div>} loading={loading} error={error} empty={!loading && !error && list.length === 0} emptyMessage="No player performance data available yet." onRetry={refetch} />
-
-      {!loading && !error && list.length > 0 && (
-        <>
-          <div className="-mx-4 -my-1 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 py-1 @4xl:mx-0 @4xl:my-0 @4xl:grid @4xl:grid-cols-4 @4xl:overflow-visible @4xl:px-0">
-            <StatTile icon={Users} label="Ranked players" value={list.length} tone="text-sky-300" />
-            <StatTile icon={Gamepad2} label="Matches recorded" value={totalMatches} tone="text-white/90" />
-            <StatTile icon={Medal} label="Community wins" value={totalWins} tone="text-amber-300" />
-            <StatTile
-              icon={StopwatchIcon}
-              label={mostActive ? `${mostActive.username} · hours played` : "Hours played"}
-              value={mostActive?.played_hours ?? 0}
-              suffix="h"
-              tone="text-pink-300"
-            />
-          </div>
-
-          <section className="glass relative isolate overflow-hidden rounded-2xl px-4 pb-4 pt-8 @2xl:px-6" aria-label="Top three players">
-            <div className="pointer-events-none absolute inset-x-6 bottom-0 -z-10 h-px bg-gradient-to-r from-transparent via-white/[0.12] to-transparent" />
-            <div className="mx-auto grid w-full max-w-3xl grid-cols-3 items-end gap-2 @lg:gap-4 @4xl:max-w-5xl @4xl:gap-8 @6xl:max-w-none @6xl:gap-12">
-              <PodiumPlayer player={podium[1]} rank={2} onProfileNavigate={onProfileNavigate} />
-              <PodiumPlayer player={podium[0]} rank={1} onProfileNavigate={onProfileNavigate} />
-              <PodiumPlayer player={podium[2]} rank={3} onProfileNavigate={onProfileNavigate} />
-            </div>
-            {bestAim && (
-              <p className="mt-5 text-center text-xs text-muted-foreground">
-                Sharpest aim: <span className="font-semibold text-white/85">{bestAim.username}</span> · {headshotRate(bestAim)}% headshots
-              </p>
-            )}
-          </section>
-
-          <div className={toolbarClass}>
-            <label className={toolbarSearchClass}>
-              <Search className="size-4 shrink-0 text-muted-foreground" />
-              <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search players..." className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
-            </label>
-            <div className="flex flex-wrap items-center gap-2">
-              <AnimatedSelect value="5v5">
-                <AnimatedSelectTrigger aria-label="Mode" className={cn(dropdownTriggerClass, "w-[10.5rem]")}>
-                  <SelectValue />
-                </AnimatedSelectTrigger>
-                <AnimatedSelectContent>
-                  {MODES.map((mode) => (
-                    <SelectItem key={mode.id} value={mode.id} disabled={!mode.available}>
-                      {mode.label}{!mode.available && <span className="ml-1 text-[10px] text-muted-foreground">soon</span>}
-                    </SelectItem>
-                  ))}
-                </AnimatedSelectContent>
-              </AnimatedSelect>
-              <AnimatedSelect value={sort} onValueChange={(value) => setSort(value as SortKey)}>
-                <AnimatedSelectTrigger aria-label="Rank by" className={cn(dropdownTriggerClass, "w-[9.5rem]")}>
-                  <SelectValue />
-                </AnimatedSelectTrigger>
-                <AnimatedSelectContent>
-                  {SORTS.map((option) => <SelectItem key={option.id} value={option.id}>{option.label}</SelectItem>)}
-                </AnimatedSelectContent>
-              </AnimatedSelect>
-            </div>
-          </div>
-
-          <section className="@container glass overflow-hidden rounded-2xl">
-            <div className="hidden grid-cols-[3rem_minmax(0,1.4fr)_5rem_4rem_4.5rem_3.5rem_4rem_5.5rem] gap-x-3 border-b border-white/[0.06] px-4 py-2.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground @3xl:grid">
-              <span>#</span>
-              <span>Player</span>
-              <span>Rank</span>
-              <span className="text-right">K/D</span>
-              <span className="text-right">Kills</span>
-              <span className="text-right">HS</span>
-              <span className="text-right">Wins</span>
-              <span className="text-right">Last played</span>
-            </div>
-
-            {rows.length === 0 ? (
-              <div className="query-state-in flex flex-col items-center gap-3 p-10 text-center">
-                <SearchX className="size-6 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">No player matches this search.</p>
-                <Button variant="outline" size="sm" onClick={() => setQuery("")}>Clear search</Button>
-              </div>
-            ) : (
-              <div className="stagger-in flex flex-col">
-                {rows.map((player) => (
-                  <LeaderRow
-                    key={player.user_id}
-                    player={player}
-                    isSelf={Boolean(user && user.id === player.user_id)}
-                    onOpen={() => onProfileNavigate(player.steam_id || player.user_id)}
-                  />
-                ))}
-              </div>
-            )}
-          </section>
-        </>
-      )}
-    </div>
-  )
-}
-
-function LeaderRow({ player, isSelf, onOpen }: { player: CompetitiveLeaderboardEntry; isSelf: boolean; onOpen: () => void }) {
+function TopCard({ entry, place, sort, onOpen }: { entry: CompetitiveLeaderboardEntry; place: number; sort: LeaderboardSort; onOpen: () => void }) {
   return (
     <button
       type="button"
       onClick={onOpen}
-      aria-label={`Open ${player.username} profile`}
-      className={cn(
-        "group grid w-full grid-cols-[2.5rem_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 border-b border-white/[0.05] px-4 py-3 text-left transition-colors last:border-0",
-        "hover:bg-white/[0.03] focus-visible:bg-white/[0.04] focus-visible:outline-none",
-        "@3xl:grid-cols-[3rem_minmax(0,1.4fr)_5rem_4rem_4.5rem_3.5rem_4rem_5.5rem]",
-        isSelf && "bg-primary/[0.07] hover:bg-primary/[0.1]",
-      )}
+      className="relative flex min-w-0 flex-col gap-4 overflow-hidden rounded-xl border border-line-soft bg-card p-[18px] text-left transition-colors duration-150 hover:border-line-strong hover:bg-raised"
     >
-      <span className={cn("text-sm font-bold tabular-nums", player.position <= 10 ? "text-white/85" : "text-muted-foreground")}>
-        {player.position}
+      <span aria-hidden className={cn("absolute inset-x-0 top-0 h-0.5", place === 1 ? "bg-accent" : "bg-transparent")} />
+      <span className="flex items-center justify-between">
+        <span className="text-[28px] font-bold tracking-[-1px] text-text">#{place}</span>
+        <RankEmblem rankId={entry.rank_id} size={40} />
       </span>
-
-      <span className="flex min-w-0 items-center gap-2.5">
-        {isTopRank(player.position)
-          ? <TopRankFrame rank={player.position} label={false} className="size-9 shrink-0"><PlayerModerationAvatar avatar={player.avatar} name={player.username} className="size-full rounded-none text-xs" /></TopRankFrame>
-          : <PlayerModerationAvatar avatar={player.avatar} name={player.username} className="size-9 shrink-0 rounded-md text-xs" />}
-        <span className="min-w-0">
-          <span className="flex min-w-0 items-center gap-1.5">
-            <span className="truncate text-sm font-semibold text-white/90">{player.username}</span>
-            {isSelf && <span className="shrink-0 rounded border border-primary/40 bg-primary/15 px-1 py-px text-[9px] font-bold uppercase text-white/85">You</span>}
-          </span>
-          <span className="mt-0.5 block truncate text-[11px] tabular-nums text-muted-foreground">
-            {player.current_exp.toLocaleString()} EXP
-            <span className="@3xl:hidden"> · {player.kd_ratio.toFixed(2)} K/D · {player.kills.toLocaleString()} kills</span>
+      <span className="flex min-w-0 items-center gap-3">
+        <PlayerAvatar avatar={entry.avatar} name={entry.username} size={52} />
+        <span className="flex min-w-0 flex-1 flex-col gap-1">
+          <span className="truncate text-[15px] font-semibold text-text" title={entry.username}>{entry.username}</span>
+          <span className="truncate text-xs text-text-dim">
+            {entry.last_match_at ? <RelativeTime value={entry.last_match_at} prefix="Played " /> : "No matches yet"}
           </span>
         </span>
       </span>
-
-      <span className="justify-self-end @3xl:justify-self-start">
-        <CompetitiveRankBadge rankId={player.rank_id} rankName={player.rank_name} imageKey={player.rank_image_key} className="h-7 w-12" />
-      </span>
-
-      <span className="hidden text-right text-sm font-semibold tabular-nums text-white/95 @3xl:block">{player.kd_ratio.toFixed(2)}</span>
-      <span className="hidden text-right text-sm tabular-nums text-white/75 @3xl:block">
-        <span className="inline-flex items-center gap-1"><Skull className="size-3 text-white/35" />{player.kills.toLocaleString()}</span>
-      </span>
-      <span className="hidden text-right text-sm tabular-nums text-white/75 @3xl:block">
-        <span className="inline-flex items-center gap-1"><Target className="size-3 text-white/35" />{headshotRate(player)}%</span>
-      </span>
-      <span className="hidden text-right text-sm tabular-nums text-white/75 @3xl:block">{player.wins.toLocaleString()}</span>
-      <span className="hidden justify-end text-right text-xs text-muted-foreground @3xl:flex">
-        {player.last_match_at
-          ? <span className="inline-flex items-center gap-1"><Clock3 className="size-3 shrink-0" /><RelativeTime value={player.last_match_at} /></span>
-          : "—"}
+      <span className="flex items-end justify-between border-t border-line-soft pt-3.5">
+        <span className="flex flex-col gap-1">
+          <span className="text-[11px] text-text-dim">{SORT_LABEL[sort]}</span>
+          <span className="text-xl font-semibold tabular-nums text-text">{metric(entry, sort)}</span>
+        </span>
+        <span className="flex gap-3.5 text-right">
+          <span className="flex flex-col items-end gap-1">
+            <span className="text-[11px] text-text-dim">Matches</span>
+            <span className="text-[13px] font-medium tabular-nums text-text-2">{formatInt(entry.matches_completed)}</span>
+          </span>
+          <span className="flex flex-col items-end gap-1">
+            <span className="text-[11px] text-text-dim">{sort === "win" ? "K/D" : "Win rate"}</span>
+            <span className="text-[13px] font-medium tabular-nums text-text-2">{sort === "win" ? formatRatio(entry.kd_ratio) : formatPercent(entry.win_rate)}</span>
+          </span>
+        </span>
       </span>
     </button>
   )
 }
 
-function PodiumPlayer({ player, rank, onProfileNavigate }: { player?: CompetitiveLeaderboardEntry; rank: 1 | 2 | 3; onProfileNavigate: (userId: string) => void }) {
-  if (!player) return <div aria-hidden="true" />
+function Row({ entry, sort, onOpen, you = false }: { entry: CompetitiveLeaderboardEntry; sort: LeaderboardSort; onOpen: () => void; you?: boolean }) {
+  const cell = (key: LeaderboardSort | "matches", value: string) => (
+    <span className={cn("hidden text-right text-[13px] tabular-nums @3xl:block", key === sort ? "font-semibold text-text" : "text-text-2")}>{value}</span>
+  )
+  const onKey = (event: KeyboardEvent) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault()
+      onOpen()
+    }
+  }
+  return (
+    <div
+      role="link"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={onKey}
+      aria-label={you ? `Your position: ${entry.position}` : `${entry.position}. ${entry.username}`}
+      className={cn(COLUMNS, "cursor-pointer transition-colors duration-150", you ? "h-[60px] border-t border-line bg-card hover:bg-raised" : "h-14 border-b border-raised hover:bg-card")}
+    >
+      <span className="text-sm font-semibold tabular-nums text-text-muted">{entry.position}</span>
+      <span className="flex min-w-0 items-center gap-3">
+        <PlayerAvatar avatar={entry.avatar} name={entry.username} size={32} ring={you} />
+        <span className="truncate text-[13px] font-medium text-text" title={entry.username}>{you ? "You" : entry.username}</span>
+        <RankEmblem rankId={entry.rank_id} size={20} className="@3xl:hidden" />
+      </span>
+      <span className="hidden min-w-0 @3xl:flex">
+        <RankBadge rankId={entry.rank_id} size={22} />
+      </span>
+      <span className="text-right text-[13px] font-semibold tabular-nums text-text @3xl:hidden">{metric(entry, sort)}</span>
+      {cell("exp", formatInt(entry.current_exp))}
+      {cell("matches", formatInt(entry.matches_completed))}
+      {cell("win", formatPercent(entry.win_rate))}
+      {cell("kd", formatRatio(entry.kd_ratio))}
+    </div>
+  )
+}
 
-  const tone = rank === 1
-    ? { label: "Gold", height: "min-h-40 @lg:min-h-52", surface: "border-amber-300/45 bg-gradient-to-b from-amber-300/18 to-amber-300/[0.02]", text: "text-amber-200", chip: "border-amber-200/45 bg-amber-300 text-[#201a0d]" }
-    : rank === 2
-      ? { label: "Silver", height: "min-h-32 @lg:min-h-44", surface: "border-slate-200/30 bg-gradient-to-b from-slate-200/[0.12] to-slate-200/[0.02]", text: "text-slate-200", chip: "border-slate-100/35 bg-slate-200 text-[#20242b]" }
-      : { label: "Bronze", height: "min-h-28 @lg:min-h-36", surface: "border-orange-300/35 bg-gradient-to-b from-orange-300/[0.13] to-orange-300/[0.02]", text: "text-orange-200", chip: "border-orange-200/40 bg-orange-300 text-[#28170e]" }
+function LoadingRows() {
+  return (
+    <div aria-busy="true" aria-label="Loading leaderboard">
+      {Array.from({ length: 8 }, (_, index) => (
+        <div key={index} className={cn(COLUMNS, "h-14 border-b border-raised")}>
+          <Skeleton className="h-2.5 w-5" />
+          <span className="flex items-center gap-3">
+            <Skeleton className="size-8 rounded-[9px]" />
+            <Skeleton className="h-2.5 w-2/5 bg-line" />
+          </span>
+          <Skeleton className="hidden h-2.5 w-20 @3xl:block" />
+          {[56, 30, 40, 32].map((width, cell) => (
+            <span key={cell} className="hidden justify-end @3xl:flex">
+              <Skeleton className="h-2.5" style={{ width }} />
+            </span>
+          ))}
+          <span className="flex justify-end @3xl:hidden">
+            <Skeleton className="h-2.5 w-12" />
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export function LeadersPage() {
+  const navigate = useNavigate()
+  const { user } = useAuth()
+  const [sort, setSort] = useUrlState<LeaderboardSort>("sort", "exp", SORTS)
+  const [urlQuery, setUrlQuery] = useUrlState("q", "")
+  const [draft, setDraft] = useState(urlQuery)
+  const query = useDebounced(draft.trim(), 250)
+  useEffect(() => {
+    if (query !== urlQuery) setUrlQuery(query)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query])
+
+  const { data, loading, error, refetch } = useApiQuery<CompetitiveLeaderboard>(
+    (signal) => competitiveService.getLeaderboard({ sort, query: urlQuery, limit: 500 }, { signal }),
+    { queryKey: `${sort}|${urlQuery}|${user?.id ?? ""}`, keepPreviousData: true },
+  )
+
+  const entries = data?.entries ?? []
+  const showTop = !urlQuery && entries.length >= 3
+  const top = showTop ? entries.slice(0, 3) : []
+  const rest = showTop ? entries.slice(3) : entries
+  const { count, sentinelRef, hasMore } = useIncremental(rest.length, 100, `${sort}|${urlQuery}`)
+  const open = (entry: CompetitiveLeaderboardEntry) => navigate(profilePath(entry.steam_id, user))
+  const minimum = data?.minimumMatches ?? 10
 
   return (
-    <button
-      type="button"
-      onClick={() => onProfileNavigate(player.steam_id || player.user_id)}
-      className="group mx-auto flex w-full min-w-0 max-w-[17rem] flex-col items-center text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-      aria-label={`Open ${player.username} profile`}
-    >
-      {/* The TOP n frame carries the place, so the old number chip is gone. */}
-      <div className="relative z-10 -mb-2 flex flex-col items-center">
-        <CompetitiveRankBadge rankId={player.rank_id} rankName={player.rank_name} imageKey={player.rank_image_key} className={cn("h-8 w-14", rank === 1 ? "mb-8 @lg:mb-9" : "mb-6 @lg:mb-7")} />
-        <TopRankFrame rank={rank} className="size-20 transition-transform duration-300 group-hover:-translate-y-0.5 @lg:size-24">
-          <PlayerModerationAvatar avatar={player.avatar} name={player.username} className="size-full rounded-none text-lg" />
-        </TopRankFrame>
-      </div>
-      <div className={cn("flex w-full min-w-0 flex-col items-center justify-end rounded-t-xl border px-2 pb-3 pt-8 transition-transform duration-300 group-hover:-translate-y-0.5", tone.height, tone.surface)}>
-        <p className={cn("text-[10px] font-bold uppercase tracking-[0.16em]", tone.text)}>{tone.label}</p>
-        <p className="mt-1 max-w-full truncate text-sm font-bold text-white/95 @lg:text-base">{player.username}</p>
-        <p className="mt-0.5 max-w-full truncate text-[10px] tabular-nums text-white/45">{player.rank_name} · {player.current_exp.toLocaleString()} EXP</p>
-        <div className="mt-2 flex items-baseline gap-1">
-          <span className="text-lg font-black tabular-nums text-white">{player.kd_ratio.toFixed(2)}</span>
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-white/50">K/D</span>
+    <div className="@container flex h-full min-h-0 flex-col">
+      <PageHeader
+        className="px-4 pt-6 pb-[18px] @3xl:px-6"
+        title={
+          <span className="inline-flex items-center gap-2">
+            Leaders
+            <InlineLoader show={loading && Boolean(data)} />
+          </span>
+        }
+        subtitle={subtitle(sort, minimum)}
+        actions={
+          <>
+            <Segmented
+              ariaLabel="Sort by"
+              value={sort}
+              onChange={setSort}
+              options={SORTS.map((value) => ({ value, label: SORT_LABEL[value] }))}
+            />
+            <SearchField
+              icon={<Search className="size-[15px] shrink-0" aria-hidden />}
+              aria-label="Search player"
+              placeholder="Search player"
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              className="w-full sm:w-[220px]"
+            />
+          </>
+        }
+      />
+
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        {top.length > 0 && (
+          <section aria-label="Top 3" className="grid grid-cols-1 gap-3 px-4 pb-5 @3xl:grid-cols-3 @3xl:px-6">
+            {top.map((entry, index) => (
+              <TopCard key={entry.user_id} entry={entry} place={index + 1} sort={sort} onOpen={() => open(entry)} />
+            ))}
+          </section>
+        )}
+
+        <div className={cn(COLUMNS, "sticky top-0 z-[2] h-10 border-y border-line-soft bg-panel text-xs")} role="row">
+          <span className="font-medium text-text-dim">#</span>
+          <span className="font-medium text-text-dim">Player</span>
+          <span className="hidden font-medium text-text-dim @3xl:block">Rank</span>
+          <span className="text-right font-semibold text-text @3xl:hidden">{SORT_LABEL[sort]}</span>
+          {(["exp", "matches", "win", "kd"] as const).map((key) => (
+            <span key={key} className={cn("hidden text-right @3xl:block", key === sort ? "font-semibold text-text" : "font-medium text-text-dim")}>
+              {key === "matches" ? "Matches" : SORT_LABEL[key]}
+            </span>
+          ))}
         </div>
-        <p className="mt-1 truncate text-[10px] tabular-nums text-white/55">{player.kills.toLocaleString()} kills · {player.wins.toLocaleString()} wins</p>
+
+        {loading && !data ? (
+          <LoadingRows />
+        ) : error && !data ? (
+          <ErrorState onRetry={refetch} />
+        ) : entries.length === 0 ? (
+          <EmptyState>{urlQuery ? `No players match "${urlQuery}".` : sort === "exp" ? "No ranked players yet." : `No one has ${minimum} completed matches yet.`}</EmptyState>
+        ) : (
+          <div className={cn("transition-opacity duration-150", loading && "opacity-70")}>
+            {rest.slice(0, count).map((entry) => (
+              <Row key={entry.user_id} entry={entry} sort={sort} onOpen={() => open(entry)} />
+            ))}
+            {hasMore && <div ref={sentinelRef} className="h-px" aria-hidden />}
+            <div className="h-4" aria-hidden />
+          </div>
+        )}
       </div>
-    </button>
+
+      {data?.viewer && <Row entry={data.viewer} sort={sort} onOpen={() => open(data.viewer!)} you />}
+    </div>
   )
 }

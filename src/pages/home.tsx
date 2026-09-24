@@ -1,221 +1,179 @@
 /**
- * LEGACY-X Home: neutral glass dashboard with map-led server cards. Reconnect
- * appears only from the authenticated Root API and never from local mock state.
+ * Home keeps its content (hero, live stats, play modes, player reviews, Discord), restyled to the neutral
+ * tokens inside the shell panel. Every number comes from the API; zeros from a quiet server are shown as zeros,
+ * missing data as a dash.
  */
-import { useEffect, useState } from "react"
-import { Crosshair, Flame, Crown, Trophy, Server, Users, Copy, Play as PlayIcon, Info, RotateCcw, Swords, Gamepad2 } from "lucide-react"
+import { Link } from "react-router-dom"
+import { ArrowRight, Crosshair, Crown, Flame, Gamepad2, Lock, Server, Trophy, Users } from "lucide-react"
 
+import { feedbackService, serversService, type FeedbackEntry, type HomeStats } from "@/api"
+import { formatInt } from "@/lib/format"
+import { PAGE_ROUTES } from "@/lib/routes"
 import { cn } from "@/lib/utils"
-import { serversService } from "@/api"
-import type { HomeStats, PageId, ReconnectMatch, ServerInfo } from "@/api/types"
-import { useApiQuery } from "@/hooks/use-api-query"
-import { OptimizedImage } from "@/components/optimized-image"
-import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
-import { toast } from "sonner"
-import homeHeroGif from "@/assets/skinchanger/hero.gif"
-import { useAuth } from "@/hooks/use-auth"
-import { ServerLiveMatchDialog } from "@/components/server-live-match-dialog"
-import { HomeReviews } from "@/components/home-reviews"
+import homeHero from "@/assets/skinchanger/hero.gif"
+import { Card, Page, SectionTitle } from "@/components/page"
+import { PlayerAvatar } from "@/components/player-avatar"
+import { Stars } from "@/components/stars"
 import { DiscordStrip } from "@/components/discord-strip"
-import { StatTile } from "@/components/page-kit"
-import { isFeatureEnabled } from "@/lib/features"
+import { ErrorState, Skeleton } from "@/components/states"
+import { useApiQuery } from "@/hooks/use-api-query"
+import { useLiveServers } from "@/hooks/use-live-servers"
+import { useMyRank } from "@/hooks/use-my-rank"
 
-interface HomePageProps {
-  onNavigate: (page: PageId) => void
-}
-
-const MODE_CARDS: { id: PageId; label: string; desc: string; icon: typeof Crosshair; stat: string }[] = [
-  { id: "play-5vs5", label: "5vs5 Matches", desc: "Competitive matches", icon: Crosshair, stat: "Live status from API" },
-  { id: "play-fun", label: "Fun Mode", desc: "Surf, aim, deathmatch and more", icon: Flame, stat: "Live status from API" },
-  { id: "play-proleague", label: "Pro League", desc: "Seasonal competitive league", icon: Crown, stat: "Live status from API" },
-  { id: "play-tournaments", label: "Tournaments", desc: "Scheduled prize tournaments", icon: Trophy, stat: "Live status from API" },
+const MODES = [
+  { to: PAGE_ROUTES["play-5vs5"], label: "5x5 Matches", desc: "Competitive 5v5 that counts toward your rank.", icon: Crosshair, mode: "5v5" as const },
+  { to: PAGE_ROUTES["play-fun"], label: "Fun Mode", desc: "Retakes, deathmatch, surf and more. No rank on the line.", icon: Flame, mode: "fun" as const },
+  { to: PAGE_ROUTES["play-proleague"], label: "Pro League", desc: "Even matches for Vanguard I and above.", icon: Crown, mode: "pro" as const },
+  { to: PAGE_ROUTES["play-tournaments"], label: "Tournaments", desc: "Scheduled tournaments, solo or with a team.", icon: Trophy, mode: null },
 ]
 
-async function copyServerAddress(server: ServerInfo) {
-  if (!server.connectAddress) {
-    toast.error("Server IP unavailable", { description: "This server does not currently expose a connection address." })
-    return
-  }
-
-  try {
-    await navigator.clipboard.writeText(server.connectAddress)
-    toast.success("Server IP copied", { description: server.connectAddress })
-  } catch {
-    toast.error("Copy failed", { description: "Please copy the connection address manually." })
-  }
+function StatTile({ icon: Icon, label, value, live }: { icon: typeof Users; label: string; value: number | null | undefined; live?: boolean }) {
+  return (
+    <Card className="flex flex-col gap-3 p-4">
+      <span className="flex items-center justify-between text-text-muted">
+        <Icon className="size-4" aria-hidden />
+        {live && Boolean(value) && <span className="size-1.5 rounded-full bg-live" aria-hidden />}
+      </span>
+      {value === undefined ? <Skeleton className="h-6 w-16 bg-line" /> : <span className="text-2xl font-semibold tabular-nums text-text animate-fade-in">{formatInt(value)}</span>}
+      <span className="text-xs text-text-dim">{label}</span>
+    </Card>
+  )
 }
 
-function openServerInSteam(server: ServerInfo) {
-  const address = server.connectAddress?.trim()
-  if (!address || !/^[a-zA-Z0-9.-]+:\d{1,5}$/.test(address)) {
-    toast.error("Server IP unavailable", { description: "This server does not currently expose a valid connection address." })
-    return
-  }
-
-  toast.info("Opening Steam…", { description: `Connecting to ${address}` })
-  window.location.assign(`steam://connect/${address}`)
-}
-
-export function HomePage({ onNavigate }: HomePageProps) {
-  const { isAuthenticated, loading: authLoading } = useAuth()
-  const [infoServer, setInfoServer] = useState<ServerInfo | null>(null)
-  const [reconnectPending, setReconnectPending] = useState(false)
-  const { data: servers } = useApiQuery<ServerInfo[]>((signal) =>
-    serversService.getServers(undefined, { signal }),
-  )
-  const { data: homeStats } = useApiQuery<HomeStats>((signal) =>
-    serversService.getHomeStats({ signal }),
-  )
-  const { data: reconnect, refetch: refetchReconnect } = useApiQuery<ReconnectMatch | null>(
-    (signal) => serversService.getMyReconnect({ signal }),
-    { enabled: isAuthenticated && !authLoading, queryKey: `home-reconnect:${isAuthenticated}` },
-  )
-
-  const liveServers = (servers ?? []).filter((s) => s.status !== "offline")
-  const totalPlayers = homeStats?.playersOnline ?? (servers ?? []).reduce((acc, s) => acc + s.players, 0)
-  // The clan tile only belongs here while clans are part of the product.
-  const statTiles = [
-    { label: "Players Online", value: totalPlayers, icon: Users, tone: "text-sky-300" },
-    { label: "Live Servers", value: homeStats?.liveServers ?? liveServers.length, icon: Server, tone: "text-emerald-300" },
-    { label: "Matches Today", value: homeStats?.matchesToday, icon: Gamepad2, tone: "text-white/90" },
-    ...(isFeatureEnabled("clan") ? [{ label: "Active Clans", value: homeStats?.activeClans, icon: Swords, tone: "text-amber-300" }] : []),
-  ]
-  const reconnectServer: ServerInfo | null = reconnect ? {
-    id: reconnect.serverId,
-    name: reconnect.serverName,
-    map: reconnect.map,
-    players: reconnect.playerCount,
-    maxPlayers: 10,
-    mode: reconnect.mode,
-    ping: 0,
-    status: "online",
-    connectAddress: reconnect.connectAddress,
-  } : null
-
-  useEffect(() => {
-    if (!reconnect) setReconnectPending(false)
-  }, [reconnect])
-
-  useEffect(() => {
-    if (!isAuthenticated) return
-    const refreshOnFocus = () => {
-      if (document.visibilityState === "visible") refetchReconnect()
-    }
-    window.addEventListener("focus", refreshOnFocus)
-    document.addEventListener("visibilitychange", refreshOnFocus)
-    return () => {
-      window.removeEventListener("focus", refreshOnFocus)
-      document.removeEventListener("visibilitychange", refreshOnFocus)
-    }
-  }, [isAuthenticated, refetchReconnect])
-
-  useEffect(() => {
-    if (!reconnectPending || !isAuthenticated) return
-    const timer = window.setInterval(refetchReconnect, 5_000)
-    return () => window.clearInterval(timer)
-  }, [isAuthenticated, reconnectPending, refetchReconnect])
-
-  const reconnectToMatch = () => {
-    if (!reconnectServer) return
-    setReconnectPending(true)
-    openServerInSteam(reconnectServer)
-    window.setTimeout(refetchReconnect, 1_200)
-  }
+function ReviewsStrip() {
+  const { data, loading, error, refetch } = useApiQuery<FeedbackEntry[]>((signal) => feedbackService.getFeedback({ signal }))
+  const reviews = [...(data ?? [])].sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
+  const average = reviews.length ? reviews.reduce((sum, entry) => sum + entry.rating, 0) / reviews.length : 0
 
   return (
-      <div className="@container flex flex-col gap-5 p-4 @2xl:p-6">
-        {/* Hero */}
-        <div className={cn(
-        "glass shiny-slow relative flex flex-col gap-4 overflow-hidden rounded-2xl p-8"
-      )}>
-        <picture className="pointer-events-none absolute inset-0">
-          <OptimizedImage src={homeHeroGif} width={480} height={268} priority alt="" aria-hidden="true" className="h-full w-full object-cover opacity-30" />
-        </picture>
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background/90 via-background/65 to-background/25" />
-        <div className="relative z-10 flex items-center gap-2">
-          <span className="flex size-2 rounded-full bg-chart-2 animate-pulse" />
-          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Live Now
-          </span>
-        </div>
-        <h1 className="relative z-10 font-display text-3xl tracking-wide md:text-5xl">
-          LegacyX Ecosystem
-        </h1>
-        <p className="relative z-10 text-muted-foreground max-w-xl">
-          The premier CS2 / CSGO community server platform. Join matches{isFeatureEnabled("clan") ? ", build your clan," : ","} and
-          compete with the Mongolian CS2 community.
-        </p>
-        <div className="relative z-10 flex flex-wrap gap-3 mt-2">
-          {MODE_CARDS.map((mode) => (
-            <button
-              key={mode.id}
-              onClick={() => onNavigate(mode.id)}
-              className={cn(
-                "glass group flex items-center gap-2 rounded-lg px-4 py-3",
-                "transition-all hover:bg-secondary/50 hover:border-sidebar-border/60"
-              )}
-            >
-              <mode.icon className="size-5 text-muted-foreground transition-colors group-hover:text-foreground" />
-              <span className="text-sm font-medium">{mode.label}</span>
-            </button>
+    <section aria-label="What players say" className="flex flex-col gap-3">
+      <SectionTitle
+        action={
+          <Link to={PAGE_ROUTES.feedback} className="group inline-flex items-center gap-1.5 text-[13px] text-text-muted transition-colors duration-150 hover:text-text">
+            {reviews.length > 0 ? "All reviews" : "Write the first review"}
+            <ArrowRight className="size-3.5 transition-transform duration-150 group-hover:translate-x-0.5" aria-hidden />
+          </Link>
+        }
+      >
+        <span className="inline-flex items-center gap-3">
+          What players say
+          {reviews.length > 0 && (
+            <span className="inline-flex items-center gap-1.5 text-xs font-normal text-text-muted tabular-nums">
+              <Stars value={average} size={12} />
+              {average.toFixed(1)} · {reviews.length} review{reviews.length === 1 ? "" : "s"}
+            </span>
+          )}
+        </span>
+      </SectionTitle>
+      {loading && !data ? (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {[0, 1, 2, 3].map((index) => (
+            <Card key={index} className="flex h-36 flex-col gap-3 p-4">
+              <Skeleton className="h-2.5 w-4/5" />
+              <Skeleton className="h-2.5 w-3/5" />
+              <span className="mt-auto flex items-center gap-2">
+                <Skeleton className="size-7 rounded-lg" />
+                <Skeleton className="h-2.5 w-20" />
+              </span>
+            </Card>
           ))}
-          </div>
-	        </div>
+        </div>
+      ) : error ? (
+        <Card>
+          <ErrorState onRetry={refetch} />
+        </Card>
+      ) : reviews.length === 0 ? (
+        <Card className="px-4 py-8 text-center text-[13px] text-text-dim">No reviews yet.</Card>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {reviews.slice(0, 4).map((entry) => (
+            <Card key={entry.id} className="flex min-w-0 flex-col justify-between gap-4 p-4 animate-fade-in">
+              <p className="m-0 line-clamp-3 text-[13px] leading-5 text-text-2">{entry.message}</p>
+              <span className="flex items-center gap-2.5">
+                <PlayerAvatar avatar={entry.avatar} name={entry.name} size={28} />
+                <span className="min-w-0 flex-1 truncate text-xs font-medium text-text-muted" title={entry.name}>{entry.name}</span>
+                <Stars value={entry.rating} size={12} />
+              </span>
+            </Card>
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
 
-        {reconnect && reconnectServer && (
-          <section className="glass relative isolate overflow-hidden rounded-2xl border border-amber-200/20 bg-amber-200/[0.045] p-5 shadow-lg shadow-black/10">
-            {cs2MapArtwork(reconnect.map) && <OptimizedImage src={cs2MapArtwork(reconnect.map)!} width={640} height={360} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-[0.12]" />}
-            <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-background/95 via-background/80 to-background/55" />
-            <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-amber-100/75"><RotateCcw className="size-3.5" />Temporary reconnect</div>
-                <h2 className="mt-1 truncate text-lg font-semibold">{reconnect.serverName}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">{cs2MapLabel(reconnect.map)} · {reconnect.mode} · {reconnect.playerCount} players</p>
-                <p className="mt-2 text-xs text-muted-foreground">Available until {new Date(reconnect.reconnectableUntil).toLocaleTimeString()}. This card clears only after the server confirms your rejoin.</p>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                {isFeatureEnabled("roster") && <button type="button" onClick={() => setInfoServer(reconnectServer)} className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border/70 bg-background/55 px-3 text-xs font-semibold text-foreground transition-colors hover:border-primary/60 hover:bg-secondary/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={`View ${reconnect.serverName} live match information`}><Info className="size-3.5" />Info</button>}
-                <button type="button" onClick={() => void copyServerAddress(reconnectServer)} className="inline-flex size-9 items-center justify-center rounded-lg border border-border/70 bg-background/55 text-foreground transition-colors hover:border-primary/60 hover:bg-secondary/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={`Copy ${reconnect.serverName} server IP`} title={`Copy ${reconnect.connectAddress}`}><Copy className="size-3.5" /></button>
-                <button type="button" onClick={reconnectToMatch} className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-emerald-300/35 bg-emerald-300/18 px-3 text-xs font-semibold text-emerald-50 transition-colors hover:border-emerald-200/65 hover:bg-emerald-300/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/60"><PlayIcon className="size-3.5 fill-current" />{reconnectPending ? "Connecting…" : "Reconnect"}</button>
-              </div>
-            </div>
-          </section>
-        )}
+export function HomePage() {
+  const { servers, onlineByMode } = useLiveServers()
+  const { profile } = useMyRank()
+  const { data: stats, loading: statsLoading } = useApiQuery<HomeStats>((signal) => serversService.getHomeStats({ signal }), { pollMs: 60_000, keepPreviousData: true })
+  /** undefined while the first load runs (skeleton), null when it failed (dash). */
+  const stat = (value: number | undefined) => (value !== undefined ? value : statsLoading ? undefined : null)
+  const liveServers = servers.filter((server) => server.status !== "offline").length
 
-        {/* Stats */}
-      <div className={cn("grid grid-cols-2 gap-3", statTiles.length === 4 ? "@3xl:grid-cols-4" : "@3xl:grid-cols-3")}>
-        {statTiles.map((stat) => <StatTile key={stat.label} icon={stat.icon} label={stat.label} value={stat.value} tone={stat.tone} />)}
+  return (
+    <Page>
+      <section className="relative isolate flex min-h-[220px] flex-col justify-end gap-3 overflow-hidden rounded-xl border border-line-soft bg-card p-6 sm:p-8">
+        <img src={homeHero} alt="" aria-hidden width={480} height={268} className="pointer-events-none absolute inset-0 -z-10 size-full object-cover opacity-25 grayscale" />
+        <span aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-card via-card/85 to-card/30" />
+        <span className="flex items-center gap-2 text-xs font-semibold tracking-[0.08em] text-text-muted uppercase">
+          <span className={cn("size-1.5 rounded-full", liveServers > 0 ? "bg-live" : "bg-text-faint")} aria-hidden />
+          Live now
+        </span>
+        <h1 className="m-0 text-3xl font-bold tracking-[-0.5px] text-text sm:text-[40px]">LegacyX Ecosystem</h1>
+        <p className="m-0 max-w-xl text-sm text-text-muted">The premier CS2 community server platform. Join matches and compete with the Mongolian CS2 community.</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {MODES.map((mode) => (
+            <Link
+              key={mode.to}
+              to={mode.to}
+              className="press inline-flex h-10 items-center gap-2 rounded-[10px] border border-line bg-panel/60 px-4 text-[13px] font-medium text-text transition-colors duration-150 hover:border-line-strong hover:bg-raised"
+            >
+              <mode.icon className="size-4 text-text-muted" aria-hidden />
+              {mode.label}
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <StatTile icon={Users} label="Players online" value={stat(stats?.playersOnline)} live />
+        <StatTile icon={Server} label="Live servers" value={stat(stats?.liveServers)} live />
+        <StatTile icon={Gamepad2} label="Matches today" value={stat(stats?.matchesToday)} />
       </div>
 
-      {/* Mode cards */}
-      <div className="stagger-in grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {MODE_CARDS.map((mode) => (
-          <button
-            key={mode.id}
-            onClick={() => onNavigate(mode.id)}
-            className={cn(
-              "glass shiny group flex flex-col gap-3 rounded-2xl p-5 text-left",
-              "transition-all hover:bg-secondary/30 hover:scale-[1.02]"
-            )}
-          >
-            <div className="flex size-10 items-center justify-center rounded-lg bg-secondary">
-              <mode.icon className="size-5" />
-            </div>
-            <div>
-              <div className="font-semibold">{mode.label}</div>
-              <div className="text-xs text-muted-foreground mt-1">{mode.desc}</div>
-            </div>
-            <div className="flex items-center gap-1.5 mt-auto">
-              <span className="flex size-1.5 rounded-full bg-chart-2 animate-pulse" />
-              <span className="text-xs text-muted-foreground">{mode.stat}</span>
-            </div>
-          </button>
-        ))}
-      </div>
+      <section aria-label="Play" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {MODES.map((mode) => {
+          const online = mode.mode ? onlineByMode[mode.mode] : 0
+          const locked = mode.mode === "pro" && !profile?.pro_league_unlocked
+          return (
+            <Link
+              key={mode.to}
+              to={mode.to}
+              className="group flex flex-col gap-4 rounded-xl border border-line-soft bg-card p-5 transition-colors duration-150 hover:border-line-strong hover:bg-raised"
+            >
+              <span className="flex size-10 items-center justify-center rounded-[10px] border border-line bg-raised text-text">
+                <mode.icon className="size-[18px]" aria-hidden />
+              </span>
+              <span className="flex flex-col gap-1">
+                <span className="flex items-center gap-2 text-[15px] font-semibold text-text">
+                  {mode.label}
+                  {locked && <Lock className="size-3.5 text-text-dim" aria-label="Locked" />}
+                </span>
+                <span className="text-[13px] text-text-muted">{mode.desc}</span>
+              </span>
+              {online > 0 && (
+                <span className="mt-auto flex items-center gap-1.5 text-xs text-text-muted tabular-nums">
+                  <span className="size-1.5 rounded-full bg-live" aria-hidden />
+                  {online} playing
+                </span>
+              )}
+            </Link>
+          )
+        })}
+      </section>
 
-      <HomeReviews onWriteReview={() => onNavigate("feedback")} />
+      <ReviewsStrip />
       <DiscordStrip />
-      {isFeatureEnabled("roster") && infoServer && <ServerLiveMatchDialog server={infoServer} open onOpenChange={(open) => { if (!open) setInfoServer(null) }} />}
-	    </div>
+    </Page>
   )
 }

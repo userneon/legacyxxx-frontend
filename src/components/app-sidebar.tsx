@@ -1,292 +1,174 @@
-import { useState, useRef, useEffect, useCallback, type ComponentType } from "react"
-import {
-  Home,
-  Trophy,
-  Swords,
-  Search,
-  ChevronDown,
-  Crosshair,
-  Flame,
-  Crown,
-  Gavel,
-  Play,
-  ShieldCheck,
-  type LucideIcon,
-} from "lucide-react"
+/**
+ * Floating sidebar (docs/design shell, shell-collapsed): logo + toggle, Home · Play (5x5 Matches, Fun Mode,
+ * Pro League, Tournaments) · Skinchanger · Leaders · Penalties · Reviews · Explore. Collapses to a 64px icon rail;
+ * the state persists in shadcn's sidebar cookie. On phones it is a sheet opened from the top bar.
+ */
+import type { ComponentType, ReactNode } from "react"
+import { Link, useLocation } from "react-router-dom"
+import { Gavel, House, Lock, MessageSquare, Paintbrush, PanelLeft, Play, Search, Trophy } from "lucide-react"
 
-import { Link } from "react-router-dom"
-import { isPageEnabled } from "@/lib/features"
-import { KnifeIcon, PodiumIcon, StarOutlineIcon } from "@/components/mask-icons"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { useStaff } from "@/hooks/use-staff"
-import { useStaffBadgeCount } from "@/components/staff-panel-button"
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuBadge,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-  SidebarFooter,
-} from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
-import type { PageId } from "@/api/types"
+import { isFeatureEnabled, type FeatureName } from "@/lib/features"
+import { PAGE_ROUTES } from "@/lib/routes"
+import { Sidebar, useSidebar } from "@/components/ui/sidebar"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { useLiveServers } from "@/hooks/use-live-servers"
+import { useMyRank } from "@/hooks/use-my-rank"
+import type { ServerModeKind } from "@/api"
 
-interface AppSidebarProps {
-  currentPage: PageId
-  onNavigate: (page: PageId) => void
-}
+type Icon = ComponentType<{ className?: string; "aria-hidden"?: boolean }>
 
 interface NavItem {
-  id: PageId
   label: string
-  icon: LucideIcon | ComponentType<{ className?: string }>
-  badge?: string
+  to: string
+  icon: Icon
+  feature?: FeatureName
 }
 
-/** Navigation only lists pages whose feature is switched on — a disabled page has no entry at all. */
-function enabledNav(items: NavItem[]): NavItem[] {
-  return items.filter((item) => isPageEnabled(item.id))
-}
+const TOP: NavItem[] = [{ label: "Home", to: PAGE_ROUTES.home, icon: House }]
+const BOTTOM: NavItem[] = [
+  { label: "Skinchanger", to: PAGE_ROUTES.skinchanger, icon: Paintbrush, feature: "skinchanger" },
+  { label: "Leaders", to: PAGE_ROUTES.leaders, icon: Trophy, feature: "leaders" },
+  { label: "Penalties", to: PAGE_ROUTES.penalties, icon: Gavel, feature: "penalties" },
+  { label: "Reviews", to: PAGE_ROUTES.feedback, icon: MessageSquare, feature: "feedback" },
+  { label: "Explore", to: PAGE_ROUTES.explore, icon: Search, feature: "explore" },
+]
+const PLAY: Array<{ label: string; to: string; mode?: Exclude<ServerModeKind, "other">; pro?: boolean; feature?: FeatureName }> = [
+  { label: "5x5 Matches", to: PAGE_ROUTES["play-5vs5"], mode: "5v5" },
+  { label: "Fun Mode", to: PAGE_ROUTES["play-fun"], mode: "fun" },
+  { label: "Pro League", to: PAGE_ROUTES["play-proleague"], pro: true },
+  { label: "Tournaments", to: PAGE_ROUTES["play-tournaments"], feature: "tournaments" },
+]
 
-const PLAY_SUB_ITEMS: NavItem[] = enabledNav([
-  { id: "play-5vs5", label: "5x5 MATCHES", icon: Crosshair },
-  { id: "play-fun", label: "Fun Mode", icon: Flame },
-  { id: "play-proleague", label: "Pro League", icon: Crown },
-  { id: "play-tournaments", label: "Tournaments", icon: Trophy },
-])
+const enabled = <T extends { feature?: FeatureName }>(items: T[]) => items.filter((item) => !item.feature || isFeatureEnabled(item.feature))
 
-const MAIN_NAV: NavItem[] = enabledNav([
-  { id: "home", label: "Home", icon: Home },
-])
+const itemBase =
+  "relative flex h-10 items-center gap-2.5 rounded-lg px-[11px] text-sm font-medium outline-none transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-accent/60"
+const labelFade = "truncate transition-opacity duration-[120ms] group-data-[collapsible=icon]:opacity-0"
 
-const CONTENT_NAV: NavItem[] = enabledNav([
-  { id: "skinchanger", label: "Skinchanger", icon: KnifeIcon },
-  { id: "clan", label: "Clan", icon: Swords },
-])
-
-const COMMUNITY_NAV: NavItem[] = enabledNav([
-  { id: "leaders", label: "Leaders", icon: PodiumIcon },
-  { id: "penalties", label: "Penalties", icon: Gavel },
-  { id: "feedback", label: "Reviews", icon: StarOutlineIcon },
-  { id: "explore", label: "Explore", icon: Search },
-])
-
-function playSubItemAccent(id: PageId) {
-  if (id === "play-5vs5") return "text-sky-300"
-  if (id === "play-fun") return "text-pink-300"
-  if (id === "play-proleague") return "text-white"
-  return "text-amber-300"
-}
-
-function NavButton({ item, isActive, onClick }: { item: NavItem; isActive: boolean; onClick: () => void }) {
+function Rail({ label, collapsed, children }: { label: string; collapsed: boolean; children: ReactNode }) {
+  if (!collapsed) return <>{children}</>
   return (
-    <SidebarMenuItem>
-      <SidebarMenuButton
-        isActive={isActive}
-        tooltip={item.label}
-        onClick={onClick}
-        className={cn(
-          "text-sidebar-foreground h-9 transition-all duration-200",
-          isActive && (item.id === "feedback" ? "text-amber-300" : "text-sidebar-accent-foreground")
-        )}
-      >
-        <item.icon className={cn(
-          "!size-[17px] shrink-0 transition-colors duration-200",
-          isActive ? (item.id === "feedback" ? "text-amber-300" : "text-sidebar-accent-foreground") : "text-sidebar-foreground"
-        )} />
-        <span className="text-[13px]">{item.label}</span>
-        {item.badge && (
-          <SidebarMenuBadge>
-            <span className="rounded bg-sidebar-accent px-1.5 py-0.5 text-[10px] font-bold text-sidebar-foreground">
-              {item.badge}
-            </span>
-          </SidebarMenuBadge>
-        )}
-      </SidebarMenuButton>
-    </SidebarMenuItem>
+    <Tooltip>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipContent side="right" sideOffset={10}>
+        {label}
+      </TooltipContent>
+    </Tooltip>
   )
 }
 
-function AnimatedSubmenu({ open, children }: { open: boolean; children: React.ReactNode }) {
-  const contentRef = useRef<HTMLUListElement>(null)
-  const [height, setHeight] = useState(0)
-  const [isVisible, setIsVisible] = useState(open)
-
-  const measure = useCallback(() => {
-    if (contentRef.current) {
-      setHeight(contentRef.current.scrollHeight)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (open) {
-      setIsVisible(true)
-      requestAnimationFrame(measure)
-    } else {
-      setHeight(0)
-      const timer = setTimeout(() => setIsVisible(false), 250)
-      return () => clearTimeout(timer)
-    }
-  }, [open, measure])
-
-  useEffect(() => {
-    if (open && contentRef.current) {
-      measure()
-    }
-  }, [open, measure])
-
-  if (!isVisible && !open) return null
-
+/** Green dot + real player count; hidden at 0. Tabular numbers keep the width steady when it changes. */
+function OnlineCount({ count }: { count: number }) {
+  if (count <= 0) return null
   return (
-    <SidebarMenuSub
-      ref={contentRef}
-      className="submenu-animated overflow-hidden"
-      style={{
-        maxHeight: open ? `${height}px` : "0px",
-        opacity: open ? 1 : 0,
-      }}
-    >
-      {children}
-    </SidebarMenuSub>
+    <span className="ml-auto flex items-center gap-1.5 text-xs text-text-muted tabular-nums animate-fade-in" aria-label={`${count} online`}>
+      <span className="size-1.5 rounded-full bg-live" aria-hidden />
+      {count}
+    </span>
   )
 }
 
-/** Phones have no room in the header, so staff get the panel as the first menu item. */
-function MobileStaffPanelItem() {
-  const isMobile = useIsMobile()
-  const { ready, staff, can } = useStaff()
-  const count = useStaffBadgeCount()
-  if (!isMobile || !ready || !staff || !can("panel.access")) return null
-  return (
-    <SidebarMenuItem>
-      <SidebarMenuButton asChild tooltip="Staff Panel" className="h-9 text-amber-300">
-        <Link to="/panel" aria-label="Staff Panel">
-          <ShieldCheck className="!size-[17px] shrink-0" />
-          <span className="text-[13px]">Staff Panel</span>
-          {count > 0 && <SidebarMenuBadge><span className="rounded-full bg-amber-300 px-1.5 text-[10px] font-bold text-black">{count > 99 ? "99+" : count}</span></SidebarMenuBadge>}
+export function AppSidebar() {
+  const { pathname } = useLocation()
+  const { state, toggleSidebar, isMobile, setOpenMobile } = useSidebar()
+  const collapsed = state === "collapsed" && !isMobile
+  const { onlineByMode } = useLiveServers()
+  const { profile } = useMyRank()
+  const proUnlocked = Boolean(profile?.pro_league_unlocked)
+  const playItems = enabled(PLAY)
+  const playActive = playItems.some((item) => pathname === item.to || pathname.startsWith(`${item.to}/`))
+  const anyOnline = onlineByMode["5v5"] + onlineByMode.fun + onlineByMode.pro > 0
+  const closeMobile = () => isMobile && setOpenMobile(false)
+
+  const renderItem = (item: NavItem) => {
+    const active = pathname === item.to
+    return (
+      <Rail key={item.to} label={item.label} collapsed={collapsed}>
+        <Link
+          to={item.to}
+          onClick={closeMobile}
+          aria-current={active ? "page" : undefined}
+          aria-label={collapsed ? item.label : undefined}
+          className={cn(itemBase, active ? "bg-raised text-text" : "text-text-muted hover:bg-raised hover:text-text")}
+        >
+          {active && collapsed && <span aria-hidden className="absolute top-2.5 bottom-2.5 -left-3 w-0.5 bg-accent" />}
+          <item.icon className="size-[18px] shrink-0" aria-hidden />
+          <span className={labelFade}>{item.label}</span>
         </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
-  )
-}
-
-export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
-  const [playOpen, setPlayOpen] = useState(currentPage.startsWith("play-"))
-
-  const isPlayActive = currentPage.startsWith("play-")
-  const isActive = (id: PageId) => currentPage === id
+      </Rail>
+    )
+  }
 
   return (
-    <Sidebar collapsible="icon" className="glass-sidebar border-sidebar-border">
-      <SidebarContent className="gap-0 pt-3">
-        {/* Main */}
-        <SidebarGroup className="py-1">
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <MobileStaffPanelItem />
-              {MAIN_NAV.map((item) => (
-                <NavButton key={item.id} item={item} isActive={isActive(item.id)} onClick={() => onNavigate(item.id)} />
-              ))}
+    <Sidebar variant="floating" collapsible="icon">
+      <div className="flex h-[60px] shrink-0 items-center justify-between pr-1 pl-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+        <Link to="/" onClick={closeMobile} className="flex min-w-0 items-center gap-2.5 group-data-[collapsible=icon]:hidden" aria-label="LEGACY-X home">
+          <img src="/logolegacyx.webp" alt="" width={22} height={22} className="size-[22px] shrink-0" />
+          <span className="text-base font-bold tracking-[0.3px] text-text">LEGACY-X</span>
+        </Link>
+        <button
+          type="button"
+          onClick={toggleSidebar}
+          aria-label="Toggle sidebar"
+          aria-expanded={!collapsed}
+          className="flex size-8 items-center justify-center rounded-lg text-text-muted transition-colors duration-150 hover:bg-raised hover:text-text"
+        >
+          <PanelLeft className="size-[18px]" aria-hidden />
+        </button>
+      </div>
 
-              {/* Play with animated dropdown */}
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  isActive={isPlayActive}
-                  tooltip="Play"
-                  onClick={() => setPlayOpen((v) => !v)}
-                  className={cn(
-                    "text-sidebar-foreground h-9 transition-all duration-200",
-                    isPlayActive && "text-amber-300"
-                  )}
-                >
-                  <Play className={cn(
-                    "!size-[17px] shrink-0 fill-current transition-all duration-200",
-                    isPlayActive ? "text-amber-300" : "text-sidebar-foreground"
-                  )} />
-                  <span className="text-[13px]">Play</span>
-                  <ChevronDown
+      <nav aria-label="Main" className="flex flex-col gap-0.5 px-3 group-data-[collapsible=icon]:gap-1">
+        {enabled(TOP).map(renderItem)}
+
+        {collapsed ? (
+          <Rail label="Play" collapsed>
+            <Link
+              to={PAGE_ROUTES["play-5vs5"]}
+              aria-label="Play"
+              aria-current={playActive ? "page" : undefined}
+              className={cn(itemBase, playActive ? "bg-raised text-text" : "text-text-muted hover:bg-raised hover:text-text")}
+            >
+              {playActive && <span aria-hidden className="absolute top-2.5 bottom-2.5 -left-3 w-0.5 bg-accent" />}
+              <Play className="size-[18px] shrink-0" aria-hidden />
+              {anyOnline && <span aria-hidden className="absolute top-2 right-2 size-1.5 rounded-full bg-live shadow-[0_0_0_2px_var(--panel)]" />}
+            </Link>
+          </Rail>
+        ) : (
+          <>
+            <span className={cn(itemBase, "cursor-default text-text-muted")}>
+              <Play className="size-[18px] shrink-0" aria-hidden />
+              <span className={labelFade}>Play</span>
+            </span>
+            <div className="ml-5 flex flex-col gap-0.5 border-l border-line pl-2">
+              {playItems.map((item) => {
+                const active = pathname === item.to || pathname.startsWith(`${item.to}/`)
+                const locked = item.pro && !proUnlocked
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    onClick={closeMobile}
+                    aria-current={active ? "page" : undefined}
                     className={cn(
-                      "ml-auto !size-3.5 text-sidebar-foreground/50 transition-transform duration-250 ease-out",
-                      playOpen && "rotate-180"
+                      "relative flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors duration-150",
+                      active ? "bg-raised text-text" : locked ? "text-text-dim hover:bg-raised hover:text-text-muted" : "text-text-muted hover:bg-raised hover:text-text",
                     )}
-                  />
-                </SidebarMenuButton>
-                <AnimatedSubmenu open={playOpen}>
-                  {PLAY_SUB_ITEMS.map((item, i) => (
-                    <SidebarMenuSubItem
-                      key={item.id}
-                      className="submenu-stagger-item"
-                      style={{ transitionDelay: playOpen ? `${i * 40}ms` : "0ms" }}
-                    >
-                      <SidebarMenuSubButton
-                        isActive={isActive(item.id)}
-                        onClick={() => onNavigate(item.id)}
-                        className={cn(
-                          "text-sidebar-foreground transition-colors duration-200",
-                          isActive(item.id) && playSubItemAccent(item.id)
-                        )}
-                      >
-                        <item.icon className={cn(
-                          "!size-[15px] shrink-0 transition-colors duration-200",
-                          isActive(item.id) ? playSubItemAccent(item.id) : "text-sidebar-foreground"
-                        )} />
-                        <span className="text-[13px]">{item.label}</span>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                  ))}
-                </AnimatedSubmenu>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                  >
+                    {active && <span aria-hidden className="absolute top-2.5 bottom-2.5 -left-[9px] w-0.5 bg-accent" />}
+                    <span className={cn(labelFade, "min-w-0")}>{item.label}</span>
+                    {locked && <Lock className="size-3.5 shrink-0 text-text-dim" aria-label="Locked" />}
+                    {item.mode && <OnlineCount count={onlineByMode[item.mode]} />}
+                  </Link>
+                )
+              })}
+            </div>
+          </>
+        )}
 
-        {/* Content */}
-        {CONTENT_NAV.length > 0 && <SidebarGroup className="py-1">
-          <SidebarGroupLabel className="text-sidebar-foreground/65 text-[10px] uppercase tracking-widest font-medium px-3">
-            Content
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {CONTENT_NAV.map((item) => (
-                <NavButton key={item.id} item={item} isActive={isActive(item.id)} onClick={() => onNavigate(item.id)} />
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>}
-
-        {/* Community */}
-        <SidebarGroup className="py-1">
-          <SidebarGroupLabel className="text-sidebar-foreground/65 text-[10px] uppercase tracking-widest font-medium px-3">
-            Community
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {COMMUNITY_NAV.map((item) => (
-                <NavButton key={item.id} item={item} isActive={isActive(item.id)} onClick={() => onNavigate(item.id)} />
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-
-      <SidebarFooter className="px-3 py-3 group-data-[collapsible=icon]:hidden">
-        <div className="glass glow flex items-center justify-center rounded-lg px-3 py-2.5">
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/50">
-            LegacyX
-          </span>
-          <span className="mx-1.5 text-sidebar-foreground/20">·</span>
-          <span className="text-[10px] font-bold tabular-nums text-sidebar-foreground/75">
-            v1.0
-          </span>
-        </div>
-      </SidebarFooter>
+        {enabled(BOTTOM).map(renderItem)}
+      </nav>
+      <div className="flex-1" />
     </Sidebar>
   )
 }

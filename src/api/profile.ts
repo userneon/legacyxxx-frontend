@@ -4,8 +4,10 @@ import type {
   PenaltyEntry,
   ProfileLink,
   ProfileLinksPayload,
-  ProfileRecentMatch,
+  NotificationPrefs,
+  ProfileSection,
   ProfileStats,
+  RankedMatch,
   UserProfile,
 } from "./types"
 
@@ -19,8 +21,9 @@ export const profileService = {
     return "profile" in payload ? payload.profile : payload
   },
 
+  /** Names and avatars come from Steam; only privacy and notification switches are editable. */
   async updateProfile(
-    payload: Partial<Pick<UserProfile, "username" | "avatar" | "hiddenSections">>,
+    payload: { hiddenSections?: ProfileSection[]; notificationPrefs?: Omit<NotificationPrefs, "penalties"> },
     options?: CallOptions,
   ): Promise<UserProfile> {
     const response = await put<UserProfile | { profile: UserProfile }>("/api/v1/profile/me", payload, options)
@@ -32,8 +35,9 @@ export const profileService = {
     return "stats" in payload ? payload.stats : payload
   },
 
-  async getRecentMatches(userId?: string, options?: CallOptions): Promise<ProfileRecentMatch[]> {
-    const payload = await get<ProfileRecentMatch[] | { data: ProfileRecentMatch[] }>(`/api/v1/profile/${userId ?? "me"}/matches`, undefined, options)
+  /** Ranked matches with the EXP change and its breakdown; empty when the player hid them. */
+  async getRecentMatches(userId?: string, options?: CallOptions): Promise<RankedMatch[]> {
+    const payload = await get<RankedMatch[] | { data: RankedMatch[] }>(`/api/v1/profile/${userId ?? "me"}/matches`, undefined, options)
     return Array.isArray(payload) ? payload : payload.data
   },
 

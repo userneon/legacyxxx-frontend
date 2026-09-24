@@ -1,11 +1,7 @@
 import { useEffect, useState, type ComponentProps } from "react"
 import { ArrowUpRight } from "lucide-react"
 
-import { cn } from "@/lib/utils"
-
-const DISCORD_INVITE = "https://discord.gg/legacyx"
-/** Discord server ID; live counts need Server Settings → Widget → Enable Server Widget. */
-const DISCORD_GUILD_ID = (import.meta.env.VITE_DISCORD_GUILD_ID as string | undefined)?.trim()
+import { DISCORD_GUILD_ID, DISCORD_INVITE_URL } from "@/lib/config"
 
 export function DiscordIcon({ className, ...props }: ComponentProps<"svg">) {
   return (
@@ -18,7 +14,7 @@ export function DiscordIcon({ className, ...props }: ComponentProps<"svg">) {
 type DiscordWidget = {
   instant_invite: string | null
   presence_count: number
-  members: Array<{ id: string; username: string; avatar_url: string; channel_id?: string | null }>
+  members: Array<{ id: string; avatar_url: string; channel_id?: string | null }>
 }
 
 /** Public Discord widget; null while loading, when no server ID is set or the widget is switched off. */
@@ -29,7 +25,9 @@ function useDiscordWidget() {
     const controller = new AbortController()
     fetch(`https://discord.com/api/guilds/${encodeURIComponent(DISCORD_GUILD_ID)}/widget.json`, { signal: controller.signal })
       .then((response) => (response.ok ? response.json() : null))
-      .then((data: DiscordWidget | null) => { if (data && typeof data.presence_count === "number") setWidget(data) })
+      .then((data: DiscordWidget | null) => {
+        if (data && typeof data.presence_count === "number") setWidget(data)
+      })
       .catch(() => undefined)
     return () => controller.abort()
   }, [])
@@ -40,41 +38,36 @@ function useDiscordWidget() {
 export function DiscordStrip() {
   const widget = useDiscordWidget()
   const inVoice = widget?.members.filter((member) => member.channel_id).length ?? 0
-  const faces = widget?.members.slice(0, 5) ?? []
 
   return (
     <a
-      href={widget?.instant_invite || DISCORD_INVITE}
+      href={widget?.instant_invite || DISCORD_INVITE_URL}
       target="_blank"
       rel="noreferrer"
-      aria-label="Join the LEGACY-X Discord"
-      className="glass group flex items-center gap-3 rounded-2xl px-4 py-3 transition-colors hover:border-[#5865F2]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7289DA]"
+      className="group flex items-center gap-3 rounded-xl border border-line-soft bg-card px-4 py-3 transition-colors duration-150 hover:border-line-strong hover:bg-raised"
     >
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#5865F2]/15 text-[#8b95f5]">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] border border-line bg-raised text-text">
         <DiscordIcon className="size-5" />
       </span>
-      <div className="min-w-0 flex-1">
-        <div className="text-sm font-semibold">LEGACY-X Discord</div>
-        <div className="flex items-center gap-1.5 truncate text-xs text-muted-foreground">
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="text-sm font-semibold text-text">LEGACY-X Discord</span>
+        <span className="flex items-center gap-1.5 truncate text-xs text-text-muted">
           {widget ? (
             <>
-              <span className="size-1.5 shrink-0 rounded-full bg-emerald-400" />
-              <span className="tabular-nums"><span className="font-medium text-foreground/80">{widget.presence_count.toLocaleString()}</span> online</span>
+              <span className="size-1.5 shrink-0 rounded-full bg-live" aria-hidden />
+              <span className="tabular-nums">
+                <span className="font-medium text-text-2">{widget.presence_count.toLocaleString()}</span> online
+              </span>
               {inVoice > 0 && <span className="tabular-nums">· {inVoice} in voice</span>}
             </>
           ) : (
             "Teammates, announcements and clips"
           )}
-        </div>
-      </div>
-      {faces.length > 0 && (
-        <span className="hidden -space-x-2 @xl:flex" aria-hidden="true">
-          {faces.map((member) => <img key={member.id} src={member.avatar_url} alt="" className="size-7 rounded-full border-2 border-background object-cover" loading="lazy" />)}
         </span>
-      )}
-      <span className={cn("inline-flex shrink-0 items-center gap-1 rounded-lg bg-[#5865F2] px-3 py-1.5 text-xs font-semibold text-white transition-colors group-hover:bg-[#4752c4]")}>
+      </span>
+      <span className="inline-flex h-8 shrink-0 items-center gap-1 rounded-lg border border-line-strong bg-line-soft px-3 text-xs font-semibold text-text transition-colors duration-150 group-hover:bg-line">
         Join
-        <ArrowUpRight className="size-3.5" />
+        <ArrowUpRight className="size-3.5" aria-hidden />
       </span>
     </a>
   )
