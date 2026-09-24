@@ -35,7 +35,6 @@ export { communityService } from "./community"
 export { competitiveService } from "./competitive"
 export { skinchangerService } from "./skinchanger"
 export type {
-  SkinchangerActiveServerSession,
   SkinchangerAppearanceOptions,
   SkinchangerCatalogFacets,
   SkinchangerCatalogItem,
@@ -43,7 +42,6 @@ export type {
   SkinchangerCategory,
   SkinchangerCharmOption,
   SkinchangerFirearmGroup,
-  SkinchangerJob,
   SkinchangerLoadout,
   SkinchangerLoadoutEntry,
   SkinchangerLoadoutInput,
