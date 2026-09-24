@@ -1,799 +1,553 @@
-/**
- * Profile (docs/design/profile, profile-lower, profile-me, profile-me-privacy, profile-owner, profile-hidden-stats,
- * profile-ranks). Same layout for every visitor: the owner gets "Profile settings" (what others can see), others get
- * "Report player", staff profiles add the Legacy-X team card. Hidden sections are omitted by the API; the page only
- * renders the "hidden by player" placeholders.
- */
-import { useMemo, useState, type ReactNode } from "react"
-import { Link, useParams } from "react-router-dom"
-import { ChevronRight, Crown, ExternalLink, Eye, EyeOff, Flag, Link2, MessageCircle, MoreHorizontal, Play, ShieldAlert, ShieldCheck } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { Link, useNavigate, useParams } from "react-router-dom"
+import { ChevronRight, Copy, Crown, ExternalLink, Eye, EyeOff, MessageCircle, MoreHorizontal, Play, RotateCcw, ShieldAlert, ShieldCheck, Shield } from "lucide-react"
 import { toast } from "sonner"
 
-import {
-  competitiveService,
-  profileService,
-  type CompetitiveProfile,
-  type FaceitProfileData,
-  type PenaltyEntry,
-  type ProfileLoadoutShowcase,
-  type ProfileSection,
-  type RankedMatch,
-  type UserProfile,
-} from "@/api"
-import { DISCORD_REPORT_URL, DISCORD_STAFF_CONTACT_URL } from "@/lib/config"
-import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
-import { formatDate, formatInt, formatPercent, formatRatio, formatSigned } from "@/lib/format"
-import { RANK_TIER_COLORS, rankById, rankProgress } from "@/lib/ranks"
-import { steamProfileUrl } from "@/lib/steam"
 import { cn } from "@/lib/utils"
-import { penaltyStatus } from "@/pages/penalties"
-import { Card } from "@/components/page"
-import { PlayerAvatar } from "@/components/player-avatar"
-import { RankEmblem, RankName } from "@/components/rank"
-import { RelativeTime } from "@/components/relative-time"
-import { EmptyState, ErrorState, Skeleton } from "@/components/states"
-import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Switch } from "@/components/ui/switch"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { profileService } from "@/api"
+import { profileOverviewService, type ProfileMatchRow, type ProfileOverview, type ProfileSection } from "@/api/profile-overview"
+import type { FaceitProfileData, PenaltyEntry } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
+import { LINKS } from "@/lib/links"
+import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
+import { formatDate, useWebsitePreferences } from "@/lib/preferences"
+import { PAGE_ROUTES } from "@/lib/routes"
+import { CompetitiveRankBadge, RankLabel, RankPill } from "@/components/competitive-rank-badge"
+import { FaceitLevelBadge } from "@/components/faceit-level-badge"
+import { MatchDetailsDialog } from "@/components/match-details-dialog"
+import { PenaltyDetailSheet, StatusPill, TypeIcon, TYPE_META, formatPenaltyDate } from "@/components/penalty-detail-dialog"
+import { PlayerAvatar } from "@/components/player-avatar"
+import { copyText, steamProfileUrl } from "@/components/profile-ids"
+import { RelativeTime } from "@/components/relative-time"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Skeleton } from "@/components/ui/skeleton"
 
-const ROLE_BLURB: Record<string, string> = {
-  Owner: "Runs the servers and the community.",
-  Founder: "Founded Legacy-X.",
-  Manager: "Manages the staff team and the servers.",
-  Admin: "Keeps matches fair and handles reports.",
-  Developer: "Builds the website, plugins and API.",
-  Designer: "Designs the website and the brand.",
+const card = "rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]"
+const outline = "inline-flex h-[34px] items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] font-medium text-[var(--text)] transition-[background-color,border-color,transform] duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
+
+const SECTION_LABEL: Record<ProfileSection, string> = { stats: "Stats", matches: "Recent matches", faceit: "FACEIT stats", loadout: "Loadout" }
+
+function yearsSince(value: string) {
+  const ms = Date.now() - Date.parse(value)
+  if (!Number.isFinite(ms) || ms < 0) return "—"
+  const years = Math.floor(ms / (365.25 * 86_400_000))
+  if (years >= 1) return `${years} year${years === 1 ? "" : "s"}`
+  const months = Math.max(1, Math.floor(ms / (30.44 * 86_400_000)))
+  return `${months} month${months === 1 ? "" : "s"}`
 }
 
-/* ----------------------------------------------------------------------------
- * Small building blocks
- * ------------------------------------------------------------------------- */
+/** Motion always runs in full on Legacy-X (no reduced-motion mode). */
+const prefersReducedMotion = () => false
 
-function HiddenCard({ label, className }: { label: string; className?: string }) {
+/* ------------------------------------------------------------------ header */
+
+function Banner({ user }: { user: ProfileOverview["user"] }) {
+  const video = user.steamMedia?.backgroundVideo
+  const [videoFailed, setVideoFailed] = useState(false)
+  const still = user.steamBackground
   return (
-    <div className={cn("flex h-12 items-center gap-2.5 rounded-xl border border-line-soft bg-card px-4 text-[13px] text-text-dim", className)}>
-      <EyeOff className="size-4" aria-hidden />
-      {label} hidden by player
+    <div aria-hidden="true" className="relative h-[132px] overflow-hidden bg-[linear-gradient(180deg,#1c1c1c_0%,#121212_100%)]">
+      {video && !videoFailed && !prefersReducedMotion() ? (
+        <video className="absolute inset-0 size-full object-cover opacity-60" autoPlay muted loop playsInline poster={still ?? undefined} onError={() => setVideoFailed(true)}>
+          {video.webm && <source src={video.webm} type="video/webm" />}
+          {video.mp4 && <source src={video.mp4} type="video/mp4" />}
+        </video>
+      ) : still ? (
+        <div className="absolute inset-0 bg-cover bg-center opacity-60" style={{ backgroundImage: `url("${still}")` }} />
+      ) : null}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[var(--panel)]" />
     </div>
   )
 }
 
-function CardHeader({ title, action }: { title: string; action?: ReactNode }) {
+function Avatar({ user }: { user: ProfileOverview["user"] }) {
+  const animated = user.steamMedia?.animatedAvatar
+  const [ready, setReady] = useState(false)
   return (
-    <div className="flex items-center justify-between gap-3">
-      <h2 className="m-0 text-[15px] font-semibold text-text">{title}</h2>
-      {action}
-    </div>
-  )
-}
-
-function StatTile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex flex-col gap-2 rounded-xl border border-line-soft bg-card px-4 py-3.5">
-      <span className="text-xs text-text-muted">{label}</span>
-      <span className="text-xl font-semibold tabular-nums text-text">{value}</span>
-    </div>
-  )
-}
-
-function RankPill({ rankId }: { rankId: number }) {
-  const rank = rankById(rankId)
-  if (!rank) return null
-  return (
-    <span className="inline-flex h-6 items-center gap-1.5 rounded-full border border-line bg-raised pr-2.5 pl-1">
-      <RankEmblem rank={rank} size={16} />
-      <RankName rank={rank} className="text-xs font-semibold" />
+    <span className="relative size-[104px] shrink-0 overflow-hidden rounded-[26px] border-4 border-[var(--panel)] bg-[var(--line)]">
+      <PlayerAvatar avatar={user.avatar} name={user.username} className="size-full rounded-none text-2xl" />
+      {animated && <img src={animated} alt="" aria-hidden="true" onLoad={() => setReady(true)} className={cn("absolute inset-0 size-full object-cover transition-opacity duration-300", ready ? "opacity-100" : "opacity-0")} />}
     </span>
   )
 }
 
-function RolePill({ role }: { role: UserProfile["role"] }) {
-  if (role === "Player") return null
+function RoleBadge({ role }: { role: string }) {
+  if (!role || role === "Player") return null
   if (role === "Owner") {
-    return (
-      <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-accent px-2.5 text-xs font-semibold text-accent-contrast">
-        <Crown className="size-3.5" aria-hidden />
-        Owner
-      </span>
-    )
+    return <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-[var(--accent-solid)] px-2.5 text-xs font-semibold text-[var(--accent-on)]"><Crown className="size-3.5" />Owner</span>
   }
-  return <span className="inline-flex h-6 items-center rounded-full border border-line-strong bg-raised px-2.5 text-xs font-medium text-text-2">{role}</span>
+  return <span className="inline-flex h-6 items-center gap-1.5 rounded-full border border-[var(--line)] bg-[var(--raised)] px-2.5 text-xs font-medium text-[var(--text-2)]"><Shield className="size-3.5" />{role}</span>
 }
 
-async function copyText(text: string, label: string) {
-  try {
-    await navigator.clipboard.writeText(text)
-    toast.success(`${label} copied`)
-  } catch {
-    toast.error("Copy failed", { description: text })
-  }
+function Switch({ checked, onChange, label }: { checked: boolean; onChange: (next: boolean) => void; label: string }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      onClick={() => onChange(!checked)}
+      className={cn("relative h-[22px] w-[38px] shrink-0 rounded-full p-0.5 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60", checked ? "bg-[var(--accent-solid)]" : "bg-[var(--line-strong)]")}
+    >
+      <span className={cn("block size-[18px] rounded-full transition-transform duration-200 motion-reduce:transition-none", checked ? "translate-x-4 bg-[var(--accent-on)]" : "bg-[var(--accent-solid)]")} />
+    </button>
+  )
 }
 
-/* ----------------------------------------------------------------------------
- * Header
- * ------------------------------------------------------------------------- */
-
-const PRIVACY_GROUPS: Array<{ label: string; sections: ProfileSection[] }> = [
-  { label: "Legacy-X stats", sections: ["kd", "matches", "kills"] },
-  { label: "Recent matches & maps", sections: ["recent_matches"] },
-  { label: "FACEIT stats", sections: ["faceit"] },
-  { label: "Loadout", sections: ["loadout"] },
-]
-
-function PrivacyPopover({ profile, onSaved }: { profile: UserProfile; onSaved: (hidden: ProfileSection[]) => void }) {
-  const [hidden, setHidden] = useState<ProfileSection[]>(profile.hiddenSections ?? [])
-  const [error, setError] = useState<string | null>(null)
-
-  const toggle = async (sections: ProfileSection[], visible: boolean) => {
-    const previous = hidden
-    const next = visible ? hidden.filter((section) => !sections.includes(section)) : [...new Set([...hidden, ...sections])]
-    setHidden(next)
-    setError(null)
+function PrivacyPopover({ visibility, onSaved }: { visibility: Record<ProfileSection, boolean>; onSaved: () => void }) {
+  const [state, setState] = useState(visibility)
+  const [error, setError] = useState("")
+  useEffect(() => setState(visibility), [visibility])
+  const toggle = async (section: ProfileSection, visible: boolean) => {
+    const previous = state
+    const next = { ...state, [section]: visible }
+    setState(next)
+    setError("")
     try {
-      const saved = await profileService.updateProfile({ hiddenSections: next })
-      onSaved(saved.hiddenSections ?? next)
+      await profileOverviewService.setHidden((Object.keys(next) as ProfileSection[]).filter((key) => !next[key]))
+      onSaved()
     } catch {
-      setHidden(previous)
+      setState(previous)
       setError("Couldn't save. Try again.")
     }
   }
-
+  const rows: { key: ProfileSection; label: string }[] = [
+    { key: "stats", label: "Legacy-X stats" },
+    { key: "matches", label: "Recent matches & maps" },
+    { key: "faceit", label: "FACEIT stats" },
+    { key: "loadout", label: "Loadout" },
+  ]
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline">
-          <Eye className="size-3.5" aria-hidden />
-          Profile settings
-        </Button>
+        <button type="button" className={outline}><Eye className="size-3.5" />Profile settings</button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-[320px] p-4">
-        <div className="flex flex-col gap-0.5">
-          <span className="text-sm font-semibold text-text">What others can see</span>
-          <span className="text-xs text-text-dim">Applies to everyone except you and staff.</span>
+      <PopoverContent align="end" sideOffset={8} className="w-[300px] rounded-xl border-[var(--line)] bg-[var(--panel)] px-4 py-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.5)]">
+        <div className="flex flex-col gap-[3px] border-b border-[var(--line-soft)] pb-2">
+          <span className="text-sm font-semibold text-[var(--text)]">What others can see</span>
+          <span className="text-xs text-[var(--text-dim)]">Applies to everyone except you and staff.</span>
         </div>
-        <div className="mt-3 flex flex-col">
-          {PRIVACY_GROUPS.map((group) => {
-            const visible = !group.sections.some((section) => hidden.includes(section))
-            return (
-              <div key={group.label} className="flex h-10 items-center justify-between gap-3 text-[13px] text-text">
-                {group.label}
-                <Switch checked={visible} onCheckedChange={(value) => void toggle(group.sections, value)} aria-label={`Show ${group.label}`} />
-              </div>
-            )
-          })}
+        <div className="pt-1">
+          {rows.map((row) => (
+            <div key={row.key} className="flex h-10 items-center gap-3">
+              <span className="flex-1 text-[13px] text-[var(--text)]">{row.label}</span>
+              <Switch label={`Show ${row.label}`} checked={state[row.key]} onChange={(next) => void toggle(row.key, next)} />
+            </div>
+          ))}
         </div>
-        {error && (
-          <p className="m-0 mt-1 text-xs text-text-2" role="status">
-            {error}
-          </p>
-        )}
-        <p className="m-0 mt-3 border-t border-line-soft pt-3 text-xs leading-[18px] text-text-dim">Rank, leaderboard position and penalty history are always public.</p>
+        {error && <p role="alert" className="text-xs text-[var(--text-2)]">{error}</p>}
+        <div className="mt-2 border-t border-[var(--line-soft)] pt-2.5 text-xs leading-[1.5] text-[var(--text-dim)]">Rank, leaderboard position and penalty history are always public.</div>
       </PopoverContent>
     </Popover>
   )
 }
 
-function ProfileHeader({
-  profile,
-  competitive,
-  isOwner,
-  onPrivacySaved,
-}: {
-  profile: UserProfile
-  competitive: CompetitiveProfile | null
-  isOwner: boolean
-  onPrivacySaved: (hidden: ProfileSection[]) => void
-}) {
-  const link = `${window.location.origin}/profile/${profile.steamId}`
-  const position = competitive?.leaderboard_position
-  const playing = profile.playingNow
-
+function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; onVisibilityChange: () => void }) {
+  const { user, competitive, viewer, presence } = overview
+  const copyLink = async () => {
+    const url = `${window.location.origin}/profile/${user.steamId || user.id}`
+    if (await copyText(url, "Profile link")) toast.success("Profile link copied")
+  }
   return (
-    <>
-      <div aria-hidden className="relative h-[132px] overflow-hidden bg-[linear-gradient(180deg,#1c1c1c_0%,#121212_100%)]">
-        {profile.steamBackground && <img src={profile.steamBackground} alt="" className="size-full object-cover opacity-60" />}
-        <span className="absolute inset-0 bg-gradient-to-b from-transparent to-panel" />
+    <header className="flex flex-wrap items-end gap-5">
+      <Avatar user={user} />
+      <div className="flex min-w-0 flex-1 flex-col gap-2.5 pb-1.5">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <h1 className="truncate text-2xl font-semibold tracking-[-0.3px] text-[var(--text)]" title={user.username}>{user.username}</h1>
+          <RoleBadge role={user.role} />
+          {competitive && <RankPill rankId={competitive.rankId} rankName={competitive.rankName} imageKey={competitive.rankImageKey} currentExp={competitive.exp} />}
+          {presence && (
+            <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-[var(--status-green)]/12 px-2.5 text-xs font-semibold text-[var(--status-green)]">
+              <span className="size-1.5 rounded-full bg-[var(--status-green)]" />
+              Playing now
+            </span>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-3.5 text-[13px] text-[var(--text-muted)]">
+          {competitive?.position && <><span>#{competitive.position} on leaderboard</span><span className="text-[var(--line-strong)]">·</span></>}
+          {user.memberSince && <><span>Member since {formatDate(user.memberSince)}</span><span className="text-[var(--line-strong)]">·</span></>}
+          <span>{overview.lastPlayedAt ? <>Last played <RelativeTime value={overview.lastPlayedAt} /></> : "No matches yet"}</span>
+        </div>
       </div>
-      <header className="relative z-[1] -mt-14 flex flex-col gap-4 px-4 sm:px-6 md:flex-row md:items-end md:gap-5">
-        <PlayerAvatar
-          avatar={profile.steamMedia?.animatedAvatar || profile.avatar}
-          name={profile.username}
-          size={104}
-          className={cn("border-4 border-panel", profile.role === "Owner" && "outline-2 outline-accent")}
-        />
-        <div className="flex min-w-0 flex-1 flex-col gap-2.5 pb-1.5">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <h1 className="m-0 truncate text-[22px] font-semibold tracking-[-0.3px] text-text" title={profile.username}>
-              {profile.username}
-            </h1>
-            <RolePill role={profile.role} />
-            {competitive && <RankPill rankId={competitive.rank_id} />}
-          </div>
-          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[13px] text-text-muted">
-            {position ? (
-              <Link to={`/leaders?q=${encodeURIComponent(profile.username)}`} className="hover:text-text">
-                <span className="font-medium tabular-nums text-text-2">#{formatInt(position)}</span> on leaderboard
-              </Link>
-            ) : (
-              <span>Not on the leaderboard yet</span>
-            )}
-            {profile.memberSince && (
-              <>
-                <span aria-hidden className="text-text-faint">
-                  ·
-                </span>
-                <span>
-                  Member since <span className="text-text-2">{formatDate(profile.memberSince, { month: "short", year: "numeric" })}</span>
-                </span>
-              </>
-            )}
-            {competitive?.last_match_at && (
-              <>
-                <span aria-hidden className="text-text-faint">
-                  ·
-                </span>
-                <span>
-                  Last played <RelativeTime value={competitive.last_match_at} className="text-text-2" />
-                </span>
-              </>
-            )}
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 pb-1.5">
-          {playing && (
-            <>
-              <span
-                className="inline-flex h-[34px] items-center gap-1.5 rounded-lg bg-live/12 px-3 text-[13px] font-semibold text-live"
-                title={`${playing.serverName} · ${cs2MapLabel(playing.map)}`}
-              >
-                <span className="size-1.5 rounded-full bg-live" aria-hidden />
-                Playing now
-              </span>
-              {playing.connectAddress && (
-                <Button onClick={() => window.location.assign(`steam://connect/${playing.connectAddress}`)}>
-                  <Play className="size-3" aria-hidden />
-                  Join
-                </Button>
-              )}
-            </>
-          )}
-          {isOwner && <PrivacyPopover profile={profile} onSaved={onPrivacySaved} />}
-          <Button variant="outline" onClick={() => void copyText(link, "Profile link")}>
-            <Link2 className="size-3.5" aria-hidden />
-            Copy link
-          </Button>
-          <Button variant="outline" size="icon" asChild>
-            <a href={steamProfileUrl(profile.steamId)} target="_blank" rel="noreferrer" aria-label="Steam profile">
-              <ExternalLink className="size-3.5" aria-hidden />
-            </a>
-          </Button>
-          {!isOwner && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" aria-label="More">
-                  <MoreHorizontal className="size-4" aria-hidden />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <a href={DISCORD_REPORT_URL} target="_blank" rel="noreferrer">
-                    <Flag className="size-4" aria-hidden />
-                    Report player
-                  </a>
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => void copyText(profile.steamId, "SteamID")}>
-                  <Link2 className="size-4" aria-hidden />
-                  Copy SteamID
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </div>
-      </header>
-    </>
-  )
-}
-
-function StaffCard({ profile }: { profile: UserProfile }) {
-  if (profile.role === "Player") return null
-  return (
-    <Card className="flex flex-col gap-3 px-[18px] py-3.5 md:flex-row md:items-center md:gap-4">
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-raised text-text">
-        <Crown className="size-4" aria-hidden />
-      </span>
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="text-sm font-semibold text-text">Legacy-X team · {profile.role}</span>
-        <span className="text-[13px] text-text-muted">{ROLE_BLURB[profile.role] ?? "Part of the Legacy-X team."} Staff never ask for your password or items.</span>
-      </span>
-      <span className="flex flex-wrap items-center gap-3">
-        {typeof profile.penaltiesIssued === "number" && (
-          <Link to={`/penalties?admin=${encodeURIComponent(profile.username)}`} className="inline-flex items-center gap-1 text-[13px] text-text-muted hover:text-text">
-            Penalties issued <span className="font-semibold tabular-nums text-text">{formatInt(profile.penaltiesIssued)}</span>
-            <ChevronRight className="size-3.5" aria-hidden />
-          </Link>
-        )}
-        <Button variant="outline" asChild>
-          <a href={DISCORD_STAFF_CONTACT_URL} target="_blank" rel="noreferrer">
-            <MessageCircle className="size-3.5" aria-hidden />
-            Contact on Discord
+      <div className="flex items-center gap-2 pb-1.5">
+        {presence?.connectAddress && (
+          <a href={`steam://connect/${presence.connectAddress}`} className="inline-flex h-[34px] items-center gap-1.5 rounded-lg bg-[var(--accent-solid)] px-3.5 text-[13px] font-semibold text-[var(--accent-on)] transition-opacity hover:opacity-90">
+            <Play className="size-3.5 fill-current" />
+            Join
           </a>
-        </Button>
+        )}
+        {viewer.isOwner && overview.visibility && <PrivacyPopover visibility={overview.visibility} onSaved={onVisibilityChange} />}
+        <button type="button" onClick={() => void copyLink()} className={outline}><Copy className="size-3.5" />Copy link</button>
+        {user.steamId && (
+          <a href={steamProfileUrl(user.steamId) ?? undefined} target="_blank" rel="noreferrer" aria-label="Steam profile" className={outline}><ExternalLink className="size-3.5" /></a>
+        )}
+        {!viewer.isOwner && LINKS.discordReports && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <button type="button" aria-label="More" className={outline}><MoreHorizontal className="size-4" /></button>
+            </PopoverTrigger>
+            <PopoverContent align="end" sideOffset={8} className="w-44 rounded-xl border-[var(--line)] bg-[var(--panel)] p-1">
+              <a href={LINKS.discordReports} target="_blank" rel="noreferrer" className="flex h-9 items-center gap-2 rounded-lg px-2.5 text-[13px] text-[var(--text)] transition-colors hover:bg-[var(--raised)]">
+                <ShieldAlert className="size-4 text-[var(--text-muted)]" />
+                Report player
+              </a>
+            </PopoverContent>
+          </Popover>
+        )}
+      </div>
+    </header>
+  )
+}
+
+/* ------------------------------------------------------------------ cards */
+
+function StaffCard({ staff, username }: { staff: NonNullable<ProfileOverview["staff"]>; username: string }) {
+  return (
+    <section aria-label="Legacy-X team" className={cn(card, "flex flex-wrap items-center gap-4 px-[18px] py-3.5")}>
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-[var(--raised)] text-[var(--text)]">{staff.role === "Owner" ? <Crown className="size-4" /> : <Shield className="size-4" />}</span>
+      <span className="flex min-w-[220px] flex-1 flex-col gap-[3px]">
+        <span className="text-sm font-semibold text-[var(--text)]">Legacy-X team · {staff.role}</span>
+        <span className="text-[13px] text-[var(--text-muted)]">{staff.description} Staff never ask for your password or items.</span>
       </span>
-    </Card>
+      <Link to={`${PAGE_ROUTES.penalties}?admin=${encodeURIComponent(username)}`} className="flex items-center gap-1.5 border-r border-[var(--line)] pr-3.5 text-[13px] text-[var(--text-2)] transition-colors hover:text-[var(--text)]">
+        Penalties issued <span className="font-semibold tabular-nums text-[var(--text)]">{staff.penaltiesIssued.toLocaleString()}</span>
+        <ChevronRight className="size-3.5" />
+      </Link>
+      {LINKS.discordStaff && <a href={LINKS.discordStaff} target="_blank" rel="noreferrer" className={outline}><MessageCircle className="size-3.5" />Contact on Discord</a>}
+    </section>
   )
 }
 
-/* ----------------------------------------------------------------------------
- * Rank, trust, stats
- * ------------------------------------------------------------------------- */
-
-function RankCard({ competitive, username }: { competitive: CompetitiveProfile; username: string }) {
-  const rank = rankById(competitive.rank_id)
-  if (!rank) return null
-  const { next, progress } = rankProgress(competitive.current_exp, rank)
+function RankCard({ competitive }: { competitive: NonNullable<ProfileOverview["competitive"]> }) {
+  const span = competitive.nextRankMinExp !== null ? competitive.nextRankMinExp - competitive.currentRankMinExp : 0
+  const share = competitive.nextRankMinExp === null ? 100 : Math.max(0, Math.min(100, ((competitive.exp - competitive.currentRankMinExp) / Math.max(1, span)) * 100))
+  const [shown, setShown] = useState(0)
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setShown(share))
+    return () => cancelAnimationFrame(frame)
+  }, [share])
   return (
-    <Card className="flex items-center gap-[18px] p-[18px]">
-      <RankEmblem rank={rank} size={64} />
-      <div className="flex min-w-0 flex-1 flex-col gap-2">
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-[13px] text-text-muted">Rank</span>
-          <Link to={`/leaders?q=${encodeURIComponent(username)}`} className="inline-flex items-center gap-1 text-[13px] text-text-2 hover:text-text">
-            Leaderboard
-            <ChevronRight className="size-3.5" aria-hidden />
+    <section aria-label="Rank" className={cn(card, "flex items-center gap-[18px] p-[18px]")}>
+      <CompetitiveRankBadge rankId={competitive.rankId} rankName={competitive.rankName} imageKey={competitive.rankImageKey} size={72} className="shrink-0" />
+      <div className="flex min-w-0 flex-1 flex-col gap-2.5">
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="flex flex-col gap-1.5">
+            <span className="text-xs text-[var(--text-muted)]">Rank</span>
+            <RankLabel rankId={competitive.rankId} rankName={competitive.rankName} imageKey={competitive.rankImageKey} size={0} nameClassName="text-base font-semibold" className="[&>img]:hidden" />
+          </span>
+          <Link to={`${PAGE_ROUTES.leaders}${competitive.position ? `?focus=${competitive.position}` : ""}`} className="flex items-center gap-1 text-xs text-[var(--text-muted)] transition-colors hover:text-[var(--text)]">
+            Leaderboard <ChevronRight className="size-3.5" />
           </Link>
         </div>
-        <span className="text-xl leading-none font-bold" style={{ color: RANK_TIER_COLORS[rank.tier] }}>
-          {rank.name}
+        <span className="h-1.5 overflow-hidden rounded-full bg-[var(--line-soft)]">
+          <span className="block h-full rounded-full bg-[var(--accent-solid)] transition-[width] duration-500 ease-[var(--ease-out)]" style={{ width: `${shown}%` }} />
         </span>
-        <span className="mt-1 h-1.5 overflow-hidden rounded-full bg-line-soft" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)} aria-label="Progress to next rank">
-          <span className="block h-full rounded-full transition-[width] duration-500" style={{ width: `${progress * 100}%`, background: RANK_TIER_COLORS[rank.tier] }} />
-        </span>
-        <div className="flex items-center justify-between text-xs text-text-dim">
-          <span>
-            EXP <span className="font-medium tabular-nums text-text-2">{formatInt(competitive.current_exp)}</span>
-          </span>
-          {next ? (
-            <span>
-              Next <span className="font-medium tabular-nums text-text-2">{formatInt(next.minimumExp)}</span> · {next.name}
-            </span>
-          ) : (
-            <span>Highest rank</span>
-          )}
+        <div className="flex justify-between text-xs text-[var(--text-dim)]">
+          <span>EXP <span className="tabular-nums text-[var(--text-2)]">{competitive.exp.toLocaleString()}</span></span>
+          <span>{competitive.nextRankName ? <>Next <span className="text-[var(--text-2)]">{competitive.nextRankName}</span> · <span className="tabular-nums">{competitive.nextRankMinExp?.toLocaleString()}</span></> : "Top rank"}</span>
         </div>
       </div>
-    </Card>
+    </section>
   )
 }
 
-function TrustCard({ profile, penalties }: { profile: UserProfile; penalties: PenaltyEntry[] | null }) {
-  const active = (penalties ?? []).find((penalty) => {
-    const status = penaltyStatus(penalty)
-    return status === "Active" || status === "Permanent"
-  })
-  const row = "flex h-[35px] items-center justify-between gap-3 border-b border-line-soft text-[13px] last:border-b-0"
+function TrustCard({ overview, onOpenPenalty }: { overview: ProfileOverview; onOpenPenalty: (id: string) => void }) {
+  const { trust, user } = overview
+  const row = "flex h-[34px] items-center justify-between border-b border-[var(--line-soft)] last:border-b-0"
   return (
-    <Card className="flex flex-col justify-center px-[18px] py-3">
+    <section aria-label="Trust" className={cn(card, "flex flex-col px-[18px] py-3.5")}>
+      <div className={row}><span className="text-[13px] text-[var(--text-muted)]">On Legacy-X since</span><span className="text-[13px] font-medium text-[var(--text)]">{user.memberSince ? formatDate(user.memberSince) : "—"}</span></div>
+      {trust.steamAccountCreatedAt && (
+        <div className={row}><span className="text-[13px] text-[var(--text-muted)]">Steam account age</span><span className="text-[13px] font-medium text-[var(--text)]">{yearsSince(trust.steamAccountCreatedAt)}</span></div>
+      )}
       <div className={row}>
-        <span className="text-text-2">On Legacy-X since</span>
-        <span className="tabular-nums text-text">{profile.memberSince ? formatDate(profile.memberSince) : "—"}</span>
-      </div>
-      <div className={row}>
-        <span className="text-text-2">Record</span>
-        {penalties === null ? (
-          <Skeleton className="h-2.5 w-14" />
-        ) : active ? (
-          <Link to={`/penalties?q=${profile.steamId}&penalty=${active.id}`} className="inline-flex items-center gap-1.5 font-medium text-text hover:underline">
-            <ShieldAlert className="size-3.5" aria-hidden />
+        <span className="text-[13px] text-[var(--text-muted)]">Record</span>
+        {trust.activePenalty ? (
+          <button type="button" onClick={() => onOpenPenalty(trust.activePenalty!.id)} className="flex items-center gap-[5px] text-[13px] font-medium text-[var(--status-red)] underline-offset-4 hover:underline">
+            <ShieldAlert className="size-3.5" />
             Active penalty
-          </Link>
+          </button>
         ) : (
-          <span className="inline-flex items-center gap-1.5 font-medium text-live">
-            <ShieldCheck className="size-3.5" aria-hidden />
-            Clean
-          </span>
+          <span className="flex items-center gap-[5px] text-[13px] font-medium text-[var(--status-green)]"><ShieldCheck className="size-3.5" />Clean</span>
         )}
       </div>
-    </Card>
+    </section>
   )
 }
 
-function StatsTiles({ competitive }: { competitive: CompetitiveProfile }) {
-  if (competitive.stats_hidden) return <HiddenCard label="Stats" />
-  const matches = competitive.matches_completed ?? 0
-  if (!matches) return <EmptyState className="rounded-xl border border-line-soft bg-card py-6">No ranked matches yet.</EmptyState>
-  const deaths = competitive.deaths ?? 0
-  const tiles: Array<[string, string]> = [
-    ["Matches", formatInt(matches)],
-    ["Win rate", formatPercent(competitive.wins / matches)],
-    ["K/D", formatRatio(deaths ? competitive.kills / deaths : competitive.kills)],
-    ["HS %", formatPercent(competitive.kills ? competitive.headshot_kills / competitive.kills : 0)],
-    ["Avg kills", formatRatio(competitive.kills / matches, 1)],
-  ]
+function HiddenCard({ section }: { section: ProfileSection }) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-      {tiles.map(([label, value]) => (
-        <StatTile key={label} label={label} value={value} />
+    <section className={cn(card, "flex items-center gap-2.5 p-4 text-[13px] text-[var(--text-dim)]")}>
+      <EyeOff className="size-4" />
+      {SECTION_LABEL[section]} hidden by player
+    </section>
+  )
+}
+
+function StatsRow({ stats }: { stats: NonNullable<ProfileOverview["stats"]> }) {
+  const format = (key: string, value: number) => (key === "winRate" || key === "hs" ? `${value}%` : key === "kd" ? value.toFixed(2) : value.toLocaleString())
+  return (
+    <section aria-label="Legacy-X stats" className="grid grid-cols-2 gap-3 sm:flex">
+      {stats.map((tile) => (
+        <div key={tile.key} className={cn(card, "flex min-w-0 flex-1 flex-col gap-2 px-4 py-3.5")}>
+          <span className="text-xs text-[var(--text-muted)]">{tile.label}</span>
+          <span className="text-xl font-semibold tabular-nums text-[var(--text)]">{format(tile.key, tile.value)}</span>
+        </div>
       ))}
-    </div>
+    </section>
   )
 }
 
-/* ----------------------------------------------------------------------------
- * Recent matches and maps
- * ------------------------------------------------------------------------- */
-
-const OUTCOME_LABEL: Record<RankedMatch["outcome"], string> = { win: "W", loss: "L", draw: "D" }
-
-function ExpCell({ match }: { match: RankedMatch }) {
-  const b = match.breakdown
-  const value = <span className={cn("font-semibold tabular-nums", match.expDelta > 0 ? "text-text" : "text-text-muted")}>{match.countsAsRanked ? formatSigned(match.expDelta) : "—"}</span>
-  if (!match.countsAsRanked || !b) return value
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span tabIndex={0} className="cursor-default">
-          {value}
-        </span>
-      </TooltipTrigger>
-      <TooltipContent className="flex flex-col gap-0.5 text-xs">
-        {b.reason === "leaver" ? (
-          <span>Left the match early</span>
-        ) : b.reason !== "ranked" ? (
-          <span>{b.reason === "low_participation" ? "Played under half the match" : "Match didn't count"}</span>
-        ) : (
-          <>
-            <span>Result {formatSigned(b.result)}</span>
-            <span>Margin {formatSigned(b.margin)}</span>
-            <span>Performance {formatSigned(b.performance)}</span>
-            {b.bonus ? <span>Bonus {formatSigned(b.bonus)}</span> : null}
-            {b.calibration > 1 ? <span>Calibration ×{b.calibration}</span> : null}
-          </>
-        )}
-      </TooltipContent>
-    </Tooltip>
-  )
-}
-
-const MATCH_COLUMNS = "grid grid-cols-[minmax(0,1fr)_44px_64px] items-center gap-3 px-4 md:grid-cols-[minmax(0,1fr)_60px_70px_60px_60px_90px]"
-
-function RecentMatches({ matches }: { matches: RankedMatch[] }) {
-  const [all, setAll] = useState(false)
+function RecentMatches({ matches, onOpen }: { matches: ProfileMatchRow[]; onOpen: (match: ProfileMatchRow) => void }) {
+  useWebsitePreferences()
   const form = matches.slice(0, 10)
-  const rows = all ? matches : matches.slice(0, 6)
+  const grid = "grid grid-cols-[minmax(0,1fr)_70px_70px_60px_70px_80px] items-center gap-3 px-4 max-md:grid-cols-[minmax(0,1fr)_60px_60px_70px]"
   return (
-    <Card className="overflow-hidden">
-      <div className="flex flex-col gap-3 px-4 pt-4 pb-3.5">
-        <CardHeader
-          title="Recent matches"
-          action={
-            matches.length > 6 ? (
-              <button type="button" onClick={() => setAll((open) => !open)} className="text-[13px] text-text-2 hover:text-text">
-                {all ? "Show less" : "All matches"}
-              </button>
-            ) : null
-          }
-        />
-        {matches.length > 0 && (
+    <section aria-label="Recent matches" className={cn(card, "overflow-hidden")}>
+      <div className="flex flex-col gap-3 p-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-[var(--text)]">Recent matches</h2>
+        </div>
+        {form.length > 0 && (
           <div className="flex items-center gap-2.5">
-            <span className="text-xs text-text-dim">Form</span>
-            <span className="flex gap-1.5" aria-label={`Last ${form.length} results: ${form.map((match) => OUTCOME_LABEL[match.outcome]).join(" ")}`}>
-              {form.map((match) => (
-                <span
-                  key={match.eventId}
-                  title={match.outcome}
-                  className={cn(
-                    "size-[18px] rounded-[5px] border",
-                    match.outcome === "win" ? "border-accent bg-accent" : match.outcome === "draw" ? "border-line-strong bg-line" : "border-line-strong bg-transparent",
-                  )}
-                />
+            <span className="text-xs text-[var(--text-dim)]">Form</span>
+            <div aria-label="Last 10 results" className="flex gap-1">
+              {form.map((match, index) => (
+                <span key={index} title={match.result} className={cn("flex size-[22px] items-center justify-center rounded-md border text-[10px] font-bold", match.result === "Win" ? "border-[var(--result-win)]/45 bg-[var(--result-win)]/20 text-[var(--result-win)]" : match.result === "Loss" ? "border-[var(--result-loss)]/40 bg-[var(--result-loss)]/10 text-[var(--result-loss)]" : "border-[var(--line-strong)] text-[var(--text-dim)]")}>
+                  {match.result === "Win" ? "W" : match.result === "Loss" ? "L" : "D"}
+                </span>
               ))}
-            </span>
+            </div>
           </div>
         )}
       </div>
       {matches.length === 0 ? (
-        <EmptyState className="border-t border-line-soft py-8">No ranked matches yet.</EmptyState>
+        <p className="border-t border-[var(--line-soft)] px-4 py-8 text-center text-[13px] text-[var(--text-dim)]">No matches yet</p>
       ) : (
-        <div role="table" aria-label="Recent matches">
-          <div role="row" className={cn(MATCH_COLUMNS, "h-[34px] border-y border-line-soft text-[11px] text-text-dim")}>
-            <span>Map</span>
-            <span>Result</span>
-            <span className="hidden md:block">Score</span>
-            <span className="hidden md:block">K/D</span>
-            <span className="text-right md:text-left">EXP</span>
-            <span className="hidden md:block">Date</span>
+        <>
+          <div className={cn(grid, "h-8 text-[11px] font-medium text-[var(--text-dim)]")}>
+            <span>Map</span><span>Result</span><span>Score</span><span className="max-md:hidden">K/D</span><span>EXP</span><span className="max-md:hidden">Date</span>
           </div>
-          {rows.map((match) => {
+          {matches.map((match, index) => {
             const art = cs2MapArtwork(match.map)
+            const clickable = Boolean(match.matchId)
             return (
-              <div role="row" key={match.eventId} className={cn(MATCH_COLUMNS, "h-[53px] border-b border-raised text-[13px] last:border-b-0")}>
+              <button
+                key={`${match.matchId ?? index}-${index}`}
+                type="button"
+                disabled={!clickable}
+                onClick={() => onOpen(match)}
+                className={cn(grid, "h-[52px] w-full border-t border-[var(--raised)] text-left text-[13px] transition-colors duration-150 enabled:hover:bg-[var(--raised)] disabled:cursor-default")}
+              >
                 <span className="flex min-w-0 items-center gap-2.5">
-                  <span className="h-7 w-[52px] shrink-0 overflow-hidden rounded-md bg-raised">{art && <img src={art} alt="" className="size-full object-cover" loading="lazy" />}</span>
-                  <span className="truncate text-text">{cs2MapLabel(match.map)}</span>
+                  <span className="h-[30px] w-[52px] shrink-0 overflow-hidden rounded-md bg-[var(--line-soft)]">{art && <img src={art} alt="" className="size-full object-cover" />}</span>
+                  <span className="truncate text-[var(--text)]">{cs2MapLabel(match.map)}</span>
                 </span>
-                <span>
-                  <span
-                    className={cn(
-                      "inline-flex h-[22px] min-w-[26px] items-center justify-center rounded-md px-1.5 text-xs font-semibold",
-                      match.outcome === "win" ? "bg-accent text-accent-contrast" : "border border-line-strong text-text-muted",
-                    )}
-                  >
-                    {OUTCOME_LABEL[match.outcome]}
-                  </span>
-                </span>
-                <span className="hidden tabular-nums text-text-2 md:block">{match.score ? `${match.score.for} : ${match.score.against}` : "—"}</span>
-                <span className="hidden tabular-nums text-text-2 md:block">{formatRatio(match.kd)}</span>
-                <span className="text-right md:text-left">
-                  <ExpCell match={match} />
-                </span>
-                <span className="hidden text-text-dim md:block">{match.playedAt ? formatDate(match.playedAt, { day: "numeric", month: "short" }) : "—"}</span>
-              </div>
+                <span className={cn("font-medium", match.result === "Win" ? "text-[var(--result-win)]" : match.result === "Loss" ? "text-[var(--result-loss)]" : "text-[var(--text-muted)]")}>{match.result}</span>
+                <span className="tabular-nums text-[var(--text-2)]">{match.score}</span>
+                <span className="tabular-nums text-[var(--text-2)] max-md:hidden">{match.kd}</span>
+                <span className={cn("font-medium tabular-nums", (match.expDelta ?? 0) > 0 ? "text-[var(--result-win)]" : (match.expDelta ?? 0) < 0 ? "text-[var(--result-loss)]" : "text-[var(--text-dim)]")}>{typeof match.expDelta === "number" ? `${match.expDelta > 0 ? "+" : ""}${match.expDelta}` : "—"}</span>
+                <span className="truncate text-xs text-[var(--text-dim)] max-md:hidden">{match.playedAt ? <RelativeTime value={match.playedAt} /> : "—"}</span>
+              </button>
             )
           })}
-        </div>
+        </>
       )}
-    </Card>
+    </section>
   )
 }
 
-function MapsCard({ matches }: { matches: RankedMatch[] }) {
-  const maps = useMemo(() => {
-    const byMap = new Map<string, { played: number; wins: number }>()
-    for (const match of matches) {
-      const entry = byMap.get(match.map) ?? { played: 0, wins: 0 }
-      entry.played += 1
-      if (match.outcome === "win") entry.wins += 1
-      byMap.set(match.map, entry)
-    }
-    return [...byMap.entries()]
-      .filter(([, entry]) => entry.played >= 3)
-      .map(([map, entry]) => ({ map, ...entry, rate: entry.wins / entry.played }))
-      .sort((a, b) => b.rate - a.rate || b.played - a.played)
-  }, [matches])
-
+function MapsCard({ maps }: { maps: NonNullable<ProfileOverview["maps"]> }) {
+  if (maps.length === 0) return null
   return (
-    <Card className="flex flex-col gap-4 p-4">
-      <CardHeader title="Maps" action={<span className="text-[13px] text-text-muted">Win rate · min. 3 matches</span>} />
-      {maps.length === 0 ? (
-        <p className="m-0 py-3 text-[13px] text-text-dim">Play 3 matches on a map to see it here.</p>
-      ) : (
-        <div className="flex flex-col gap-3.5">
-          {maps.map((entry) => (
-            <div key={entry.map} className="grid grid-cols-[90px_minmax(0,1fr)_72px] items-center gap-3 text-[13px]">
-              <span className="truncate text-text-2">{cs2MapLabel(entry.map)}</span>
-              <span className="h-1.5 overflow-hidden rounded-full bg-line-soft">
-                <span className="block h-full rounded-full bg-text-2" style={{ width: `${entry.rate * 100}%` }} />
-              </span>
-              <span className="text-right tabular-nums text-text">
-                {formatPercent(entry.rate)} <span className="text-text-dim">({entry.played})</span>
-              </span>
-            </div>
-          ))}
+    <section aria-label="Best maps" className={cn(card, "flex flex-col gap-2.5 p-4")}>
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-[var(--text)]">Maps</h2>
+        <span className="text-xs text-[var(--text-dim)]">Win rate · min. 3 matches</span>
+      </div>
+      {maps.slice(0, 6).map((map) => (
+        <div key={map.map} className="grid h-[34px] grid-cols-[90px_minmax(0,1fr)_44px] items-center gap-3">
+          <span className="truncate text-[13px] text-[var(--text-2)]">{cs2MapLabel(map.map)}</span>
+          <span className="h-1.5 overflow-hidden rounded-full bg-[var(--line-soft)]"><span className="block h-full rounded-full bg-[var(--accent-solid)]" style={{ width: `${map.winRate}%` }} /></span>
+          <span className="text-right text-[13px] tabular-nums text-[var(--text)]" title={`${map.wins} of ${map.matches}`}>{map.winRate}%</span>
         </div>
-      )}
-    </Card>
+      ))}
+    </section>
   )
 }
 
-/* ----------------------------------------------------------------------------
- * Right column
- * ------------------------------------------------------------------------- */
-
-function FaceitCard({ faceit }: { faceit: Extract<FaceitProfileData, { linked: true }> }) {
-  const tiles: Array<[string, string]> = [
-    ["Win rate", `${formatInt(faceit.stats.winRate)}%`],
-    ["Avg K/D", formatRatio(faceit.stats.averageKd)],
-    ["Avg kills", formatRatio(faceit.stats.averageKills, 1)],
-    ["HS %", `${formatInt(faceit.stats.headshots)}%`],
-  ]
+function FaceitCard({ faceit }: { faceit: FaceitProfileData }) {
+  if (!faceit.linked) return null
+  const tile = (label: string, value: string) => (
+    <div className="flex flex-col gap-2 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] px-3 py-2.5">
+      <span className="text-[11px] text-[var(--text-dim)]">{label}</span>
+      <span className="text-sm font-semibold tabular-nums text-[var(--text)]">{value}</span>
+    </div>
+  )
   return (
-    <Card className="flex flex-col gap-3.5 p-4">
-      <CardHeader
-        title="FACEIT"
-        action={
-          <a href={faceit.faceitUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[13px] text-text-2 hover:text-text">
-            Open
-            <ExternalLink className="size-3" aria-hidden />
-          </a>
-        }
-      />
+    <section aria-label="FACEIT" className={cn(card, "flex flex-col gap-3 p-4")}>
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-[var(--text)]">FACEIT</h2>
+        <a href={faceit.faceitUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-[var(--text-muted)] transition-colors hover:text-[var(--text)]">Open <ExternalLink className="size-3" /></a>
+      </div>
       <div className="flex items-center gap-3">
-        <span className="flex size-11 items-center justify-center rounded-full border-2 border-line-strong bg-raised text-base font-bold tabular-nums text-text" aria-label={`Level ${faceit.level}`}>
-          {faceit.level}
+        <FaceitLevelBadge level={faceit.level} className="size-11" />
+        <span className="flex min-w-0 flex-col gap-1">
+          <span className="text-[11px] text-[var(--text-dim)]">Level {faceit.level} · ELO</span>
+          <span className="text-lg font-semibold tabular-nums text-[var(--text)]">{faceit.elo.toLocaleString()}</span>
         </span>
-        <span className="flex flex-col gap-0.5">
-          <span className="text-xs text-text-dim">Level · ELO</span>
-          <span className="text-[15px] font-semibold tabular-nums text-text">
-            {faceit.level} · {formatInt(faceit.elo)}
-          </span>
-        </span>
+        <span className="ml-auto truncate text-xs text-[var(--text-muted)]">{faceit.nickname}</span>
       </div>
       <div className="grid grid-cols-2 gap-2">
-        {tiles.map(([label, value]) => (
-          <div key={label} className="flex flex-col gap-1.5 rounded-[10px] border border-line-soft bg-panel px-3 py-2.5">
-            <span className="text-[11px] text-text-dim">{label}</span>
-            <span className="text-sm font-semibold tabular-nums text-text">{value}</span>
-          </div>
-        ))}
+        {tile("Win rate", `${faceit.stats.winRate.toFixed(0)}%`)}
+        {tile("Avg K/D", faceit.stats.averageKd.toFixed(2))}
+        {tile("Matches", faceit.stats.matches.toLocaleString())}
+        {tile("HS %", `${faceit.stats.headshots.toFixed(0)}%`)}
       </div>
-    </Card>
+    </section>
   )
 }
 
-function PenaltyHistory({ penalties, steamId }: { penalties: PenaltyEntry[]; steamId: string }) {
-  const sorted = [...penalties].sort((a, b) => {
-    const activeA = ["Active", "Permanent"].includes(penaltyStatus(a)) ? 1 : 0
-    const activeB = ["Active", "Permanent"].includes(penaltyStatus(b)) ? 1 : 0
-    return activeB - activeA || Date.parse(b.date) - Date.parse(a.date)
-  })
+function PenaltyHistory({ penalties, total, steamId, onOpen }: { penalties: PenaltyEntry[]; total: number; steamId: string; onOpen: (penalty: PenaltyEntry) => void }) {
+  if (penalties.length === 0) return null
   return (
-    <Card className="flex flex-col gap-1 p-4">
-      <CardHeader
-        title="Penalty history"
-        action={
-          <Link to={`/penalties?q=${steamId}`} className="text-[13px] text-text-2 hover:text-text">
-            View all
-          </Link>
-        }
-      />
-      <div className="mt-2 flex flex-col">
-        {sorted.slice(0, 4).map((penalty) => {
-          const status = penaltyStatus(penalty)
-          const active = status === "Active" || status === "Permanent"
-          return (
-            <Link
-              key={penalty.id}
-              to={`/penalties?q=${steamId}&penalty=${penalty.id}`}
-              className="flex items-center gap-3 border-t border-line-soft py-2.5 text-[13px] first:border-t-0 hover:[&_.chev]:translate-x-0.5"
-            >
-              <span className={cn("inline-flex h-[22px] w-12 shrink-0 items-center justify-center rounded-md text-[11px] font-semibold uppercase", active ? "bg-accent text-accent-contrast" : "border border-line text-text-muted")}>
-                {penalty.type}
-              </span>
-              <span className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate text-text">{penalty.reason || "No reason given"}</span>
-                <span className="truncate text-xs text-text-dim">
-                  {status} · {formatDate(penalty.date)}
-                </span>
-              </span>
-              <ChevronRight className="chev size-4 shrink-0 text-text-dim transition-transform duration-150" aria-hidden />
-            </Link>
-          )
-        })}
+    <section aria-label="Penalty history" className={cn(card, "flex flex-col gap-1.5 p-4")}>
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-[var(--text)]">Penalty history</h2>
+        {total > penalties.length || steamId ? <Link to={`${PAGE_ROUTES.penalties}?q=${encodeURIComponent(steamId)}`} className="text-xs text-[var(--text-muted)] transition-colors hover:text-[var(--text)]">View all</Link> : null}
       </div>
-    </Card>
+      {penalties.map((penalty) => (
+        <button key={penalty.id} type="button" onClick={() => onOpen(penalty)} className="flex items-center gap-2.5 border-t border-[var(--line-soft)] py-2.5 text-left transition-colors hover:bg-[var(--raised)]/40">
+          <TypeIcon type={penalty.type} className="size-8" />
+          <span className="flex min-w-0 flex-1 flex-col gap-1">
+            <span className="flex min-w-0 items-center gap-2">
+              <span className="truncate text-[13px] font-medium" style={{ color: (TYPE_META[penalty.type] ?? TYPE_META.ban).color }}>{(TYPE_META[penalty.type] ?? TYPE_META.ban).label}</span>
+              <StatusPill penalty={penalty} />
+            </span>
+            <span className="truncate text-xs text-[var(--text-dim)]">{penalty.reason || "No reason given"} · {formatPenaltyDate(penalty.date)}</span>
+          </span>
+          <ChevronRight className="size-4 text-[var(--text-faint)]" />
+        </button>
+      ))}
+    </section>
   )
 }
 
-const LOADOUT_LABEL: Record<ProfileLoadoutShowcase["items"][number]["slot"], string> = { knife: "Knife", gloves: "Gloves", ak47: "AK-47", awp: "AWP" }
-
-function LoadoutCard({ loadout }: { loadout: ProfileLoadoutShowcase }) {
+function LoadoutCard({ loadout }: { loadout: NonNullable<ProfileOverview["loadout"]> }) {
   return (
-    <Card className="flex flex-col gap-3.5 p-4">
-      <CardHeader title="Loadout" action={loadout.side ? <span className="text-[13px] text-text-muted">{loadout.side.toUpperCase()} side</span> : null} />
+    <section aria-label="Loadout" className={cn(card, "flex flex-col gap-3 p-4")}>
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-[var(--text)]">Loadout</h2>
+        <span className="text-xs text-[var(--text-dim)]">{loadout.side === "ct" ? "CT side" : "T side"}</span>
+      </div>
       <div className="grid grid-cols-2 gap-2.5">
         {loadout.items.map((item) => (
-          <div key={item.slot} className="flex flex-col gap-1.5">
-            <span className="flex h-[58px] items-center justify-center overflow-hidden rounded-[10px] border border-line-soft bg-panel" title={item.name}>
-              {item.imageUrl ? <img src={item.imageUrl} alt={item.name} className="max-h-full max-w-full object-contain p-1.5" loading="lazy" /> : <span className="px-2 text-center text-xs text-text-2">{item.name}</span>}
-            </span>
-            <span className="truncate text-[11px] text-text-dim">{LOADOUT_LABEL[item.slot]}</span>
+          <div key={item.key} className="flex min-w-0 flex-col gap-1.5">
+            <div className="flex h-14 items-center justify-center overflow-hidden rounded-lg border border-[var(--line-soft)] bg-[var(--panel)] px-2" title={item.name ?? "Default"}>
+              {item.image ? <img src={item.image} alt={item.name ?? ""} className="max-h-full max-w-full object-contain" loading="lazy" /> : <span className="text-[11px] text-[var(--text-faint)]">Default</span>}
+            </div>
+            <span className="truncate text-[11px] text-[var(--text-dim)]">{item.label}</span>
           </div>
         ))}
       </div>
-    </Card>
+    </section>
   )
 }
-
-/* ----------------------------------------------------------------------------
- * Page
- * ------------------------------------------------------------------------- */
 
 function ProfileSkeleton() {
   return (
-    <div aria-busy="true" aria-label="Loading profile">
+    <div aria-hidden="true">
       <div className="h-[132px] bg-[linear-gradient(180deg,#1c1c1c_0%,#121212_100%)]" />
-      <div className="-mt-14 flex flex-col gap-4 px-4 pb-8 sm:px-6">
+      <div className="-mt-14 flex flex-col gap-4 px-6 pb-8">
         <div className="flex items-end gap-5">
-          <Skeleton className="size-[104px] rounded-[26px] border-4 border-panel bg-line" />
-          <div className="flex flex-col gap-3 pb-2">
-            <Skeleton className="h-5 w-48 bg-line" />
-            <Skeleton className="h-2.5 w-72" />
+          <Skeleton className="size-[104px] rounded-[26px] border-4 border-[var(--panel)] bg-[var(--line)]" />
+          <div className="flex flex-1 flex-col gap-2.5 pb-2">
+            <Skeleton className="h-6 w-56 rounded-full bg-[var(--line-strong)]" />
+            <Skeleton className="h-3 w-80 rounded-full bg-[var(--line-soft)]" />
           </div>
         </div>
-        <div className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
-          <Skeleton className="h-[134px] rounded-xl" />
-          <Skeleton className="h-[134px] rounded-xl" />
+        <div className="grid gap-4 md:grid-cols-[1.3fr_1fr]">
+          <Skeleton className="h-[108px] rounded-xl bg-[var(--card-surface)]" />
+          <Skeleton className="h-[108px] rounded-xl bg-[var(--card-surface)]" />
         </div>
-        <Skeleton className="h-[72px] rounded-xl" />
-        <Skeleton className="h-[300px] rounded-xl" />
+        <Skeleton className="h-20 rounded-xl bg-[var(--card-surface)]" />
       </div>
     </div>
   )
 }
 
-export function ProfilePage() {
-  const { identity } = useParams<{ identity?: string }>()
-  const { user } = useAuth()
-  const target = identity ?? "me"
+/* ------------------------------------------------------------------ page */
 
-  const profileQuery = useApiQuery<UserProfile>((signal) => profileService.getProfile(target, { signal }), { queryKey: `${target}|${user?.id ?? ""}` })
-  const profile = profileQuery.data
-  const userId = profile?.id ?? ""
-  const enabled = Boolean(userId)
-  const key = `${userId}|${user?.id ?? ""}`
+export function ProfilePage({ userId }: { userId?: string }) {
+  const params = useParams()
+  const navigate = useNavigate()
+  const { user: me } = useAuth()
+  const identity = userId ?? params.steamId ?? "me"
+  const { data, loading, error, refetch } = useApiQuery<ProfileOverview>((signal) => profileOverviewService.get(identity, { signal }), { queryKey: `profile:${identity}`, keepPreviousData: true })
+  const faceitHidden = data?.hidden.includes("faceit") ?? true
+  const { data: faceit } = useApiQuery<FaceitProfileData>((signal) => profileService.getFaceitProfile(data!.user.id, { signal }), { enabled: Boolean(data) && !faceitHidden, queryKey: `profile-faceit:${data?.user.id ?? ""}` })
+  const [openMatch, setOpenMatch] = useState<ProfileMatchRow | null>(null)
+  const [openPenalty, setOpenPenalty] = useState<PenaltyEntry | null>(null)
+  const topRef = useRef<HTMLDivElement>(null)
 
-  const competitiveQuery = useApiQuery<CompetitiveProfile>((signal) => competitiveService.getPlayer(userId, { signal }), { enabled, queryKey: key })
-  const matchesQuery = useApiQuery((signal) => competitiveService.getPlayerMatches(userId, 30, { signal }), { enabled, queryKey: key })
-  const faceitQuery = useApiQuery<FaceitProfileData>((signal) => profileService.getFaceitProfile(userId, { signal }), { enabled, queryKey: key })
-  const penaltiesQuery = useApiQuery<PenaltyEntry[]>((signal) => profileService.getPenalties(userId, { signal }), { enabled, queryKey: key })
-  const loadoutQuery = useApiQuery<ProfileLoadoutShowcase>((signal) => profileService.getLoadoutShowcase(userId, { signal }), { enabled, queryKey: key })
-  const [hiddenOverride, setHiddenOverride] = useState<ProfileSection[] | null>(null)
-
-  if (profileQuery.loading && !profile) return <ProfileSkeleton />
-  if (!profile) {
-    return (
-      <div className="p-6">
-        {profileQuery.error?.status === 404 ? <EmptyState>This player doesn't exist on Legacy-X.</EmptyState> : <ErrorState onRetry={profileQuery.refetch} />}
-      </div>
-    )
+  if (!data) {
+    if (error && !loading) {
+      return (
+        <p className="flex items-center justify-center gap-3 py-24 text-[13px] text-[var(--text-dim)]">
+          {error.status === 404 ? "This player was not found." : "Could not load this profile."}
+          {error.status !== 404 && <button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button>}
+        </p>
+      )
+    }
+    return <ProfileSkeleton />
   }
 
-  const isOwner = Boolean(user && user.id === profile.id)
-  const competitive = competitiveQuery.data
-  const matches = matchesQuery.data
-  const faceit = faceitQuery.data
-  const penalties = penaltiesQuery.data ?? (penaltiesQuery.error ? [] : null)
-  const loadout = loadoutQuery.data
-  const hidden = hiddenOverride ?? profile.hiddenSections ?? []
+  const hidden = new Set(data.hidden)
+  const showFaceit = !hidden.has("faceit") && faceit?.linked
+  const penaltyById = (id: string) => data.penalties.find((penalty) => penalty.id === id) ?? null
+  const isOwnPenalty = Boolean(me && me.id === data.user.id)
 
   return (
-    <div className="pb-8">
-      <ProfileHeader
-        profile={{ ...profile, hiddenSections: hidden }}
-        competitive={competitive ?? null}
-        isOwner={isOwner}
-        onPrivacySaved={(next) => {
-          setHiddenOverride(next)
-          competitiveQuery.refetch()
-        }}
-      />
-      <div className="mt-4 flex flex-col gap-4 px-4 sm:px-6">
-        <StaffCard profile={profile} />
+    <div ref={topRef} className="animate-in fade-in-0 duration-200 motion-reduce:animate-none">
+      <Banner user={data.user} />
+      <div className="-mt-14 flex flex-col gap-4 px-6 pb-8 max-md:px-4">
+        <Header overview={data} onVisibilityChange={refetch} />
+        {data.staff && <StaffCard staff={data.staff} username={data.user.username} />}
 
-        <div className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
-          {competitive ? <RankCard competitive={competitive} username={profile.username} /> : <Skeleton className="h-[134px] rounded-xl" />}
-          <TrustCard profile={profile} penalties={penalties} />
+        <div className="grid gap-4 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+          {data.competitive ? <RankCard competitive={data.competitive} /> : <section className={cn(card, "flex items-center p-[18px] text-[13px] text-[var(--text-dim)]")}>Unranked — no competitive matches yet</section>}
+          <TrustCard overview={data} onOpenPenalty={(id) => setOpenPenalty(penaltyById(id))} />
         </div>
 
-        {competitive ? <StatsTiles competitive={competitive} /> : <Skeleton className="h-[72px] rounded-xl" />}
+        {hidden.has("stats") ? <HiddenCard section="stats" /> : data.stats && <StatsRow stats={data.stats} />}
 
         <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="flex min-w-0 flex-col gap-4">
-            {!matches ? (
-              matchesQuery.error ? <ErrorState onRetry={matchesQuery.refetch} /> : <Skeleton className="h-[300px] rounded-xl" />
-            ) : matches.hidden ? (
+            {hidden.has("matches") ? <HiddenCard section="matches" /> : (
               <>
-                <HiddenCard label="Recent matches" />
-                <HiddenCard label="Maps" />
-              </>
-            ) : (
-              <>
-                <RecentMatches matches={matches.entries} />
-                <MapsCard matches={matches.entries} />
+                <RecentMatches matches={data.recentMatches ?? []} onOpen={setOpenMatch} />
+                {data.maps && <MapsCard maps={data.maps} />}
               </>
             )}
           </div>
           <div className="flex min-w-0 flex-col gap-4">
-            {faceit && "hidden" in faceit && faceit.hidden ? <HiddenCard label="FACEIT stats" /> : faceit?.linked ? <FaceitCard faceit={faceit} /> : null}
-            {penalties && penalties.length > 0 && <PenaltyHistory penalties={penalties} steamId={profile.steamId} />}
-            {loadout?.hidden ? <HiddenCard label="Loadout" /> : loadout && loadout.items.length > 0 ? <LoadoutCard loadout={loadout} /> : null}
+            {hidden.has("faceit") ? <HiddenCard section="faceit" /> : showFaceit && faceit && <FaceitCard faceit={faceit} />}
+            <PenaltyHistory penalties={data.penalties} total={data.penaltyCount} steamId={data.user.steamId} onOpen={setOpenPenalty} />
+            {hidden.has("loadout") ? <HiddenCard section="loadout" /> : data.loadout && <LoadoutCard loadout={data.loadout} />}
           </div>
         </div>
       </div>
+
+      {openMatch?.matchId && (
+        <MatchDetailsDialog matchId={openMatch.matchId} mapNumber={openMatch.mapNumber ?? 1} highlightSteamId={data.user.steamId} onOpenChange={(open) => { if (!open) setOpenMatch(null) }} />
+      )}
+      <PenaltyDetailSheet
+        penalty={openPenalty}
+        isOwn={isOwnPenalty}
+        onClose={() => setOpenPenalty(null)}
+        onProfileNavigate={(steamId) => navigate(`/profile/${encodeURIComponent(steamId)}`)}
+      />
     </div>
   )
 }

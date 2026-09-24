@@ -4,7 +4,6 @@ import { useSearchParams } from "react-router-dom"
 import { Database, Power, ShieldAlert, UserRoundCog, UsersRound, Map, Megaphone, MonitorUp, Loader2, LockKeyhole, ServerCog } from "lucide-react"
 import { setAccessToken } from "@/api/client"
 import { staffPanelService } from "@/api/staffpanel"
-import { StaffPhantomReview } from "@/components/staff-phantom-review"
 import type { ApiError, StaffPanelAccess, StaffPanelActionRequest, StaffPanelDatabaseOverview, StaffPanelOverview } from "@/api/types"
 
 const apiOrigin = (import.meta.env.VITE_API_URL?.trim() || (import.meta.env.PROD ? "https://api.legacyx.cc" : "")).replace(/\/$/, "")
@@ -96,25 +95,25 @@ export function StaffPanelPage() {
   if (!access) return <div className="flex min-h-[65vh] items-center justify-center gap-3 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Steam re-authentication required…</div>
 
   return <main className="mx-auto w-full max-w-7xl space-y-6 p-4 md:p-7">
-    <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-[linear-gradient(120deg,rgba(15,15,15,.96),rgba(26,26,26,.92))] p-6 shadow-2xl">
-            <div className="relative flex flex-col justify-between gap-4 md:flex-row md:items-end">
-        <div><p className="text-xs font-semibold uppercase tracking-[.22em] text-text-muted">Isolated Steam staff session</p><h1 className="mt-2 text-3xl font-semibold text-white">Staff Panel</h1><p className="mt-2 text-sm text-text-muted">{access.username} · <span className="text-text">{access.role}</span> access</p></div>
-        <div className="rounded-xl border border-line bg-raised px-4 py-3 text-xs text-text-2">Every game action is queued and audited. Browser cannot execute raw server commands.</div>
+    <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-[linear-gradient(120deg,rgba(10,15,22,.96),rgba(24,30,36,.92))] p-6 shadow-2xl">
+      
+      <div className="relative flex flex-col justify-between gap-4 md:flex-row md:items-end">
+        <div><p className="text-xs font-semibold uppercase tracking-[.22em] text-[var(--text-muted)]">Isolated Steam staff session</p><h1 className="mt-2 text-3xl font-semibold text-white">Staff Panel</h1><p className="mt-2 text-sm text-[var(--text-2)]">{access.username} · <span className="text-[var(--text)]">{access.role}</span> access</p></div>
+        <div className="rounded-xl border border-[var(--line)] bg-[var(--raised)] px-4 py-3 text-xs text-[var(--text-2)]">Every game action is queued and audited. Browser cannot execute raw server commands.</div>
       </div>
     </section>
 
-    {notice && <div className="rounded-xl border border-line bg-raised px-4 py-3 text-sm text-text">{notice}</div>}
+    {notice && <div className="rounded-xl border border-[var(--line-strong)] bg-[var(--raised)] px-4 py-3 text-sm text-[var(--text-2)]">{notice}</div>}
     <section className="grid gap-4 lg:grid-cols-[1.1fr_.9fr]">
       <div className="rounded-2xl border border-white/10 bg-card/70 p-5"><div className="mb-4 flex items-center justify-between"><h2 className="font-semibold">Server operations</h2><span className="text-xs text-muted-foreground">{overview?.servers.length || 0} registered</span></div>
         <select value={selectedServer} onChange={(event) => setSelectedServer(event.target.value)} className="mb-3 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm">
           <option value="">Select server</option>{overview?.servers.map((server) => <option key={server.server_id} value={server.server_id}>{server.name || server.server_id} · {server.mode} · {server.map_name}</option>)}
         </select>
-        <div className="grid gap-2 sm:grid-cols-2">{visibleActions.map((action) => { const Icon = action.icon; return <button key={action.type} disabled={busy} onClick={() => void queue(action.type)} className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[.03] p-3 text-left text-sm transition hover:border-line-strong hover:bg-raised disabled:opacity-50"><Icon className="h-4 w-4 text-text-2" />{action.label}</button> })}</div>
+        <div className="grid gap-2 sm:grid-cols-2">{visibleActions.map((action) => { const Icon = action.icon; return <button key={action.type} disabled={busy} onClick={() => void queue(action.type)} className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[.03] p-3 text-left text-sm transition hover:border-[var(--line-strong)] hover:bg-[var(--raised)] disabled:opacity-50"><Icon className="h-4 w-4 text-[var(--text-muted)]" />{action.label}</button> })}</div>
         <div className="mt-4 grid gap-2 sm:grid-cols-3"><input value={playerSteamId} onChange={(event) => setPlayerSteamId(event.target.value)} placeholder="Player SteamID" className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs" /><input value={map} onChange={(event) => setMap(event.target.value)} placeholder="Map" className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs" /><input value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Reason / announcement" className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs" /></div>
       </div>
-      <div className="rounded-2xl border border-white/10 bg-card/70 p-5"><h2 className="font-semibold">Queue</h2><div className="mt-4 space-y-2">{overview?.pendingActions.length ? overview.pendingActions.map((action) => <div key={action.id} className="flex items-center justify-between rounded-xl border border-white/10 px-3 py-2 text-xs"><span>{action.action_type} · {action.server_id}</span><span className="uppercase text-text-2">{action.status}</span></div>) : <p className="text-sm text-muted-foreground">No pending server operations.</p>}</div></div>
+      <div className="rounded-2xl border border-white/10 bg-card/70 p-5"><h2 className="font-semibold">Queue</h2><div className="mt-4 space-y-2">{overview?.pendingActions.length ? overview.pendingActions.map((action) => <div key={action.id} className="flex items-center justify-between rounded-xl border border-white/10 px-3 py-2 text-xs"><span>{action.action_type} · {action.server_id}</span><span className="uppercase text-[var(--text-muted)]">{action.status}</span></div>) : <p className="text-sm text-muted-foreground">No pending server operations.</p>}</div></div>
     </section>
-    <StaffPhantomReview />
-    {access.role === "OWNER" && <section className="grid gap-4"><div className="rounded-2xl border border-white/10 bg-card/70 p-5"><h2 className="flex items-center gap-2 font-semibold"><Database className="h-4 w-4 text-text-2" />Database overview</h2><div className="mt-4 grid grid-cols-2 gap-2">{database?.tables.map((table) => <div key={table.name} className="rounded-xl border border-white/10 px-3 py-3"><p className="text-xs text-muted-foreground">{table.name}</p><p className="mt-1 text-xl font-semibold">{table.count}</p></div>)}</div><p className="mt-3 text-xs text-muted-foreground">Metadata only. Raw SQL is never exposed in the browser.</p></div></section>}
+    {access.role === "OWNER" && <section className="grid gap-4"><div className="rounded-2xl border border-white/10 bg-card/70 p-5"><h2 className="flex items-center gap-2 font-semibold"><Database className="h-4 w-4 text-[var(--text-muted)]" />Database overview</h2><div className="mt-4 grid grid-cols-2 gap-2">{database?.tables.map((table) => <div key={table.name} className="rounded-xl border border-white/10 px-3 py-3"><p className="text-xs text-muted-foreground">{table.name}</p><p className="mt-1 text-xl font-semibold">{table.count}</p></div>)}</div><p className="mt-3 text-xs text-muted-foreground">Metadata only. Raw SQL is never exposed in the browser.</p></div></section>}
   </main>
 }

@@ -1,4 +1,5 @@
 import type { PageId } from "@/api/types"
+import { isPageEnabled } from "@/lib/features"
 
 export const PAGE_ROUTES: Record<PageId, string> = {
   home: "/",
@@ -7,6 +8,7 @@ export const PAGE_ROUTES: Record<PageId, string> = {
   "play-proleague": "/play/pro",
   "play-tournaments": "/tournaments",
   leaders: "/leaders",
+  clan: "/clan",
   skinchanger: "/skinchanger",
   penalties: "/penalties",
   explore: "/explore",
@@ -15,13 +17,18 @@ export const PAGE_ROUTES: Record<PageId, string> = {
   settings: "/settings",
 }
 
+export const ROUTE_PAGES: Record<string, PageId> = Object.fromEntries(
+  Object.entries(PAGE_ROUTES).map(([page, route]) => [route, page as PageId]),
+)
+
 export const PAGE_TITLES: Record<PageId, string> = {
   home: "Home",
-  "play-5vs5": "5x5 Matches",
+  "play-5vs5": "5vs5 Matches",
   "play-fun": "Fun Mode",
   "play-proleague": "Pro League",
   "play-tournaments": "Tournaments",
   leaders: "Leaders",
+  clan: "Clan",
   skinchanger: "Skinchanger",
   penalties: "Penalties",
   explore: "Explore",
@@ -30,28 +37,28 @@ export const PAGE_TITLES: Record<PageId, string> = {
   settings: "Settings",
 }
 
-/** Old addresses that still arrive from bookmarks and external links. */
-export const LEGACY_REDIRECTS: Record<string, string> = {
-  "/play/5vs5": "/play/5x5",
-  "/play/proleague": "/play/pro",
-  "/feedback": "/reviews",
-  "/search": "/explore",
+function matchPage(pathname: string): PageId {
+  if (pathname.startsWith("/players/")) return "profile"
+  if (pathname.startsWith("/profile/")) return "profile"
+  if (pathname.startsWith("/clan/")) return "clan"
+  if (pathname.startsWith("/clans/")) return "clan"
+  if (pathname === "/search") return "explore"
+  if (pathname === "/feedback") return "feedback"
+  // Older addresses of the Play pages keep working.
+  if (pathname === "/play/5vs5") return "play-5vs5"
+  if (pathname === "/play/proleague") return "play-proleague"
+  if (pathname.startsWith("/servers/")) return "play-5vs5"
+  return ROUTE_PAGES[pathname] ?? "home"
 }
 
 export function routeToPage(pathname: string): PageId {
-  if (pathname.startsWith("/profile")) return "profile"
-  if (pathname.startsWith("/tournaments")) return "play-tournaments"
-  const entry = Object.entries(PAGE_ROUTES).find(([, route]) => route === pathname)
-  return (entry?.[0] as PageId | undefined) ?? "home"
+  // A disabled feature has no route, so its address falls through to the home page — and so must the
+  // page title in the header.
+  const page = matchPage(pathname)
+  return isPageEnabled(page) ? page : "home"
 }
 
 export function pageToRoute(page: PageId): string {
+  if (!isPageEnabled(page)) return "/"
   return PAGE_ROUTES[page] ?? "/"
-}
-
-/** A player's profile address: SteamID64 for others, /profile for yourself. */
-export function profilePath(identity: string | null | undefined, viewer?: { id: string; steamId: string } | null): string {
-  if (!identity) return "/profile"
-  if (viewer && (identity === viewer.steamId || identity === viewer.id)) return "/profile"
-  return `/profile/${encodeURIComponent(identity)}`
 }

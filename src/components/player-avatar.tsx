@@ -1,9 +1,10 @@
-/** Steam avatar in a rounded square (radius ≈ 28% of the size). Fallback: the first letter of the name on --raised. */
+/** LEGACY-X dark glass UI: safe Steam avatar image that always fills its allocated box, with an identity fallback. */
 import { useState } from "react"
 
 import { cn } from "@/lib/utils"
+import { OptimizedImage } from "@/components/optimized-image"
 
-function validAvatarUrl(value?: string | null) {
+function validAvatarUrl(value?: string) {
   if (!value) return false
   try {
     const url = new URL(value)
@@ -16,48 +17,21 @@ function validAvatarUrl(value?: string | null) {
 export function PlayerAvatar({
   avatar,
   name,
-  size = 32,
   className,
-  ring = false,
+  imageClassName,
 }: {
-  avatar?: string | null
-  name?: string | null
-  /** Rendered size in px; the corner radius follows it. */
-  size?: number
+  avatar?: string
+  name?: string
   className?: string
-  /** Accent ring, e.g. the pinned "You" row. */
-  ring?: boolean
+  imageClassName?: string
 }) {
   const [failed, setFailed] = useState(false)
-  const [loaded, setLoaded] = useState(false)
-  const letter = (name?.trim() || "?").charAt(0).toUpperCase()
+  const initials = (name?.trim() || "?").slice(0, 2).toUpperCase()
   const showImage = !failed && validAvatarUrl(avatar)
 
   return (
-    <span
-      className={cn(
-        "relative inline-flex shrink-0 items-center justify-center overflow-hidden border border-line-strong bg-raised font-semibold text-text-muted",
-        ring && "outline outline-2 outline-offset-2 outline-accent",
-        className,
-      )}
-      style={{ width: size, height: size, borderRadius: Math.round(size * 0.28), fontSize: Math.max(10, Math.round(size * 0.4)) }}
-    >
-      {!loaded && letter}
-      {showImage && (
-        <img
-          src={avatar!}
-          alt=""
-          width={size}
-          height={size}
-          loading="lazy"
-          decoding="async"
-          referrerPolicy="no-referrer"
-          data-loaded={loaded}
-          onLoad={() => setLoaded(true)}
-          onError={() => setFailed(true)}
-          className="absolute inset-0 size-full object-cover"
-        />
-      )}
-    </span>
+    <div className={cn("relative flex shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br from-secondary to-muted font-bold", className)}>
+      {showImage ? <OptimizedImage src={avatar!} width={96} height={96} alt="" className={cn("absolute inset-0 h-full w-full max-w-none object-cover object-center", imageClassName)} onError={() => setFailed(true)} /> : initials}
+    </div>
   )
 }

@@ -11,7 +11,7 @@ import deVertigo from "@/assets/maps/de_vertigo.webp"
 
 /**
  * LEGACY-X map visual system: normalize gameplay-server map keys to supplied CS2 artwork without changing card composition.
- * * Artwork is bundled from src/assets (hashed by Vite) so it ships with every build.
+ * Artwork is bundled from src/assets (hashed by Vite) so it ships with every build; the old /manus-storage paths never existed on the production host.
  */
 const CS2_MAP_ARTWORK: Record<string, string> = {
   de_ancient: deAncient,

@@ -37,8 +37,6 @@ export interface ApiError {
   fields?: Record<string, string[]>
   /** A controlled backend error reason safe for page-specific handling. */
   reason?: string
-  /** The backend reason text. Only the staff panel shows it (permission refusals such as "Target is above your rank"). */
-  detail?: string
   /** ISO timestamp used only by explicit retry/cooldown responses. */
   retryAt?: string
 }
@@ -54,6 +52,7 @@ export type PageId =
   | "play-proleague"
   | "play-tournaments"
   | "leaders"
+  | "clan"
   | "skinchanger"
   | "penalties"
   | "explore"
@@ -122,7 +121,7 @@ export interface ProfileLinksPayload {
 }
 
 /** Profile boxes a player may hide. Penalty history, SteamID, Steam link and rank are always shown. */
-export type ProfileSection = "kd" | "matches" | "kills" | "faceit" | "recent_matches" | "loadout"
+export type ProfileSection = "kd" | "matches" | "kills" | "faceit" | "recent_matches"
 
 export interface UserProfile {
   id: string
@@ -133,8 +132,11 @@ export interface UserProfile {
   moderationStatus?: ModerationStatus
   /** Profile boxes the player hid; absent on older backends (nothing hidden). */
   hiddenSections?: ProfileSection[]
-  /** Settings → Notifications; present on the signed-in player's own profile. */
-  notificationPrefs?: NotificationPrefs
+  clan?: {
+    id: string
+    name: string
+    tag: string
+  } | null
   steamBackground?: string | null
   /** Equipped Steam Points Shop items; steamBackground is the still image / video poster. */
   steamMedia?: {
@@ -144,25 +146,6 @@ export interface UserProfile {
   } | null
   faceit?: ProfileFaceitStats
   links?: ProfileLink[]
-  /** When the account was created on Legacy-X. */
-  memberSince?: string | null
-  /** Present when the player is on a live server right now. */
-  playingNow?: { serverId: string; serverName: string; map: string; connectAddress: string | null } | null
-  /** Staff only: penalties issued (public accountability). */
-  penaltiesIssued?: number | null
-}
-
-export interface ProfileLoadoutShowcase {
-  hidden: boolean
-  side: "t" | "ct" | null
-  items: Array<{ slot: "knife" | "gloves" | "ak47" | "awp"; name: string; imageUrl: string | null }>
-}
-
-export interface NotificationPrefs {
-  tournaments: boolean
-  rankChanges: boolean
-  /** Always on. */
-  penalties: true
 }
 
 export interface CompetitiveProfile {
@@ -182,36 +165,49 @@ export interface CompetitiveProfile {
   kills: number
   assists: number
   headshot_kills: number
+  deaths?: number
   last_match_at: string | null
   current_rank_min_exp: number
   next_rank_id: number | null
   next_rank_name: string | null
   next_rank_min_exp: number | null
-  deaths?: number
-  /** Position on the EXP ladder; null when unknown. */
-  leaderboard_position?: number | null
-  /** The player hid their Legacy-X stats; the match stat fields are then absent. */
-  stats_hidden?: boolean
-}
-
-export interface CompetitiveLeaderboardEntry extends CompetitiveProfile {
-  /** Position for the active sort. */
-  position: number
-  deaths: number
-  kd_ratio: number
-  win_rate: number
-  played_hours: number
 }
 
 export type LeaderboardSort = "exp" | "kd" | "win"
 
-export interface CompetitiveLeaderboard {
-  sort: LeaderboardSort
-  /** K/D and win rate only rank players with at least this many matches. */
-  minimumMatches: number
-  entries: CompetitiveLeaderboardEntry[]
-  /** The signed-in player's own row for the active sort; null when logged out or unranked. */
-  viewer: CompetitiveLeaderboardEntry | null
+export interface CompetitiveLeaderboardEntry extends CompetitiveProfile {
+  position: number
+  deaths: number
+  kd_ratio: number
+  /** wins / matches_completed, 0–1. */
+  win_rate: number
+  played_hours: number
+}
+
+/* ----------------------------------------------------------------------------
+ * Kill feed (live ticker in the top bar)
+ * ------------------------------------------------------------------------- */
+
+export interface KillFeedEntry {
+  eventId: string
+  serverId: string
+  attackerName: string
+  attackerSteamId: string
+  victimName: string
+  victimSteamId: string
+  weapon: string
+  headshot: boolean
+  /** Optional kill tags the feed draws as small icons; absent means "not reported". */
+  noscope?: boolean
+  blind?: boolean
+  throughSmoke?: boolean
+  penetrated?: boolean
+  timestamp: string
+}
+
+export interface KillFeedPage {
+  kills: KillFeedEntry[]
+  cursor: string | null
 }
 
 export interface CompetitiveAccess {
@@ -219,68 +215,6 @@ export interface CompetitiveAccess {
   proLeagueUnlocked: boolean
   requiredRankId: number
   requiredRankName: string
-  requiredRankImageKey?: string
-  requiredExp?: number
-  keepExp?: number
-}
-
-/** Why a match gave the EXP it did (RANK-SYSTEM.md §6). */
-export interface ExpBreakdown {
-  reason: "ranked" | "leaver" | "invalid_match" | "low_participation"
-  result: number
-  margin: number
-  performance: number
-  bonus: number
-  calibration: number
-  shortHandedHalved: boolean
-  omittedTerms: string[]
-}
-
-export interface RankedMatch {
-  eventId: string
-  matchId: string
-  map: string
-  outcome: "win" | "draw" | "loss"
-  score: { for: number; against: number } | null
-  kills: number
-  deaths: number
-  assists: number
-  kd: number
-  expBefore: number
-  expDelta: number
-  expAfter: number
-  rankBefore: number
-  rankAfter: number
-  countsAsRanked: boolean
-  breakdown: ExpBreakdown
-  calculationVersion: string
-  playedAt: string | null
-}
-
-export interface RankedMatchPlayer {
-  userId: string
-  steamId: string
-  name: string
-  avatar: string
-  kills: number | null
-  deaths: number | null
-  assists: number | null
-  expDelta: number
-  expAfter: number
-  rankId: number
-  reason: ExpBreakdown["reason"]
-}
-
-export interface RankedMatchDetail {
-  matchId: string
-  map: string
-  state: string
-  startedAt: string | null
-  finishedAt: string | null
-  mode: string | null
-  totalRounds: number
-  teams: Array<{ key: "team1" | "team2"; roundsWon: number; players: RankedMatchPlayer[] }>
-  rounds: MatchDetailRound[]
 }
 
 export interface ProfileStats {
@@ -359,36 +293,11 @@ export interface MatchDetail {
 
 export type PlaySubMode = "5vs5" | "fun" | "proleague" | "tournaments"
 
-export type MatchStatus = "live" | "waiting" | "finished" | "locked"
-
-export interface MatchInfo {
-  id: string
-  number: number
-  map: string
-  /** Exact server address when the match service exposes its assigned game server. */
-  connectAddress?: string
-  players: number
-  maxPlayers: number
-  status: MatchStatus
-  favorite: boolean
-  signal: number
-  scoreT: number
-  scoreCT: number
-}
-
-export interface MatchFilters {
-  status?: MatchStatus
-  mode?: PlaySubMode
-}
-
 /* ----------------------------------------------------------------------------
  * Servers
  * ------------------------------------------------------------------------- */
 
 export type ServerStatus = "online" | "offline" | "full"
-
-/** Play page bucket derived by the API from the server's LEGACYX_SERVER_MODE. */
-export type ServerModeKind = "5v5" | "pro" | "fun" | "other"
 
 export interface ServerInfo {
   id: string
@@ -396,40 +305,10 @@ export interface ServerInfo {
   map: string
   players: number
   maxPlayers: number
-  mode: ServerModeKind
-  /** The raw LEGACYX_SERVER_MODE, e.g. "fun_retake"; used for Fun Mode chips. */
-  rawMode?: string | null
+  mode: string
   ping: number
   status: ServerStatus
   connectAddress?: string
-  gotvAddress?: string | null
-  lastHeartbeatAt?: string | null
-  /** From a fresh live match snapshot (≤ 90s old); null when the server reports none. */
-  live?: ServerLiveState | null
-}
-
-export interface ServerLiveState {
-  state: string
-  round: number | null
-  score: { t: number; ct: number } | null
-}
-
-export interface QuickJoinResult {
-  server: ServerInfo | null
-  connectAddress: string | null
-}
-
-export interface KillFeedEntry {
-  cursor: number
-  eventId: string
-  serverId: string
-  attackerName: string
-  attackerSteamId: string | null
-  victimName: string
-  victimSteamId: string | null
-  weapon: string
-  headshot: boolean
-  at: string
 }
 
 /** A verified, player-specific reconnect opportunity from the Root API. */
@@ -454,7 +333,7 @@ export interface ServerLiveMatchPlayer {
   rankImageKey: string | null
   adr: number | null
   ping: number | null
-  /** Optional in the snapshot contract; null until the plugin reports them. */
+  /** Sent by newer match plugins; null when the server does not report it. */
   kills?: number | null
   deaths?: number | null
   assists?: number | null
@@ -463,6 +342,10 @@ export interface ServerLiveMatchPlayer {
 export interface ServerLiveMatch {
   serverId: string
   serverName: string
+  connectAddress?: string | null
+  gotvAddress?: string | null
+  players?: number
+  maxPlayers?: number
   map: string
   mode: string
   state: "waiting" | "live" | "paused" | "ended" | "unavailable"
@@ -485,91 +368,65 @@ export interface ServerFilters {
  * ------------------------------------------------------------------------- */
 
 export interface CommunityPlayer {
-  id: string
-  steamId: string
+  /** Stable user identifier. Present for search results and used for profile navigation. */
+  id?: string
+  steamId?: string
   name: string
-  avatar: string
-  rankId?: number
   kills: number
   deaths: number
   kd: number
+  headshots: number
   matches: number
   wins: number
-  winRate?: number
   playedHours: number
-  lastPlayed: string | null
+  lastPlayed: string
+  avatar: string
   moderationStatus: ModerationStatus
 }
 
 export type ModerationStatus = "Banned" | "Muted" | "Gag" | "Clear"
 
 /* ----------------------------------------------------------------------------
- * Tournaments
+ * Clans
  * ------------------------------------------------------------------------- */
 
-export type TournamentPhase = "registration" | "upcoming" | "live" | "finished"
-
-export interface TournamentSummary {
+export interface ClanCard {
   id: string
   name: string
-  description: string | null
-  phase: TournamentPhase
-  format: string
-  prizePool: string | null
-  startsAt: string | null
-  registrationClosesAt: string | null
-  checkInOpensAt: string | null
-  maxPlayers: number | null
-  teamSize: number
-  registeredPlayers: number
-  winner: { id: string; name: string } | null
+  tag: string
+  logo: string
+  thumbnail: string | null
+  currentPlayers: number
+  maxPlayers: number
+  region: string
 }
 
-export interface TournamentPlayer {
-  userId: string
-  steamId: string
+export interface ClanDetail extends ClanCard {
+  description?: string
+  members?: ClanMember[]
+}
+
+export interface ClanMember {
+  id: string
   name: string
+  role: string
   avatar: string
-  exp: number
-  rankId: number
-  checkedIn: boolean
+  description: string
 }
 
-export interface TournamentTeam {
-  id: string
+export interface CreateClanRequest {
   name: string
-  captainUserId: string | null
-  autoBalanced: boolean
-  players: TournamentPlayer[]
+  tag: string
+  logo: string
+  thumbnail?: string | null
+  region?: string
 }
 
-export interface TournamentMatch {
-  id: string
-  round: string
-  order: number
-  status: "live" | "upcoming" | "completed"
-  map: string | null
-  scheduledAt: string | null
-  teamA: { id: string; name: string } | null
-  teamB: { id: string; name: string } | null
-  scoreA: number | null
-  scoreB: number | null
-  serverId: string | null
-  serverName?: string | null
-  connectAddress?: string | null
-}
-
-export interface TournamentDetail {
-  tournament: TournamentSummary
-  teams: TournamentTeam[]
-  soloPlayers: TournamentPlayer[]
-  matches: TournamentMatch[]
-  viewer: { registered: boolean; mode: "solo" | "team" | null; teamId: string | null; checkedIn: boolean } | null
-}
-
-export interface TournamentsOverview {
-  current: TournamentSummary | null
-  past: TournamentSummary[]
+export interface TeamMember {
+  name: string
+  role: string
+  avatar: string
+  description: string
 }
 
 /* ----------------------------------------------------------------------------
@@ -577,45 +434,6 @@ export interface TournamentsOverview {
  * ------------------------------------------------------------------------- */
 
 export type StaffPanelRole = "OWNER" | "MANAGER"
-
-/** Phantom anti-cheat suspension awaiting staff review (legacy_x.phantom_suspension_cases). */
-export interface PhantomSuspensionCase {
-  id: string
-  match_reference: string
-  server_id: string
-  server_mode: string
-  steam_id: string
-  status: "ACTIVE" | "SUSPICIOUS" | "HIGH_CONFIDENCE" | "SUSPENDED" | "CLEARED" | "CONFIRMED"
-  suspicion_score: number
-  evidence_count: number
-  evidence_summary: { phantom_ids?: string[]; latest_interaction?: string; evidence_confidence?: number }
-  suspended_at: string
-  reviewed_at: string | null
-  review_note: string | null
-  reviewed_by_staff_id: string | null
-  updated_at: string
-}
-
-/** One raw Phantom signal; evidence alone never bans anyone. */
-export interface PhantomEvidenceEntry {
-  id: string
-  event_id: string
-  match_reference: string
-  server_id: string
-  server_mode: string
-  steam_id: string
-  phantom_id: string
-  mapped_steam_id: string
-  round_number: number
-  tick: number
-  interaction_type: "aim_correlation" | "shot_correlation"
-  interaction_count: number
-  suspicion_score: number
-  evidence_confidence: number
-  occurred_at: string
-}
-
-export type PhantomReviewDecision = "clear" | "keep" | "confirm_ban"
 
 export interface StaffPanelAccess {
   role: StaffPanelRole
@@ -743,8 +561,6 @@ export interface PenaltyStats {
 export interface PenaltyFilters {
   type?: PenaltyType
   query?: string
-  /** Issuing admin (name or SteamID64). */
-  admin?: string
 }
 
 /* ----------------------------------------------------------------------------
@@ -771,8 +587,19 @@ export interface CreateFeedbackRequest {
  * Search
  * ------------------------------------------------------------------------- */
 
+export type SearchKind = "players" | "clans"
+
+export interface SearchRequest {
+  query: string
+  kind: SearchKind
+}
+
 export interface SearchPlayersResult {
   players: CommunityPlayer[]
+}
+
+export interface SearchClansResult {
+  clans: ClanCard[]
 }
 
 /* ----------------------------------------------------------------------------
@@ -807,5 +634,6 @@ export interface HomeStats {
   playersOnline: number
   liveServers: number
   matchesToday: number
-
+  /** Players on each play page's servers right now. */
+  modes?: { "5x5": number; fun: number; pro: number }
 }

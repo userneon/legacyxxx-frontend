@@ -1,117 +1,124 @@
 /**
- * Bell → notifications popover (docs/design/shell-notifications): header with "Mark all as read", rows with an
- * icon, two text lines and an unread dot. The feed belongs to the signed-in player.
+ * Notifications bell in the header. It opens a panel under the button rather than navigating, so the
+ * page behind it is never lost.
+ *
+ * The feed belongs to the signed-in player, so the bell is only rendered for one; opening the panel
+ * marks what it shows as read.
  */
 import { useState } from "react"
-import { Bell, Gavel, Info, Swords } from "lucide-react"
+import { Bell, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
 import { notificationsService, type NotificationEntry, type NotificationFeed } from "@/api"
 import { cn } from "@/lib/utils"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { RelativeTime } from "@/components/relative-time"
-import { ErrorState, Skeleton } from "@/components/states"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 
-const KIND_ICON: Record<NotificationEntry["kind"], typeof Bell> = {
-  penalty: Gavel,
-  match: Swords,
-  system: Info,
+/** Row icon tile per kind; neutral surfaces, the accent only marks unread. */
+const KIND_TONE: Record<NotificationEntry["kind"], string> = {
+  penalty: "bg-[var(--line)]",
+  match: "bg-[var(--line)]",
+  system: "bg-[var(--line)]",
 }
 
 export function NotificationsMenu() {
   const { user } = useAuth()
   const [open, setOpen] = useState(false)
-  const [readIds, setReadIds] = useState<Set<string> | "all">(new Set())
+  const [clearing, setClearing] = useState(false)
+  const [readLocally, setReadLocally] = useState(false)
 
-  const { data: feed, loading, error, refetch } = useApiQuery<NotificationFeed>((signal) => notificationsService.getFeed({ signal }), {
-    enabled: Boolean(user),
-    queryKey: user?.id ?? "guest",
-    keepPreviousData: true,
-    pollMs: 60_000,
-  })
+  const { data: feed, loading, error, refetch } = useApiQuery<NotificationFeed>(
+    (signal) => notificationsService.getFeed({ signal }),
+    { enabled: Boolean(user), queryKey: user ? `notifications:${user.id}` : "notifications:guest" },
+  )
 
   if (!user) return null
 
   const entries = feed?.entries ?? []
-  const isUnread = (entry: NotificationEntry) => !entry.readAt && readIds !== "all" && !readIds.has(entry.id)
-  const unread = entries.filter(isUnread).length
+  const unread = readLocally ? 0 : feed?.unreadCount ?? 0
 
-  const markAllRead = () => {
-    if (unread === 0) return
-    setReadIds("all")
-    notificationsService.markRead().then(refetch).catch(() => setReadIds(new Set()))
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next)
+    if (!next) return
+    refetch()
+    // Seeing the panel is what marks the feed read; the badge clears immediately.
+    if ((feed?.unreadCount ?? 0) > 0) {
+      setReadLocally(true)
+      notificationsService.markRead().catch(() => setReadLocally(false))
+    }
+  }
+
+  const handleClear = async () => {
+    if (entries.length === 0 || clearing) return
+    setClearing(true)
+    try {
+      await notificationsService.clear()
+      setReadLocally(true)
+      refetch()
+    } catch {
+      toast.error("Could not clear your notifications. Try again.")
+    } finally {
+      setClearing(false)
+    }
   }
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next)
-        if (next) refetch()
-      }}
-    >
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger
-        aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
-        className="relative flex size-10 shrink-0 items-center justify-center rounded-[10px] text-text-muted transition-colors duration-150 hover:bg-raised hover:text-text data-[state=open]:bg-raised data-[state=open]:text-text"
+        className={cn(
+          "relative flex size-10 items-center justify-center rounded-[10px] text-[var(--text-muted)]",
+          "transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)]",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60",
+        )}
+        aria-label={unread > 0 ? `Notifications (${unread} unread)` : "Notifications"}
       >
-        <Bell className="size-[18px]" aria-hidden />
-        <span
-          aria-hidden
-          className={cn(
-            "absolute top-[9px] right-2.5 size-[7px] rounded-full bg-accent shadow-[0_0_0_2px_var(--panel)] transition-opacity duration-200",
-            unread > 0 ? "opacity-100" : "opacity-0",
-          )}
-        />
+        <Bell className="size-[18px]" />
+        {unread > 0 && <span aria-hidden="true" className="absolute right-2.5 top-2.5 size-[7px] rounded-full bg-[var(--accent-solid)] ring-2 ring-[var(--panel)]" />}
       </PopoverTrigger>
-      <PopoverContent align="end" sideOffset={12} className="w-[360px] max-w-[calc(100vw-16px)] p-0">
-        <div className="flex h-12 items-center justify-between border-b border-line-soft px-4">
-          <span className="text-sm font-semibold text-text">Notifications</span>
+
+      <PopoverContent align="end" sideOffset={8} className="w-[360px] overflow-hidden rounded-[14px] border-[var(--line-soft)] bg-[var(--panel)] p-0 shadow-[0_16px_40px_rgba(0,0,0,0.5)]">
+        <div className="flex h-12 items-center justify-between gap-3 border-b border-[var(--line-soft)] px-4">
+          <h2 className="text-sm font-semibold text-[var(--text)]">Notifications</h2>
           <button
             type="button"
-            onClick={markAllRead}
-            disabled={unread === 0}
-            className="text-xs text-text-muted transition-colors duration-150 hover:text-text disabled:cursor-default disabled:opacity-50"
+            disabled={entries.length === 0 || clearing}
+            onClick={() => void handleClear()}
+            className={cn(
+              "inline-flex items-center gap-1.5 text-xs text-[var(--text-muted)] transition-colors hover:text-[var(--text)]",
+              "disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60",
+            )}
           >
             Mark all as read
+            {clearing && <Loader2 className="size-3.5 animate-spin" />}
           </button>
         </div>
+
         {loading && !feed ? (
-          <div aria-busy="true" aria-label="Loading notifications">
-            {[0, 1, 2].map((row) => (
-              <div key={row} className="flex items-start gap-3 px-4 py-3">
-                <Skeleton className="size-8 rounded-lg" />
-                <span className="flex flex-1 flex-col gap-2 pt-[3px]">
-                  <Skeleton className="h-2.5 w-4/5" />
-                  <Skeleton className="h-2 w-2/5 bg-raised" />
-                </span>
-              </div>
-            ))}
+          <div className="flex flex-col gap-1 px-2 pb-2" aria-busy="true">
+            {[0, 1].map((index) => <div key={index} className="h-12 animate-pulse rounded-lg bg-white/[0.05]" />)}
           </div>
         ) : error && !feed ? (
-          <ErrorState onRetry={refetch} className="py-8" />
+          <p className="px-4 pb-5 pt-1 text-center text-xs text-muted-foreground">
+            Could not load notifications.{" "}
+            <button type="button" onClick={refetch} className="underline underline-offset-2 hover:text-foreground">Try again</button>
+          </p>
         ) : entries.length === 0 ? (
-          <p className="px-4 py-8 text-center text-[13px] text-text-dim">You're all caught up.</p>
+          <p className="px-4 pb-5 pt-1 text-center text-xs text-muted-foreground">No notifications</p>
         ) : (
-          <ul className="max-h-[420px] overflow-y-auto">
-            {entries.map((entry) => {
-              const Icon = KIND_ICON[entry.kind] ?? Info
-              return (
-                <li key={entry.id} className="flex items-start gap-3 px-4 py-3 transition-colors duration-150 hover:bg-card">
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-line bg-raised text-text-muted">
-                    <Icon className="size-4" aria-hidden />
-                  </span>
-                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="truncate text-[13px] font-medium text-text" title={entry.title}>{entry.title}</span>
-                    <span className="truncate text-xs text-text-dim">
-                      {entry.body ? `${entry.body} · ` : ""}
-                      <RelativeTime value={entry.createdAt} />
-                    </span>
-                  </span>
-                  <span aria-label={isUnread(entry) ? "Unread" : undefined} className={cn("mt-1.5 size-1.5 shrink-0 rounded-full", isUnread(entry) ? "bg-accent" : "bg-transparent")} />
-                </li>
-              )
-            })}
+          <ul className="flex max-h-80 flex-col overflow-y-auto">
+            {entries.map((notification) => (
+              <li key={notification.id} className="flex items-start gap-3 px-4 py-3">
+                <span className={cn("mt-0.5 size-8 shrink-0 rounded-lg", KIND_TONE[notification.kind] ?? KIND_TONE.system)} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{notification.title}</p>
+                  {notification.body && <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{notification.body}</p>}
+                  <RelativeTime value={notification.createdAt} className="mt-1 block text-[11px] text-[var(--text-dim)]" />
+                </div>
+                {notification.readAt === null && <span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-[var(--accent-solid)]" />}
+              </li>
+            ))}
           </ul>
         )}
       </PopoverContent>

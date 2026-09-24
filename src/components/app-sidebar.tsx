@@ -1,174 +1,192 @@
-/**
- * Floating sidebar (docs/design shell, shell-collapsed): logo + toggle, Home · Play (5x5 Matches, Fun Mode,
- * Pro League, Tournaments) · Skinchanger · Leaders · Penalties · Reviews · Explore. Collapses to a 64px icon rail;
- * the state persists in shadcn's sidebar cookie. On phones it is a sheet opened from the top bar.
- */
-import type { ComponentType, ReactNode } from "react"
-import { Link, useLocation } from "react-router-dom"
-import { Gavel, House, Lock, MessageSquare, Paintbrush, PanelLeft, Play, Search, Trophy } from "lucide-react"
+import { useEffect, useState } from "react"
+import { House, Play, Paintbrush, Trophy, Gavel, MessageSquare, Search, Lock, PanelLeft, ChevronDown, type LucideIcon } from "lucide-react"
 
+import { isPageEnabled } from "@/lib/features"
+import { competitiveService } from "@/api"
+import { playService, type PlayServerList } from "@/api/play"
+import type { CompetitiveAccess, PageId } from "@/api/types"
+import { useApiQuery } from "@/hooks/use-api-query"
+import { useAuth } from "@/hooks/use-auth"
+import { Sidebar, SidebarContent, useSidebar } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
-import { isFeatureEnabled, type FeatureName } from "@/lib/features"
-import { PAGE_ROUTES } from "@/lib/routes"
-import { Sidebar, useSidebar } from "@/components/ui/sidebar"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { useLiveServers } from "@/hooks/use-live-servers"
-import { useMyRank } from "@/hooks/use-my-rank"
-import type { ServerModeKind } from "@/api"
 
-type Icon = ComponentType<{ className?: string; "aria-hidden"?: boolean }>
-
-interface NavItem {
-  label: string
-  to: string
-  icon: Icon
-  feature?: FeatureName
+interface AppSidebarProps {
+  currentPage: PageId
+  onNavigate: (page: PageId) => void
 }
 
-const TOP: NavItem[] = [{ label: "Home", to: PAGE_ROUTES.home, icon: House }]
-const BOTTOM: NavItem[] = [
-  { label: "Skinchanger", to: PAGE_ROUTES.skinchanger, icon: Paintbrush, feature: "skinchanger" },
-  { label: "Leaders", to: PAGE_ROUTES.leaders, icon: Trophy, feature: "leaders" },
-  { label: "Penalties", to: PAGE_ROUTES.penalties, icon: Gavel, feature: "penalties" },
-  { label: "Reviews", to: PAGE_ROUTES.feedback, icon: MessageSquare, feature: "feedback" },
-  { label: "Explore", to: PAGE_ROUTES.explore, icon: Search, feature: "explore" },
-]
-const PLAY: Array<{ label: string; to: string; mode?: Exclude<ServerModeKind, "other">; pro?: boolean; feature?: FeatureName }> = [
-  { label: "5x5 Matches", to: PAGE_ROUTES["play-5vs5"], mode: "5v5" },
-  { label: "Fun Mode", to: PAGE_ROUTES["play-fun"], mode: "fun" },
-  { label: "Pro League", to: PAGE_ROUTES["play-proleague"], pro: true },
-  { label: "Tournaments", to: PAGE_ROUTES["play-tournaments"], feature: "tournaments" },
-]
+type NavItem = { id: PageId; label: string; icon: LucideIcon }
 
-const enabled = <T extends { feature?: FeatureName }>(items: T[]) => items.filter((item) => !item.feature || isFeatureEnabled(item.feature))
+/** Navigation only lists pages whose feature is switched on — a disabled page has no entry at all. */
+function enabledNav(items: NavItem[]): NavItem[] {
+  return items.filter((item) => isPageEnabled(item.id))
+}
 
-const itemBase =
-  "relative flex h-10 items-center gap-2.5 rounded-lg px-[11px] text-sm font-medium outline-none transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-accent/60"
-const labelFade = "truncate transition-opacity duration-[120ms] group-data-[collapsible=icon]:opacity-0"
+const PLAY_ITEMS: NavItem[] = enabledNav([
+  { id: "play-5vs5", label: "5x5 Matches", icon: Play },
+  { id: "play-fun", label: "Fun Mode", icon: Play },
+  { id: "play-proleague", label: "Pro League", icon: Play },
+  { id: "play-tournaments", label: "Tournaments", icon: Play },
+])
 
-function Rail({ label, collapsed, children }: { label: string; collapsed: boolean; children: ReactNode }) {
-  if (!collapsed) return <>{children}</>
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>{children}</TooltipTrigger>
-      <TooltipContent side="right" sideOffset={10}>
-        {label}
-      </TooltipContent>
-    </Tooltip>
+const NAV_ITEMS: NavItem[] = enabledNav([
+  { id: "skinchanger", label: "Skinchanger", icon: Paintbrush },
+  { id: "leaders", label: "Leaders", icon: Trophy },
+  { id: "penalties", label: "Penalties", icon: Gavel },
+  { id: "feedback", label: "Reviews", icon: MessageSquare },
+  { id: "explore", label: "Explore", icon: Search },
+])
+
+const EASE = "ease-[cubic-bezier(0.2,0,0,1)]"
+
+/**
+ * Every row keeps its icon at the same x in both states: the rail narrows around it, so collapsing
+ * never makes an icon jump. The row is 40px tall and, collapsed, a 40px square.
+ */
+const rowClass = cn(
+  "relative flex h-10 w-full items-center gap-2.5 overflow-hidden rounded-lg pl-[11px] pr-3 text-sm font-medium text-[var(--text-muted)]",
+  "transition-colors duration-150 hover:bg-[var(--raised)] hover:text-[var(--text)]",
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/60",
+)
+const activeRowClass = "bg-[var(--raised)] text-[var(--text)]"
+
+/** Labels fade out (120ms) before the width shrinks, and fade back in once it has grown. */
+function labelClass(collapsed: boolean) {
+  return cn(
+    "min-w-0 truncate whitespace-nowrap text-left transition-opacity motion-reduce:transition-none",
+    collapsed ? "opacity-0 duration-[120ms]" : "opacity-100 delay-150 duration-200",
   )
 }
 
-/** Green dot + real player count; hidden at 0. Tabular numbers keep the width steady when it changes. */
-function OnlineCount({ count }: { count: number }) {
-  if (count <= 0) return null
-  return (
-    <span className="ml-auto flex items-center gap-1.5 text-xs text-text-muted tabular-nums animate-fade-in" aria-label={`${count} online`}>
-      <span className="size-1.5 rounded-full bg-live" aria-hidden />
-      {count}
-    </span>
-  )
+function ActiveBar() {
+  return <span aria-hidden="true" className="absolute -left-3 bottom-2.5 top-2.5 w-0.5 rounded-full bg-[var(--accent-solid)]" />
 }
 
-export function AppSidebar() {
-  const { pathname } = useLocation()
-  const { state, toggleSidebar, isMobile, setOpenMobile } = useSidebar()
+export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
+  const { state, toggleSidebar, isMobile } = useSidebar()
   const collapsed = state === "collapsed" && !isMobile
-  const { onlineByMode } = useLiveServers()
-  const { profile } = useMyRank()
-  const proUnlocked = Boolean(profile?.pro_league_unlocked)
-  const playItems = enabled(PLAY)
-  const playActive = playItems.some((item) => pathname === item.to || pathname.startsWith(`${item.to}/`))
-  const anyOnline = onlineByMode["5v5"] + onlineByMode.fun + onlineByMode.pro > 0
-  const closeMobile = () => isMobile && setOpenMobile(false)
+  const { isAuthenticated } = useAuth()
+  const [playOpen, setPlayOpen] = useState(true)
 
-  const renderItem = (item: NavItem) => {
-    const active = pathname === item.to
-    return (
-      <Rail key={item.to} label={item.label} collapsed={collapsed}>
-        <Link
-          to={item.to}
-          onClick={closeMobile}
-          aria-current={active ? "page" : undefined}
-          aria-label={collapsed ? item.label : undefined}
-          className={cn(itemBase, active ? "bg-raised text-text" : "text-text-muted hover:bg-raised hover:text-text")}
-        >
-          {active && collapsed && <span aria-hidden className="absolute top-2.5 bottom-2.5 -left-3 w-0.5 bg-accent" />}
-          <item.icon className="size-[18px] shrink-0" aria-hidden />
-          <span className={labelFade}>{item.label}</span>
-        </Link>
-      </Rail>
-    )
-  }
+  // Live player counts next to the Play rows, refreshed every 30s while the tab is visible.
+  const { data: competitive, refetch: refetchCompetitive } = useApiQuery<PlayServerList>((signal) => playService.getServers("5x5", { signal }), { queryKey: "sidebar-play-5x5", keepPreviousData: true })
+  const { data: fun, refetch: refetchFun } = useApiQuery<PlayServerList>((signal) => playService.getServers("fun", { signal }), { queryKey: "sidebar-play-fun", keepPreviousData: true })
+  useEffect(() => {
+    const timer = window.setInterval(() => { if (document.visibilityState === "visible") { refetchCompetitive(); refetchFun() } }, 30_000)
+    return () => window.clearInterval(timer)
+  }, [refetchCompetitive, refetchFun])
+
+  const { data: access } = useApiQuery<CompetitiveAccess>((signal) => competitiveService.getMyAccess({ signal }), { enabled: isAuthenticated, queryKey: `sidebar-access:${isAuthenticated}` })
+  const proLeagueLocked = !access?.proLeagueUnlocked
+
+  const playersIn = (id: PageId) => (id === "play-5vs5" ? competitive?.players : id === "play-fun" ? fun?.players : 0) ?? 0
+  const anyoneOnline = playersIn("play-5vs5") + playersIn("play-fun") > 0
+  const isActive = (id: PageId) => currentPage === id
+  const playActive = currentPage.startsWith("play-")
 
   return (
-    <Sidebar variant="floating" collapsible="icon">
-      <div className="flex h-[60px] shrink-0 items-center justify-between pr-1 pl-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
-        <Link to="/" onClick={closeMobile} className="flex min-w-0 items-center gap-2.5 group-data-[collapsible=icon]:hidden" aria-label="LEGACY-X home">
-          <img src="/logolegacyx.webp" alt="" width={22} height={22} className="size-[22px] shrink-0" />
-          <span className="text-base font-bold tracking-[0.3px] text-text">LEGACY-X</span>
-        </Link>
-        <button
-          type="button"
-          onClick={toggleSidebar}
-          aria-label="Toggle sidebar"
-          aria-expanded={!collapsed}
-          className="flex size-8 items-center justify-center rounded-lg text-text-muted transition-colors duration-150 hover:bg-raised hover:text-text"
-        >
-          <PanelLeft className="size-[18px]" aria-hidden />
-        </button>
-      </div>
+    <Sidebar variant="floating" collapsible="icon" className="border-none [&>div[data-sidebar=sidebar]]:rounded-[14px] [&>div[data-sidebar=sidebar]]:border-[var(--line-soft)] [&>div[data-sidebar=sidebar]]:bg-[var(--panel)]">
+      <SidebarContent className="gap-0 overflow-x-hidden px-3 pb-3">
+        <div className={cn("flex h-[60px] shrink-0 items-center transition-[padding] duration-300 motion-reduce:transition-none", EASE, collapsed ? "px-1" : "pl-3 pr-1")}>
+          <span className={cn("min-w-0 flex-1 overflow-hidden text-base font-bold tracking-[0.3px] text-[var(--text)]", labelClass(collapsed))}>LEGACY-X</span>
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            aria-expanded={!collapsed}
+            aria-label="Toggle sidebar"
+            className="flex size-8 shrink-0 items-center justify-center rounded-lg text-[var(--text-muted)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
+          >
+            <PanelLeft className="size-[18px]" />
+          </button>
+        </div>
 
-      <nav aria-label="Main" className="flex flex-col gap-0.5 px-3 group-data-[collapsible=icon]:gap-1">
-        {enabled(TOP).map(renderItem)}
+        <nav aria-label="Main" className="flex flex-col gap-0.5">
+          <div className="relative">
+            {isActive("home") && <ActiveBar />}
+            <button type="button" onClick={() => onNavigate("home")} aria-label="Home" className={cn(rowClass, isActive("home") && activeRowClass)}>
+              <House className="size-[18px] shrink-0" />
+              <span className={labelClass(collapsed)}>Home</span>
+            </button>
+          </div>
 
-        {collapsed ? (
-          <Rail label="Play" collapsed>
-            <Link
-              to={PAGE_ROUTES["play-5vs5"]}
-              aria-label="Play"
-              aria-current={playActive ? "page" : undefined}
-              className={cn(itemBase, playActive ? "bg-raised text-text" : "text-text-muted hover:bg-raised hover:text-text")}
-            >
-              {playActive && <span aria-hidden className="absolute top-2.5 bottom-2.5 -left-3 w-0.5 bg-accent" />}
-              <Play className="size-[18px] shrink-0" aria-hidden />
-              {anyOnline && <span aria-hidden className="absolute top-2 right-2 size-1.5 rounded-full bg-live shadow-[0_0_0_2px_var(--panel)]" />}
-            </Link>
-          </Rail>
-        ) : (
-          <>
-            <span className={cn(itemBase, "cursor-default text-text-muted")}>
-              <Play className="size-[18px] shrink-0" aria-hidden />
-              <span className={labelFade}>Play</span>
-            </span>
-            <div className="ml-5 flex flex-col gap-0.5 border-l border-line pl-2">
-              {playItems.map((item) => {
-                const active = pathname === item.to || pathname.startsWith(`${item.to}/`)
-                const locked = item.pro && !proUnlocked
-                return (
-                  <Link
-                    key={item.to}
-                    to={item.to}
-                    onClick={closeMobile}
-                    aria-current={active ? "page" : undefined}
-                    className={cn(
-                      "relative flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors duration-150",
-                      active ? "bg-raised text-text" : locked ? "text-text-dim hover:bg-raised hover:text-text-muted" : "text-text-muted hover:bg-raised hover:text-text",
-                    )}
-                  >
-                    {active && <span aria-hidden className="absolute top-2.5 bottom-2.5 -left-[9px] w-0.5 bg-accent" />}
-                    <span className={cn(labelFade, "min-w-0")}>{item.label}</span>
-                    {locked && <Lock className="size-3.5 shrink-0 text-text-dim" aria-label="Locked" />}
-                    {item.mode && <OnlineCount count={onlineByMode[item.mode]} />}
-                  </Link>
-                )
-              })}
+          {PLAY_ITEMS.length > 0 && (
+            <>
+              <div className="relative">
+              {collapsed && playActive && <ActiveBar />}
+              <button
+                type="button"
+                // On the icon rail there's no room for the submenu, so Play opens 5x5 directly.
+                onClick={() => (collapsed ? onNavigate(PLAY_ITEMS[0].id) : setPlayOpen((open) => !open))}
+                aria-label="Play"
+                aria-expanded={collapsed ? undefined : playOpen}
+                className={cn(rowClass, collapsed && playActive && activeRowClass)}
+              >
+                <Play className="size-[18px] shrink-0" />
+                <span className={cn(labelClass(collapsed), "flex-1")}>Play</span>
+                <ChevronDown
+                  aria-hidden="true"
+                  className={cn(
+                    "size-4 shrink-0 text-[var(--text-dim)] transition-[rotate,opacity] duration-300 motion-reduce:transition-none",
+                    EASE,
+                    playOpen && "rotate-180",
+                    collapsed ? "opacity-0" : "opacity-100",
+                  )}
+                />
+                {collapsed && anyoneOnline && <span aria-hidden="true" className="absolute right-2 top-2 size-1.5 rounded-full bg-[var(--status-green)]" />}
+              </button>
+              </div>
+
+              {/* The submenu folds away (collapsed rail, or closed) instead of appearing and disappearing. */}
+              <div
+                className={cn(
+                  "grid transition-[grid-template-rows,opacity] duration-300 motion-reduce:transition-none",
+                  EASE,
+                  playOpen && !collapsed ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+                )}
+                inert={!playOpen || collapsed || undefined}
+              >
+                <div className="overflow-hidden">
+                  <div className="ml-5 flex flex-col gap-0.5 border-l border-[var(--line)] pl-2">
+                    {PLAY_ITEMS.map((item) => {
+                      const active = isActive(item.id)
+                      const locked = item.id === "play-proleague" && proLeagueLocked
+                      const count = item.id === "play-5vs5" || item.id === "play-fun" ? playersIn(item.id) : 0
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => onNavigate(item.id)}
+                          className={cn(rowClass, "overflow-visible px-3", active && activeRowClass, locked && !active && "text-[var(--text-dim)]")}
+                        >
+                          {active && <span aria-hidden="true" className="absolute -left-[9px] bottom-2.5 top-2.5 w-0.5 bg-[var(--accent-solid)]" />}
+                          <span className="flex-1 truncate text-left">{item.label}</span>
+                          {locked && <Lock className="size-3.5 shrink-0 text-[var(--text-dim)]" />}
+                          {count > 0 && (
+                            <span className="flex shrink-0 items-center gap-1.5 text-xs tabular-nums text-[var(--text-muted)]">
+                              <span className="size-1.5 rounded-full bg-[var(--status-green)]" />
+                              {count}
+                            </span>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {NAV_ITEMS.map((item) => (
+            <div key={item.id} className="relative">
+              {isActive(item.id) && <ActiveBar />}
+              <button type="button" onClick={() => onNavigate(item.id)} aria-label={item.label} className={cn(rowClass, isActive(item.id) && activeRowClass)}>
+                <item.icon className="size-[18px] shrink-0" />
+                <span className={labelClass(collapsed)}>{item.label}</span>
+              </button>
             </div>
-          </>
-        )}
-
-        {enabled(BOTTOM).map(renderItem)}
-      </nav>
-      <div className="flex-1" />
+          ))}
+        </nav>
+      </SidebarContent>
     </Sidebar>
   )
 }

@@ -20,12 +20,10 @@ export interface UseApiQueryOptions {
   /** Restarts the request and clears retained data when the logical query changes. */
   queryKey?: string
   /**
-   * Stale-while-revalidate: keep showing the previous data while a new query key loads (filters, search), so
-   * the page never flashes back to skeletons. `loading` stays true until the new data arrives.
+   * Keep showing the previous result while a new query key loads (stale-while-revalidate), so a
+   * sort, filter or search change never flashes back to skeletons.
    */
   keepPreviousData?: boolean
-  /** Refetch on this interval (ms) while the tab is visible. */
-  pollMs?: number
 }
 
 /**
@@ -52,7 +50,7 @@ export function useApiQuery<T>(
   fetcher: ApiFetcher<T>,
   options: UseApiQueryOptions = {},
 ): ApiQueryState<T> & { refetch: () => void } {
-  const { enabled = true, queryKey, keepPreviousData = false, pollMs } = options
+  const { enabled = true, queryKey, keepPreviousData = false } = options
 
   const [state, setState] = useState<ApiQueryState<T>>({
     data: null,
@@ -104,7 +102,7 @@ export function useApiQuery<T>(
           setState((prev) => ({ data: prev.data, loading: false, error: null }))
           return
         }
-        setState((prev) => ({ data: keepPreviousData ? prev.data : null, loading: false, error }))
+        setState({ data: null, loading: false, error })
       }
     }
 
@@ -115,26 +113,6 @@ export function useApiQuery<T>(
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, fetchToken, queryKey])
-
-  // Polling pauses while the tab is hidden and resumes (with an immediate refresh) when it returns.
-  useEffect(() => {
-    if (!enabled || !pollMs) return
-    let timer: number | undefined
-    const schedule = () => {
-      window.clearInterval(timer)
-      if (document.visibilityState === "visible") timer = window.setInterval(() => setFetchToken((t) => t + 1), pollMs)
-    }
-    const onVisibility = () => {
-      if (document.visibilityState === "visible") setFetchToken((t) => t + 1)
-      schedule()
-    }
-    schedule()
-    document.addEventListener("visibilitychange", onVisibility)
-    return () => {
-      window.clearInterval(timer)
-      document.removeEventListener("visibilitychange", onVisibility)
-    }
-  }, [enabled, pollMs])
 
   return { ...state, refetch }
 }

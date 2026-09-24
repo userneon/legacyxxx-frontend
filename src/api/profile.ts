@@ -2,13 +2,10 @@ import { get, put, type CallOptions } from "./client"
 import type {
   FaceitProfileData,
   PenaltyEntry,
-  ProfileLoadoutShowcase,
   ProfileLink,
   ProfileLinksPayload,
-  NotificationPrefs,
-  ProfileSection,
+  ProfileRecentMatch,
   ProfileStats,
-  RankedMatch,
   UserProfile,
 } from "./types"
 
@@ -22,9 +19,9 @@ export const profileService = {
     return "profile" in payload ? payload.profile : payload
   },
 
-  /** Names and avatars come from Steam; only privacy and notification switches are editable. */
   async updateProfile(
-    payload: { hiddenSections?: ProfileSection[]; notificationPrefs?: Omit<NotificationPrefs, "penalties"> },
+    /** Names and avatars come from Steam only; the API rejects anything else. */
+    payload: Partial<Pick<UserProfile, "hiddenSections">>,
     options?: CallOptions,
   ): Promise<UserProfile> {
     const response = await put<UserProfile | { profile: UserProfile }>("/api/v1/profile/me", payload, options)
@@ -36,9 +33,8 @@ export const profileService = {
     return "stats" in payload ? payload.stats : payload
   },
 
-  /** Ranked matches with the EXP change and its breakdown; empty when the player hid them. */
-  async getRecentMatches(userId?: string, options?: CallOptions): Promise<RankedMatch[]> {
-    const payload = await get<RankedMatch[] | { data: RankedMatch[] }>(`/api/v1/profile/${userId ?? "me"}/matches`, undefined, options)
+  async getRecentMatches(userId?: string, options?: CallOptions): Promise<ProfileRecentMatch[]> {
+    const payload = await get<ProfileRecentMatch[] | { data: ProfileRecentMatch[] }>(`/api/v1/profile/${userId ?? "me"}/matches`, undefined, options)
     return Array.isArray(payload) ? payload : payload.data
   },
 
@@ -60,9 +56,5 @@ export const profileService = {
   async getPenalties(userId?: string, options?: CallOptions): Promise<PenaltyEntry[]> {
     const payload = await get<PenaltyEntry[] | { penalties: PenaltyEntry[] }>(`/api/v1/profile/${userId ?? "me"}/penalties`, undefined, options)
     return Array.isArray(payload) ? payload : payload.penalties
-  },
-
-  async getLoadoutShowcase(userId?: string, options?: CallOptions): Promise<ProfileLoadoutShowcase> {
-    return get<ProfileLoadoutShowcase>(`/api/v1/profile/${userId ?? "me"}/loadout`, undefined, options)
   },
 }

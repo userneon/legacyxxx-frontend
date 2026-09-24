@@ -1,11 +1,18 @@
-import { get, post, type CallOptions } from "./client"
-import type { HomeStats, QuickJoinResult, ReconnectMatch, ServerInfo, ServerLiveMatch, ServerModeKind } from "./types"
+import { get, type CallOptions } from "./client"
+import type { HomeStats, ReconnectMatch, ServerFilters, ServerInfo, ServerLiveMatch } from "./types"
 
-/** Live game servers from reconnect heartbeats, their live match snapshot, quick join and join intent. */
+/**
+ * Servers service. Lists game servers, optionally filtered by mode/status,
+ * and records a join intent.
+ */
 export const serversService = {
-  async getServers(options?: CallOptions): Promise<ServerInfo[]> {
-    const response = await get<{ entries: ServerInfo[] }>("/api/v1/public/servers", undefined, { ...options, skipAuth: true })
-    return Array.isArray(response.entries) ? response.entries : []
+  async getServers(filters?: ServerFilters, options?: CallOptions): Promise<ServerInfo[]> {
+    const response = await get<{ entries: ServerInfo[] }>(
+      "/api/v1/public/servers",
+      { mode: filters?.mode, status: filters?.status },
+      { ...options, skipAuth: true },
+    )
+    return response.entries
   },
 
   async getServer(serverId: string, options?: CallOptions): Promise<ServerInfo> {
@@ -23,14 +30,9 @@ export const serversService = {
     return response.reconnect
   },
 
-  quickJoin(mode: Exclude<ServerModeKind, "other">, favouriteMaps: string[], options?: CallOptions): Promise<QuickJoinResult> {
-    return get<QuickJoinResult>(`/api/v1/play/${mode}/quick-join`, { maps: favouriteMaps.join(",") || undefined }, { ...options, skipAuth: true })
-  },
-
-  /** Records the join intent (best effort), then hands the address to Steam. */
-  connect(server: Pick<ServerInfo, "id" | "connectAddress">) {
-    if (!server.connectAddress) return
-    void post<void>(`/api/v1/public/servers/${encodeURIComponent(server.id)}/join`).catch(() => undefined)
+  async joinServer(serverId: string, options?: CallOptions): Promise<void> {
+    const server = await this.getServer(serverId, options)
+    if (!server.connectAddress) throw { status: 404, code: "not_found", message: "A connection address is not available for this server." }
     window.location.assign(`steam://connect/${server.connectAddress}`)
   },
 

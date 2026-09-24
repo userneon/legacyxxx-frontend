@@ -23,9 +23,10 @@ export type { QueryParams, RequestOptions, CallOptions } from "./client"
 
 export { authService } from "./auth"
 export { profileService } from "./profile"
+export { playService } from "./play"
 export { serversService } from "./servers"
+export { clansService } from "./clans"
 export { tournamentsService } from "./tournaments"
-export { killfeedService } from "./killfeed"
 export { moderationService } from "./moderation"
 export { notificationsService } from "./notifications"
 export type { NotificationEntry, NotificationFeed, NotificationKind } from "./notifications"
@@ -33,8 +34,11 @@ export { feedbackService } from "./feedback"
 export { searchService } from "./search"
 export { communityService } from "./community"
 export { competitiveService } from "./competitive"
+export { matchesService } from "./matches"
+export { killFeedService } from "./killfeed"
 export { skinchangerService } from "./skinchanger"
 export type {
+  SkinchangerActiveServerSession,
   SkinchangerAppearanceOptions,
   SkinchangerCatalogFacets,
   SkinchangerCatalogItem,
@@ -42,6 +46,7 @@ export type {
   SkinchangerCategory,
   SkinchangerCharmOption,
   SkinchangerFirearmGroup,
+  SkinchangerJob,
   SkinchangerLoadout,
   SkinchangerLoadoutEntry,
   SkinchangerLoadoutInput,

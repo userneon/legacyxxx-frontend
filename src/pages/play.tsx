@@ -1,63 +1,70 @@
-/**
- * Play: 5x5 Matches, Fun Mode and Pro League (docs/design/play-5x5, play-5x5-server, play-fun, play-pro-locked).
- * One shared page per mode. Quick join is the only primary action; the server grid is for manual browsing.
- * Map/mode chips, "Hide full", "Favourites" and the open details sheet live in the URL. Favourite servers are
- * kept in this browser only.
- */
-import { useCallback, useMemo, useState, type ReactNode } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
-import { Copy, Eye, Lock, Play, Star, X, Zap } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import { Link, useSearchParams } from "react-router-dom"
+import { Copy, Eye, Info, LoaderCircle, Lock, Play, RotateCcw, Star, X, Zap } from "lucide-react"
 import { toast } from "sonner"
 
-import { competitiveService, serversService, type CompetitiveAccess, type ServerInfo, type ServerLiveMatch, type ServerLiveMatchPlayer } from "@/api"
-import { cs2MapArtwork, cs2MapLabel, normalizeCs2MapKey } from "@/lib/cs2-map-art"
-import { formatInt } from "@/lib/format"
-import { PRO_LEAGUE_RANK_ID, rankById, rankForExp } from "@/lib/ranks"
 import { cn } from "@/lib/utils"
-import { Card, PageHeader } from "@/components/page"
-import { PlayerAvatar } from "@/components/player-avatar"
-import { RankBadge, RankEmblem } from "@/components/rank"
-import { EmptyState, ErrorState, InlineLoader, Skeleton } from "@/components/states"
-import { SteamLoginGate } from "@/components/steam-login-gate"
-import { Button } from "@/components/ui/button"
-import { Chip } from "@/components/ui/chip"
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { competitiveService, serversService } from "@/api"
+import { playService, type PlayMode, type PlayServer, type PlayServerList } from "@/api/play"
+import type { CompetitiveAccess, PlaySubMode, ServerLiveMatch, ServerLiveMatchPlayer } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
-import { useLiveServers } from "@/hooks/use-live-servers"
-import { useMyRank } from "@/hooks/use-my-rank"
-import { useUrlState } from "@/hooks/use-url-state"
+import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
+import { PAGE_ROUTES } from "@/lib/routes"
+import { CompetitiveRankBadge, RankLabel } from "@/components/competitive-rank-badge"
+import { PlayerAvatar } from "@/components/player-avatar"
+import { TeamIcon, teamTextClass, type TeamSide } from "@/components/team-icon"
+import { SteamLoginGate } from "@/components/steam-login-gate"
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
-export type PlayMode = "5v5" | "fun" | "pro"
+/** Pro League opens at Vanguard I (RANK-SYSTEM.md §4). */
+const PRO_LEAGUE_MIN_EXP = 1400
+const REFRESH_MS = 15_000
+const LIVE_REFRESH_MS = 5_000
+const FAVOURITES_KEY = "legacyx.favourite-servers"
 
-const COPY: Record<PlayMode, { title: string; description: string; pickRule: string }> = {
-  "5v5": {
-    title: "5x5 Matches",
-    description: "Competitive 5v5. Every match counts toward your rank.",
-    pickRule: "We pick the open server closest to starting, on your maps.",
-  },
-  fun: {
-    title: "Fun Mode",
-    description: "Casual servers — jump in and out anytime. No rank changes.",
-    pickRule: "We pick the busiest server with a free slot.",
-  },
-  pro: {
-    title: "Pro League",
-    description: "Ranked 5v5 for high-rank players only.",
-    pickRule: "We pick the open server closest to starting, on your maps.",
-  },
+type PlayPageMode = Exclude<PlaySubMode, "tournaments">
+
+const MODES: Record<PlayPageMode, { mode: PlayMode; title: string; description: string; pickRule: string }> = {
+  "5vs5": { mode: "5x5", title: "5x5 Matches", description: "Competitive 5v5. Every match counts toward your rank.", pickRule: "We pick the open server closest to starting, on your maps." },
+  fun: { mode: "fun", title: "Fun Mode", description: "Casual servers — jump in and out anytime. No rank changes.", pickRule: "We pick the busiest server with a free slot." },
+  proleague: { mode: "pro", title: "Pro League", description: "Ranked 5v5 for high-rank players only.", pickRule: "We pick the open Pro server closest to starting, on your maps." },
 }
 
-/* ----------------------------------------------------------------------------
- * Favourites (this browser only) and helpers
- * ------------------------------------------------------------------------- */
+const secondary = "inline-flex h-[34px] items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] font-medium text-[var(--text)] transition-[background-color,border-color,transform] duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 disabled:pointer-events-none disabled:opacity-50"
+const primary = "inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--accent-solid)] font-semibold text-[var(--accent-on)] transition-[opacity,transform] duration-150 hover:opacity-90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 disabled:pointer-events-none disabled:opacity-50"
+const chip = "inline-flex h-[30px] items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
+const chipOn = "border-[var(--line-strong)] bg-[var(--line)] text-[var(--text)]"
+const chipOff = "border-[var(--line)] text-[var(--text-muted)] hover:text-[var(--text)]"
 
-const FAVOURITES_KEY = "legacyx:favourite-servers"
+const validAddress = (address: string | null | undefined) => Boolean(address && /^[a-zA-Z0-9.-]+:\d{1,5}$/.test(address.trim()))
+
+function connect(address: string | null | undefined, name: string) {
+  if (!address || !validAddress(address)) {
+    toast.error("Server address unavailable", { description: `${name} does not expose a connection address right now.` })
+    return
+  }
+  toast("Opening Steam…", { description: `Connecting to ${name}` })
+  window.location.assign(`steam://connect/${address.trim()}`)
+}
+
+async function copyAddress(address: string | null | undefined) {
+  if (!address) return
+  try {
+    await navigator.clipboard.writeText(`connect ${address}`)
+    toast.success("Server IP copied", { description: address })
+  } catch {
+    toast.error("Could not copy the address")
+  }
+}
+
+/* ------------------------------------------------------------------ favourites (per device) */
 
 function readFavourites(): string[] {
   try {
-    const parsed: unknown = JSON.parse(localStorage.getItem(FAVOURITES_KEY) ?? "[]")
+    const parsed = JSON.parse(window.localStorage.getItem(FAVOURITES_KEY) ?? "[]") as unknown
     return Array.isArray(parsed) ? parsed.filter((value): value is string => typeof value === "string") : []
   } catch {
     return []
@@ -66,324 +73,253 @@ function readFavourites(): string[] {
 
 function useFavourites() {
   const [favourites, setFavourites] = useState<string[]>(readFavourites)
-  const toggle = useCallback((serverId: string) => {
-    setFavourites((current) => {
-      const next = current.includes(serverId) ? current.filter((id) => id !== serverId) : [...current, serverId]
-      try {
-        localStorage.setItem(FAVOURITES_KEY, JSON.stringify(next))
-      } catch {
-        /* Storage can be unavailable (private mode); favourites then last until reload. */
-      }
-      return next
-    })
-  }, [])
+  const toggle = (serverId: string) => setFavourites((current) => {
+    const next = current.includes(serverId) ? current.filter((id) => id !== serverId) : [...current, serverId]
+    try { window.localStorage.setItem(FAVOURITES_KEY, JSON.stringify(next)) } catch { /* storage blocked: keep for this visit */ }
+    return next
+  })
   return { favourites, toggle }
 }
 
-async function copyAddress(address: string | undefined) {
-  if (!address) {
-    toast.error("No address for this server yet")
-    return
+/* ------------------------------------------------------------------ pieces */
+
+function funModeLabel(modeLabel: string) {
+  const rest = modeLabel.replace(/^fun[_\s-]*/i, "").replace(/[_-]+/g, " ").trim()
+  return rest ? rest.replace(/\b\w/g, (letter) => letter.toUpperCase()) : "Classic"
+}
+
+function StatusPill({ server }: { server: PlayServer }) {
+  if (server.status === "live") {
+    return (
+      <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-[rgba(10,10,10,0.72)] px-2.5 text-xs font-semibold tabular-nums text-[var(--text)] backdrop-blur-sm">
+        <span className="size-1.5 rounded-full bg-[var(--status-green)]" />
+        {server.score ? <><span className="text-[var(--team-t)]">{server.score.t}</span>:<span className="text-[var(--team-ct)]">{server.score.ct}</span></> : "Live"}
+        {server.round !== null && <span className="font-medium text-[var(--text-muted)]">· R{server.round}</span>}
+      </span>
+    )
   }
-  try {
-    await navigator.clipboard.writeText(`connect ${address}`)
-    toast.success("IP copied", { description: `connect ${address}` })
-  } catch {
-    toast.error("Copy failed", { description: `connect ${address}` })
-  }
-}
-
-const FUN_MODE_LABELS: Record<string, string> = { dm: "Deathmatch", ffa: "Deathmatch", aim: "Aim", surf: "Surf", retake: "Retakes", retakes: "Retakes", bhop: "Bhop", kz: "KZ", awp: "AWP", hns: "Hide and Seek", arena: "Arena", "1v1": "1v1" }
-
-/** "fun_retake" → Retakes; null for plain fun servers. */
-function funModeKey(server: ServerInfo): string | null {
-  const raw = (server.rawMode ?? "").trim().toLowerCase().replace(/^fun[_\s-]*/, "")
-  if (!raw || raw === "fun") return null
-  return raw
-}
-
-function funModeLabel(key: string) {
-  return FUN_MODE_LABELS[key] ?? key.replace(/[_-]+/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase())
-}
-
-function isJoinable(server: ServerInfo) {
-  return server.status === "online" && server.players < server.maxPlayers && Boolean(server.connectAddress)
-}
-
-type Pill = { label: string; tone: "live" | "neutral" | "dim" }
-
-function statusPill(server: ServerInfo): Pill {
-  if (server.status === "offline") return { label: "Offline", tone: "dim" }
-  const live = server.live
-  if (live && (live.state === "live" || live.state === "paused")) {
-    const score = live.score ? `${live.score.t} : ${live.score.ct}` : "Live"
-    return { label: live.round ? `${score} · R${live.round}` : score, tone: "live" }
-  }
-  if (server.status === "full") return { label: "Full", tone: "dim" }
-  if (live?.state === "waiting" && server.players > 0) return { label: "Warmup", tone: "neutral" }
-  return { label: "Waiting", tone: "neutral" }
-}
-
-function StatusPill({ pill, className }: { pill: Pill; className?: string }) {
+  const label = { waiting: "Waiting", warmup: "Warmup", full: "Full", offline: "Offline" }[server.status]
   return (
-    <span
-      className={cn(
-        "inline-flex h-6 items-center gap-1.5 rounded-full px-2.5 text-xs font-semibold tabular-nums backdrop-blur-sm",
-        pill.tone === "live" ? "bg-panel/85 text-live" : pill.tone === "dim" ? "bg-panel/85 text-text-dim" : "bg-panel/85 text-text-2",
-        className,
-      )}
-    >
-      {pill.tone === "live" && <span className="size-1.5 rounded-full bg-live" aria-hidden />}
-      {pill.label}
+    <span className={cn("inline-flex h-6 items-center rounded-full bg-[rgba(10,10,10,0.72)] px-2.5 text-xs font-medium backdrop-blur-sm", server.status === "full" || server.status === "offline" ? "text-[var(--text-dim)]" : "text-[var(--text-2)]")}>
+      {label}
     </span>
   )
 }
 
-function MapArt({ map, className, children }: { map: string; className?: string; children?: ReactNode }) {
+function MapArt({ map, className, children }: { map: string; className?: string; children?: React.ReactNode }) {
   const art = cs2MapArtwork(map)
+  const [loaded, setLoaded] = useState(false)
   return (
-    <div className={cn("relative shrink-0 overflow-hidden bg-[linear-gradient(135deg,#1c1c1c,#151515)]", className)}>
-      {art && <img src={art} alt="" loading="lazy" decoding="async" className="absolute inset-0 size-full object-cover opacity-80" />}
-      <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-card/90 via-card/10 to-transparent" />
+    <div className={cn("relative overflow-hidden bg-[linear-gradient(135deg,#1c1c1c,#151515)]", className)}>
+      {art && <img src={art} alt="" onLoad={() => setLoaded(true)} className={cn("absolute inset-0 size-full object-cover transition-opacity duration-200", loaded ? "opacity-70" : "opacity-0")} />}
+      <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[rgba(10,10,10,0.55)] to-transparent" />
       {children}
     </div>
   )
 }
 
-/* ----------------------------------------------------------------------------
- * Server card
- * ------------------------------------------------------------------------- */
-
-function Capacity({ server, mode }: { server: ServerInfo; mode: PlayMode }) {
-  const label = `${server.players}/${server.maxPlayers}`
-  if (mode === "fun") {
-    const ratio = server.maxPlayers ? Math.min(1, server.players / server.maxPlayers) : 0
+function Slots({ server }: { server: PlayServer }) {
+  if (server.mode === "fun" || server.maxPlayers > 12) {
+    const share = Math.min(100, (server.players / server.maxPlayers) * 100)
     return (
-      <div className="flex items-center gap-2.5" aria-label={`${label} players`}>
-        <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-line-soft">
-          <span className="block h-full rounded-full bg-text-2 transition-[width] duration-300" style={{ width: `${ratio * 100}%` }} />
+      <div className="flex flex-1 items-center gap-3">
+        <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--line-soft)]">
+          <span className="block h-full rounded-full bg-[var(--accent-solid)] transition-[width] duration-300" style={{ width: `${share}%` }} />
         </span>
-        <span className="text-xs font-medium tabular-nums text-text-muted">{label}</span>
+        <span className="text-xs tabular-nums text-[var(--text-muted)]">{server.players}/{server.maxPlayers}</span>
       </div>
     )
   }
-  const slots = Math.max(server.maxPlayers, 10)
   return (
-    <div className="flex items-center justify-between gap-2.5" aria-label={`${label} players`}>
-      <span className="flex flex-wrap gap-1">
-        {Array.from({ length: slots }, (_, index) => (
-          <span key={index} className={cn("size-3.5 rounded-[4px]", index < server.players ? "bg-text-2" : "bg-line-soft")} />
+    <div className="flex flex-1 items-center justify-between gap-3">
+      <span aria-hidden="true" className="flex gap-[3px]">
+        {Array.from({ length: server.maxPlayers }, (_, index) => (
+          <span key={index} className={cn("size-3.5 rounded-[4px] transition-colors duration-200", index < server.players ? "bg-[var(--accent-solid)]" : "bg-[var(--line-soft)]")} />
         ))}
       </span>
-      <span className="text-xs font-medium tabular-nums text-text-muted">{label}</span>
+      <span className="text-xs tabular-nums text-[var(--text-muted)]">{server.players}/{server.maxPlayers}</span>
     </div>
   )
 }
 
-function ConnectButton({ server, size = "default", className, variant = "secondary" }: { server: ServerInfo; size?: "default" | "lg"; className?: string; variant?: "secondary" | "default" }) {
-  const reason = server.status === "offline" ? "Server is offline" : server.status === "full" || server.players >= server.maxPlayers ? "Server is full" : !server.connectAddress ? "No address yet" : null
-  const button = (
-    <Button variant={variant} size={size} disabled={Boolean(reason)} onClick={() => serversService.connect(server)} className={cn("w-full", className)}>
-      <Play className="size-3" aria-hidden />
+function ServerCard({ server, favourite, onFavourite, onDetails }: { server: PlayServer; favourite: boolean; onFavourite: () => void; onDetails: () => void }) {
+  const connectable = server.joinable && validAddress(server.connectAddress)
+  const connectButton = (
+    <button type="button" disabled={!connectable} onClick={() => connect(server.connectAddress, server.name)} className={cn(secondary, "w-full")}>
+      <Play className="size-3.5" />
       Connect
-    </Button>
+    </button>
   )
-  if (!reason) return <span className={cn("flex flex-1", className)}>{button}</span>
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span className={cn("flex flex-1", className)} tabIndex={0}>
-          {button}
-        </span>
-      </TooltipTrigger>
-      <TooltipContent>{reason}</TooltipContent>
-    </Tooltip>
-  )
-}
-
-function ServerCard({ server, mode, favourite, onFavourite, onDetails }: { server: ServerInfo; mode: PlayMode; favourite: boolean; onFavourite: () => void; onDetails: () => void }) {
-  const funKey = mode === "fun" ? funModeKey(server) : null
-  return (
-    <article className="flex flex-col overflow-hidden rounded-xl border border-line-soft bg-card transition-colors duration-150 hover:border-line">
+    <article className="flex flex-col overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] transition-colors duration-150 hover:border-[var(--line-strong)]">
       <MapArt map={server.map} className="h-[120px]">
-        <StatusPill pill={statusPill(server)} className="absolute top-3 left-3" />
+        <span className="absolute left-3 top-3"><StatusPill server={server} /></span>
         <button
           type="button"
           aria-label={favourite ? `Remove ${server.name} from favourites` : `Add ${server.name} to favourites`}
           aria-pressed={favourite}
           onClick={onFavourite}
-          className={cn(
-            "press absolute top-2.5 right-2.5 flex size-[30px] items-center justify-center rounded-lg border border-line bg-panel/70 transition-colors duration-150 hover:text-text",
-            favourite ? "text-text" : "text-text-muted",
-          )}
+          className="absolute right-2.5 top-2.5 flex size-[30px] items-center justify-center rounded-lg border border-[var(--line)] bg-[rgba(15,15,15,0.7)] text-[var(--text-muted)] transition-colors hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
         >
-          <Star className={cn("size-3.5", favourite && "fill-current")} aria-hidden />
+          <Star className={cn("size-4", favourite && "fill-[var(--accent-solid)] text-[var(--accent-solid)]")} />
         </button>
       </MapArt>
       <div className="flex flex-col gap-3 p-3.5">
         <div className="flex min-w-0 flex-col gap-1">
-          <span className="truncate text-sm font-semibold text-text" title={server.name}>{server.name}</span>
-          <span className="truncate text-xs text-text-dim">
-            {cs2MapLabel(server.map)}
-            {funKey ? ` · ${funModeLabel(funKey)}` : ""}
-          </span>
+          <span className="truncate text-sm font-semibold text-[var(--text)]" title={server.name}>{server.name}</span>
+          <span className="truncate text-xs text-[var(--text-dim)]">{cs2MapLabel(server.map)}{server.mode === "fun" ? ` · ${funModeLabel(server.modeLabel)}` : ""}</span>
         </div>
-        <Capacity server={server} mode={mode} />
+        <div className="flex items-center"><Slots server={server} /></div>
         <div className="flex gap-2">
-          <Button variant="outline" size="icon" aria-label="Copy server IP" onClick={() => void copyAddress(server.connectAddress)}>
-            <Copy className="size-3.5" aria-hidden />
-          </Button>
-          <Button variant="outline" className="flex-1" onClick={onDetails}>
+          <button type="button" aria-label={`Copy ${server.name} IP`} disabled={!server.connectAddress} onClick={() => void copyAddress(server.connectAddress)} className={secondary}>
+            <Copy className="size-3.5" />
+          </button>
+          <button type="button" onClick={onDetails} className={cn(secondary, "flex-1")}>
+            <Info className="size-3.5" />
             Details
-          </Button>
-          <ConnectButton server={server} />
+          </button>
+          {connectable ? <span className="flex flex-1">{connectButton}</span> : (
+            <Tooltip>
+              <TooltipTrigger asChild><span className="flex flex-1" tabIndex={0}>{connectButton}</span></TooltipTrigger>
+              <TooltipContent>{server.status === "offline" ? "Server is offline" : server.status === "full" ? "Server is full" : "No connection address"}</TooltipContent>
+            </Tooltip>
+          )}
         </div>
       </div>
     </article>
   )
 }
 
-function ServerCardSkeleton({ mode }: { mode: PlayMode }) {
+function CardSkeleton() {
   return (
-    <div className="flex flex-col overflow-hidden rounded-xl border border-line-soft bg-card">
-      <div className="h-[120px] bg-[linear-gradient(135deg,#1c1c1c,#151515)]" />
+    <div className="flex flex-col overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]" aria-hidden="true">
+      <Skeleton className="h-[120px] rounded-none bg-[var(--raised)]" />
       <div className="flex flex-col gap-3 p-3.5">
-        <span className="flex flex-col gap-2">
-          <Skeleton className="h-2.5 w-1/2 bg-line" />
-          <Skeleton className="h-2 w-1/3" />
-        </span>
-        {mode === "fun" ? <Skeleton className="h-1.5 w-full" /> : <Skeleton className="h-3.5 w-2/3" />}
-        <span className="flex gap-2">
-          <Skeleton className="size-[34px] rounded-lg" />
-          <Skeleton className="h-[34px] flex-1 rounded-lg" />
-          <Skeleton className="h-[34px] flex-1 rounded-lg" />
-        </span>
+        <Skeleton className="h-2.5 w-1/2 rounded-full bg-[var(--line)]" />
+        <Skeleton className="h-2 w-1/3 rounded-full bg-[var(--line-soft)]" />
+        <Skeleton className="h-3.5 w-full rounded bg-[var(--line-soft)]" />
+        <Skeleton className="h-[34px] w-full rounded-lg bg-[var(--raised)]" />
       </div>
     </div>
   )
 }
 
-/* ----------------------------------------------------------------------------
- * Details sheet (live data refreshes every 5s while open)
- * ------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------ details sheet */
 
-function stat(value: number | null | undefined) {
-  return typeof value === "number" ? formatInt(value) : "–"
-}
-
-function TeamTable({ title, players }: { title: string; players: ServerLiveMatchPlayer[] }) {
-  const grid = "grid grid-cols-[minmax(0,1fr)_34px_34px_34px] items-center gap-2 px-3"
+function TeamTable({ title, players, side }: { title: string; players: ServerLiveMatchPlayer[]; side?: TeamSide }) {
+  const stat = (value: number | null | undefined) => (typeof value === "number" ? value : "—")
   return (
-    <div className="overflow-hidden rounded-xl border border-line-soft bg-card">
-      <div className={cn(grid, "h-[34px] text-[11px] font-semibold text-text-muted")}>
-        <span>{title}</span>
-        <span>K</span>
-        <span>D</span>
-        <span>A</span>
+    <div className="overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]">
+      <div className="grid h-[34px] grid-cols-[minmax(0,1fr)_34px_34px_34px] items-center gap-2 px-3 text-[11px] font-semibold text-[var(--text-muted)]">
+        <span className={cn("flex items-center gap-2", side && teamTextClass(side))}>{side && <TeamIcon side={side} />}{title}</span><span>K</span><span>D</span><span>A</span>
       </div>
       {players.length === 0 ? (
-        <div className="border-t border-raised px-3 py-3 text-xs text-text-dim">No players</div>
-      ) : (
-        players.map((player) => (
-          <div key={player.steamId || player.name} className={cn(grid, "h-[38px] border-t border-raised")}>
-            <span className="flex min-w-0 items-center gap-2">
-              <PlayerAvatar name={player.name} size={22} />
-              <span className={cn("truncate text-[13px]", player.connected ? "text-text" : "text-text-dim")} title={player.name}>{player.name}</span>
-              {player.rankId ? <RankEmblem rankId={player.rankId} size={16} /> : null}
-            </span>
-            <span className="text-xs tabular-nums text-text-2">{stat(player.kills)}</span>
-            <span className="text-xs tabular-nums text-text-2">{stat(player.deaths)}</span>
-            <span className="text-xs tabular-nums text-text-2">{stat(player.assists)}</span>
-          </div>
-        ))
-      )}
+        <div className="border-t border-[var(--raised)] px-3 py-3 text-xs text-[var(--text-dim)]">No players</div>
+      ) : players.map((player) => (
+        <div key={player.steamId} className="grid h-[38px] grid-cols-[minmax(0,1fr)_34px_34px_34px] items-center gap-2 border-t border-[var(--raised)] px-3 text-[13px]">
+          <span className="flex min-w-0 items-center gap-2">
+            <PlayerAvatar name={player.name} className="size-[22px] shrink-0 rounded-md text-[9px]" />
+            <span className={cn("truncate", player.connected ? "text-[var(--text)]" : "text-[var(--text-dim)]")} title={player.name}>{player.name}</span>
+          </span>
+          <span className="tabular-nums text-[var(--text-2)]">{stat(player.kills)}</span>
+          <span className="tabular-nums text-[var(--text-2)]">{stat(player.deaths)}</span>
+          <span className="tabular-nums text-[var(--text-2)]">{stat(player.assists)}</span>
+        </div>
+      ))}
     </div>
   )
 }
 
-function ServerSheet({ server, onClose }: { server: ServerInfo | null; onClose: () => void }) {
-  const open = Boolean(server)
-  const { data, loading, error, refetch } = useApiQuery<ServerLiveMatch>((signal) => serversService.getLiveMatch(server!.id, { signal }), {
-    enabled: open,
-    queryKey: server?.id ?? "",
-    pollMs: 5_000,
+function ServerSheet({ server, onClose }: { server: PlayServer | null; onClose: () => void }) {
+  const serverId = server?.id ?? ""
+  const { data, loading, error, refetch } = useApiQuery<ServerLiveMatch>((signal) => serversService.getLiveMatch(serverId, { signal }), {
+    enabled: Boolean(serverId),
+    queryKey: `live:${serverId}`,
     keepPreviousData: true,
   })
-  const live = data && data.serverId === server?.id ? data : null
-  const pill: Pill | null = !server
-    ? null
-    : live && (live.state === "live" || live.state === "paused")
-      ? { label: live.state === "paused" ? "Paused" : "Live", tone: "live" }
-      : statusPill({ ...server, live: null })
-  const snapshot = live && live.availability === "live_snapshot"
+  // Live data refreshes every 5s while the sheet is open.
+  useEffect(() => {
+    if (!serverId) return
+    const timer = window.setInterval(refetch, LIVE_REFRESH_MS)
+    return () => window.clearInterval(timer)
+  }, [serverId, refetch])
 
+  const live = data && data.serverId === serverId ? data : null
+  const address = live?.connectAddress ?? server?.connectAddress ?? null
+  const gotv = live?.gotvAddress ?? server?.gotvAddress ?? null
+  const connectable = Boolean(server?.joinable && validAddress(address))
   return (
-    <Sheet open={open} onOpenChange={(next) => !next && onClose()}>
-      <SheetContent side="right" className="w-full gap-0 p-0 sm:max-w-[440px]" showCloseButton={false}>
+    <Sheet open={server !== null} onOpenChange={(open) => { if (!open) onClose() }}>
+      <SheetContent
+        side="right"
+        showCloseButton={false}
+        overlayClassName="bg-[rgba(10,10,10,0.5)] data-[state=open]:duration-200 data-[state=closed]:duration-150"
+        className="inset-y-2 right-2 h-auto w-[440px] max-w-[calc(100%-16px)] gap-0 overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--panel)] p-0 shadow-[-16px_0_40px_rgba(0,0,0,0.45)] data-[state=open]:duration-[250ms] data-[state=closed]:duration-150 sm:max-w-[440px]"
+      >
         {server && (
           <>
-            <MapArt map={live?.map || server.map} className="h-[120px] rounded-t-[11px]">
-              <button
-                type="button"
-                aria-label="Close"
-                onClick={onClose}
-                className="press absolute top-2.5 right-2.5 flex size-8 items-center justify-center rounded-lg border border-line bg-panel/70 text-text-muted transition-colors duration-150 hover:text-text"
-              >
-                <X className="size-4" aria-hidden />
+            <MapArt map={live?.map ?? server.map} className="h-[120px] shrink-0">
+              <button type="button" onClick={onClose} aria-label="Close" className="absolute right-2.5 top-2.5 flex size-8 items-center justify-center rounded-lg border border-[var(--line)] bg-[rgba(15,15,15,0.7)] text-[var(--text-muted)] transition-colors hover:text-[var(--text)]">
+                <X className="size-4" />
               </button>
-              <div className="absolute bottom-3.5 left-[18px] flex min-w-0 flex-col gap-1">
-                <SheetTitle className="m-0 truncate text-[17px] font-semibold text-text">{server.name}</SheetTitle>
-                <SheetDescription className="m-0 text-xs text-text-muted">{cs2MapLabel(live?.map || server.map)}</SheetDescription>
+              <div className="absolute bottom-3.5 left-[18px] flex flex-col gap-1">
+                <SheetTitle className="text-base font-semibold text-[var(--text)]">{server.name}</SheetTitle>
+                <SheetDescription className="text-xs text-[var(--text-2)]">{cs2MapLabel(live?.map ?? server.map)}</SheetDescription>
               </div>
             </MapArt>
-            <div className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-[18px] py-4">
+            <div className="scrollbar-hidden flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-[18px] py-4">
               <div className="flex items-center justify-between">
-                {pill && <StatusPill pill={pill} className={pill.tone === "live" ? "bg-live/12" : "bg-raised"} />}
-                <span className="flex items-center gap-2.5 text-[13px] text-text-muted">
-                  <InlineLoader show={loading && Boolean(data)} />
-                  Round <span className="font-semibold tabular-nums text-text">{live?.round ?? "–"}</span>
+                {server.status === "live" ? (
+                  <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-[var(--status-green)]/12 px-2.5 text-xs font-semibold text-[var(--status-green)]">
+                    <span className="size-1.5 rounded-full bg-[var(--status-green)]" />
+                    Live
+                  </span>
+                ) : <StatusPill server={server} />}
+                <span className="flex items-center gap-2.5 text-[13px] tabular-nums text-[var(--text-muted)]">
+                  {loading && live && <LoaderCircle aria-label="Updating" className="size-3.5 animate-spin text-[var(--text-dim)]" />}
+                  {live?.round ? `Round ${live.round}` : `${server.players}/${server.maxPlayers} players`}
                 </span>
               </div>
-              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-xl border border-line-soft bg-card p-3.5">
-                <span className="text-xs font-semibold text-text-muted">T</span>
-                <span className="flex items-center gap-2.5 text-[22px] font-bold tabular-nums text-text">
-                  {live?.score ? live.score.t : "–"}
-                  <span className="text-base text-text-faint">:</span>
-                  {live?.score ? live.score.ct : "–"}
-                </span>
-                <span className="text-right text-xs font-semibold text-text-muted">CT</span>
-              </div>
-              {loading && !data ? (
-                <div className="flex flex-col gap-3">
-                  <Skeleton className="h-48 w-full rounded-xl" />
-                  <Skeleton className="h-48 w-full rounded-xl" />
+              {live?.score && (
+                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-3.5">
+                  <TeamIcon side="t" className="size-7" />
+                  <span className="flex items-center gap-2.5 text-2xl font-semibold tabular-nums"><span className="text-[var(--team-t)]">{live.score.t}</span><span className="text-[var(--text-faint)]">:</span><span className="text-[var(--team-ct)]">{live.score.ct}</span></span>
+                  <TeamIcon side="ct" className="size-7 justify-self-end" />
                 </div>
-              ) : error && !live ? (
-                <ErrorState onRetry={refetch} />
-              ) : snapshot ? (
+              )}
+              {live && live.availability === "live_snapshot" ? (
                 <>
-                  <TeamTable title="Terrorists" players={live.teams.t} />
-                  <TeamTable title="Counter-Terrorists" players={live.teams.ct} />
-                  {live.spectators.length > 0 && <p className="m-0 text-xs text-text-dim">{live.spectators.length} spectating</p>}
+                  <TeamTable title="Terrorists" side="t" players={live.teams.t} />
+                  <TeamTable title="Counter-Terrorists" side="ct" players={live.teams.ct} />
                 </>
               ) : live && live.connectedPlayers.length > 0 ? (
-                <TeamTable title={`Connected players (${live.connectedPlayers.length})`} players={live.connectedPlayers} />
+                <TeamTable title="Connected players" players={live.connectedPlayers} />
+              ) : error && !live ? (
+                <p className="flex items-center gap-3 text-[13px] text-[var(--text-dim)]">
+                  Live data unavailable.
+                  <button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button>
+                </p>
+              ) : !live ? (
+                <Skeleton className="h-40 rounded-xl bg-[var(--card-surface)]" />
               ) : (
-                <EmptyState className="py-10">No live match data for this server right now.</EmptyState>
+                <p className="text-[13px] text-[var(--text-dim)]">No live match data for this server yet.</p>
               )}
             </div>
-            <div className="flex gap-2 border-t border-line-soft p-[18px]">
-              <Button variant="outline" className="flex-1" onClick={() => void copyAddress(server.connectAddress)}>
-                <Copy className="size-3.5" aria-hidden />
+            <div className="flex gap-2 border-t border-[var(--line-soft)] px-[18px] py-3.5">
+              <button type="button" disabled={!address} onClick={() => void copyAddress(address)} className={cn(secondary, "h-10 flex-1")}>
+                <Copy className="size-3.5" />
                 Copy IP
-              </Button>
-              {server.gotvAddress && (
-                <Button variant="outline" className="flex-1" onClick={() => window.location.assign(`steam://connect/${server.gotvAddress}`)}>
-                  <Eye className="size-3.5" aria-hidden />
+              </button>
+              {gotv && validAddress(gotv) && (
+                <a href={`steam://connect/${gotv}`} className={cn(secondary, "h-10 flex-1")}>
+                  <Eye className="size-3.5" />
                   Spectate
-                </Button>
+                </a>
               )}
-              <ConnectButton server={server} variant="default" />
+              <button type="button" disabled={!connectable} onClick={() => connect(address, server.name)} className={cn(primary, "h-10 flex-1 text-[13px]")}>
+                <Play className="size-3.5" />
+                Connect
+              </button>
             </div>
           </>
         )}
@@ -392,266 +328,213 @@ function ServerSheet({ server, onClose }: { server: ServerInfo | null; onClose: 
   )
 }
 
-/* ----------------------------------------------------------------------------
- * Pro League lock
- * ------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------ page */
 
-function ProLocked({ access }: { access: CompetitiveAccess | null }) {
-  const navigate = useNavigate()
-  const { profile } = useMyRank()
-  const required = rankById(access?.requiredRankId ?? PRO_LEAGUE_RANK_ID) ?? rankById(PRO_LEAGUE_RANK_ID)!
-  const requiredExp = access?.requiredExp ?? required.minimumExp
-  const exp = access?.competitive?.current_exp ?? profile?.current_exp ?? null
-  const current = access?.competitive?.rank_id ? rankById(access.competitive.rank_id) : exp !== null ? rankForExp(exp) : null
-  const floor = 0
-  const progress = exp === null ? 0 : Math.min(1, Math.max(0, (exp - floor) / (requiredExp - floor)))
-  const toGo = exp === null ? null : Math.max(0, requiredExp - exp)
-
+function Header({ title, description, list, loading }: { title: string; description: string; list: PlayServerList | null; loading?: boolean }) {
   return (
-    <Card className="flex flex-col items-center gap-4 p-6 text-center sm:p-9">
-      <span className="flex size-[52px] items-center justify-center rounded-[14px] border border-line bg-raised text-text-muted">
-        <Lock className="size-5" aria-hidden />
-      </span>
-      <h2 className="m-0 flex flex-wrap items-center justify-center gap-2 text-[17px] leading-none font-semibold text-text">
-        <span>Pro League unlocks at</span>
-        <RankBadge rank={required} size={20} nameClassName="text-[17px] font-semibold" />
-      </h2>
-      <p className="m-0 max-w-[420px] text-[13px] leading-5 text-text-muted">
-        Pro League servers only let in players at that rank or above, so every match is even. Keep playing 5x5 to get there.
-      </p>
-      <div className="flex w-full max-w-[460px] flex-col gap-2">
-        <div className="flex items-center justify-between text-xs text-text-muted">
-          <span className="flex items-center gap-2">
-            {current ? <RankEmblem rank={current} size={20} /> : null}
-            You
-          </span>
-          <span className="flex items-center gap-2">
-            Required
-            <RankEmblem rank={required} size={20} />
-          </span>
-        </div>
-        <span className="h-1.5 overflow-hidden rounded-full bg-line-soft" role="progressbar" aria-valuemin={0} aria-valuemax={requiredExp} aria-valuenow={exp ?? 0}>
-          <span className="block h-full rounded-full bg-text transition-[width] duration-500" style={{ width: `${progress * 100}%` }} />
-        </span>
-        <span className="text-xs text-text-dim">{toGo === null ? "Play a ranked match to get your rank" : `${formatInt(toGo)} EXP to go`}</span>
+    <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-col gap-1">
+        <h1 className="flex items-center gap-2 text-[22px] font-semibold leading-[1.2] tracking-[-0.3px] text-[var(--text)]">
+          {title}
+          {loading && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
+        </h1>
+        <span className="text-[13px] leading-[1.2] text-[var(--text-muted)]">{description}</span>
       </div>
-      <Button onClick={() => navigate("/play/5x5")}>
-        <Play className="size-3" aria-hidden />
-        Play 5x5 to rank up
-      </Button>
-    </Card>
+      {list && list.onlineServers > 0 && (
+        <span className="flex items-center gap-2 text-[13px] tabular-nums text-[var(--text-muted)]">
+          <span className="size-1.5 rounded-full bg-[var(--status-green)]" />
+          {list.players} player{list.players === 1 ? "" : "s"} · {list.onlineServers} server{list.onlineServers === 1 ? "" : "s"}
+        </span>
+      )}
+    </div>
   )
 }
 
-/* ----------------------------------------------------------------------------
- * Page
- * ------------------------------------------------------------------------- */
-
-function QuickJoin({ mode, servers, favouriteMaps }: { mode: PlayMode; servers: ServerInfo[]; favouriteMaps: string[] }) {
-  const navigate = useNavigate()
+function QuickJoin({ mode, pickRule, favouriteMaps, anyJoinable }: { mode: PlayMode; pickRule: string; favouriteMaps: string[]; anyJoinable: boolean }) {
   const [busy, setBusy] = useState(false)
-  const anyJoinable = servers.some(isJoinable)
-
-  const play = async () => {
+  const playNow = async () => {
     setBusy(true)
     try {
-      const result = await serversService.quickJoin(mode, favouriteMaps)
-      if (result.server && result.connectAddress) serversService.connect({ id: result.server.id, connectAddress: result.connectAddress })
-      else toast("No open servers right now", { description: mode === "fun" ? "Check back in a minute." : "Try Fun Mode while servers fill up." })
+      const server = await playService.quickJoin(mode, favouriteMaps)
+      if (server) connect(server.connectAddress, server.name)
+      else toast("No open servers right now", { description: mode === "fun" ? "Try again in a moment." : "Fun Mode usually has room." })
     } catch {
-      toast.error("Quick join failed", { description: "Please try again." })
+      toast.error("Could not find a server. Try again.")
     } finally {
       setBusy(false)
     }
   }
-
   return (
-    <section aria-label="Quick join" className="flex flex-col gap-4 rounded-xl border border-line-soft bg-card px-5 py-[18px] sm:flex-row sm:items-center sm:gap-5">
-      <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-contrast">
-        <Zap className="size-5" aria-hidden />
-      </span>
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="text-[15px] font-semibold text-text">Quick join</span>
-        <span className="text-[13px] text-text-muted">
-          {anyJoinable || mode === "fun" ? (
-            COPY[mode].pickRule
-          ) : (
-            <>
-              No open servers right now.{" "}
-              <button type="button" onClick={() => navigate("/play/fun")} className="text-text underline-offset-4 hover:underline">
-                Try Fun Mode
-              </button>
-            </>
-          )}
+    <section aria-label="Quick join" className="flex flex-wrap items-center gap-5 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] px-5 py-[18px]">
+      <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-solid)] text-[var(--accent-on)]"><Zap className="size-5" /></span>
+      <div className="flex min-w-[200px] flex-1 flex-col gap-1">
+        <span className="text-[15px] font-semibold text-[var(--text)]">Quick join</span>
+        <span className="text-[13px] text-[var(--text-muted)]">
+          {anyJoinable ? pickRule : mode === "fun" ? "Every Fun server is full or offline right now." : <>No open server right now. <Link to={PAGE_ROUTES["play-fun"]} className="text-[var(--text)] underline-offset-4 hover:underline">Fun Mode</Link> usually has room.</>}
         </span>
       </div>
-      <Button size="lg" disabled={!anyJoinable || busy} onClick={() => void play()} className="sm:w-auto">
-        <Play className="size-3.5" aria-hidden />
+      <button type="button" disabled={!anyJoinable || busy} onClick={() => void playNow()} className={cn(primary, "h-11 gap-2 rounded-[10px] px-[22px] text-[15px]")}>
+        {busy ? <LoaderCircle className="size-4 animate-spin" /> : <Play className="size-4 fill-current" />}
         {anyJoinable ? "Play now" : "No open servers"}
-      </Button>
+      </button>
     </section>
   )
 }
 
-function ServerBrowser({ mode }: { mode: PlayMode }) {
-  const { servers: allServers, loading, error, refetch } = useLiveServers()
+function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode; title: string; description: string; pickRule: string }) {
   const [params, setParams] = useSearchParams()
-  const [chip, setChip] = useUrlState("map", "all")
-  const [serverId, setServerId] = useUrlState("server", "")
+  const filter = params.get("filter") ?? "all"
   const hideFull = params.get("full") === "hide"
-  const favouritesOnly = params.get("fav") === "1"
+  const onlyFavourites = params.get("fav") === "1"
+  const selectedId = params.get("server")
   const { favourites, toggle } = useFavourites()
+  const { data, loading, error, refetch } = useApiQuery<PlayServerList>((signal) => playService.getServers(mode, { signal }), { queryKey: `play:${mode}`, keepPreviousData: true })
+  useEffect(() => {
+    const timer = window.setInterval(refetch, REFRESH_MS)
+    return () => window.clearInterval(timer)
+  }, [refetch])
 
-  const setFlag = (key: string, value: string | null) =>
-    setParams(
-      (current) => {
-        const next = new URLSearchParams(current)
-        if (value) next.set(key, value)
-        else next.delete(key)
-        return next
-      },
-      { replace: true },
-    )
-
-  const servers = useMemo(() => allServers.filter((server) => server.mode === mode), [allServers, mode])
-
-  const chips = useMemo(() => {
-    const seen = new Map<string, string>()
-    for (const server of servers) {
-      if (mode === "fun") {
-        const key = funModeKey(server)
-        if (key) seen.set(key, funModeLabel(key))
-      } else {
-        const key = normalizeCs2MapKey(server.map)
-        if (key) seen.set(key, cs2MapLabel(server.map))
-      }
+  const update = (changes: Record<string, string | null>) => setParams((current) => {
+    const next = new URLSearchParams(current)
+    for (const [key, value] of Object.entries(changes)) {
+      if (value) next.set(key, value)
+      else next.delete(key)
     }
-    return [...seen.entries()].sort((a, b) => a[1].localeCompare(b[1]))
+    return next
+  }, { replace: true })
+
+  const servers = useMemo(() => data?.servers ?? [], [data])
+  // Filter chips come from the real servers: maps for 5x5/Pro, the servers' modes for Fun.
+  const chips = useMemo(() => {
+    const values = new Map<string, string>()
+    for (const server of servers) {
+      if (mode === "fun") values.set(server.modeLabel.toLowerCase(), funModeLabel(server.modeLabel))
+      else values.set(server.map.toLowerCase(), cs2MapLabel(server.map))
+    }
+    return Array.from(values.entries()).sort((a, b) => a[1].localeCompare(b[1]))
   }, [servers, mode])
-
-  const visible = useMemo(() => {
-    const filtered = servers.filter((server) => {
-      if (chip !== "all" && (mode === "fun" ? funModeKey(server) : normalizeCs2MapKey(server.map)) !== chip) return false
-      if (hideFull && !isJoinable(server) && server.status !== "offline") return false
-      if (favouritesOnly && !favourites.includes(server.id)) return false
-      return true
-    })
-    // Joinable first, then the most players; offline servers last.
-    return filtered.sort(
-      (a, b) =>
-        Number(b.status !== "offline") - Number(a.status !== "offline") ||
-        Number(isJoinable(b)) - Number(isJoinable(a)) ||
-        b.players - a.players ||
-        a.name.localeCompare(b.name),
-    )
-  }, [servers, chip, mode, hideFull, favouritesOnly, favourites])
-
-  const favouriteMaps = useMemo(
-    () => [...new Set(servers.filter((server) => favourites.includes(server.id)).map((server) => server.map))],
-    [servers, favourites],
-  )
-  const online = servers.filter((server) => server.status !== "offline")
-  const players = online.reduce((total, server) => total + server.players, 0)
-  const selected = serverId ? allServers.find((server) => server.id === serverId) ?? null : null
+  const visible = servers.filter((server) => {
+    if (filter !== "all" && (mode === "fun" ? server.modeLabel.toLowerCase() : server.map.toLowerCase()) !== filter) return false
+    if (hideFull && (server.status === "full" || server.status === "offline")) return false
+    if (onlyFavourites && !favourites.includes(server.id)) return false
+    return true
+  })
+  const favouriteMaps = Array.from(new Set(servers.filter((server) => favourites.includes(server.id)).map((server) => server.map)))
+  const selected = selectedId ? servers.find((server) => server.id === selectedId) ?? null : null
 
   return (
-    <>
-      <PageHeader
-        title={
-          <span className="inline-flex items-center gap-2">
-            {COPY[mode].title}
-            <InlineLoader show={loading && allServers.length > 0} />
-          </span>
-        }
-        subtitle={COPY[mode].description}
-        actions={
-          <span className="flex items-center gap-2 text-[13px] text-text-muted">
-            <span className={cn("size-1.5 rounded-full", players > 0 ? "bg-live" : "bg-text-faint")} aria-hidden />
-            <span className="font-medium tabular-nums text-text">{formatInt(players)}</span> players ·{" "}
-            <span className="font-medium tabular-nums text-text">{formatInt(online.length)}</span> servers
-          </span>
-        }
-      />
-
-      <QuickJoin mode={mode} servers={servers} favouriteMaps={favouriteMaps} />
-
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div role="group" aria-label={mode === "fun" ? "Modes" : "Maps"} className="flex flex-wrap gap-1.5">
-          <Chip active={chip === "all"} onClick={() => setChip("all")}>
-            {mode === "fun" ? "All modes" : "All maps"}
-          </Chip>
-          {chips.map(([key, label]) => (
-            <Chip key={key} active={chip === key} onClick={() => setChip(key)}>
-              {label}
-            </Chip>
-          ))}
+    <TooltipProvider delayDuration={200}>
+      <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
+        <div className="flex flex-col gap-[18px] p-6">
+          <Header title={title} description={description} list={data} loading={loading && Boolean(data)} />
+          <QuickJoin mode={mode} pickRule={pickRule} favouriteMaps={favouriteMaps} anyJoinable={servers.some((server) => server.joinable)} />
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div role="group" aria-label={mode === "fun" ? "Modes" : "Maps"} className="flex flex-wrap gap-1.5">
+              <button type="button" aria-pressed={filter === "all"} onClick={() => update({ filter: null })} className={cn(chip, filter === "all" ? chipOn : chipOff)}>{mode === "fun" ? "All modes" : "All maps"}</button>
+              {chips.map(([value, label]) => (
+                <button key={value} type="button" aria-pressed={filter === value} onClick={() => update({ filter: filter === value ? null : value })} className={cn(chip, filter === value ? chipOn : chipOff)}>{label}</button>
+              ))}
+            </div>
+            <div className="flex gap-1.5">
+              <button type="button" aria-pressed={hideFull} onClick={() => update({ full: hideFull ? null : "hide" })} className={cn(chip, hideFull ? chipOn : chipOff)}>Hide full</button>
+              <button type="button" aria-pressed={onlyFavourites} onClick={() => update({ fav: onlyFavourites ? null : "1" })} className={cn(chip, onlyFavourites ? chipOn : chipOff)}>
+                <Star className={cn("size-3", onlyFavourites && "fill-current")} />
+                Favourites
+              </button>
+            </div>
+          </div>
+          {!data && loading ? (
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3.5">{Array.from({ length: 6 }, (_, index) => <CardSkeleton key={index} />)}</div>
+          ) : error && !data ? (
+            <p className="flex items-center justify-center gap-3 py-16 text-[13px] text-[var(--text-dim)]">
+              Could not load servers.
+              <button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] transition-colors hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button>
+            </p>
+          ) : visible.length === 0 ? (
+            <p className="py-16 text-center text-[13px] text-[var(--text-dim)]">{servers.length === 0 ? "No servers online right now." : "No server matches these filters."}</p>
+          ) : (
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3.5">
+              {visible.map((server) => (
+                <ServerCard key={server.id} server={server} favourite={favourites.includes(server.id)} onFavourite={() => toggle(server.id)} onDetails={() => update({ server: server.id })} />
+              ))}
+            </div>
+          )}
         </div>
-        <div className="flex gap-1.5">
-          <Chip active={hideFull} onClick={() => setFlag("full", hideFull ? null : "hide")}>
-            Hide full
-          </Chip>
-          <Chip active={favouritesOnly} onClick={() => setFlag("fav", favouritesOnly ? null : "1")}>
-            Favourites
-          </Chip>
-        </div>
+        <ServerSheet server={selected} onClose={() => update({ server: null })} />
       </div>
-
-      {loading && allServers.length === 0 && !error ? (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(min(280px,100%),1fr))] gap-3.5" aria-busy="true" aria-label="Loading servers">
-          {Array.from({ length: 6 }, (_, index) => (
-            <ServerCardSkeleton key={index} mode={mode} />
-          ))}
-        </div>
-      ) : error && allServers.length === 0 ? (
-        <ErrorState onRetry={refetch} />
-      ) : visible.length === 0 ? (
-        <EmptyState>
-          {servers.length === 0
-            ? "No servers for this mode yet."
-            : favouritesOnly && favourites.length === 0
-              ? "Star a server to add it to your favourites."
-              : "No servers match these filters."}
-        </EmptyState>
-      ) : (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(min(280px,100%),1fr))] gap-3.5">
-          {visible.map((server) => (
-            <ServerCard
-              key={server.id}
-              server={server}
-              mode={mode}
-              favourite={favourites.includes(server.id)}
-              onFavourite={() => toggle(server.id)}
-              onDetails={() => setServerId(server.id)}
-            />
-          ))}
-        </div>
-      )}
-
-      <ServerSheet server={selected} onClose={() => setServerId("")} />
-    </>
+    </TooltipProvider>
   )
 }
 
-function ProLeague() {
-  const { user, loading: authLoading } = useAuth()
-  const { data, loading, error, refetch } = useApiQuery<CompetitiveAccess>((signal) => competitiveService.getMyAccess({ signal }), {
-    enabled: Boolean(user),
-    queryKey: user?.id ?? "guest",
+function ProLocked({ access }: { access: CompetitiveAccess }) {
+  const exp = access.competitive?.current_exp ?? 1000
+  const toGo = Math.max(0, PRO_LEAGUE_MIN_EXP - exp)
+  const share = Math.min(100, (exp / PRO_LEAGUE_MIN_EXP) * 100)
+  return (
+    <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
+      <div className="flex flex-col gap-[18px] p-6">
+        <Header title={MODES.proleague.title} description={MODES.proleague.description} list={null} />
+        <section className="flex flex-col items-center gap-4 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-9 text-center">
+          <span className="flex size-[52px] items-center justify-center rounded-[14px] border border-[var(--line)] bg-[var(--raised)] text-[var(--text-muted)]"><Lock className="size-[22px]" /></span>
+          <span className="flex flex-wrap items-center justify-center gap-2 text-[17px] font-semibold text-[var(--text)]">
+            Pro League unlocks at
+            <RankLabel rankId={access.requiredRankId} rankName={access.requiredRankName} size={24} nameClassName="text-[17px] font-semibold" />
+          </span>
+          <span className="max-w-[440px] text-[13px] leading-[1.55] text-[var(--text-muted)]">
+            Pro League servers only let in players at that rank or above, so every match is even. Keep playing 5x5 to get there.
+          </span>
+          <div className="mt-1.5 flex w-full max-w-[460px] flex-col gap-2">
+            <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
+              <span className="flex items-center gap-2">
+                <CompetitiveRankBadge rankId={access.competitive?.rank_id ?? 7} rankName={access.competitive?.rank_name ?? "Your rank"} imageKey={access.competitive?.rank_image_key} size={24} />
+                You
+              </span>
+              <span className="flex items-center gap-2">
+                Required
+                <CompetitiveRankBadge rankId={access.requiredRankId} rankName={access.requiredRankName} size={24} />
+              </span>
+            </div>
+            <span className="h-2 overflow-hidden rounded-full bg-[var(--line-soft)]">
+              <span className="block h-full rounded-full bg-[var(--accent-solid)] transition-[width] duration-300" style={{ width: `${share}%` }} />
+            </span>
+            <span className="text-center text-xs tabular-nums text-[var(--text-dim)]">{toGo.toLocaleString()} EXP to go</span>
+          </div>
+          <Link to={PAGE_ROUTES["play-5vs5"]} className={cn(primary, "mt-1 h-10 px-[18px] text-[13px]")}>
+            <Play className="size-3.5 fill-current" />
+            Play 5x5 to rank up
+          </Link>
+        </section>
+      </div>
+    </div>
+  )
+}
+
+export function PlayPage({ mode }: { mode: PlayPageMode }) {
+  const config = MODES[mode]
+  const { isAuthenticated, loading: authLoading } = useAuth()
+  const isPro = mode === "proleague"
+  const { data: access, loading: accessLoading, error: accessError, refetch: refetchAccess } = useApiQuery<CompetitiveAccess>((signal) => competitiveService.getMyAccess({ signal }), {
+    enabled: isPro && isAuthenticated,
+    queryKey: isPro && isAuthenticated ? "competitive-proleague-access" : "competitive-proleague-access-disabled",
   })
 
-  if (!user) {
-    if (authLoading) return null
-    return <SteamLoginGate pageName="Pro League" description="Sign in with Steam to see your Pro League access." />
+  if (isPro && !authLoading && !isAuthenticated) return <SteamLoginGate pageName="Pro League" />
+  if (isPro && (authLoading || (accessLoading && !access))) {
+    return (
+      <div className="flex flex-col gap-[18px] p-6" aria-hidden="true">
+        <Skeleton className="h-10 w-72 rounded-lg bg-[var(--raised)]" />
+        <Skeleton className="h-64 rounded-xl bg-[var(--card-surface)]" />
+      </div>
+    )
   }
-  if (data?.proLeagueUnlocked) return <ServerBrowser mode="pro" />
-  return (
-    <>
-      <PageHeader title={COPY.pro.title} subtitle={COPY.pro.description} />
-      {loading && !data ? <Skeleton className="h-[330px] w-full rounded-xl" /> : error && !data ? <ErrorState onRetry={refetch} /> : <ProLocked access={data} />}
-    </>
-  )
-}
-
-export function PlayPage({ mode }: { mode: PlayMode }) {
-  return <div className="flex flex-col gap-[18px] p-4 sm:p-6">{mode === "pro" ? <ProLeague /> : <ServerBrowser key={mode} mode={mode} />}</div>
+  if (isPro && !access && accessError) {
+    return (
+      <p className="flex items-center justify-center gap-3 py-16 text-[13px] text-[var(--text-dim)]">
+        Could not check your Pro League access.
+        <button type="button" onClick={refetchAccess} className="inline-flex items-center gap-1.5 text-[var(--text-2)] transition-colors hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button>
+      </p>
+    )
+  }
+  if (isPro && access && !access.proLeagueUnlocked) return <ProLocked access={access} />
+  return <ServerBrowser key={mode} mode={config.mode} title={config.title} description={config.description} pickRule={config.pickRule} />
 }

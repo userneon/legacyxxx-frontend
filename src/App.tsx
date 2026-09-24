@@ -1,131 +1,131 @@
-import { Component, Suspense, lazy, useLayoutEffect, useRef, type ReactNode } from "react"
-import { Navigate, Route, Routes, useLocation } from "react-router-dom"
+import { Component, useEffect, useRef, type CSSProperties, type ReactNode } from "react"
+import { Navigate, Routes, Route, useNavigate, useLocation } from "react-router-dom"
 
-import { SidebarProvider } from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { KillFeed } from "@/components/kill-feed"
 import { AppSidebar } from "@/components/app-sidebar"
-import { TopBar } from "@/components/top-bar"
-import { ProtectedPage } from "@/components/protected-page"
-import { ErrorState } from "@/components/states"
+import { ProfileBlock } from "@/components/profile-block"
 import { HomePage } from "@/pages/home"
 import { PlayPage } from "@/pages/play"
+import { SettingsPage } from "@/pages/settings"
+import { getWebsitePreferences, useWebsitePreferences } from "@/lib/preferences"
 import { TournamentsPage } from "@/pages/tournaments"
 import { LeadersPage } from "@/pages/leaders"
+import { ClanPage } from "@/pages/clan"
 import { SkinchangerPage } from "@/pages/skinchanger"
 import { PenaltiesPage } from "@/pages/penalties"
-import { ReviewsPage } from "@/pages/reviews"
 import { ExplorePage } from "@/pages/explore"
+import { FeedbackPage } from "@/pages/feedback"
 import { ProfilePage } from "@/pages/profile"
-import { SettingsPage } from "@/pages/settings"
 import { ConnectPage } from "@/pages/connect"
 import { StaffPanelPage } from "@/pages/staffpanel"
-import { LEGACY_REDIRECTS } from "@/lib/routes"
-import { getWebsitePrefs } from "@/lib/website-prefs"
+import { ProtectedPage } from "@/components/protected-page"
+import { useAuth } from "@/hooks/use-auth"
+import type { PageId } from "@/api/types"
+import { routeToPage, pageToRoute } from "@/lib/routes"
+import { isFeatureEnabled } from "@/lib/features"
 
-// The staff panel is its own shell and bundle; players never download it.
-const PanelApp = lazy(() => import("@/panel/panel-app"))
-const StaffProfileApp = lazy(() => import("@/panel/panel-app").then((module) => ({ default: module.StaffProfileApp })))
-
-function PanelFallback() {
-  return (
-    <div className="flex min-h-dvh items-center justify-center">
-      <div className="size-6 animate-spin rounded-full border-2 border-line border-t-text-muted" />
-    </div>
-  )
-}
-
-/**
- * Where the sidebar starts: Settings → "Start with sidebar collapsed" wins, then the last toggle (shadcn's
- * sidebar_state cookie), then the viewport (1024–1279px starts collapsed).
- */
-function initialSidebarOpen() {
-  if (getWebsitePrefs().sidebarCollapsed) return false
-  const cookie = document.cookie.split("; ").find((part) => part.startsWith("sidebar_state="))
-  if (cookie) return cookie.endsWith("=true")
-  return window.innerWidth >= 1280
-}
-
-/** Scroll positions per path so returning to a page lands where the player left it. */
-const scrollPositions = new Map<string, number>()
-
-function ContentPanel({ children }: { children: ReactNode }) {
-  const location = useLocation()
-  const panelRef = useRef<HTMLDivElement>(null)
-  const pathRef = useRef(location.pathname)
-
-  useLayoutEffect(() => {
-    const panel = panelRef.current
-    if (!panel) return
-    panel.scrollTop = scrollPositions.get(location.pathname) ?? 0
-    pathRef.current = location.pathname
-  }, [location.pathname])
-
-  return (
-    <div
-      ref={panelRef}
-      onScroll={(event) => scrollPositions.set(pathRef.current, event.currentTarget.scrollTop)}
-      className="relative min-h-0 flex-1 overflow-x-hidden overflow-y-auto rounded-[14px] border border-line-soft bg-panel"
-      id="content-panel"
-    >
-      <div key={location.pathname} className="h-full animate-page-in">
-        {children}
-      </div>
-    </div>
-  )
-}
-
+// LEGACY-X visual system: preserve the existing compact glass sidebar shell and route-level page transitions.
 export function App() {
+  const navigate = useNavigate()
   const location = useLocation()
+  const { user } = useAuth()
 
-  if (location.pathname === "/panel" || location.pathname.startsWith("/panel/") || location.pathname.startsWith("/u/")) {
-    return (
-      <Suspense fallback={<PanelFallback />}>
-        <Routes>
-          <Route path="/panel/*" element={<PanelApp />} />
-          <Route path="/u/:steamId" element={<StaffProfileApp />} />
-        </Routes>
-      </Suspense>
-    )
+  const currentPage = routeToPage(location.pathname)
+
+  const handleNavigate = (page: PageId) => {
+    navigate(getRouteForPage(page))
   }
 
+  /** A player is addressed by SteamID64; your own profile is simply /profile. */
+  const handleProfileNavigate = (identity: string) => {
+    if (identity === user?.steamId || identity === user?.id) {
+      navigate("/profile")
+      return
+    }
+
+    const profilePath = `/profile/${encodeURIComponent(identity)}`
+
+    const profileTab = window.open(profilePath, "_blank")
+    if (profileTab) {
+      profileTab.opener = null
+      profileTab.focus()
+      return
+    }
+
+    // Popup blocking is not expected for direct click handlers, but retain a usable fallback.
+    navigate(profilePath)
+  }
+  const handleClanNavigate = (clanId: string) => {
+    navigate(`/clans/${clanId}`)
+  }
+
+  // The content panel scrolls on its own, so send it back to the top on navigation.
+  const panelRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    panelRef.current?.scrollTo({ top: 0, behavior: "smooth" })
+  }, [location.pathname])
+
+  const websitePrefs = useWebsitePreferences()
+
+  // A narrow window, or the "Start with sidebar collapsed" setting, starts on the icon rail.
   return (
-    <SidebarProvider defaultOpen={initialSidebarOpen()} className="h-dvh min-h-0 overflow-hidden bg-bg">
-      <AppSidebar />
-      <main className="flex h-dvh min-w-0 flex-1 flex-col gap-2 p-2 md:pl-0">
-        <TopBar />
-        <ContentPanel>
-          <RouteErrorBoundary resetKey={location.pathname}>
+    <SidebarProvider defaultOpen={typeof window === "undefined" || (!getWebsitePreferences().sidebarCollapsed && window.innerWidth >= 1280)} style={{ "--sidebar-width": "264px", "--sidebar-width-icon": "62px" } as CSSProperties}>
+      <AppSidebar currentPage={currentPage} onNavigate={handleNavigate} />
+      {/* Floating shell: sidebar, top bar and content panel are separate cards with an 8px gutter. */}
+      <SidebarInset className="m-0 flex h-svh min-w-0 flex-col gap-2 bg-transparent p-2 pl-0">
+        <header className="flex h-14 shrink-0 items-center gap-4 rounded-[14px] border border-[var(--line-soft)] bg-[var(--panel)] pl-4 pr-2 max-md:pl-2">
+          {/* On a phone the sidebar is a sheet, so the top bar carries its only trigger. */}
+          <SidebarTrigger className="size-9 shrink-0 rounded-[10px] text-[var(--text-muted)] hover:bg-[var(--raised)] hover:text-[var(--text)] min-[560px]:hidden" />
+          {websitePrefs.killFeed ? <KillFeed /> : <div className="min-w-0 flex-1" />}
+          <span aria-hidden="true" className="h-6 w-px shrink-0 bg-[var(--line)]" />
+          <ProfileBlock onNavigate={handleNavigate} />
+        </header>
+
+        <div ref={panelRef} className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-clip rounded-[14px] border border-[var(--line-soft)] bg-[var(--panel)]">
+          <div key={location.pathname} className="page-enter flex min-h-full flex-col">
+            <RouteErrorBoundary resetKey={location.pathname}>
             <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/play/5x5" element={<PlayPage mode="5v5" />} />
+              <Route path="/" element={<HomePage onNavigate={handleNavigate} />} />
+              <Route path="/play/5x5" element={<PlayPage mode="5vs5" />} />
               <Route path="/play/fun" element={<PlayPage mode="fun" />} />
-              <Route path="/play/pro" element={<PlayPage mode="pro" />} />
-              <Route path="/tournaments" element={<TournamentsPage />} />
-              <Route path="/leaders" element={<LeadersPage />} />
+              <Route path="/play/pro" element={<PlayPage mode="proleague" />} />
+              {/* Earlier addresses of the Play pages. */}
+              <Route path="/play/5vs5" element={<Navigate to="/play/5x5" replace />} />
+              <Route path="/play/proleague" element={<Navigate to="/play/pro" replace />} />
+              <Route path="/tournaments" element={<TournamentsPage onProfileNavigate={handleProfileNavigate} />} />
+              <Route path="/leaders" element={<LeadersPage onProfileNavigate={handleProfileNavigate} />} />
+              {isFeatureEnabled("clan") && <Route path="/clan" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
+              {isFeatureEnabled("clan") && <Route path="/clans" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
+              {isFeatureEnabled("clan") && <Route path="/clan/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
+              {isFeatureEnabled("clan") && <Route path="/clans/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
               <Route path="/skinchanger" element={<ProtectedPage pageName="Skinchanger"><SkinchangerPage /></ProtectedPage>} />
-              <Route path="/penalties" element={<PenaltiesPage />} />
-              <Route path="/reviews" element={<ReviewsPage />} />
-              <Route path="/explore" element={<ExplorePage />} />
+              <Route path="/penalties" element={<PenaltiesPage onProfileNavigate={handleProfileNavigate} />} />
               <Route path="/settings" element={<ProtectedPage pageName="Settings"><SettingsPage /></ProtectedPage>} />
-              <Route path="/profile" element={<ProtectedPage pageName="your profile"><ProfilePage /></ProtectedPage>} />
-              <Route path="/profile/:identity" element={<ProfilePage />} />
+              <Route path="/explore" element={<ExplorePage onProfileNavigate={handleProfileNavigate} />} />
+              <Route path="/search" element={<ExplorePage onProfileNavigate={handleProfileNavigate} />} />
+              <Route path="/reviews" element={<FeedbackPage onProfileNavigate={handleProfileNavigate} />} />
+              <Route path="/feedback" element={<FeedbackPage onProfileNavigate={handleProfileNavigate} />} />
+              <Route path="/profile" element={
+                <ProtectedPage pageName="Profile">
+                  <ProfilePage />
+                </ProtectedPage>
+              } />
+              <Route path="/profile/:steamId" element={
+                <ProtectedPage pageName="Profile">
+                  <ProfilePage />
+                </ProtectedPage>
+              } />
               <Route path="/connect" element={<ConnectPage />} />
               <Route path="/staffpanel" element={<StaffPanelPage />} />
-              {Object.entries(LEGACY_REDIRECTS).map(([from, to]) => (
-                <Route key={from} path={from} element={<Navigate to={to} replace />} />
-              ))}
-              <Route path="/players/:identity" element={<LegacyProfileRedirect />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<HomePage onNavigate={handleNavigate} />} />
             </Routes>
-          </RouteErrorBoundary>
-        </ContentPanel>
-      </main>
+            </RouteErrorBoundary>
+          </div>
+        </div>
+      </SidebarInset>
     </SidebarProvider>
   )
-}
-
-function LegacyProfileRedirect() {
-  const { pathname } = useLocation()
-  return <Navigate to={pathname.replace(/^\/players\//, "/profile/")} replace />
 }
 
 class RouteErrorBoundary extends Component<{ children: ReactNode; resetKey: string }, { hasError: boolean }> {
@@ -136,13 +136,21 @@ class RouteErrorBoundary extends Component<{ children: ReactNode; resetKey: stri
   }
 
   componentDidUpdate(previousProps: Readonly<{ children: ReactNode; resetKey: string }>) {
-    if (previousProps.resetKey !== this.props.resetKey && this.state.hasError) this.setState({ hasError: false })
+    if (previousProps.resetKey !== this.props.resetKey && this.state.hasError) {
+      this.setState({ hasError: false })
+    }
   }
 
   render() {
-    if (this.state.hasError) return <ErrorState message="This page couldn't be shown." onRetry={() => this.setState({ hasError: false })} className="min-h-[40vh]" />
+    if (this.state.hasError) {
+      return <div className="flex min-h-[20rem] items-center justify-center p-6 text-sm text-muted-foreground">This page is temporarily unavailable.</div>
+    }
     return this.props.children
   }
+}
+
+function getRouteForPage(page: PageId): string {
+  return pageToRoute(page)
 }
 
 export default App
