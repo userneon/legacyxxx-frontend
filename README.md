@@ -1,38 +1,57 @@
-# LEGACY-X Frontend
+# Legacy-X Frontend
 
-This repository contains the LEGACY-X community-facing React frontend. The original visual design, color system, routes, components, motion, and UI/UX are retained. Integration work is intentionally limited to endpoint adapters, environment configuration, and truthful loading/error/empty states.
+The Legacy-X community site: play (5x5, Fun Mode, Pro League), tournaments, leaders, skinchanger, penalties,
+reviews, explore, profiles and settings. React 19, Vite 7, Tailwind CSS 4 and shadcn/ui on Radix.
+
+The design source of truth is `docs/design/` (reference screens, `PROMPT.md`, `RANK-SYSTEM.md`). Rank emblems are
+the 18 SVGs in `public/ranks/`.
 
 ## Run locally
 
-Install with the checked-in lockfile, then supply only a public API origin. Browser environment files must never contain `API_SECRET`, plugin secrets, RCON credentials, or Supabase service-role credentials.
-
 ```bash
 npm ci
-VITE_API_URL=https://api.legacy-x.example npm run dev
+VITE_API_URL=https://api.legacyx.cc npm run dev
 ```
 
-Build the static bundle with:
+Without `VITE_API_URL` a development build calls the API on the same origin (`/api/v1/...`); a production build
+falls back to `https://api.legacyx.cc`.
+
+Checks:
 
 ```bash
-npm run build
+npm run build          # tsc -b && vite build
+npm run check:colors   # fails on blue-family colors (hue 180–270°) in src/
 ```
 
-## Current public integrations
+Browser environment files must never contain API secrets, plugin secrets, RCON credentials or Supabase service-role
+keys. Only `VITE_*` values reach the bundle.
 
-The application’s data layer uses browser-safe, rate-limited read endpoints under `/api/public` for rank, XP, community, reconnect-heartbeat server directory, and overview statistics. These calls are made without operator or plugin credentials.
+## Optional configuration
 
-| Frontend area | Browser-safe endpoint | State |
-|---|---|---|
-| Leaderboard | `GET /api/public/rank/leaderboard` + `GET /api/public/community/experience` | Integrated |
-| Live servers | `GET /api/public/servers` | Integrated from reconnect heartbeats |
-| Home statistics | `GET /api/public/overview` | Integrated from truthful server/clan/match read models |
-| Public player community data | `GET /api/public/community/players/:steamId` | Backend-ready adapter boundary |
-| Steam login, wallet, store, skinchanger, tournament and write actions | Future authenticated consumer API | Not fabricated; protected UI states remain in place |
+| Variable | Used for |
+| --- | --- |
+| `VITE_API_URL` | API origin |
+| `VITE_DISCORD_INVITE_URL` | Discord invite (default for the links below) |
+| `VITE_DISCORD_APPEALS_URL` | "Appeal" on penalties |
+| `VITE_DISCORD_REPORT_URL` | "Report player" on profiles |
+| `VITE_DISCORD_ANNOUNCEMENTS_URL` | "Get notified on Discord" on Tournaments |
+| `VITE_DISCORD_STAFF_CONTACT_URL` | "Contact on Discord" on staff profiles |
+| `VITE_SERVER_RULES_URL`, `VITE_TOURNAMENT_RULES_URL` | Rules links |
+| `VITE_DISCORD_GUILD_ID` | Discord widget online count on Home |
 
-## Security boundary
+## Structure
 
-The existing AdminPlus operator API (`/api/*`) remains server/operator-only. It is not a browser API. The `x-api-secret` header and all plugin/server secrets stay outside the frontend bundle. Public CORS is restricted by the API’s `FRONTEND_PUBLIC_ORIGINS` allowlist; authenticated consumer endpoints will require a separate Steam-authenticated API layer.
+- `src/api/` — typed services for the `/api/v1` consumer API (the API alone computes EXP and ranks).
+- `src/pages/` — one file per page; `src/panel/` and `src/pages/staffpanel.tsx` are the staff tools.
+- `src/components/` — app shell (sidebar, top bar, kill feed, menus), rank emblems, states, UI primitives.
+- `src/lib/` — rank ladder (display only), formatting, website preferences, config.
+- `ops/nginx/` — static asset caching for the production host.
 
-## Deployment note
+Website preferences (kill feed, collapsed sidebar, motion, time format) are stored per device under
+`localStorage["legacyx:website"]` and applied before first paint by `index.html`.
 
-Set `VITE_API_URL` at build time to the production API origin. Configure the same frontend origin in the API host’s `FRONTEND_PUBLIC_ORIGINS` comma-separated allowlist. Do not use wildcard CORS for user-authenticated routes.
+## Deployment
+
+Set `VITE_API_URL` at build time and add the site origin to the API's `FRONTEND_PUBLIC_ORIGINS`. Deploy the API (and
+its database migrations) before the frontend: the pages use the v1 routes (`/public/competitive/leaderboard`,
+`/public/killfeed`, `/play/:mode/quick-join`, `/profile/:id/loadout`, …).

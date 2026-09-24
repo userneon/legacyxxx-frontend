@@ -14,7 +14,7 @@ const option = (name, fallback) => {
   const index = args.indexOf(name)
   return index >= 0 ? args[index + 1] ?? fallback : fallback
 }
-const root = path.resolve(option("--root", "/home/ubuntu/webdev-static-assets"))
+const root = path.resolve(option("--root", "public"))
 const quality = Math.max(70, Math.min(92, Number(option("--quality", "84"))))
 const jobs = Math.max(1, Math.min(24, Number(option("--jobs", "6"))))
 const dryRun = args.includes("--dry-run")

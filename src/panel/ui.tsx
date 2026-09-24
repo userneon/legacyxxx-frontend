@@ -133,7 +133,7 @@ export function PlayerCell({ player, subtitle, className }: { player: Pick<Playe
 const FLAG_META: { key: keyof PlayerFlags; label: string; icon: LucideIcon; className: string; test: (flags: PlayerFlags) => boolean; hint: (flags: PlayerFlags) => string }[] = [
   { key: "previousBan", label: "Prior ban", icon: Ban, className: "text-rose-300 bg-rose-500/10", test: (f) => f.previousBan, hint: () => "Has been banned on LEGACY-X before" },
   { key: "vacBans", label: "VAC", icon: ShieldAlert, className: "text-rose-300 bg-rose-500/10", test: (f) => f.vacBans > 0 || f.gameBans > 0, hint: (f) => `${f.vacBans} VAC · ${f.gameBans} game ban(s) on Steam` },
-  { key: "newAccount", label: "New", icon: Sparkles, className: "text-sky-300 bg-sky-500/10", test: (f) => f.newAccount, hint: () => "First seen on LEGACY-X servers under 7 days ago" },
+  { key: "newAccount", label: "New", icon: Sparkles, className: "text-text-2 bg-raised", test: (f) => f.newAccount, hint: () => "First seen on LEGACY-X servers under 7 days ago" },
   { key: "manyNameChanges", label: "Names", icon: Fingerprint, className: "text-amber-300 bg-amber-500/10", test: (f) => f.manyNameChanges, hint: () => "3 or more names in the last 30 days" },
   { key: "firstVisit", label: "First visit", icon: UserPlus, className: "text-emerald-300 bg-emerald-500/10", test: (f) => f.firstVisit, hint: () => "First time on this server" },
 ]
@@ -174,8 +174,8 @@ export function StatusPill({ status }: { status: string }) {
     approved: "bg-emerald-500/15 text-emerald-300",
     dismissed: "bg-secondary text-muted-foreground",
     rejected: "bg-secondary text-muted-foreground",
-    queued: "bg-sky-500/15 text-sky-300",
-    delivered: "bg-sky-500/15 text-sky-300",
+    queued: "bg-raised text-text-2",
+    delivered: "bg-raised text-text-2",
     done: "bg-emerald-500/15 text-emerald-300",
     failed: "bg-rose-500/15 text-rose-300",
   }
