@@ -2,7 +2,7 @@
  * Top bar kill feed (docs/design/PROMPT.md §6). Kills come from the API's in-memory feed; the ticker keeps
  * running while new entries are appended, so it never restarts or jumps on refresh.
  */
-import { Fragment, useEffect, useRef, useState } from "react"
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Crosshair } from "lucide-react"
 
@@ -17,6 +17,8 @@ const PLAY_ROUTE_BY_MODE: Record<string, string> = { "5v5": "/play/5x5", fun: "/
 const POLL_MS = 5_000
 const MAX_ENTRIES = 30
 const QUIET_AFTER_MS = 10 * 60_000
+/** Ticker speed in px per second; constant however many kills are in the strip. */
+const TICKER_SPEED = 45
 
 function useKillFeed() {
   const [entries, setEntries] = useState<KillFeedEntry[]>([])
@@ -72,6 +74,79 @@ function Kill({ entry, onOpen }: { entry: KillFeedEntry; onOpen: (serverId: stri
   )
 }
 
+/**
+ * Two copies of the kills scroll left at a constant pixel speed and wrap at one copy's width, so the loop is
+ * seamless. Driven from JS instead of a CSS percentage animation: when kills are appended or trimmed, the
+ * offset is corrected by how far an existing kill moved inside the strip, so nothing on screen jumps.
+ */
+function Ticker({ entries, onOpen }: { entries: KillFeedEntry[]; onOpen: (serverId: string) => void }) {
+  const trackRef = useRef<HTMLDivElement>(null)
+  const copyRef = useRef<HTMLDivElement>(null)
+  const offset = useRef(0)
+  const paused = useRef(false)
+  const positions = useRef(new Map<string, number>())
+
+  const apply = () => {
+    if (trackRef.current) trackRef.current.style.transform = `translate3d(${-offset.current}px, 0, 0)`
+  }
+
+  useLayoutEffect(() => {
+    const copy = copyRef.current
+    if (!copy) return
+    const next = new Map<string, number>()
+    copy.querySelectorAll<HTMLElement>("[data-kill]").forEach((element) => next.set(element.dataset.kill!, element.offsetLeft))
+    for (const [id, left] of next) {
+      const before = positions.current.get(id)
+      if (before !== undefined) {
+        offset.current += left - before
+        break
+      }
+    }
+    positions.current = next
+    const width = copy.offsetWidth
+    if (width > 0) offset.current = ((offset.current % width) + width) % width
+    apply()
+  }, [entries])
+
+  useEffect(() => {
+    let frame = 0
+    let last = performance.now()
+    const tick = (now: number) => {
+      // Clamp the step so a background tab does not skip ahead when it comes back.
+      const seconds = Math.min(0.05, (now - last) / 1000)
+      last = now
+      const width = copyRef.current?.offsetWidth ?? 0
+      if (!paused.current && width > 0) offset.current = (offset.current + TICKER_SPEED * seconds) % width
+      apply()
+      frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [])
+
+  const pause = () => (paused.current = true)
+  const resume = () => (paused.current = false)
+
+  return (
+    <div className="min-w-0 flex-1 overflow-hidden mask-fade-x" onMouseEnter={pause} onMouseLeave={resume} onFocusCapture={pause} onBlurCapture={resume}>
+      <div ref={trackRef} className="flex w-max will-change-transform">
+        {[0, 1].map((copy) => (
+          <div key={copy} ref={copy === 0 ? copyRef : undefined} aria-hidden={copy === 1 || undefined} inert={copy === 1 || undefined} className="relative flex shrink-0 items-center gap-5 pr-5">
+            {entries.map((entry) => (
+              <span key={entry.eventId} data-kill={entry.eventId} className="inline-flex shrink-0 items-center gap-5 animate-fade-in">
+                <Kill entry={entry} onOpen={onOpen} />
+                <span className="text-text-faint" aria-hidden>
+                  ·
+                </span>
+              </span>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function KillFeed() {
   const { killFeed } = useWebsitePrefs()
   const { entries, loaded } = useKillFeed()
@@ -117,22 +192,7 @@ export function KillFeed() {
           ))}
         </div>
       ) : (
-        <div className="ticker min-w-0 flex-1 overflow-hidden mask-fade-x">
-          <div className="ticker-track inline-flex items-center gap-5 pr-5">
-            {[0, 1].map((copy) => (
-              <Fragment key={copy}>
-                {entries.map((entry) => (
-                  <Fragment key={`${copy}-${entry.eventId}`}>
-                    <span aria-hidden={copy === 1 || undefined} inert={copy === 1 || undefined} className="inline-flex items-center gap-5 animate-fade-in">
-                      <Kill entry={entry} onOpen={openServer} />
-                      <span className="text-text-faint" aria-hidden>·</span>
-                    </span>
-                  </Fragment>
-                ))}
-              </Fragment>
-            ))}
-          </div>
-        </div>
+        <Ticker entries={entries} onOpen={openServer} />
       )}
     </div>
   )

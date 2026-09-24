@@ -139,7 +139,6 @@
   --ease-in: var(--ease-in);
 
   --animate-shimmer: lx-shimmer 1.5s ease-in-out infinite;
-  --animate-ticker: lx-ticker 40s linear infinite;
   --animate-page-in: lx-page-in var(--dur-base) var(--ease-out) both;
   --animate-fade-in: lx-fade-in var(--dur-base) var(--ease-out) both;
 }
@@ -232,15 +231,6 @@
   }
 }
 
-@keyframes lx-ticker {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
 @keyframes lx-page-in {
   from {
     opacity: 0;
@@ -297,13 +287,6 @@ img[data-loaded="true"] {
 }
 
 /* Kill feed pauses on hover. */
-.ticker-track {
-  animation: var(--animate-ticker);
-}
-.ticker:hover .ticker-track,
-.ticker:focus-within .ticker-track {
-  animation-play-state: paused;
-}
 
 /* Reduced motion: from the OS setting, or forced by Settings → Website → Motion = Reduce. */
 @media (prefers-reduced-motion: reduce) {
@@ -315,9 +298,6 @@ img[data-loaded="true"] {
     transition-duration: 1ms !important;
     scroll-behavior: auto !important;
   }
-  :root:not([data-motion="full"]) .ticker-track {
-    animation: none !important;
-  }
 }
 :root[data-motion="reduce"] *,
 :root[data-motion="reduce"] *::before,
@@ -326,7 +306,4 @@ img[data-loaded="true"] {
   animation-iteration-count: 1 !important;
   transition-duration: 1ms !important;
   scroll-behavior: auto !important;
-}
-:root[data-motion="reduce"] .ticker-track {
-  animation: none !important;
 }
