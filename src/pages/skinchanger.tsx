@@ -1,65 +1,49 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
-import {
-  ArrowLeft,
-  BadgeCheck,
-  ImageOff,
-  Loader2,
-  RotateCcw,
-  Search,
-  SlidersHorizontal,
-  Sticker,
-  Tag,
-  Trash2,
-  X,
-} from "lucide-react"
+/**
+ * Skinchanger (docs/design/skinchanger/skinchanger-t, -ct, -modal): an inventory-style loadout grid per team.
+ * Columns: Pistols | SMGs | Rifles + Knife | Sniper rifles + Heavy | Agent + Gloves (+ music kit and pin, which the
+ * plugin also applies). T shows T-only and shared firearms, CT shows CT-only and shared ones. A card opens the skin
+ * dialog; the trash button removes the saved look directly. Saving uses the per-entry API (with the full-loadout
+ * fallback for older APIs); the plugin applies the loadout when the player types !rs.
+ */
+import { useEffect, useMemo, useState, type ReactNode } from "react"
+import { Loader2, Search, SlidersHorizontal, Trash2, X } from "lucide-react"
 import { toast } from "sonner"
 
-import { skinchangerService, type SkinchangerAppearanceOptions, type SkinchangerCatalogItem, type SkinchangerCategory, type SkinchangerFirearmGroup, type SkinchangerLoadoutEntry, type SkinchangerSlot, type TeamScope } from "@/api"
-import type { ApiError } from "@/api/types"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { QueryState } from "@/components/query-state"
-import { CardGridSkeleton } from "@/components/skeletons"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
-import { Checkbox } from "@/components/ui/checkbox"
-import { OptimizedImage } from "@/components/optimized-image"
-import { RelativeTime } from "@/components/relative-time"
-import { segmentGroupClass, segmentItemClass, stickyToolbarClass, toolbarSearchClass } from "@/components/page-kit"
-import { useApiQuery } from "@/hooks/use-api-query"
+  skinchangerService,
+  type ApiError,
+  type SkinchangerAppearanceOptions,
+  type SkinchangerCatalogItem,
+  type SkinchangerCategory,
+  type SkinchangerLoadoutEntry,
+  type SkinchangerSlot,
+  type TeamScope,
+} from "@/api"
 import { cn } from "@/lib/utils"
-import pinsIcon from "@/assets/skinchanger/pins.png"
-import teamTIcon from "@/assets/skinchanger/team-t.webp"
-import teamCtIcon from "@/assets/skinchanger/team-ct.webp"
+import { EmptyState, ErrorState, Skeleton } from "@/components/states"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Chip } from "@/components/ui/chip"
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
+import { Switch } from "@/components/ui/switch"
+import { useApiQuery } from "@/hooks/use-api-query"
+import { useDebounced } from "@/hooks/use-debounced"
+import { useUrlState } from "@/hooks/use-url-state"
 
-/** LEGACY-X neutral visual system: filename-matched collection icons, ordered Skins sub-groups, and lower-left rarity glow. */
-type CollectionId = "skins" | Exclude<SkinchangerCategory, "weapon" | "agent">
-type CollectionMeta = { id: CollectionId; category: SkinchangerCategory; label: string; slot: SkinchangerSlot; firearmGroup?: SkinchangerFirearmGroup }
+type Team = "t" | "ct"
+type ModelKind = "weapon" | "knife" | "glove"
+type SingleSlot = "agent" | "music_kit" | "pin"
 
+/** What a dialog edits: one firearm model, or the team's knife / glove / agent / music kit / pin slot. */
+type Target = { kind: "weapon"; model: SkinchangerCatalogItem } | { kind: "knife" | "glove" } | { kind: SingleSlot }
 
-const categories: CollectionMeta[] = [
-  { id: "skins", category: "weapon", label: "Skins", slot: "weapon" },
-  { id: "knife", category: "knife", label: "Knives", slot: "knife" },
-  { id: "glove", category: "glove", label: "Gloves", slot: "glove" },
-  { id: "music_kit", category: "music_kit", label: "Music", slot: "music_kit" },
-  { id: "pin", category: "pin", label: "Pins", slot: "pin" },
-]
+/* ----------------------------------------------------------------------------
+ * Catalog helpers (weapon_class values exactly as stored in skinchanger_catalog_items)
+ * ------------------------------------------------------------------------- */
 
-type WeaponGridGroup = "Pistols" | "SMGs" | "Rifles" | "Sniper Rifles" | "Heavy"
-const weaponGridGroups: WeaponGridGroup[] = ["Pistols", "SMGs", "Rifles", "Sniper Rifles", "Heavy"]
+type WeaponGroup = "Pistols" | "SMGs" | "Rifles" | "Sniper Rifles" | "Heavy"
 
-/** weapon_class values exactly as stored in skinchanger_catalog_items (category "weapon"). */
-const firearmGridGroup: Record<string, WeaponGridGroup> = {
+const FIREARM_GROUP: Record<string, WeaponGroup> = {
   "Glock-18": "Pistols", "USP-S": "Pistols", "P2000": "Pistols", "P250": "Pistols", "Desert Eagle": "Pistols",
   "Dual Berettas": "Pistols", "Five-SeveN": "Pistols", "Tec-9": "Pistols", "CZ75-Auto": "Pistols", "R8 Revolver": "Pistols",
   "MAC-10": "SMGs", "MP9": "SMGs", "MP7": "SMGs", "MP5-SD": "SMGs", "UMP-45": "SMGs", "P90": "SMGs", "PP-Bizon": "SMGs",
@@ -67,94 +51,42 @@ const firearmGridGroup: Record<string, WeaponGridGroup> = {
   "AWP": "Sniper Rifles", "SSG 08": "Sniper Rifles", "SCAR-20": "Sniper Rifles", "G3SG1": "Sniper Rifles",
   "Nova": "Heavy", "XM1014": "Heavy", "MAG-7": "Heavy", "Sawed-Off": "Heavy", "Negev": "Heavy", "M249": "Heavy",
 }
+const FIREARM_ORDER = Object.keys(FIREARM_GROUP)
+const T_ONLY = new Set(["AK-47", "Galil AR", "SG 553", "G3SG1", "Glock-18", "Tec-9", "MAC-10", "Sawed-Off"])
+const CT_ONLY = new Set(["AUG", "FAMAS", "M4A1-S", "M4A4", "SCAR-20", "USP-S", "P2000", "Five-SeveN", "MP9", "MAG-7"])
 
-const firearmClassOrder = Object.keys(firearmGridGroup)
-
-/** Buy-menu order inside a section; unknown firearms go last. */
-function firearmOrder(item: SkinchangerCatalogItem) {
-  const index = firearmClassOrder.indexOf(item.weapon_class ?? item.display_name)
-  return index === -1 ? firearmClassOrder.length : index
-}
-
-/** Falls back to the catalogue's own weaponGroup so a firearm added later still lands in a section. */
-function gridGroupForFirearm(item: SkinchangerCatalogItem): WeaponGridGroup {
-  const mapped = firearmGridGroup[item.weapon_class ?? item.display_name]
+function firearmGroup(item: SkinchangerCatalogItem): WeaponGroup {
+  const mapped = FIREARM_GROUP[item.weapon_class ?? item.display_name]
   if (mapped) return mapped
   const group = item.metadata.weaponGroup
   return group === "Pistols" || group === "SMGs" || group === "Heavy" ? group : "Rifles"
 }
 
-const rarityStyles: Record<string, { rank: number; glow: string; accent: string }> = {
-  Covert: { rank: 1, glow: "rgba(239, 68, 68, 0.30)", accent: "#fb7185" },
-  Classified: { rank: 2, glow: "rgba(244, 114, 182, 0.28)", accent: "#f472b6" },
-  Restricted: { rank: 3, glow: "rgba(168, 85, 247, 0.27)", accent: "#c084fc" },
-  "Mil-Spec Grade": { rank: 4, glow: "rgba(59, 130, 246, 0.27)", accent: "#60a5fa" },
-  "Industrial Grade": { rank: 5, glow: "rgba(56, 189, 248, 0.24)", accent: "#7dd3fc" },
-  "Consumer Grade": { rank: 6, glow: "rgba(226, 232, 240, 0.20)", accent: "#e2e8f0" },
-  Contraband: { rank: 7, glow: "rgba(249, 115, 22, 0.28)", accent: "#fb923c" },
-  Extraordinary: { rank: 8, glow: "rgba(234, 179, 8, 0.28)", accent: "#facc15" },
+function firearmOrder(item: SkinchangerCatalogItem) {
+  const index = FIREARM_ORDER.indexOf(item.weapon_class ?? item.display_name)
+  return index === -1 ? FIREARM_ORDER.length : index
 }
 
-function rarityStyle(item: SkinchangerCatalogItem) {
-  const rarity = item.metadata.rarity
-  return typeof rarity === "string" ? rarityStyles[rarity] ?? null : null
+/** The side a model is locked to ("all" = both teams can use it). */
+function lockedTeam(item: SkinchangerCatalogItem | null): TeamScope {
+  const team = typeof item?.metadata.team === "string" ? item.metadata.team.toLowerCase() : ""
+  if (team.includes("counter") && !team.includes("terrorist")) return "ct"
+  if (team.includes("terrorist") && !team.includes("counter")) return "t"
+  const name = item?.weapon_class ?? item?.display_name ?? ""
+  if (CT_ONLY.has(name)) return "ct"
+  if (T_ONLY.has(name)) return "t"
+  return "all"
 }
 
-const teamOptions: Array<{ id: TeamScope; label: string }> = [
-  { id: "t", label: "T" },
-  { id: "ct", label: "CT" },
-]
-
-const tOnlyFirearms = new Set(["AK-47", "Galil AR", "SG 553", "G3SG1", "Glock-18", "Tec-9", "MAC-10", "Sawed-Off"])
-const ctOnlyFirearms = new Set(["AUG", "FAMAS", "M4A1-S", "M4A4", "SCAR-20", "USP-S", "P2000", "Five-SeveN", "MP9", "MAG-7"])
-const defaultGloveVisual = "https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/weapons/base_weapons/ct_gloves_png.png"
-const defaultKnifeVisual = "https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/weapons/base_weapons/weapon_knife_png.png"
-const wearSuffix = / \((Factory New|Minimal Wear|Field-Tested|Well-Worn|Battle-Scarred)\)$/i
-
-function defaultModelItem(category: "knife" | "glove"): SkinchangerCatalogItem {
-  return {
-    id: `builtin-default-${category}`,
-    external_key: `builtin:default-${category}`,
-    category,
-    weapon_class: category === "knife" ? "Default Knife" : "Default Gloves",
-    display_name: category === "knife" ? "Default Knife" : "Default Gloves",
-    weapon_defindex: null,
-    paint_id: null,
-    model: null,
-    image_key: null,
-    image_url: category === "knife" ? defaultKnifeVisual : defaultGloveVisual,
-    metadata: { builtinDefault: true },
-  }
+function slotKeyFor(item: SkinchangerCatalogItem, kind: ModelKind) {
+  const modelKey = String(item.weapon_defindex ?? item.weapon_class ?? item.id).toLowerCase().replace(/[^a-z0-9_-]+/g, "-")
+  return kind === "weapon" ? `weapon:${modelKey}` : `${kind}:${modelKey}`
 }
 
-function categoryMeta(collection: CollectionId) {
-  return categories.find((item) => item.id === collection) ?? categories[0]
-}
-
-function catalogImageUrl(item: SkinchangerCatalogItem) {
-  if (!item.image_url) return null
+function imageUrl(item: SkinchangerCatalogItem | null | undefined) {
+  if (!item?.image_url) return null
   const separator = item.image_url.includes("?") ? "&" : "?"
   return `${item.image_url}${separator}catalog_item_id=${encodeURIComponent(item.id)}`
-}
-
-function teamScopeFromMetadata(item: SkinchangerCatalogItem | null) {
-  const team = typeof item?.metadata.team === "string" ? item.metadata.team.toLowerCase() : ""
-  if (team.includes("counter") && !team.includes("terrorist")) return "ct" as const
-  if (team.includes("terrorist") && !team.includes("counter")) return "t" as const
-  const firearmName = item?.weapon_class ?? item?.display_name ?? ""
-  if (ctOnlyFirearms.has(firearmName)) return "ct" as const
-  if (tOnlyFirearms.has(firearmName)) return "t" as const
-  return "all" as const
-}
-
-function teamScopeFade(scope: TeamScope) {
-  if (scope === "t") return "radial-gradient(ellipse 92% 86% at 100% 0%, rgba(245, 158, 11, 0.31) 0%, rgba(234, 88, 12, 0.16) 35%, transparent 72%)"
-  if (scope === "ct") return "radial-gradient(ellipse 92% 86% at 100% 0%, rgba(56, 189, 248, 0.30) 0%, rgba(37, 99, 235, 0.15) 37%, transparent 72%)"
-  return "radial-gradient(ellipse 76% 80% at 100% 0%, rgba(56, 189, 248, 0.24) 0%, transparent 70%), radial-gradient(ellipse 76% 80% at 84% 0%, rgba(245, 158, 11, 0.24) 0%, transparent 70%)"
-}
-
-function strongerGlow(glow: string) {
-  return glow.replace(/0\.\d+\)$/, "0.50)")
 }
 
 function metadataNumber(item: SkinchangerCatalogItem | null, key: string, fallback: number) {
@@ -162,1091 +94,753 @@ function metadataNumber(item: SkinchangerCatalogItem | null, key: string, fallba
   return typeof value === "number" && Number.isFinite(value) ? value : fallback
 }
 
-function normalizeAppearanceOptions(options: SkinchangerAppearanceOptions) {
-  return JSON.stringify({
-    ...options,
-    stickers: [...(options.stickers ?? [])].sort((a, b) => a.slot - b.slot),
-  })
-}
-
-const wearTiers: Array<{ label: string; short: string; from: number; to: number }> = [
-  { label: "Factory New", short: "FN", from: 0, to: 0.07 },
-  { label: "Minimal Wear", short: "MW", from: 0.07, to: 0.15 },
-  { label: "Field-Tested", short: "FT", from: 0.15, to: 0.38 },
-  { label: "Well-Worn", short: "WW", from: 0.38, to: 0.45 },
-  { label: "Battle-Scarred", short: "BS", from: 0.45, to: 1 },
-]
-
-function wearName(wear: number) {
-  if (wear <= 0.07) return "Factory New"
-  if (wear <= 0.15) return "Minimal Wear"
-  if (wear <= 0.38) return "Field-Tested"
-  if (wear <= 0.45) return "Well-Worn"
-  return "Battle-Scarred"
-}
-
-function slotKeyForCatalogItem(item: SkinchangerCatalogItem, category: SkinchangerCategory) {
-  const modelKey = String(item.weapon_defindex ?? item.weapon_class ?? item.id).toLowerCase().replace(/[^a-z0-9_-]+/g, "-")
-  if ((["glove", "knife"] as SkinchangerCategory[]).includes(category)) return `${category}:${modelKey}`
-  return `weapon:${modelKey}`
-}
-
-/** Fade for a card's look when it changes (team switch, new save); keyed elements replay it. */
-const swapIn = "animate-in fade-in-0 [animation-duration:350ms] ease-out motion-reduce:animate-none"
-
-function savedSkinLabel(item: SkinchangerCatalogItem) {
+const WEAR_SUFFIX = / \((Factory New|Minimal Wear|Field-Tested|Well-Worn|Battle-Scarred)\)$/i
+function skinName(item: SkinchangerCatalogItem) {
   const [, skin = item.display_name] = item.display_name.split("|")
-  return skin.trim().replace(wearSuffix, "")
+  return skin.trim().replace(WEAR_SUFFIX, "")
 }
 
-export function SkinchangerPage() {
-  const [collection, setCollection] = useState<CollectionId>("skins")
-  const [skinGroup, setSkinGroup] = useState<SkinchangerFirearmGroup | "agents">("Rifles")
-  const [query, setQuery] = useState("")
-  const [weaponClass, setWeaponClass] = useState("")
-  const [offset, setOffset] = useState(0)
-  const [activeWeapon, setActiveWeapon] = useState<SkinchangerCatalogItem | null>(null)
-  const [selected, setSelected] = useState<SkinchangerCatalogItem | null>(null)
-  const [agentTeam, setAgentTeam] = useState<"t" | "ct" | null>(null)
-  const [teamScope, setTeamScope] = useState<TeamScope>("t")
-  const [defaultChoice, setDefaultChoice] = useState<"knife" | "glove" | null>(null)
-  const [customOptions, setCustomOptions] = useState<SkinchangerAppearanceOptions>({ wear: 0.0001, seed: 0, statTrak: false, stickers: [] })
-  const [selectedAccessories, setSelectedAccessories] = useState<Record<string, SkinchangerCatalogItem>>({})
-  const [accessoryPicker, setAccessoryPicker] = useState<"sticker" | "charm" | null>(null)
-  const [accessoryQuery, setAccessoryQuery] = useState("")
-  const [editingStickerSlot, setEditingStickerSlot] = useState<number | null>(null)
-  const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
-  const [deleteConfirm, setDeleteConfirm] = useState<{ model: SkinchangerCatalogItem; entry: SkinchangerLoadoutEntry } | null>(null)
-  const [saving, setSaving] = useState(false)
-  const [pickerOpen, setPickerOpen] = useState(false)
-  // Knife and glove dialogs are opened per team (T knife, CT gloves...) and always save for that team.
-  const [slotTeam, setSlotTeam] = useState<"t" | "ct" | null>(null)
-  const [gridQuery, setGridQuery] = useState("")
-  // "Also use for the other team" in the picker: saves one look for both teams.
-  const [alsoOtherTeam, setAlsoOtherTeam] = useState(false)
-  const [optimisticLoadoutEntries, setOptimisticLoadoutEntries] = useState<SkinchangerLoadoutEntry[] | null>(null)
-  const [optimisticLoadoutVersion, setOptimisticLoadoutVersion] = useState<number | null>(null)
-  // Opening a team-locked model moves the switch to that side; going back to the grid restores it.
-  const gridTeamRef = useRef<TeamScope | null>(null)
+const WEAR_TIERS = [
+  { label: "Factory New", short: "FN", to: 0.07 },
+  { label: "Minimal Wear", short: "MW", to: 0.15 },
+  { label: "Field-Tested", short: "FT", to: 0.38 },
+  { label: "Well-Worn", short: "WW", to: 0.45 },
+  { label: "Battle-Scarred", short: "BS", to: 1 },
+]
+const wearTier = (wear: number) => WEAR_TIERS.find((tier) => wear <= tier.to) ?? WEAR_TIERS[WEAR_TIERS.length - 1]
 
-  const activeCategory = categoryMeta(collection)
-  const category: SkinchangerCategory = collection === "skins" && skinGroup === "agents" ? "agent" : activeCategory.category
-  const activeSlot: SkinchangerSlot = category === "agent" ? "agent" : activeCategory.slot
-  const effectiveCategory: SkinchangerCategory = activeWeapon ? (["glove", "knife"] as SkinchangerCategory[]).includes(category) ? category : "weapon_skin" : category
-  const effectiveWeaponClass = activeWeapon?.weapon_class ?? (weaponClass || undefined)
-  const catalogQueryKey = `${collection}:${skinGroup}:${effectiveCategory}:${effectiveWeaponClass ?? ""}:${category === "agent" ? agentTeam ?? "" : ""}:${query}:${offset}`
-  const { data: catalog, loading: catalogLoading, error: catalogError, refetch: refetchCatalog } =
-    useApiQuery((signal) => skinchangerService.getCatalog({ category: effectiveCategory, weaponClass: effectiveWeaponClass, team: category === "agent" ? agentTeam ?? undefined : undefined, query: query || undefined, limit: 36, offset }, { signal }), { queryKey: catalogQueryKey, enabled: pickerOpen })
-  const { data: firearmModels, loading: firearmsLoading, error: firearmsError, refetch: refetchFirearms } =
-    useApiQuery((signal) => skinchangerService.getCatalog({ category: "weapon", limit: 100, offset: 0 }, { signal }), { queryKey: "grid:firearms" })
-  const { data: knifeModels, loading: knivesLoading, error: knivesError, refetch: refetchKnives } =
-    useApiQuery((signal) => skinchangerService.getCatalog({ category: "knife", limit: 100, offset: 0 }, { signal }), { queryKey: "grid:knives" })
-  const { data: gloveModels, loading: glovesLoading, error: glovesError, refetch: refetchGloves } =
-    useApiQuery((signal) => skinchangerService.getCatalog({ category: "glove", limit: 100, offset: 0 }, { signal }), { queryKey: "grid:gloves" })
-  const { data: loadoutResponse, refetch: refetchLoadout } =
-    useApiQuery((signal) => skinchangerService.getLoadout({ signal }))
-  const { data: stickerCatalog, loading: stickersLoading, error: stickerCatalogError, refetch: refetchStickers } = useApiQuery(
-    (signal) => skinchangerService.getCatalog({ category: "sticker", query: accessoryQuery || undefined, limit: 18, offset: 0 }, { signal }),
-    { enabled: Boolean(selected && accessoryPicker === "sticker"), queryKey: `sticker:${accessoryQuery.trim()}` },
-  )
-  const { data: charmCatalog, loading: charmsLoading, error: charmCatalogError, refetch: refetchCharms } = useApiQuery(
-    (signal) => skinchangerService.getCatalog({ category: "charm", query: accessoryQuery || undefined, limit: 18, offset: 0 }, { signal }),
-    { enabled: Boolean(selected && accessoryPicker === "charm"), queryKey: `charm:${accessoryQuery.trim()}` },
-  )
+/** CS2 rarity → --rarity-* token; only ever drawn as the thin indicator on a tile. */
+const RARITIES = [
+  { id: "covert", label: "Covert", names: ["Covert", "Extraordinary"] },
+  { id: "classified", label: "Classified", names: ["Classified"] },
+  { id: "restricted", label: "Restricted", names: ["Restricted"] },
+  { id: "milspec", label: "Mil-Spec", names: ["Mil-Spec Grade", "Mil-Spec"] },
+  { id: "industrial", label: "Industrial", names: ["Industrial Grade"] },
+  { id: "consumer", label: "Consumer", names: ["Consumer Grade", "Base Grade"] },
+  { id: "contraband", label: "Contraband", names: ["Contraband"] },
+] as const
+type RarityId = (typeof RARITIES)[number]["id"]
 
-  const catalogItems = catalog?.data ?? []
-  const totalCatalogItems = catalog?.pagination.total ?? 0
-  const pageSize = catalog?.pagination.limit ?? 36
-  const remoteLoadoutEntries = loadoutResponse?.loadout.skinchanger_loadout_entries ?? []
-  const loadoutEntries = optimisticLoadoutEntries ?? remoteLoadoutEntries
-  const loadoutVersion = optimisticLoadoutVersion ?? loadoutResponse?.loadout.version ?? 0
-  const catalogTeamScope = activeWeapon ? teamScopeFromMetadata(activeWeapon) : "all"
-  const selectedTeamScope: TeamScope = slotTeam ?? (category === "agent" && agentTeam ? agentTeam : catalogTeamScope !== "all" ? catalogTeamScope : teamScope)
-  const selectedSlotKey = activeWeapon ? slotKeyForCatalogItem(activeWeapon, category) : activeSlot
-  const hasOtherEquippedKnifeOrGloveLook = Boolean(
-    activeWeapon
-    && (category === "knife" || category === "glove")
-    && loadoutEntries.some((entry) => entry.slot === category && entry.slot_key !== selectedSlotKey),
-  )
-  const automaticOppositeTeamScope = activeWeapon && (category === "knife" || category === "glove")
-    ? (() => {
-        const otherLook = loadoutEntries.find((entry) => entry.slot === category && entry.slot_key !== selectedSlotKey && (entry.team_scope === "t" || entry.team_scope === "ct"))
-        return otherLook?.team_scope === "t" ? "ct" as const : otherLook?.team_scope === "ct" ? "t" as const : null
-      })()
-    : null
-  const showTeamSelector = Boolean(activeWeapon) && category !== "agent" && catalogTeamScope === "all" && !automaticOppositeTeamScope
-  const minWear = Math.max(0, Math.min(1, metadataNumber(selected, "minWear", 0.0001)))
-  const maxWear = Math.max(minWear, Math.min(1, metadataNumber(selected, "maxWear", 1)))
-  const defaultWear = Math.max(minWear, Math.min(maxWear, 0.0001))
-  // Per-team knife, glove, music kit and pin: a "Both" look also counts as the T and the CT one.
-  const fallsBackToBoth = selectedTeamScope !== "all"
-  const savedEntryForActiveSlot = loadoutEntries.find((entry) => entry.slot_key === selectedSlotKey && entry.team_scope === selectedTeamScope)
-    ?? ((category === "knife" || category === "glove")
-      ? loadoutEntries.find((entry) => entry.slot_key === category && entry.slot === category && entry.team_scope === selectedTeamScope && entry.skinchanger_catalog_items?.weapon_class === activeWeapon?.weapon_class)
-      : undefined)
-    ?? (fallsBackToBoth ? loadoutEntries.find((entry) => entry.slot_key === selectedSlotKey && entry.team_scope === "all") : undefined)
-  const savedItemForActiveSlot = savedEntryForActiveSlot?.skinchanger_catalog_items ?? null
-  const previewChoice = selected ?? savedItemForActiveSlot ?? (defaultChoice === category ? defaultModelItem(defaultChoice) : null)
-  const canCustomizeAccessories = Boolean(activeWeapon && category === "weapon")
-  const selectedCharmItem = customOptions.charm ? selectedAccessories[customOptions.charm.catalogItemId] ?? null : null
-  const savedAccessories = savedEntryForActiveSlot?.resolved_accessories ?? []
-  const previewAccessoryById = new Map([...savedAccessories, ...Object.values(selectedAccessories)].map((item) => [item.id, item]))
-  const previewOptions = selected ? customOptions : savedEntryForActiveSlot?.options
-  const previewStickerItems = (previewOptions?.stickers ?? []).map((sticker) => previewAccessoryById.get(sticker.catalogItemId)).filter((item): item is SkinchangerCatalogItem => Boolean(item))
-  const previewCharmItem = previewOptions?.charm ? previewAccessoryById.get(previewOptions.charm.catalogItemId) ?? null : null
-  const accessoryCatalog = accessoryPicker === "sticker" ? stickerCatalog : charmCatalog
-  const accessoriesLoading = accessoryPicker === "sticker" ? stickersLoading : charmsLoading
-  const accessoryCatalogError = accessoryPicker === "sticker" ? stickerCatalogError : charmCatalogError
-  const refetchAccessoryCatalog = accessoryPicker === "sticker" ? refetchStickers : refetchCharms
+function rarityOf(item: SkinchangerCatalogItem | null | undefined): RarityId | null {
+  const name = item?.metadata.rarity
+  if (typeof name !== "string") return null
+  return RARITIES.find((rarity) => (rarity.names as readonly string[]).includes(name))?.id ?? null
+}
 
-  useEffect(() => {
-    if (loadoutResponse && optimisticLoadoutVersion !== null && loadoutResponse.loadout.version >= optimisticLoadoutVersion) {
-      setOptimisticLoadoutEntries(null)
-      setOptimisticLoadoutVersion(null)
-    }
-  }, [loadoutResponse?.loadout.version, optimisticLoadoutVersion])
+function RarityBar({ item, className }: { item: SkinchangerCatalogItem | null | undefined; className?: string }) {
+  const rarity = rarityOf(item)
+  if (!rarity) return null
+  return <span aria-hidden className={cn("absolute inset-x-0 bottom-0 h-0.5", className)} style={{ background: `var(--rarity-${rarity})` }} />
+}
 
-  useEffect(() => {
-    if (!selected) {
-      setAccessoryPicker(null)
-      setEditingStickerSlot(null)
-      return
-    }
-    const matchesSelected = (entry: SkinchangerLoadoutEntry) => entry.catalog_item_id === selected.id && entry.slot_key === selectedSlotKey
-    const savedOptions = (loadoutEntries.find((entry) => matchesSelected(entry) && entry.team_scope === selectedTeamScope)
-      ?? (fallsBackToBoth ? loadoutEntries.find((entry) => matchesSelected(entry) && entry.team_scope === "all") : undefined))?.options
-    setCustomOptions({
-      wear: savedOptions?.wear ?? Math.max(0, Math.min(1, metadataNumber(selected, "minWear", 0.0001))),
-      seed: savedOptions?.seed ?? 0,
-      statTrak: savedOptions?.statTrak ?? false,
-      nameTag: savedOptions?.nameTag,
-      stickers: savedOptions?.stickers ?? [],
-      charm: savedOptions?.charm,
-    })
-    setAccessoryPicker(null)
-    setEditingStickerSlot(null)
-  }, [loadoutEntries, selected, selectedSlotKey, selectedTeamScope, fallsBackToBoth])
+/* ----------------------------------------------------------------------------
+ * Loadout lookups
+ * ------------------------------------------------------------------------- */
 
-  useEffect(() => {
-    if (catalogTeamScope !== "all" && teamScope !== catalogTeamScope) setTeamScope(catalogTeamScope)
-  }, [catalogTeamScope, teamScope])
+/** The saved look a firearm shows for a team; a "both teams" look counts for either side. */
+function weaponEntryFor(entries: SkinchangerLoadoutEntry[], model: SkinchangerCatalogItem, team: Team) {
+  const key = slotKeyFor(model, "weapon")
+  return entries.find((entry) => entry.slot_key === key && entry.team_scope === team) ?? entries.find((entry) => entry.slot_key === key && entry.team_scope === "all")
+}
 
-  useEffect(() => {
-    if (slotTeam) return
-    if (automaticOppositeTeamScope && teamScope !== automaticOppositeTeamScope) {
-      setTeamScope(automaticOppositeTeamScope)
-      return
-    }
-    if (hasOtherEquippedKnifeOrGloveLook && teamScope === "all") setTeamScope("ct")
-  }, [automaticOppositeTeamScope, hasOtherEquippedKnifeOrGloveLook, teamScope, slotTeam])
+function slotEntryFor(entries: SkinchangerLoadoutEntry[], slot: SkinchangerSlot, team: Team) {
+  return entries.find((entry) => entry.slot === slot && entry.team_scope === team) ?? (slot === "agent" ? undefined : entries.find((entry) => entry.slot === slot && entry.team_scope === "all"))
+}
 
-  // Anything but agents and team-locked firearms can be given to both teams at once.
-  const canUseForBothTeams = category !== "agent" && catalogTeamScope === "all" && selectedTeamScope !== "all"
-  const saveScope: TeamScope = alsoOtherTeam && canUseForBothTeams ? "all" : selectedTeamScope
-  const otherTeamName = selectedTeamScope === "ct" ? "T" : "CT"
+function toInput(entry: SkinchangerLoadoutEntry) {
+  return { catalogItemId: entry.catalog_item_id, slot: entry.slot, slotKey: entry.slot_key, teamScope: entry.team_scope, options: entry.options }
+}
 
-  const selectedAlreadyEquipped = useMemo(
-    () => selected ? loadoutEntries.some((entry) => entry.catalog_item_id === selected.id && entry.slot_key === selectedSlotKey && (entry.team_scope === saveScope || (saveScope !== "all" && fallsBackToBoth && entry.team_scope === "all")) && normalizeAppearanceOptions(entry.options) === normalizeAppearanceOptions(customOptions)) : false,
-    [customOptions, loadoutEntries, selected, selectedSlotKey, saveScope, fallsBackToBoth],
-  )
+const legacyFallback = (error: unknown) => {
+  const status = (error as Partial<ApiError>).status
+  return status === 404 || status === 405
+}
 
-  const canUseLegacyLoadoutFallback = (error: unknown) => {
-    const apiError = error as Partial<ApiError>
-    return apiError.status === 404 || apiError.status === 405
-  }
-
-  const saveEntryWithCompatibility = async (entry: { catalogItemId: string; slot: SkinchangerSlot; slotKey: string; teamScope: TeamScope; options: SkinchangerAppearanceOptions }, expectedVersion = loadoutVersion, replaced: SkinchangerLoadoutEntry[] = []) => {
+/** Per-entry mutations, falling back to replacing the whole loadout on APIs without them. */
+function useLoadoutMutations(entries: SkinchangerLoadoutEntry[]) {
+  const save = async (entry: ReturnType<typeof toInput>, expectedVersion: number, replaced: SkinchangerLoadoutEntry[]) => {
     try {
       return await skinchangerService.saveLoadoutEntry({ expectedVersion, entry })
     } catch (error) {
-      if (!canUseLegacyLoadoutFallback(error)) throw error
-      const entries = loadoutEntries
-        .filter((current) => !(current.slot_key === entry.slotKey && current.team_scope === entry.teamScope) && !replaced.includes(current))
-        .map((current) => ({ catalogItemId: current.catalog_item_id, slot: current.slot, slotKey: current.slot_key, teamScope: current.team_scope, options: current.options }))
-      entries.push(entry)
-      const result = await skinchangerService.saveLoadout({ entries })
+      if (!legacyFallback(error)) throw error
+      const kept = entries.filter((current) => !(current.slot_key === entry.slotKey && current.team_scope === entry.teamScope) && !replaced.includes(current)).map(toInput)
+      const result = await skinchangerService.saveLoadout({ entries: [...kept, entry] })
       return { version: result.version }
     }
   }
-
-  const removeEntryWithCompatibility = async (entry: Pick<SkinchangerLoadoutEntry, "slot_key" | "team_scope">, expectedVersion: number) => {
+  const remove = async (entry: Pick<SkinchangerLoadoutEntry, "slot_key" | "team_scope">, expectedVersion: number) => {
     try {
       return await skinchangerService.removeLoadoutEntry({ expectedVersion, slotKey: entry.slot_key, teamScope: entry.team_scope })
     } catch (error) {
-      if (!canUseLegacyLoadoutFallback(error)) throw error
-      const retainedEntries = loadoutEntries
-        .filter((current) => !(current.slot_key === entry.slot_key && current.team_scope === entry.team_scope))
-        .map((current) => ({ catalogItemId: current.catalog_item_id, slot: current.slot, slotKey: current.slot_key, teamScope: current.team_scope, options: current.options }))
-      if (retainedEntries.length === loadoutEntries.length) throw error
-      const result = await skinchangerService.saveLoadout({ entries: retainedEntries })
+      if (!legacyFallback(error)) throw error
+      const kept = entries.filter((current) => !(current.slot_key === entry.slot_key && current.team_scope === entry.team_scope)).map(toInput)
+      const result = await skinchangerService.saveLoadout({ entries: kept })
       return { version: result.version, removed: true }
     }
   }
+  return { save, remove }
+}
 
-  const equipSelected = async () => {
-    if (!selected) return false
-    setSaving(true)
-    try {
-      // The server keeps one knife and one glove per team, so that team's previous one is removed first;
-      // a look for both teams replaces every knife/glove. Any other look for both teams replaces its T and
-      // CT versions, so the same skin really shows on both sides.
-      const isSameEntry = (entry: SkinchangerLoadoutEntry) => entry.slot_key === selectedSlotKey && entry.catalog_item_id === selected.id && entry.team_scope === saveScope
-      const replaced = (activeSlot === "knife" || activeSlot === "glove")
-        ? loadoutEntries.filter((entry) => entry.slot === activeSlot && (saveScope === "all" || entry.team_scope === saveScope) && !isSameEntry(entry))
-        : saveScope === "all"
-          ? loadoutEntries.filter((entry) => entry.slot_key === selectedSlotKey && entry.team_scope !== "all")
-          : []
-      let expectedVersion = loadoutVersion
-      for (const entry of replaced) {
-        const removed = await removeEntryWithCompatibility(entry, expectedVersion)
-        expectedVersion = removed.version
-      }
-      const result = await saveEntryWithCompatibility({ catalogItemId: selected.id, slot: activeSlot, slotKey: selectedSlotKey, teamScope: saveScope, options: customOptions }, expectedVersion, replaced)
-      const savedOptions: SkinchangerAppearanceOptions = {
-        ...customOptions,
-        stickers: [...(customOptions.stickers ?? [])],
-        charm: customOptions.charm ? { ...customOptions.charm } : undefined,
-      }
-      const savedEntry: SkinchangerLoadoutEntry = {
-        catalog_item_id: selected.id,
-        slot: activeSlot,
-        slot_key: selectedSlotKey,
-        team_scope: saveScope,
-        options: savedOptions,
-        skinchanger_catalog_items: selected,
-        resolved_accessories: Object.values(selectedAccessories),
-      }
-      const sharedLook = (activeSlot === "knife" || activeSlot === "glove") && saveScope !== "all"
-        ? loadoutEntries.find((entry) => entry.slot === activeSlot && entry.team_scope === "all")
-        : undefined
-      const reassignSharedLook = sharedLook && sharedLook.catalog_item_id !== selected.id
-        ? { ...sharedLook, team_scope: saveScope === "t" ? "ct" as const : "t" as const }
-        : undefined
-      setOptimisticLoadoutEntries([
-        ...loadoutEntries.filter((entry) => {
-          if (entry.slot_key === selectedSlotKey && entry.team_scope === saveScope) return false
-          if (replaced.includes(entry)) return false
-          if (sharedLook && entry.slot_key === sharedLook.slot_key && entry.team_scope === "all") return false
-          return true
-        }),
-        ...(reassignSharedLook ? [reassignSharedLook] : []),
-        savedEntry,
-      ])
-      setOptimisticLoadoutVersion(result.version)
-      toast.success("Saved. Type !rs in game to apply it.")
-      refetchLoadout()
-      return true
-    } catch {
-      toast.error("Could not save your choice. Try again.")
-      refetchLoadout()
-      return false
-    } finally {
-      setSaving(false)
-    }
-  }
+/* ----------------------------------------------------------------------------
+ * Grid card
+ * ------------------------------------------------------------------------- */
 
-  const deleteSavedLook = async () => {
-    if (!deleteConfirm) return
-    const { entry, model } = deleteConfirm
-    setSaving(true)
-    try {
-      const result = await removeEntryWithCompatibility(entry, loadoutVersion)
-      setOptimisticLoadoutEntries(loadoutEntries.filter((current) => !(current.slot_key === entry.slot_key && current.team_scope === entry.team_scope)))
-      setOptimisticLoadoutVersion(result.version)
-      if (activeWeapon?.weapon_class === model.weapon_class) {
-        setSelected(null)
-        setAccessoryPicker(null)
-        setEditingStickerSlot(null)
-      }
-      setDeleteConfirm(null)
-      toast.success(`${model.display_name} look removed.`)
-      refetchLoadout()
-    } catch {
-      toast.error("Could not remove this look. Try again.")
-    } finally {
-      setSaving(false)
-    }
-  }
+function SlotCard({
+  label,
+  entry,
+  fallbackImage,
+  tall = false,
+  busy,
+  onOpen,
+  onRemove,
+}: {
+  label: string
+  entry: SkinchangerLoadoutEntry | undefined
+  fallbackImage: string | null
+  tall?: boolean
+  busy: boolean
+  onOpen: () => void
+  onRemove: () => void
+}) {
+  const item = entry?.skinchanger_catalog_items ?? null
+  const image = imageUrl(item) ?? fallbackImage
+  const charm = entry?.options.charm ? entry.resolved_accessories?.find((accessory) => accessory.id === entry.options.charm?.catalogItemId) : null
+  return (
+    <div className={cn("group relative overflow-hidden rounded-lg border border-line-soft bg-card transition-colors duration-150 hover:border-line", tall ? "h-[314px]" : "h-24")}>
+      <button type="button" onClick={onOpen} aria-label={item ? `${label}: ${item.display_name}. Change skin` : `${label}: choose a skin`} className="absolute inset-0 text-left">
+        <span aria-hidden className="absolute top-0 left-0 size-[18px] bg-line [clip-path:polygon(0_0,100%_0,0_100%)]" />
+        <span className="absolute inset-0 flex items-center justify-center p-3 pb-6 transition-[filter,opacity] duration-200 group-hover:opacity-55 group-hover:blur-[4px] group-focus-within:opacity-55 group-focus-within:blur-[4px]">
+          {image ? (
+            <img src={image} alt="" loading="lazy" decoding="async" className={cn("max-h-full max-w-full object-contain", !item && "opacity-35 grayscale")} />
+          ) : (
+            <span className="h-4 w-[64%] rounded-full bg-line-soft" />
+          )}
+        </span>
+        <span aria-hidden className="absolute bottom-[26px] left-2 flex h-4 w-3 items-center justify-center overflow-hidden rounded-[4px] border border-dashed border-line-strong">
+          {charm && imageUrl(charm) ? <img src={imageUrl(charm)!} alt="" className="size-full object-contain" /> : null}
+        </span>
+        <span className="absolute right-2 bottom-[7px] left-2 flex min-w-0 flex-col">
+          {item && <span className="truncate text-[10px] text-text-dim">{skinName(item)}</span>}
+          <span className="truncate text-[11px] font-semibold tracking-[0.4px] text-text-2 uppercase">{label}</span>
+        </span>
+        <span aria-hidden className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100">
+          <span className="flex size-[34px] items-center justify-center rounded-[10px] border border-line-strong bg-panel text-text">
+            <SlidersHorizontal className="size-4" />
+          </span>
+        </span>
+        <RarityBar item={item} />
+      </button>
+      {entry && (
+        <button
+          type="button"
+          onClick={onRemove}
+          disabled={busy}
+          aria-label={`Remove ${label} skin`}
+          title={entry.team_scope === "all" ? "Removes it for both teams" : "Remove"}
+          className="press absolute top-1.5 right-1.5 flex size-7 items-center justify-center rounded-md border border-line bg-panel/85 text-text-muted opacity-0 transition-[opacity,color] duration-150 group-hover:opacity-100 group-focus-within:opacity-100 hover:text-text focus-visible:opacity-100 disabled:opacity-50"
+        >
+          <Trash2 className="size-3.5" aria-hidden />
+        </button>
+      )}
+    </div>
+  )
+}
 
-  const selectSkin = (item: SkinchangerCatalogItem) => {
+function Column({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="flex flex-col gap-2.5">
+      <h2 className="m-0 text-center text-[15px] font-bold tracking-[0.6px] text-text uppercase">{title}</h2>
+      {children}
+    </section>
+  )
+}
+
+/* ----------------------------------------------------------------------------
+ * Skin dialog
+ * ------------------------------------------------------------------------- */
+
+const SLOT_LABEL: Record<Exclude<Target["kind"], "weapon">, string> = { knife: "Knife", glove: "Gloves", agent: "Agent", music_kit: "Music kit", pin: "Pin" }
+
+function targetTitle(target: Target) {
+  return target.kind === "weapon" ? target.model.display_name : SLOT_LABEL[target.kind]
+}
+
+function defaultOptions(item: SkinchangerCatalogItem | null): SkinchangerAppearanceOptions {
+  return { wear: Math.max(0, Math.min(1, metadataNumber(item, "minWear", 0.0001))), seed: 0, statTrak: false, stickers: [] }
+}
+
+function SkinDialog({
+  target,
+  team,
+  entries,
+  version,
+  models,
+  onClose,
+  onSaved,
+}: {
+  target: Target | null
+  team: Team
+  entries: SkinchangerLoadoutEntry[]
+  version: number
+  models: { knife: SkinchangerCatalogItem[]; glove: SkinchangerCatalogItem[] }
+  onClose: () => void
+  onSaved: () => void
+}) {
+  const open = Boolean(target)
+  const kind = target?.kind ?? "weapon"
+  const slot: SkinchangerSlot = kind
+  const mutations = useLoadoutMutations(entries)
+
+  // The entry this dialog starts from (the team's current look for this slot).
+  const current = !target
+    ? undefined
+    : target.kind === "weapon"
+      ? weaponEntryFor(entries, target.model, team)
+      : slotEntryFor(entries, target.kind, team)
+  const modelKind = kind === "knife" || kind === "glove" ? kind : null
+  const initialModel =
+    target?.kind === "weapon"
+      ? target.model
+      : modelKind
+        ? models[modelKind].find((model) => model.weapon_class === current?.skinchanger_catalog_items?.weapon_class) ?? models[modelKind][0] ?? null
+        : null
+
+  const [model, setModel] = useState<SkinchangerCatalogItem | null>(initialModel)
+  const [selected, setSelected] = useState<SkinchangerCatalogItem | null>(current?.skinchanger_catalog_items ?? null)
+  const [options, setOptions] = useState<SkinchangerAppearanceOptions>(current?.options ?? defaultOptions(current?.skinchanger_catalog_items ?? null))
+  const [accessories, setAccessories] = useState<Record<string, SkinchangerCatalogItem>>({})
+  const [bothTeams, setBothTeams] = useState(current?.team_scope === "all")
+  const [draft, setDraft] = useState("")
+  const query = useDebounced(draft.trim(), 250)
+  const [rarity, setRarity] = useState<RarityId | "all">("all")
+  const [picker, setPicker] = useState<{ type: "sticker"; slot: number } | { type: "charm" } | null>(null)
+  const [saving, setSaving] = useState(false)
+
+  // Reset everything whenever the dialog opens on another slot or team.
+  const targetKey = target ? `${kind}:${target.kind === "weapon" ? target.model.id : ""}:${team}` : ""
+  useEffect(() => {
+    if (!target) return
+    setModel(initialModel)
+    setSelected(current?.skinchanger_catalog_items ?? null)
+    setOptions(current?.options ?? defaultOptions(current?.skinchanger_catalog_items ?? null))
+    setAccessories(Object.fromEntries((current?.resolved_accessories ?? []).map((item) => [item.id, item])))
+    setBothTeams(current?.team_scope === "all")
+    setDraft("")
+    setRarity("all")
+    setPicker(null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetKey])
+
+  const category: SkinchangerCategory = kind === "weapon" ? "weapon_skin" : kind
+  const weaponClass = kind === "weapon" || modelKind ? model?.weapon_class ?? undefined : undefined
+  const catalog = useApiQuery(
+    (signal) =>
+      skinchangerService.getCatalog(
+        { category, weaponClass, team: kind === "agent" ? team : undefined, query: query || undefined, limit: 100, offset: 0 },
+        { signal },
+      ),
+    { enabled: open && (!modelKind || Boolean(model)), queryKey: `${category}|${weaponClass ?? ""}|${kind === "agent" ? team : ""}|${query}`, keepPreviousData: true },
+  )
+  const accessoryCategory = picker?.type ?? "sticker"
+  const accessoryCatalog = useApiQuery(
+    (signal) => skinchangerService.getCatalog({ category: accessoryCategory, query: query || undefined, limit: 48, offset: 0 }, { signal }),
+    { enabled: open && Boolean(picker), queryKey: `${accessoryCategory}|${query}`, keepPreviousData: true },
+  )
+
+  const items = (catalog.data?.data ?? []).filter((item) => !(modelKind === "knife" && item.display_name === "Knife"))
+  const rarities = RARITIES.filter((entry) => items.some((item) => rarityOf(item) === entry.id))
+  const visible = rarity === "all" ? items : items.filter((item) => rarityOf(item) === rarity)
+
+  const locked = target?.kind === "weapon" ? lockedTeam(target.model) : "all"
+  const canUseBoth = kind !== "agent" && locked === "all"
+  const saveScope: TeamScope = locked !== "all" ? locked : bothTeams && canUseBoth ? "all" : team
+  const slotKey = kind === "weapon" || modelKind ? (model ? slotKeyFor(model, kind as ModelKind) : "") : kind
+  const canAccessorize = kind === "weapon"
+  const minWear = Math.max(0, Math.min(1, metadataNumber(selected, "minWear", 0.0001)))
+  const maxWear = Math.max(minWear, Math.min(1, metadataNumber(selected, "maxWear", 1)))
+  const hasWear = kind === "weapon" || modelKind !== null
+  const wear = Math.max(minWear, Math.min(maxWear, options.wear ?? minWear))
+
+  const choose = (item: SkinchangerCatalogItem) => {
     setSelected(item)
-    setAccessoryPicker(null)
-    setEditingStickerSlot(null)
-  }
-
-  const customizeSavedLook = (item: SkinchangerCatalogItem, entry: typeof loadoutEntries[number]) => {
-    const savedItem = entry.skinchanger_catalog_items
-    if (!savedItem) return
-    setDefaultChoice(null)
-    setActiveWeapon(item)
-    setSelected(savedItem)
-    setTeamScope(entry.team_scope)
-    setCustomOptions({
-      wear: entry.options.wear ?? Math.max(0, Math.min(1, metadataNumber(savedItem, "minWear", 0.0001))),
-      seed: entry.options.seed ?? 0,
-      statTrak: entry.options.statTrak ?? false,
-      nameTag: entry.options.nameTag,
-      stickers: entry.options.stickers ?? [],
-      charm: entry.options.charm,
-    })
-    setSelectedAccessories(Object.fromEntries((entry.resolved_accessories ?? []).map((accessory) => [accessory.id, accessory])))
-    setAccessoryPicker(null)
-    setEditingStickerSlot(null)
-    setWeaponClass("")
-    setOffset(0)
-  }
-
-  /* -------------------------------------------------------------------------
-   * One page: every slot is a card; a card opens the picker/customize dialog
-   * ---------------------------------------------------------------------- */
-
-  type ModelKind = "weapon" | "knife" | "glove"
-
-  /**
-   * The saved look a card shows for the team selected at the top. Team-locked firearms always show
-   * their own side; a "Both" look counts for either side.
-   */
-  const gridEntryFor = (item: SkinchangerCatalogItem, kind: ModelKind, team: TeamScope = teamScope) => {
-    const slotKey = slotKeyForCatalogItem(item, kind)
-    const lockedTeam = teamScopeFromMetadata(item)
-    const viewTeam: TeamScope = lockedTeam !== "all" ? lockedTeam : team
-    const matchesModel = (entry: SkinchangerLoadoutEntry) => entry.slot_key === slotKey
-      // Older knife and glove looks were stored under the plain slot key.
-      || (kind !== "weapon" && entry.slot === kind && entry.slot_key === kind && entry.skinchanger_catalog_items?.weapon_class === item.weapon_class)
-    return loadoutEntries.find((entry) => matchesModel(entry) && entry.team_scope === viewTeam)
-      ?? (viewTeam !== "all" ? loadoutEntries.find((entry) => matchesModel(entry) && entry.team_scope === "all") : undefined)
-  }
-
-  const collectionForKind = (kind: ModelKind): CollectionId => (kind === "weapon" ? "skins" : kind)
-
-  /** Remembers the page's team so a team-locked model or a single-slot item cannot change it for good. */
-  const beginPicker = () => {
-    if (gridTeamRef.current === null) gridTeamRef.current = teamScope
-    setAlsoOtherTeam(false)
-    setDefaultChoice(null)
-    setWeaponClass("")
-    setQuery("")
-    setOffset(0)
-    setAccessoryPicker(null)
-    setEditingStickerSlot(null)
-    setPickerOpen(true)
-  }
-
-  /** Card body of a firearm, knife or glove: choose a skin for that model. */
-  const openModelPicker = (item: SkinchangerCatalogItem, kind: ModelKind, team?: TeamScope) => {
-    beginPicker()
-    if (team) setTeamScope(team)
-    setCollection(collectionForKind(kind))
-    setSkinGroup("Rifles")
-    setAgentTeam(null)
-    setActiveWeapon(item)
-    setSelected(null)
-  }
-
-  /** Customize button: straight to the options of the saved skin; without one, the picker. */
-  const openModelCustomize = (item: SkinchangerCatalogItem, kind: ModelKind, entry: SkinchangerLoadoutEntry | undefined, team?: TeamScope) => {
-    if (!entry?.skinchanger_catalog_items) {
-      openModelPicker(item, kind, team)
-      return
-    }
-    beginPicker()
-    setCollection(collectionForKind(kind))
-    setSkinGroup("Rifles")
-    setAgentTeam(null)
-    customizeSavedLook(item, entry)
-    // A "Both" look opened from the T or CT face is saved for that face.
-    if (team) setTeamScope(team)
-  }
-
-  const agentEntryFor = (team: "t" | "ct") => loadoutEntries.find((entry) => entry.slot === "agent" && entry.team_scope === team)
-  type SingleSlot = "music_kit" | "pin"
-  const singleEntryFor = (slot: SingleSlot, team: "t" | "ct") =>
-    loadoutEntries.find((entry) => entry.slot === slot && entry.team_scope === team)
-    ?? loadoutEntries.find((entry) => entry.slot === slot && entry.team_scope === "all")
-
-  const openAgentPicker = (team: "t" | "ct") => {
-    beginPicker()
-    setCollection("skins")
-    setSkinGroup("agents")
-    setAgentTeam(team)
-    setTeamScope(team)
-    setActiveWeapon(null)
-    setSelected(agentEntryFor(team)?.skinchanger_catalog_items ?? null)
-  }
-
-  /** Music kit and pin halves: the dialog saves for that half's team. */
-  const openSinglePicker = (slot: SingleSlot, team: "t" | "ct") => {
-    beginPicker()
-    setCollection(slot)
-    setSkinGroup("Rifles")
-    setAgentTeam(null)
-    setTeamScope(team)
-    setActiveWeapon(null)
-    setSelected(singleEntryFor(slot, team)?.skinchanger_catalog_items ?? null)
-  }
-
-  type SlotKind = "knife" | "glove"
-  const knifeList = (knifeModels?.data ?? []).filter((item) => item.display_name !== "Knife").sort((a, b) => a.display_name.localeCompare(b.display_name))
-  const gloveList = [...(gloveModels?.data ?? [])].sort((a, b) => a.display_name.localeCompare(b.display_name))
-  const modelsForSlot = (kind: SlotKind) => (kind === "knife" ? knifeList : gloveList)
-
-  /** The knife or glove a team uses; a "Both" look counts for either team. */
-  const slotEntryFor = (kind: SlotKind, team: "t" | "ct") =>
-    loadoutEntries.find((entry) => entry.slot === kind && entry.team_scope === team)
-    ?? loadoutEntries.find((entry) => entry.slot === kind && entry.team_scope === "all")
-
-  const modelForEntry = (kind: SlotKind, entry: SkinchangerLoadoutEntry | undefined) =>
-    entry?.skinchanger_catalog_items
-      ? modelsForSlot(kind).find((model) => model.weapon_class === entry.skinchanger_catalog_items?.weapon_class) ?? null
-      : null
-
-  /** T/CT knife and glove cards: the dialog opens on the saved model, or the first one. */
-  const openSlotPicker = (kind: SlotKind, team: "t" | "ct", customize: boolean) => {
-    const entry = slotEntryFor(kind, team)
-    const model = modelForEntry(kind, entry) ?? modelsForSlot(kind)[0] ?? null
-    beginPicker()
-    setCollection(kind)
-    setSkinGroup("Rifles")
-    setAgentTeam(null)
-    setSlotTeam(team)
-    if (customize && model && entry?.skinchanger_catalog_items) {
-      customizeSavedLook(model, entry)
-      return
-    }
-    setActiveWeapon(model)
-    setSelected(null)
-  }
-
-  const switchSlotModel = (model: SkinchangerCatalogItem) => {
-    setActiveWeapon(model)
-    setSelected(null)
-    setQuery("")
-    setOffset(0)
-    setAccessoryPicker(null)
-    setEditingStickerSlot(null)
-  }
-
-  const closePicker = () => {
-    setPickerOpen(false)
-    setSlotTeam(null)
-    setActiveWeapon(null)
-    setSelected(null)
-    setAgentTeam(null)
-    setCollection("skins")
-    setSkinGroup("Rifles")
-    setQuery("")
-    setOffset(0)
-    setAccessoryPicker(null)
-    setEditingStickerSlot(null)
-    setDefaultChoice(null)
-    if (gridTeamRef.current !== null) {
-      setTeamScope(gridTeamRef.current)
-      gridTeamRef.current = null
-    }
-  }
-
-  const saveAndClose = async () => {
-    if (await equipSelected()) closePicker()
-  }
-
-  const gridSearch = gridQuery.trim().toLowerCase()
-  const matchesSearch = (name: string) => !gridSearch || name.toLowerCase().includes(gridSearch)
-  const modelSections = weaponGridGroups.map((group) => {
-    const items = (firearmModels?.data ?? [])
-      .filter((item) => gridGroupForFirearm(item) === group && matchesSearch(item.display_name))
-      .sort((a, b) => firearmOrder(a) - firearmOrder(b))
-    return { group, kind: "weapon" as const, items }
-  })
-  const showKnives = ["knife", "knives", "t knife", "ct knife"].some(matchesSearch) || knifeList.some((item) => matchesSearch(item.display_name))
-  const showGloves = ["gloves", "t gloves", "ct gloves"].some(matchesSearch) || gloveList.some((item) => matchesSearch(item.display_name))
-  const defaultKnifeImage = (() => { const item = (knifeModels?.data ?? []).find((model) => model.display_name === "Knife"); return item ? catalogImageUrl(item) : null })()
-  const showAgents = matchesSearch("agents") || matchesSearch("t agent") || matchesSearch("ct agent")
-  const showMusic = matchesSearch("music kit")
-  const showPin = matchesSearch("pin")
-  const gridLoading = firearmsLoading || knivesLoading || glovesLoading
-  const gridError = firearmsError ?? knivesError ?? glovesError
-
-  const isModelBrowse = (category === "weapon" || category === "glove" || category === "knife") && !activeWeapon
-  const displayedCatalogItems = catalogItems.filter((item) => !(isModelBrowse && category === "knife" && item.display_name === "Knife"))
-
-  const openStickerPicker = (slot: number) => {
-    if (!canCustomizeAccessories) return
-    setEditingStickerSlot(slot)
-    setAccessoryPicker("sticker")
-    setAccessoryQuery("")
+    const saved = entries.find((entry) => entry.catalog_item_id === item.id && entry.slot_key === slotKey && (entry.team_scope === saveScope || entry.team_scope === "all"))
+    setOptions(saved ? saved.options : { ...defaultOptions(item), stickers: options.stickers, charm: options.charm })
   }
 
   const chooseAccessory = (item: SkinchangerCatalogItem) => {
-    if (!canCustomizeAccessories) return
-    const resolvedId = item.weapon_defindex ?? undefined
-    setSelectedAccessories((current) => ({ ...current, [item.id]: item }))
-    if (accessoryPicker === "sticker" && editingStickerSlot !== null) {
-      setCustomOptions((current) => ({
+    if (!picker) return
+    setAccessories((current) => ({ ...current, [item.id]: item }))
+    const id = item.weapon_defindex ?? undefined
+    if (picker.type === "sticker") {
+      const slotIndex = picker.slot
+      setOptions((current) => ({
         ...current,
-        stickers: [...(current.stickers ?? []).filter((sticker) => sticker.slot !== editingStickerSlot), {
-          catalogItemId: item.id,
-          id: resolvedId,
-          slot: editingStickerSlot,
-          schema: 1,
-          wear: 0,
-          scale: 1,
-          rotation: 0,
-        }].sort((a, b) => a.slot - b.slot),
+        stickers: [...(current.stickers ?? []).filter((sticker) => sticker.slot !== slotIndex), { catalogItemId: item.id, id, slot: slotIndex, schema: 1, wear: 0, scale: 1, rotation: 0 }].sort((a, b) => a.slot - b.slot),
       }))
+    } else {
+      setOptions((current) => ({ ...current, charm: { catalogItemId: item.id, id, offsetX: 0, offsetY: 0, offsetZ: 0, seed: 0 } }))
     }
-    if (accessoryPicker === "charm") {
-      setCustomOptions((current) => ({
-        ...current,
-        charm: { catalogItemId: item.id, id: resolvedId, offsetX: 0, offsetY: 0, offsetZ: 0, seed: 0 },
-      }))
+    setPicker(null)
+    setDraft("")
+  }
+
+  const accessoryById = new Map([...(current?.resolved_accessories ?? []), ...Object.values(accessories)].map((item) => [item.id, item]))
+
+  const save = async () => {
+    if (!selected || !slotKey) return
+    setSaving(true)
+    try {
+      // One knife and one glove per team: that team's previous one goes first; a both-teams look replaces all of them.
+      // Any other both-teams look replaces its T and CT versions.
+      const same = (entry: SkinchangerLoadoutEntry) => entry.slot_key === slotKey && entry.catalog_item_id === selected.id && entry.team_scope === saveScope
+      const replaced = modelKind
+        ? entries.filter((entry) => entry.slot === modelKind && (saveScope === "all" || entry.team_scope === saveScope) && !same(entry))
+        : saveScope === "all"
+          ? entries.filter((entry) => entry.slot_key === slotKey && entry.team_scope !== "all")
+          : []
+      let expected = version
+      for (const entry of replaced) expected = (await mutations.remove(entry, expected)).version
+      const cleanOptions: SkinchangerAppearanceOptions = hasWear
+        ? { ...options, wear, nameTag: options.nameTag?.trim() || undefined, stickers: canAccessorize ? options.stickers ?? [] : [], charm: canAccessorize ? options.charm : undefined }
+        : {}
+      await mutations.save({ catalogItemId: selected.id, slot, slotKey, teamScope: saveScope, options: cleanOptions }, expected, replaced)
+      toast.success("Saved", { description: "Type !rs in game to apply it." })
+      onSaved()
+      onClose()
+    } catch {
+      toast.error("Couldn't save your choice", { description: "Please try again." })
+      onSaved()
+    } finally {
+      setSaving(false)
     }
-    setAccessoryPicker(null)
-    setEditingStickerSlot(null)
   }
 
-  const renderTeamSwitch = (compact = false) => {
-    // Team-locked models (e.g. AK-47, M4A4) and knife/glove pairs keep their automatic side.
-    const teamLocked = Boolean(activeWeapon) && !showTeamSelector
-    const shownTeam = teamLocked ? selectedTeamScope : teamScope
-    return (
-      <div role="radiogroup" aria-label="Team" className={segmentGroupClass}>
-        {teamOptions.map((team) => {
-          const isActive = shownTeam === team.id
-          const isUnavailableBoth = team.id === "all" && hasOtherEquippedKnifeOrGloveLook
-          const disabled = teamLocked || isUnavailableBoth
-          return (
-            <button
-              key={team.id}
-              type="button"
-              role="radio"
-              aria-checked={isActive}
-              disabled={disabled}
-              onClick={() => setTeamScope(team.id)}
-              title={isUnavailableBoth ? "Another knife/glove look already uses Both. Choose T or CT." : teamLocked ? "This model's side is fixed" : undefined}
-              style={isActive ? { backgroundImage: teamScopeFade(team.id) } : undefined}
-              className={cn(
-                segmentItemClass(isActive),
-                compact && "px-2 text-[11px]",
-                disabled && !isActive && "cursor-not-allowed opacity-35",
-                disabled && isActive && "cursor-default",
-              )}
-            >
-              {team.id === "all" ? (
-                <span className="flex -space-x-1.5"><img src={teamTIcon} alt="" className="size-4 object-contain" /><img src={teamCtIcon} alt="" className="size-4 object-contain" /></span>
-              ) : (
-                <img src={team.id === "t" ? teamTIcon : teamCtIcon} alt="" className="size-4 object-contain" />
-              )}
-              {team.label}
-            </button>
-          )
-        })}
-      </div>
-    )
-  }
-
-  /** A square slot card. Hover blurs the render; Customize and remove sit on top of the card button. */
-  const renderCard = ({ id, image, fallback, title, subtitle, savedItem, entry, dimmed, openLabel, onOpen, onCustomize, onRemove }: {
-    id: string
-    image: string | null
-    fallback?: string
-    title: string
-    subtitle: string
-    savedItem: SkinchangerCatalogItem | null
-    entry: SkinchangerLoadoutEntry | undefined
-    dimmed?: boolean
-    openLabel: string
-    onOpen: () => void
-    onCustomize?: () => void
-    onRemove?: () => void
-  }) => {
-    const rarity = savedItem ? rarityStyle(savedItem) : null
-    const teamLabel = entry?.team_scope === "t" ? "T" : entry?.team_scope === "ct" ? "CT" : "Both"
-    const src = image ?? fallback ?? null
-    return (
-      <div
-        key={id}
-        data-slot-card={id}
-        inert={dimmed || undefined}
-        aria-disabled={dimmed || undefined}
-        className={cn(
-          "group relative aspect-square overflow-hidden rounded-lg border bg-background/60 transition-[border-color,opacity,filter] duration-[400ms] ease-out hover:duration-[250ms] hover:border-foreground/30",
-          savedItem ? "border-border" : "border-border/60",
-          dimmed && "pointer-events-none opacity-35 grayscale",
-        )}
-      >
-        {/* Keyed by the look, so switching team fades the new skin in instead of swapping it. */}
-        {rarity && <span key={`glow:${savedItem?.id}`} aria-hidden="true" className={cn("pointer-events-none absolute inset-0", swapIn)} style={{ backgroundImage: `radial-gradient(ellipse 95% 78% at 0% 100%, ${rarity.glow} 0%, transparent 68%)` }} />}
-        {rarity && <span aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-[400ms] ease-out group-hover:opacity-100 group-hover:duration-[250ms]" style={{ backgroundImage: `radial-gradient(ellipse 105% 88% at 0% 100%, ${strongerGlow(rarity.glow)} 0%, transparent 70%)` }} />}
-        {entry && savedItem && <span key={`team:${entry.team_scope}:${savedItem.id}`} aria-hidden="true" className={cn("pointer-events-none absolute inset-0", swapIn)} style={{ backgroundImage: teamScopeFade(entry.team_scope) }} />}
-
-        <button type="button" disabled={dimmed} onClick={onOpen} aria-label={openLabel} className="absolute inset-0 z-[1] rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground/60" />
-
-        <div className="pointer-events-none relative flex h-full flex-col p-2.5">
-          <div className="flex min-h-0 flex-1 items-center justify-center">
-            {src ? (
-              <OptimizedImage key={src} src={src} width={200} height={150} alt="" className={cn("max-h-full w-full object-contain transition-[filter,scale] duration-[400ms] ease-out group-hover:duration-[250ms] group-hover:scale-[1.03] group-hover:blur-[4px] group-has-[:focus-visible]:blur-[4px]", swapIn, "zoom-in-95", !savedItem && fallback && !image && "p-4 opacity-80")} />
-            ) : (
-              <ImageOff className="size-7 text-muted-foreground/50" />
-            )}
-          </div>
-          <p className="mt-1 truncate text-xs font-semibold">{title}</p>
-          <p key={subtitle} className={cn("truncate text-[10px] text-muted-foreground", swapIn)} style={rarity ? { color: rarity.accent } : undefined}>{subtitle}</p>
-        </div>
-
-        {entry && savedItem && (
-          <span role="img" aria-label={`Saved for ${teamLabel}`} title={teamLabel} className="pointer-events-none absolute left-1.5 top-1.5 z-[2] flex -space-x-1.5 rounded-md bg-black/45 p-0.5 backdrop-blur-sm">
-            {entry.team_scope !== "ct" && <img src={teamTIcon} alt="" className="size-4 object-contain" />}
-            {entry.team_scope !== "t" && <img src={teamCtIcon} alt="" className="size-4 object-contain" />}
-          </span>
-        )}
-
-        <button
-          type="button"
-          disabled={dimmed}
-          onClick={(event) => { event.stopPropagation(); (onCustomize ?? onOpen)() }}
-          aria-label={onCustomize && savedItem ? `Customize ${savedItem.display_name}` : openLabel}
-          title={onCustomize && savedItem ? "Customize" : "Choose"}
-          className="absolute left-1/2 top-[42%] z-[2] flex size-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/55 text-white opacity-0 shadow-lg backdrop-blur-sm transition-opacity duration-[400ms] ease-out group-hover:duration-[250ms] group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
-        >
-          <SlidersHorizontal className="size-4" />
-        </button>
-
-        {entry && savedItem && onRemove && (
-          <button
-            type="button"
-            onClick={(event) => { event.stopPropagation(); onRemove() }}
-            disabled={saving || dimmed}
-            aria-label={`Remove ${savedItem.display_name}`}
-            title="Remove"
-            className="absolute right-1.5 top-1.5 z-[2] flex size-7 items-center justify-center rounded-md border border-border bg-background/90 text-muted-foreground opacity-0 shadow-sm backdrop-blur transition-[opacity,color,background-color] duration-[400ms] ease-out group-hover:duration-[250ms] hover:bg-destructive hover:text-destructive-foreground group-hover:opacity-100 focus-visible:opacity-100 disabled:pointer-events-none [@media(hover:none)]:opacity-100"
-          >
-            <Trash2 className="size-3.5" />
-          </button>
-        )}
-      </div>
-    )
-  }
-
-  const renderSection = (title: string, equipped: number, total: number, cards: ReactNode[]) => cards.length === 0 ? null : (
-    <section key={title} aria-label={title}>
-      <div className="mb-2.5 flex items-baseline justify-between gap-2">
-        <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{title}</h2>
-        <span className="text-[10px] tabular-nums text-muted-foreground/70">{equipped}/{total} equipped</span>
-      </div>
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(0,9.5rem))] max-sm:grid-cols-2 gap-2">{cards}</div>
-    </section>
-  )
-
-  const modelCard = (item: SkinchangerCatalogItem, kind: ModelKind) => {
-    const entry = gridEntryFor(item, kind)
-    const savedItem = entry?.skinchanger_catalog_items ?? null
-    const lockedTeam = teamScopeFromMetadata(item)
-    return renderCard({
-      id: `${kind}:${item.id}`,
-      image: catalogImageUrl(savedItem ?? item) ?? (kind === "glove" ? defaultGloveVisual : null),
-      title: item.display_name,
-      subtitle: savedItem ? savedSkinLabel(savedItem) : "Default",
-      savedItem,
-      entry,
-      // A T-only firearm while the switch is on CT (or the reverse) stays visible, but cannot be opened.
-      dimmed: kind === "weapon" && lockedTeam !== "all" && teamScope !== "all" && lockedTeam !== teamScope,
-      openLabel: savedItem ? `Change ${item.display_name} skin (${savedSkinLabel(savedItem)})` : `Choose a ${item.display_name} skin`,
-      onOpen: () => openModelPicker(item, kind),
-      onCustomize: () => openModelCustomize(item, kind, entry),
-      onRemove: entry ? () => setDeleteConfirm({ model: item, entry }) : undefined,
-    })
-  }
-
-  /** Music kit and pin: one card split in two, T on the left and CT on the right. */
-  const renderSplitCard = (slot: SingleSlot) => {
-    const label = slot === "music_kit" ? "Music kit" : "Pin"
-    return (
-      <div key={slot} data-slot-card={slot} className="col-span-2 grid grid-cols-2 overflow-hidden rounded-lg border border-border bg-background/60">
-        {(["t", "ct"] as const).map((team) => {
-          const entry = singleEntryFor(slot, team)
-          const savedItem = entry?.skinchanger_catalog_items ?? null
-          const rarity = savedItem ? rarityStyle(savedItem) : null
-          const image = savedItem ? catalogImageUrl(savedItem) : slot === "pin" ? pinsIcon : null
-          const teamName = team === "t" ? "T" : "CT"
-          const dimmed = teamScope !== "all" && teamScope !== team
-          const backgrounds = [teamScopeFade(team), rarity ? `radial-gradient(ellipse 95% 78% at ${team === "t" ? "0%" : "100%"} 100%, ${rarity.glow} 0%, transparent 68%)` : null].filter(Boolean).join(", ")
-          return (
-            <div
-              key={team}
-              data-slot-half={`${slot}:${team}`}
-              inert={dimmed || undefined}
-              aria-disabled={dimmed || undefined}
-              style={{ backgroundImage: backgrounds }}
-              className={cn(
-                "group relative aspect-square min-w-0 overflow-hidden transition-opacity duration-[400ms] ease-out",
-                team === "ct" && "border-l border-border",
-                dimmed && "pointer-events-none opacity-35 grayscale",
-              )}
-            >
-              <button type="button" disabled={dimmed} onClick={() => openSinglePicker(slot, team)} aria-label={savedItem ? `Change ${teamName} ${label.toLowerCase()} (${savedItem.display_name})` : `Choose a ${teamName} ${label.toLowerCase()}`} className="absolute inset-0 z-[1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground/60" />
-              <div className={cn("pointer-events-none relative flex h-full flex-col p-2.5", team === "ct" && "items-end text-right")}>
-                <span className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  <img src={team === "t" ? teamTIcon : teamCtIcon} alt="" className="size-3.5 object-contain" />{teamName}
-                </span>
-                <div className="flex min-h-0 w-full flex-1 items-center justify-center">
-                  {image ? (
-                    <OptimizedImage src={image} width={160} height={120} alt="" className={cn("max-h-full w-full object-contain transition-[filter,scale] duration-[400ms] ease-out group-hover:duration-[250ms] group-hover:scale-[1.03] group-hover:blur-[4px] group-has-[:focus-visible]:blur-[4px]", !savedItem && "p-4 opacity-80")} />
-                  ) : (
-                    <ImageOff className="size-7 text-muted-foreground/50" />
-                  )}
-                </div>
-                <p className="mt-1 w-full truncate text-xs font-semibold">{label}</p>
-                <p className="w-full truncate text-[10px] text-muted-foreground" style={rarity ? { color: rarity.accent } : undefined}>
-                  {savedItem ? savedItem.display_name : "Default"}{entry?.team_scope === "all" ? " · Both" : ""}
-                </p>
-              </div>
-              <button
-                type="button"
-                disabled={dimmed}
-                onClick={(event) => { event.stopPropagation(); openSinglePicker(slot, team) }}
-                aria-label={`Choose a ${teamName} ${label.toLowerCase()}`}
-                title="Choose"
-                className="absolute left-1/2 top-[42%] z-[2] flex size-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/55 text-white opacity-0 shadow-lg backdrop-blur-sm transition-opacity duration-[400ms] ease-out group-hover:opacity-100 group-hover:duration-[250ms] focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
-              >
-                <SlidersHorizontal className="size-4" />
-              </button>
-              {entry && savedItem && (
-                <button
-                  type="button"
-                  onClick={(event) => { event.stopPropagation(); setDeleteConfirm({ model: savedItem, entry }) }}
-                  disabled={saving || dimmed}
-                  aria-label={`Remove ${savedItem.display_name}`}
-                  title={entry.team_scope === "all" ? "Remove (both teams)" : "Remove"}
-                  className={cn("absolute top-1.5 z-[2] flex size-7 items-center justify-center rounded-md border border-border bg-background/90 text-muted-foreground opacity-0 shadow-sm backdrop-blur transition-[opacity,color,background-color] duration-[400ms] ease-out group-hover:duration-[250ms] hover:bg-destructive hover:text-destructive-foreground group-hover:opacity-100 focus-visible:opacity-100 disabled:pointer-events-none [@media(hover:none)]:opacity-100", team === "t" ? "right-1.5" : "left-1.5")}
-                >
-                  <Trash2 className="size-3.5" />
-                </button>
-              )}
-            </div>
-          )
-        })}
-      </div>
-    )
-  }
-
-  const pickerTitle = slotTeam
-    ? `${slotTeam === "t" ? "T" : "CT"} ${category === "glove" ? "gloves" : "knife"}`
-    : activeWeapon
-    ? activeWeapon.display_name
-    : category === "agent" ? (agentTeam === "ct" ? "CT agent" : "T agent")
-      : category === "music_kit" ? "Music kit" : "Pin"
-  const pickerHasOptions = Boolean(selected && activeWeapon)
-  const equippedIn = (items: SkinchangerCatalogItem[], kind: ModelKind) => items.filter((item) => gridEntryFor(item, kind)?.skinchanger_catalog_items).length
+  const teamName = saveScope === "all" ? "Both teams" : saveScope === "t" ? "Terrorist" : "Counter-Terrorist"
+  const grid = picker ? accessoryCatalog : catalog
+  const gridItems = picker ? accessoryCatalog.data?.data ?? [] : visible
+  const previewImage = imageUrl(selected)
 
   return (
-    <div className="@container flex flex-col gap-5 p-4 @2xl:p-6">
-      <div className={stickyToolbarClass}>
-        <label className={toolbarSearchClass}>
-          <Search className="size-4 shrink-0 text-muted-foreground" />
-          <input value={gridQuery} onChange={(event) => setGridQuery(event.target.value)} placeholder="Search weapons, knives, gloves..." className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
-        </label>
-        <p className="text-xs text-muted-foreground @2xl:ml-auto">
-          {loadoutEntries.length === 0 ? "Nothing saved yet" : `${loadoutEntries.length} saved`}
-          {loadoutResponse?.loadout.updated_at ? " · " : ""}
-          {loadoutResponse?.loadout.updated_at ? <RelativeTime value={loadoutResponse.loadout.updated_at} /> : null}
-        </p>
-        {renderTeamSwitch()}
-      </div>
-
-      {gridError ? (
-        <QueryState loading={false} error={{ ...gridError, message: "Could not load the collection. Please try again." }} empty={false} onRetry={() => { refetchFirearms(); refetchKnives(); refetchGloves() }} />
-      ) : gridLoading && !firearmModels ? (
-        <QueryState loading error={null} empty={false} skeleton={<div className="flex flex-col gap-7">{[10, 7, 7].map((count, index) => <div key={index} className="flex flex-col gap-2.5"><Skeleton className="h-3 w-20 bg-white/[0.06]" /><CardGridSkeleton count={count} /></div>)}</div>} />
-      ) : (
-        <div className="flex flex-col gap-7">
-          {modelSections.map((section) => renderSection(section.group, equippedIn(section.items, section.kind), section.items.length, section.items.map((item) => modelCard(item, section.kind))))}
-          {([["knife", "Knives", showKnives], ["glove", "Gloves", showGloves]] as const).filter(([, , visible]) => visible).map(([kind, title]) =>
-            renderSection(title, (["t", "ct"] as const).filter((team) => slotEntryFor(kind, team)?.skinchanger_catalog_items).length, 2, (["t", "ct"] as const).map((team) => {
-              const entry = slotEntryFor(kind, team)
-              const savedItem = entry?.skinchanger_catalog_items ?? null
-              const label = `${team === "t" ? "T" : "CT"} ${kind === "knife" ? "knife" : "gloves"}`
-              return renderCard({
-                id: `${kind}:${team}`,
-                image: savedItem ? catalogImageUrl(savedItem) : kind === "knife" ? defaultKnifeImage : defaultGloveVisual,
-                title: label,
-                subtitle: savedItem ? savedItem.display_name.replace(/^★\s*/, "").replace(wearSuffix, "") : "Default",
-                savedItem,
-                entry,
-                dimmed: teamScope !== "all" && teamScope !== team,
-                openLabel: savedItem ? `Change ${label} (${savedItem.display_name})` : `Choose ${label}`,
-                onOpen: () => openSlotPicker(kind, team, false),
-                onCustomize: () => openSlotPicker(kind, team, true),
-                onRemove: entry && savedItem ? () => setDeleteConfirm({ model: modelForEntry(kind, entry) ?? savedItem, entry }) : undefined,
-              })
-            })))}
-          {showAgents && renderSection("Agents", (["t", "ct"] as const).filter((team) => agentEntryFor(team)).length, 2, (["t", "ct"] as const).map((team) => {
-            const entry = agentEntryFor(team)
-            const savedItem = entry?.skinchanger_catalog_items ?? null
-            return renderCard({
-              id: `agent:${team}`,
-              image: savedItem ? catalogImageUrl(savedItem) : null,
-              fallback: team === "t" ? teamTIcon : teamCtIcon,
-              title: team === "t" ? "T agent" : "CT agent",
-              subtitle: savedItem ? savedItem.display_name : "Default",
-              savedItem,
-              entry,
-              openLabel: `Choose a ${team === "t" ? "T" : "CT"} agent`,
-              onOpen: () => openAgentPicker(team),
-              onRemove: entry && savedItem ? () => setDeleteConfirm({ model: savedItem, entry }) : undefined,
-            })
-          }))}
-          {(showMusic || showPin) && renderSection(
-            "Music kit & pin",
-            (["music_kit", "pin"] as const).flatMap((slot) => (["t", "ct"] as const).filter((team) => singleEntryFor(slot, team))).length,
-            4,
-            ([["music_kit", showMusic], ["pin", showPin]] as const).filter(([, visible]) => visible).map(([slot]) => renderSplitCard(slot)),
-          )}
-          {modelSections.every((section) => section.items.length === 0) && !showKnives && !showGloves && !showAgents && !showMusic && !showPin && (
-            <p className="rounded-xl border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">Nothing matches “{gridQuery}”.</p>
-          )}
-        </div>
-      )}
-
-      <Dialog open={pickerOpen} onOpenChange={(open) => { if (!open) closePicker() }}>
-        <DialogContent className="glass flex max-h-[92dvh] w-[calc(100%-1.5rem)] max-w-5xl flex-col gap-0 overflow-hidden p-0 sm:max-w-5xl">
-          <div className="flex items-center gap-3 border-b border-border px-4 py-3 pr-12">
-            {selected && pickerHasOptions && (
-              <button type="button" onClick={() => setSelected(null)} className="flex size-8 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground hover:text-foreground lg:hidden" aria-label="Back to the list">
-                <ArrowLeft className="size-4" />
-              </button>
-            )}
-            <div className="min-w-0 flex-1">
-              <DialogTitle className="flex items-center gap-2 truncate text-base">
-                {selectedTeamScope !== "all" && <img src={selectedTeamScope === "t" ? teamTIcon : teamCtIcon} alt={selectedTeamScope === "t" ? "T" : "CT"} className="size-5 shrink-0 object-contain" />}
-                <span className="truncate">{pickerTitle}</span>
-              </DialogTitle>
-              <DialogDescription className="truncate text-xs">
-                {savedItemForActiveSlot ? `Saved: ${activeWeapon ? savedSkinLabel(savedItemForActiveSlot) : savedItemForActiveSlot.display_name}` : activeWeapon ? "Choose a skin" : "Choose one"}
-              </DialogDescription>
+    <Dialog open={open} onOpenChange={(next) => !next && !saving && onClose()}>
+      <DialogContent showCloseButton={false} className="flex h-[min(640px,calc(100dvh-2rem))] flex-col gap-0 overflow-hidden p-0 sm:max-w-[980px]">
+        {target && (
+          <>
+            <div className="flex items-center gap-3 border-b border-line-soft px-5 py-3.5">
+              <DialogTitle className="m-0 truncate text-[17px] font-semibold text-text">{picker ? (picker.type === "charm" ? "Charm" : `Sticker slot ${picker.slot + 1}`) : targetTitle(target)}</DialogTitle>
+              <DialogDescription className="m-0 shrink-0 text-xs text-text-dim">{teamName}</DialogDescription>
+              <label className="ml-auto hidden h-[34px] w-[240px] items-center gap-2 rounded-lg border border-line bg-card px-3 text-text-dim focus-within:border-line-strong sm:flex">
+                <Search className="size-3.5 shrink-0" aria-hidden />
+                <input
+                  type="search"
+                  value={draft}
+                  onChange={(event) => setDraft(event.target.value)}
+                  placeholder={picker ? `Search ${picker.type}s` : "Search skins"}
+                  aria-label="Search skins"
+                  className="min-w-0 flex-1 bg-transparent text-[13px] text-text outline-none placeholder:text-text-dim [&::-webkit-search-cancel-button]:hidden"
+                />
+              </label>
+              <Button variant="ghost" size="icon-sm" aria-label="Close" onClick={onClose} disabled={saving} className="ml-auto sm:ml-0">
+                <X className="size-4" aria-hidden />
+              </Button>
             </div>
-          </div>
 
-          <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,1fr)_340px]">
-            {/* Catalogue */}
-            <div className={cn("flex min-h-0 flex-col", selected && pickerHasOptions && "hidden lg:flex")}>
-              {slotTeam && (category === "knife" || category === "glove") && (
-                <div role="tablist" aria-label={category === "knife" ? "Knife type" : "Glove type"} className="flex gap-1.5 overflow-x-auto border-b border-border px-3 py-2.5 [scrollbar-width:thin]">
-                  {modelsForSlot(category).map((model) => {
-                    const isActive = activeWeapon?.id === model.id
-                    const isSaved = modelForEntry(category, slotEntryFor(category, slotTeam))?.id === model.id
-                    return (
-                      <button
-                        key={model.id}
-                        type="button"
-                        role="tab"
-                        aria-selected={isActive}
-                        onClick={() => switchSlotModel(model)}
-                        className={cn(
-                          "relative h-8 shrink-0 rounded-md border px-3 text-xs font-medium transition-colors",
-                          isActive ? "border-foreground/60 bg-secondary text-foreground" : "border-border text-muted-foreground hover:text-foreground",
-                        )}
-                      >
-                        {model.display_name.replace(/\s+(Gloves|Knife)$/i, "")}
-                        {isSaved && <span aria-label="saved" className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-emerald-400" />}
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
-              <div className="border-b border-border p-3">
-                <label className="relative block">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-                  <Input value={query} onChange={(event) => { setQuery(event.target.value); setOffset(0) }} placeholder={`Search ${activeWeapon ? `${activeWeapon.display_name} skins` : category === "agent" ? "agents" : category === "music_kit" ? "music kits" : "pins"}...`} className="h-9 pl-9 text-xs" />
+            <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto md:grid-cols-[minmax(0,1fr)_312px] md:overflow-hidden">
+              <div className="flex min-h-0 flex-col gap-3 p-4 md:overflow-y-auto">
+                <label className="flex h-[34px] items-center gap-2 rounded-lg border border-line bg-card px-3 text-text-dim sm:hidden">
+                  <Search className="size-3.5 shrink-0" aria-hidden />
+                  <input type="search" value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="Search" aria-label="Search" className="min-w-0 flex-1 bg-transparent text-[13px] text-text outline-none" />
                 </label>
-              </div>
-              <div className="min-h-0 flex-1 overflow-y-auto p-3">
-                <QueryState skeleton={<CardGridSkeleton count={12} className="grid-cols-[repeat(auto-fill,minmax(8rem,1fr))]" />} loading={catalogLoading} error={catalogError ? { ...catalogError, message: "Could not load the collection. Please try again." } : null} empty={!catalogLoading && !catalogError && displayedCatalogItems.length === 0} onRetry={refetchCatalog} emptyMessage="Nothing matches this search." />
-                {!catalogLoading && !catalogError && displayedCatalogItems.length > 0 && (
-                  <div className="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-2">
-                    {displayedCatalogItems.map((item) => {
-                      const rarity = rarityStyle(item)
-                      const isSelected = selected?.id === item.id
-                      // Once another skin is picked, the old one is no longer marked, so only the new choice stands out.
-                      const isSaved = savedItemForActiveSlot?.id === item.id && (!selected || isSelected)
-                      const image = catalogImageUrl(item)
+                {picker ? (
+                  <div>
+                    <Button variant="outline" size="sm" onClick={() => { setPicker(null); setDraft("") }}>
+                      Back to skins
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    {modelKind && models[modelKind].length > 1 && (
+                      <div role="group" aria-label={modelKind === "knife" ? "Knife" : "Gloves"} className="no-scrollbar flex gap-1.5 overflow-x-auto">
+                        {models[modelKind].map((option) => (
+                          <Chip key={option.id} active={model?.id === option.id} onClick={() => { setModel(option); setSelected(null); setRarity("all") }}>
+                            {option.display_name.replace(/^★\s*/, "")}
+                          </Chip>
+                        ))}
+                      </div>
+                    )}
+                    {rarities.length > 1 && (
+                      <div role="group" aria-label="Rarity" className="flex flex-wrap gap-1.5">
+                        <Chip active={rarity === "all"} onClick={() => setRarity("all")}>All</Chip>
+                        {rarities.map((entry) => (
+                          <Chip key={entry.id} active={rarity === entry.id} onClick={() => setRarity(entry.id)}>
+                            {entry.label}
+                          </Chip>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+                {grid.loading && !grid.data ? (
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2.5">
+                    {Array.from({ length: 12 }, (_, index) => (
+                      <Skeleton key={index} className="h-[118px] rounded-[10px]" />
+                    ))}
+                  </div>
+                ) : grid.error && !grid.data ? (
+                  <ErrorState onRetry={grid.refetch} />
+                ) : gridItems.length === 0 ? (
+                  <EmptyState>{query ? `Nothing matches "${query}".` : "Nothing to choose here yet."}</EmptyState>
+                ) : (
+                  <div className={cn("grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2.5 transition-opacity duration-150", grid.loading && "opacity-70")}>
+                    {gridItems.map((item) => {
+                      const isSelected = !picker && selected?.id === item.id
                       return (
                         <button
                           key={item.id}
                           type="button"
-                          onClick={() => selectSkin(item)}
-                          data-catalog-item-id={item.id}
-                          style={rarity ? { backgroundImage: `radial-gradient(ellipse 95% 78% at 0% 100%, ${isSelected ? strongerGlow(rarity.glow) : rarity.glow} 0%, transparent 68%)` } : undefined}
+                          onClick={() => (picker ? chooseAccessory(item) : choose(item))}
+                          aria-pressed={isSelected}
                           className={cn(
-                            "relative flex flex-col rounded-lg border bg-background/60 p-2 text-left transition-colors hover:border-foreground/30",
-                            isSelected ? "border-foreground/70 ring-1 ring-foreground/40" : "border-border/60",
+                            "press relative flex h-[118px] flex-col overflow-hidden rounded-[10px] border bg-card text-left transition-colors duration-150",
+                            isSelected ? "border-accent" : "border-line-soft hover:border-line-strong",
                           )}
                         >
-                          {isSaved && <span className="absolute right-1.5 top-1.5 inline-flex items-center gap-1 rounded border border-emerald-300/30 bg-emerald-300/12 px-1 py-px text-[9px] font-semibold uppercase text-emerald-100"><BadgeCheck className="size-3" />Saved</span>}
-                          <span className="flex h-20 items-center justify-center">
-                            {image ? <OptimizedImage src={image} width={180} height={90} alt="" className="h-full w-full object-contain" /> : <ImageOff className="size-6 text-muted-foreground/50" />}
+                          <span className="flex min-h-0 flex-1 items-center justify-center p-2">
+                            {imageUrl(item) ? <img src={imageUrl(item)!} alt="" loading="lazy" decoding="async" className="max-h-full max-w-full object-contain" /> : <span className="h-3 w-2/3 rounded-full bg-line-soft" />}
                           </span>
-                          <span className="mt-1.5 line-clamp-2 text-[11px] font-semibold leading-4">{activeWeapon ? savedSkinLabel(item) : item.display_name}</span>
-                          {typeof item.metadata.rarity === "string" && <span className="mt-0.5 truncate text-[10px]" style={{ color: rarity?.accent ?? undefined }}>{item.metadata.rarity}</span>}
+                          <span className="border-t border-line-soft bg-panel px-2.5 py-1.5">
+                            <span className="block truncate text-xs text-text" title={item.display_name}>{picker ? item.display_name : skinName(item)}</span>
+                          </span>
+                          <RarityBar item={item} />
                         </button>
                       )
                     })}
                   </div>
                 )}
+                {!picker && catalog.data && catalog.data.pagination.total > items.length && (
+                  <p className="m-0 text-center text-xs text-text-dim">Showing {items.length} of {catalog.data.pagination.total}. Search to narrow it down.</p>
+                )}
               </div>
-              {!catalogLoading && !catalogError && totalCatalogItems > pageSize && (
-                <div className="flex items-center justify-between border-t border-border p-3 text-xs text-muted-foreground">
-                  <span>{offset + 1}–{Math.min(offset + pageSize, totalCatalogItems)} of {totalCatalogItems.toLocaleString()}</span>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - pageSize))}>Previous</Button>
-                    <Button size="sm" variant="outline" disabled={offset + pageSize >= totalCatalogItems} onClick={() => setOffset(offset + pageSize)}>Next</Button>
-                  </div>
-                </div>
-              )}
-            </div>
 
-            {/* Preview, customize and save */}
-            <aside className={cn("min-h-0 overflow-y-auto border-t border-border px-4 pt-4 lg:border-l lg:border-t-0", !(selected && pickerHasOptions) && "max-lg:max-h-[40dvh]")}>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">{selected ? "Your choice" : "Nothing picked yet"}</p>
-              <p className="mb-3 mt-1 truncate text-sm font-semibold">{previewChoice?.display_name || `Pick ${activeWeapon ? `a ${activeWeapon.display_name} skin` : "one from the list"}`}</p>
-            <div className="relative flex h-40 items-center justify-center rounded-lg border border-border bg-background">
-              {previewChoice && catalogImageUrl(previewChoice) ? <OptimizedImage src={catalogImageUrl(previewChoice) ?? ""} width={320} height={160} priority alt={`${previewChoice.display_name} selected collectible`} data-catalog-item-id={previewChoice.id} className="h-full w-full object-contain p-3" /> : <span className="flex flex-col items-center gap-2 px-6 text-center"><ImageOff className="size-7 text-muted-foreground/50" /><span className="text-[11px] leading-4 text-muted-foreground">Pick one from the list.</span></span>}
-              {canCustomizeAccessories && (previewStickerItems.length > 0 || previewCharmItem) && <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-2"><div className="flex -space-x-1.5">{previewStickerItems.slice(0, 5).map((item) => catalogImageUrl(item) && <OptimizedImage key={item.id} src={catalogImageUrl(item) ?? ""} width={28} height={28} alt={`${item.display_name} selected sticker`} data-catalog-item-id={item.id} className="size-7 rounded-full border border-background bg-card object-contain p-0.5" />)}</div>{previewCharmItem && catalogImageUrl(previewCharmItem) && <OptimizedImage src={catalogImageUrl(previewCharmItem) ?? ""} width={32} height={32} alt={`${previewCharmItem.display_name} selected charm`} data-catalog-item-id={previewCharmItem.id} className="size-8 rounded-md border border-background bg-card object-contain p-0.5" />}</div>}
-            </div>
-            {selected && activeWeapon && (
-              <div className="mt-3 grid grid-rows-[1fr] overflow-hidden">
-              <div className="min-h-0 overflow-hidden">
-              <div className="space-y-4 border-t border-border pt-4">
-                <div>
-                  <div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Wear</span><span className="text-xs text-muted-foreground">{wearName(customOptions.wear ?? defaultWear)} · {(customOptions.wear ?? defaultWear).toFixed(4)}</span></div>
-                  <div className="mb-2 grid grid-cols-5 gap-1">
-                    {wearTiers.map((tier) => {
-                      const available = tier.from < maxWear && tier.to > minWear
-                      const target = Math.min(maxWear, Math.max(minWear, tier.from === 0 ? 0.0001 : tier.from + 0.002))
-                      const isActive = wearName(customOptions.wear ?? defaultWear) === tier.label
-                      return (
+              <aside className="flex flex-col gap-4 border-t border-line-soft p-4 md:overflow-y-auto md:border-t-0 md:border-l">
+                <div className="relative flex h-[122px] shrink-0 items-center justify-center overflow-hidden rounded-[10px] border border-line-soft bg-card p-3">
+                  {previewImage ? <img src={previewImage} alt={selected?.display_name ?? ""} className="max-h-full max-w-full object-contain" /> : <span className="text-xs text-text-dim">Pick a skin</span>}
+                  <RarityBar item={selected} />
+                </div>
+                {selected && <span className="-mt-2 truncate text-[13px] font-medium text-text" title={selected.display_name}>{selected.display_name}</span>}
+
+                {hasWear && (
+                  <>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center justify-between text-[13px]">
+                        <label htmlFor="skin-wear" className="text-text-2">Wear</label>
+                        <span className="tabular-nums text-text">
+                          {wear.toFixed(2)} · {wearTier(wear).label}
+                        </span>
+                      </div>
+                      <input
+                        id="skin-wear"
+                        type="range"
+                        min={minWear}
+                        max={maxWear}
+                        step={0.0001}
+                        value={wear}
+                        disabled={!selected}
+                        onChange={(event) => setOptions((current) => ({ ...current, wear: Number(event.target.value) }))}
+                        className="h-1.5 w-full cursor-pointer accent-[#fafafa] disabled:cursor-not-allowed disabled:opacity-50"
+                      />
+                      <span className="flex justify-between text-[10px] text-text-faint" aria-hidden>
+                        {WEAR_TIERS.map((tier) => (
+                          <span key={tier.short} className={cn(wearTier(wear).short === tier.short && "text-text-2")}>{tier.short}</span>
+                        ))}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3">
+                      <label className="flex flex-col gap-1.5 text-[13px] text-text-2">
+                        Seed
+                        <input
+                          type="number"
+                          min={0}
+                          max={1000}
+                          value={options.seed ?? 0}
+                          disabled={!selected}
+                          onChange={(event) => setOptions((current) => ({ ...current, seed: Math.max(0, Math.min(1000, Math.round(Number(event.target.value) || 0))) }))}
+                          placeholder="0–1000"
+                          className="h-[34px] rounded-lg border border-line bg-card px-3 text-[13px] text-text outline-none focus:border-line-strong disabled:opacity-50"
+                        />
+                      </label>
+                      <label className="flex flex-col items-end gap-1.5 text-[13px] text-text-2">
+                        StatTrak™
+                        <span className="flex h-[34px] items-center">
+                          <Switch checked={Boolean(options.statTrak)} disabled={!selected} onCheckedChange={(value) => setOptions((current) => ({ ...current, statTrak: value }))} aria-label="StatTrak" />
+                        </span>
+                      </label>
+                    </div>
+                    <label className="flex flex-col gap-1.5 text-[13px] text-text-2">
+                      Name tag
+                      <input
+                        type="text"
+                        maxLength={20}
+                        value={options.nameTag ?? ""}
+                        disabled={!selected}
+                        onChange={(event) => setOptions((current) => ({ ...current, nameTag: event.target.value }))}
+                        placeholder="Optional"
+                        className="h-[34px] rounded-lg border border-line bg-card px-3 text-[13px] text-text outline-none placeholder:text-text-dim focus:border-line-strong disabled:opacity-50"
+                      />
+                    </label>
+                  </>
+                )}
+
+                {canAccessorize && (
+                  <div className="flex flex-col gap-1.5 text-[13px] text-text-2">
+                    Stickers &amp; charm
+                    <div className="flex gap-1.5">
+                      {[0, 1, 2, 3, 4].map((index) => {
+                        const sticker = options.stickers?.find((entry) => entry.slot === index)
+                        const stickerItem = sticker ? accessoryById.get(sticker.catalogItemId) : null
+                        return (
+                          <span key={index} className="group/acc relative">
+                            <button
+                              type="button"
+                              disabled={!selected}
+                              onClick={() => { setPicker({ type: "sticker", slot: index }); setDraft("") }}
+                              aria-label={stickerItem ? `Sticker ${index + 1}: ${stickerItem.display_name}` : `Add sticker ${index + 1}`}
+                              className={cn("press flex size-10 items-center justify-center overflow-hidden rounded-lg border bg-card disabled:opacity-50", picker?.type === "sticker" && picker.slot === index ? "border-accent" : "border-line hover:border-line-strong")}
+                            >
+                              {stickerItem && imageUrl(stickerItem) ? <img src={imageUrl(stickerItem)!} alt="" className="size-full object-contain p-0.5" /> : <span className="text-xs text-text-faint">+</span>}
+                            </button>
+                            {sticker && (
+                              <button
+                                type="button"
+                                aria-label={`Remove sticker ${index + 1}`}
+                                onClick={() => setOptions((current) => ({ ...current, stickers: (current.stickers ?? []).filter((entry) => entry.slot !== index) }))}
+                                className="absolute -top-1.5 -right-1.5 hidden size-4 items-center justify-center rounded-full bg-line-strong text-text group-hover/acc:flex"
+                              >
+                                <X className="size-2.5" aria-hidden />
+                              </button>
+                            )}
+                          </span>
+                        )
+                      })}
+                      <span className="group/acc relative ml-1">
                         <button
-                          key={tier.short}
                           type="button"
-                          disabled={!available}
-                          title={available ? tier.label : `${tier.label} is not available for this skin`}
-                          onClick={() => setCustomOptions((current) => ({ ...current, wear: target }))}
-                          className={cn(
-                            "h-7 rounded-md border text-[10px] font-semibold transition-colors",
-                            isActive ? "border-foreground bg-foreground text-background" : "border-border bg-background text-muted-foreground hover:text-foreground",
-                            !available && "cursor-not-allowed opacity-30",
-                          )}
+                          disabled={!selected}
+                          onClick={() => { setPicker({ type: "charm" }); setDraft("") }}
+                          aria-label={options.charm ? "Change charm" : "Add charm"}
+                          className={cn("press flex h-10 w-8 items-center justify-center overflow-hidden rounded-lg border border-dashed bg-card disabled:opacity-50", picker?.type === "charm" ? "border-accent" : "border-line-strong")}
                         >
-                          {tier.short}
+                          {options.charm && imageUrl(accessoryById.get(options.charm.catalogItemId)) ? (
+                            <img src={imageUrl(accessoryById.get(options.charm.catalogItemId))!} alt="" className="size-full object-contain" />
+                          ) : (
+                            <span className="text-xs text-text-faint">+</span>
+                          )}
                         </button>
-                      )
-                    })}
-                  </div>
-                  <input aria-label="Skin wear" type="range" min={minWear} max={maxWear} step="0.0001" value={customOptions.wear ?? defaultWear} onChange={(event) => setCustomOptions((current) => ({ ...current, wear: Number(event.target.value) }))} className="h-2 w-full cursor-pointer accent-foreground" />
-                  <div className="mt-1 flex justify-between text-[10px] text-muted-foreground"><span>Clean</span><span>Worn</span></div>
-                </div>
-                <div>
-                  <div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Pattern seed</span><span className="text-xs text-muted-foreground">{customOptions.seed ?? 0}</span></div>
-                  <Input aria-label="Skin pattern seed" type="number" min={0} max={1000} step={1} value={customOptions.seed ?? 0} onChange={(event) => {
-                    const seed = Math.max(0, Math.min(1000, Math.round(Number(event.target.value) || 0)))
-                    setCustomOptions((current) => ({ ...current, seed }))
-                  }} className="h-9 text-xs" />
-                  <p className="mt-1 text-[10px] text-muted-foreground">0–1000</p>
-                </div>
-                {canCustomizeAccessories && <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 py-2">
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium">StatTrak™</p>
-                    <p className="text-[10px] text-muted-foreground">Counts your kills in game</p>
-                  </div>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={Boolean(customOptions.statTrak)}
-                    aria-label="StatTrak"
-                    onClick={() => setCustomOptions((current) => ({ ...current, statTrak: !current.statTrak }))}
-                    className={cn("relative h-5 w-9 shrink-0 rounded-full border transition-colors", customOptions.statTrak ? "border-foreground bg-foreground" : "border-border bg-secondary")}
-                  >
-                    <span className={cn("absolute top-0.5 size-3.5 rounded-full transition-[left] duration-200", customOptions.statTrak ? "left-[1.1rem] bg-background" : "left-0.5 bg-muted-foreground")} />
-                  </button>
-                </div>}
-                {canCustomizeAccessories && <div>
-                  <div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Name tag</span>{customOptions.nameTag && <button onClick={() => setCustomOptions((current) => ({ ...current, nameTag: undefined }))} className="text-[10px] text-muted-foreground hover:text-foreground">Clear</button>}</div>
-                  <Input aria-label="Name tag" value={customOptions.nameTag ?? ""} maxLength={20} placeholder="Custom name (optional)" onChange={(event) => setCustomOptions((current) => ({ ...current, nameTag: event.target.value || undefined }))} className="h-9 text-xs" />
-                </div>}
-                {canCustomizeAccessories && <div>
-                  <div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Sticker slots</span><span className="text-[10px] text-muted-foreground">Up to 5</span></div>
-                  <div className="grid grid-cols-5 gap-1.5">
-                    {Array.from({ length: 5 }, (_, slot) => {
-                      const sticker = customOptions.stickers?.find((entry) => entry.slot === slot)
-                      const stickerItem = sticker ? selectedAccessories[sticker.catalogItemId] : null
-                      return <button key={slot} onClick={() => openStickerPicker(slot)} className={cn("relative flex h-10 items-center justify-center rounded-md border text-[10px] transition-colors", sticker ? "border-foreground bg-secondary text-foreground" : "border-border bg-background text-muted-foreground hover:bg-secondary")} title={sticker ? `Change sticker slot ${slot + 1}` : `Add sticker to slot ${slot + 1}`}>{stickerItem && catalogImageUrl(stickerItem) ? <img src={catalogImageUrl(stickerItem) ?? undefined} alt={`${stickerItem.display_name} in slot ${slot + 1}`} data-catalog-item-id={stickerItem.id} className="size-7 object-contain" /> : <><Sticker className="size-3.5" /><span className="ml-1">{slot + 1}</span></>}{sticker && <span className="absolute -right-1 -top-1 size-2 rounded-full bg-foreground" />}</button>
-                    })}
-                  </div>
-                </div>}
-                {canCustomizeAccessories && <div>
-                  <div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Charm</span>{customOptions.charm && <button onClick={() => setCustomOptions((current) => ({ ...current, charm: undefined }))} className="text-[10px] text-muted-foreground hover:text-foreground">Remove</button>}</div>
-                  <button onClick={() => { setAccessoryPicker("charm"); setAccessoryQuery("") }} className={cn("flex h-10 w-full items-center justify-center gap-2 rounded-md border text-xs transition-colors", customOptions.charm ? "border-foreground bg-secondary text-foreground" : "border-border bg-background text-muted-foreground hover:bg-secondary")}>{selectedCharmItem && catalogImageUrl(selectedCharmItem) ? <img src={catalogImageUrl(selectedCharmItem) ?? undefined} alt={`${selectedCharmItem.display_name} selected charm`} data-catalog-item-id={selectedCharmItem.id} className="size-6 object-contain" /> : <Tag className="size-3.5" />} {customOptions.charm ? "Change charm" : "Choose charm"}</button>
-                </div>}
-                <button onClick={() => setResetConfirmOpen(true)} className="flex w-full items-center justify-center gap-2 text-xs text-muted-foreground hover:text-foreground"><RotateCcw className="size-3.5" /> Reset customization</button>
-                {canCustomizeAccessories && accessoryPicker && (
-                  <div className="rounded-lg border border-border bg-background p-2">
-                    <div className="mb-2 flex items-center justify-between gap-2"><p className="text-xs font-medium">{accessoryPicker === "sticker" ? `Sticker slot ${(editingStickerSlot ?? 0) + 1}` : "Choose charm"}</p><button onClick={() => { setAccessoryPicker(null); setEditingStickerSlot(null) }} className="rounded p-1 text-muted-foreground hover:bg-secondary hover:text-foreground"><X className="size-3.5" /></button></div>
-                    <Input value={accessoryQuery} onChange={(event) => setAccessoryQuery(event.target.value)} placeholder={`Search ${accessoryPicker}s...`} className="h-8 text-xs" />
-                    <div className="mt-2 grid max-h-52 grid-cols-3 gap-1 overflow-y-auto pr-1">
-                      {accessoriesLoading ? <div className="col-span-3 flex h-20 items-center justify-center"><Loader2 className="size-4 animate-spin text-muted-foreground" /></div> : accessoryCatalogError ? <div className="col-span-3 flex h-20 flex-col items-center justify-center gap-2 text-center"><span className="text-[10px] text-muted-foreground">Could not load {accessoryPicker}s.</span><button type="button" onClick={refetchAccessoryCatalog} className="text-[10px] font-medium text-foreground underline underline-offset-2">Try again</button></div> : (accessoryCatalog?.data ?? []).map((item) => <button key={item.id} onClick={() => chooseAccessory(item)} data-catalog-item-id={item.id} className="group rounded-md border border-border bg-card p-1.5 text-left hover:bg-secondary"><div className="flex h-12 items-center justify-center">{catalogImageUrl(item) ? <img src={catalogImageUrl(item) ?? undefined} alt={item.display_name} data-catalog-item-id={item.id} className="h-full w-full object-contain" loading="lazy" /> : <ImageOff className="size-4 text-muted-foreground" />}</div><p className="mt-1 line-clamp-2 text-[10px] font-medium leading-3">{item.display_name}</p></button>)}
+                        {options.charm && (
+                          <button
+                            type="button"
+                            aria-label="Remove charm"
+                            onClick={() => setOptions((current) => ({ ...current, charm: undefined }))}
+                            className="absolute -top-1.5 -right-1.5 hidden size-4 items-center justify-center rounded-full bg-line-strong text-text group-hover/acc:flex"
+                          >
+                            <X className="size-2.5" aria-hidden />
+                          </button>
+                        )}
+                      </span>
                     </div>
                   </div>
                 )}
-              </div>
-              </div>
-              </div>
-            )}
-              {/* Save stays in reach while the options scroll. */}
-              <div className="sticky bottom-0 -mx-4 mt-4 border-t border-border bg-card/95 px-4 py-3 backdrop-blur">
-                {canUseForBothTeams && (
-                  <label className="mb-3 flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
-                    <Checkbox checked={alsoOtherTeam} onCheckedChange={(checked) => setAlsoOtherTeam(checked === true)} disabled={!selected} />
-                    <span>Also use for {otherTeamName}</span>
-                    <img src={otherTeamName === "T" ? teamTIcon : teamCtIcon} alt="" className="size-4 object-contain" />
+
+                {canUseBoth && (
+                  <label className="flex cursor-pointer items-center gap-2.5 text-[13px] text-text-2">
+                    <Checkbox checked={bothTeams} onCheckedChange={(value) => setBothTeams(value === true)} />
+                    Use on both T and CT
                   </label>
                 )}
-                <Button className="w-full" disabled={!selected || saving || selectedAlreadyEquipped} onClick={() => void saveAndClose()}>
-                  {saving ? <Loader2 className="size-4 animate-spin" /> : <BadgeCheck className="size-4" />}
-                  {selectedAlreadyEquipped ? "Saved" : "Save"}
-                </Button>
-              </div>
-            </aside>
-          </div>
-        </DialogContent>
-      </Dialog>
+                {locked !== "all" && <p className="m-0 text-xs text-text-dim">{locked === "t" ? "Terrorist" : "Counter-Terrorist"} only weapon.</p>}
+              </aside>
+            </div>
 
-      <AlertDialog open={resetConfirmOpen} onOpenChange={setResetConfirmOpen}>
-        <AlertDialogContent size="sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Reset customization?</AlertDialogTitle>
-            <AlertDialogDescription>This removes the wear, stickers, and charm currently set for this skin. You can customize it again before saving.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Keep changes</AlertDialogCancel>
-            <AlertDialogAction onClick={() => { setCustomOptions({ wear: defaultWear, seed: 0, statTrak: false, stickers: [] }); setSelectedAccessories({}); setResetConfirmOpen(false) }}>Reset</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-      <AlertDialog open={Boolean(deleteConfirm)} onOpenChange={(open) => { if (!open && !saving) setDeleteConfirm(null) }}>
-        <AlertDialogContent size="sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remove saved look?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will remove {deleteConfirm?.model.display_name ?? "this saved look"} and its saved wear, stickers, and charm. You can choose it again at any time.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={saving}>Keep it</AlertDialogCancel>
-            <AlertDialogAction disabled={saving} onClick={() => void deleteSavedLook()}>
-              {saving ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />} Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            <div className="flex justify-end gap-2 border-t border-line-soft px-4 py-3">
+              <Button variant="outline" onClick={onClose} disabled={saving}>
+                Cancel
+              </Button>
+              <Button onClick={() => void save()} disabled={!selected || saving}>
+                {saving && <Loader2 className="size-4 animate-spin" aria-hidden />}
+                Save
+              </Button>
+            </div>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+/* ----------------------------------------------------------------------------
+ * Page
+ * ------------------------------------------------------------------------- */
+
+const DEFAULT_KNIFE = "https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/weapons/base_weapons/weapon_knife_png.png"
+const DEFAULT_GLOVES = "https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/weapons/base_weapons/ct_gloves_png.png"
+
+function GridSkeleton() {
+  return (
+    <div className="grid grid-cols-2 gap-[18px] md:grid-cols-3 xl:grid-cols-5" aria-busy="true" aria-label="Loading loadout">
+      {Array.from({ length: 5 }, (_, column) => (
+        <div key={column} className="flex flex-col gap-2.5">
+          <Skeleton className="mx-auto h-3.5 w-20" />
+          {Array.from({ length: column === 4 ? 2 : 6 }, (_, row) => (
+            <Skeleton key={row} className={cn("rounded-lg", column === 4 && row === 0 ? "h-[314px]" : "h-24")} />
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export function SkinchangerPage() {
+  const [team, setTeam] = useUrlState<Team>("team", "t", ["t", "ct"])
+  const [target, setTarget] = useState<Target | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  const firearms = useApiQuery((signal) => skinchangerService.getCatalog({ category: "weapon", limit: 100, offset: 0 }, { signal }), { queryKey: "grid:firearms" })
+  const knives = useApiQuery((signal) => skinchangerService.getCatalog({ category: "knife", limit: 100, offset: 0 }, { signal }), { queryKey: "grid:knives" })
+  const gloves = useApiQuery((signal) => skinchangerService.getCatalog({ category: "glove", limit: 100, offset: 0 }, { signal }), { queryKey: "grid:gloves" })
+  const loadout = useApiQuery((signal) => skinchangerService.getLoadout({ signal }), { queryKey: "loadout", keepPreviousData: true })
+
+  const entries = useMemo(() => loadout.data?.loadout.skinchanger_loadout_entries ?? [], [loadout.data])
+  const version = loadout.data?.loadout.version ?? 0
+  const mutations = useLoadoutMutations(entries)
+  const models = useMemo(
+    () => ({
+      knife: (knives.data?.data ?? []).filter((item) => item.display_name !== "Knife").sort((a, b) => a.display_name.localeCompare(b.display_name)),
+      glove: [...(gloves.data?.data ?? [])].sort((a, b) => a.display_name.localeCompare(b.display_name)),
+    }),
+    [knives.data, gloves.data],
+  )
+  const defaultKnifeImage = imageUrl((knives.data?.data ?? []).find((item) => item.display_name === "Knife")) ?? DEFAULT_KNIFE
+
+  const sections = useMemo(() => {
+    const byGroup = new Map<WeaponGroup, SkinchangerCatalogItem[]>()
+    for (const item of firearms.data?.data ?? []) {
+      const side = lockedTeam(item)
+      if (side !== "all" && side !== team) continue
+      const group = firearmGroup(item)
+      byGroup.set(group, [...(byGroup.get(group) ?? []), item])
+    }
+    for (const list of byGroup.values()) list.sort((a, b) => firearmOrder(a) - firearmOrder(b))
+    return byGroup
+  }, [firearms.data, team])
+
+  const equipped = entries.filter((entry) => entry.team_scope === team || entry.team_scope === "all").length
+
+  const remove = async (entry: SkinchangerLoadoutEntry, label: string) => {
+    setBusy(true)
+    try {
+      await mutations.remove(entry, version)
+      toast.success(`${label} skin removed`, { description: entry.team_scope === "all" ? "Removed for both teams." : undefined })
+    } catch {
+      toast.error("Couldn't remove it", { description: "Please try again." })
+    } finally {
+      setBusy(false)
+      loadout.refetch()
+    }
+  }
+
+  const weaponCards = (group: WeaponGroup) =>
+    (sections.get(group) ?? []).map((model) => {
+      const entry = weaponEntryFor(entries, model, team)
+      return (
+        <SlotCard
+          key={model.id}
+          label={model.display_name}
+          entry={entry}
+          fallbackImage={imageUrl(model)}
+          busy={busy}
+          onOpen={() => setTarget({ kind: "weapon", model })}
+          onRemove={() => entry && void remove(entry, model.display_name)}
+        />
+      )
+    })
+
+  const slotCard = (slot: Exclude<Target["kind"], "weapon">, fallbackImage: string | null, tall = false) => {
+    const entry = slotEntryFor(entries, slot, team)
+    return (
+      <SlotCard
+        label={SLOT_LABEL[slot]}
+        entry={entry}
+        fallbackImage={fallbackImage}
+        tall={tall}
+        busy={busy}
+        onOpen={() => setTarget({ kind: slot })}
+        onRemove={() => entry && void remove(entry, SLOT_LABEL[slot])}
+      />
+    )
+  }
+
+  const loading = (firearms.loading && !firearms.data) || (loadout.loading && !loadout.data)
+  const error = firearms.error ?? loadout.error
+
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="grid shrink-0 grid-cols-1 items-center gap-3 px-4 py-4 sm:px-6 md:h-[72px] md:grid-cols-[1fr_auto_1fr] md:py-0">
+        <div className="flex flex-col gap-[3px]">
+          <h1 className="m-0 text-xl font-semibold tracking-[-0.3px] text-text">Loadout</h1>
+          <span className="text-xs text-text-muted">
+            Pick skins, then type <kbd className="rounded-[5px] bg-raised px-1.5 py-px font-sans font-medium text-text">!rs</kbd> in game.
+          </span>
+        </div>
+        <div role="tablist" aria-label="Team" className="flex gap-0.5 justify-self-start rounded-[10px] border border-line bg-card p-[3px] md:justify-self-center">
+          {(["t", "ct"] as const).map((side) => (
+            <button
+              key={side}
+              type="button"
+              role="tab"
+              aria-selected={team === side}
+              onClick={() => setTeam(side)}
+              className={cn("press h-8 rounded-[7px] px-[18px] text-[13px] font-semibold transition-colors duration-150", team === side ? "bg-accent text-accent-contrast" : "text-text-muted hover:text-text")}
+            >
+              {side === "t" ? "TERRORIST" : "COUNTER-TERRORIST"}
+            </button>
+          ))}
+        </div>
+        <div className="hidden items-center justify-end gap-2 text-xs text-text-muted md:flex">
+          Equipped <span className="font-semibold tabular-nums text-text">{loadout.data ? equipped : "–"}</span>
+        </div>
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-1 pb-7 sm:px-6">
+        {loading ? (
+          <GridSkeleton />
+        ) : error && !firearms.data ? (
+          <ErrorState onRetry={() => { firearms.refetch(); loadout.refetch() }} />
+        ) : (
+          <div key={team} className="grid grid-cols-2 items-start gap-[18px] animate-fade-in md:grid-cols-3 xl:grid-cols-5">
+            <div className="flex flex-col gap-[22px]">
+              <Column title="Pistols">{weaponCards("Pistols")}</Column>
+            </div>
+            <div className="flex flex-col gap-[22px]">
+              <Column title="SMGs">{weaponCards("SMGs")}</Column>
+            </div>
+            <div className="flex flex-col gap-[22px]">
+              <Column title="Rifles">{weaponCards("Rifles")}</Column>
+              <Column title="Knife">{slotCard("knife", defaultKnifeImage)}</Column>
+            </div>
+            <div className="flex flex-col gap-[22px]">
+              <Column title="Sniper rifles">{weaponCards("Sniper Rifles")}</Column>
+              <Column title="Heavy">{weaponCards("Heavy")}</Column>
+            </div>
+            <div className="flex flex-col gap-[22px]">
+              <Column title="Agent">{slotCard("agent", null, true)}</Column>
+              <Column title="Gloves">{slotCard("glove", DEFAULT_GLOVES)}</Column>
+              <Column title="Music kit">{slotCard("music_kit", null)}</Column>
+              <Column title="Pin">{slotCard("pin", null)}</Column>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <SkinDialog target={target} team={team} entries={entries} version={version} models={models} onClose={() => setTarget(null)} onSaved={loadout.refetch} />
     </div>
   )
 }
