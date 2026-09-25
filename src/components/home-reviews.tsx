@@ -15,7 +15,7 @@ function Stars({ value, className }: { value: number; className?: string }) {
         <Star
           key={star}
           aria-hidden="true"
-          className={cn(className, Math.round(value) >= star ? "fill-[var(--accent-solid)] text-[var(--accent-solid)]" : "fill-[var(--line)] text-[var(--line)]")}
+          className={cn(className, Math.round(value) >= star ? "fill-[var(--star)] text-[var(--star)]" : "fill-[var(--line)] text-[var(--line)]")}
         />
       ))}
     </span>
@@ -59,7 +59,7 @@ export function HomeReviews({ onWriteReview }: { onWriteReview: () => void }) {
           <h2 className="text-lg font-semibold">What players say</h2>
           {total > 0 && (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--accent-solid)]/25 bg-[var(--accent-solid)]/[0.08] px-2.5 py-1 text-xs text-[var(--text-2)]">
-              <Star className="size-3 fill-[var(--accent-solid)] text-[var(--accent-solid)]" aria-hidden="true" />
+              <Star className="size-3 fill-[var(--star)] text-[var(--star)]" aria-hidden="true" />
               <span className="font-semibold tabular-nums">{average.toFixed(1)}</span>
               <span className="text-[var(--text-dim)]">· {total.toLocaleString()} review{total === 1 ? "" : "s"}</span>
             </span>

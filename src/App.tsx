@@ -44,17 +44,8 @@ export function App() {
       return
     }
 
-    const profilePath = `/profile/${encodeURIComponent(identity)}`
-
-    const profileTab = window.open(profilePath, "_blank")
-    if (profileTab) {
-      profileTab.opener = null
-      profileTab.focus()
-      return
-    }
-
-    // Popup blocking is not expected for direct click handlers, but retain a usable fallback.
-    navigate(profilePath)
+    // Profiles open in the same tab, like every other page.
+    navigate(`/profile/${encodeURIComponent(identity)}`)
   }
   const handleClanNavigate = (clanId: string) => {
     navigate(`/clans/${clanId}`)

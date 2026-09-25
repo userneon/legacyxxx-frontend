@@ -47,7 +47,7 @@ function Stars({ value, size = 14 }: { value: number; size?: number }) {
           key={star}
           aria-hidden="true"
           style={{ width: size, height: size }}
-          className={Math.round(value) >= star ? "fill-[var(--accent-solid)] text-[var(--accent-solid)]" : "fill-[var(--line)] text-[var(--line)]"}
+          className={Math.round(value) >= star ? "fill-[var(--star)] text-[var(--star)]" : "fill-[var(--line)] text-[var(--line)]"}
         />
       ))}
     </span>
@@ -177,8 +177,8 @@ function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () =
     <Dialog open={open} onOpenChange={(next) => { if (!next) onClose() }}>
       <DialogContent
         showCloseButton={false}
-        overlayClassName="bg-black/55 backdrop-blur-[10px] data-[state=open]:duration-200 data-[state=closed]:duration-150"
-        className="w-[520px] max-w-[calc(100%-2rem)] gap-0 rounded-2xl border-[var(--line)] bg-[var(--panel)] p-0 shadow-[0_24px_60px_rgba(0,0,0,0.6)] data-[state=open]:zoom-in-[0.98] data-[state=open]:duration-[250ms] data-[state=closed]:duration-150 sm:max-w-[520px]"
+        overlayClassName="lx-blur-overlay bg-black/55 backdrop-blur-[10px]"
+        className="w-[520px] max-w-[calc(100%-2rem)] gap-0 rounded-2xl border-[var(--line)] bg-[var(--panel)] p-0 shadow-[0_24px_60px_rgba(0,0,0,0.6)] lx-blur-panel sm:max-w-[520px]"
       >
         <div className="flex h-14 items-center justify-between border-b border-[var(--line-soft)] pl-5 pr-3">
           <DialogTitle className="text-base font-semibold text-[var(--text)]">Write a review</DialogTitle>
@@ -204,7 +204,7 @@ function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () =
                   onClick={() => setRating(star)}
                   className="flex size-9 items-center justify-center rounded-lg transition-colors hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
                 >
-                  <Star className={cn("size-6 transition-colors duration-150", shown >= star ? "fill-[var(--accent-solid)] text-[var(--accent-solid)]" : "text-[var(--text-faint)]")} />
+                  <Star className={cn("size-6 transition-colors duration-150", shown >= star ? "fill-[var(--star)] text-[var(--star)]" : "text-[var(--text-faint)]")} />
                 </button>
               ))}
               <span className="ml-2 text-[13px] text-[var(--text-muted)]">{RATING_WORDS[shown]}</span>
@@ -338,7 +338,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
                       active ? "border-[var(--line-strong)] bg-[var(--line)] text-[var(--text)]" : "border-[var(--line)] text-[var(--text-muted)] hover:text-[var(--text)]",
                     )}
                   >
-                    {value === "all" ? "All" : <>{value} <Star className="size-3 fill-current" /></>}
+                    {value === "all" ? "All" : <>{value} <Star className="size-3 fill-[var(--star)] text-[var(--star)]" /></>}
                   </button>
                 )
               })}
@@ -358,9 +358,12 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
         </div>
 
         <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-1 max-lg:overflow-visible">
-          <div className="flex max-w-[760px] flex-col gap-3">
+          {/* Two columns that fill top to bottom (masonry), so short and long reviews pack without gaps. */}
+          <div>
             {loading && reviews.length === 0 ? (
-              Array.from({ length: 5 }, (_, index) => <CardSkeleton key={index} />)
+              <div className="columns-1 gap-3 md:columns-2">
+                {Array.from({ length: 6 }, (_, index) => <div key={index} className="mb-3 break-inside-avoid"><CardSkeleton /></div>)}
+              </div>
             ) : error && reviews.length === 0 ? (
               <p className="flex items-center justify-center gap-3 py-10 text-[13px] text-[var(--text-dim)]">
                 Could not load the reviews.
@@ -372,7 +375,13 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
             ) : visible.length === 0 ? (
               <p className="py-10 text-center text-[13px] text-[var(--text-dim)]">{total === 0 ? "No reviews yet." : "No review with this rating yet."}</p>
             ) : (
-              visible.map((entry) => <ReviewCard key={entry.id} entry={entry} own={isMine(entry)} fresh={entry.id === freshId} onOpenProfile={onProfileNavigate} />)
+              <div className="columns-1 gap-3 md:columns-2">
+                {visible.map((entry) => (
+                  <div key={entry.id} className="mb-3 break-inside-avoid">
+                    <ReviewCard entry={entry} own={isMine(entry)} fresh={entry.id === freshId} onOpenProfile={onProfileNavigate} />
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </div>
@@ -403,10 +412,10 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
               >
                 <span className="flex w-[22px] shrink-0 items-center gap-[3px] text-xs tabular-nums text-[var(--text-muted)]">
                   {bucket.score}
-                  <Star className="size-2.5 fill-current" />
+                  <Star className="size-2.5 fill-[var(--star)] text-[var(--star)]" />
                 </span>
                 <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--line-soft)]">
-                  <span className={cn("block h-full rounded-full transition-[width] duration-300", pressed ? "bg-[var(--accent-solid)]" : "bg-[var(--text-muted)]")} style={{ width: `${bucket.share}%` }} />
+                  <span className={cn("block h-full rounded-full transition-[width] duration-300", pressed ? "bg-[var(--star)]" : "bg-[var(--star)]/55")} style={{ width: `${bucket.share}%` }} />
                 </span>
                 <span className="w-6 shrink-0 text-right text-xs tabular-nums text-[var(--text-dim)]">{bucket.count}</span>
               </button>

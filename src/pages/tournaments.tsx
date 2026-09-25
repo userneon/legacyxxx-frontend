@@ -410,8 +410,8 @@ function TeamNameDialog({ open, onClose, onSubmit, busy, error }: { open: boolea
     <Dialog open={open} onOpenChange={(next) => { if (!next) onClose() }}>
       <DialogContent
         showCloseButton={false}
-        overlayClassName="bg-black/55 backdrop-blur-[10px] data-[state=open]:duration-200 data-[state=closed]:duration-150"
-        className="w-[440px] max-w-[calc(100%-2rem)] gap-0 rounded-2xl border-[var(--line)] bg-[var(--panel)] p-0 data-[state=open]:zoom-in-[0.98] data-[state=open]:duration-[250ms] data-[state=closed]:duration-150 sm:max-w-[440px]"
+        overlayClassName="lx-blur-overlay bg-black/55 backdrop-blur-[10px]"
+        className="w-[440px] max-w-[calc(100%-2rem)] gap-0 rounded-2xl border-[var(--line)] bg-[var(--panel)] p-0 lx-blur-panel sm:max-w-[440px]"
       >
         <div className="flex h-14 items-center justify-between border-b border-[var(--line-soft)] pl-5 pr-3">
           <DialogTitle className="text-base font-semibold text-[var(--text)]">Register a team</DialogTitle>

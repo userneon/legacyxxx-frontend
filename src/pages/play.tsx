@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Link, useSearchParams } from "react-router-dom"
 import { Copy, Eye, Info, LoaderCircle, Lock, Play, RotateCcw, Star, X, Zap } from "lucide-react"
 import { toast } from "sonner"
@@ -142,6 +142,46 @@ function Slots({ server }: { server: PlayServer }) {
   )
 }
 
+/**
+ * Favourite star: the fill and colour ease in, and turning it on gives the star a small pop plus a
+ * soft yellow ring, so the change is felt rather than snapped.
+ */
+function FavouriteButton({ favourite, name, onToggle }: { favourite: boolean; name: string; onToggle: () => void }) {
+  const starRef = useRef<SVGSVGElement>(null)
+  const ringRef = useRef<HTMLSpanElement>(null)
+  const toggle = () => {
+    const turningOn = !favourite
+    onToggle()
+    starRef.current?.animate(
+      turningOn
+        ? [{ transform: "scale(1)" }, { transform: "scale(1.35) rotate(-12deg)", offset: 0.45 }, { transform: "scale(0.92)", offset: 0.75 }, { transform: "scale(1)" }]
+        : [{ transform: "scale(1)" }, { transform: "scale(0.8)", offset: 0.5 }, { transform: "scale(1)" }],
+      { duration: turningOn ? 420 : 260, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
+    )
+    if (turningOn) {
+      ringRef.current?.animate(
+        [{ opacity: 0.7, transform: "scale(0.6)" }, { opacity: 0, transform: "scale(1.6)" }],
+        { duration: 480, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
+      )
+    }
+  }
+  return (
+    <button
+      type="button"
+      aria-label={favourite ? `Remove ${name} from favourites` : `Add ${name} to favourites`}
+      aria-pressed={favourite}
+      onClick={toggle}
+      className={cn(
+        "absolute right-2.5 top-2.5 flex size-[30px] items-center justify-center rounded-lg border bg-[rgba(15,15,15,0.7)] transition-[color,border-color,background-color] duration-300 ease-[var(--ease-out)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60",
+        favourite ? "border-[var(--star)]/45 text-[var(--star)]" : "border-[var(--line)] text-[var(--text-muted)] hover:text-[var(--star)]",
+      )}
+    >
+      <span ref={ringRef} aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-lg border-2 border-[var(--star)] opacity-0" />
+      <Star ref={starRef} className={cn("size-4 transition-[fill,color] duration-300 ease-[var(--ease-out)]", favourite ? "fill-[var(--star)]" : "fill-transparent")} />
+    </button>
+  )
+}
+
 function ServerCard({ server, favourite, onFavourite, onDetails }: { server: PlayServer; favourite: boolean; onFavourite: () => void; onDetails: () => void }) {
   const connectable = server.joinable && validAddress(server.connectAddress)
   const connectButton = (
@@ -154,15 +194,7 @@ function ServerCard({ server, favourite, onFavourite, onDetails }: { server: Pla
     <article className="flex flex-col overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] transition-colors duration-150 hover:border-[var(--line-strong)]">
       <MapArt map={server.map} className="h-[120px]">
         <span className="absolute left-3 top-3"><StatusPill server={server} /></span>
-        <button
-          type="button"
-          aria-label={favourite ? `Remove ${server.name} from favourites` : `Add ${server.name} to favourites`}
-          aria-pressed={favourite}
-          onClick={onFavourite}
-          className="absolute right-2.5 top-2.5 flex size-[30px] items-center justify-center rounded-lg border border-[var(--line)] bg-[rgba(15,15,15,0.7)] text-[var(--text-muted)] transition-colors hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
-        >
-          <Star className={cn("size-4", favourite && "fill-[var(--accent-solid)] text-[var(--accent-solid)]")} />
-        </button>
+        <FavouriteButton favourite={favourite} name={server.name} onToggle={onFavourite} />
       </MapArt>
       <div className="flex flex-col gap-3 p-3.5">
         <div className="flex min-w-0 flex-col gap-1">
@@ -438,7 +470,7 @@ function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode;
             <div className="flex gap-1.5">
               <button type="button" aria-pressed={hideFull} onClick={() => update({ full: hideFull ? null : "hide" })} className={cn(chip, hideFull ? chipOn : chipOff)}>Hide full</button>
               <button type="button" aria-pressed={onlyFavourites} onClick={() => update({ fav: onlyFavourites ? null : "1" })} className={cn(chip, onlyFavourites ? chipOn : chipOff)}>
-                <Star className={cn("size-3", onlyFavourites && "fill-current")} />
+                <Star className={cn("size-3 text-[var(--star)]", onlyFavourites && "fill-[var(--star)]")} />
                 Favourites
               </button>
             </div>

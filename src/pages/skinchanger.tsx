@@ -241,6 +241,8 @@ export function SkinchangerPage() {
   const [accessoryQuery, setAccessoryQuery] = useState("")
   const [editingStickerSlot, setEditingStickerSlot] = useState<number | null>(null)
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
+  // The trash button asks first ("Remove" / "Keep it"); nothing is deleted until it is confirmed.
+  const [removeTarget, setRemoveTarget] = useState<{ model: SkinchangerCatalogItem; entry: SkinchangerLoadoutEntry } | null>(null)
   const [saving, setSaving] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
   // Knife and glove dialogs are opened per team (T knife, CT gloves...) and always save for that team.
@@ -480,33 +482,22 @@ export function SkinchangerPage() {
     }
   }
 
-  /** Optimistic removal with a 5s "Undo" that saves the same look back. */
+  /** Removes a saved look after the player confirmed it; the card updates at once, and reverts on error. */
   const removeLook = async (model: SkinchangerCatalogItem, entry: SkinchangerLoadoutEntry) => {
-    const before = loadoutEntries
     const beforeEntries = optimisticLoadoutEntries
-    setOptimisticLoadoutEntries(before.filter((current) => !(current.slot_key === entry.slot_key && current.team_scope === entry.team_scope)))
+    setOptimisticLoadoutEntries(loadoutEntries.filter((current) => !(current.slot_key === entry.slot_key && current.team_scope === entry.team_scope)))
     setSaving(true)
     try {
       const result = await removeEntryWithCompatibility(entry, loadoutVersion)
       setOptimisticLoadoutVersion(result.version)
       refetchLoadout()
-      toast(`${model.display_name} look removed.`, {
-        id: "skinchanger-remove",
-        duration: 5000,
-        action: {
-          label: "Undo",
-          onClick: () => {
-            setOptimisticLoadoutEntries(before)
-            void saveEntryWithCompatibility({ catalogItemId: entry.catalog_item_id, slot: entry.slot, slotKey: entry.slot_key, teamScope: entry.team_scope, options: entry.options }, result.version)
-              .then((restored) => { setOptimisticLoadoutVersion(restored.version); refetchLoadout() })
-              .catch(() => { setOptimisticLoadoutEntries(null); setOptimisticLoadoutVersion(null); toast.error("Could not restore that look.", { id: "skinchanger-remove" }); refetchLoadout() })
-          },
-        },
-      })
+      toast.success(`${model.display_name} look removed.`, { id: "skinchanger-remove" })
+      return true
     } catch {
       setOptimisticLoadoutEntries(beforeEntries)
       toast.error(`Could not remove ${model.display_name}. Try again.`, { id: "skinchanger-remove" })
       refetchLoadout()
+      return false
     } finally {
       setSaving(false)
     }
@@ -949,8 +940,8 @@ export function SkinchangerPage() {
         {/* Keyed by the look, so switching team fades the new skin in instead of swapping it. */}
         <span className={cn(
           "pointer-events-none absolute inset-0 flex items-center justify-center px-6 pb-6",
-          "transition-[filter,opacity] duration-150 ease-[var(--ease-out)] motion-reduce:transition-none motion-reduce:!blur-none",
-          "group-hover:opacity-55 group-hover:blur-[4px] group-has-[:focus-visible]:opacity-55 group-has-[:focus-visible]:blur-[4px]",
+          "transition-[filter,opacity,scale] duration-[260ms] ease-[cubic-bezier(0.4,0,0.2,1)] will-change-[filter] group-hover:duration-[320ms] group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
+          "group-hover:scale-[1.03] group-hover:opacity-55 group-hover:blur-[4px] group-has-[:focus-visible]:opacity-55 group-has-[:focus-visible]:blur-[4px]",
           tall ? "pt-5" : "pt-3",
         )}>
           {src
@@ -966,7 +957,7 @@ export function SkinchangerPage() {
           type="button"
           onClick={(event) => { event.stopPropagation(); (onCustomize ?? onOpen)() }}
           aria-label={onCustomize && savedItem ? `Customize ${savedItem.display_name}` : openLabel}
-          className="absolute left-1/2 top-1/2 z-[2] flex size-[34px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[10px] border border-[var(--line-strong)] bg-[var(--panel)] text-[var(--text)] opacity-0 transition-opacity duration-150 ease-[var(--ease-out)] group-hover:opacity-100 focus-visible:opacity-100 motion-reduce:transition-none [@media(hover:none)]:opacity-100"
+          className="absolute left-1/2 top-1/2 z-[2] flex size-[34px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[10px] border border-[var(--line-strong)] bg-[var(--panel)] text-[var(--text)] scale-90 opacity-0 transition-[opacity,scale] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:scale-100 group-hover:opacity-100 group-hover:delay-75 group-hover:duration-[280ms] group-hover:ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:scale-100 focus-visible:opacity-100 [@media(hover:none)]:scale-100 [@media(hover:none)]:opacity-100"
         >
           <SlidersHorizontal className="size-[18px]" />
         </button>
@@ -977,7 +968,7 @@ export function SkinchangerPage() {
             onClick={(event) => { event.stopPropagation(); onRemove() }}
             disabled={saving}
             aria-label={`Remove ${savedItem.display_name}`}
-            className="absolute right-1.5 top-1.5 z-[2] flex size-7 items-center justify-center rounded-lg border border-[var(--line-strong)] bg-[var(--panel)] text-[var(--text-muted)] opacity-0 transition-[opacity,color] duration-150 ease-[var(--ease-out)] hover:text-[var(--text)] group-hover:opacity-100 focus-visible:opacity-100 disabled:pointer-events-none motion-reduce:transition-none [@media(hover:none)]:opacity-100"
+            className="absolute right-1.5 top-1.5 z-[2] flex size-7 items-center justify-center rounded-lg border border-[var(--line-strong)] bg-[var(--panel)] text-[var(--text-muted)] opacity-0 transition-[opacity,color,background-color,border-color] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] hover:border-[var(--status-red)]/60 hover:bg-[var(--status-red)]/15 hover:text-[var(--status-red)] focus-visible:text-[var(--status-red)] group-hover:opacity-100 group-hover:delay-75 group-hover:duration-[280ms] focus-visible:opacity-100 disabled:pointer-events-none [@media(hover:none)]:opacity-100"
           >
             <Trash2 className="size-3.5" />
           </button>
@@ -1006,7 +997,7 @@ export function SkinchangerPage() {
       openLabel: savedItem ? `Change ${item.display_name} skin (${savedSkinLabel(savedItem)})` : `Choose a ${item.display_name} skin`,
       onOpen: () => openModelPicker(item, kind),
       onCustomize: () => openModelCustomize(item, kind, entry),
-      onRemove: entry ? () => void removeLook(item, entry) : undefined,
+      onRemove: entry ? () => setRemoveTarget({ model: item, entry }) : undefined,
     })
   }
 
@@ -1024,7 +1015,7 @@ export function SkinchangerPage() {
       entry,
       openLabel: savedItem ? `Change ${label.toLowerCase()} (${savedItem.display_name})` : `Choose a ${label.toLowerCase()}`,
       onOpen: () => openSinglePicker(slot, team),
-      onRemove: entry && savedItem ? () => void removeLook(savedItem, entry) : undefined,
+      onRemove: entry && savedItem ? () => setRemoveTarget({ model: savedItem, entry }) : undefined,
     })
   }
 
@@ -1083,7 +1074,7 @@ export function SkinchangerPage() {
       openLabel: savedItem ? `Change ${label.toLowerCase()} (${savedItem.display_name})` : `Choose ${label.toLowerCase()}`,
       onOpen: () => openSlotPicker(kind, viewTeam, false),
       onCustomize: () => openSlotPicker(kind, viewTeam, true),
-      onRemove: entry && savedItem ? () => void removeLook(modelForEntry(kind, entry) ?? savedItem, entry) : undefined,
+      onRemove: entry && savedItem ? () => setRemoveTarget({ model: modelForEntry(kind, entry) ?? savedItem, entry }) : undefined,
     })
   }
 
@@ -1101,7 +1092,7 @@ export function SkinchangerPage() {
       openLabel: `Choose a ${viewTeam === "t" ? "T" : "CT"} agent`,
       tall: true,
       onOpen: () => openAgentPicker(viewTeam),
-      onRemove: entry && savedItem ? () => void removeLook(savedItem, entry) : undefined,
+      onRemove: entry && savedItem ? () => setRemoveTarget({ model: savedItem, entry }) : undefined,
     })
   }
 
@@ -1160,8 +1151,8 @@ export function SkinchangerPage() {
 
       <Dialog open={pickerOpen} onOpenChange={(open) => { if (!open) closePicker() }}>
         <DialogContent
-          overlayClassName="bg-black/55 backdrop-blur-[10px] data-[state=open]:duration-200 data-[state=closed]:duration-150 motion-reduce:animate-none"
-          className="flex max-h-[92dvh] w-[calc(100%-1.5rem)] max-w-5xl flex-col gap-0 overflow-hidden rounded-[14px] border-[var(--line)] bg-[var(--panel)] p-0 ease-[var(--ease-out)] data-[state=open]:zoom-in-[0.98] data-[state=closed]:zoom-out-[0.98] data-[state=open]:duration-[250ms] data-[state=closed]:duration-150 motion-reduce:animate-none sm:max-w-5xl"
+          overlayClassName="lx-blur-overlay bg-black/55 backdrop-blur-[10px]"
+          className="flex max-h-[92dvh] w-[calc(100%-1.5rem)] max-w-5xl flex-col gap-0 overflow-hidden rounded-[14px] border-[var(--line)] bg-[var(--panel)] p-0 lx-blur-panel sm:max-w-5xl"
           onOpenAutoFocus={(event) => { if (searchInputRef.current && searchInputRef.current.offsetParent !== null) { event.preventDefault(); searchInputRef.current.focus() } }}
         >
           <div className="flex items-center gap-3 border-b border-[var(--line-soft)] px-4 py-3 pr-12">
@@ -1406,6 +1397,45 @@ export function SkinchangerPage() {
         </DialogContent>
       </Dialog>
 
+      <AlertDialog open={removeTarget !== null} onOpenChange={(open) => { if (!open && !saving) setRemoveTarget(null) }}>
+        <AlertDialogContent size="sm" className="gap-0 rounded-2xl border-[var(--line)] bg-[var(--panel)] p-0 sm:max-w-[380px]">
+          {removeTarget && (() => {
+            const look = removeTarget.entry.skinchanger_catalog_items ?? removeTarget.model
+            const image = catalogImageUrl(look)
+            return (
+              <>
+                <div className="flex flex-col items-center gap-3 px-6 pb-5 pt-6 text-center">
+                  <span className="flex h-20 w-full items-center justify-center rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]">
+                    {image ? <OptimizedImage src={image} width={200} height={80} alt="" className="max-h-16 w-auto object-contain" /> : <ImageOff className="size-6 text-[var(--text-faint)]" />}
+                  </span>
+                  <AlertDialogHeader className="items-center gap-1.5 text-center">
+                    <AlertDialogTitle className="text-base font-semibold text-[var(--text)]">Remove this look?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-[13px] leading-[1.5] text-[var(--text-muted)]">
+                      {look.display_name} and its wear, stickers and charm will be removed from your loadout.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                </div>
+                <AlertDialogFooter className="flex-row gap-2 border-t border-[var(--line-soft)] px-5 py-3.5 sm:justify-stretch">
+                  <AlertDialogCancel disabled={saving} className="h-9 flex-1 rounded-lg !border-[var(--line)] !bg-transparent text-[13px] font-medium !text-[var(--text)] transition-[background-color,transform] duration-150 hover:!bg-[var(--raised)] active:scale-[0.98]">
+                    Keep it
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    disabled={saving}
+                    onClick={(event) => {
+                      event.preventDefault()
+                      void removeLook(removeTarget.model, removeTarget.entry).then((removed) => { if (removed) setRemoveTarget(null) })
+                    }}
+                    className="h-9 flex-1 gap-1.5 rounded-lg !bg-[var(--status-red)] text-[13px] font-semibold !text-white transition-[background-color,transform] duration-150 hover:!bg-[#dc2626] active:scale-[0.98]"
+                  >
+                    {saving ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
+                    Remove
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </>
+            )
+          })()}
+        </AlertDialogContent>
+      </AlertDialog>
       <AlertDialog open={resetConfirmOpen} onOpenChange={setResetConfirmOpen}>
         <AlertDialogContent size="sm">
           <AlertDialogHeader>

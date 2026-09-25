@@ -68,6 +68,7 @@
   --status-green: #22c55e;
   /* Meaning colours (owner request 2026-09-24): used as text, dots, thin borders and faint tints — never as big fills. */
   --status-red: #ef4444;
+  --star: #facc15; /* palette-exempt: review stars and favourites (owner request) */
   --status-amber: #eab308; /* palette-exempt: timed penalty term */
   --result-win: var(--status-green);
   --result-loss: var(--status-red);
@@ -1063,4 +1064,35 @@
 }
 .wear-range:focus-visible {
   box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent-solid) 60%, transparent);
+}
+
+/* Blurred dialogs (skin picker, write a review, register a team): the backdrop blur and the panel
+   ease in and back out instead of popping. !important wins over the dialog's default fade classes. */
+.lx-blur-overlay[data-state="open"] {
+  animation: lx-overlay-in 340ms cubic-bezier(0.22, 1, 0.36, 1) both !important;
+}
+.lx-blur-overlay[data-state="closed"] {
+  animation: lx-overlay-out 260ms cubic-bezier(0.4, 0, 0.2, 1) both !important;
+}
+.lx-blur-panel[data-state="open"] {
+  animation: lx-panel-in 340ms cubic-bezier(0.22, 1, 0.36, 1) both !important;
+}
+.lx-blur-panel[data-state="closed"] {
+  animation: lx-panel-out 220ms cubic-bezier(0.4, 0, 0.2, 1) both !important;
+}
+@keyframes lx-overlay-in {
+  from { opacity: 0; backdrop-filter: blur(0); -webkit-backdrop-filter: blur(0); }
+  to { opacity: 1; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+}
+@keyframes lx-overlay-out {
+  from { opacity: 1; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  to { opacity: 0; backdrop-filter: blur(0); -webkit-backdrop-filter: blur(0); }
+}
+@keyframes lx-panel-in {
+  from { opacity: 0; scale: 0.965; filter: blur(4px); }
+  to { opacity: 1; scale: 1; filter: blur(0); }
+}
+@keyframes lx-panel-out {
+  from { opacity: 1; scale: 1; filter: blur(0); }
+  to { opacity: 0; scale: 0.975; filter: blur(3px); }
 }
