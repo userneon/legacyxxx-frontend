@@ -1,6 +1,6 @@
 /**
- * The LEGACY-X palette is neutral with a white accent (design spec §2): no blue, purple,
- * yellow or orange UI chrome. Fails on any hex or hsl colour in src/** whose hue lands in
+ * The LEGACY-X palette is neutral with a crimson brand accent (design spec §2, ~345°): no blue,
+ * purple, yellow or orange UI chrome. Fails on any hex or hsl colour in src/** whose hue lands in
  * those ranges, and on Tailwind colour families that are those hues by definition.
  *
  * Official CS2 rarity and team colours and third-party brand colours (Steam, Discord)

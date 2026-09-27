@@ -43,18 +43,37 @@ delete it.
   presentation only unless a phase says otherwise.
 
 ═══ 2. DESIGN TOKENS ═══
+Palette revision 2026-09-27 (owner decision): crimson is the brand accent. Where
+the static HTML references show a white accent (primary buttons, active markers,
+focus rings, the #1 spot), the site uses crimson instead; everything else in the
+references (surfaces, lines, text, radii, spacing) still applies. In this
+document "accent" means the crimson --brand, not white.
+
 Define in src/index.css as CSS variables and map shadcn's variables to them:
 - Surfaces: --bg #0a0a0a, --panel #0f0f0f, --card #141414, --raised #1a1a1a
 - Lines: --line-soft #1f1f1f, --line #262626, --line-strong #333333
 - Text: --text #fafafa, --text-2 #d4d4d4, --text-muted #a3a3a3,
   --text-dim #737373, --text-faint #525252
-- Accent = white #fafafa (text on it #0a0a0a). There is NO hue accent: no yellow,
-  orange, blue or purple. Emphasis comes from brightness and weight — primary
-  buttons are white with dark text, active states are white on #1a1a1a, and
-  "accent" in this document always means #fafafa. Status green #22c55e is the
-  only colored UI element (online/live/verified); CS2 rarity colors appear only
-  as the 2px rarity bar on skin cards.
-- Don't use yellow/amber for anything, including stars, warnings or the #1 spot.
+- Brand accent = crimson, taken from the LEGACY-X key art:
+  --brand #e11d48 (fills, borders, glows), --brand-bright #ff3d6e (text, icons,
+  markers, the light end of gradients), --brand-deep #4c0717, --brand-on #fff5f7
+  (text on a crimson fill). Never hard-code these values; use the tokens.
+- Crimson goes on: primary buttons (.lx-brand-button: crimson gradient + soft glow,
+  e.g. Play now, Sign in with Steam, Save, Connect, Appeal), the active nav item
+  (crimson marker + faint tint), section-title markers (3px bar), selected items
+  and their borders, focus rings (--brand-bright at 60%), progress / EXP / slot
+  fills, the #1 spot (medal, podium, leaderboard position), hover edges and glows
+  on interactive cards, and the page heroes (.lx-hero-glow + .lx-hero-grid).
+- Crimson never goes on: body text, large solid backgrounds, ordinary borders,
+  or anything that carries its own meaning (below).
+- White #fafafa (--accent-solid) stays the neutral emphasis: headings, values,
+  the selected Segmented thumb's label, secondary buttons' text.
+- Colours with a meaning keep their own tokens and are not replaced by crimson:
+  status green #22c55e (online / live / verified / win), --status-red (loss,
+  active penalty), penalty types (--penalty-ban / -mute / -gag), T and CT side
+  colours (--team-t / --team-ct), CS2 rarity bars, rank tier colours, and the
+  review stars / favourites (--star, yellow — owner request 2026-09-25).
+- No other yellow/amber: not for warnings, badges or the #1 spot (that is crimson).
 - Exception — rank colors: rank emblems use the CS2 rarity ladder (same values as
   the --rarity-* tokens): Recruit #b0c3d9, Operator #5e98d9, Vanguard #4b69ff,
   Ace #8847ff, Apex #eb4b4b, Legacy #e4ae39. Define them as --rank-<tier> tokens.
@@ -63,7 +82,9 @@ Define in src/index.css as CSS variables and map shadcn's variables to them:
   or other UI chrome.
 - No blue anywhere in UI chrome. Replace every blue/slate/gray/zinc/indigo/sky
   class and blue-tinted hex with the neutrals above. Add scripts/check-no-blue.mjs
-  (npm run check:colors) that fails on hue 180–270° colors in src/**.
+  (npm run check:colors) that fails on hue 180–270° colors in src/**. (The script
+  now blocks 180–340° and 25–70°; crimson sits at ~345° and passes. Game and
+  brand colours that must stay are marked `palette-exempt` on their line.)
 - Radius: 8px controls, 10–12px cards, 14px floating panels, 999px pills.
 - Spacing: 8px gutters between sidebar, top bar and content panel.
 - Font: Onest (Google Fonts, weights 400/500/600/700) with system fallback.
@@ -80,7 +101,7 @@ Use exactly these:
 - Profile menu: Profile → User, Settings → Settings, Sign out → LogOut
 - Skinchanger: customize → SlidersHorizontal, remove skin → Trash2,
   dialog close → X, search → Search
-- Reviews: rating → Star (filled white when selected), submit → Send
+- Reviews: rating → Star (filled yellow --star when selected), submit → Send
 - Tables/lists: copy IP → Copy, server info → Info, join/play → Play
 - Status/misc: loading → LoaderCircle (spin), error → ServerCrash, refresh → RotateCcw
 
@@ -119,8 +140,9 @@ Remove duplicate files (e.g. "… copy.webp", "(1).webp") that aren't referenced
 - Loading: skeletons shaped exactly like the reference.
 - Empty: short neutral message (e.g. "No matches yet") in --text-dim, no illustration.
 - Error: one line + "Retry" (RotateCcw), never a blank area.
-- Hover: border → --line-strong, background → one step lighter. 150ms.
-- Focus: visible 2px ring in accent at 60% opacity on every interactive element.
+- Hover: border → --line-strong (interactive cards: a crimson edge + lift, see
+  section 7), background → one step lighter.
+- Focus: visible 2px ring in --brand-bright at 60% opacity on every interactive element.
 - prefers-reduced-motion: no ticker animation, no hover blur, no transitions.
 - Every flex/grid child that can hold long content (kill feed, tables, names)
   gets min-width: 0 and text truncation with a title tooltip.
@@ -165,7 +187,8 @@ PHASE 2 — Leaders  (leaders, leaders-sort-kd)
   a 2px accent top bar), rank badge, avatar + name, the active sort metric as
   the big number, plus Matches and Win rate. Card click → profile.
 - Table starts at #4. Columns: # / Player (avatar + name) / Rank (badge + name)
-  / EXP / Matches / Win rate / K/D. The active sort column header is #fafafa and
+  / EXP / Matches / Win rate / K/D. The active sort column header is crimson with one underline that slides
+  between columns when the sort changes, and
   semibold; others #737373. Sticky header while the list scrolls under it.
 - Pinned "You" row at the bottom (accent ring on the avatar), always showing the
   user's real position for the active sort; hidden when logged out or unranked.
@@ -356,7 +379,7 @@ doing / what's next?" (me), "can I trust / how good is this player?" (others),
 "who runs this place?" (staff). Same layout for everyone, a few parts change.
 - Header: banner (Steam background if available, else a neutral gradient),
   104px rounded-square avatar overlapping it, display name, role badge for
-  staff (Owner = white pill with Crown icon; other staff roles = neutral pill),
+  staff (Owner = crimson pill with Crown icon; other staff roles = crimson-outlined pill),
   rank badge; meta line "#N on leaderboard · Member since … · Last played …".
   Actions on the right:
   - viewing someone else: Copy link, Steam profile (icon button), More (…)
@@ -379,8 +402,8 @@ doing / what's next?" (me), "can I trust / how good is this player?" (others),
   or "Active penalty" (links to it). Helps people spot smurfs and cheaters.
 - Legacy-X stats tiles: Matches, Win rate, K/D, HS %, Avg kills (real data only;
   drop a tile if the data doesn't exist rather than showing zeros).
-- Recent matches: "Form" strip of the last 10 results (W = white filled square,
-  L = outlined square), then a table Map (thumbnail) / Result / Score / K/D /
+- Recent matches: "Form" strip of the last 10 results (W = green --result-win
+  square, L = red --result-loss square), then a table Map (thumbnail) / Result / Score / K/D /
   EXP gained / Date, "All matches" link. Row click → match details if that
   page exists.
 - Maps: win rate per map from their match history, bars, min. 3 matches per map.
@@ -407,8 +430,9 @@ primary action (Quick join); manual browsing is secondary.
 - One shared Play page component for /play/5x5, /play/fun, /play/pro (the
   sidebar item for the current mode is active). Header: title, one-line
   description per mode, live "● N players · M servers" on the right.
-- Quick join card: Zap icon, one line explaining the pick rule per mode, big white
-  "Play now" button (the only white primary button on the page).
+- Quick join card: Zap icon, one line explaining the pick rule per mode (always two
+  lines tall so every mode's hero is the same height), big crimson "Play now"
+  button (the only crimson primary button in the hero).
   Pick rule (backend: GET /api/v1/play/:mode/quick-join → server + connect address):
   - 5x5 / Pro: among joinable servers (waiting/warmup, not full), prefer the one
     with the most players (closest to starting), then the viewer's favourite maps.
@@ -519,7 +543,8 @@ Data loading (all pages):
   and back/forward keep the state.
 
 Controls:
-- Buttons: hover color 150ms, press scale 0.98. Disabled = 50% opacity, no motion.
+- Buttons: hover color 150ms, press scale 0.98. Disabled = 40–50% opacity, no motion.
+  Primary buttons use .lx-brand-button (crimson); secondary buttons stay outlined.
 - Segmented controls (T/CT, All/Bans/Mutes/Gags, Recent/Top rated): a sliding
   thumb animates to the selected option (200ms) instead of instant color swaps.
 - Focus ring appears instantly (no transition) for accessibility.
@@ -556,6 +581,34 @@ Performance:
 
 Reduced motion (prefers-reduced-motion): no ticker animation, no hover blur,
 no slides/scales — only instant state changes or 1-frame opacity swaps.
+
+Crimson redesign motion (2026-09-27) — the shared classes live in src/index.css:
+- Interactive cards (.lx-fx-card: Home modes, Play servers, podium, stat tiles,
+  reviews, search results): cascade in on mount (fill-mode `backwards`, never
+  `both`, or the finished animation overrides the hover transform); on hover
+  they lift 5px with a crimson edge light (.lx-fx-card::before), a pointer
+  spotlight (.lx-spotlight fed by --mx/--my) and a crimson shadow. Entering
+  hover is quick (≈450ms ease-out); leaving is slow and eased (≈800ms,
+  cubic-bezier(0.37, 0, 0.18, 1)) so a card floats back instead of dropping.
+  Springy overshoot only on the way in, never on the way out.
+- Tailwind v4's scale-*, rotate-* and translate-* set the standalone `scale`,
+  `rotate` and `translate` properties: list those in transition-[…], not
+  `transform`, or the change snaps. Images that zoom on hover get their own
+  compositor layer (.lx-map-img) and never transition `filter`.
+- A card that lifts must not sit flush against the top of a scroll area — leave
+  at least 12px of padding above it, or the lift is clipped.
+- Table rows (.lx-row-in) cascade in and replay when the data or filters change;
+  hover slides in a 3px crimson marker at the left edge and tints the row.
+- Content swapped in place (subtitles, counts, the Play hero between modes) uses
+  .lx-swap-in / .lx-swap-fade instead of re-mounting the page.
+- Page changes: the old page fades up and out in 160ms, then the new one flows
+  in (App.tsx renders the shown location through <Routes location>). Moves
+  inside one section (the Play modes, URL filters) apply without that fade.
+- Side detail panels (.lx-sheet + .lx-sheet-overlay): nearly opaque glass with a
+  crimson top line over a blurred page; slide in 450ms ease-out, out 250ms;
+  their blocks rise in one after another (.lx-sheet-rise).
+- Live dots ping (.lx-live-dot); progress fills carry a light sweep
+  (.lx-progress-fill) and grow in once (.lx-bar-grow).
 
 ═══ 8. RESPONSIVE ═══
 - ≥1280px: layouts as in the references.

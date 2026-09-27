@@ -1,7 +1,7 @@
 # Legacy-X design references
 
 All layouts at 1440x900. Each state has a static HTML file (exact inline values = the spec) and a PNG screenshot.
-Skeleton bars mark where real data renders. Neutral palette, white as the only accent, status green #22c55e, rank colors only inside rank emblems/names. Font: Onest.
+Skeleton bars mark where real data renders. Neutral surfaces with a crimson brand accent (`--brand` #e11d48 / `--brand-bright` #ff3d6e, since 2026-09-27 — see PROMPT.md §2): where a reference shows a white accent (primary button, active marker, focus ring, #1 spot), the site uses crimson. Status green #22c55e, rank colors only inside rank emblems/names. Font: Onest.
 
 ## Files
 
@@ -27,7 +27,7 @@ Skeleton bars mark where real data renders. Neutral palette, white as the only a
 | Explore — results | `explore-results.html` | `explore-results.png` | Player cards for a query. |
 | Tournaments — none scheduled | `tournaments-none.html` | `tournaments-none.png` | Empty state + Discord notify + past tournaments. |
 | Tournaments — registration open | `tournaments-registration.html` | `tournaments-registration.png` | Event hero, Overview tab, Join solo / Register a team. |
-| Tournaments — live bracket | `tournaments-live-bracket.html` | `tournaments-live-bracket.png` | Bracket with your path in accent, next match + connect. |
+| Tournaments — live bracket | `tournaments-live-bracket.html` | `tournaments-live-bracket.png` | Bracket with your path in the crimson accent, next match + connect. |
 | Settings | `settings.html` | `settings.png` | Connections, Notifications, Website — applies instantly. |
 | Settings — link Discord | `settings-discord-link.html` | `settings-discord-link.png` | 3-step /link code dialog. |
 | Settings — Connections | `settings-connections.html` | `settings-connections.png` | Steam connected, Link Discord, FACEIT auto-detected. |
