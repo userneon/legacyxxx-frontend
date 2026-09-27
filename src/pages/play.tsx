@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react"
-import { Link, useSearchParams } from "react-router-dom"
+import { Link } from "react-router-dom"
 import { Copy, Eye, Info, LoaderCircle, Lock, Play, RotateCcw, Server, Star, Users, X, Zap } from "lucide-react"
 import { toast } from "sonner"
 
@@ -8,6 +8,7 @@ import { competitiveService, serversService } from "@/api"
 import { playService, type PlayMode, type PlayServer, type PlayServerList } from "@/api/play"
 import type { CompetitiveAccess, PlaySubMode, ServerLiveMatch, ServerLiveMatchPlayer } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
+import { useViewParams } from "@/hooks/use-view-params"
 import { useAuth } from "@/hooks/use-auth"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { PAGE_ROUTES } from "@/lib/routes"
@@ -507,7 +508,7 @@ function Header({ title, description, list, loading }: { title: string; descript
 }
 
 function ServerBrowser({ mode, title, description, pickRule, heroMap }: { mode: PlayMode; title: string; description: string; pickRule: string; heroMap: string }) {
-  const [params, setParams] = useSearchParams()
+  const [params, setParams] = useViewParams()
   const filter = params.get("filter") ?? "all"
   const hideFull = params.get("full") === "hide"
   const onlyFavourites = params.get("fav") === "1"

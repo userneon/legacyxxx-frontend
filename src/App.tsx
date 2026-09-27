@@ -22,7 +22,7 @@ import { StaffPanelPage } from "@/pages/staffpanel"
 import { ProtectedPage } from "@/components/protected-page"
 import { useAuth } from "@/hooks/use-auth"
 import type { PageId } from "@/api/types"
-import { routeToPage, pageToRoute } from "@/lib/routes"
+import { routeToPage, pageToRoute, PAGE_TITLES, documentTitle } from "@/lib/routes"
 import { isFeatureEnabled } from "@/lib/features"
 import { cn } from "@/lib/utils"
 
@@ -33,6 +33,12 @@ export function App() {
   const { user } = useAuth()
 
   const currentPage = routeToPage(location.pathname)
+
+  // Browser tab title follows the page ("Leaders · LEGACY-X"); Profile sets the player's name itself.
+  useEffect(() => {
+    if (currentPage === "profile") return
+    document.title = documentTitle(currentPage === "home" ? null : PAGE_TITLES[currentPage])
+  }, [currentPage])
 
   const handleNavigate = (page: PageId) => {
     navigate(getRouteForPage(page))

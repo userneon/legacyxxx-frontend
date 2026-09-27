@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react"
-import { useSearchParams } from "react-router-dom"
 import { Ban, ChevronRight, ExternalLink, LoaderCircle, MessageSquareOff, MicOff, RotateCcw, Search, ShieldAlert, ShieldCheck, Siren } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { PAGE_TITLES } from "@/lib/routes"
 import { moderationService, profileService } from "@/api"
 import type { PenaltyEntry, PenaltyType } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
+import { useViewParams } from "@/hooks/use-view-params"
 import { useAuth } from "@/hooks/use-auth"
 import { LINKS, steamIdFromInput } from "@/lib/links"
 import { PlayerModerationAvatar } from "@/components/player-moderation-avatar"
@@ -190,7 +191,7 @@ function RowSkeleton() {
 
 export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userId: string) => void }) {
   const { user } = useAuth()
-  const [params, setParams] = useSearchParams()
+  const [params, setParams] = useViewParams()
   const type = readType(params.get("type"))
   const status: StatusFilter = params.get("status") === "active" ? "active" : "all"
   const openId = params.get("penalty")
@@ -208,7 +209,8 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
     }, { replace: true })
   }
 
-  // Search, filters and the open penalty all live in the URL, so a link can point at one penalty.
+  // Search, filters and the open penalty are page state; a link may still carry them as a query
+  // (e.g. ?q= from a profile), which is read once and then cleaned from the URL.
   useEffect(() => {
     const timer = window.setTimeout(() => update({ q: query.trim() || null }), SEARCH_DEBOUNCE_MS)
     return () => window.clearTimeout(timer)
@@ -254,7 +256,7 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
                   <div className="flex min-w-0 flex-col gap-2.5">
                     <h1 className="flex items-center gap-2.5 text-[34px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
                       <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)] shadow-[0_0_14px_var(--brand)]" />
-                      Penalties
+                      {PAGE_TITLES["penalties"]}
                       {loading && all.length > 0 && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
                     </h1>
                     <span className="text-[14px] text-[var(--text-2)]">Every ban, mute and gag on Legacy-X servers is public.</span>

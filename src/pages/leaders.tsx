@@ -1,11 +1,12 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from "react"
-import { useSearchParams } from "react-router-dom"
 import { Crown, LoaderCircle, RotateCcw, Search } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { PAGE_TITLES } from "@/lib/routes"
 import { competitiveService } from "@/api"
 import type { CompetitiveLeaderboardEntry, LeaderboardSort } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
+import { useViewParams } from "@/hooks/use-view-params"
 import { useAuth } from "@/hooks/use-auth"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { CompetitiveRankBadge, RankLabel, rankTierColor } from "@/components/competitive-rank-badge"
@@ -267,12 +268,12 @@ function RowSkeleton() {
 
 export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId: string) => void }) {
   const { user } = useAuth()
-  const [params, setParams] = useSearchParams()
+  const [params, setParams] = useViewParams()
   const sort = readSort(params.get("sort"))
   const [query, setQuery] = useState(params.get("q") ?? "")
   const search = (params.get("q") ?? "").trim().toLowerCase()
 
-  // Sort and search live in the URL; typing updates it 250ms after the last keystroke.
+  // Sort and search are page state (not in the URL); typing applies 250ms after the last keystroke.
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setParams((current) => {
@@ -321,7 +322,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
               <div className="flex min-w-0 flex-col gap-2.5">
                 <h1 className="flex items-center gap-2.5 text-[34px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
                   <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)] shadow-[0_0_14px_var(--brand)]" />
-                  Leaders
+                  {PAGE_TITLES["leaders"]}
                   {loading && players.length > 0 && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
                 </h1>
                 <span key={sort} className="lx-swap-in text-[14px] text-[var(--text-2)]">{SUBTITLE[sort]}</span>

@@ -539,8 +539,13 @@ Data loading (all pages):
 - Refetch/filter/search: keep the previous data visible (stale-while-revalidate)
   with a small LoaderCircle in the header — never flash back to skeletons.
 - Images fade in on load (200ms) inside fixed-size boxes — zero layout shift.
-- Store filters, tabs, search and team (T/CT) in the URL query string so reload
-  and back/forward keep the state.
+- Keep URLs clean (owner request 2026-09-27): filters, sort, tabs, search, team
+  (T/CT) and the open item are page state (src/hooks/use-view-params.ts), never
+  written to the address bar — /leaders, not /leaders?sort=kd. A link that still
+  carries a query (Profile → /penalties?q=…, old shared links) is read once and
+  the URL is cleaned. One name per page (PAGE_TITLES in src/lib/routes.ts) feeds
+  the sidebar, the page heading and the browser tab ("Leaders · LEGACY-X"; a
+  profile shows the player's name).
 
 Controls:
 - Buttons: hover color 150ms, press scale 0.98. Disabled = 40–50% opacity, no motion.

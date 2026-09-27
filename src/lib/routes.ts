@@ -21,9 +21,10 @@ export const ROUTE_PAGES: Record<string, PageId> = Object.fromEntries(
   Object.entries(PAGE_ROUTES).map(([page, route]) => [route, page as PageId]),
 )
 
+/** One name per page: the sidebar label, the page heading and the browser tab title all use it. */
 export const PAGE_TITLES: Record<PageId, string> = {
   home: "Home",
-  "play-5vs5": "5vs5 Matches",
+  "play-5vs5": "5x5 Matches",
   "play-fun": "Fun Mode",
   "play-proleague": "Pro League",
   "play-tournaments": "Tournaments",
@@ -61,4 +62,12 @@ export function routeToPage(pathname: string): PageId {
 export function pageToRoute(page: PageId): string {
   if (!isPageEnabled(page)) return "/"
   return PAGE_ROUTES[page] ?? "/"
+}
+
+const SITE_NAME = "LEGACY-X"
+const HOME_DOCUMENT_TITLE = "LEGACY-X — Official CS2 Community"
+
+/** Browser tab title: "Leaders · LEGACY-X"; Home keeps the full site title. */
+export function documentTitle(title?: string | null) {
+  return title ? `${title} · ${SITE_NAME}` : HOME_DOCUMENT_TITLE
 }

@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { Bell, Check, CircleCheck, Link2, MonitorSmartphone, type LucideIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { PAGE_TITLES } from "@/lib/routes"
 import { settingsService, type NotificationSettings } from "@/api/settings"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
@@ -245,7 +246,7 @@ export function SettingsPage() {
             <div className="flex min-w-0 flex-col gap-2.5">
               <h1 className="flex items-center gap-2.5 text-[34px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
                 <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)] shadow-[0_0_14px_var(--brand)]" />
-                Settings
+                {PAGE_TITLES["settings"]}
               </h1>
               <span className="text-[14px] text-[var(--text-2)]">Your connections, notifications and how the site behaves on this device.</span>
             </div>

@@ -12,7 +12,6 @@ import {
   Trash2,
 } from "lucide-react"
 import { toast } from "sonner"
-import { useSearchParams } from "react-router-dom"
 
 import { skinchangerService, type SkinchangerAppearanceOptions, type SkinchangerCatalogItem, type SkinchangerCategory, type SkinchangerFirearmGroup, type SkinchangerLoadoutEntry, type SkinchangerSlot, type TeamScope } from "@/api"
 import type { ApiError } from "@/api/types"
@@ -35,7 +34,9 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { Checkbox } from "@/components/ui/checkbox"
 import { OptimizedImage } from "@/components/optimized-image"
 import { useApiQuery } from "@/hooks/use-api-query"
+import { useViewParams } from "@/hooks/use-view-params"
 import { cn } from "@/lib/utils"
+import { PAGE_TITLES } from "@/lib/routes"
 import { rarityStyles } from "@/lib/cs2-rarity"
 import pinsIcon from "@/assets/skinchanger/pins.png"
 import defaultAgentT from "@/assets/skinchanger/default-agent-t.webp"
@@ -232,7 +233,8 @@ export function SkinchangerPage() {
   const [activeWeapon, setActiveWeapon] = useState<SkinchangerCatalogItem | null>(null)
   const [selected, setSelected] = useState<SkinchangerCatalogItem | null>(null)
   const [agentTeam, setAgentTeam] = useState<"t" | "ct" | null>(null)
-  const [searchParams, setSearchParams] = useSearchParams()
+  // A link may still open a side directly (/skinchanger?team=ct); the address bar stays clean.
+  const [searchParams] = useViewParams()
   const [teamScope, setTeamScope] = useState<TeamScope>(() => (searchParams.get("team") === "ct" ? "ct" : "t"))
   const [defaultChoice, setDefaultChoice] = useState<"knife" | "glove" | null>(null)
   const [customOptions, setCustomOptions] = useState<SkinchangerAppearanceOptions>({ wear: 0.0001, seed: 0, statTrak: false, stickers: [] })
@@ -690,19 +692,6 @@ export function SkinchangerPage() {
 
   useEffect(() => () => { if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current) }, [])
 
-  // The grid's team lives in the URL (?team=ct), so reload and back/forward keep it.
-  useEffect(() => {
-    if (pickerOpen) return
-    const wanted = teamScope === "ct" ? "ct" : null
-    if ((searchParams.get("team") ?? null) === wanted) return
-    setSearchParams((current) => {
-      const next = new URLSearchParams(current)
-      if (wanted) next.set("team", wanted)
-      else next.delete("team")
-      return next
-    }, { replace: true })
-  }, [pickerOpen, teamScope, searchParams, setSearchParams])
-
   /** Closes at once; the card already shows the new look while the save runs. */
   const saveAndClose = () => {
     void equipSelected()
@@ -1126,7 +1115,7 @@ export function SkinchangerPage() {
             <div className="flex min-w-0 flex-1 flex-col gap-2 lg:flex-none">
               <h1 className="flex items-center gap-2.5 text-[30px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
                 <span aria-hidden="true" className="h-6 w-1 rounded-full bg-[var(--brand-bright)] shadow-[0_0_14px_var(--brand)]" />
-                Loadout
+                {PAGE_TITLES["skinchanger"]}
               </h1>
               <span className="flex items-center gap-1.5 text-[13px] text-[var(--text-2)]">
                 Pick skins, then type

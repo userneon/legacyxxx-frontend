@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react"
-import { useSearchParams } from "react-router-dom"
 import { Calendar, ChevronRight, Crown, LoaderCircle, Play, RotateCcw, Swords, Trophy, UserPlus, Users, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { PAGE_TITLES } from "@/lib/routes"
 import { tournamentsService, type PastTournament, type TournamentDetail, type TournamentMatch, type TournamentPhase, type TournamentPlayer, type TournamentSummary } from "@/api/tournaments"
 import type { ApiError } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
+import { useViewParams } from "@/hooks/use-view-params"
 import { useAuth } from "@/hooks/use-auth"
 import { LINKS } from "@/lib/links"
 import { formatDate, formatDateTime, useWebsitePreferences } from "@/lib/preferences"
@@ -75,7 +76,7 @@ function PageHeader({ loading }: { loading?: boolean }) {
       <div className="flex flex-col gap-1">
         <h1 className="flex items-center gap-2.5 text-[28px] font-bold leading-[1.15] tracking-[-0.5px] text-[var(--text)]">
           <span aria-hidden="true" className="h-6 w-1 rounded-full bg-[var(--brand-bright)] shadow-[0_0_14px_var(--brand)]" />
-          Tournaments
+          {PAGE_TITLES["play-tournaments"]}
           {loading && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
         </h1>
         <span className="text-[14px] leading-[1.3] text-[var(--text-2)]">5v5 events on Legacy-X servers.</span>
@@ -627,7 +628,7 @@ function YouPanel({ tournament, busy, error, onJoinSolo, onRegisterTeam, onLeave
 }
 
 function TournamentView({ tournamentId, onProfileNavigate }: { tournamentId: string; onProfileNavigate: (steamId: string) => void }) {
-  const [params, setParams] = useSearchParams()
+  const [params, setParams] = useViewParams()
   const tab = readTab(params.get("tab"))
   const now = useNow()
   const { data, error, refetch } = useApiQuery<TournamentDetail>((signal) => tournamentsService.get(tournamentId, { signal }), { queryKey: `tournament:${tournamentId}`, keepPreviousData: true })
@@ -728,7 +729,7 @@ function DetailSkeleton() {
 }
 
 export function TournamentsPage({ onProfileNavigate }: { onProfileNavigate: (steamId: string) => void }) {
-  const [params, setParams] = useSearchParams()
+  const [params, setParams] = useViewParams()
   const selected = params.get("id")
   const { data, loading, error, refetch } = useApiQuery((signal) => tournamentsService.list({ signal }), { queryKey: "tournaments", keepPreviousData: true })
   const tournamentId = selected ?? data?.current?.id ?? null

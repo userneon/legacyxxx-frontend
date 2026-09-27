@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState, type PointerEvent } from "react"
-import { useSearchParams } from "react-router-dom"
 import { ArrowUpRight, LoaderCircle, RotateCcw, Search, Sparkles, X } from "lucide-react"
 
 import { competitiveService, searchService } from "@/api"
 import type { CommunityPlayer, CompetitiveLeaderboardEntry, ModerationStatus } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
+import { useViewParams } from "@/hooks/use-view-params"
 import { steamIdFromInput } from "@/lib/links"
+import { PAGE_TITLES } from "@/lib/routes"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { RelativeTime } from "@/components/relative-time"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -125,8 +126,8 @@ function CardSkeleton() {
 }
 
 export function ExplorePage({ onProfileNavigate }: { onProfileNavigate: (userId: string) => void }) {
-  // The search lives in the URL (?q=), so reload and back/forward keep it.
-  const [params, setParams] = useSearchParams()
+  // The search is page state; a link may still carry ?q= (read once, then the URL is cleaned).
+  const [params, setParams] = useViewParams()
   const search = params.get("q")?.trim() ?? ""
   const [query, setQuery] = useState(search)
 
@@ -171,7 +172,7 @@ export function ExplorePage({ onProfileNavigate }: { onProfileNavigate: (userId:
             <div className="flex min-w-0 flex-col gap-2.5">
               <h1 className="flex items-center gap-2.5 text-[34px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
                 <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)] shadow-[0_0_14px_var(--brand)]" />
-                Explore
+                {PAGE_TITLES["explore"]}
               </h1>
               <span className="text-[14px] text-[var(--text-2)]">Find any player on Legacy-X by name, Steam ID or profile link.</span>
             </div>

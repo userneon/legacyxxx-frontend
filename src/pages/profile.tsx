@@ -13,7 +13,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { LINKS } from "@/lib/links"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { formatDate, useWebsitePreferences } from "@/lib/preferences"
-import { PAGE_ROUTES } from "@/lib/routes"
+import { PAGE_ROUTES, PAGE_TITLES, documentTitle } from "@/lib/routes"
 import { CompetitiveRankBadge, RankLabel, RankPill } from "@/components/competitive-rank-badge"
 import { FaceitLevelBadge } from "@/components/faceit-level-badge"
 import { MatchDetailsDialog } from "@/components/match-details-dialog"
@@ -534,6 +534,12 @@ export function ProfilePage({ userId }: { userId?: string }) {
   const [openMatch, setOpenMatch] = useState<ProfileMatchRow | null>(null)
   const [openPenalty, setOpenPenalty] = useState<PenaltyEntry | null>(null)
   const topRef = useRef<HTMLDivElement>(null)
+
+  // Tab title: the player's name once the profile has loaded ("Temuulen · LEGACY-X").
+  const username = data?.user.username ?? null
+  useEffect(() => {
+    document.title = documentTitle(username ?? PAGE_TITLES.profile)
+  }, [username])
 
   if (!data) {
     if (error && !loading) {

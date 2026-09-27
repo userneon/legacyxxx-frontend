@@ -1,11 +1,12 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent } from "react"
-import { useSearchParams } from "react-router-dom"
 import { Clock, LoaderCircle, PenLine, Quote, RotateCcw, ShieldCheck, Star, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { PAGE_TITLES } from "@/lib/routes"
 import { feedbackService } from "@/api"
 import type { ApiError, FeedbackEntry } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
+import { useViewParams } from "@/hooks/use-view-params"
 import { useAuth } from "@/hooks/use-auth"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { formatRelativeTime } from "@/components/relative-time"
@@ -269,7 +270,7 @@ function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () =
 
 export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamId: string) => void }) {
   const { user, isAuthenticated, loginWithSteam } = useAuth()
-  const [params, setParams] = useSearchParams()
+  const [params, setParams] = useViewParams()
   const sort = readSort(params.get("sort"))
   const rating = readRating(params.get("rating"))
   const [writing, setWriting] = useState(false)
@@ -344,7 +345,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
               <div className="flex min-w-0 flex-col gap-2.5">
                 <h1 className="flex items-center gap-2.5 text-[34px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
                   <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)] shadow-[0_0_14px_var(--brand)]" />
-                  Reviews
+                  {PAGE_TITLES["feedback"]}
                   {loading && reviews.length > 0 && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
                 </h1>
                 <span className="text-[14px] text-[var(--text-2)]">What players say about Legacy-X.</span>
