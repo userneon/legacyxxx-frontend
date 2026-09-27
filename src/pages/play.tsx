@@ -270,18 +270,21 @@ function TeamTable({ title, players, side }: { title: string; players: ServerLiv
   const stat = (value: number | null | undefined) => (typeof value === "number" ? value : "—")
   return (
     <div className="overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]">
-      <div className="grid h-[34px] grid-cols-[minmax(0,1fr)_34px_34px_34px] items-center gap-2 px-3 text-[11px] font-semibold text-[var(--text-muted)]">
+      <div
+        className="grid h-[36px] grid-cols-[minmax(0,1fr)_34px_34px_34px] items-center gap-2 px-3 text-[11px] font-semibold text-[var(--text-muted)]"
+        style={side ? { background: `linear-gradient(90deg, color-mix(in oklab, var(--team-${side}) 14%, transparent), transparent 70%)` } : undefined}
+      >
         <span className={cn("flex items-center gap-2", side && teamTextClass(side))}>{side && <TeamIcon side={side} />}{title}</span><span>K</span><span>D</span><span>A</span>
       </div>
       {players.length === 0 ? (
         <div className="border-t border-[var(--raised)] px-3 py-3 text-xs text-[var(--text-dim)]">No players</div>
       ) : players.map((player) => (
-        <div key={player.steamId} className="grid h-[38px] grid-cols-[minmax(0,1fr)_34px_34px_34px] items-center gap-2 border-t border-[var(--raised)] px-3 text-[13px]">
+        <div key={player.steamId} className="grid h-[38px] grid-cols-[minmax(0,1fr)_34px_34px_34px] items-center gap-2 border-t border-[var(--raised)] px-3 text-[13px] transition-colors duration-300 hover:bg-[var(--brand)]/[0.06]">
           <span className="flex min-w-0 items-center gap-2">
             <PlayerAvatar name={player.name} className="size-[22px] shrink-0 rounded-md text-[9px]" />
             <span className={cn("truncate", player.connected ? "text-[var(--text)]" : "text-[var(--text-dim)]")} title={player.name}>{player.name}</span>
           </span>
-          <span className="tabular-nums text-[var(--text-2)]">{stat(player.kills)}</span>
+          <span className="font-semibold tabular-nums text-[var(--text)]">{stat(player.kills)}</span>
           <span className="tabular-nums text-[var(--text-2)]">{stat(player.deaths)}</span>
           <span className="tabular-nums text-[var(--text-2)]">{stat(player.assists)}</span>
         </div>
@@ -313,40 +316,54 @@ function ServerSheet({ server, onClose }: { server: PlayServer | null; onClose: 
       <SheetContent
         side="right"
         showCloseButton={false}
-        overlayClassName="bg-[rgba(10,10,10,0.5)] data-[state=open]:duration-200 data-[state=closed]:duration-150"
-        className="inset-y-2 right-2 h-auto w-[440px] max-w-[calc(100%-16px)] gap-0 overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--panel)] p-0 shadow-[-16px_0_40px_rgba(0,0,0,0.45)] data-[state=open]:duration-[250ms] data-[state=closed]:duration-150 sm:max-w-[440px]"
+        overlayClassName="lx-sheet-overlay bg-[rgba(10,10,10,0.55)] data-[state=open]:duration-300 data-[state=closed]:duration-200"
+        className="lx-sheet inset-y-2 right-2 h-auto w-[460px] max-w-[calc(100%-16px)] gap-0 overflow-hidden rounded-2xl border border-[var(--line)] p-0 data-[state=open]:duration-[450ms] data-[state=open]:ease-[cubic-bezier(0.22,1,0.36,1)] data-[state=closed]:duration-[250ms] data-[state=closed]:ease-[cubic-bezier(0.4,0,1,1)] sm:max-w-[460px]"
       >
         {server && (
           <>
-            <MapArt map={live?.map ?? server.map} className="h-[120px] shrink-0">
-              <button type="button" onClick={onClose} aria-label="Close" className="absolute right-2.5 top-2.5 flex size-8 items-center justify-center rounded-lg border border-[var(--line)] bg-[rgba(15,15,15,0.7)] text-[var(--text-muted)] transition-colors hover:text-[var(--text)]">
+            <MapArt map={live?.map ?? server.map} className="h-[180px] shrink-0">
+              <span aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,10,10,0.1),rgba(10,10,10,0.35)_45%,var(--panel))]" />
+              <span aria-hidden="true" className="lx-hero-glow absolute -inset-10 opacity-60" />
+              <button type="button" onClick={onClose} aria-label="Close" className="absolute right-3 top-3 z-10 flex size-8 items-center justify-center rounded-lg border border-[var(--line)] bg-[rgba(15,15,15,0.7)] text-[var(--text-muted)] backdrop-blur transition-[color,border-color,rotate] duration-300 hover:rotate-90 hover:border-[var(--brand)]/50 hover:text-[var(--text)]">
                 <X className="size-4" />
               </button>
-              <div className="absolute bottom-3.5 left-[18px] flex flex-col gap-1">
-                <SheetTitle className="text-base font-semibold text-[var(--text)]">{server.name}</SheetTitle>
-                <SheetDescription className="text-xs text-[var(--text-2)]">{cs2MapLabel(live?.map ?? server.map)}</SheetDescription>
-              </div>
-            </MapArt>
-            <div className="scrollbar-hidden flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-[18px] py-4">
-              <div className="flex items-center justify-between">
+              <span className="absolute left-[18px] top-3.5 z-10">
                 {server.status === "live" ? (
-                  <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-[var(--status-green)]/12 px-2.5 text-xs font-semibold text-[var(--status-green)]">
+                  <span className="inline-flex h-6 items-center gap-1.5 rounded-full border border-[var(--status-green)]/35 bg-[rgba(10,10,10,0.7)] px-2.5 text-xs font-semibold text-[var(--status-green)] backdrop-blur-sm">
                     <span className="lx-live-dot size-1.5 rounded-full bg-[var(--status-green)]" />
-                    Live
+                    Live{live?.round ? ` · Round ${live.round}` : ""}
                   </span>
                 ) : <StatusPill server={server} />}
-                <span className="flex items-center gap-2.5 text-[13px] tabular-nums text-[var(--text-muted)]">
-                  {loading && live && <LoaderCircle aria-label="Updating" className="size-3.5 animate-spin text-[var(--text-dim)]" />}
-                  {live?.round ? `Round ${live.round}` : `${server.players}/${server.maxPlayers} players`}
+              </span>
+              <div className="absolute inset-x-[18px] bottom-4 z-10 flex items-end justify-between gap-3">
+                <div className="flex min-w-0 flex-col gap-1">
+                  <SheetTitle className="truncate text-lg font-bold tracking-[-0.2px] text-[var(--text)]">{server.name}</SheetTitle>
+                  <SheetDescription className="text-xs text-[var(--text-2)]">{cs2MapLabel(live?.map ?? server.map)} · {server.players}/{server.maxPlayers} players</SheetDescription>
+                </div>
+                {live?.score && (
+                  <span className="flex shrink-0 items-center gap-2 rounded-xl border border-[var(--line)] bg-[rgba(10,10,10,0.7)] px-3 py-1.5 backdrop-blur">
+                    <TeamIcon side="t" className="size-5" />
+                    <span className="flex items-center gap-1.5 text-2xl font-bold tabular-nums">
+                      <span key={`t${live.score.t}`} className="lx-swap-in text-[var(--team-t)]">{live.score.t}</span>
+                      <span className="text-[var(--text-faint)]">:</span>
+                      <span key={`ct${live.score.ct}`} className="lx-swap-in text-[var(--team-ct)]">{live.score.ct}</span>
+                    </span>
+                    <TeamIcon side="ct" className="size-5" />
+                  </span>
+                )}
+              </div>
+            </MapArt>
+            <div className="scrollbar-hidden lx-sheet-rise flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-[18px] py-4">
+              <div className="flex items-center justify-between text-xs text-[var(--text-dim)]">
+                <span className="flex items-center gap-2 font-medium text-[var(--text-muted)]">
+                  <span aria-hidden="true" className="h-3 w-[3px] rounded-full bg-[var(--brand-bright)] shadow-[0_0_8px_var(--brand)]" />
+                  Scoreboard
+                </span>
+                <span className="flex items-center gap-1.5">
+                  {loading && live && <LoaderCircle aria-label="Updating" className="size-3.5 animate-spin" />}
+                  Updates every 5s
                 </span>
               </div>
-              {live?.score && (
-                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-3.5">
-                  <TeamIcon side="t" className="size-7" />
-                  <span className="flex items-center gap-2.5 text-2xl font-semibold tabular-nums"><span className="text-[var(--team-t)]">{live.score.t}</span><span className="text-[var(--text-faint)]">:</span><span className="text-[var(--team-ct)]">{live.score.ct}</span></span>
-                  <TeamIcon side="ct" className="size-7 justify-self-end" />
-                </div>
-              )}
               {live && live.availability === "live_snapshot" ? (
                 <>
                   <TeamTable title="Terrorists" side="t" players={live.teams.t} />
@@ -365,7 +382,7 @@ function ServerSheet({ server, onClose }: { server: PlayServer | null; onClose: 
                 <p className="text-[13px] text-[var(--text-dim)]">No live match data for this server yet.</p>
               )}
             </div>
-            <div className="flex gap-2 border-t border-[var(--line-soft)] px-[18px] py-3.5">
+            <div className="flex shrink-0 gap-2 border-t border-[var(--line-soft)] bg-[var(--panel)]/60 px-[18px] py-3.5">
               <button type="button" disabled={!address} onClick={() => void copyAddress(address)} className={cn(secondary, "h-10 flex-1")}>
                 <Copy className="size-3.5" />
                 Copy IP

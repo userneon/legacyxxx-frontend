@@ -462,6 +462,26 @@ export async function mockResponse(method: string, path: string, query: Query, b
   }
   if (method !== "GET") throw notFound()
 
+  const liveMatch = /^\/api\/v1\/public\/servers\/([^/]+)\/live-match$/.exec(path)
+  if (liveMatch) {
+    const all = [...SERVERS["5x5"], ...SERVERS.fun, ...SERVERS.pro]
+    const found = all.find((entry) => entry.id === decodeURIComponent(liveMatch[1]))
+    if (!found) throw notFound()
+    const roster = (offset: number, count: number) => Array.from({ length: count }, (_, i) => ({
+      steamId: `76561198${offset + i}`, name: NAMES[(offset + i) % NAMES.length], connected: i !== 3, rankId: RANKS[(offset + i) % RANKS.length][0], rankName: RANKS[(offset + i) % RANKS.length][1], rankImageKey: null,
+      adr: 60 + ((offset + i) * 13) % 70, ping: 20 + i * 7, kills: 18 - i * 3 + (offset % 3), deaths: 9 + i, assists: 3 + (i % 4),
+    }))
+    const tCount = Math.ceil(found.players / 2)
+    return {
+      liveMatch: {
+        serverId: found.id, serverName: found.name, connectAddress: found.connectAddress, gotvAddress: found.gotvAddress, players: found.players, maxPlayers: found.maxPlayers,
+        map: found.map, mode: found.modeLabel, state: found.status === "live" ? "live" : "waiting", round: found.round, score: found.score,
+        teams: { t: roster(0, tCount), ct: roster(5, found.players - tCount) }, spectators: [], connectedPlayers: roster(0, found.players),
+        updatedAt: new Date().toISOString(), availability: found.players > 0 ? "live_snapshot" : "unavailable",
+      },
+    }
+  }
+
   const profile = /^\/api\/v1\/profile\/([^/]+)\/(overview|faceit)$/.exec(path)
   if (profile) return profile[2] === "overview" ? profileOverview(decodeURIComponent(profile[1])) : faceit(decodeURIComponent(profile[1]))
 

@@ -1355,3 +1355,40 @@
   animation: lx-edge-spin 4s linear infinite;
   filter: drop-shadow(0 0 8px var(--brand));
 }
+
+/* ========================================
+   Side detail panels (server details, penalty details)
+   ======================================== */
+/* Glass panel with a crimson top line; slides in on a soft ease-out. */
+.lx-sheet {
+  /* Nearly opaque: the page behind only tints the edges, it never shows through the text. */
+  background: color-mix(in oklab, var(--panel) 97%, transparent);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  box-shadow: -24px 0 60px rgba(0, 0, 0, 0.55), 0 0 0 1px color-mix(in oklab, var(--brand) 18%, transparent);
+}
+.lx-sheet::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  z-index: 20;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--brand-bright), transparent);
+  pointer-events: none;
+}
+.lx-sheet-overlay {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* The panel's blocks rise in one after another once it has slid in. */
+.lx-sheet-rise > * {
+  animation: lx-swap-in 450ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.lx-sheet-rise > :nth-child(1) { animation-delay: 90ms; }
+.lx-sheet-rise > :nth-child(2) { animation-delay: 140ms; }
+.lx-sheet-rise > :nth-child(3) { animation-delay: 190ms; }
+.lx-sheet-rise > :nth-child(4) { animation-delay: 240ms; }
+.lx-sheet-rise > :nth-child(5) { animation-delay: 290ms; }
+.lx-sheet-rise > :nth-child(n + 6) { animation-delay: 340ms; }

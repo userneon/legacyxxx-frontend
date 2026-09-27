@@ -123,11 +123,12 @@ export function TypeIcon({ type, className }: { type: PenaltyType; className?: s
   )
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+/** One fact in the details panel (Term, Issued by, Date). */
+function Tile({ label, children, wide }: { label: string; children: React.ReactNode; wide?: boolean }) {
   return (
-    <div className="flex h-10 items-center justify-between gap-4 border-b border-[var(--line-soft)]">
-      <span className="text-[13px] text-[var(--text-muted)]">{label}</span>
-      <span className="min-w-0 truncate text-right text-[13px] font-medium text-[var(--text)]">{children}</span>
+    <div className={cn("flex min-w-0 flex-col gap-1.5 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] px-3.5 py-3", wide && "col-span-2")}>
+      <span className="text-[11px] font-medium text-[var(--text-dim)]">{label}</span>
+      <span className="min-w-0 truncate text-[13px] font-semibold text-[var(--text)]">{children}</span>
     </div>
   )
 }
@@ -152,40 +153,70 @@ export function PenaltyDetailSheet({
       <SheetContent
         side="right"
         showCloseButton={false}
-        overlayClassName="bg-[rgba(10,10,10,0.5)] data-[state=open]:duration-200 data-[state=closed]:duration-150"
-        className="inset-y-2 right-2 h-auto w-[400px] max-w-[calc(100%-16px)] gap-0 rounded-xl border border-[var(--line)] bg-[var(--panel)] p-0 shadow-[-16px_0_40px_rgba(0,0,0,0.45)] data-[state=open]:duration-[250ms] data-[state=closed]:duration-150 sm:max-w-[400px]"
+        overlayClassName="lx-sheet-overlay bg-[rgba(10,10,10,0.55)] data-[state=open]:duration-300 data-[state=closed]:duration-200"
+        className="lx-sheet inset-y-2 right-2 h-auto w-[420px] max-w-[calc(100%-16px)] gap-0 overflow-hidden rounded-2xl border border-[var(--line)] p-0 data-[state=open]:duration-[450ms] data-[state=open]:ease-[cubic-bezier(0.22,1,0.36,1)] data-[state=closed]:duration-[250ms] data-[state=closed]:ease-[cubic-bezier(0.4,0,1,1)] sm:max-w-[420px]"
       >
-        {penalty && (
+        {penalty && (() => {
+          const color = penaltyStatusColor(penalty)
+          const meta = TYPE_META[penalty.type] ?? TYPE_META.ban
+          // How much of a timed penalty has run, from the issue date to its end.
+          const issued = Date.parse(penalty.date)
+          const ends = penalty.expiresAt ? Date.parse(penalty.expiresAt) : Number.NaN
+          const timed = !penalty.isPermanent && Number.isFinite(issued) && Number.isFinite(ends) && ends > issued
+          const served = timed ? Math.max(0, Math.min(100, ((Date.now() - issued) / (ends - issued)) * 100)) : 0
+          return (
           <>
-            <div className="flex items-center gap-3 border-b border-[var(--line-soft)] p-[18px]">
-              <PlayerModerationAvatar avatar={penalty.avatar} name={penalty.player} status={penalty.moderationStatus} className="size-11 shrink-0 rounded-xl text-sm" />
-              <div className="flex min-w-0 flex-1 flex-col gap-1">
-                <SheetTitle className="truncate text-[15px] font-semibold text-[var(--text)]">{penalty.player}</SheetTitle>
-                <SheetDescription className="truncate text-xs tabular-nums text-[var(--text-dim)]">{penalty.playerSteamId ?? "Steam ID unavailable"}</SheetDescription>
+            {/* Header tinted in the penalty's state colour (active red, permanent rose, lifted green). */}
+            <div className="relative shrink-0 overflow-hidden border-b border-[var(--line-soft)] px-[18px] pb-[18px] pt-5">
+              <div aria-hidden="true" className="pointer-events-none absolute -inset-10" style={{ background: `radial-gradient(60% 90% at 85% 0%, color-mix(in oklab, ${color} 30%, transparent), transparent 70%)` }} />
+              <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
+              <meta.icon aria-hidden="true" strokeWidth={1.25} className="pointer-events-none absolute -right-4 -top-4 size-32 opacity-[0.08]" style={{ color }} />
+              <div className="relative flex items-center gap-3.5">
+                <PlayerModerationAvatar avatar={penalty.avatar} name={penalty.player} status={penalty.moderationStatus} className="size-14 shrink-0 rounded-2xl text-base" />
+                <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                  <SheetTitle className="truncate text-lg font-bold tracking-[-0.2px] text-[var(--text)]">{penalty.player}</SheetTitle>
+                  <SheetDescription className="truncate text-xs tabular-nums text-[var(--text-dim)]">{penalty.playerSteamId ?? "Steam ID unavailable"}</SheetDescription>
+                  <span className="flex flex-wrap items-center gap-1.5"><TypePill type={penalty.type} /><StatusPill penalty={penalty} /></span>
+                </div>
+                <button type="button" onClick={onClose} aria-label="Close" className="flex size-8 shrink-0 items-center justify-center self-start rounded-lg border border-[var(--line)] bg-[var(--panel)]/70 text-[var(--text-muted)] backdrop-blur transition-[color,border-color,rotate] duration-300 hover:rotate-90 hover:border-[var(--brand)]/50 hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60">
+                  <X className="size-4" />
+                </button>
               </div>
-              <button type="button" onClick={onClose} aria-label="Close" className="flex size-8 shrink-0 items-center justify-center rounded-lg text-[var(--text-muted)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-                <X className="size-4" />
-              </button>
             </div>
-            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-[18px] pb-[18px] pt-2">
-              <Field label="Type"><TypePill type={penalty.type} /></Field>
-              <Field label="Status"><StatusPill penalty={penalty} /></Field>
-              <Field label="Term"><TermLabel penalty={penalty} /></Field>
-              <Field label="Issued by">{penalty.admin || "System"}</Field>
-              <Field label="Date">{formatPenaltyDate(penalty.date, true)}</Field>
-              <div className="flex flex-col gap-2 py-4">
-                <span className="text-[13px] text-[var(--text-muted)]">Reason</span>
-                <p className="whitespace-pre-wrap break-words rounded-[10px] border border-[var(--line-soft)] bg-[var(--card-surface)] p-3 text-[13px] leading-5 text-[var(--text-2)]">
+            <div className="lx-sheet-rise flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-[18px] py-4">
+              <div className="grid grid-cols-2 gap-2">
+                <Tile label="Term"><TermLabel penalty={penalty} /></Tile>
+                <Tile label="Issued by">{penalty.admin || "System"}</Tile>
+                <Tile label="Date" wide>{formatPenaltyDate(penalty.date, true)}</Tile>
+              </div>
+              {timed && (
+                <div className="flex flex-col gap-2 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-3.5">
+                  <span className="flex items-center justify-between text-xs text-[var(--text-muted)]">
+                    <span>Time served</span>
+                    <span className="font-semibold tabular-nums text-[var(--text-2)]">{Math.round(served)}%</span>
+                  </span>
+                  <span className="h-2 overflow-hidden rounded-full bg-[var(--line-soft)]">
+                    <span className="lx-bar-grow block h-full rounded-full" style={{ width: `${served}%`, background: `linear-gradient(90deg, color-mix(in oklab, ${color} 55%, transparent), ${color})`, boxShadow: `0 0 10px -2px ${color}` }} />
+                  </span>
+                  <span className="flex justify-between text-[11px] tabular-nums text-[var(--text-dim)]">
+                    <span>{formatPenaltyDate(penalty.date)}</span>
+                    <span>{formatPenaltyDate(penalty.expiresAt!)}</span>
+                  </span>
+                </div>
+              )}
+              <div className="flex flex-col gap-2">
+                <span className="text-xs font-medium text-[var(--text-muted)]">Reason</span>
+                <p className="whitespace-pre-wrap break-words rounded-xl border border-[var(--line-soft)] border-l-[3px] bg-[var(--card-surface)] p-3.5 text-[13px] leading-5 text-[var(--text-2)]" style={{ borderLeftColor: color }}>
                   {penalty.reason || "No reason given"}
                 </p>
               </div>
             </div>
-            <div className="flex gap-2 border-t border-[var(--line-soft)] px-[18px] py-3.5">
+            <div className="flex shrink-0 gap-2 border-t border-[var(--line-soft)] bg-[var(--panel)]/60 px-[18px] py-3.5">
               <button
                 type="button"
                 disabled={!penalty.playerSteamId}
                 onClick={() => { if (penalty.playerSteamId) { onClose(); onProfileNavigate(penalty.playerSteamId) } }}
-                className="flex h-9 flex-1 items-center justify-center rounded-lg border border-[var(--line)] text-[13px] font-medium text-[var(--text)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 disabled:opacity-50"
+                className="flex h-10 flex-1 items-center justify-center rounded-lg border border-[var(--line)] text-[13px] font-medium text-[var(--text)] transition-colors hover:border-[var(--brand)]/50 hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:opacity-50"
               >
                 View profile
               </button>
@@ -194,14 +225,15 @@ export function PenaltyDetailSheet({
                   href={LINKS.discordAppeals}
                   target="_blank"
                   rel="noreferrer"
-                  className="lx-brand-button flex h-9 flex-1 items-center justify-center rounded-lg text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
+                  className="lx-brand-button flex h-10 flex-1 items-center justify-center rounded-lg text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
                 >
                   Appeal on Discord
                 </a>
               )}
             </div>
           </>
-        )}
+          )
+        })()}
       </SheetContent>
     </Sheet>
   )
