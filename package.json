@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:mock": "vite --mode mock",
     "build": "tsc -b && vite build",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
+    "preview:mock": "vite build --mode mock && vite preview",
     "images:webp": "node scripts/convert-static-images-to-webp.mjs",
     "check:colors": "node scripts/check-no-blue.mjs"
   },

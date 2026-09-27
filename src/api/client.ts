@@ -300,6 +300,14 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     timeoutMs = DEFAULT_TIMEOUT_MS,
   } = options
 
+  // Design preview: `npm run dev` without VITE_API_URL (or any run with VITE_MOCK_API=1) answers from
+  // src/api/mock.ts, so localhost:5173 always has data. Vite replaces these env values at build time,
+  // so a production build drops this branch and the mock file entirely.
+  if (import.meta.env.VITE_MOCK_API === "1" || (import.meta.env.DEV && !configuredApiUrl)) {
+    const { mockResponse } = await import("./mock")
+    return (await mockResponse(method, canonicalApiPath(path), query)) as T
+  }
+
   const { signal: combinedSignal, clear } = withTimeout(signal, timeoutMs)
   const init: RequestInit = {
     method,
