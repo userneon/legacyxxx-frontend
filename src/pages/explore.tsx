@@ -21,8 +21,8 @@ const STATUS_COLOR: Record<Exclude<ModerationStatus, "Clear">, string> = {
 
 /** A clean record needs no badge; only an active penalty is flagged, in its penalty colour. */
 function StatusPill({ status }: { status: ModerationStatus }) {
-  if (status === "Clear") return null
-  const color = STATUS_COLOR[status]
+  const color = status === "Clear" ? undefined : STATUS_COLOR[status]
+  if (!color) return null
   return (
     <span
       className="inline-flex h-5 shrink-0 items-center rounded-full border px-2 text-[11px] font-semibold"
@@ -42,7 +42,7 @@ function trackSpotlight(event: PointerEvent<HTMLElement>) {
 
 /** The player's name with the searched part in crimson. */
 function Highlight({ text, match }: { text: string; match: string }) {
-  const at = match ? text.toLowerCase().indexOf(match.toLowerCase()) : -1
+  const at = text && match ? text.toLowerCase().indexOf(match.toLowerCase()) : -1
   if (at < 0) return <>{text}</>
   return (
     <>
