@@ -131,7 +131,7 @@ function ClanCardItem({ clan, onClanNavigate, onChanged }: { clan: ClanCard; onC
           <img
             src={clan.thumbnail}
             alt={`${clan.name} banner`}
-            className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="lx-layer size-full object-cover transition-[scale] duration-300 group-hover:scale-105"
           />
         ) : (
           <div className="flex size-full items-center justify-center bg-gradient-to-br from-secondary via-secondary/80 to-muted">

@@ -309,7 +309,7 @@ function MatchCard({ match, myTeamId }: { match: TournamentMatch; myTeamId: stri
   return (
     <div
       className={cn(
-        "relative w-full rounded-[10px] border bg-[var(--card-surface)] transition-[border-color,box-shadow,translate] duration-500 hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:duration-300",
+        "lx-layer relative w-full rounded-[10px] border bg-[var(--card-surface)] transition-[border-color,box-shadow,translate] duration-500 hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:duration-300",
         mine ? "border-[var(--brand)]/60 shadow-[0_0_24px_-10px_var(--brand)]" : match.status === "live" ? "border-[var(--status-green)]/35" : "border-[var(--line-soft)]",
       )}
     >

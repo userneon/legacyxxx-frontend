@@ -124,7 +124,7 @@ export function TopPlayers({ onOpenProfile, onViewAll }: { onOpenProfile: (steam
                     <span className={STAT}>{player.kd_ratio.toFixed(2)}</span>
                     <span className={STAT}>{player.matches_completed > 0 ? `${Math.round(player.win_rate * 100)}%` : "—"}</span>
                     <span className={cn(STAT, "text-[var(--text-muted)]")}>{player.matches_completed.toLocaleString()}</span>
-                    <span className="flex justify-end transition-[scale] duration-500 group-hover:scale-110">
+                    <span className="lx-layer flex justify-end transition-[scale] duration-500 group-hover:scale-110">
                       <CompetitiveRankBadge rankId={player.rank_id} rankName={player.rank_name} imageKey={player.rank_image_key} size={26} />
                     </span>
                   </button>

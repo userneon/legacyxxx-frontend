@@ -91,7 +91,7 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
           avatar={player.avatar}
           name={player.username}
           className={cn(
-            "shrink-0 text-base transition-[scale] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-105 group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
+            "lx-layer shrink-0 text-base transition-[scale] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-105 group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
             first ? "size-[60px] rounded-[15px] ring-2 ring-[var(--brand)]/70 ring-offset-2 ring-offset-[var(--card-surface)]" : "size-[52px] rounded-[13px]",
           )}
         />
@@ -130,7 +130,9 @@ function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: Competiti
       style={you ? undefined : { animationDelay: `${Math.min(index, 14) * 28}ms` }}
       className={cn(
         GRID,
-        "group relative w-full text-left transition-[background-color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] hover:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--brand-bright)]/60",
+        // lx-layer: rows pass under the sticky header, so Chrome layers them for overlap anyway; a
+        // fixed layer keeps a podium hover from re-creating (and repainting) the row below it.
+        "lx-layer group relative w-full text-left transition-[background-color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] hover:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--brand-bright)]/60",
         you
           ? "h-[60px] shrink-0 border-t border-[var(--brand)]/40 bg-[linear-gradient(90deg,color-mix(in_oklab,var(--brand)_16%,var(--card-surface)),var(--card-surface)_45%)]"
           : "lx-row-in h-14 border-b border-[var(--raised)] hover:bg-[var(--brand)]/[0.06]",
@@ -346,9 +348,10 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
         </div>
 
         <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
-          {/* pt-3 leaves room above the podium: cards lift 5px on hover and the scroll area clips anything above its top. */}
+          {/* pt-3 leaves room above the podium: cards lift 5px on hover and the scroll area clips anything above its top.
+              The podium is its own layer, so the cards' lift and shadow never re-layer the table rows they overlap. */}
           {(firstLoad || topThree.length > 0) && (
-            <section aria-label="Top 3" className="grid grid-cols-3 items-start gap-3 px-6 pb-5 pt-3">
+            <section aria-label="Top 3" className="lx-layer isolate grid grid-cols-3 items-start gap-3 px-6 pb-5 pt-3">
               {firstLoad
                 ? [0, 1, 2].map((index) => <TopCardSkeleton key={index} />)
                 : topThree.map((player) => <TopCard key={player.user_id} player={player} sort={sort} onOpen={() => open(player)} />)}

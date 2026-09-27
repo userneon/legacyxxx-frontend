@@ -49,7 +49,9 @@ export function Segmented<T extends string>({
       ref={container}
       role="tablist"
       aria-label={ariaLabel}
-      className={cn("relative flex shrink-0 gap-0.5 rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)] p-[3px]", className)}
+      // lx-layer: one fixed layer for the control, so a card lifting nearby never promotes and then
+      // demotes its buttons (a flash on the labels).
+      className={cn("lx-layer isolate relative flex shrink-0 gap-0.5 rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)] p-[3px]", className)}
     >
       {thumb && (
         <span

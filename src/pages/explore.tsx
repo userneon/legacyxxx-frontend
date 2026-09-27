@@ -82,7 +82,7 @@ function PlayerCard({ player, match, index, onOpen }: { player: CommunityPlayer;
         <PlayerAvatar
           avatar={player.avatar}
           name={player.name}
-          className="size-12 shrink-0 rounded-xl text-sm ring-0 ring-[var(--brand)]/60 transition-[scale,box-shadow] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-105 group-hover:ring-2 group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]"
+          className="lx-layer size-12 shrink-0 rounded-xl text-sm ring-0 ring-[var(--brand)]/60 transition-[scale,box-shadow] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-105 group-hover:ring-2 group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]"
         />
         <span className="flex min-w-0 flex-1 flex-col gap-1">
           <span className="truncate text-sm font-medium text-[var(--text)]" title={player.name}><Highlight text={player.name} match={match} /></span>
@@ -221,7 +221,7 @@ export function ExplorePage({ onProfileNavigate }: { onProfileNavigate: (userId:
                       type="button"
                       onClick={() => pick(player.username)}
                       style={{ animationDelay: `${120 + index * 45}ms` }}
-                      className="lx-swap-in group flex h-9 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--card-surface)] pl-1 pr-3.5 text-[13px] font-medium text-[var(--text-2)] transition-[border-color,color,background-color,translate] duration-300 hover:-translate-y-0.5 hover:border-[var(--brand)]/55 hover:bg-[var(--brand)]/10 hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
+                      className="lx-swap-in lx-layer group flex h-9 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--card-surface)] pl-1 pr-3.5 text-[13px] font-medium text-[var(--text-2)] transition-[border-color,color,background-color,translate] duration-300 hover:-translate-y-0.5 hover:border-[var(--brand)]/55 hover:bg-[var(--brand)]/10 hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
                     >
                       <PlayerAvatar avatar={player.avatar} name={player.username} className="size-7 rounded-full text-[10px]" />
                       {player.username}

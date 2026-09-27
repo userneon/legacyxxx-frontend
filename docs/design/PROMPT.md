@@ -601,6 +601,15 @@ Crimson redesign motion (2026-09-27) — the shared classes live in src/index.cs
   `rotate` and `translate` properties: list those in transition-[…], not
   `transform`, or the change snaps. Images that zoom on hover get their own
   compositor layer (.lx-map-img) and never transition `filter`.
+- No flash when a hover ends: anything that moves, scales or fades on hover keeps
+  its own compositor layer at rest (.lx-layer; .lx-fx-card and .lx-lift do it
+  themselves; a global rule covers every hover:/group-hover: translate, scale,
+  rotate and opacity utility). Otherwise Chrome promotes it when the hover starts
+  and demotes it when the way back ends, re-rasterising it and its images at that
+  moment. Resting transforms are translate3d(0,0,0), never none; a hover blur
+  rests at blur(0px); infinite decorative animations run only while hovered.
+  Containers that overlap lifting cards (the podium, table rows under a sticky
+  header, Segmented) get a fixed layer too.
 - A card that lifts must not sit flush against the top of a scroll area — leave
   at least 12px of padding above it, or the lift is clipped.
 - Table rows (.lx-row-in) cascade in and replay when the data or filters change;

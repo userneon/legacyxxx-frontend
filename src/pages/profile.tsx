@@ -380,7 +380,7 @@ function RecentMatches({ matches, onOpen }: { matches: ProfileMatchRow[]; onOpen
               >
                 <span aria-hidden="true" className="absolute bottom-2 left-0 top-2 w-[3px] scale-y-0 rounded-r-full bg-[var(--brand-bright)] opacity-0 shadow-[0_0_10px_var(--brand)] transition-[scale,opacity] duration-500 group-enabled:group-hover:scale-y-100 group-enabled:group-hover:opacity-100 group-hover:duration-300" />
                 <span className="flex min-w-0 items-center gap-2.5">
-                  <span className="h-[30px] w-[52px] shrink-0 overflow-hidden rounded-md bg-[var(--line-soft)]">{art && <img src={art} alt="" className="size-full object-cover transition-[scale] duration-700 group-hover:scale-110 group-hover:duration-500" />}</span>
+                  <span className="h-[30px] w-[52px] shrink-0 overflow-hidden rounded-md bg-[var(--line-soft)]">{art && <img src={art} alt="" className="lx-layer size-full object-cover transition-[scale] duration-700 group-hover:scale-110 group-hover:duration-500" />}</span>
                   <span className="truncate text-[var(--text)]">{cs2MapLabel(match.map)}</span>
                 </span>
                 <span className={cn("font-medium", match.result === "Win" ? "text-[var(--result-win)]" : match.result === "Loss" ? "text-[var(--result-loss)]" : "text-[var(--text-muted)]")}>{match.result}</span>
@@ -489,7 +489,7 @@ function LoadoutCard({ loadout }: { loadout: NonNullable<ProfileOverview["loadou
         {loadout.items.map((item) => (
           <div key={item.key} className="flex min-w-0 flex-col gap-1.5">
             <div className="group flex h-14 items-center justify-center overflow-hidden rounded-lg border border-[var(--line-soft)] bg-[var(--panel)] px-2 transition-[border-color,box-shadow] duration-500 hover:border-[var(--brand)]/50 hover:shadow-[0_8px_20px_-12px_var(--brand)] hover:duration-300" title={item.name ?? "Default"}>
-              {item.image ? <img src={item.image} alt={item.name ?? ""} className="max-h-full max-w-full object-contain transition-[scale] duration-500 group-hover:scale-110" loading="lazy" /> : <span className="text-[11px] text-[var(--text-faint)]">Default</span>}
+              {item.image ? <img src={item.image} alt={item.name ?? ""} className="lx-layer max-h-full max-w-full object-contain transition-[scale] duration-500 group-hover:scale-110" loading="lazy" /> : <span className="text-[11px] text-[var(--text-faint)]">Default</span>}
             </div>
             <span className="truncate text-[11px] text-[var(--text-dim)]">{item.label}</span>
           </div>

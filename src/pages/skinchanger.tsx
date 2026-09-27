@@ -917,7 +917,7 @@ export function SkinchangerPage() {
         key={id}
         data-slot-card={id}
         className={cn(
-          "group relative overflow-hidden rounded-lg border bg-[var(--card-surface)]",
+          "lx-layer group relative overflow-hidden rounded-lg border bg-[var(--card-surface)]",
           // Lift and a crimson edge on hover; leaving eases back slower than entering, like the other cards.
           "transition-[border-color,box-shadow,translate] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] hover:-translate-y-0.5 hover:border-[var(--brand)]/55 hover:shadow-[0_12px_28px_-14px_var(--brand)] hover:duration-300 hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
           savedItem ? "border-[var(--line)] bg-[linear-gradient(160deg,color-mix(in_oklab,var(--brand)_7%,var(--card-surface)),var(--card-surface)_55%)]" : "border-[var(--line-soft)]",
@@ -931,7 +931,8 @@ export function SkinchangerPage() {
 
         {/* Keyed by the look, so switching team fades the new skin in instead of swapping it. */}
         <span className={cn(
-          "pointer-events-none absolute inset-0 flex items-center justify-center px-6 pb-6",
+          // blur-[0px] at rest keeps the filter (and its layer) alive, so the un-blur never flashes.
+          "lx-layer pointer-events-none absolute inset-0 flex items-center justify-center px-6 pb-6 blur-[0px]",
           "transition-[filter,opacity,scale] duration-[260ms] ease-[cubic-bezier(0.4,0,0.2,1)] will-change-[filter] group-hover:duration-[320ms] group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
           "group-hover:scale-[1.03] group-hover:opacity-55 group-hover:blur-[4px] group-has-[:focus-visible]:opacity-55 group-has-[:focus-visible]:blur-[4px]",
           tall ? "pt-5" : "pt-3",
@@ -1288,7 +1289,7 @@ export function SkinchangerPage() {
                           onClick={() => selectSkin(item)}
                           data-catalog-item-id={item.id}
                           className={cn(
-                            "relative flex flex-col overflow-hidden rounded-lg border bg-[var(--card-surface)] p-2 text-left transition-[border-color,box-shadow,translate] duration-300 hover:-translate-y-0.5",
+                            "lx-layer relative flex flex-col overflow-hidden rounded-lg border bg-[var(--card-surface)] p-2 text-left transition-[border-color,box-shadow,translate] duration-300 hover:-translate-y-0.5",
                             isSelected ? "border-[var(--brand)] shadow-[0_0_18px_-6px_var(--brand)]" : "border-[var(--line-soft)] hover:border-[var(--brand)]/45",
                           )}
                         >

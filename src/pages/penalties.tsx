@@ -161,7 +161,7 @@ function SummaryTile({ icon: Icon, label, value, color, selected, pulse, onClick
         selected ? "border-[color-mix(in_oklab,var(--tile)_55%,transparent)] bg-[linear-gradient(135deg,color-mix(in_oklab,var(--tile)_12%,var(--card-surface)),var(--card-surface)_70%)]" : "border-[var(--line-soft)]",
       )}
     >
-      <span className="relative flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-[color-mix(in_oklab,var(--tile)_14%,transparent)] text-[var(--tile)] ring-1 ring-inset ring-[color-mix(in_oklab,var(--tile)_30%,transparent)] transition-[scale] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-105 group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]">
+      <span className="lx-layer relative flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-[color-mix(in_oklab,var(--tile)_14%,transparent)] text-[var(--tile)] ring-1 ring-inset ring-[color-mix(in_oklab,var(--tile)_30%,transparent)] transition-[scale] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-105 group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]">
         <Icon className="size-[18px]" />
         {pulse && Boolean(value) && <span className="lx-live-dot absolute -right-0.5 -top-0.5 size-2 rounded-full bg-[var(--tile)]" />}
       </span>

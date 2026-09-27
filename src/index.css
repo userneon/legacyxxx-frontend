@@ -1165,12 +1165,40 @@
   mask-image: radial-gradient(80% 100% at 70% 0%, black, transparent 75%);
 }
 
+/*
+ * Hover without flicker: anything that moves or scales on hover keeps its own compositor layer at
+ * rest too. Otherwise Chrome promotes it when the hover transition starts and demotes it when the
+ * transition back ends, re-rasterising the element (and its images) at that moment - the flash and
+ * 1px jump seen after moving the pointer away. Their resting transform is never `none` either.
+ */
+.lx-layer,
+/* The same for every Tailwind hover / group-hover translate, scale or rotate (arrows that slide in,
+   names that nudge, icons and thumbnails that grow), so new code is covered without remembering to. */
+[class*="hover:translate-"],
+[class*="hover:-translate-"],
+[class*="hover:scale-"],
+[class*="hover:rotate-"],
+[class*="hover:-rotate-"] {
+  will-change: transform, translate, scale, rotate;
+  backface-visibility: hidden;
+}
+/* Things that fade in on hover (remove buttons, arrows, markers, the pointer spotlight): an opacity
+   transition also promotes the element and everything painted over it, then demotes them all when
+   it ends. Keeping them composited at rest stops that second flash. */
+[class*="hover:opacity-"],
+.lx-spotlight {
+  will-change: opacity;
+}
+
 /* Card that lifts and picks up a crimson edge on hover. */
 .lx-lift {
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
   transition: transform var(--dur-slow) var(--ease-out), border-color var(--dur-slow) var(--ease-out), box-shadow var(--dur-slow) var(--ease-out);
 }
 .lx-lift:hover {
-  transform: translateY(-3px);
+  transform: translate3d(0, -3px, 0);
   border-color: color-mix(in oklch, var(--brand) 55%, transparent);
   box-shadow: 0 14px 36px -14px color-mix(in oklch, var(--brand) 55%, transparent);
 }
@@ -1203,6 +1231,10 @@
 
 .lx-fx-card {
   isolation: isolate;
+  /* Own layer at rest (see .lx-layer): no promote/demote flash when a hover ends. */
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
   /* backwards, not both: once in, the card hands transform back to :hover. */
   animation: lx-fx-card-in 700ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
   /* Leaving hover: a slow, eased settle so the card floats back down instead of dropping. */
@@ -1219,17 +1251,17 @@
     border-color 450ms cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 450ms cubic-bezier(0.22, 1, 0.36, 1),
     opacity 450ms cubic-bezier(0.22, 1, 0.36, 1);
-  transform: translateY(-5px);
+  transform: translate3d(0, -5px, 0);
   border-color: color-mix(in oklch, var(--brand) 35%, transparent);
   box-shadow: 0 18px 40px -16px color-mix(in oklch, var(--brand) 60%, transparent);
 }
 .lx-fx-card:active {
-  transform: translateY(-2px) scale(0.99);
+  transform: translate3d(0, -2px, 0) scale(0.99);
   transition-duration: 150ms;
 }
 @keyframes lx-fx-card-in {
-  from { opacity: 0; transform: translateY(14px) scale(0.98); filter: blur(4px); }
-  to { opacity: 1; transform: none; filter: none; }
+  from { opacity: 0; transform: translate3d(0, 14px, 0) scale(0.98); filter: blur(4px); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); filter: blur(0); }
 }
 
 /* Crimson light running around the edge while hovered. */
@@ -1247,11 +1279,14 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity 800ms cubic-bezier(0.37, 0, 0.18, 1);
-  animation: lx-edge-spin 3.2s linear infinite;
+  /* Paused at rest: an always-running @property animation repaints every card, and its images, on
+     every frame. It runs only while the card is hovered or focused, and freezes as it fades out. */
+  animation: lx-edge-spin 3.2s linear infinite paused;
 }
 .lx-fx-card:hover::before,
 .lx-fx-card:focus-visible::before {
   opacity: 1;
+  animation-play-state: running;
 }
 @keyframes lx-edge-spin {
   to { --lx-edge-angle: 360deg; }
