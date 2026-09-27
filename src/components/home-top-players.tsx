@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 function SectionHeader({ title, action, onAction }: { title: string; action?: string; onAction?: () => void }) {
   return (
     <div className="mb-3 flex items-center justify-between gap-3">
-      <h2 className="text-sm font-semibold">{title}</h2>
+      <h2 className="flex items-center gap-2 text-sm font-semibold"><span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--brand-bright)] shadow-[0_0_8px_var(--brand)]" />{title}</h2>
       {action && onAction && (
         <button type="button" onClick={onAction} className="group inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground">
           {action}
@@ -46,8 +46,8 @@ export function TopPlayers({ onOpenProfile, onViewAll }: { onOpenProfile: (steam
         <ol className="flex flex-col gap-1">
           {top.map((player) => (
             <li key={player.user_id}>
-              <button type="button" onClick={() => onOpenProfile(player.steam_id)} className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors hover:bg-secondary/50">
-                <span className={cn("w-5 shrink-0 text-center text-xs font-bold tabular-nums", player.position <= 3 ? "text-[var(--text)]" : "text-muted-foreground")}>{player.position}</span>
+              <button type="button" onClick={() => onOpenProfile(player.steam_id)} className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors hover:bg-[var(--brand)]/[0.08]">
+                <span className={cn("w-5 shrink-0 text-center text-xs font-bold tabular-nums", player.position <= 3 ? "text-[var(--brand-bright)]" : "text-muted-foreground")}>{player.position}</span>
                 <PlayerAvatar avatar={player.avatar} name={player.username} className="size-8 shrink-0 rounded-md text-[10px]" />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium">{player.username}</div>

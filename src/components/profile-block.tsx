@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { RankLabel } from "@/components/competitive-rank-badge"
 import { NotificationsMenu } from "@/components/notifications-menu"
+import { SteamIcon } from "@/components/steam-login-gate"
 
 interface ProfileBlockProps {
   onNavigate: (page: PageId) => void
@@ -31,8 +32,9 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
         <button
           type="button"
           onClick={loginWithSteam}
-          className="flex h-9 items-center rounded-lg border border-[var(--line-strong)] bg-[var(--raised)] px-3 text-xs font-medium text-[var(--text-2)] transition-colors hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
+          className="lx-brand-button flex h-9 items-center gap-2 rounded-lg px-3.5 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
         >
+          <SteamIcon className="size-4 shrink-0" />
           Sign in with Steam
         </button>
       </div>

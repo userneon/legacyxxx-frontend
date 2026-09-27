@@ -74,7 +74,7 @@ export function KillFeed({ onOpenServer }: { onOpenServer?: (serverId: string) =
   return (
     <div aria-label="Live kill feed" className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden">
       <span className="flex shrink-0 items-center gap-1.5 text-xs font-semibold text-[var(--text-muted)]">
-        <span className="size-1.5 rounded-full bg-[var(--status-green)]" />
+        <span className={cn("size-1.5 rounded-full", stale ? "bg-[var(--text-faint)]" : "lx-live-dot bg-[var(--status-green)]")} />
         LIVE
       </span>
       {stale ? (

@@ -10,7 +10,7 @@ import { AnimatedNumber } from "@/components/animated-number"
 type IconComponent = ComponentType<{ className?: string }>
 
 /** Number tile: tinted icon, animated value and a label. */
-export function StatTile({ icon: Icon, label, value, tone, suffix, pulse, fallback }: {
+export function StatTile({ icon: Icon, label, value, tone, suffix, pulse, fallback, className, iconClassName }: {
   icon: IconComponent
   label: string
   value: number | null | undefined
@@ -19,12 +19,15 @@ export function StatTile({ icon: Icon, label, value, tone, suffix, pulse, fallba
   /** A live dot while the value is above zero. */
   pulse?: boolean
   fallback?: string
+  className?: string
+  /** Overrides the icon chip colours (defaults to the tone on a raised chip). */
+  iconClassName?: string
 }) {
   return (
-    <div className="glass relative min-w-[8.5rem] shrink-0 snap-start overflow-hidden rounded-xl p-3.5 @4xl:min-w-0 @4xl:p-4">
+    <div className={cn("glass relative min-w-[8.5rem] shrink-0 snap-start overflow-hidden rounded-xl p-3.5 @4xl:min-w-0 @4xl:p-4", className)}>
       <div className="flex items-center justify-between">
-        <span className={cn("flex size-8 items-center justify-center rounded-lg bg-[var(--raised)]", tone)}><Icon className="size-4" /></span>
-        {pulse && Boolean(value) && <span className="size-2 rounded-full bg-[var(--status-green)]" />}
+        <span className={cn("flex size-8 items-center justify-center rounded-lg bg-[var(--raised)]", iconClassName ?? tone)}><Icon className="size-4" /></span>
+        {pulse && Boolean(value) && <span className="lx-live-dot size-2 rounded-full bg-[var(--status-green)]" />}
       </div>
       <div className={cn("mt-3 text-2xl font-bold tabular-nums", tone)}><AnimatedNumber value={value} suffix={suffix} fallback={fallback} /></div>
       <div className="mt-0.5 truncate text-xs text-muted-foreground">{label}</div>

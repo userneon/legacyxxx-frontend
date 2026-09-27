@@ -46,7 +46,7 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* LEGACY-X design tokens (docs/design references): neutral surfaces, one accent, status green. */
+/* LEGACY-X design tokens (docs/design references): neutral surfaces, crimson brand accent, status green. */
 :root, .dark {
   --radius: 0.625rem;
 
@@ -62,9 +62,14 @@
   --text-muted: #a3a3a3;
   --text-dim: #737373;
   --text-faint: #525252;
-  /* White is the only accent: emphasis comes from brightness and weight, never from a hue. */
+  /* White stays the neutral emphasis; crimson is the brand accent (owner request 2026-09-27). */
   --accent-solid: #fafafa;
   --accent-on: #0a0a0a;
+  /* Brand crimson, taken from the LEGACY-X key art: primary actions, the active nav item and glows. */
+  --brand: #e11d48;
+  --brand-bright: #ff3d6e;
+  --brand-deep: #4c0717;
+  --brand-on: #fff5f7;
   --status-green: #22c55e;
   /* Meaning colours (owner request 2026-09-24): used as text, dots, thin borders and faint tints — never as big fills. */
   --status-red: #ef4444;
@@ -1095,4 +1100,84 @@
 @keyframes lx-panel-out {
   from { opacity: 1; scale: 1; filter: blur(0); }
   to { opacity: 0; scale: 0.975; filter: blur(3px); }
+}
+
+/* ========================================
+   Brand crimson: glows, buttons and the hero
+   ======================================== */
+/* Primary action: solid crimson with a soft glow that grows on hover. */
+.lx-brand-button {
+  background: linear-gradient(180deg, var(--brand-bright), var(--brand));
+  color: var(--brand-on);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--brand-bright) 60%, transparent) inset, 0 6px 20px -6px color-mix(in oklch, var(--brand) 70%, transparent);
+  transition: box-shadow var(--dur-base) var(--ease-out), transform var(--dur-fast) var(--ease-out), filter var(--dur-base) var(--ease-out);
+}
+.lx-brand-button:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--brand-bright) 80%, transparent) inset, 0 10px 32px -6px color-mix(in oklch, var(--brand) 90%, transparent);
+}
+.lx-brand-button:active {
+  transform: scale(0.98);
+}
+
+/* Heading word painted with the brand gradient. */
+.lx-brand-text {
+  background: linear-gradient(90deg, var(--brand-bright), var(--brand) 60%, var(--brand-bright));
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: lx-brand-text-shift 6s ease-in-out infinite;
+}
+@keyframes lx-brand-text-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Hero backdrop: two slow-drifting crimson glows over the key art. */
+.lx-hero-glow {
+  background:
+    radial-gradient(60% 90% at 85% 10%, color-mix(in oklch, var(--brand) 38%, transparent), transparent 70%),
+    radial-gradient(45% 70% at 10% 110%, color-mix(in oklch, var(--brand-bright) 22%, transparent), transparent 70%);
+  animation: lx-hero-glow-drift 14s ease-in-out infinite alternate;
+}
+@keyframes lx-hero-glow-drift {
+  from { transform: translate3d(0, 0, 0) scale(1); opacity: 0.85; }
+  to { transform: translate3d(-3%, 2%, 0) scale(1.06); opacity: 1; }
+}
+
+/* Faint grid over the hero for depth. */
+.lx-hero-grid {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(80% 100% at 70% 0%, black, transparent 75%);
+}
+
+/* Card that lifts and picks up a crimson edge on hover. */
+.lx-lift {
+  transition: transform var(--dur-slow) var(--ease-out), border-color var(--dur-slow) var(--ease-out), box-shadow var(--dur-slow) var(--ease-out);
+}
+.lx-lift:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in oklch, var(--brand) 55%, transparent);
+  box-shadow: 0 14px 36px -14px color-mix(in oklch, var(--brand) 55%, transparent);
+}
+
+/* Live dot with a soft ping. */
+.lx-live-dot {
+  position: relative;
+}
+.lx-live-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: inherit;
+  animation: lx-live-ping 1.8s var(--ease-out) infinite;
+}
+@keyframes lx-live-ping {
+  from { transform: scale(1); opacity: 0.7; }
+  to { transform: scale(2.8); opacity: 0; }
 }
