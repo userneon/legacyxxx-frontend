@@ -99,6 +99,10 @@ const REVIEWS = [
   { rating: 5, message: "Skinchanger works perfectly, and the site looks clean." },
   { rating: 4, message: "Tournaments are well organised. Hope there are more of them." },
   { rating: 5, message: "Anti-cheat keeps the games clean. Highly recommend." },
+  { rating: 3, message: "Good servers, but evenings can get crowded and the queue takes a while." },
+  { rating: 4, message: "Clean website, easy to find a server. The kill feed on top is a nice touch." },
+  { rating: 2, message: "Got matched with much stronger players a few times. Hope the ranks balance out." },
+  { rating: 5, message: "Played here for a year. Friendly community and the staff actually answer on Discord." },
 ]
 
 function feedback() {
