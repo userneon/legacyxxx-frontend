@@ -1099,14 +1099,24 @@ export function SkinchangerPage() {
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="shrink-0 px-6 pb-1 pt-6">
         <section aria-label="Loadout" className="relative overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]">
-          {/* The side's default agent stands behind the header and crossfades when the team switches. */}
-          <img
-            key={viewTeam}
-            src={viewTeam === "t" ? defaultAgentT : defaultAgentCt}
-            alt=""
-            aria-hidden="true"
-            className="lx-swap-fade pointer-events-none absolute -bottom-6 right-[8%] h-[150%] w-auto object-contain opacity-35 [mask-image:linear-gradient(to_left,black_40%,transparent)] max-lg:hidden"
-          />
+          {/*
+            The side's default agent stands behind the header. Both are always mounted: switching to
+            CT (the right tab) slides the CT agent in from the right while T leaves to the left, and
+            switching back reverses it.
+          */}
+          {(["t", "ct"] as const).map((side) => (
+            <img
+              key={side}
+              src={side === "t" ? defaultAgentT : defaultAgentCt}
+              alt=""
+              aria-hidden="true"
+              className={cn(
+                "pointer-events-none absolute -bottom-10 right-[15%] h-[165%] w-auto object-contain [mask-image:linear-gradient(to_left,black_45%,transparent)] max-lg:hidden",
+                "transition-[translate,opacity] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                viewTeam === side ? "translate-x-0 opacity-40" : side === "t" ? "-translate-x-24 opacity-0" : "translate-x-24 opacity-0",
+              )}
+            />
+          ))}
           <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
           <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
           <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
