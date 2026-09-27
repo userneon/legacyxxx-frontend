@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties, type PointerEvent } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from "react"
 import { useSearchParams } from "react-router-dom"
 import { Crown, LoaderCircle, RotateCcw, Search } from "lucide-react"
 
@@ -161,6 +161,68 @@ function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: Competiti
   )
 }
 
+const COLUMNS = [
+  { key: "exp", label: "EXP" },
+  { key: "matches", label: "Matches" },
+  { key: "win", label: "Win rate" },
+  { key: "kd", label: "K/D" },
+] as const
+
+/**
+ * Sticky column header. One crimson underline glides to the sorted column (like the Segmented
+ * thumb) instead of jumping; every label keeps the same weight so nothing shifts when it changes.
+ */
+function TableHeader({ sort }: { sort: LeaderboardSort }) {
+  const row = useRef<HTMLDivElement>(null)
+  const labels = useRef(new Map<string, HTMLSpanElement>())
+  const [bar, setBar] = useState<{ x: number; width: number } | null>(null)
+
+  useLayoutEffect(() => {
+    const measure = () => {
+      const label = labels.current.get(sort)
+      if (!label || !row.current) return
+      const rowBox = row.current.getBoundingClientRect()
+      const labelBox = label.getBoundingClientRect()
+      setBar({ x: labelBox.left - rowBox.left, width: labelBox.width })
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    if (row.current) observer.observe(row.current)
+    return () => observer.disconnect()
+  }, [sort])
+
+  return (
+    <div ref={row} className={cn(GRID, "sticky top-0 z-[2] h-10 border-y border-[var(--line-soft)] bg-[var(--panel)] text-xs")}>
+      <span className="font-medium text-[var(--text-dim)]">#</span>
+      <span className="font-medium text-[var(--text-dim)]">Player</span>
+      <span className="font-medium text-[var(--text-dim)]">Rank</span>
+      {COLUMNS.map((column) => (
+        <span key={column.key} className="text-right">
+          <span
+            ref={(node) => {
+              if (node) labels.current.set(column.key, node)
+              else labels.current.delete(column.key)
+            }}
+            className={cn(
+              "font-semibold transition-colors duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+              column.key === sort ? "text-[var(--brand-bright)]" : "text-[var(--text-dim)]",
+            )}
+          >
+            {column.label}
+          </span>
+        </span>
+      ))}
+      {bar && (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-px left-0 h-0.5 rounded-full bg-[var(--brand-bright)] shadow-[0_0_8px_var(--brand)] transition-[translate,width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+          style={{ translate: `${bar.x - 6}px 0`, width: bar.width + 12 }}
+        />
+      )}
+    </div>
+  )
+}
+
 function TopCardSkeleton() {
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-[18px]" aria-hidden="true">
@@ -292,17 +354,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
             </section>
           )}
 
-          <div className={cn(GRID, "sticky top-0 z-[2] h-10 border-y border-[var(--line-soft)] bg-[var(--panel)] text-xs")}>
-            <span className="font-medium text-[var(--text-dim)]">#</span>
-            <span className="font-medium text-[var(--text-dim)]">Player</span>
-            <span className="font-medium text-[var(--text-dim)]">Rank</span>
-            {(["exp", "matches", "win", "kd"] as const).map((column) => (
-              <span key={column} className={cn("relative text-right transition-colors duration-300", column === sort ? "font-semibold text-[var(--brand-bright)]" : "font-medium text-[var(--text-dim)]")}>
-                {column === "exp" ? "EXP" : column === "matches" ? "Matches" : column === "win" ? "Win rate" : "K/D"}
-                {column === sort && <span aria-hidden="true" className="absolute -bottom-[11px] right-0 h-0.5 w-full max-w-[56px] rounded-full bg-[var(--brand-bright)] shadow-[0_0_8px_var(--brand)]" />}
-              </span>
-            ))}
-          </div>
+          <TableHeader sort={sort} />
 
           {firstLoad ? (
             Array.from({ length: 8 }, (_, index) => <RowSkeleton key={index} />)
