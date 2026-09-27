@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState, type PointerEvent } from "react"
 import { useSearchParams } from "react-router-dom"
-import { LoaderCircle, RotateCcw, Search } from "lucide-react"
+import { ArrowUpRight, LoaderCircle, RotateCcw, Search, Sparkles, X } from "lucide-react"
 
-import { cn } from "@/lib/utils"
-import { searchService } from "@/api"
-import type { CommunityPlayer, ModerationStatus } from "@/api/types"
+import { competitiveService, searchService } from "@/api"
+import type { CommunityPlayer, CompetitiveLeaderboardEntry, ModerationStatus } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { steamIdFromInput } from "@/lib/links"
 import { PlayerAvatar } from "@/components/player-avatar"
@@ -13,18 +12,44 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 const SEARCH_DEBOUNCE_MS = 250
 
-/** A clean record needs no badge; only an active penalty is flagged. */
+/** Penalty colours shared with the Penalties page. */
+const STATUS_COLOR: Record<Exclude<ModerationStatus, "Clear">, string> = {
+  Banned: "var(--penalty-ban)",
+  Muted: "var(--penalty-mute)",
+  Gag: "var(--penalty-gag)",
+}
+
+/** A clean record needs no badge; only an active penalty is flagged, in its penalty colour. */
 function StatusPill({ status }: { status: ModerationStatus }) {
   if (status === "Clear") return null
+  const color = STATUS_COLOR[status]
   return (
-    <span className={cn(
-      "inline-flex h-5 shrink-0 items-center rounded-full border px-2 text-[11px] font-medium",
-      status === "Banned"
-        ? "border-[var(--accent-solid)]/35 bg-[var(--accent-solid)]/10 text-[var(--accent-solid)]"
-        : "border-[var(--line)] bg-[var(--raised)] text-[var(--text-muted)]",
-    )}>
+    <span
+      className="inline-flex h-5 shrink-0 items-center rounded-full border px-2 text-[11px] font-semibold"
+      style={{ color, borderColor: `color-mix(in oklab, ${color} 35%, transparent)`, backgroundColor: `color-mix(in oklab, ${color} 10%, transparent)` }}
+    >
       {status}
     </span>
+  )
+}
+
+/** Feeds the pointer position to a card's spotlight (--mx / --my). */
+function trackSpotlight(event: PointerEvent<HTMLElement>) {
+  const rect = event.currentTarget.getBoundingClientRect()
+  event.currentTarget.style.setProperty("--mx", `${event.clientX - rect.left}px`)
+  event.currentTarget.style.setProperty("--my", `${event.clientY - rect.top}px`)
+}
+
+/** The player's name with the searched part in crimson. */
+function Highlight({ text, match }: { text: string; match: string }) {
+  const at = match ? text.toLowerCase().indexOf(match.toLowerCase()) : -1
+  if (at < 0) return <>{text}</>
+  return (
+    <>
+      {text.slice(0, at)}
+      <mark className="rounded-[3px] bg-[var(--brand)]/20 px-px text-[var(--brand-bright)]">{text.slice(at, at + match.length)}</mark>
+      {text.slice(at + match.length)}
+    </>
   )
 }
 
@@ -37,7 +62,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   )
 }
 
-function PlayerCard({ player, onOpen }: { player: CommunityPlayer; onOpen: () => void }) {
+function PlayerCard({ player, match, index, onOpen }: { player: CommunityPlayer; match: string; index: number; onOpen: () => void }) {
   const identity = player.steamId ?? player.id
   const winRate = player.matches > 0 ? `${Math.round((player.wins / player.matches) * 100)}%` : "—"
   return (
@@ -46,19 +71,27 @@ function PlayerCard({ player, onOpen }: { player: CommunityPlayer; onOpen: () =>
       onClick={onOpen}
       disabled={!identity}
       aria-label={`Open ${player.name} profile`}
-      className="flex flex-col gap-4 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-4 text-left transition-colors duration-150 hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 disabled:cursor-default"
+      onPointerMove={trackSpotlight}
+      style={{ animationDelay: `${Math.min(index, 10) * 50}ms` }}
+      className="lx-fx-card group relative flex flex-col gap-4 overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:cursor-default"
     >
-      <span className="flex items-center gap-3">
-        <PlayerAvatar avatar={player.avatar} name={player.name} className="size-12 shrink-0 rounded-xl text-sm" />
+      <span aria-hidden="true" className="lx-spotlight pointer-events-none absolute inset-0" />
+      <ArrowUpRight aria-hidden="true" className="absolute right-3.5 top-3.5 size-4 -translate-x-1 translate-y-1 text-[var(--brand-bright)] opacity-0 transition-[opacity,translate] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:translate-x-0 group-hover:translate-y-0 group-hover:opacity-100 group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]" />
+      <span className="relative flex items-center gap-3 pr-5">
+        <PlayerAvatar
+          avatar={player.avatar}
+          name={player.name}
+          className="size-12 shrink-0 rounded-xl text-sm ring-0 ring-[var(--brand)]/60 transition-[scale,box-shadow] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-105 group-hover:ring-2 group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]"
+        />
         <span className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="truncate text-sm font-medium text-[var(--text)]" title={player.name}>{player.name}</span>
+          <span className="truncate text-sm font-medium text-[var(--text)]" title={player.name}><Highlight text={player.name} match={match} /></span>
           <span className="truncate text-xs text-[var(--text-dim)]">
             {player.lastPlayed ? <>Played <RelativeTime value={player.lastPlayed} /></> : "No matches yet"}
           </span>
         </span>
         <StatusPill status={player.moderationStatus} />
       </span>
-      <span className="grid grid-cols-4 gap-2 border-t border-[var(--line-soft)] pt-3.5">
+      <span className="relative grid grid-cols-4 gap-2 border-t border-[var(--line-soft)] pt-3.5">
         <Stat label="K/D" value={player.kd.toFixed(2)} />
         <Stat label="Matches" value={player.matches.toLocaleString()} />
         <Stat label="Win rate" value={winRate} />
@@ -118,41 +151,90 @@ export function ExplorePage({ onProfileNavigate }: { onProfileNavigate: (userId:
   )
   const players = data ?? []
 
+  // Before a search: the top of the ladder as suggestions, so the page never starts empty.
+  const { data: ladder } = useApiQuery<CompetitiveLeaderboardEntry[]>((signal) => competitiveService.getLeaderboard({ signal }), { enabled: !searching, queryKey: `explore-suggestions:${searching}` })
+  const suggestions = [...(ladder ?? [])].sort((a, b) => a.position - b.position).slice(0, 8)
+  const input = useRef<HTMLInputElement>(null)
+  const pick = (name: string) => {
+    setQuery(name)
+    input.current?.focus()
+  }
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex shrink-0 flex-col gap-4 border-b border-[var(--line-soft)] px-6 pb-5 pt-6">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-[22px] font-semibold leading-[1.2] tracking-[-0.3px] text-[var(--text)]">Explore</h1>
-          <span className="text-[13px] leading-[1.2] text-[var(--text-muted)]">Find players on Legacy-X.</span>
-        </div>
-        <label className="flex h-12 w-full max-w-[640px] items-center gap-2.5 rounded-xl border border-[var(--line)] bg-[var(--card-surface)] px-4 transition-colors focus-within:border-[var(--line-strong)]">
-          <Search className="size-[18px] shrink-0 text-[var(--text-dim)]" />
-          <input
-            type="search"
-            autoFocus
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            aria-label="Search players"
-            placeholder="Search by name or Steam ID"
-            className="min-w-0 flex-1 bg-transparent text-[15px] text-[var(--text)] outline-none placeholder:text-[var(--text-dim)]"
-          />
-        </label>
+      <div className="shrink-0 px-6 pb-1 pt-6">
+        <section aria-label="Explore" className="relative overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]">
+          <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
+          <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
+          <div className="relative z-10 flex flex-col gap-5 p-7">
+            <div className="flex min-w-0 flex-col gap-2.5">
+              <h1 className="flex items-center gap-2.5 text-[34px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
+                <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)] shadow-[0_0_14px_var(--brand)]" />
+                Explore
+              </h1>
+              <span className="text-[14px] text-[var(--text-2)]">Find any player on Legacy-X by name, Steam ID or profile link.</span>
+            </div>
+            <label className="group flex h-14 w-full max-w-[720px] items-center gap-3 rounded-xl border border-[var(--line)] bg-[var(--panel)]/80 px-4 backdrop-blur transition-[border-color,box-shadow] duration-300 focus-within:border-[var(--brand)]/60 focus-within:shadow-[0_0_0_4px_color-mix(in_oklab,var(--brand)_16%,transparent),0_14px_40px_-18px_var(--brand)]">
+              <Search className="size-5 shrink-0 text-[var(--text-dim)] transition-colors duration-300 group-focus-within:text-[var(--brand-bright)]" />
+              <input
+                ref={input}
+                type="search"
+                autoFocus
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                aria-label="Search players"
+                placeholder="Search by name or Steam ID"
+                className="min-w-0 flex-1 bg-transparent text-base text-[var(--text)] outline-none placeholder:text-[var(--text-dim)] [&::-webkit-search-cancel-button]:hidden"
+              />
+              {loading && searching && <LoaderCircle aria-label="Searching" className="size-4 shrink-0 animate-spin text-[var(--text-dim)]" />}
+              {query && (
+                <button type="button" onClick={() => pick("")} aria-label="Clear search" className="flex size-7 shrink-0 items-center justify-center rounded-lg text-[var(--text-dim)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)]">
+                  <X className="size-4" />
+                </button>
+              )}
+            </label>
+          </div>
+        </section>
       </div>
 
-      <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 pb-7 pt-5">
+      {/* pt-4 leaves room for the 5px hover lift: the scroll area clips anything above its top. */}
+      <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 pb-7 pt-4">
         {!searching ? (
-          <div className="flex h-full min-h-[360px] flex-col items-center justify-center gap-2 text-center">
-            <span className="flex size-11 items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--card-surface)]">
-              <Search className="size-[18px] text-[var(--text-dim)]" />
+          <div className="lx-swap-in flex min-h-[320px] flex-col items-center justify-center gap-3 text-center">
+            <span className="relative flex size-14 items-center justify-center rounded-2xl border border-[var(--brand)]/35 bg-[var(--brand)]/10 text-[var(--brand-bright)] shadow-[0_0_30px_-8px_var(--brand)]">
+              <Search className="size-6" />
             </span>
-            <span className="text-sm font-medium text-[var(--text)]">Start typing to search</span>
-            <span className="text-[13px] text-[var(--text-dim)]">Search any player by name or Steam ID.</span>
+            <span className="text-base font-semibold text-[var(--text)]">Start typing to search</span>
+            <span className="max-w-sm text-[13px] text-[var(--text-dim)]">Search any player by name or Steam ID, or paste a Steam profile link.</span>
+            {suggestions.length > 0 && (
+              <div className="mt-3 flex max-w-[640px] flex-col items-center gap-2.5">
+                <span className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+                  <Sparkles className="size-3.5 text-[var(--brand-bright)]" />
+                  Try a top player
+                </span>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {suggestions.map((player, index) => (
+                    <button
+                      key={player.user_id}
+                      type="button"
+                      onClick={() => pick(player.username)}
+                      style={{ animationDelay: `${120 + index * 45}ms` }}
+                      className="lx-swap-in group flex h-9 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--card-surface)] pl-1 pr-3.5 text-[13px] font-medium text-[var(--text-2)] transition-[border-color,color,background-color,translate] duration-300 hover:-translate-y-0.5 hover:border-[var(--brand)]/55 hover:bg-[var(--brand)]/10 hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
+                    >
+                      <PlayerAvatar avatar={player.avatar} name={player.username} className="size-7 rounded-full text-[10px]" />
+                      {player.username}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex flex-col gap-3">
             <span className="flex items-center gap-2 text-xs text-[var(--text-dim)]">
-              Results
-              {loading && players.length > 0 && <LoaderCircle aria-label="Updating" className="size-3.5 animate-spin" />}
+              <span aria-hidden="true" className="h-3 w-[3px] rounded-full bg-[var(--brand-bright)] shadow-[0_0_8px_var(--brand)]" />
+              {players.length > 0 ? <><span className="font-semibold tabular-nums text-[var(--text-2)]">{players.length}</span> player{players.length === 1 ? "" : "s"}</> : "Results"}
             </span>
             {loading && players.length === 0 ? (
               <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-3">
@@ -167,15 +249,18 @@ export function ExplorePage({ onProfileNavigate }: { onProfileNavigate: (userId:
                 </button>
               </p>
             ) : players.length === 0 ? (
-              <p className="py-10 text-center text-[13px] text-[var(--text-dim)]">No player matches “{search}”.</p>
+              <p className="lx-swap-in py-10 text-center text-[13px] text-[var(--text-dim)]">No player matches “{search}”.</p>
             ) : (
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-3">
-                {players.map((player) => {
+              // Keyed on the search so every new result set cascades in.
+              <div key={search} className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-3">
+                {players.map((player, index) => {
                   const identity = player.steamId ?? player.id
                   return (
                     <PlayerCard
                       key={identity ?? player.name}
                       player={player}
+                      match={search}
+                      index={index}
                       onOpen={() => { if (identity) onProfileNavigate(identity) }}
                     />
                   )

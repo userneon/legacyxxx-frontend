@@ -150,6 +150,27 @@ function penalties() {
   }))
 }
 
+function searchPlayers(query: string) {
+  const needle = query.trim().toLowerCase()
+  const statuses = ["Clear", "Clear", "Banned", "Clear", "Muted", "Clear", "Gag", "Clear"] as const
+  const players = NAMES.map((name, index) => ({
+    id: `mock-${index}`,
+    steamId: `7656119800000${String(index).padStart(4, "0")}`,
+    name,
+    kills: 2400 - index * 90,
+    deaths: 1600 - index * 40,
+    kd: 1.5 - index * 0.04,
+    headshots: 900 - index * 30,
+    matches: 180 - index * 9,
+    wins: 110 - index * 6,
+    playedHours: 240 - index * 11,
+    lastPlayed: new Date(Date.now() - index * 5 * HOUR).toISOString(),
+    avatar: "",
+    moderationStatus: statuses[index % statuses.length],
+  }))
+  return { players: players.filter((player) => player.name.toLowerCase().includes(needle) || player.steamId.includes(needle)) }
+}
+
 function notFound(): ApiError {
   return { status: 404, code: "not_found", message: "The requested resource could not be found." }
 }
@@ -175,6 +196,8 @@ export async function mockResponse(method: string, path: string, query: Query): 
       return killfeed()
     case "/api/v1/feedback":
       return feedback()
+    case "/api/v1/search/players":
+      return searchPlayers(String(query?.query ?? ""))
     case "/api/v1/moderation/penalties":
       return penalties()
     case "/api/v1/tournaments":
