@@ -1181,3 +1181,80 @@
   from { transform: scale(1); opacity: 0.7; }
   to { transform: scale(2.8); opacity: 0; }
 }
+
+/* ========================================
+   Home mode cards: entrance, drifting map, spotlight, spinning crimson edge
+   ======================================== */
+@property --lx-edge-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.lx-mode-card {
+  isolation: isolate;
+  /* backwards, not both: once in, the card hands transform back to :hover. */
+  animation: lx-mode-card-in 700ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  transition:
+    transform 500ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 500ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lx-mode-card:hover {
+  transform: translateY(-5px);
+  border-color: color-mix(in oklch, var(--brand) 35%, transparent);
+  box-shadow: 0 18px 40px -16px color-mix(in oklch, var(--brand) 60%, transparent);
+}
+.lx-mode-card:active {
+  transform: translateY(-2px) scale(0.99);
+  transition-duration: 150ms;
+}
+@keyframes lx-mode-card-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); filter: blur(4px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+
+/* Crimson light running around the edge while hovered. */
+.lx-mode-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: 1px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--lx-edge-angle), transparent 0deg, transparent 220deg, var(--brand) 290deg, var(--brand-bright) 330deg, transparent 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: lx-edge-spin 3.2s linear infinite;
+}
+.lx-mode-card:hover::before,
+.lx-mode-card:focus-visible::before {
+  opacity: 1;
+}
+@keyframes lx-edge-spin {
+  to { --lx-edge-angle: 360deg; }
+}
+
+/* Soft crimson light that follows the pointer. */
+.lx-spotlight {
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), color-mix(in oklch, var(--brand) 22%, transparent), transparent 65%);
+  opacity: 0;
+  transition: opacity 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.group:hover > .lx-spotlight {
+  opacity: 1;
+}
+
+/* Map artwork slowly pans so the cards never sit still. */
+.lx-map-drift {
+  animation: lx-map-drift 22s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes lx-map-drift {
+  from { transform: scale(1.04) translate3d(-1.5%, 0, 0); }
+  to { transform: scale(1.1) translate3d(1.5%, -2%, 0); }
+}
