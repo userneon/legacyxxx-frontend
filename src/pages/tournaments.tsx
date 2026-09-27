@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, type ReactNode } from "react"
 import { useSearchParams } from "react-router-dom"
-import { Calendar, ChevronRight, LoaderCircle, Play, RotateCcw, Trophy, UserPlus, Users, X } from "lucide-react"
+import { Calendar, ChevronRight, Crown, LoaderCircle, Play, RotateCcw, Swords, Trophy, UserPlus, Users, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { tournamentsService, type PastTournament, type TournamentDetail, type TournamentMatch, type TournamentPhase, type TournamentPlayer, type TournamentSummary } from "@/api/tournaments"
@@ -14,6 +14,7 @@ import { Segmented } from "@/components/segmented"
 import { SteamLoginButton } from "@/components/steam-login-gate"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
+import { cs2MapArtwork } from "@/lib/cs2-map-art"
 
 type Tab = "overview" | "bracket" | "players" | "matches"
 const TABS: { value: Tab; label: string }[] = [
@@ -24,8 +25,8 @@ const TABS: { value: Tab; label: string }[] = [
 ]
 const readTab = (value: string | null): Tab => (TABS.some((tab) => tab.value === value) ? (value as Tab) : "overview")
 
-const primaryButton = "flex h-10 items-center justify-center gap-2 rounded-lg bg-[var(--accent-solid)] text-sm font-semibold text-[var(--accent-on)] transition-[opacity,transform] duration-150 hover:opacity-90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 disabled:pointer-events-none disabled:opacity-50"
-const secondaryButton = "flex h-10 items-center justify-center gap-2 rounded-lg border border-[var(--line)] text-sm font-medium text-[var(--text)] transition-[background-color,border-color,transform] duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 disabled:pointer-events-none disabled:opacity-50"
+const primaryButton = "lx-brand-button flex h-10 items-center justify-center gap-2 rounded-lg text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:pointer-events-none disabled:opacity-40 disabled:saturate-50"
+const secondaryButton = "flex h-10 items-center justify-center gap-2 rounded-lg border border-[var(--line)] text-sm font-medium text-[var(--text)] transition-[background-color,border-color,transform] duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:pointer-events-none disabled:opacity-50"
 const card = "rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]"
 
 function useNow(intervalMs = 1000) {
@@ -55,8 +56,8 @@ function errorMessage(caught: unknown, fallback: string) {
 
 function PhasePill({ phase }: { phase: TournamentPhase }) {
   const meta = {
-    registration: { label: "Registration open", className: "bg-[var(--accent-solid)]/12 text-[var(--text)]", dot: "bg-[var(--accent-solid)]" },
-    live: { label: "Live", className: "bg-[var(--status-green)]/12 text-[var(--status-green)]", dot: "bg-[var(--status-green)]" },
+    registration: { label: "Registration open", className: "border border-[var(--brand)]/45 bg-[var(--brand)]/15 text-[var(--text)]", dot: "lx-live-dot bg-[var(--brand-bright)]" },
+    live: { label: "Live", className: "border border-[var(--status-green)]/35 bg-[var(--status-green)]/12 text-[var(--status-green)]", dot: "lx-live-dot bg-[var(--status-green)]" },
     upcoming: { label: "Upcoming", className: "bg-[var(--raised)] text-[var(--text-muted)]", dot: "bg-[var(--text-dim)]" },
     finished: { label: "Finished", className: "bg-[var(--raised)] text-[var(--text-muted)]", dot: "bg-[var(--text-dim)]" },
   }[phase]
@@ -72,11 +73,12 @@ function PageHeader({ loading }: { loading?: boolean }) {
   return (
     <div className="flex items-end justify-between">
       <div className="flex flex-col gap-1">
-        <h1 className="flex items-center gap-2 text-[22px] font-semibold leading-[1.2] tracking-[-0.3px] text-[var(--text)]">
+        <h1 className="flex items-center gap-2.5 text-[28px] font-bold leading-[1.15] tracking-[-0.5px] text-[var(--text)]">
+          <span aria-hidden="true" className="h-6 w-1 rounded-full bg-[var(--brand-bright)] shadow-[0_0_14px_var(--brand)]" />
           Tournaments
           {loading && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
         </h1>
-        <span className="text-[13px] leading-[1.2] text-[var(--text-muted)]">5v5 events on Legacy-X servers.</span>
+        <span className="text-[14px] leading-[1.3] text-[var(--text-2)]">5v5 events on Legacy-X servers.</span>
       </div>
     </div>
   )
@@ -86,25 +88,27 @@ function PastTournaments({ past, onOpen }: { past: PastTournament[]; onOpen: (id
   if (past.length === 0) return null
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-sm font-semibold text-[var(--text)]">Past tournaments</h2>
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]"><span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--brand-bright)] shadow-[0_0_8px_var(--brand)]" />Past tournaments</h2>
       <div className={cn(card, "overflow-hidden")}>
-        {past.map((tournament) => (
+        {past.map((tournament, index) => (
           <button
             key={tournament.id}
             type="button"
             onClick={() => onOpen(tournament.id)}
-            className="grid h-[60px] w-full grid-cols-[minmax(0,1fr)_200px_120px_20px] items-center gap-4 border-b border-[var(--raised)] px-[18px] text-left transition-colors duration-150 last:border-b-0 hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/60 max-sm:grid-cols-[minmax(0,1fr)_20px]"
+            style={{ animationDelay: `${index * 50}ms` }}
+            className="lx-row-in group relative grid h-[60px] w-full grid-cols-[minmax(0,1fr)_200px_120px_20px] items-center gap-4 border-b border-[var(--raised)] px-[18px] text-left transition-[background-color] duration-500 last:border-b-0 hover:bg-[var(--brand)]/[0.06] hover:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--brand-bright)]/60 max-sm:grid-cols-[minmax(0,1fr)_20px]"
           >
+            <span aria-hidden="true" className="absolute bottom-2.5 left-0 top-2.5 w-[3px] scale-y-0 rounded-r-full bg-[var(--brand-bright)] opacity-0 shadow-[0_0_10px_var(--brand)] transition-[scale,opacity] duration-500 group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300" />
             <span className="flex min-w-0 flex-col gap-1">
               <span className="truncate text-[13px] font-medium text-[var(--text)]">{tournament.name}</span>
               <span className="text-xs text-[var(--text-dim)]">{tournament.startsAt ? formatDate(tournament.startsAt) : "—"}</span>
             </span>
             <span className="flex min-w-0 items-center gap-2 max-sm:hidden">
-              <Trophy className="size-3.5 shrink-0 text-[var(--text)]" />
+              <Trophy className="size-3.5 shrink-0 text-[var(--brand-bright)]" />
               <span className="truncate text-[13px] text-[var(--text-2)]">{tournament.winner ?? "—"}</span>
             </span>
             <span className="text-xs text-[var(--text-dim)] max-sm:hidden">Winner</span>
-            <ChevronRight className="size-4 text-[var(--text-faint)]" />
+            <ChevronRight className="size-4 text-[var(--text-faint)] transition-[translate,color] duration-500 group-hover:translate-x-1 group-hover:text-[var(--brand-bright)] group-hover:duration-300" />
           </button>
         ))}
       </div>
@@ -115,16 +119,18 @@ function PastTournaments({ past, onOpen }: { past: PastTournament[]; onOpen: (id
 function NoTournament({ past, onOpen }: { past: PastTournament[]; onOpen: (id: string) => void }) {
   return (
     <>
-      <section className={cn(card, "flex flex-col items-center gap-3 px-8 py-10 text-center")}>
-        <span className="flex size-[52px] items-center justify-center rounded-[14px] border border-[var(--line)] bg-[var(--raised)] text-[var(--text-muted)]">
-          <Trophy className="size-[22px]" />
+      <section className={cn(card, "lx-swap-in relative flex flex-col items-center gap-3 overflow-hidden px-8 py-12 text-center")}>
+        <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10 opacity-70" />
+        <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
+        <span className="relative flex size-14 items-center justify-center rounded-2xl border border-[var(--brand)]/40 bg-[var(--brand)]/12 text-[var(--brand-bright)] shadow-[0_0_30px_-8px_var(--brand)]">
+          <Trophy className="size-6" />
         </span>
-        <span className="text-base font-semibold text-[var(--text)]">No tournament scheduled right now</span>
-        <span className="max-w-[420px] text-[13px] leading-[1.5] text-[var(--text-muted)]">
+        <span className="relative text-lg font-semibold text-[var(--text)]">No tournament scheduled right now</span>
+        <span className="relative max-w-[420px] text-[13px] leading-[1.5] text-[var(--text-muted)]">
           New tournaments are announced on Discord first. Turn on notifications so you don't miss registration.
         </span>
         {LINKS.discordAnnouncements && (
-          <a href={LINKS.discordAnnouncements} target="_blank" rel="noreferrer" className={cn(primaryButton, "mt-1.5 h-[38px] px-4 text-[13px]")}>
+          <a href={LINKS.discordAnnouncements} target="_blank" rel="noreferrer" className={cn(primaryButton, "relative mt-1.5 h-[38px] px-4 text-[13px]")}>
             <DiscordMark className="size-4" />
             Get notified on Discord
           </a>
@@ -143,56 +149,87 @@ function DiscordMark({ className }: { className?: string }) {
   )
 }
 
+/** Countdown split into labelled blocks ("02 d 14 h 05 m" or "14 : 05 : 33"). */
+function CountdownBlocks({ value }: { value: string }) {
+  const parts = value.includes("d ") ? value.split(" ").map((part) => [part.slice(0, -1), part.slice(-1)] as const) : value.split(":").map((part, index) => [part, ["h", "m", "s"][index]] as const)
+  return (
+    <span className="flex items-end gap-1.5">
+      {parts.map(([digits, unit]) => (
+        <span key={unit} className="flex flex-col items-center gap-1">
+          <span className="flex h-11 min-w-11 items-center justify-center rounded-[10px] border border-[var(--brand)]/35 bg-[var(--panel)]/80 px-2 text-[22px] font-bold tabular-nums text-[var(--text)] shadow-[inset_0_-10px_20px_-12px_var(--brand)] backdrop-blur">
+            <span key={digits} className="lx-swap-in">{digits}</span>
+          </span>
+          <span className="text-[10px] font-medium uppercase tracking-[0.6px] text-[var(--text-dim)]">{unit}</span>
+        </span>
+      ))}
+    </span>
+  )
+}
+
 function Hero({ tournament, now }: { tournament: TournamentSummary; now: number }) {
   useWebsitePreferences()
   const target = tournament.phase === "registration" ? tournament.registrationClosesAt ?? tournament.startsAt
     : tournament.phase === "upcoming" ? tournament.startsAt
     : tournament.phase === "live" ? tournament.nextMatchTime
     : null
-  const label = tournament.phase === "registration" ? "Registration closes in" : tournament.phase === "upcoming" ? "Starts in" : "Round ends in"
+  const label = tournament.phase === "registration" ? "Registration closes in" : tournament.phase === "upcoming" ? "Starts in" : "Next round in"
   const left = countdown(target, now)
   const slots = tournament.maxPlayers
   const share = slots ? Math.min(100, (tournament.registeredPlayers / slots) * 100) : 0
+  const art = cs2MapArtwork("de_ancient")
   const meta = [
     { icon: Calendar, label: "Starts", value: tournament.startsAt ? formatDateTime(tournament.startsAt) : "TBA" },
     { icon: Users, label: "Format", value: tournament.format ?? `${tournament.teamSize}v${tournament.teamSize}` },
     { icon: Trophy, label: "Prize", value: tournament.prizePool ?? "—" },
   ]
   return (
-    <section className={cn(card, "grid items-end gap-6 p-6 lg:grid-cols-[minmax(0,1fr)_auto]")}>
-      <div className="flex min-w-0 flex-col gap-3.5">
-        <span><PhasePill phase={tournament.phase} /></span>
-        <div className="flex flex-col gap-2">
-          <h2 className="truncate text-2xl font-semibold tracking-[-0.3px] text-[var(--text)]">{tournament.name}</h2>
-          {tournament.description && <p className="max-w-[640px] text-[13px] leading-[1.5] text-[var(--text-muted)]">{tournament.description}</p>}
-        </div>
-        <div className="flex flex-wrap gap-5">
-          {meta.map((item) => (
-            <span key={item.label} className="flex items-center gap-2 text-[13px] text-[var(--text-muted)]">
-              <item.icon className="size-4" />
-              <span>{item.label}</span>
-              <span className="font-medium text-[var(--text)]">{item.value}</span>
-            </span>
-          ))}
-        </div>
-      </div>
-      {tournament.phase !== "finished" && (
-        <div className="flex min-w-[260px] flex-col gap-3 lg:items-end">
-          {left && <span className="text-xs text-[var(--text-dim)]">{label}</span>}
-          {left && <span className="text-[26px] font-semibold leading-none tabular-nums text-[var(--text)]">{left}</span>}
-          <div className="flex w-full flex-col gap-1.5">
-            {slots ? (
-              <span className="h-1.5 overflow-hidden rounded-full bg-[var(--line-soft)]">
-                <span className="block h-full rounded-full bg-[var(--accent-solid)] transition-[width] duration-300" style={{ width: `${share}%` }} />
-              </span>
-            ) : null}
-            <span className="flex justify-between text-xs text-[var(--text-dim)]">
-              <span>Players</span>
-              <span className="tabular-nums text-[var(--text-2)]">{tournament.registeredPlayers}{slots ? ` / ${slots}` : ""}</span>
-            </span>
-          </div>
+    <section className={cn(card, "lx-swap-in relative overflow-hidden")}>
+      {art && (
+        <div aria-hidden="true" className="lx-map-drift pointer-events-none absolute inset-0">
+          <img src={art} alt="" className="lx-map-img size-full object-cover opacity-30" />
         </div>
       )}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--card-surface)] via-[var(--card-surface)]/85 to-[var(--card-surface)]/40" />
+      <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
+      <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
+      <Trophy aria-hidden="true" strokeWidth={1} className="pointer-events-none absolute -right-6 -top-6 size-56 rotate-12 text-[var(--brand)] opacity-[0.08]" />
+
+      <div className="relative z-10 grid items-end gap-6 p-7 lg:grid-cols-[minmax(0,1fr)_auto]">
+        <div className="flex min-w-0 flex-col gap-4">
+          <span><PhasePill phase={tournament.phase} /></span>
+          <div className="flex flex-col gap-2">
+            <h2 className="truncate text-[32px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">{tournament.name}</h2>
+            {tournament.description && <p className="max-w-[640px] text-[14px] leading-[1.55] text-[var(--text-2)]">{tournament.description}</p>}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {meta.map((item) => (
+              <span key={item.label} className="inline-flex h-8 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--panel)]/70 px-3 text-[13px] text-[var(--text-muted)] backdrop-blur">
+                <item.icon className="size-3.5 text-[var(--brand-bright)]" />
+                <span>{item.label}</span>
+                <span className="font-semibold text-[var(--text)]">{item.value}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+        {tournament.phase !== "finished" && (
+          <div className="flex min-w-[280px] flex-col gap-3 rounded-xl border border-[var(--brand)]/30 bg-[var(--panel)]/70 p-4 backdrop-blur-md lg:items-end">
+            {left && <span className="text-xs font-medium text-[var(--text-muted)]">{label}</span>}
+            {left && <CountdownBlocks value={left} />}
+            <div className="flex w-full flex-col gap-1.5">
+              {slots ? (
+                <span className="h-2 overflow-hidden rounded-full bg-[var(--line-soft)]">
+                  <span className="lx-progress-fill lx-bar-grow block h-full rounded-full transition-[width] duration-700" style={{ width: `${share}%` }} />
+                </span>
+              ) : null}
+              <span className="flex justify-between text-xs text-[var(--text-dim)]">
+                <span>Players</span>
+                <span className="tabular-nums text-[var(--text-2)]">{tournament.registeredPlayers}{slots ? ` / ${slots}` : ""}</span>
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
     </section>
   )
 }
@@ -212,14 +249,21 @@ function Overview({ tournament, now }: { tournament: TournamentDetail; now: numb
     <div className="grid gap-4 md:grid-cols-2">
       <section className={cn(card, "flex flex-col gap-3.5 p-[18px]")}>
         <h2 className="text-sm font-semibold text-[var(--text)]">How it works</h2>
-        <ul className="flex flex-col gap-2 text-[13px] leading-[1.5] text-[var(--text-muted)]">
-          <li>Join solo and we balance teams by EXP when registration closes, or register a team of {tournament.teamSize}.</li>
-          <li>Check in before the start — players who don't check in lose their spot.</li>
-          <li>Matches are played on Legacy-X servers; connect from this page when your match is called.</li>
-          <li>Single elimination{tournament.format ? ` · ${tournament.format}` : ""}.</li>
-        </ul>
+        <ol className="flex flex-col gap-3 text-[13px] leading-[1.5] text-[var(--text-muted)]">
+          {[
+            <>Join solo and we balance teams by EXP when registration closes, or register a team of {tournament.teamSize}.</>,
+            <>Check in before the start — players who don't check in lose their spot.</>,
+            <>Matches are played on Legacy-X servers; connect from this page when your match is called.</>,
+            <>Single elimination{tournament.format ? ` · ${tournament.format}` : ""}.</>,
+          ].map((text: ReactNode, index) => (
+            <li key={index} className="flex gap-3">
+              <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-[var(--brand)]/45 bg-[var(--brand)]/12 text-[11px] font-bold tabular-nums text-[var(--brand-bright)]">{index + 1}</span>
+              <span className="pt-0.5">{text}</span>
+            </li>
+          ))}
+        </ol>
         {LINKS.tournamentRules && (
-          <a href={LINKS.tournamentRules} target="_blank" rel="noreferrer" className="self-start text-[13px] text-[var(--text)] underline-offset-4 hover:underline">Full rules</a>
+          <a href={LINKS.tournamentRules} target="_blank" rel="noreferrer" className="self-start text-[13px] font-medium text-[var(--brand-bright)] underline-offset-4 hover:underline">Full rules</a>
         )}
       </section>
       <section className={cn(card, "flex flex-col gap-3.5 p-[18px]")}>
@@ -227,14 +271,15 @@ function Overview({ tournament, now }: { tournament: TournamentDetail; now: numb
         <ol>
           {steps.map((step, index) => {
             const active = index === current
+            const done = current === -1 || index < current
             return (
               <li key={step.label} className="flex gap-3">
                 <span className="flex flex-col items-center">
-                  <span className={cn("mt-1 size-2.5 rounded-full", active ? "bg-[var(--accent-solid)]" : "bg-[var(--line)]")} />
-                  {index < steps.length - 1 && <span className="my-1 w-px flex-1 bg-[var(--line)]" />}
+                  <span className={cn("mt-1 size-2.5 rounded-full", active ? "lx-live-dot bg-[var(--brand-bright)] shadow-[0_0_10px_var(--brand)]" : done ? "bg-[var(--brand)]" : "bg-[var(--line)]")} />
+                  {index < steps.length - 1 && <span className={cn("my-1 w-px flex-1", done ? "bg-[var(--brand)]/70" : "bg-[var(--line)]")} />}
                 </span>
                 <span className="flex flex-col gap-1 pb-4">
-                  <span className={cn("text-[13px]", active ? "font-semibold text-[var(--text)]" : "font-medium text-[var(--text-muted)]")}>{step.label}</span>
+                  <span className={cn("text-[13px]", active ? "font-semibold text-[var(--brand-bright)]" : done ? "font-medium text-[var(--text-2)]" : "font-medium text-[var(--text-muted)]")}>{step.label}</span>
                   <span className="text-xs text-[var(--text-dim)]">{step.at ? formatDateTime(step.at) : "TBA"}</span>
                 </span>
               </li>
@@ -249,9 +294,9 @@ function Overview({ tournament, now }: { tournament: TournamentDetail; now: numb
 function TeamRow({ name, score, winner, loser, mine }: { name: string | null; score: number | null; winner: boolean; loser: boolean; mine: boolean }) {
   return (
     <span className="flex h-9 items-center gap-2.5 px-3">
-      <span className={cn("size-5 shrink-0 rounded-md", winner || mine ? "bg-[var(--line-strong)]" : "bg-[var(--line-soft)]")} />
+      <span className={cn("size-5 shrink-0 rounded-md", winner ? "bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))] shadow-[0_0_8px_-1px_var(--brand)]" : mine ? "bg-[var(--brand)]/40" : "bg-[var(--line-soft)]")} />
       <span className={cn("min-w-0 flex-1 truncate text-[13px]", !name ? "text-[var(--text-faint)]" : winner ? "font-semibold text-[var(--text)]" : loser ? "text-[var(--text-dim)]" : "text-[var(--text-2)]")}>{name ?? "TBD"}</span>
-      <span className={cn("shrink-0 text-[13px] tabular-nums", winner ? "font-semibold text-[var(--text)]" : "text-[var(--text-dim)]")}>{score ?? "–"}</span>
+      <span className={cn("shrink-0 text-[13px] tabular-nums", winner ? "font-bold text-[var(--brand-bright)]" : "text-[var(--text-dim)]")}>{score ?? "–"}</span>
     </span>
   )
 }
@@ -261,10 +306,15 @@ function MatchCard({ match, myTeamId }: { match: TournamentMatch; myTeamId: stri
   const aWon = match.winnerTeamId !== null && match.winnerTeamId === match.teamA?.id
   const bWon = match.winnerTeamId !== null && match.winnerTeamId === match.teamB?.id
   return (
-    <div className={cn("relative w-full rounded-[10px] border bg-[var(--card-surface)]", mine ? "border-[var(--accent-solid)]/55" : "border-[var(--line-soft)]")}>
+    <div
+      className={cn(
+        "relative w-full rounded-[10px] border bg-[var(--card-surface)] transition-[border-color,box-shadow,translate] duration-500 hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:duration-300",
+        mine ? "border-[var(--brand)]/60 shadow-[0_0_24px_-10px_var(--brand)]" : match.status === "live" ? "border-[var(--status-green)]/35" : "border-[var(--line-soft)]",
+      )}
+    >
       {match.status === "live" && (
         <span className="absolute -top-[9px] right-2.5 flex h-[18px] items-center gap-[5px] rounded-full border border-[var(--line)] bg-[var(--panel)] px-[7px] text-[10px] font-bold text-[var(--status-green)]">
-          <span className="size-[5px] rounded-full bg-[var(--status-green)]" />
+          <span className="lx-live-dot size-[5px] rounded-full bg-[var(--status-green)]" />
           LIVE
         </span>
       )}
@@ -284,20 +334,30 @@ function Bracket({ tournament }: { tournament: TournamentDetail }) {
   return (
     <section className={cn(card, "overflow-x-auto p-5")}>
       <div className="grid min-h-[420px] gap-7" style={{ gridTemplateColumns: `repeat(${columns}, minmax(200px, 1fr))` }}>
-        {tournament.bracket.map((round) => (
+        {tournament.bracket.map((round, roundIndex) => (
           <div key={round.round} className="flex min-w-0 flex-col">
-            <span className="mb-3.5 text-xs font-semibold text-[var(--text-muted)]">{round.round}</span>
+            <span className="mb-3.5 flex items-center gap-2 text-xs font-semibold text-[var(--text-muted)]">
+              <span className="flex size-5 items-center justify-center rounded-md bg-[var(--raised)] text-[10px] tabular-nums text-[var(--text-2)]">{roundIndex + 1}</span>
+              {round.round}
+            </span>
             <div className="flex flex-1 flex-col justify-around gap-3.5">
-              {round.matches.map((match) => <MatchCard key={match.id} match={match} myTeamId={myTeamId} />)}
+              {round.matches.map((match, index) => (
+                <div key={match.id} className="lx-row-in" style={{ animationDelay: `${roundIndex * 120 + index * 50}ms` }}>
+                  <MatchCard match={match} myTeamId={myTeamId} />
+                </div>
+              ))}
             </div>
           </div>
         ))}
         <div className="flex flex-col">
           <span className="mb-3.5 text-xs font-semibold text-[var(--text-muted)]">Champion</span>
           <div className="flex flex-1 items-center">
-            <div className={cn(card, "flex w-full flex-col items-center gap-2.5 p-[18px] text-center")}>
-              <Trophy className={cn("size-5", tournament.winner ? "text-[var(--text)]" : "text-[var(--text-faint)]")} />
-              <span className={cn("text-[13px]", tournament.winner ? "font-semibold text-[var(--text)]" : "text-[var(--text-dim)]")}>{tournament.winner?.name ?? "Decided in the final"}</span>
+            <div className={cn(card, "relative flex w-full flex-col items-center gap-2.5 overflow-hidden p-5 text-center", tournament.winner && "border-[var(--brand)]/55 shadow-[0_0_36px_-12px_var(--brand)]")}>
+              {tournament.winner && <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10 opacity-80" />}
+              <span className={cn("relative flex size-11 items-center justify-center rounded-xl", tournament.winner ? "bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))] text-[var(--brand-on)] shadow-[0_0_20px_-4px_var(--brand)]" : "border border-dashed border-[var(--line-strong)] text-[var(--text-faint)]")}>
+                {tournament.winner ? <Crown className="size-5" /> : <Trophy className="size-5" />}
+              </span>
+              <span className={cn("relative text-[13px]", tournament.winner ? "font-bold text-[var(--text)]" : "text-[var(--text-dim)]")}>{tournament.winner?.name ?? "Decided in the final"}</span>
             </div>
           </div>
         </div>
@@ -312,11 +372,11 @@ function PlayerLine({ player, captain, onOpen }: { player: TournamentPlayer; cap
       type="button"
       disabled={!player.steamId}
       onClick={() => player.steamId && onOpen(player.steamId)}
-      className="flex h-11 w-full items-center gap-3 rounded-lg px-2 text-left transition-colors duration-150 hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 disabled:cursor-default"
+      className="flex h-11 w-full items-center gap-3 rounded-lg px-2 text-left transition-colors duration-300 hover:bg-[var(--brand)]/[0.07] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:cursor-default"
     >
       <PlayerAvatar avatar={player.avatar} name={player.name} className="size-7 shrink-0 rounded-lg text-[10px]" />
       <span className="min-w-0 flex-1 truncate text-[13px] text-[var(--text)]" title={player.name}>{player.name}</span>
-      {captain && <span className="text-[11px] text-[var(--text-dim)]">Captain</span>}
+      {captain && <span className="flex items-center gap-1 text-[11px] font-medium text-[var(--brand-bright)]"><Crown className="size-3" />Captain</span>}
       {player.checkedIn && <span className="text-[11px] text-[var(--status-green)]">Checked in</span>}
     </button>
   )
@@ -331,14 +391,26 @@ function Players({ tournament, onProfileNavigate, onJoinTeam, busy }: { tourname
     <div className="flex flex-col gap-4">
       {tournament.teams.length > 0 && (
         <div className="grid gap-3 md:grid-cols-2">
-          {tournament.teams.map((team) => {
+          {tournament.teams.map((team, index) => {
             const full = team.players.length >= tournament.teamSize
             const mine = tournament.me?.teamId === team.id
             return (
-              <section key={team.id} className={cn(card, "flex flex-col gap-2 p-3", mine && "border-[var(--accent-solid)]/45")}>
+              <section
+                key={team.id}
+                style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}
+                className={cn(card, "lx-row-in flex flex-col gap-2 p-3", mine && "border-[var(--brand)]/55 bg-[linear-gradient(160deg,color-mix(in_oklab,var(--brand)_9%,var(--card-surface)),var(--card-surface)_55%)]")}
+              >
                 <div className="flex items-center justify-between gap-3 px-2 pt-1">
-                  <span className="min-w-0 truncate text-sm font-semibold text-[var(--text)]">{team.name}</span>
-                  <span className="shrink-0 text-xs tabular-nums text-[var(--text-dim)]">{team.players.length} / {tournament.teamSize}</span>
+                  <span className="flex min-w-0 items-center gap-2">
+                    {team.seed !== null && <span className="flex h-5 min-w-5 items-center justify-center rounded-md bg-[var(--brand)]/15 px-1 text-[10px] font-bold tabular-nums text-[var(--brand-bright)]">#{team.seed}</span>}
+                    <span className="truncate text-sm font-semibold text-[var(--text)]">{team.name}</span>
+                  </span>
+                  <span className="flex shrink-0 items-center gap-2 text-xs tabular-nums text-[var(--text-dim)]">
+                    <span className="h-1 w-12 overflow-hidden rounded-full bg-[var(--line-soft)]">
+                      <span className="block h-full rounded-full bg-[var(--brand)]" style={{ width: `${Math.min(100, (team.players.length / tournament.teamSize) * 100)}%` }} />
+                    </span>
+                    {team.players.length} / {tournament.teamSize}
+                  </span>
                 </div>
                 <div className="flex flex-col">
                   {team.players.map((player) => <PlayerLine key={player.userId} player={player} captain={player.userId === team.captainUserId} onOpen={onProfileNavigate} />)}
@@ -377,19 +449,27 @@ function Matches({ tournament }: { tournament: TournamentDetail }) {
   const sorted = [...tournament.matches].sort((a, b) => (Date.parse(a.scheduledTime ?? "") || Infinity) - (Date.parse(b.scheduledTime ?? "") || Infinity) || a.bracketOrder - b.bracketOrder)
   return (
     <section className={cn(card, "overflow-hidden")}>
-      {sorted.map((match) => (
-        <div key={match.id} className="grid min-h-[56px] grid-cols-[130px_minmax(0,1fr)_160px_80px] items-center gap-4 border-b border-[var(--raised)] px-[18px] py-2 last:border-b-0 max-md:grid-cols-[minmax(0,1fr)_80px]">
+      {sorted.map((match, index) => (
+        <div
+          key={match.id}
+          style={{ animationDelay: `${Math.min(index, 12) * 35}ms` }}
+          className={cn(
+            "lx-row-in grid min-h-[56px] grid-cols-[130px_minmax(0,1fr)_160px_80px] items-center gap-4 border-b border-[var(--raised)] px-[18px] py-2 transition-colors duration-500 last:border-b-0 hover:bg-[var(--brand)]/[0.05] hover:duration-200 max-md:grid-cols-[minmax(0,1fr)_80px]",
+            match.status === "live" && "bg-[linear-gradient(90deg,color-mix(in_oklab,var(--status-green)_7%,transparent),transparent_40%)]",
+          )}
+        >
           <span className="flex flex-col gap-0.5 max-md:hidden">
             <span className="text-[13px] tabular-nums text-[var(--text-2)]">{match.scheduledTime ? formatDateTime(match.scheduledTime) : "TBA"}</span>
             <span className="text-[11px] text-[var(--text-dim)]">{match.round}</span>
           </span>
           <span className="flex min-w-0 items-center gap-2 text-[13px]">
             <span className={cn("truncate", match.winnerTeamId && match.winnerTeamId === match.teamA?.id ? "font-semibold text-[var(--text)]" : "text-[var(--text-2)]")}>{match.teamA?.name ?? "TBD"}</span>
-            <span className="shrink-0 tabular-nums text-[var(--text-dim)]">{match.scoreA ?? "–"} : {match.scoreB ?? "–"}</span>
+            <span className="flex shrink-0 items-center gap-1 rounded-md bg-[var(--raised)] px-2 py-0.5 font-semibold tabular-nums text-[var(--text-2)]"><Swords className="size-3 text-[var(--brand-bright)]" />{match.scoreA ?? "–"} : {match.scoreB ?? "–"}</span>
             <span className={cn("truncate", match.winnerTeamId && match.winnerTeamId === match.teamB?.id ? "font-semibold text-[var(--text)]" : "text-[var(--text-2)]")}>{match.teamB?.name ?? "TBD"}</span>
           </span>
           <span className="truncate text-xs text-[var(--text-dim)] max-md:hidden">{match.server?.name ?? "Server TBA"}{match.map ? ` · ${match.map}` : ""}</span>
-          <span className={cn("justify-self-end text-xs font-medium", match.status === "live" ? "text-[var(--status-green)]" : "text-[var(--text-muted)]")}>
+          <span className={cn("flex items-center gap-1.5 justify-self-end text-xs font-medium", match.status === "live" ? "text-[var(--status-green)]" : match.status === "completed" ? "text-[var(--text-dim)]" : "text-[var(--text-muted)]")}>
+            {match.status === "live" && <span className="lx-live-dot size-1.5 rounded-full bg-[var(--status-green)]" />}
             {match.status === "live" ? "Live" : match.status === "completed" ? "Finished" : "Upcoming"}
           </span>
         </div>
@@ -428,7 +508,7 @@ function TeamNameDialog({ open, onClose, onSubmit, busy, error }: { open: boolea
               value={name}
               maxLength={32}
               onChange={(event) => setName(event.target.value)}
-              className="h-10 rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)] px-3 text-sm text-[var(--text)] outline-none transition-colors placeholder:text-[var(--text-dim)] focus:border-[var(--line-strong)]"
+              className="h-10 rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)] px-3 text-sm text-[var(--text)] outline-none transition-[border-color,box-shadow] duration-300 placeholder:text-[var(--text-dim)] focus:border-[var(--brand)]/60 focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_18%,transparent)]"
               placeholder="2–32 characters"
             />
           </label>
@@ -473,8 +553,8 @@ function YouPanel({ tournament, busy, error, onJoinSolo, onRegisterTeam, onLeave
   } else if (tournament.phase === "live" && next) {
     body = (
       <>
-        <div className="flex flex-col gap-2.5 rounded-[10px] border border-[var(--accent-solid)]/45 bg-[var(--panel)] p-3.5">
-          <span className="text-xs font-semibold tracking-[0.4px] text-[var(--text)]">YOUR NEXT MATCH</span>
+        <div className="flex flex-col gap-2.5 rounded-[10px] border border-[var(--brand)]/50 bg-[linear-gradient(160deg,color-mix(in_oklab,var(--brand)_12%,var(--panel)),var(--panel)_60%)] p-3.5">
+          <span className="text-[11px] font-bold tracking-[0.6px] text-[var(--brand-bright)]">YOUR NEXT MATCH</span>
           <span className="flex items-center gap-2 text-[13px] text-[var(--text-muted)]">vs <span className="truncate font-medium text-[var(--text)]">{next.opponent?.name ?? "TBD"}</span></span>
           <span className="flex flex-wrap gap-3 text-xs text-[var(--text-dim)]">
             <span>{next.status === "live" ? "Live now" : next.scheduledTime ? formatDateTime(next.scheduledTime) : "Time TBA"}</span>
@@ -529,8 +609,9 @@ function YouPanel({ tournament, busy, error, onJoinSolo, onRegisterTeam, onLeave
   }
 
   return (
-    <aside aria-label="Your status" className={cn(card, "flex flex-col gap-3.5 p-[18px] lg:sticky lg:top-0")}>
-      <h2 className="text-sm font-semibold text-[var(--text)]">You</h2>
+    <aside aria-label="Your status" className={cn(card, "lx-swap-in relative flex flex-col gap-3.5 overflow-hidden p-[18px] lg:sticky lg:top-0")}>
+      <span aria-hidden="true" className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--brand-bright)] to-transparent" />
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]"><span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--brand-bright)] shadow-[0_0_8px_var(--brand)]" />You</h2>
       {body}
       {error && <p role="alert" className="text-xs text-[var(--text-2)]">{error}</p>}
       {myTeam && (
@@ -590,7 +671,7 @@ function TournamentView({ tournamentId, onProfileNavigate }: { tournamentId: str
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="flex min-w-0 flex-col gap-4">
           <Segmented ariaLabel="Tournament sections" value={tab} onChange={setTab} options={TABS} className="self-start" />
-          <div key={tab} className="animate-in fade-in-0 duration-200 motion-reduce:animate-none">
+          <div key={tab} className="lx-swap-in">
             {tab === "overview" && <Overview tournament={tournament} now={now} />}
             {tab === "bracket" && <Bracket tournament={tournament} />}
             {tab === "players" && <Players tournament={tournament} onProfileNavigate={onProfileNavigate} busy={busy} onJoinTeam={(teamId) => void run(() => tournamentsService.register(tournament.id, { mode: "join", teamId }), "Could not join that team.")} />}

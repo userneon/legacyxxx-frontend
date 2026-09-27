@@ -1344,3 +1344,14 @@
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
 }
+
+/* Login gate: a crimson ring that slowly turns around the lock. */
+.lx-gate-ring {
+  padding: 2px;
+  background: conic-gradient(from var(--lx-edge-angle), transparent 0deg, var(--brand) 120deg, var(--brand-bright) 180deg, transparent 300deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: lx-edge-spin 4s linear infinite;
+  filter: drop-shadow(0 0 8px var(--brand));
+}

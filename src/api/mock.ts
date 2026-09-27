@@ -171,6 +171,86 @@ function searchPlayers(query: string) {
   return { players: players.filter((player) => player.name.toLowerCase().includes(needle) || player.steamId.includes(needle)) }
 }
 
+const TEAM_NAMES = ["Steppe Wolves", "Khan Esports", "Ulaanbaatar Five", "Blue Sky", "Gobi Snipers", "Nomad Squad", "Altai Eagles", "Orkhon Kings"]
+
+function tournamentTeam(index: number) {
+  return {
+    id: `team-${index}`,
+    name: TEAM_NAMES[index],
+    captainUserId: `mock-${index * 2}`,
+    seed: index + 1,
+    autoBalanced: index >= 6,
+    players: Array.from({ length: 5 }, (_, slot) => {
+      const name = NAMES[(index * 5 + slot) % NAMES.length]
+      return { userId: `mock-${(index * 5 + slot) % NAMES.length}`, steamId: null, name: `${name}${slot > 0 && index > 2 ? slot : ""}`, avatar: "", checkedIn: true, mode: "team" as const }
+    }),
+  }
+}
+
+function tournament() {
+  const now = Date.now()
+  const at = (hours: number) => new Date(now + hours * HOUR).toISOString()
+  const ref = (index: number) => ({ id: `team-${index}`, name: TEAM_NAMES[index] })
+  const match = (id: string, round: string, order: number, a: number | null, b: number | null, scoreA: number | null, scoreB: number | null, status: "live" | "upcoming" | "completed", hours: number, map: string | null) => ({
+    id, round, bracketOrder: order,
+    teamA: a === null ? null : ref(a), teamB: b === null ? null : ref(b),
+    scoreA, scoreB,
+    winnerTeamId: status === "completed" && scoreA !== null && scoreB !== null ? `team-${scoreA > scoreB ? a : b}` : null,
+    status, scheduledTime: at(hours), map,
+    server: { id: "5x5-01", name: "LEGACY-X #1 | MIRAGE", connectAddress: "203.0.113.10:27001" },
+  })
+  const quarter = [
+    match("qf1", "Quarter-finals", 1, 0, 7, 13, 6, "completed", -5, "de_mirage"),
+    match("qf2", "Quarter-finals", 2, 3, 4, 11, 13, "completed", -5, "de_inferno"),
+    match("qf3", "Quarter-finals", 3, 1, 6, 13, 9, "completed", -4, "de_nuke"),
+    match("qf4", "Quarter-finals", 4, 2, 5, 13, 10, "completed", -4, "de_ancient"),
+  ]
+  const semi = [
+    match("sf1", "Semi-finals", 5, 0, 4, 9, 7, "live", -0.5, "de_dust2"),
+    match("sf2", "Semi-finals", 6, 1, 2, null, null, "upcoming", 1.5, null),
+  ]
+  const final = [match("f1", "Final", 7, null, null, null, null, "upcoming", 4, null)]
+  return {
+    id: "mock-cup",
+    name: "Legacy-X Autumn Cup 2026",
+    description: "Eight teams, single elimination, best of one until the final. Played on Legacy-X servers with GOTV on every match.",
+    phase: "live" as const,
+    format: "5v5 · BO1 · Final BO3",
+    prizePool: "1,500,000₮",
+    startsAt: at(-6),
+    registrationClosesAt: at(-26),
+    checkInOpensAt: at(-7),
+    nextMatchTime: at(1.5),
+    maxPlayers: 40,
+    teamSize: 5,
+    registeredPlayers: 40,
+    checkInOpen: false,
+    winner: null,
+    teams: Array.from({ length: 8 }, (_, index) => tournamentTeam(index)),
+    soloPlayers: [],
+    matches: [...quarter, ...semi, ...final],
+    bracket: [
+      { round: "Quarter-finals", matches: quarter },
+      { round: "Semi-finals", matches: semi },
+      { round: "Final", matches: final },
+    ],
+    me: null,
+  }
+}
+
+function tournamentList() {
+  const current = tournament()
+  const { checkInOpen: _checkInOpen, winner: _winner, teams: _teams, soloPlayers: _solo, matches: _matches, bracket: _bracket, me: _me, ...summary } = current
+  return {
+    current: summary,
+    past: [
+      { id: "mock-summer", name: "Legacy-X Summer Cup 2026", startsAt: new Date(Date.now() - 70 * 24 * HOUR).toISOString(), winner: "Khan Esports" },
+      { id: "mock-spring", name: "Spring Clash 2026", startsAt: new Date(Date.now() - 160 * 24 * HOUR).toISOString(), winner: "Steppe Wolves" },
+      { id: "mock-winter", name: "Winter Showdown 2025", startsAt: new Date(Date.now() - 280 * 24 * HOUR).toISOString(), winner: "Gobi Snipers" },
+    ],
+  }
+}
+
 function notFound(): ApiError {
   return { status: 404, code: "not_found", message: "The requested resource could not be found." }
 }
@@ -201,7 +281,9 @@ export async function mockResponse(method: string, path: string, query: Query): 
     case "/api/v1/moderation/penalties":
       return penalties()
     case "/api/v1/tournaments":
-      return { current: null, past: [] }
+      return tournamentList()
+    case "/api/v1/tournaments/mock-cup":
+      return tournament()
     default:
       throw notFound()
   }
