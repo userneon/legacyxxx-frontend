@@ -140,7 +140,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
               onClick={() => onNavigate(mode.id)}
               onPointerMove={trackSpotlight}
               style={{ animationDelay: `${120 + index * 80}ms` }}
-              className="lx-mode-card group relative flex min-h-[176px] flex-col gap-3 overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
+              className="lx-fx-card group relative flex min-h-[176px] flex-col gap-3 overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
             >
               {art && (
                 <div aria-hidden="true" className="lx-map-drift pointer-events-none absolute inset-0" style={{ animationDelay: `${index * -5}s` }}>
