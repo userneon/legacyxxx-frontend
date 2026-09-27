@@ -1260,6 +1260,13 @@
 .lx-map-drift {
   animation: lx-map-drift 22s ease-in-out infinite alternate;
   will-change: transform;
+  backface-visibility: hidden;
+}
+/* Own compositor layer so the hover zoom and fade never re-rasterise mid-transition (no flicker). */
+.lx-map-img {
+  will-change: scale, opacity;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 @keyframes lx-map-drift {
   from { transform: scale(1.04) translate3d(-1.5%, 0, 0); }
