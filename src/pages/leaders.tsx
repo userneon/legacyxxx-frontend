@@ -250,7 +250,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
   return (
     <div className="scrollbar-hidden flex min-h-0 flex-1 overflow-x-auto">
       <div className="flex min-w-[900px] flex-1 flex-col">
-        <div className="px-6 pb-5 pt-6">
+        <div className="px-6 pb-2 pt-6">
           <section aria-label="Leaders" className="relative overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]">
             <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
             <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
@@ -283,8 +283,9 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
         </div>
 
         <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
+          {/* pt-3 leaves room above the podium: cards lift 5px on hover and the scroll area clips anything above its top. */}
           {(firstLoad || topThree.length > 0) && (
-            <section aria-label="Top 3" className="grid grid-cols-3 items-start gap-3 px-6 pb-5">
+            <section aria-label="Top 3" className="grid grid-cols-3 items-start gap-3 px-6 pb-5 pt-3">
               {firstLoad
                 ? [0, 1, 2].map((index) => <TopCardSkeleton key={index} />)
                 : topThree.map((player) => <TopCard key={player.user_id} player={player} sort={sort} onOpen={() => open(player)} />)}
