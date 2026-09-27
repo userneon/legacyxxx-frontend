@@ -34,7 +34,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const { data: tournaments } = useApiQuery((signal) => tournamentsService.list({ signal }), { queryKey: "home-tournaments" })
 
   const statTiles = [
-    { label: "Players Online", value: homeStats?.playersOnline, icon: Users, tone: "text-[var(--text)]" },
+    { label: "Players Online", value: homeStats?.playersOnline, icon: Users, tone: "text-[var(--brand)]" },
     { label: "Live Servers", value: homeStats?.liveServers, icon: Server, tone: "text-[var(--text)]" },
     { label: "Matches Today", value: homeStats?.matchesToday, icon: Gamepad2, tone: "text-[var(--text)]" },
   ]
@@ -65,7 +65,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
             <span className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">Live now</span>
           </div>
         )}
-        <h1 className="relative z-10 text-3xl font-semibold tracking-[-0.5px] text-[var(--text)] md:text-5xl">LegacyX Ecosystem</h1>
+        <h1 className="relative z-10 text-3xl font-semibold tracking-[-0.5px] text-[var(--text)] md:text-5xl">
+          Legacy<span className="text-[var(--brand)]">X</span> Ecosystem
+        </h1>
         <p className="relative z-10 max-w-xl text-[var(--text-muted)]">
           The premier CS2 / CSGO community server platform. Join matches and compete with the Mongolian CS2 community.
         </p>
@@ -93,18 +95,27 @@ export function HomePage({ onNavigate }: HomePageProps) {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {MODE_CARDS.map((mode) => {
           const status = modeStatus(mode.key)
+          const featured = mode.key === "pro"
           return (
             <button
               key={mode.id}
               type="button"
               onClick={() => onNavigate(mode.id)}
-              className="group flex flex-col gap-3 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-5 text-left transition-colors duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
+              className={cn(
+                "group flex flex-col gap-3 rounded-xl border bg-[var(--card-surface)] p-5 text-left transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2",
+                featured
+                  ? "border-[color-mix(in_oklch,var(--brand)_45%,var(--line-soft))] hover:border-[var(--brand)] hover:bg-[var(--raised)] focus-visible:ring-[var(--brand)]/60"
+                  : "border-[var(--line-soft)] hover:border-[var(--line-strong)] hover:bg-[var(--raised)] focus-visible:ring-[var(--accent-solid)]/60",
+              )}
             >
-              <div className="flex size-10 items-center justify-center rounded-lg bg-[var(--raised)] text-[var(--text)]">
+              <div className={cn("flex size-10 items-center justify-center rounded-lg", featured ? "bg-[color-mix(in_oklch,var(--brand)_16%,transparent)] text-[var(--brand)]" : "bg-[var(--raised)] text-[var(--text)]")}>
                 <mode.icon className="size-5" />
               </div>
               <div>
-                <div className="font-semibold text-[var(--text)]">{mode.label}</div>
+                <div className="flex items-center gap-2 font-semibold text-[var(--text)]">
+                  {mode.label}
+                  {featured && <span className="rounded-full bg-[color-mix(in_oklch,var(--brand)_18%,transparent)] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Premium</span>}
+                </div>
                 <div className="mt-1 text-xs text-[var(--text-muted)]">{mode.desc}</div>
               </div>
               <div className={cn("mt-auto flex h-4 items-center gap-1.5 transition-opacity duration-150", status ? "opacity-100" : "opacity-0")}>

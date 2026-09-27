@@ -62,9 +62,14 @@
   --text-muted: #a3a3a3;
   --text-dim: #737373;
   --text-faint: #525252;
-  /* White is the only accent: emphasis comes from brightness and weight, never from a hue. */
+  /* White stays the workhorse accent (borders, focus rings, hover states) — emphasis there still
+     comes from brightness and weight. --brand is the one deliberate hue (owner request 2026-09-27):
+     reserved for brand identity and the handful of "this matters most" spots — logo mark, active nav,
+     the flagship stat, premium/featured badges. Never applied as a blanket UI accent. */
   --accent-solid: #fafafa;
   --accent-on: #0a0a0a;
+  --brand: #ff5a1f;
+  --brand-foreground: #150800;
   --status-green: #22c55e;
   /* Meaning colours (owner request 2026-09-24): used as text, dots, thin borders and faint tints — never as big fills. */
   --status-red: #ef4444;
@@ -414,8 +419,8 @@
 
 .glow-accent {
   box-shadow:
-    0 0 24px oklch(0.488 0.243 264.376 / 0.15),
-    0 0 48px oklch(0.488 0.243 264.376 / 0.08);
+    0 0 24px color-mix(in oklch, var(--brand) 15%, transparent),
+    0 0 48px color-mix(in oklch, var(--brand) 8%, transparent);
 }
 
 /* Section-specific accent glows — all muted, low opacity */

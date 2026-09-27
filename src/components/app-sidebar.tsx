@@ -59,7 +59,7 @@ function labelClass(collapsed: boolean) {
 }
 
 function ActiveBar() {
-  return <span aria-hidden="true" className="absolute -left-3 bottom-2.5 top-2.5 w-0.5 rounded-full bg-[var(--accent-solid)]" />
+  return <span aria-hidden="true" className="absolute -left-3 bottom-2.5 top-2.5 w-0.5 rounded-full bg-[var(--brand)]" />
 }
 
 export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
@@ -88,7 +88,9 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
     <Sidebar variant="floating" collapsible="icon" className="border-none [&>div[data-sidebar=sidebar]]:rounded-[14px] [&>div[data-sidebar=sidebar]]:border-[var(--line-soft)] [&>div[data-sidebar=sidebar]]:bg-[var(--panel)]">
       <SidebarContent className="gap-0 overflow-x-hidden px-3 pb-3">
         <div className={cn("flex h-[60px] shrink-0 items-center transition-[padding] duration-300 motion-reduce:transition-none", EASE, collapsed ? "px-1" : "pl-3 pr-1")}>
-          <span className={cn("min-w-0 flex-1 overflow-hidden text-base font-bold tracking-[0.3px] text-[var(--text)]", labelClass(collapsed))}>LEGACY-X</span>
+          <span className={cn("min-w-0 flex-1 overflow-hidden text-base font-bold tracking-[0.3px] text-[var(--text)]", labelClass(collapsed))}>
+            LEGACY<span className="text-[var(--brand)]">-X</span>
+          </span>
           <button
             type="button"
             onClick={toggleSidebar}
@@ -158,7 +160,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                           onClick={() => onNavigate(item.id)}
                           className={cn(rowClass, "overflow-visible px-3", active && activeRowClass, locked && !active && "text-[var(--text-dim)]")}
                         >
-                          {active && <span aria-hidden="true" className="absolute -left-[9px] bottom-2.5 top-2.5 w-0.5 bg-[var(--accent-solid)]" />}
+                          {active && <span aria-hidden="true" className="absolute -left-[9px] bottom-2.5 top-2.5 w-0.5 bg-[var(--brand)]" />}
                           <span className="flex-1 truncate text-left">{item.label}</span>
                           {locked && <Lock className="size-3.5 shrink-0 text-[var(--text-dim)]" />}
                           {count > 0 && (
