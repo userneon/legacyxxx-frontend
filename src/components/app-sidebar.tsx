@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react"
-import { House, Play, Paintbrush, Trophy, Gavel, MessageSquare, Search, Lock, PanelLeft, ChevronDown, type LucideIcon } from "lucide-react"
+import { useEffect, useState, type ComponentType } from "react"
+import { House, Play, Trophy, Gavel, MessageSquare, Search, Lock, PanelLeft, ChevronDown } from "lucide-react"
 
 import { isPageEnabled } from "@/lib/features"
 import { competitiveService } from "@/api"
@@ -9,13 +9,14 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { Sidebar, SidebarContent, useSidebar } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
+import { KnifeIcon } from "@/components/knife-icon"
 
 interface AppSidebarProps {
   currentPage: PageId
   onNavigate: (page: PageId) => void
 }
 
-type NavItem = { id: PageId; label: string; icon: LucideIcon }
+type NavItem = { id: PageId; label: string; icon: ComponentType<{ className?: string }> }
 
 /** Navigation only lists pages whose feature is switched on — a disabled page has no entry at all. */
 function enabledNav(items: NavItem[]): NavItem[] {
@@ -30,7 +31,7 @@ const PLAY_ITEMS: NavItem[] = enabledNav([
 ])
 
 const NAV_ITEMS: NavItem[] = enabledNav([
-  { id: "skinchanger", label: "Skinchanger", icon: Paintbrush },
+  { id: "skinchanger", label: "Skinchanger", icon: KnifeIcon },
   { id: "leaders", label: "Leaders", icon: Trophy },
   { id: "penalties", label: "Penalties", icon: Gavel },
   { id: "feedback", label: "Reviews", icon: MessageSquare },

@@ -1,9 +1,10 @@
-import { Lock, Paintbrush, ShieldCheck, Swords, Trophy } from "lucide-react"
+import { Lock, ShieldCheck, Swords, Trophy } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
 import { cs2MapArtwork } from "@/lib/cs2-map-art"
 import { cn } from "@/lib/utils"
+import { KnifeIcon } from "@/components/knife-icon"
 
 interface SteamLoginGateProps {
   /** The page the player was trying to open, so the gate can say what signing in opens. */
@@ -13,7 +14,7 @@ interface SteamLoginGateProps {
 /** What one Steam sign-in opens across the site. */
 const PERKS = [
   { icon: Trophy, title: "Rank & stats", text: "Your EXP, rank and match history" },
-  { icon: Paintbrush, title: "Skinchanger", text: "Your loadout on every server" },
+  { icon: KnifeIcon, title: "Skinchanger", text: "Your loadout on every server" },
   { icon: Swords, title: "Pro League & events", text: "Ranked queues and tournaments" },
 ]
 

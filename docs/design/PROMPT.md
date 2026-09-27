@@ -94,7 +94,8 @@ Define in src/index.css as CSS variables and map shadcn's variables to them:
 UI icons: lucide-react (already installed and used across the site). Stroke 2.
 Sizes: 18px nav/top bar, 16px buttons/menus, 14px inline/meta.
 Use exactly these:
-- Sidebar: Home → House, Play → Play, Skinchanger → Paintbrush,
+- Sidebar: Home → House, Play → Play, Skinchanger → KnifeIcon (src/components/knife-icon.tsx,
+  owner-supplied combat knife, replaces Paintbrush 2026-09-27),
   Leaders → Trophy, Penalties → Gavel, Reviews → MessageSquare, Explore → Search,
   sidebar toggle → PanelLeft, Pro League locked → Lock
 - Top bar: notifications → Bell, headshot in kill feed → Crosshair
