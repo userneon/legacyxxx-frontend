@@ -365,6 +365,72 @@ function loadout() {
   }
 }
 
+/* ------------------------------------------------------------------ profile */
+
+function profileOverview(identity: string) {
+  const own = identity === "me" || identity === MOCK_USER.id || identity === MOCK_USER.steamId
+  if (own && !signedIn()) throw unauthorized()
+  const index = own ? -1 : Math.max(0, NAMES.findIndex((_, i) => identity.endsWith(String(i).padStart(4, "0"))))
+  const name = own ? MOCK_USER.username : NAMES[index]
+  const [rankId, rankName] = own ? [7, "Operator III"] : RANKS[index]
+  const exp = own ? 1180 : 4200 - index * 190
+  const maps = ["de_mirage", "de_inferno", "de_dust2", "de_ancient", "de_nuke", "de_anubis"]
+  const results = ["Win", "Win", "Loss", "Win", "Win", "Loss", "Win", "Loss", "Win", "Win"]
+  return {
+    user: { id: own ? MOCK_USER.id : `mock-${index}`, steamId: own ? MOCK_USER.steamId : identity, username: name, avatar: "", role: own ? "Player" : index === 0 ? "Owner" : "Player", memberSince: new Date(Date.now() - 400 * 24 * HOUR).toISOString(), steamBackground: null, steamMedia: null },
+    viewer: { isOwner: own, isStaff: false },
+    visibility: own ? { stats: true, matches: true, faceit: true, loadout: true } : null,
+    hidden: [],
+    competitive: { exp, rankId, rankName, rankImageKey: null, currentRankMinExp: Math.floor(exp / 200) * 200 - 100, nextRankName: "Vanguard I", nextRankMinExp: Math.floor(exp / 200) * 200 + 220, proLeagueUnlocked: false, position: own ? 42 : index + 1 },
+    lastPlayedAt: new Date(Date.now() - 3 * HOUR).toISOString(),
+    trust: { steamAccountCreatedAt: new Date(Date.now() - 6.5 * 365 * 24 * HOUR).toISOString(), activePenalty: null },
+    stats: [
+      { key: "matches", label: "Matches", value: 184 },
+      { key: "winRate", label: "Win rate", value: 58 },
+      { key: "kd", label: "K/D", value: 1.27 },
+      { key: "hs", label: "Headshot %", value: 46 },
+      { key: "avgKills", label: "Avg. kills", value: 19 },
+    ],
+    recentMatches: results.map((result, i) => ({
+      map: maps[i % maps.length],
+      result,
+      score: result === "Win" ? `13 : ${6 + (i % 5)}` : `${7 + (i % 4)} : 13`,
+      kd: (0.8 + ((i * 37) % 90) / 100).toFixed(2),
+      playedAt: new Date(Date.now() - (i + 1) * 9 * HOUR).toISOString(),
+      expDelta: result === "Win" ? 18 + (i % 7) : -(12 + (i % 5)),
+    })),
+    maps: maps.map((map, i) => ({ map, matches: 30 - i * 3, wins: 20 - i * 3, winRate: 68 - i * 7 })),
+    penalties: [],
+    penaltyCount: 0,
+    loadout: {
+      side: "t",
+      items: [
+        { key: "knife", label: "Knife", name: "★ Karambit | Fade", image: `${ICON}/weapon_knife_karambit_png.png` },
+        { key: "rifle", label: "AK-47", name: "AK-47 | Redline", image: `${ICON}/weapon_ak47_png.png` },
+        { key: "awp", label: "AWP", name: "AWP | Asiimov", image: `${ICON}/weapon_awp_png.png` },
+        { key: "pistol", label: "Glock-18", name: "Glock-18 | Fade", image: `${ICON}/weapon_glock_png.png` },
+      ],
+    },
+    staff: null,
+    presence: own ? null : { serverId: "5x5-01", serverName: "LEGACY-X #1 | MIRAGE", connectAddress: "203.0.113.10:27001", map: "de_mirage" },
+  }
+}
+
+function faceit(identity: string) {
+  return {
+    linked: true,
+    playerId: `faceit-${identity}`,
+    nickname: identity === "me" ? "LegacyTester" : "legacy_player",
+    avatar: "",
+    country: "mn",
+    region: "EU",
+    elo: 1845,
+    level: 8,
+    faceitUrl: "https://www.faceit.com/",
+    stats: { matches: 612, wins: 331, winRate: 54, averageKd: 1.14, averageKills: 18, headshots: 49 },
+  }
+}
+
 function unauthorized(): ApiError {
   return { status: 401, code: "unauthorized", message: "You are not logged in. Please sign in and try again." }
 }
@@ -387,6 +453,9 @@ export async function mockResponse(method: string, path: string, query: Query): 
   }
   if (path === "/api/v1/auth/refresh") throw unauthorized()
   if (method !== "GET") throw notFound()
+
+  const profile = /^\/api\/v1\/profile\/([^/]+)\/(overview|faceit)$/.exec(path)
+  if (profile) return profile[2] === "overview" ? profileOverview(decodeURIComponent(profile[1])) : faceit(decodeURIComponent(profile[1]))
 
   const play = /^\/api\/v1\/play\/(5x5|fun|pro)\/(servers|quick-join)$/.exec(path)
   if (play) {
