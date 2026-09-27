@@ -1334,3 +1334,13 @@
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
 }
+
+/* A bar that grows from zero to its width once, on first paint. */
+.lx-bar-grow {
+  transform-origin: left center;
+  animation: lx-bar-grow 900ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+@keyframes lx-bar-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
