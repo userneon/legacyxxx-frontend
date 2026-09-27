@@ -2,13 +2,29 @@ import { useEffect, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import { ServerCrash, Loader2 } from "lucide-react"
 
+import { playService } from "@/api/play"
 import { serversService } from "@/api/servers"
 
 // LEGACY-X Discord connect route: resolve only an allowlisted public server ID through Root API, never a raw address from a URL.
 const SERVER_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{1,63}$/i
 const CONNECT_ADDRESS_PATTERN = /^[a-zA-Z0-9.-]+:\d{1,5}$/
 
-type ConnectState = { status: "loading" } | { status: "error"; message: string } | { status: "ready"; name: string; address: string }
+/**
+ * The public server record first; failing that, the live Play lists (the Discord bot's server board
+ * links those IDs). Either way the address comes from the API, never from the link.
+ */
+async function resolveServer(serverId: string): Promise<{ name: string; connectAddress?: string | null }> {
+  try {
+    return await serversService.getServer(serverId)
+  } catch (error) {
+    const lists = await Promise.allSettled((["5x5", "fun", "pro"] as const).map((mode) => playService.getServers(mode)))
+    const match = lists.flatMap((list) => (list.status === "fulfilled" ? list.value.servers : [])).find((server) => server.id === serverId)
+    if (match) return match
+    throw error
+  }
+}
+
+type ConnectState ={ status: "loading" } | { status: "error"; message: string } | { status: "ready"; name: string; address: string }
 
 export function ConnectPage() {
   const [params] = useSearchParams()
@@ -22,7 +38,7 @@ export function ConnectPage() {
     }
 
     let active = true
-    void serversService.getServer(serverId)
+    void resolveServer(serverId)
       .then((server) => {
         const address = server.connectAddress?.trim() ?? ""
         if (!CONNECT_ADDRESS_PATTERN.test(address)) throw new Error("This server does not expose a valid connection address.")
