@@ -194,7 +194,7 @@ export function PenaltyDetailSheet({
                   href={LINKS.discordAppeals}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex h-9 flex-1 items-center justify-center rounded-lg bg-[var(--accent-solid)] text-[13px] font-semibold text-[var(--accent-on)] transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
+                  className="lx-brand-button flex h-9 flex-1 items-center justify-center rounded-lg text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
                 >
                   Appeal on Discord
                 </a>

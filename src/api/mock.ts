@@ -111,6 +111,41 @@ function feedback() {
   }))
 }
 
+const HOUR = 3_600_000
+const PENALTIES: [type: "ban" | "comm" | "gag", reason: string, term: string, permanent: boolean, unbanned: boolean, ageHours: number, lengthHours: number | null][] = [
+  ["ban", "Wallhack detected by anti-cheat", "Permanent", true, false, 5, null],
+  ["comm", "Toxic voice chat", "1 day", false, false, 3, 24],
+  ["gag", "Chat spam", "6 hours", false, false, 1, 6],
+  ["ban", "Leaving competitive matches", "3 days", false, false, 20, 72],
+  ["ban", "Aimbot", "Permanent", true, true, 400, null],
+  ["comm", "Mic spam", "2 hours", false, false, 30, 2],
+  ["gag", "Insulting players", "1 day", false, false, 60, 24],
+  ["ban", "Griefing teammates", "7 days", false, false, 240, 168],
+  ["comm", "Toxic voice chat", "12 hours", false, false, 90, 12],
+  ["ban", "Ban evasion", "Permanent", true, false, 700, null],
+  ["gag", "Advertising", "3 days", false, true, 300, 72],
+  ["ban", "Exploiting map bugs", "1 day", false, false, 500, 24],
+]
+
+function penalties() {
+  const now = Date.now()
+  return PENALTIES.map(([type, reason, term, isPermanent, isUnbanned, ageHours, lengthHours], index) => ({
+    id: `mock-penalty-${index}`,
+    type,
+    player: NAMES[(index * 7 + 3) % NAMES.length],
+    playerSteamId: `765611980000${String(index).padStart(5, "0")}`,
+    avatar: "",
+    moderationStatus: type === "ban" ? "Banned" : type === "comm" ? "Muted" : "Gag",
+    reason,
+    term,
+    isPermanent,
+    isUnbanned,
+    admin: "Legacy-X Admin",
+    expiresAt: lengthHours === null ? null : new Date(now - ageHours * HOUR + lengthHours * HOUR).toISOString(),
+    date: new Date(now - ageHours * HOUR).toISOString(),
+  }))
+}
+
 function notFound(): ApiError {
   return { status: 404, code: "not_found", message: "The requested resource could not be found." }
 }
@@ -136,6 +171,8 @@ export async function mockResponse(method: string, path: string, query: Query): 
       return killfeed()
     case "/api/v1/feedback":
       return feedback()
+    case "/api/v1/moderation/penalties":
+      return penalties()
     case "/api/v1/tournaments":
       return { current: null, past: [] }
     default:

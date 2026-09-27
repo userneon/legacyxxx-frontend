@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, type CSSProperties } from "react"
 import { useSearchParams } from "react-router-dom"
-import { ChevronRight, ExternalLink, LoaderCircle, RotateCcw, Search, ShieldAlert, ShieldCheck } from "lucide-react"
+import { Ban, ChevronRight, ExternalLink, LoaderCircle, MessageSquareOff, MicOff, RotateCcw, Search, ShieldAlert, ShieldCheck, Siren } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { moderationService, profileService } from "@/api"
@@ -21,6 +21,7 @@ import {
 } from "@/components/penalty-detail-dialog"
 import { Segmented } from "@/components/segmented"
 import { Skeleton } from "@/components/ui/skeleton"
+import { AnimatedNumber } from "@/components/animated-number"
 
 type TypeFilter = "all" | PenaltyType
 type StatusFilter = "all" | "active"
@@ -46,7 +47,7 @@ function YourStatus({ penalties, loading, onDetails }: { penalties: PenaltyEntry
   }
   if (!active) {
     return (
-      <section aria-label="Your status" className="flex items-center gap-3.5 rounded-xl border border-[var(--status-green)]/30 bg-[linear-gradient(90deg,color-mix(in_oklab,var(--status-green)_7%,transparent),transparent_60%)] bg-[var(--card-surface)] px-[18px] py-4">
+      <section aria-label="Your status" className="lx-swap-in flex items-center gap-3.5 rounded-xl border border-[var(--status-green)]/30 bg-[linear-gradient(90deg,color-mix(in_oklab,var(--status-green)_7%,transparent),transparent_60%)] bg-[var(--card-surface)] px-[18px] py-4">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-[var(--status-green)]/10 text-[var(--status-green)]">
           <ShieldCheck className="size-[18px]" />
         </span>
@@ -60,7 +61,7 @@ function YourStatus({ penalties, loading, onDetails }: { penalties: PenaltyEntry
   return (
     <section
       aria-label="Your status"
-      className="flex flex-wrap items-center gap-3.5 rounded-xl border bg-[var(--card-surface)] px-[18px] py-4"
+      className="lx-swap-in flex flex-wrap items-center gap-3.5 rounded-xl border bg-[var(--card-surface)] px-[18px] py-4"
       style={{ borderColor: `color-mix(in oklab, ${penaltyStatusColor(active)} 45%, transparent)`, backgroundImage: `linear-gradient(90deg, color-mix(in oklab, ${penaltyStatusColor(active)} 8%, transparent), transparent 60%)` }}
     >
       <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px]" style={{ color: penaltyStatusColor(active), backgroundColor: `color-mix(in oklab, ${penaltyStatusColor(active)} 14%, transparent)` }}>
@@ -77,7 +78,7 @@ function YourStatus({ penalties, loading, onDetails }: { penalties: PenaltyEntry
       <button
         type="button"
         onClick={() => onDetails(active)}
-        className="h-9 shrink-0 rounded-lg border border-[var(--line)] px-3.5 text-[13px] font-medium text-[var(--text)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
+        className="h-9 shrink-0 rounded-lg border border-[var(--line)] px-3.5 text-[13px] font-medium text-[var(--text)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
       >
         Details
       </button>
@@ -86,7 +87,7 @@ function YourStatus({ penalties, loading, onDetails }: { penalties: PenaltyEntry
           href={LINKS.discordAppeals}
           target="_blank"
           rel="noreferrer"
-          className="flex h-9 shrink-0 items-center rounded-lg bg-[var(--accent-solid)] px-3.5 text-[13px] font-semibold text-[var(--accent-on)] transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
+          className="lx-brand-button flex h-9 shrink-0 items-center rounded-lg px-3.5 text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
         >
           Appeal on Discord
         </a>
@@ -95,20 +96,25 @@ function YourStatus({ penalties, loading, onDetails }: { penalties: PenaltyEntry
   )
 }
 
-function PenaltyRow({ penalty, onOpen }: { penalty: PenaltyEntry; onOpen: () => void }) {
+function PenaltyRow({ penalty, onOpen, index }: { penalty: PenaltyEntry; onOpen: () => void; index: number }) {
   const reason = penalty.reason || "No reason given"
   return (
     <button
       type="button"
       onClick={onOpen}
       aria-label={`${(TYPE_META[penalty.type] ?? TYPE_META.ban).label} · ${penalty.player}`}
+      style={{ animationDelay: `${Math.min(index, 14) * 28}ms` }}
       className={cn(
         GRID,
-        "h-14 w-full border-b border-[var(--raised)] text-left transition-colors duration-150",
-        "hover:bg-[var(--card-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/60",
+        "lx-row-in group relative h-14 w-full border-b border-[var(--raised)] text-left transition-[background-color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] hover:duration-200",
+        "hover:bg-[var(--brand)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--brand-bright)]/60",
       )}
     >
-      <span className="flex min-w-0 items-center gap-3">
+      <span
+        aria-hidden="true"
+        className="absolute bottom-2 left-0 top-2 w-[3px] scale-y-0 rounded-r-full bg-[var(--brand-bright)] opacity-0 shadow-[0_0_10px_var(--brand)] transition-[scale,opacity] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]"
+      />
+      <span className="flex min-w-0 items-center gap-3 transition-[translate] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:translate-x-1 group-hover:duration-300 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]">
         <PlayerModerationAvatar avatar={penalty.avatar} name={penalty.player} status={penalty.moderationStatus} className="size-8 shrink-0 rounded-[9px] text-xs" />
         <span className="min-w-0 truncate text-[13px] font-medium text-[var(--text)]" title={penalty.player}>{penalty.player}</span>
       </span>
@@ -117,17 +123,52 @@ function PenaltyRow({ penalty, onOpen }: { penalty: PenaltyEntry; onOpen: () => 
       <span className="min-w-0 truncate text-[13px] text-[var(--text-2)]" title={reason}>{reason}</span>
       <TermLabel penalty={penalty} className="text-[13px] font-medium" />
       <span className="text-[13px] tabular-nums text-[var(--text-muted)]" title={formatPenaltyDate(penalty.date, true)}>{formatPenaltyDate(penalty.date)}</span>
-      <ChevronRight className="size-4 text-[var(--text-faint)]" />
+      <ChevronRight className="size-4 text-[var(--text-faint)] transition-[translate,color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:translate-x-1 group-hover:text-[var(--brand-bright)] group-hover:duration-300" />
     </button>
   )
 }
 
-function GroupHeader({ label, active }: { label: string; active: boolean }) {
+function GroupHeader({ label, active, count }: { label: string; active: boolean; count: number }) {
   return (
     <div className="flex h-9 items-center gap-2 border-b border-[var(--raised)] bg-[#0c0c0c] px-6 text-xs font-semibold text-[var(--text-muted)]">
-      <span className={cn("size-1.5 rounded-full", active ? "bg-[var(--status-red)]" : "bg-[var(--text-faint)]")} />
+      <span className={cn("size-1.5 rounded-full", active ? "lx-live-dot bg-[var(--status-red)]" : "bg-[var(--text-faint)]")} />
       {label}
+      <span className="rounded-full bg-[var(--raised)] px-1.5 text-[11px] tabular-nums text-[var(--text-dim)]">{count}</span>
     </div>
+  )
+}
+
+/** Summary tile that doubles as a filter: Active now, Bans, Mutes, Gags. */
+function SummaryTile({ icon: Icon, label, value, color, selected, pulse, onClick, index }: {
+  icon: typeof Ban
+  label: string
+  value: number | null
+  color: string
+  selected: boolean
+  pulse?: boolean
+  onClick: () => void
+  index: number
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      style={{ animationDelay: `${80 + index * 60}ms`, "--tile": color } as CSSProperties}
+      className={cn(
+        "lx-fx-card group relative flex items-center gap-3 overflow-hidden rounded-xl border bg-[var(--card-surface)] p-3.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60",
+        selected ? "border-[color-mix(in_oklab,var(--tile)_55%,transparent)] bg-[linear-gradient(135deg,color-mix(in_oklab,var(--tile)_12%,var(--card-surface)),var(--card-surface)_70%)]" : "border-[var(--line-soft)]",
+      )}
+    >
+      <span className="relative flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-[color-mix(in_oklab,var(--tile)_14%,transparent)] text-[var(--tile)] ring-1 ring-inset ring-[color-mix(in_oklab,var(--tile)_30%,transparent)] transition-[scale] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-105 group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]">
+        <Icon className="size-[18px]" />
+        {pulse && Boolean(value) && <span className="lx-live-dot absolute -right-0.5 -top-0.5 size-2 rounded-full bg-[var(--tile)]" />}
+      </span>
+      <span className="flex min-w-0 flex-col">
+        <span className="text-xl font-bold leading-tight tabular-nums text-[var(--text)]"><AnimatedNumber value={value} /></span>
+        <span className="truncate text-xs text-[var(--text-muted)]">{label}</span>
+      </span>
+    </button>
   )
 }
 
@@ -197,63 +238,78 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
   const selected = openId ? [...all, ...(mine ?? [])].find((penalty) => penalty.id === openId) ?? null : null
   const isOwn = Boolean(selected && user && (selected.playerSteamId === user.steamId || (mine ?? []).some((penalty) => penalty.id === selected.id)))
   const firstLoad = loading && all.length === 0
+  const activeTotal = found.filter((penalty) => penaltyStatus(penalty) === "active").length
 
   return (
     <div className="scrollbar-hidden flex min-h-0 flex-1 overflow-x-auto">
       <div className="flex min-w-[900px] flex-1 flex-col">
         <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
-          <div className="flex flex-col gap-[18px] px-6 pb-4 pt-6">
-            <div className="flex items-end justify-between gap-4">
-              <div className="flex min-w-0 flex-col gap-1">
-                <h1 className="flex items-center gap-2 text-[22px] font-semibold leading-[1.2] tracking-[-0.3px] text-[var(--text)]">
-                  Penalties
-                  {loading && all.length > 0 && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
-                </h1>
-                <span className="text-[13px] leading-[1.2] text-[var(--text-muted)]">Every ban, mute and gag on Legacy-X servers is public.</span>
+          <div className="flex flex-col gap-4 px-6 pb-4 pt-6">
+            <section aria-label="Penalties" className="relative overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]">
+              <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
+              <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
+              <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
+              <div className="relative z-10 flex flex-col gap-5 p-7">
+                <div className="flex items-end justify-between gap-4">
+                  <div className="flex min-w-0 flex-col gap-2.5">
+                    <h1 className="flex items-center gap-2.5 text-[34px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
+                      <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)] shadow-[0_0_14px_var(--brand)]" />
+                      Penalties
+                      {loading && all.length > 0 && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
+                    </h1>
+                    <span className="text-[14px] text-[var(--text-2)]">Every ban, mute and gag on Legacy-X servers is public.</span>
+                  </div>
+                  {LINKS.serverRules && (
+                    <a href={LINKS.serverRules} target="_blank" rel="noreferrer" className="group flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--panel)]/70 px-3 text-[13px] text-[var(--text-2)] backdrop-blur transition-colors duration-300 hover:border-[var(--brand)]/60 hover:text-[var(--text)]">
+                      Server rules
+                      <ExternalLink className="size-3.5 transition-[translate] duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                    </a>
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <label className="flex h-10 min-w-[260px] flex-1 items-center gap-2 rounded-[10px] border border-[var(--line)] bg-[var(--panel)]/80 px-3 backdrop-blur transition-[border-color,box-shadow] duration-300 focus-within:border-[var(--brand)]/60 focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_18%,transparent)]">
+                    <Search className="size-4 shrink-0 text-[var(--text-dim)]" />
+                    <input
+                      type="search"
+                      value={query}
+                      onChange={(event) => setQuery(event.target.value)}
+                      aria-label="Check a player"
+                      placeholder="Check a player — name, Steam ID or profile link"
+                      className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text)] outline-none placeholder:text-[var(--text-dim)]"
+                    />
+                  </label>
+                  <Segmented
+                    ariaLabel="Type"
+                    value={type}
+                    onChange={(value) => update({ type: value === "all" ? null : value })}
+                    options={[
+                      { value: "all", label: "All", count: counts.all },
+                      { value: "ban", label: "Bans", count: counts.ban },
+                      { value: "comm", label: "Mutes", count: counts.comm },
+                      { value: "gag", label: "Gags", count: counts.gag },
+                    ]}
+                  />
+                  <Segmented
+                    ariaLabel="Status"
+                    value={status}
+                    onChange={(value) => update({ status: value === "all" ? null : value })}
+                    options={[
+                      { value: "all", label: "All" },
+                      { value: "active", label: "Active only" },
+                    ]}
+                  />
+                </div>
               </div>
-              {LINKS.serverRules && (
-                <a href={LINKS.serverRules} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-[13px] text-[var(--text-muted)] transition-colors hover:text-[var(--text)]">
-                  Server rules
-                  <ExternalLink className="size-3.5" />
-                </a>
-              )}
+            </section>
+
+            <div className="grid grid-cols-4 gap-3">
+              <SummaryTile index={0} icon={Siren} label="Active now" value={firstLoad ? null : activeTotal} color="var(--status-red)" pulse selected={status === "active" && type === "all"} onClick={() => update({ status: status === "active" && type === "all" ? null : "active", type: null })} />
+              <SummaryTile index={1} icon={Ban} label="Bans" value={firstLoad ? null : counts.ban} color={TYPE_META.ban.color} selected={type === "ban"} onClick={() => update({ type: type === "ban" ? null : "ban" })} />
+              <SummaryTile index={2} icon={MicOff} label="Mutes" value={firstLoad ? null : counts.comm} color={TYPE_META.comm.color} selected={type === "comm"} onClick={() => update({ type: type === "comm" ? null : "comm" })} />
+              <SummaryTile index={3} icon={MessageSquareOff} label="Gags" value={firstLoad ? null : counts.gag} color={TYPE_META.gag.color} selected={type === "gag"} onClick={() => update({ type: type === "gag" ? null : "gag" })} />
             </div>
 
             {user && <YourStatus penalties={mine ?? []} loading={mineLoading} onDetails={(penalty) => update({ penalty: penalty.id })} />}
-
-            <div className="flex flex-wrap items-center gap-2.5">
-              <label className="flex h-10 min-w-[260px] flex-1 items-center gap-2 rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)] px-3 transition-colors focus-within:border-[var(--line-strong)]">
-                <Search className="size-4 shrink-0 text-[var(--text-dim)]" />
-                <input
-                  type="search"
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  aria-label="Check a player"
-                  placeholder="Check a player — name, Steam ID or profile link"
-                  className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text)] outline-none placeholder:text-[var(--text-dim)]"
-                />
-              </label>
-              <Segmented
-                ariaLabel="Type"
-                value={type}
-                onChange={(value) => update({ type: value === "all" ? null : value })}
-                options={[
-                  { value: "all", label: "All", count: counts.all },
-                  { value: "ban", label: "Bans", count: counts.ban },
-                  { value: "comm", label: "Mutes", count: counts.comm },
-                  { value: "gag", label: "Gags", count: counts.gag },
-                ]}
-              />
-              <Segmented
-                ariaLabel="Status"
-                value={status}
-                onChange={(value) => update({ status: value === "all" ? null : value })}
-                options={[
-                  { value: "all", label: "All" },
-                  { value: "active", label: "Active only" },
-                ]}
-              />
-            </div>
           </div>
 
           <div className={cn(GRID, "sticky top-0 z-[2] h-[38px] border-y border-[var(--line-soft)] bg-[var(--panel)] text-xs font-medium text-[var(--text-dim)]")}>
@@ -266,8 +322,8 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
             <span />
           </div>
 
-          {/* The body crossfades when a filter changes; keyed so the fade replays. */}
-          <div key={`${type}:${status}:${search}`} className="animate-in fade-in-0 duration-150 motion-reduce:animate-none">
+          {/* Keyed on the filters so the rows cascade in again after every change. */}
+          <div key={`${type}:${status}:${search}`}>
             {firstLoad ? (
               Array.from({ length: 8 }, (_, index) => <RowSkeleton key={index} />)
             ) : error && all.length === 0 ? (
@@ -286,14 +342,14 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
               <>
                 {activeRows.length > 0 && (
                   <>
-                    <GroupHeader label="Active" active />
-                    {activeRows.map((penalty) => <PenaltyRow key={penalty.id} penalty={penalty} onOpen={() => update({ penalty: penalty.id })} />)}
+                    <GroupHeader label="Active" active count={activeRows.length} />
+                    {activeRows.map((penalty, index) => <PenaltyRow key={penalty.id} index={index} penalty={penalty} onOpen={() => update({ penalty: penalty.id })} />)}
                   </>
                 )}
                 {historyRows.length > 0 && (
                   <>
-                    <GroupHeader label="History" active={false} />
-                    {historyRows.map((penalty) => <PenaltyRow key={penalty.id} penalty={penalty} onOpen={() => update({ penalty: penalty.id })} />)}
+                    <GroupHeader label="History" active={false} count={historyRows.length} />
+                    {historyRows.map((penalty, index) => <PenaltyRow key={penalty.id} index={activeRows.length + index} penalty={penalty} onOpen={() => update({ penalty: penalty.id })} />)}
                   </>
                 )}
               </>
