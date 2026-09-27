@@ -440,7 +440,10 @@ function notFound(): ApiError {
 }
 
 /** Resolves a mock response for a GET request, or throws the API's 404 shape. */
-export async function mockResponse(method: string, path: string, query: Query): Promise<unknown> {
+/** Notification settings for the session, so the switches in Settings really toggle. */
+let notificationPrefs = { tournaments: true, rankChanges: false, penalties: true }
+
+export async function mockResponse(method: string, path: string, query: Query, body?: unknown): Promise<unknown> {
   // A short, realistic delay so loading states and entrance animations show.
   await new Promise((resolve) => window.setTimeout(resolve, 250 + Math.random() * 250))
   if (path === "/api/v1/auth/logout") {
@@ -452,6 +455,11 @@ export async function mockResponse(method: string, path: string, query: Query): 
     return MOCK_USER
   }
   if (path === "/api/v1/auth/refresh") throw unauthorized()
+  if (path === "/api/v1/settings/notifications") {
+    if (!signedIn()) throw unauthorized()
+    if (method === "PUT") notificationPrefs = { ...notificationPrefs, ...(body as Partial<typeof notificationPrefs>), penalties: true }
+    return notificationPrefs
+  }
   if (method !== "GET") throw notFound()
 
   const profile = /^\/api\/v1\/profile\/([^/]+)\/(overview|faceit)$/.exec(path)

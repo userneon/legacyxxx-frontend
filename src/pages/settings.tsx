@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react"
-import { Check, CircleCheck } from "lucide-react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
+import { Bell, Check, CircleCheck, Link2, MonitorSmartphone, type LucideIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { settingsService, type NotificationSettings } from "@/api/settings"
@@ -12,10 +12,11 @@ import { SteamIcon } from "@/components/steam-login-gate"
 import { Skeleton } from "@/components/ui/skeleton"
 
 const SECTIONS = [
-  { id: "connections", label: "Connections" },
-  { id: "notifications", label: "Notifications" },
-  { id: "website", label: "Website" },
+  { id: "connections", label: "Connections", icon: Link2 },
+  { id: "notifications", label: "Notifications", icon: Bell },
+  { id: "website", label: "Website", icon: MonitorSmartphone },
 ] as const
+const SECTION_ICON: Record<(typeof SECTIONS)[number]["id"], LucideIcon> = { connections: Link2, notifications: Bell, website: MonitorSmartphone }
 type SectionId = (typeof SECTIONS)[number]["id"]
 
 function Switch({ checked, onChange, label, disabled }: { checked: boolean; onChange?: (next: boolean) => void; label: string; disabled?: boolean }) {
@@ -28,18 +29,20 @@ function Switch({ checked, onChange, label, disabled }: { checked: boolean; onCh
       disabled={disabled}
       onClick={() => onChange?.(!checked)}
       className={cn(
-        "relative h-6 w-[42px] shrink-0 rounded-full p-0.5 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 disabled:cursor-default disabled:opacity-50",
-        checked ? "bg-[var(--accent-solid)]" : "bg-[var(--line-strong)]",
+        "group",
+        "relative h-6 w-[42px] shrink-0 rounded-full p-0.5 transition-[background-color,box-shadow] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:cursor-default disabled:opacity-50",
+        checked ? "bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))] shadow-[0_0_14px_-3px_var(--brand)]" : "bg-[var(--line-strong)]",
       )}
     >
-      <span className={cn("block size-5 rounded-full transition-transform duration-200 ease-[var(--ease-out)] motion-reduce:transition-none", checked ? "translate-x-[18px] bg-[var(--accent-on)]" : "translate-x-0 bg-[var(--accent-solid)]")} />
+      {/* The knob springs across and stretches a little on the way. */}
+      <span className={cn("block size-5 rounded-full bg-white shadow-[0_1px_4px_rgba(0,0,0,0.35)] transition-[translate,width] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:transition-none group-active:w-6", checked ? "translate-x-[18px]" : "translate-x-0")} />
     </button>
   )
 }
 
 function Row({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-4">
+    <div className="-mx-2 flex items-center gap-4 rounded-lg px-2 py-1.5 transition-colors duration-300 hover:bg-[var(--brand)]/[0.05]">
       <span className="flex min-w-0 flex-1 flex-col gap-[3px]">
         <span className="text-sm font-medium text-[var(--text)]">{title}</span>
         <span className="text-xs text-[var(--text-dim)]">{description}</span>
@@ -60,21 +63,37 @@ function useSavedFlash() {
     timer.current = window.setTimeout(() => setVisible(false), 1600)
   }
   const node = (
-    <span aria-live="polite" className={cn("inline-flex items-center gap-1 text-xs text-[var(--text-muted)] transition-opacity duration-200", visible ? "opacity-100" : "opacity-0")}>
-      <Check className="size-3.5" />
+    <span
+      aria-live="polite"
+      className={cn(
+        "inline-flex h-7 items-center gap-1.5 rounded-full border border-[var(--brand)]/40 bg-[var(--brand)]/12 px-2.5 text-xs font-medium text-[var(--text-2)] transition-[opacity,scale] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
+        visible ? "scale-100 opacity-100" : "scale-90 opacity-0",
+      )}
+    >
+      <Check className="size-3.5 text-[var(--brand-bright)]" />
       Saved
     </span>
   )
   return { flash, node }
 }
 
-function Section({ id, title, description, aside, children }: { id: SectionId; title: string; description: string; aside?: React.ReactNode; children: React.ReactNode }) {
+function Section({ id, title, description, aside, children, index = 0 }: { id: SectionId; title: string; description: string; aside?: React.ReactNode; children: React.ReactNode; index?: number }) {
+  const Icon = SECTION_ICON[id]
   return (
-    <section id={id} aria-labelledby={`${id}-t`} className="scroll-mt-6 overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]">
+    <section
+      id={id}
+      aria-labelledby={`${id}-t`}
+      style={{ animationDelay: `${120 + index * 80}ms` }}
+      className="lx-swap-in relative scroll-mt-6 overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] transition-[border-color,box-shadow] duration-500 hover:border-[var(--line)]"
+    >
+      <span aria-hidden="true" className="absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
       <div className="flex items-start justify-between gap-4 px-5 pb-1 pt-[18px]">
-        <div className="flex flex-col gap-1">
-          <h2 id={`${id}-t`} className="text-[15px] font-semibold text-[var(--text)]">{title}</h2>
-          <span className="text-[13px] text-[var(--text-muted)]">{description}</span>
+        <div className="flex items-start gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-[var(--brand)]/15 text-[var(--brand-bright)] ring-1 ring-inset ring-[var(--brand)]/30"><Icon className="size-[18px]" /></span>
+          <div className="flex flex-col gap-1">
+            <h2 id={`${id}-t`} className="text-[15px] font-semibold text-[var(--text)]">{title}</h2>
+            <span className="text-[13px] text-[var(--text-muted)]">{description}</span>
+          </div>
         </div>
         {aside}
       </div>
@@ -85,7 +104,7 @@ function Section({ id, title, description, aside, children }: { id: SectionId; t
 
 function ConnectionRow({ icon, title, description, action }: { icon: React.ReactNode; title: string; description: React.ReactNode; action: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-3.5 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] px-3.5 py-3">
+    <div className="flex items-center gap-3.5 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] px-3.5 py-3 transition-[border-color,translate,box-shadow] duration-500 hover:-translate-y-0.5 hover:border-[var(--brand)]/40 hover:shadow-[0_10px_24px_-16px_var(--brand)] hover:duration-300">
       <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-[9px] bg-[var(--line-soft)] text-[var(--text)]">{icon}</span>
       <span className="flex min-w-0 flex-1 flex-col gap-[5px]">
         <span className="text-sm font-medium text-[var(--text)]">{title}</span>
@@ -118,7 +137,7 @@ function Notifications() {
   }
 
   return (
-    <Section id="notifications" title="Notifications" description="What shows up in the bell." aside={saved.node}>
+    <Section id="notifications" index={1} title="Notifications" description="What shows up in the bell." aside={saved.node}>
       {!prefs ? (
         error && !loading ? (
           <p className="text-[13px] text-[var(--text-dim)]">Couldn't load your notification settings. <button type="button" onClick={refetch} className="text-[var(--text-2)] underline-offset-4 hover:underline">Retry</button></p>
@@ -152,7 +171,7 @@ function Website() {
     saved.flash()
   }
   return (
-    <Section id="website" title="Website" description="How Legacy-X looks and behaves on this device. Changes apply right away." aside={saved.node}>
+    <Section id="website" index={2} title="Website" description="How Legacy-X looks and behaves on this device. Changes apply right away." aside={saved.node}>
       <Row title="Kill feed" description="Live kills in the top bar.">
         <Switch label="Kill feed" checked={prefs.killFeed} onChange={(next) => set("killFeed", next)} />
       </Row>
@@ -177,9 +196,10 @@ export function SettingsPage() {
   const scroller = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState<SectionId>("connections")
 
-  // Scroll-spy: the section nearest the top of the panel is the active nav item.
+  // Scroll-spy: the section nearest the top of the panel is the active nav item. The app's content
+  // panel is what actually scrolls (this page grows with its content), so listen there.
   useEffect(() => {
-    const root = scroller.current
+    const root = scrollParent(scroller.current)
     if (!root) return
     const onScroll = () => {
       const top = root.getBoundingClientRect().top
@@ -201,27 +221,78 @@ export function SettingsPage() {
     setActive(id)
   }
 
+  // The nav's crimson indicator glides to the active section instead of jumping.
+  const navItems = useRef(new Map<SectionId, HTMLButtonElement>())
+  const [indicator, setIndicator] = useState<{ top: number; left: number; height: number; width: number } | null>(null)
+  useLayoutEffect(() => {
+    const measure = () => {
+      const node = navItems.current.get(active)
+      if (node) setIndicator({ top: node.offsetTop, left: node.offsetLeft, height: node.offsetHeight, width: node.offsetWidth })
+    }
+    measure()
+    window.addEventListener("resize", measure)
+    return () => window.removeEventListener("resize", measure)
+  }, [active])
+
   return (
-    <div ref={scroller} className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
+    <div ref={scroller} className="min-h-0 flex-1">
+      <div className="px-8 pt-6 max-md:px-4">
+        <section aria-label="Settings" className="lx-swap-in relative overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]">
+          <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
+          <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
+          <div className="relative z-10 flex flex-wrap items-end justify-between gap-5 p-7">
+            <div className="flex min-w-0 flex-col gap-2.5">
+              <h1 className="flex items-center gap-2.5 text-[34px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
+                <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)] shadow-[0_0_14px_var(--brand)]" />
+                Settings
+              </h1>
+              <span className="text-[14px] text-[var(--text-2)]">Your connections, notifications and how the site behaves on this device.</span>
+            </div>
+            {user && (
+              <span className="flex items-center gap-2.5 rounded-full border border-[var(--line)] bg-[var(--panel)]/75 py-1 pl-1 pr-3.5 backdrop-blur">
+                <PlayerAvatar avatar={user.avatar} name={user.username} className="size-8 rounded-full text-[10px] ring-2 ring-[var(--brand)]/60" />
+                <span className="flex flex-col">
+                  <span className="text-[13px] font-semibold text-[var(--text)]">{user.username}</span>
+                  <span className="text-[11px] text-[var(--text-dim)]">Signed in with Steam</span>
+                </span>
+              </span>
+            )}
+          </div>
+        </section>
+      </div>
       <div className="grid gap-10 px-8 pb-12 pt-6 md:grid-cols-[200px_minmax(0,720px)] max-md:gap-4 max-md:px-4">
-        <nav aria-label="Settings sections" className="flex flex-col gap-0.5 self-start md:sticky md:top-6 max-md:flex-row max-md:flex-wrap">
-          <h1 className="mb-3.5 ml-3 text-[22px] font-semibold tracking-[-0.3px] text-[var(--text)] max-md:mb-1 max-md:w-full">Settings</h1>
+        <nav aria-label="Settings sections" className="relative flex flex-col gap-0.5 self-start md:sticky md:top-6 max-md:flex-row max-md:flex-wrap">
+          {indicator && (
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute rounded-lg bg-[linear-gradient(90deg,color-mix(in_oklab,var(--brand)_18%,transparent),transparent)] transition-[top,left,height,width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+              style={indicator}
+            >
+              <span className="absolute bottom-2 left-0 top-2 w-[3px] rounded-full bg-[var(--brand-bright)] shadow-[0_0_10px_var(--brand)]" />
+            </span>
+          )}
           {SECTIONS.map((section) => (
             <button
               key={section.id}
+              ref={(node) => {
+                if (node) navItems.current.set(section.id, node)
+                else navItems.current.delete(section.id)
+              }}
               type="button"
               aria-current={active === section.id}
               onClick={() => jump(section.id)}
               className={cn(
-                "flex h-9 items-center rounded-lg px-3 text-left text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60",
-                active === section.id ? "bg-[var(--raised)] text-[var(--text)]" : "text-[var(--text-muted)] hover:text-[var(--text)]",
+                "relative flex h-10 items-center gap-2.5 rounded-lg px-3 text-left text-sm font-medium transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60",
+                active === section.id ? "text-[var(--text)] [&>svg]:text-[var(--brand-bright)]" : "text-[var(--text-muted)] hover:text-[var(--text)]",
               )}
             >
+              <section.icon className="size-4 transition-colors duration-300" />
               {section.label}
             </button>
           ))}
         </nav>
-        <div className="flex flex-col gap-4 md:pt-11">
+        <div className="flex flex-col gap-4">
           <Section id="connections" title="Connections" description="Accounts linked to your profile.">
             <ConnectionRow
               icon={user?.avatar ? <PlayerAvatar avatar={user.avatar} name={user.username} className="size-9 rounded-[9px] text-xs" /> : <SteamIcon className="size-[18px]" />}
@@ -248,6 +319,15 @@ export function SettingsPage() {
       </div>
     </div>
   )
+}
+
+/** The nearest ancestor that scrolls vertically (the app's content panel). */
+function scrollParent(node: HTMLElement | null): HTMLElement | null {
+  for (let current = node?.parentElement ?? null; current; current = current.parentElement) {
+    const overflow = getComputedStyle(current).overflowY
+    if (overflow === "auto" || overflow === "scroll") return current
+  }
+  return null
 }
 
 function DiscordGlyph() {

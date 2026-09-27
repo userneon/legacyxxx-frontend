@@ -311,7 +311,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
 
   if (MOCK_API) {
     const { mockResponse } = await import("./mock")
-    return (await mockResponse(method, canonicalApiPath(path), query)) as T
+    return (await mockResponse(method, canonicalApiPath(path), query, body)) as T
   }
 
   const { signal: combinedSignal, clear } = withTimeout(signal, timeoutMs)
