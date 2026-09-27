@@ -144,20 +144,20 @@ export function HomePage({ onNavigate }: HomePageProps) {
             >
               {art && (
                 <div aria-hidden="true" className="lx-map-drift pointer-events-none absolute inset-0" style={{ animationDelay: `${index * -5}s` }}>
-                  <img src={art} alt="" loading="lazy" className="h-full w-full object-cover opacity-25 grayscale-[35%] transition-[opacity,transform,filter] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-110 group-hover:opacity-45 group-hover:grayscale-0" />
+                  <img src={art} alt="" loading="lazy" className="h-full w-full object-cover opacity-25 grayscale-[35%] transition-[opacity,transform,filter] duration-[1000ms] ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-110 group-hover:duration-700 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-45 group-hover:grayscale-0" />
                 </div>
               )}
-              <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--card-surface)] via-[var(--card-surface)]/70 to-transparent transition-opacity duration-700 group-hover:opacity-80" />
+              <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--card-surface)] via-[var(--card-surface)]/70 to-transparent transition-opacity duration-[900ms] ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:opacity-80 group-hover:duration-500" />
               <div aria-hidden="true" className="lx-spotlight pointer-events-none absolute inset-0" />
               <div className="relative flex items-start justify-between">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-[var(--brand)]/15 text-[var(--brand-bright)] ring-1 ring-inset ring-[var(--brand)]/30 transition-[background-color,color,transform,box-shadow] duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-6 group-hover:scale-110 group-hover:bg-[var(--brand)] group-hover:text-[var(--brand-on)] group-hover:shadow-[0_0_20px_var(--brand)]">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-[var(--brand)]/15 text-[var(--brand-bright)] ring-1 ring-inset ring-[var(--brand)]/30 transition-[background-color,color,transform,box-shadow] duration-[800ms] ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:duration-500 group-hover:ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-6 group-hover:scale-110 group-hover:bg-[var(--brand)] group-hover:text-[var(--brand-on)] group-hover:shadow-[0_0_20px_var(--brand)]">
                   <mode.icon className="size-5" />
                 </div>
-                <ArrowRight className="size-4 -translate-x-2 text-[var(--brand-bright)] opacity-0 transition-[opacity,translate] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-0 group-hover:opacity-100" />
+                <ArrowRight className="size-4 -translate-x-2 text-[var(--brand-bright)] opacity-0 transition-[opacity,translate] duration-[800ms] ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-0 group-hover:opacity-100" />
               </div>
-              <div className="relative mt-auto transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-0.5">
+              <div className="relative mt-auto transition-transform duration-[800ms] ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-0.5">
                 <div className="font-semibold text-[var(--text)]">{mode.label}</div>
-                <div className="mt-1 text-xs text-[var(--text-muted)] transition-colors duration-500 group-hover:text-[var(--text-2)]">{mode.desc}</div>
+                <div className="mt-1 text-xs text-[var(--text-muted)] transition-colors duration-[800ms] ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:duration-500 group-hover:text-[var(--text-2)]">{mode.desc}</div>
               </div>
               <div className={cn("relative flex h-4 items-center gap-1.5 transition-opacity duration-150", status ? "opacity-100" : "opacity-0")}>
                 {status?.live && <span className="lx-live-dot size-1.5 rounded-full bg-[var(--status-green)]" />}
