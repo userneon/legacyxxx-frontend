@@ -487,17 +487,27 @@
    Page transition — fade in on mount
    ======================================== */
 .page-enter {
-  animation: page-flow-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: page-flow-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* The outgoing page fades up and out before the next one flows in (App.tsx, 160ms). */
+.page-enter.page-leave {
+  animation: page-flow-out 160ms cubic-bezier(0.4, 0, 1, 1) forwards;
+  pointer-events: none;
+}
+@keyframes page-flow-out {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(-6px); }
 }
 
 @keyframes page-flow-in {
   from {
     opacity: 0;
-    transform: translateY(10px) scale(0.99);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 
@@ -1298,4 +1308,20 @@
 }
 @keyframes lx-progress-sweep {
   60%, 100% { transform: translateX(100%); }
+}
+
+/* Content swapped in place (Play hero when switching modes): a soft fade and rise. */
+.lx-swap-in {
+  animation: lx-swap-in 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes lx-swap-in {
+  from { opacity: 0; transform: translateY(6px); filter: blur(3px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+.lx-swap-fade {
+  animation: lx-swap-fade 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes lx-swap-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

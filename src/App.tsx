@@ -1,4 +1,4 @@
-import { Component, useEffect, useRef, type CSSProperties, type ReactNode } from "react"
+import { Component, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react"
 import { Navigate, Routes, Route, useNavigate, useLocation } from "react-router-dom"
 
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
@@ -24,6 +24,7 @@ import { useAuth } from "@/hooks/use-auth"
 import type { PageId } from "@/api/types"
 import { routeToPage, pageToRoute } from "@/lib/routes"
 import { isFeatureEnabled } from "@/lib/features"
+import { cn } from "@/lib/utils"
 
 // LEGACY-X visual system: preserve the existing compact glass sidebar shell and route-level page transitions.
 export function App() {
@@ -51,11 +52,33 @@ export function App() {
     navigate(`/clans/${clanId}`)
   }
 
-  // The content panel scrolls on its own, so send it back to the top on navigation.
-  const panelRef = useRef<HTMLDivElement>(null)
+  /*
+   * Page transitions: the old page fades out (160ms) before the new one flows in, instead of being
+   * swapped in the same frame. Moves inside one section (the Play modes, a filter or ?server= in
+   * the URL) apply at once, so the Play page stays mounted and only its contents change.
+   */
+  const [shownLocation, setShownLocation] = useState(location)
+  const [leaving, setLeaving] = useState(false)
   useEffect(() => {
-    panelRef.current?.scrollTo({ top: 0, behavior: "smooth" })
-  }, [location.pathname])
+    if (location === shownLocation) return
+    if (pageSection(location.pathname) === pageSection(shownLocation.pathname)) {
+      setShownLocation(location)
+      return
+    }
+    setLeaving(true)
+    const timer = window.setTimeout(() => {
+      setShownLocation(location)
+      setLeaving(false)
+    }, PAGE_LEAVE_MS)
+    return () => window.clearTimeout(timer)
+  }, [location, shownLocation])
+
+  // The content panel scrolls on its own; a new page starts at the top (instantly, while it fades in).
+  const panelRef = useRef<HTMLDivElement>(null)
+  const shownSection = pageSection(shownLocation.pathname)
+  useEffect(() => {
+    panelRef.current?.scrollTo({ top: 0 })
+  }, [shownSection])
 
   const websitePrefs = useWebsitePreferences()
 
@@ -74,9 +97,9 @@ export function App() {
         </header>
 
         <div ref={panelRef} className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-clip rounded-[14px] border border-[var(--line-soft)] bg-[var(--panel)]">
-          <div key={location.pathname} className="page-enter flex min-h-full flex-col">
-            <RouteErrorBoundary resetKey={location.pathname}>
-            <Routes>
+          <div key={shownSection} className={cn("page-enter flex min-h-full flex-col", leaving && "page-leave")}>
+            <RouteErrorBoundary resetKey={shownLocation.pathname}>
+            <Routes location={shownLocation}>
               <Route path="/" element={<HomePage onNavigate={handleNavigate} />} />
               <Route path="/play/5x5" element={<PlayPage mode="5vs5" />} />
               <Route path="/play/fun" element={<PlayPage mode="fun" />} />
@@ -138,6 +161,13 @@ class RouteErrorBoundary extends Component<{ children: ReactNode; resetKey: stri
     }
     return this.props.children
   }
+}
+
+const PAGE_LEAVE_MS = 160
+
+/** Pages that share one mounted view: every Play mode is the Play section. */
+function pageSection(pathname: string): string {
+  return pathname.startsWith("/play/") ? "/play" : pathname
 }
 
 function getRouteForPage(page: PageId): string {

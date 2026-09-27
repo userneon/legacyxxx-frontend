@@ -15,6 +15,7 @@ import { CompetitiveRankBadge, RankLabel } from "@/components/competitive-rank-b
 import { PlayerAvatar } from "@/components/player-avatar"
 import { TeamIcon, teamTextClass, type TeamSide } from "@/components/team-icon"
 import { SteamLoginGate } from "@/components/steam-login-gate"
+import { Segmented } from "@/components/segmented"
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -35,9 +36,11 @@ const MODES: Record<PlayPageMode, { mode: PlayMode; title: string; description: 
 
 const secondary = "inline-flex h-[34px] items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] font-medium text-[var(--text)] transition-[background-color,border-color,transform] duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 disabled:pointer-events-none disabled:opacity-50"
 const primary = "lx-brand-button inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:pointer-events-none disabled:opacity-40 disabled:saturate-50"
-const chip = "inline-flex h-[30px] items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-[color,background-color,border-color,box-shadow,scale] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
-const chipOn = "border-[var(--brand)]/60 bg-[var(--brand)]/15 text-[var(--text)] shadow-[0_0_14px_-4px_var(--brand)]"
-const chipOff = "border-[var(--line)] text-[var(--text-muted)] hover:border-[var(--line-strong)] hover:bg-[var(--raised)] hover:text-[var(--text)]"
+/** On/off switches in the same tray as the Segmented control (Leaders' EXP / K/D / Win rate). */
+const toggleTray = "flex shrink-0 gap-0.5 rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)] p-[3px]"
+const toggleItem = "inline-flex h-[30px] items-center gap-1.5 rounded-[7px] px-3 text-[13px] font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
+const toggleOn = "bg-[var(--line)] text-[var(--text)]"
+const toggleOff = "text-[var(--text-muted)] hover:text-[var(--text)]"
 
 const validAddress = (address: string | null | undefined) => Boolean(address && /^[a-zA-Z0-9.-]+:\d{1,5}$/.test(address.trim()))
 
@@ -418,7 +421,7 @@ function PlayHero({ title, description, heroMap, list, loading, mode, pickRule, 
     <section aria-label={title} className="relative overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]">
       {art && (
         <div aria-hidden="true" className="lx-map-drift pointer-events-none absolute inset-0">
-          <img src={art} alt="" className="lx-map-img size-full object-cover opacity-30" />
+          <img key={heroMap} src={art} alt="" className="lx-map-img lx-swap-fade size-full object-cover opacity-30" />
         </div>
       )}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--card-surface)] via-[var(--card-surface)]/85 to-[var(--card-surface)]/30" />
@@ -426,14 +429,14 @@ function PlayHero({ title, description, heroMap, list, loading, mode, pickRule, 
       <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
 
-      <div className="relative z-10 flex flex-col gap-5 p-6 @3xl:flex-row @3xl:items-end @3xl:justify-between @3xl:p-7">
-        <div className="flex min-w-0 flex-col gap-3">
+      <div className="relative z-10 flex flex-col gap-5 p-6 @3xl:min-h-[212px] @3xl:flex-row @3xl:items-end @3xl:justify-between @3xl:p-7">
+        <div key={title} className="lx-swap-in flex min-w-0 flex-col gap-3">
           <h1 className="flex items-center gap-2.5 text-[28px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)] @2xl:text-[34px]">
             <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)] shadow-[0_0_14px_var(--brand)]" />
             {title}
             {loading && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
           </h1>
-          <span className="max-w-xl text-[14px] leading-relaxed text-[var(--text-2)]">{description}</span>
+          <span className="min-h-[46px] max-w-xl text-[14px] leading-relaxed text-[var(--text-2)] @3xl:min-h-0">{description}</span>
           <div className="flex flex-wrap gap-2">
             <span className="inline-flex h-7 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--panel)]/70 px-3 text-xs tabular-nums text-[var(--text-2)] backdrop-blur">
               <span className={cn("size-1.5 rounded-full", live ? "lx-live-dot bg-[var(--status-green)]" : "bg-[var(--text-faint)]")} />
@@ -452,7 +455,8 @@ function PlayHero({ title, description, heroMap, list, loading, mode, pickRule, 
             <Zap className="size-4 fill-[var(--brand-bright)] text-[var(--brand-bright)]" />
             Quick join
           </span>
-          <span className="text-xs leading-[1.5] text-[var(--text-muted)]">
+          {/* Always two lines tall, so every mode's hero is the same height. */}
+          <span key={pickRule} className="lx-swap-in line-clamp-2 min-h-[36px] text-xs leading-[1.5] text-[var(--text-muted)]">
             {anyJoinable ? pickRule : mode === "fun" ? "Every Fun server is full or offline right now." : <>No open server right now. <Link to={PAGE_ROUTES["play-fun"]} className="text-[var(--text)] underline-offset-4 hover:underline">Fun Mode</Link> usually has room.</>}
           </span>
           <button type="button" disabled={!anyJoinable || busy} onClick={() => void playNow()} className={cn(primary, "group mt-1 h-11 gap-2 rounded-[10px] px-[22px] text-[15px]")}>
@@ -492,7 +496,9 @@ function ServerBrowser({ mode, title, description, pickRule, heroMap }: { mode: 
   const onlyFavourites = params.get("fav") === "1"
   const selectedId = params.get("server")
   const { favourites, toggle } = useFavourites()
-  const { data, loading, error, refetch } = useApiQuery<PlayServerList>((signal) => playService.getServers(mode, { signal }), { queryKey: `play:${mode}`, keepPreviousData: true })
+  const { data: result, loading, error, refetch } = useApiQuery<PlayServerList>((signal) => playService.getServers(mode, { signal }), { queryKey: `play:${mode}`, keepPreviousData: true })
+  // The page stays mounted across Play modes; never show the previous mode's servers while this one loads.
+  const data = result && result.mode === mode ? result : null
   useEffect(() => {
     const timer = window.setInterval(refetch, REFRESH_MS)
     return () => window.clearInterval(timer)
@@ -542,16 +548,17 @@ function ServerBrowser({ mode, title, description, pickRule, heroMap }: { mode: 
             anyJoinable={servers.some((server) => server.joinable)}
           />
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div role="group" aria-label={mode === "fun" ? "Modes" : "Maps"} className="flex flex-wrap gap-1.5">
-              <button type="button" aria-pressed={filter === "all"} onClick={() => update({ filter: null })} className={cn(chip, filter === "all" ? chipOn : chipOff)}>{mode === "fun" ? "All modes" : "All maps"}</button>
-              {chips.map(([value, label]) => (
-                <button key={value} type="button" aria-pressed={filter === value} onClick={() => update({ filter: filter === value ? null : value })} className={cn(chip, filter === value ? chipOn : chipOff)}>{label}</button>
-              ))}
-            </div>
-            <div className="flex gap-1.5">
-              <button type="button" aria-pressed={hideFull} onClick={() => update({ full: hideFull ? null : "hide" })} className={cn(chip, hideFull ? chipOn : chipOff)}>Hide full</button>
-              <button type="button" aria-pressed={onlyFavourites} onClick={() => update({ fav: onlyFavourites ? null : "1" })} className={cn(chip, onlyFavourites ? chipOn : chipOff)}>
-                <Star className={cn("size-3 text-[var(--star)]", onlyFavourites && "fill-[var(--star)]")} />
+            <Segmented
+              ariaLabel={mode === "fun" ? "Modes" : "Maps"}
+              value={filter}
+              onChange={(value) => update({ filter: value === "all" ? null : value })}
+              options={[{ value: "all", label: mode === "fun" ? "All modes" : "All maps" }, ...chips.map(([value, label]) => ({ value, label }))]}
+              className="scrollbar-hidden max-w-full overflow-x-auto"
+            />
+            <div role="group" aria-label="Show" className={toggleTray}>
+              <button type="button" aria-pressed={hideFull} onClick={() => update({ full: hideFull ? null : "hide" })} className={cn(toggleItem, hideFull ? toggleOn : toggleOff)}>Hide full</button>
+              <button type="button" aria-pressed={onlyFavourites} onClick={() => update({ fav: onlyFavourites ? null : "1" })} className={cn(toggleItem, onlyFavourites ? toggleOn : toggleOff)}>
+                <Star className={cn("size-3.5 text-[var(--star)] transition-[fill] duration-200", onlyFavourites ? "fill-[var(--star)]" : "fill-transparent")} />
                 Favourites
               </button>
             </div>
@@ -651,5 +658,5 @@ export function PlayPage({ mode }: { mode: PlayPageMode }) {
     )
   }
   if (isPro && access && !access.proLeagueUnlocked) return <ProLocked access={access} />
-  return <ServerBrowser key={mode} mode={config.mode} title={config.title} description={config.description} pickRule={config.pickRule} heroMap={config.heroMap} />
+  return <ServerBrowser mode={config.mode} title={config.title} description={config.description} pickRule={config.pickRule} heroMap={config.heroMap} />
 }
