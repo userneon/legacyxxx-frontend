@@ -251,6 +251,124 @@ function tournamentList() {
   }
 }
 
+/* ------------------------------------------------------------------ sign-in (design preview) */
+
+const MOCK_TOKEN = "mock-session"
+
+function signedIn() {
+  try {
+    return window.localStorage.getItem("legacyx_access_token") === MOCK_TOKEN
+  } catch {
+    return false
+  }
+}
+
+const MOCK_USER = {
+  id: "mock-me",
+  steamId: "76561198000009999",
+  username: "LegacyTester",
+  avatar: "",
+  role: "Player",
+  moderationStatus: "Clear",
+}
+
+/* ------------------------------------------------------------------ skinchanger */
+
+const ICON = "https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/weapons/base_weapons"
+
+/** weapon_class, file name of its base render, buy-menu group. */
+const FIREARMS: [string, string, string][] = [
+  ["Glock-18", "glock", "Pistols"], ["USP-S", "usp_silencer", "Pistols"], ["P2000", "hkp2000", "Pistols"], ["P250", "p250", "Pistols"],
+  ["Desert Eagle", "deagle", "Pistols"], ["Dual Berettas", "elite", "Pistols"], ["Five-SeveN", "fiveseven", "Pistols"], ["Tec-9", "tec9", "Pistols"],
+  ["CZ75-Auto", "cz75a", "Pistols"], ["R8 Revolver", "revolver", "Pistols"],
+  ["MAC-10", "mac10", "SMGs"], ["MP9", "mp9", "SMGs"], ["MP7", "mp7", "SMGs"], ["MP5-SD", "mp5sd", "SMGs"], ["UMP-45", "ump45", "SMGs"], ["P90", "p90", "SMGs"], ["PP-Bizon", "bizon", "SMGs"],
+  ["AK-47", "ak47", "Rifles"], ["M4A4", "m4a1", "Rifles"], ["M4A1-S", "m4a1_silencer", "Rifles"], ["FAMAS", "famas", "Rifles"], ["Galil AR", "galilar", "Rifles"], ["AUG", "aug", "Rifles"], ["SG 553", "sg556", "Rifles"],
+  ["AWP", "awp", "Sniper Rifles"], ["SSG 08", "ssg08", "Sniper Rifles"], ["SCAR-20", "scar20", "Sniper Rifles"], ["G3SG1", "g3sg1", "Sniper Rifles"],
+  ["Nova", "nova", "Heavy"], ["XM1014", "xm1014", "Heavy"], ["MAG-7", "mag7", "Heavy"], ["Sawed-Off", "sawedoff", "Heavy"], ["Negev", "negev", "Heavy"], ["M249", "m249", "Heavy"],
+]
+const KNIVES: [string, string][] = [["Knife", "knife"], ["Karambit", "knife_karambit"], ["Butterfly Knife", "knife_butterfly"], ["M9 Bayonet", "knife_m9_bayonet"], ["Talon Knife", "knife_widowmaker"], ["Skeleton Knife", "knife_skeleton"]]
+const GLOVES = ["Sport Gloves", "Driver Gloves", "Specialist Gloves", "Moto Gloves"]
+const SKIN_NAMES = ["Redline", "Asiimov", "Neon Rider", "Vulcan", "Fade", "Slate", "Printstream", "Case Hardened", "Bloodsport", "Phantom Disruptor"]
+const RARITIES = ["Covert", "Classified", "Restricted", "Mil-Spec Grade", "Industrial Grade", "Consumer Grade"]
+
+type MockItem = { id: string; external_key: string; category: string; weapon_class: string | null; display_name: string; weapon_defindex: null; paint_id: number | null; model: null; image_key: null; image_url: string | null; metadata: Record<string, unknown> }
+
+function item(id: string, category: string, weaponClass: string | null, name: string, image: string | null, metadata: Record<string, unknown> = {}, paint: number | null = null): MockItem {
+  return { id, external_key: id, category, weapon_class: weaponClass, display_name: name, weapon_defindex: null, paint_id: paint, model: null, image_key: null, image_url: image, metadata }
+}
+
+const firearmModel = ([weaponClass, file, group]: [string, string, string]) => item(`weapon-${file}`, "weapon", weaponClass, weaponClass, `${ICON}/weapon_${file}_png.png`, { weaponGroup: group })
+const knifeModel = ([name, file]: [string, string]) => item(`knife-${file}`, "knife", name, name, `${ICON}/weapon_${file}_png.png`)
+const gloveModel = (name: string) => item(`glove-${name.toLowerCase().replace(/\s+/g, "-")}`, "glove", name, name, null)
+
+/** Skins for one model: the model's render with a rarity, so the picker shows real rarity bars. */
+function skinsFor(weaponClass: string, category: "weapon_skin" | "knife" | "glove") {
+  const firearm = FIREARMS.find(([name]) => name === weaponClass)
+  const knife = KNIVES.find(([name]) => name === weaponClass)
+  const image = firearm ? `${ICON}/weapon_${firearm[1]}_png.png` : knife ? `${ICON}/weapon_${knife[1]}_png.png` : null
+  const prefix = category === "weapon_skin" ? "" : "★ "
+  return SKIN_NAMES.map((skin, index) => item(
+    `skin-${weaponClass.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${index}`,
+    category,
+    weaponClass,
+    `${prefix}${weaponClass} | ${skin}`,
+    image,
+    { rarity: category === "weapon_skin" ? RARITIES[index % RARITIES.length] : "Covert", minWear: 0, maxWear: 1 },
+    100 + index,
+  ))
+}
+
+function catalog(query: Record<string, string | number | boolean | undefined | null> | undefined) {
+  const category = String(query?.category ?? "")
+  const weaponClass = query?.weaponClass ? String(query.weaponClass) : null
+  const search = String(query?.query ?? "").toLowerCase()
+  const limit = Number(query?.limit ?? 36)
+  const offset = Number(query?.offset ?? 0)
+  let items: MockItem[] = []
+  if (category === "weapon") items = FIREARMS.map(firearmModel)
+  else if (category === "knife") items = weaponClass ? skinsFor(weaponClass, "knife") : KNIVES.map(knifeModel)
+  else if (category === "glove") items = weaponClass ? skinsFor(weaponClass, "glove") : GLOVES.map(gloveModel)
+  else if (category === "weapon_skin") items = skinsFor(weaponClass ?? "AK-47", "weapon_skin")
+  else if (category === "agent") items = ["Sir Bloody Darryl", "Cmdr. Mae", "Number K", "Lt. Commander Ricksaw"].map((name, index) => item(`agent-${index}`, "agent", null, name, null, { rarity: index % 2 ? "Classified" : "Covert", team: query?.team === "ct" ? "Counter-Terrorist" : "Terrorist" }))
+  else if (category === "music_kit") items = ["Neck Deep", "Amon Tobin", "Knock2", "The Verkkars"].map((name, index) => item(`music-${index}`, "music_kit", null, `Music Kit | ${name}`, null))
+  else if (category === "pin") items = ["Dust II Pin", "Mirage Pin", "Guardian Pin", "Howl Pin"].map((name, index) => item(`pin-${index}`, "pin", null, name, null))
+  else if (category === "sticker" || category === "charm") items = ["Legacy-X", "Mongolia", "Headshot", "Clutch King"].map((name, index) => item(`${category}-${index}`, category, null, `${category === "sticker" ? "Sticker" : "Charm"} | ${name}`, null))
+  const matching = search ? items.filter((entry) => entry.display_name.toLowerCase().includes(search)) : items
+  return { data: matching.slice(offset, offset + limit), pagination: { limit, offset, total: matching.length } }
+}
+
+function loadout() {
+  const entry = (skin: MockItem, slot: string, slotKey: string, team: string) => ({
+    catalog_item_id: skin.id,
+    slot,
+    slot_key: slotKey,
+    team_scope: team,
+    options: { wear: 0.02, seed: 0, statTrak: false, stickers: [] },
+    skinchanger_catalog_items: skin,
+    resolved_accessories: [],
+  })
+  const skin = (weaponClass: string, index: number, category: "weapon_skin" | "knife" = "weapon_skin") => skinsFor(weaponClass, category)[index]
+  return {
+    loadout: {
+      version: 3,
+      updated_at: new Date().toISOString(),
+      skinchanger_loadout_entries: [
+        entry(skin("AK-47", 0), "weapon", "weapon:ak-47", "t"),
+        entry(skin("M4A1-S", 6), "weapon", "weapon:m4a1-s", "ct"),
+        entry(skin("AWP", 1), "weapon", "weapon:awp", "all"),
+        entry(skin("Desert Eagle", 2), "weapon", "weapon:desert-eagle", "all"),
+        entry(skin("Glock-18", 4), "weapon", "weapon:glock-18", "t"),
+        entry(skin("USP-S", 3), "weapon", "weapon:usp-s", "ct"),
+        entry(skin("Karambit", 4, "knife"), "knife", "knife:karambit", "t"),
+      ],
+    },
+  }
+}
+
+function unauthorized(): ApiError {
+  return { status: 401, code: "unauthorized", message: "You are not logged in. Please sign in and try again." }
+}
+
 function notFound(): ApiError {
   return { status: 404, code: "not_found", message: "The requested resource could not be found." }
 }
@@ -259,6 +377,15 @@ function notFound(): ApiError {
 export async function mockResponse(method: string, path: string, query: Query): Promise<unknown> {
   // A short, realistic delay so loading states and entrance animations show.
   await new Promise((resolve) => window.setTimeout(resolve, 250 + Math.random() * 250))
+  if (path === "/api/v1/auth/logout") {
+    try { window.localStorage.removeItem("legacyx_access_token") } catch { /* storage blocked */ }
+    return undefined
+  }
+  if (path === "/api/v1/auth/me") {
+    if (!signedIn()) throw unauthorized()
+    return MOCK_USER
+  }
+  if (path === "/api/v1/auth/refresh") throw unauthorized()
   if (method !== "GET") throw notFound()
 
   const play = /^\/api\/v1\/play\/(5x5|fun|pro)\/(servers|quick-join)$/.exec(path)
@@ -276,6 +403,14 @@ export async function mockResponse(method: string, path: string, query: Query): 
       return killfeed()
     case "/api/v1/feedback":
       return feedback()
+    case "/api/v1/competitive/me/access":
+      return { competitive: { current_exp: 1180, rank_id: 7, rank_name: "Operator III", rank_image_key: null, pro_league_unlocked: false }, proLeagueUnlocked: false, requiredRankId: 8, requiredRankName: "Vanguard I" }
+    case "/api/v1/skinchanger/catalog":
+      return catalog(query)
+    case "/api/v1/skinchanger/loadout":
+      return loadout()
+    case "/api/v1/skinchanger/active-server":
+      return { session: null }
     case "/api/v1/search/players":
       return searchPlayers(String(query?.query ?? ""))
     case "/api/v1/moderation/penalties":

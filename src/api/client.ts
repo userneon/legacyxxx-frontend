@@ -6,6 +6,15 @@ import type { ApiError } from "./types"
 const configuredApiUrl = import.meta.env.VITE_API_URL?.trim()
 const productionApiFallback = import.meta.env.PROD ? "https://api.legacyx.cc" : ""
 const BASE_URL = (configuredApiUrl || productionApiFallback).replace(/\/$/, "")
+/** The API origin every request goes to (the production API when VITE_API_URL is unset in a build). */
+export const API_BASE_URL = BASE_URL
+
+/**
+ * Design preview: `npm run dev` without VITE_API_URL (or any run with VITE_MOCK_API=1) answers from
+ * src/api/mock.ts, so localhost:5173 always has data. Vite replaces these env values at build time,
+ * so a production build drops every mock branch and the mock file entirely.
+ */
+export const MOCK_API = import.meta.env.VITE_MOCK_API === "1" || (import.meta.env.DEV && !configuredApiUrl)
 
 /** localStorage key holding the access token. */
 export const ACCESS_TOKEN_KEY = "legacyx_access_token"
@@ -300,10 +309,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     timeoutMs = DEFAULT_TIMEOUT_MS,
   } = options
 
-  // Design preview: `npm run dev` without VITE_API_URL (or any run with VITE_MOCK_API=1) answers from
-  // src/api/mock.ts, so localhost:5173 always has data. Vite replaces these env values at build time,
-  // so a production build drops this branch and the mock file entirely.
-  if (import.meta.env.VITE_MOCK_API === "1" || (import.meta.env.DEV && !configuredApiUrl)) {
+  if (MOCK_API) {
     const { mockResponse } = await import("./mock")
     return (await mockResponse(method, canonicalApiPath(path), query)) as T
   }

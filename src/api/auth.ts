@@ -1,4 +1,4 @@
-import { get, post, setAccessToken, type CallOptions } from "./client"
+import { API_BASE_URL, MOCK_API, get, post, setAccessToken, type CallOptions } from "./client"
 import type { AuthSession, UserProfile } from "./types"
 
 /**
@@ -8,8 +8,10 @@ import type { AuthSession, UserProfile } from "./types"
  */
 export const authService = {
   getSteamLoginUrl(): string {
-    const baseUrl = import.meta.env.VITE_API_URL ?? ""
-    return `${baseUrl}/api/v1/auth/steam`
+    // Design preview: "sign in" as a sample player by handing the app the callback token directly.
+    if (MOCK_API) return `${window.location.pathname}?access_token=mock-session`
+    // Same origin as every other request, including the production API when VITE_API_URL is unset.
+    return `${API_BASE_URL}/api/v1/auth/steam`
   },
 
   async logout(options?: CallOptions): Promise<void> {
