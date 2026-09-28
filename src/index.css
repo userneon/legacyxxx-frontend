@@ -1127,6 +1127,21 @@
   transform: translateY(1px);
 }
 
+/* Sign in with Steam: Steam's own dark "Sign in through Steam" look (owner choice 2026-09-28). */
+.lx-steam-button {
+  background: #171a21; /* palette-exempt: Steam brand */
+  color: #c7d5e0; /* palette-exempt: Steam brand */
+  box-shadow: inset 0 0 0 1px #2a475e; /* palette-exempt: Steam brand */
+  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+}
+.lx-steam-button:hover {
+  background: #1b2838; /* palette-exempt: Steam brand */
+  color: #fff;
+}
+.lx-steam-button:active {
+  transform: translateY(1px);
+}
+
 /* Heading word in the brand colour. */
 .lx-brand-text {
   color: var(--brand-bright);

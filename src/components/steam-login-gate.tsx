@@ -81,10 +81,10 @@ export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
   )
 }
 
-/** Primary (crimson) sign-in button with the Steam mark, matching the top bar — never Steam blue. */
+/** Sign-in button in Steam's own dark style with the Steam mark, matching the top bar. */
 export function SteamLoginButton({ onClick, className, label = "Sign in with Steam" }: { onClick: () => void; className?: string; label?: string }) {
   return (
-    <Button type="button" onClick={onClick} className={cn("lx-brand-button h-10 min-w-[176px] gap-2 rounded-lg px-4 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60", className)}>
+    <Button type="button" onClick={onClick} className={cn("lx-steam-button h-10 min-w-[176px] gap-2 rounded-lg px-4 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60", className)}>
       <SteamIcon className="size-[18px] shrink-0" />
       {label}
     </Button>
