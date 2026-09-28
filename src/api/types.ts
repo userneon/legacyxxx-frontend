@@ -422,13 +422,6 @@ export interface CreateClanRequest {
   region?: string
 }
 
-export interface TeamMember {
-  name: string
-  role: string
-  avatar: string
-  description: string
-}
-
 /* ----------------------------------------------------------------------------
  * Staff panel
  * ------------------------------------------------------------------------- */

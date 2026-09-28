@@ -4,7 +4,6 @@ import type {
   ClanDetail,
   ClanMember,
   CreateClanRequest,
-  TeamMember,
 } from "./types"
 
 /**
@@ -47,9 +46,5 @@ export const clansService = {
 
   async deleteClan(clanId: string, options?: CallOptions): Promise<void> {
     await del<void>(`/api/v1/clans/${clanId}`, options)
-  },
-
-  async getTeam(options?: CallOptions): Promise<TeamMember[]> {
-    return get<TeamMember[]>("/api/v1/clans/team", undefined, options)
   },
 }
