@@ -1,81 +1,35 @@
-import { Lock, ShieldCheck, Swords, Trophy } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
 import { cs2MapArtwork } from "@/lib/cs2-map-art"
 import { cn } from "@/lib/utils"
-import { KnifeIcon } from "@/components/knife-icon"
 
 interface SteamLoginGateProps {
   /** The page the player was trying to open, so the gate can say what signing in opens. */
   pageName: string
 }
 
-/** What one Steam sign-in opens across the site. */
-const PERKS = [
-  { icon: Trophy, title: "Rank & stats", text: "Your EXP, rank and match history" },
-  { icon: KnifeIcon, title: "Skinchanger", text: "Your loadout on every server" },
-  { icon: Swords, title: "Pro League & events", text: "Ranked queues and tournaments" },
-]
-
+/** Shown in place of a page that needs an account: what it is, and the one button that opens it. */
 export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
   const { loginWithSteam } = useAuth()
   const art = cs2MapArtwork("de_dust2")
 
   return (
     <div className="relative flex min-h-[calc(100dvh-5rem)] flex-1 items-center justify-center overflow-hidden px-4 py-10 sm:px-6">
-      {/* Backdrop: slow-drifting map art under the crimson glow and grid, like the page heroes. */}
+      {/* Wrapped: the page's section stagger animates direct children to full opacity. */}
       {art && (
-        <div aria-hidden="true" className="lx-map-drift pointer-events-none absolute inset-0">
-          <img src={art} alt="" className="lx-map-img size-full object-cover opacity-[0.14]" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+          <img src={art} alt="" className="size-full object-cover opacity-10" />
         </div>
       )}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_60%_at_50%_45%,transparent,var(--panel)_85%)]" />
-      <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10 opacity-80" />
-      <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_60%_at_50%_45%,transparent,var(--panel)_80%)]" />
 
-      <section className="lx-swap-in relative w-full max-w-[460px] overflow-hidden rounded-2xl border border-[var(--brand)]/30 bg-[var(--card-surface)]/85 p-7 text-center backdrop-blur-xl sm:p-9">
-        <span aria-hidden="true" className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--brand-bright)] to-transparent" />
-
-        {/* Lock inside a slowly turning crimson ring. */}
-        <span className="relative mx-auto flex size-16 items-center justify-center">
-          <span aria-hidden="true" className="lx-gate-ring absolute inset-0 rounded-[20px]" />
-          <span className="relative flex size-[58px] items-center justify-center rounded-[17px] bg-[var(--card-surface)] text-[var(--brand-bright)]">
-            <Lock className="size-6" />
-          </span>
-        </span>
-
-        <h1 className="mt-6 text-xl font-bold tracking-[-0.3px] text-[var(--text)]">
-          Sign in to open <span className="lx-brand-text">{pageName}</span>
-        </h1>
-        <p className="mx-auto mt-2 max-w-xs text-[13px] leading-[1.55] text-[var(--text-muted)]">
-          Your Legacy-X account is your Steam account. One click, no password here.
+      <section className="lx-swap-in relative w-full max-w-[380px] rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-7 text-center sm:p-8">
+        <h1 className="text-xl font-semibold tracking-[-0.3px] text-[var(--text)]">Sign in to open {pageName}</h1>
+        <p className="mx-auto mt-2 max-w-[300px] text-[13px] leading-[1.55] text-[var(--text-muted)]">
+          Your Legacy-X account is your Steam account.
         </p>
-
         <SteamLoginButton onClick={loginWithSteam} className="mt-6 h-11 w-full text-[15px]" />
-
-        <ul className="mt-7 grid gap-2 text-left sm:grid-cols-3">
-          {PERKS.map((perk, index) => (
-            <li
-              key={perk.title}
-              style={{ animationDelay: `${180 + index * 70}ms` }}
-              className="lx-swap-in flex items-center gap-3 rounded-xl border border-[var(--line-soft)] bg-[var(--panel)]/70 p-3 sm:flex-col sm:items-start sm:gap-2"
-            >
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--brand)]/15 text-[var(--brand-bright)] ring-1 ring-inset ring-[var(--brand)]/30">
-                <perk.icon className="size-4" />
-              </span>
-              <span className="flex min-w-0 flex-col gap-0.5">
-                <span className="text-xs font-semibold text-[var(--text)]">{perk.title}</span>
-                <span className="text-[11px] leading-[1.4] text-[var(--text-dim)]">{perk.text}</span>
-              </span>
-            </li>
-          ))}
-        </ul>
-
-        <p className="mt-6 flex items-center justify-center gap-1.5 text-[11px] leading-4 text-[var(--text-dim)]">
-          <ShieldCheck className="size-3.5 shrink-0 text-[var(--status-green)]" />
-          Steam handles the sign-in. LEGACY-X never sees your password.
-        </p>
+        <p className="mt-4 text-[11px] leading-4 text-[var(--text-dim)]">Steam handles the password. Legacy-X never sees it.</p>
       </section>
     </div>
   )
