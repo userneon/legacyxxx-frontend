@@ -90,7 +90,7 @@ function ReviewCard({ entry, own, fresh, index, onOpenProfile }: { entry: Feedba
     <article
       style={{ animationDelay: `${fresh ? 0 : Math.min(index, 10) * 50}ms` }}
       className={cn(
-        "lx-fx-card group relative flex flex-col gap-3 overflow-hidden rounded-xl border bg-[var(--card-surface)] px-5 py-[18px]",
+        "lx-fx-card group relative flex flex-col gap-3 overflow-hidden rounded-xl border bg-[var(--glass-fill)] px-5 py-[18px]",
         own ? "border-[var(--brand)]/50 bg-[linear-gradient(160deg,color-mix(in_oklab,var(--brand)_10%,var(--card-surface)),var(--card-surface)_55%)]" : "border-[var(--line-soft)]",
       )}
     >
@@ -123,7 +123,7 @@ function ReviewCard({ entry, own, fresh, index, onOpenProfile }: { entry: Feedba
 
 function CardSkeleton() {
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] px-5 py-[18px]" aria-hidden="true">
+    <div className="flex flex-col gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] px-5 py-[18px]" aria-hidden="true">
       <div className="flex items-center gap-3">
         <Skeleton className="size-9 rounded-[10px] bg-[var(--line-soft)]" />
         <div className="flex flex-1 flex-col gap-[7px]">
@@ -232,7 +232,7 @@ function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () =
               maxLength={MAX_LENGTH}
               rows={5}
               placeholder="Servers, community, staff, anything that stood out…"
-              className="resize-none rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)] p-3 text-sm leading-6 text-[var(--text)] outline-none transition-[border-color,box-shadow] duration-300 placeholder:text-[var(--text-dim)] focus:border-[var(--brand)]/60 focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_18%,transparent)]"
+              className="resize-none rounded-[10px] border border-[var(--line)] bg-[var(--glass-fill)] p-3 text-sm leading-6 text-[var(--text)] outline-none transition-[border-color,box-shadow] duration-300 placeholder:text-[var(--text-dim)] focus:border-[var(--brand)]/60 focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_18%,transparent)]"
             />
           </label>
           <span className="text-xs text-[var(--text-dim)]">Posted publicly with your Steam name. One review per week.</span>
@@ -326,7 +326,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
     <div className="flex min-h-0 flex-1 max-lg:flex-col max-lg:overflow-y-auto">
       <section aria-label="Reviews" className="flex min-w-0 flex-1 flex-col max-lg:min-h-0">
         <div className="shrink-0 px-6 pb-1 pt-6">
-          <section aria-label="Reviews" className="relative overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]">
+          <section aria-label="Reviews" className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
             <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
             <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
             <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
@@ -398,7 +398,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
       </section>
 
       <aside aria-label="Summary" className="scrollbar-hidden flex w-[340px] shrink-0 flex-col gap-5 overflow-y-auto border-l border-[var(--line-soft)] p-6 max-lg:w-full max-lg:overflow-visible max-lg:border-l-0 max-lg:border-t">
-        <div className="lx-swap-in relative flex items-center gap-4 overflow-hidden rounded-xl border border-[var(--brand)]/35 bg-[var(--card-surface)] p-5">
+        <div className="lx-swap-in relative flex items-center gap-4 overflow-hidden rounded-xl border border-[var(--brand)]/35 bg-[var(--glass-fill)] p-5">
           <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10 opacity-70" />
           <span className="lx-brand-text relative text-5xl font-bold leading-none tracking-[-1.5px]">{average.toFixed(1)}</span>
           <span className="relative flex flex-col gap-2">

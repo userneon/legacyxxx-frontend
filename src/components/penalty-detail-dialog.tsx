@@ -126,7 +126,7 @@ export function TypeIcon({ type, className }: { type: PenaltyType; className?: s
 /** One fact in the details panel (Term, Issued by, Date). */
 function Tile({ label, children, wide }: { label: string; children: React.ReactNode; wide?: boolean }) {
   return (
-    <div className={cn("flex min-w-0 flex-col gap-1.5 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] px-3.5 py-3", wide && "col-span-2")}>
+    <div className={cn("flex min-w-0 flex-col gap-1.5 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] px-3.5 py-3", wide && "col-span-2")}>
       <span className="text-[11px] font-medium text-[var(--text-dim)]">{label}</span>
       <span className="min-w-0 truncate text-[13px] font-semibold text-[var(--text)]">{children}</span>
     </div>
@@ -190,7 +190,7 @@ export function PenaltyDetailSheet({
                 <Tile label="Date" wide>{formatPenaltyDate(penalty.date, true)}</Tile>
               </div>
               {timed && (
-                <div className="flex flex-col gap-2 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-3.5">
+                <div className="flex flex-col gap-2 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3.5">
                   <span className="flex items-center justify-between text-xs text-[var(--text-muted)]">
                     <span>Time served</span>
                     <span className="font-semibold text-[var(--text-2)]">{Math.round(served)}%</span>
@@ -206,7 +206,7 @@ export function PenaltyDetailSheet({
               )}
               <div className="flex flex-col gap-2">
                 <span className="text-xs font-medium text-[var(--text-muted)]">Reason</span>
-                <p className="whitespace-pre-wrap break-words rounded-xl border border-[var(--line-soft)] border-l-[3px] bg-[var(--card-surface)] p-3.5 text-[13px] leading-5 text-[var(--text-2)]" style={{ borderLeftColor: color }}>
+                <p className="whitespace-pre-wrap break-words rounded-xl border border-[var(--line-soft)] border-l-[3px] bg-[var(--glass-fill)] p-3.5 text-[13px] leading-5 text-[var(--text-2)]" style={{ borderLeftColor: color }}>
                   {penalty.reason || "No reason given"}
                 </p>
               </div>

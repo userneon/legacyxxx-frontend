@@ -38,7 +38,7 @@ const MODES: Record<PlayPageMode, { mode: PlayMode; title: string; description: 
 const secondary = "inline-flex h-[34px] items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] font-medium text-[var(--text)] transition-[background-color,border-color,transform] duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 disabled:pointer-events-none disabled:opacity-50"
 const primary = "lx-brand-button inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:pointer-events-none disabled:opacity-40 disabled:saturate-50"
 /** On/off switches in the same tray as the Segmented control (Leaders' EXP / K/D / Win rate). */
-const toggleTray = "flex shrink-0 gap-0.5 rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)] p-[3px]"
+const toggleTray = "flex shrink-0 gap-0.5 rounded-[10px] border border-[var(--line)] bg-[var(--glass-fill)] p-[3px]"
 const toggleItem = "inline-flex h-[30px] items-center gap-1.5 rounded-[7px] px-3 text-[13px] font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
 const toggleOn = "bg-[var(--line)] text-[var(--text)]"
 const toggleOff = "text-[var(--text-muted)] hover:text-[var(--text)]"
@@ -211,7 +211,7 @@ function ServerCard({ server, favourite, onFavourite, onDetails, index }: { serv
   return (
     <article
       style={{ animationDelay: `${Math.min(index, 8) * 60}ms` }}
-      className={cn("lx-fx-card group relative flex flex-col overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]", unavailable && "opacity-70 hover:opacity-100")}
+      className={cn("lx-fx-card group relative flex flex-col overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]", unavailable && "opacity-70 hover:opacity-100")}
     >
       <MapArt map={server.map} className="h-[120px]" zoomOnHover>
         {server.status === "live" && <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand-bright)] to-transparent" />}
@@ -246,7 +246,7 @@ function ServerCard({ server, favourite, onFavourite, onDetails, index }: { serv
 
 function CardSkeleton() {
   return (
-    <div className="flex flex-col overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]" aria-hidden="true">
+    <div className="flex flex-col overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]" aria-hidden="true">
       <Skeleton className="h-[120px] rounded-none bg-[var(--raised)]" />
       <div className="flex flex-col gap-3 p-3.5">
         <Skeleton className="h-2.5 w-1/2 rounded-full bg-[var(--line)]" />
@@ -263,7 +263,7 @@ function CardSkeleton() {
 function TeamTable({ title, players, side }: { title: string; players: ServerLiveMatchPlayer[]; side?: TeamSide }) {
   const stat = (value: number | null | undefined) => (typeof value === "number" ? value : "—")
   return (
-    <div className="overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]">
+    <div className="overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
       <div
         className="grid h-[36px] grid-cols-[minmax(0,1fr)_34px_34px_34px] items-center gap-2 px-3 text-[11px] font-semibold text-[var(--text-muted)]"
         style={side ? { background: `linear-gradient(90deg, color-mix(in oklab, var(--team-${side}) 14%, transparent), transparent 70%)` } : undefined}
@@ -371,7 +371,7 @@ function ServerSheet({ server, onClose }: { server: PlayServer | null; onClose: 
                   <button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button>
                 </p>
               ) : !live ? (
-                <Skeleton className="h-40 rounded-xl bg-[var(--card-surface)]" />
+                <Skeleton className="h-40 rounded-xl bg-[var(--glass-fill)]" />
               ) : (
                 <p className="text-[13px] text-[var(--text-dim)]">No live match data for this server yet.</p>
               )}
@@ -429,7 +429,7 @@ function PlayHero({ title, description, heroMap, list, loading, mode, pickRule, 
   }
   const live = Boolean(list && list.onlineServers > 0)
   return (
-    <section aria-label={title} className="relative overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]">
+    <section aria-label={title} className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
       {art && (
         <div aria-hidden="true" className="lx-map-drift pointer-events-none absolute inset-0">
           <img key={heroMap} src={art} alt="" className="lx-map-img lx-swap-fade size-full object-cover opacity-30" />
@@ -607,7 +607,7 @@ function ProLocked({ access }: { access: CompetitiveAccess }) {
     <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
       <div className="flex flex-col gap-[18px] p-6">
         <Header title={MODES.proleague.title} description={MODES.proleague.description} list={null} />
-        <section className="relative flex flex-col items-center gap-4 overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-9 text-center">
+        <section className="relative flex flex-col items-center gap-4 overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-9 text-center">
           <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10 opacity-60" />
           <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
           <span className="relative flex size-[52px] items-center justify-center rounded-[14px] border border-[var(--brand)]/40 bg-[var(--brand)]/15 text-[var(--brand-bright)]"><Lock className="size-[22px]" /></span>
@@ -658,7 +658,7 @@ export function PlayPage({ mode }: { mode: PlayPageMode }) {
     return (
       <div className="flex flex-col gap-[18px] p-6" aria-hidden="true">
         <Skeleton className="h-10 w-72 rounded-lg bg-[var(--raised)]" />
-        <Skeleton className="h-64 rounded-xl bg-[var(--card-surface)]" />
+        <Skeleton className="h-64 rounded-xl bg-[var(--glass-fill)]" />
       </div>
     )
   }

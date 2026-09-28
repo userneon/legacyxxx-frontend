@@ -37,7 +37,7 @@ function YourStatus({ penalties, loading, onDetails }: { penalties: PenaltyEntry
   const active = penalties.find((penalty) => penaltyStatus(penalty) === "active")
   if (loading && penalties.length === 0) {
     return (
-      <div className="flex items-center gap-3.5 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] px-[18px] py-4" aria-hidden="true">
+      <div className="flex items-center gap-3.5 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] px-[18px] py-4" aria-hidden="true">
         <Skeleton className="size-10 rounded-[10px] bg-[var(--line-soft)]" />
         <div className="flex flex-1 flex-col gap-2">
           <Skeleton className="h-3 w-40 rounded-full bg-[var(--line)]" />
@@ -48,7 +48,7 @@ function YourStatus({ penalties, loading, onDetails }: { penalties: PenaltyEntry
   }
   if (!active) {
     return (
-      <section aria-label="Your status" className="lx-swap-in flex items-center gap-3.5 rounded-xl border border-[var(--status-green)]/30 bg-[linear-gradient(90deg,color-mix(in_oklab,var(--status-green)_7%,transparent),transparent_60%)] bg-[var(--card-surface)] px-[18px] py-4">
+      <section aria-label="Your status" className="lx-swap-in flex items-center gap-3.5 rounded-xl border border-[var(--status-green)]/30 bg-[linear-gradient(90deg,color-mix(in_oklab,var(--status-green)_7%,transparent),transparent_60%)] bg-[var(--glass-fill)] px-[18px] py-4">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-[var(--status-green)]/10 text-[var(--status-green)]">
           <ShieldCheck className="size-[18px]" />
         </span>
@@ -62,7 +62,7 @@ function YourStatus({ penalties, loading, onDetails }: { penalties: PenaltyEntry
   return (
     <section
       aria-label="Your status"
-      className="lx-swap-in flex flex-wrap items-center gap-3.5 rounded-xl border bg-[var(--card-surface)] px-[18px] py-4"
+      className="lx-swap-in flex flex-wrap items-center gap-3.5 rounded-xl border bg-[var(--glass-fill)] px-[18px] py-4"
       style={{ borderColor: `color-mix(in oklab, ${penaltyStatusColor(active)} 45%, transparent)`, backgroundImage: `linear-gradient(90deg, color-mix(in oklab, ${penaltyStatusColor(active)} 8%, transparent), transparent 60%)` }}
     >
       <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px]" style={{ color: penaltyStatusColor(active), backgroundColor: `color-mix(in oklab, ${penaltyStatusColor(active)} 14%, transparent)` }}>
@@ -243,7 +243,7 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
       <div className="flex min-w-[900px] flex-1 flex-col">
         <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
           <div className="flex flex-col gap-4 px-6 pb-4 pt-6">
-            <section aria-label="Penalties" className="relative overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]">
+            <section aria-label="Penalties" className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
               <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
               <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
               <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />

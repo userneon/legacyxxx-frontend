@@ -143,8 +143,11 @@
   * {
     @apply border-border;
   }
+  html {
+    background: #070708;
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
     font-family: "Onest", system-ui, -apple-system, sans-serif;
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -211,25 +214,47 @@
 /* ========================================
    Glassmorphism
    ======================================== */
-/* Legacy "glass" surfaces now render as the flat neutral card (design spec §2: no blur, no tint). */
-.glass {
-  background: var(--card-surface);
-  border: 1px solid var(--line-soft);
-}
-
-/* Glass: translucent, blurred surfaces over an ambient crimson light. Home only (owner request
-   2026-09-28); the rest of the site keeps the flat cards above. */
+/* ========================================
+   Glass (owner request 2026-09-28): a dim Dust II backdrop behind the whole app, a blurred
+   translucent shell (sidebar, top bar, page panel) and translucent cards inside it. Only the shell
+   blurs; cards sit on the already-blurred panel, which keeps scrolling light on phones.
+   ======================================== */
 :root {
   --glass-fill: rgb(255 255 255 / 0.035);
+  --glass-shell: rgb(14 14 16 / 0.55);
   --glass-line: rgb(255 255 255 / 0.08);
   --glass-highlight: inset 0 1px 0 rgb(255 255 255 / 0.05);
-  --glass-blur: 14px;
 }
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(rgb(7 7 8 / 0.8), rgb(7 7 8 / 0.88)),
+    url("./assets/maps/de_dust2.webp") center / cover no-repeat,
+    #070708;
+}
+.lx-glass-shell,
+.lx-glass-sidebar > [data-sidebar="sidebar"] {
+  background: var(--glass-shell);
+  border: 1px solid var(--glass-line);
+  box-shadow: var(--glass-highlight);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+}
+.glass,
+.lx-glass {
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-line);
+  box-shadow: var(--glass-highlight);
+}
+/* Home: a soft crimson light on top of the backdrop. */
 .lx-glass-page {
   position: relative;
   isolation: isolate;
 }
-/* The light the glass sits on: a crimson glow top right, a fainter one bottom left. */
 .lx-glass-page::before {
   content: "";
   position: absolute;
@@ -237,16 +262,8 @@
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(55% 40% at 88% 0%, color-mix(in oklch, var(--brand) 26%, transparent), transparent 70%),
-    radial-gradient(45% 35% at 0% 100%, color-mix(in oklch, var(--brand-bright) 12%, transparent), transparent 70%);
-}
-.lx-glass,
-.lx-glass-page .glass {
-  background: var(--glass-fill);
-  border: 1px solid var(--glass-line);
-  box-shadow: var(--glass-highlight);
-  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    radial-gradient(55% 40% at 88% 0%, color-mix(in oklch, var(--brand) 22%, transparent), transparent 70%),
+    radial-gradient(45% 35% at 0% 100%, color-mix(in oklch, var(--brand-bright) 10%, transparent), transparent 70%);
 }
 
 .glass-strong {
@@ -262,24 +279,22 @@
   -webkit-backdrop-filter: blur(20px) saturate(170%);
 }
 
-/* Stat grid: numbers side by side in one frame, split by hairlines, instead of a box per number.
-   The frame colour shows through a 1px gap between the cells, so it also draws the lines when the
-   cells wrap onto a second row. */
+/* Stat grid: numbers side by side in one frame, split by hairlines, instead of a box per number. */
 .lx-stat-grid {
   display: grid;
-  gap: 1px;
   overflow: hidden;
   border-radius: 12px;
-  border: 1px solid var(--line-soft);
-  background: var(--line-soft);
+  border: 1px solid var(--glass-line);
+  background: var(--glass-fill);
 }
+/* Each cell draws its right and bottom hairline; the frame clips the outer ones. */
 .lx-stat-cell {
   display: flex;
   min-width: 0;
   flex-direction: column;
   gap: 6px;
   padding: 12px 16px;
-  background: var(--card-surface);
+  box-shadow: 1px 0 0 var(--glass-line), 0 1px 0 var(--glass-line);
 }
 .lx-stat-label {
   font-size: 11px;

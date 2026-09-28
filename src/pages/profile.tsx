@@ -24,7 +24,7 @@ import { RelativeTime } from "@/components/relative-time"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Skeleton } from "@/components/ui/skeleton"
 
-const card = "rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]"
+const card = "rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]"
 const outline = "inline-flex h-[34px] items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] font-medium text-[var(--text)] transition-[background-color,border-color,transform] duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
 
 const SECTION_LABEL: Record<ProfileSection, string> = { stats: "Stats", matches: "Recent matches", faceit: "FACEIT stats", loadout: "Loadout" }
@@ -506,10 +506,10 @@ function ProfileSkeleton() {
           </div>
         </div>
         <div className="grid gap-4 md:grid-cols-[1.3fr_1fr]">
-          <Skeleton className="h-[108px] rounded-xl bg-[var(--card-surface)]" />
-          <Skeleton className="h-[108px] rounded-xl bg-[var(--card-surface)]" />
+          <Skeleton className="h-[108px] rounded-xl bg-[var(--glass-fill)]" />
+          <Skeleton className="h-[108px] rounded-xl bg-[var(--glass-fill)]" />
         </div>
-        <Skeleton className="h-20 rounded-xl bg-[var(--card-surface)]" />
+        <Skeleton className="h-20 rounded-xl bg-[var(--glass-fill)]" />
       </div>
     </div>
   )

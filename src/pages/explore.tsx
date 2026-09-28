@@ -68,7 +68,7 @@ function PlayerCard({ player, match, index, onOpen }: { player: CommunityPlayer;
       disabled={!identity}
       aria-label={`Open ${player.name} profile`}
       style={{ animationDelay: `${Math.min(index, 10) * 50}ms` }}
-      className="lx-fx-card group relative flex flex-col gap-4 overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:cursor-default"
+      className="lx-fx-card group relative flex flex-col gap-4 overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:cursor-default"
     >
       <ArrowUpRight aria-hidden="true" className="absolute right-3.5 top-3.5 size-4 -translate-x-1 translate-y-1 text-[var(--brand-bright)] opacity-0 transition-[opacity,translate] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:translate-x-0 group-hover:translate-y-0 group-hover:opacity-100 group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]" />
       <span className="relative flex items-center gap-3 pr-5">
@@ -97,7 +97,7 @@ function PlayerCard({ player, match, index, onOpen }: { player: CommunityPlayer;
 
 function CardSkeleton() {
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-4" aria-hidden="true">
+    <div className="flex flex-col gap-4 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4" aria-hidden="true">
       <div className="flex items-center gap-3">
         <Skeleton className="size-12 rounded-xl bg-[var(--line-soft)]" />
         <div className="flex flex-1 flex-col gap-2">
@@ -157,7 +157,7 @@ export function ExplorePage({ onProfileNavigate }: { onProfileNavigate: (userId:
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="shrink-0 px-6 pb-1 pt-6">
-        <section aria-label="Explore" className="relative overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]">
+        <section aria-label="Explore" className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
           <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
           <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
           <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
@@ -214,7 +214,7 @@ export function ExplorePage({ onProfileNavigate }: { onProfileNavigate: (userId:
                       type="button"
                       onClick={() => pick(player.username)}
                       style={{ animationDelay: `${120 + index * 45}ms` }}
-                      className="lx-swap-in lx-layer group flex h-9 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--card-surface)] pl-1 pr-3.5 text-[13px] font-medium text-[var(--text-2)] transition-[border-color,color,background-color,translate] duration-300 hover:-translate-y-0.5 hover:border-[var(--brand)]/55 hover:bg-[var(--brand)]/10 hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
+                      className="lx-swap-in lx-layer group flex h-9 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--glass-fill)] pl-1 pr-3.5 text-[13px] font-medium text-[var(--text-2)] transition-[border-color,color,background-color,translate] duration-300 hover:-translate-y-0.5 hover:border-[var(--brand)]/55 hover:bg-[var(--brand)]/10 hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
                     >
                       <PlayerAvatar avatar={player.avatar} name={player.username} className="size-7 rounded-full text-[10px]" />
                       {player.username}

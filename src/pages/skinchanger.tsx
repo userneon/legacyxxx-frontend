@@ -784,7 +784,7 @@ export function SkinchangerPage() {
           </span>
           <label className="relative ml-auto w-56 max-w-[45%]">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-[var(--text-dim)]" />
-            <Input autoFocus value={accessoryQuery} onChange={(event) => setAccessoryQuery(event.target.value)} placeholder={`Search ${noun}`} className="h-9 rounded-[10px] border-[var(--line)] bg-[var(--card-surface)] pl-9 text-xs" />
+            <Input autoFocus value={accessoryQuery} onChange={(event) => setAccessoryQuery(event.target.value)} placeholder={`Search ${noun}`} className="h-9 rounded-[10px] border-[var(--line)] bg-[var(--glass-fill)] pl-9 text-xs" />
           </label>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-3">
@@ -809,7 +809,7 @@ export function SkinchangerPage() {
                     onClick={() => chooseAccessory(item)}
                     data-catalog-item-id={item.id}
                     className={cn(
-                      "relative flex flex-col overflow-hidden rounded-lg border bg-[var(--card-surface)] p-2 text-left transition-colors duration-150",
+                      "relative flex flex-col overflow-hidden rounded-lg border bg-[var(--glass-fill)] p-2 text-left transition-colors duration-150",
                       isCurrent ? "border-[var(--brand)]" : "border-[var(--line-soft)] hover:border-[var(--brand)]/45",
                     )}
                   >
@@ -845,7 +845,7 @@ export function SkinchangerPage() {
   }, [shownTeam])
 
   const renderTeamSwitch = () => (
-    <div role="tablist" aria-label="Team" className="relative flex gap-0.5 rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)] p-[3px]">
+    <div role="tablist" aria-label="Team" className="relative flex gap-0.5 rounded-[10px] border border-[var(--line)] bg-[var(--glass-fill)] p-[3px]">
       {teamPill && (
         <span
           aria-hidden="true"
@@ -917,7 +917,7 @@ export function SkinchangerPage() {
         key={id}
         data-slot-card={id}
         className={cn(
-          "lx-layer group relative overflow-hidden rounded-lg border bg-[var(--card-surface)]",
+          "lx-layer group relative overflow-hidden rounded-lg border bg-[var(--glass-fill)]",
           // Lift and a crimson edge on hover; leaving eases back slower than entering, like the other cards.
           "transition-[border-color,box-shadow,translate] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] hover:-translate-y-0.5 hover:border-[var(--brand)]/55 hover:duration-300 hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
           savedItem ? "border-[var(--line)] bg-[linear-gradient(160deg,color-mix(in_oklab,var(--brand)_7%,var(--card-surface)),var(--card-surface)_55%)]" : "border-[var(--line-soft)]",
@@ -1099,7 +1099,7 @@ export function SkinchangerPage() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="shrink-0 px-6 pb-1 pt-6">
-        <section aria-label="Loadout" className="relative overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]">
+        <section aria-label="Loadout" className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
           {/*
             The side's default agent stands behind the header. Both are always mounted: switching to
             CT (the right tab) slides the CT agent in from the right while T leaves to the left, and
@@ -1155,7 +1155,7 @@ export function SkinchangerPage() {
             {[6, 5, 5, 4, 3].map((count, column) => (
               <div key={column} className="flex flex-col gap-2.5">
                 <Skeleton className="mx-auto h-3.5 w-20 rounded-full bg-[var(--line)]" />
-                {Array.from({ length: count }, (_, index) => <Skeleton key={index} className="h-24 rounded-lg bg-[var(--card-surface)]" />)}
+                {Array.from({ length: count }, (_, index) => <Skeleton key={index} className="h-24 rounded-lg bg-[var(--glass-fill)]" />)}
               </div>
             ))}
           </div>
@@ -1209,7 +1209,7 @@ export function SkinchangerPage() {
                 value={query}
                 onChange={(event) => { setQuery(event.target.value); setOffset(0) }}
                 placeholder={`Search ${activeWeapon ? "skins" : category === "agent" ? "agents" : category === "music_kit" ? "music kits" : "pins"}`}
-                className="h-9 rounded-[10px] border-[var(--line)] bg-[var(--card-surface)] pl-9 text-xs"
+                className="h-9 rounded-[10px] border-[var(--line)] bg-[var(--glass-fill)] pl-9 text-xs"
               />
             </label>
           </div>
@@ -1245,7 +1245,7 @@ export function SkinchangerPage() {
               <div className="flex flex-wrap items-center gap-1.5 border-b border-[var(--line-soft)] p-3 sm:hidden">
                 <label className="relative block w-full">
                   <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-[var(--text-dim)]" />
-                  <Input value={query} onChange={(event) => { setQuery(event.target.value); setOffset(0) }} placeholder="Search" className="h-9 rounded-[10px] border-[var(--line)] bg-[var(--card-surface)] pl-9 text-xs" />
+                  <Input value={query} onChange={(event) => { setQuery(event.target.value); setOffset(0) }} placeholder="Search" className="h-9 rounded-[10px] border-[var(--line)] bg-[var(--glass-fill)] pl-9 text-xs" />
                 </label>
               </div>
               {rarityFilters.length > 1 && (
@@ -1263,7 +1263,7 @@ export function SkinchangerPage() {
                           "h-7 rounded-full border px-3 text-xs font-medium transition-colors duration-150",
                           isActive
                             ? "border-[var(--brand)]/50 bg-[var(--brand)]/15 text-[var(--text)]"
-                            : "border-[var(--line)] bg-[var(--card-surface)] text-[var(--text-muted)] hover:text-[var(--text)]",
+                            : "border-[var(--line)] bg-[var(--glass-fill)] text-[var(--text-muted)] hover:text-[var(--text)]",
                         )}
                       >
                         {option.label}
@@ -1289,7 +1289,7 @@ export function SkinchangerPage() {
                           onClick={() => selectSkin(item)}
                           data-catalog-item-id={item.id}
                           className={cn(
-                            "lx-layer relative flex flex-col overflow-hidden rounded-lg border bg-[var(--card-surface)] p-2 text-left transition-[border-color,box-shadow,translate] duration-300 hover:-translate-y-0.5",
+                            "lx-layer relative flex flex-col overflow-hidden rounded-lg border bg-[var(--glass-fill)] p-2 text-left transition-[border-color,box-shadow,translate] duration-300 hover:-translate-y-0.5",
                             isSelected ? "border-[var(--brand)]" : "border-[var(--line-soft)] hover:border-[var(--brand)]/45",
                           )}
                         >
@@ -1437,7 +1437,7 @@ export function SkinchangerPage() {
             return (
               <>
                 <div className="flex flex-col items-center gap-3 px-6 pb-5 pt-6 text-center">
-                  <span className="flex h-20 w-full items-center justify-center rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]">
+                  <span className="flex h-20 w-full items-center justify-center rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
                     {image ? <OptimizedImage src={image} width={200} height={80} alt="" className="max-h-16 w-auto object-contain" /> : <ImageOff className="size-6 text-[var(--text-faint)]" />}
                   </span>
                   <AlertDialogHeader className="items-center gap-1.5 text-center">

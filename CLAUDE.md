@@ -62,11 +62,14 @@ it passes today — that's a coincidence of the exact value chosen, not a loopho
 rely on. If `--brand` ever changes, rerun `npm run check:colors` and re-verify by eye
 that it still reads as the one deliberate exception, not a second UI accent.
 
-### Glass on Home (owner request 2026-09-28)
+### Glass (owner request 2026-09-28)
 
-Home is the one page with glass surfaces: `.lx-glass-page` puts a soft crimson light behind the
-page, and `.lx-glass` (plus `.glass` inside that page) makes surfaces translucent and blurred.
-Every other page keeps the flat cards. Don't spread glass to other pages without asking.
+The whole app sits on a dim Dust II backdrop (`body::before`). The shell — sidebar, top bar and
+page panel — is `.lx-glass-shell`: translucent and blurred. Cards inside use `--glass-fill`
+(`bg-[var(--glass-fill)]`, `.glass`, `.lx-glass`) with a `--glass-line` hairline; they do not blur
+themselves, the panel under them already does. Keep new surfaces on these tokens; image overlays
+(`from-[var(--card-surface)]` gradients) stay solid so text over art stays readable. Home adds a
+soft crimson light (`.lx-glass-page`). Stats and timers use `.lx-stat-grid` cells, not a box each.
 
 ## Icons and assets
 

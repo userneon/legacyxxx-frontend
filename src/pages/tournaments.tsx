@@ -28,7 +28,7 @@ const readTab = (value: string | null): Tab => (TABS.some((tab) => tab.value ===
 
 const primaryButton = "lx-brand-button flex h-10 items-center justify-center gap-2 rounded-lg text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:pointer-events-none disabled:opacity-40 disabled:saturate-50"
 const secondaryButton = "flex h-10 items-center justify-center gap-2 rounded-lg border border-[var(--line)] text-sm font-medium text-[var(--text)] transition-[background-color,border-color,transform] duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:pointer-events-none disabled:opacity-50"
-const card = "rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]"
+const card = "rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]"
 
 function useNow(intervalMs = 1000) {
   const [now, setNow] = useState(() => Date.now())
@@ -306,7 +306,7 @@ function MatchCard({ match, myTeamId }: { match: TournamentMatch; myTeamId: stri
   return (
     <div
       className={cn(
-        "lx-layer relative w-full rounded-[10px] border bg-[var(--card-surface)] transition-[border-color,box-shadow,translate] duration-500 hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:duration-300",
+        "lx-layer relative w-full rounded-[10px] border bg-[var(--glass-fill)] transition-[border-color,box-shadow,translate] duration-500 hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:duration-300",
         mine ? "border-[var(--brand)]/60" : match.status === "live" ? "border-[var(--status-green)]/35" : "border-[var(--line-soft)]",
       )}
     >
@@ -506,7 +506,7 @@ function TeamNameDialog({ open, onClose, onSubmit, busy, error }: { open: boolea
               value={name}
               maxLength={32}
               onChange={(event) => setName(event.target.value)}
-              className="h-10 rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)] px-3 text-sm text-[var(--text)] outline-none transition-[border-color,box-shadow] duration-300 placeholder:text-[var(--text-dim)] focus:border-[var(--brand)]/60 focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_18%,transparent)]"
+              className="h-10 rounded-[10px] border border-[var(--line)] bg-[var(--glass-fill)] px-3 text-sm text-[var(--text)] outline-none transition-[border-color,box-shadow] duration-300 placeholder:text-[var(--text-dim)] focus:border-[var(--brand)]/60 focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_18%,transparent)]"
               placeholder="2–32 characters"
             />
           </label>
@@ -718,8 +718,8 @@ function DetailSkeleton() {
         <Skeleton className="h-2.5 w-44 rounded-full bg-[var(--line-soft)]" />
       </div>
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <Skeleton className="h-64 rounded-xl bg-[var(--card-surface)]" />
-        <Skeleton className="h-48 rounded-xl bg-[var(--card-surface)]" />
+        <Skeleton className="h-64 rounded-xl bg-[var(--glass-fill)]" />
+        <Skeleton className="h-48 rounded-xl bg-[var(--glass-fill)]" />
       </div>
     </div>
   )

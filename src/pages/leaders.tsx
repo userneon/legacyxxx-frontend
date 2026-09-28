@@ -55,7 +55,7 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
       // The player's rank tier colour tints the corner glow (--tier); the podium spot sets the order and height.
       style={{ "--tier": rankTierColor(player.rank_id), order: slot, animationDelay: `${first ? 60 : 160 + slot * 60}ms` } as CSSProperties}
       className={cn(
-        "lx-fx-card group relative isolate flex min-w-0 flex-col gap-4 overflow-hidden rounded-xl border bg-[var(--card-surface)] p-[18px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60",
+        "lx-fx-card group relative isolate flex min-w-0 flex-col gap-4 overflow-hidden rounded-xl border bg-[var(--glass-fill)] p-[18px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60",
         first ? "border-[var(--brand)]/45" : "mt-6 border-[var(--line-soft)]",
       )}
     >
@@ -221,7 +221,7 @@ function TableHeader({ sort }: { sort: LeaderboardSort }) {
 
 function TopCardSkeleton() {
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-[18px]" aria-hidden="true">
+    <div className="flex flex-col gap-4 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-[18px]" aria-hidden="true">
       <div className="flex items-center justify-between">
         <Skeleton className="h-7 w-10 rounded-md bg-[var(--line)]" />
         <Skeleton className="size-10 rounded-full bg-[var(--line-soft)]" />
@@ -309,7 +309,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
     <div className="scrollbar-hidden flex min-h-0 flex-1 overflow-x-auto">
       <div className="flex min-w-[900px] flex-1 flex-col">
         <div className="px-6 pb-2 pt-6">
-          <section aria-label="Leaders" className="relative overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]">
+          <section aria-label="Leaders" className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
             <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
             <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
             <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
@@ -324,7 +324,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
               </div>
               <div className="flex items-center gap-2.5">
                 <Segmented ariaLabel="Sort by" value={sort} onChange={setSort} options={SORTS} />
-                <label className="flex h-[38px] w-[220px] items-center gap-2 rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)] px-3 transition-[border-color,box-shadow] duration-300 focus-within:border-[var(--brand)]/60 focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_18%,transparent)]">
+                <label className="flex h-[38px] w-[220px] items-center gap-2 rounded-[10px] border border-[var(--line)] bg-[var(--glass-fill)] px-3 transition-[border-color,box-shadow] duration-300 focus-within:border-[var(--brand)]/60 focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_18%,transparent)]">
                   <Search className="size-4 shrink-0 text-[var(--text-dim)]" />
                   <input
                     type="search"

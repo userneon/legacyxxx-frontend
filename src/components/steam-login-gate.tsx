@@ -23,7 +23,7 @@ export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
       )}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_60%_at_50%_45%,transparent,var(--panel)_80%)]" />
 
-      <section className="lx-swap-in relative w-full max-w-[380px] rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-7 text-center sm:p-8">
+      <section className="lx-swap-in relative w-full max-w-[380px] rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-7 text-center sm:p-8">
         <h1 className="text-xl font-semibold tracking-[-0.3px] text-[var(--text)]">Sign in to open {pageName}</h1>
         <p className="mx-auto mt-2 max-w-[300px] text-[13px] leading-[1.55] text-[var(--text-muted)]">
           Your Legacy-X account is your Steam account.

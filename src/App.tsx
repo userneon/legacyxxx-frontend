@@ -94,7 +94,7 @@ export function App() {
       <AppSidebar currentPage={currentPage} onNavigate={handleNavigate} />
       {/* Floating shell: sidebar, top bar and content panel are separate cards with an 8px gutter. */}
       <SidebarInset className="m-0 flex h-svh min-w-0 flex-col gap-2 bg-transparent p-2 pl-0">
-        <header className="flex h-14 shrink-0 items-center gap-4 rounded-[14px] border border-[var(--line-soft)] bg-[var(--panel)] pl-4 pr-2 max-md:pl-2">
+        <header className="lx-glass-shell flex h-14 shrink-0 items-center gap-4 rounded-[14px] pl-4 pr-2 max-md:pl-2">
           {/* On a phone the sidebar is a sheet, so the top bar carries its only trigger. */}
           <SidebarTrigger className="size-9 shrink-0 rounded-[10px] text-[var(--text-muted)] hover:bg-[var(--raised)] hover:text-[var(--text)] min-[560px]:hidden" />
           {websitePrefs.killFeed ? <KillFeed /> : <div className="min-w-0 flex-1" />}
@@ -102,7 +102,7 @@ export function App() {
           <ProfileBlock onNavigate={handleNavigate} />
         </header>
 
-        <div ref={panelRef} className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-clip rounded-[14px] border border-[var(--line-soft)] bg-[var(--panel)]">
+        <div ref={panelRef} className="lx-glass-shell scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-clip rounded-[14px]">
           <div key={shownSection} className={cn("page-enter flex min-h-full flex-col", leaving && "page-leave")}>
             <RouteErrorBoundary resetKey={shownLocation.pathname}>
             <Routes location={shownLocation}>

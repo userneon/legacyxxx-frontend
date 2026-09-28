@@ -85,7 +85,7 @@ function Section({ id, title, description, aside, children, index = 0 }: { id: S
       id={id}
       aria-labelledby={`${id}-t`}
       style={{ animationDelay: `${120 + index * 80}ms` }}
-      className="lx-swap-in relative scroll-mt-6 overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] transition-[border-color,box-shadow] duration-500 hover:border-[var(--line)]"
+      className="lx-swap-in relative scroll-mt-6 overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] transition-[border-color,box-shadow] duration-500 hover:border-[var(--line)]"
     >
       <span aria-hidden="true" className="absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
       <div className="flex items-start justify-between gap-4 px-5 pb-1 pt-[18px]">
@@ -238,7 +238,7 @@ export function SettingsPage() {
   return (
     <div ref={scroller} className="min-h-0 flex-1">
       <div className="px-8 pt-6 max-md:px-4">
-        <section aria-label="Settings" className="lx-swap-in relative overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]">
+        <section aria-label="Settings" className="lx-swap-in relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
           <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
           <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
           <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
