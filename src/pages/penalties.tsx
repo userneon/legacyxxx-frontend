@@ -123,7 +123,7 @@ function PenaltyRow({ penalty, onOpen, index }: { penalty: PenaltyEntry; onOpen:
       <span><StatusPill penalty={penalty} /></span>
       <span className="min-w-0 truncate text-[13px] text-[var(--text-2)]" title={reason}>{reason}</span>
       <TermLabel penalty={penalty} className="text-[13px] font-medium" />
-      <span className="text-[13px] tabular-nums text-[var(--text-muted)]" title={formatPenaltyDate(penalty.date, true)}>{formatPenaltyDate(penalty.date)}</span>
+      <span className="text-[13px] text-[var(--text-muted)]" title={formatPenaltyDate(penalty.date, true)}>{formatPenaltyDate(penalty.date)}</span>
       <ChevronRight className="size-4 text-[var(--text-faint)] transition-[translate,color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:translate-x-1 group-hover:text-[var(--brand-bright)] group-hover:duration-300" />
     </button>
   )
@@ -134,7 +134,7 @@ function GroupHeader({ label, active, count }: { label: string; active: boolean;
     <div className="flex h-9 items-center gap-2 border-b border-[var(--raised)] bg-[#0c0c0c] px-6 text-xs font-semibold text-[var(--text-muted)]">
       <span className={cn("size-1.5 rounded-full", active ? "lx-live-dot bg-[var(--status-red)]" : "bg-[var(--text-faint)]")} />
       {label}
-      <span className="rounded-full bg-[var(--raised)] px-1.5 text-[11px] tabular-nums text-[var(--text-dim)]">{count}</span>
+      <span className="rounded-full bg-[var(--raised)] px-1.5 text-[11px] text-[var(--text-dim)]">{count}</span>
     </div>
   )
 }
@@ -166,7 +166,7 @@ function SummaryTile({ icon: Icon, label, value, color, selected, pulse, onClick
         {pulse && Boolean(value) && <span className="lx-live-dot absolute -right-0.5 -top-0.5 size-2 rounded-full bg-[var(--tile)]" />}
       </span>
       <span className="flex min-w-0 flex-col">
-        <span className="text-xl font-bold leading-tight tabular-nums text-[var(--text)]"><AnimatedNumber value={value} /></span>
+        <span className="text-xl font-bold leading-tight text-[var(--text)]"><AnimatedNumber value={value} /></span>
         <span className="truncate text-xs text-[var(--text-muted)]">{label}</span>
       </span>
     </button>

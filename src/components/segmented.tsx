@@ -83,7 +83,7 @@ export function Segmented<T extends string>({
           >
             {option.label}
             {option.count !== undefined && (
-              <span className={cn("text-[11px] tabular-nums", active ? "text-[var(--text-muted)]" : "text-[var(--text-dim)]")}>{option.count}</span>
+              <span className={cn("text-[11px]", active ? "text-[var(--text-muted)]" : "text-[var(--text-dim)]")}>{option.count}</span>
             )}
           </button>
         )

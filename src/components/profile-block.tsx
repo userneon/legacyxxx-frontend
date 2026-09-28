@@ -72,7 +72,7 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
               <div className="h-1 overflow-hidden rounded-full bg-[var(--line-soft)]">
                 <div className="h-full rounded-full bg-[var(--accent-solid)] transition-[width] duration-500" style={{ width: `${percent}%` }} />
               </div>
-              <div className="flex justify-between text-[11px] tabular-nums text-[var(--text-dim)]">
+              <div className="flex justify-between text-[11px] text-[var(--text-dim)]">
                 <span>{exp.toLocaleString()} EXP</span>
                 <span>{next ? `${next.toLocaleString()} · ${competitive?.next_rank_name}` : "Top rank"}</span>
               </div>

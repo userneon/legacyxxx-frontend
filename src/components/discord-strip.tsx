@@ -59,8 +59,8 @@ export function DiscordStrip() {
           {widget ? (
             <>
               <span className="size-1.5 shrink-0 rounded-full bg-[var(--status-green)]" />
-              <span className="tabular-nums"><span className="font-medium text-foreground/80">{widget.presence_count.toLocaleString()}</span> online</span>
-              {inVoice > 0 && <span className="tabular-nums">· {inVoice} in voice</span>}
+              <span><span className="font-medium text-foreground/80">{widget.presence_count.toLocaleString()}</span> online</span>
+              {inVoice > 0 && <span>· {inVoice} in voice</span>}
             </>
           ) : (
             "Teammates, announcements and clips"

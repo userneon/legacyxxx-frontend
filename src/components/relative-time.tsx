@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
 
-import { cn } from "@/lib/utils"
 
 const MINUTE = 60_000
 const HOUR = 60 * MINUTE
@@ -50,7 +49,7 @@ export function RelativeTime({ value, prefix, className }: { value: string | nul
 
   const exact = date.toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })
   return (
-    <time dateTime={date.toISOString()} title={exact} className={cn("tabular-nums", className)}>
+    <time dateTime={date.toISOString()} title={exact} className={className}>
       {prefix}{formatRelativeTime(date, now)}
     </time>
   )

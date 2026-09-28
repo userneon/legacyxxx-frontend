@@ -238,7 +238,7 @@ function StaffCard({ staff, username }: { staff: NonNullable<ProfileOverview["st
         <span className="text-[13px] text-[var(--text-muted)]">{staff.description} Staff never ask for your password or items.</span>
       </span>
       <Link to={`${PAGE_ROUTES.penalties}?admin=${encodeURIComponent(username)}`} className="flex items-center gap-1.5 border-r border-[var(--line)] pr-3.5 text-[13px] text-[var(--text-2)] transition-colors hover:text-[var(--text)]">
-        Penalties issued <span className="font-semibold tabular-nums text-[var(--text)]">{staff.penaltiesIssued.toLocaleString()}</span>
+        Penalties issued <span className="font-semibold text-[var(--text)]">{staff.penaltiesIssued.toLocaleString()}</span>
         <ChevronRight className="size-3.5" />
       </Link>
       {LINKS.discordStaff && <a href={LINKS.discordStaff} target="_blank" rel="noreferrer" className={outline}><MessageCircle className="size-3.5" />Contact on Discord</a>}
@@ -272,8 +272,8 @@ function RankCard({ competitive }: { competitive: NonNullable<ProfileOverview["c
           <span className="lx-progress-fill block h-full rounded-full transition-[width] duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)]" style={{ width: `${shown}%` }} />
         </span>
         <div className="flex justify-between text-xs text-[var(--text-dim)]">
-          <span>EXP <span className="font-semibold tabular-nums text-[var(--text)]"><AnimatedNumber value={competitive.exp} /></span></span>
-          <span>{competitive.nextRankName ? <>Next <span className="text-[var(--text-2)]">{competitive.nextRankName}</span> · <span className="tabular-nums">{competitive.nextRankMinExp?.toLocaleString()}</span></> : "Top rank"}</span>
+          <span>EXP <span className="font-semibold text-[var(--text)]"><AnimatedNumber value={competitive.exp} /></span></span>
+          <span>{competitive.nextRankName ? <>Next <span className="text-[var(--text-2)]">{competitive.nextRankName}</span> · <span>{competitive.nextRankMinExp?.toLocaleString()}</span></> : "Top rank"}</span>
         </div>
       </div>
     </section>
@@ -327,7 +327,7 @@ function StatsRow({ stats }: { stats: NonNullable<ProfileOverview["stats"]> }) {
         >
           <span aria-hidden="true" className="absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/80 to-transparent" />
           <span className="text-xs text-[var(--text-muted)]">{tile.label}</span>
-          <span className="text-2xl font-bold tabular-nums text-[var(--text)]">
+          <span className="text-2xl font-bold text-[var(--text)]">
             <AnimatedNumber value={tile.value} decimals={tile.key === "kd" ? 2 : 0} suffix={tile.key === "winRate" || tile.key === "hs" ? "%" : ""} />
           </span>
         </div>
@@ -384,9 +384,9 @@ function RecentMatches({ matches, onOpen }: { matches: ProfileMatchRow[]; onOpen
                   <span className="truncate text-[var(--text)]">{cs2MapLabel(match.map)}</span>
                 </span>
                 <span className={cn("font-medium", match.result === "Win" ? "text-[var(--result-win)]" : match.result === "Loss" ? "text-[var(--result-loss)]" : "text-[var(--text-muted)]")}>{match.result}</span>
-                <span className="tabular-nums text-[var(--text-2)]">{match.score}</span>
-                <span className="tabular-nums text-[var(--text-2)] max-md:hidden">{match.kd}</span>
-                <span className={cn("font-medium tabular-nums", (match.expDelta ?? 0) > 0 ? "text-[var(--result-win)]" : (match.expDelta ?? 0) < 0 ? "text-[var(--result-loss)]" : "text-[var(--text-dim)]")}>{typeof match.expDelta === "number" ? `${match.expDelta > 0 ? "+" : ""}${match.expDelta}` : "—"}</span>
+                <span className="text-[var(--text-2)]">{match.score}</span>
+                <span className="text-[var(--text-2)] max-md:hidden">{match.kd}</span>
+                <span className={cn("font-medium", (match.expDelta ?? 0) > 0 ? "text-[var(--result-win)]" : (match.expDelta ?? 0) < 0 ? "text-[var(--result-loss)]" : "text-[var(--text-dim)]")}>{typeof match.expDelta === "number" ? `${match.expDelta > 0 ? "+" : ""}${match.expDelta}` : "—"}</span>
                 <span className="truncate text-xs text-[var(--text-dim)] max-md:hidden">{match.playedAt ? <RelativeTime value={match.playedAt} /> : "—"}</span>
               </button>
             )
@@ -414,7 +414,7 @@ function MapsCard({ maps }: { maps: NonNullable<ProfileOverview["maps"]> }) {
           <span className="h-1.5 overflow-hidden rounded-full bg-[var(--line-soft)]">
             <span className={cn("lx-bar-grow block h-full rounded-full", index === 0 ? "lx-progress-fill" : "bg-[linear-gradient(90deg,color-mix(in_oklab,var(--brand)_55%,transparent),var(--brand))]")} style={{ width: `${map.winRate}%`, animationDelay: `${200 + index * 70}ms` }} />
           </span>
-          <span className="text-right text-[13px] tabular-nums text-[var(--text)]" title={`${map.wins} of ${map.matches}`}>{map.winRate}%</span>
+          <span className="text-right text-[13px] text-[var(--text)]" title={`${map.wins} of ${map.matches}`}>{map.winRate}%</span>
         </div>
       ))}
     </section>
@@ -426,7 +426,7 @@ function FaceitCard({ faceit }: { faceit: FaceitProfileData }) {
   const tile = (label: string, value: string) => (
     <div className="flex flex-col gap-2 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] px-3 py-2.5">
       <span className="text-[11px] text-[var(--text-dim)]">{label}</span>
-      <span className="text-sm font-semibold tabular-nums text-[var(--text)]">{value}</span>
+      <span className="text-sm font-semibold text-[var(--text)]">{value}</span>
     </div>
   )
   return (
@@ -439,7 +439,7 @@ function FaceitCard({ faceit }: { faceit: FaceitProfileData }) {
         <FaceitLevelBadge level={faceit.level} className="size-11" />
         <span className="flex min-w-0 flex-col gap-1">
           <span className="text-[11px] text-[var(--text-dim)]">Level {faceit.level} · ELO</span>
-          <span className="text-lg font-semibold tabular-nums text-[var(--text)]">{faceit.elo.toLocaleString()}</span>
+          <span className="text-lg font-semibold text-[var(--text)]">{faceit.elo.toLocaleString()}</span>
         </span>
         <span className="ml-auto truncate text-xs text-[var(--text-muted)]">{faceit.nickname}</span>
       </div>

@@ -224,7 +224,7 @@ function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () =
           <label className="flex flex-col gap-2">
             <span className="flex justify-between text-xs text-[var(--text-muted)]">
               <span>Your review</span>
-              <span className="tabular-nums">{message.length} / {MAX_LENGTH}</span>
+              <span>{message.length} / {MAX_LENGTH}</span>
             </span>
             <textarea
               value={message}
@@ -400,7 +400,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
       <aside aria-label="Summary" className="scrollbar-hidden flex w-[340px] shrink-0 flex-col gap-5 overflow-y-auto border-l border-[var(--line-soft)] p-6 max-lg:w-full max-lg:overflow-visible max-lg:border-l-0 max-lg:border-t">
         <div className="lx-swap-in relative flex items-center gap-4 overflow-hidden rounded-xl border border-[var(--brand)]/35 bg-[var(--card-surface)] p-5">
           <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10 opacity-70" />
-          <span className="lx-brand-text relative text-5xl font-bold leading-none tracking-[-1.5px] tabular-nums">{average.toFixed(1)}</span>
+          <span className="lx-brand-text relative text-5xl font-bold leading-none tracking-[-1.5px]">{average.toFixed(1)}</span>
           <span className="relative flex flex-col gap-2">
             <Stars value={average} size={17} />
             <span className="text-xs text-[var(--text-muted)]">{total.toLocaleString()} review{total === 1 ? "" : "s"}</span>
@@ -421,14 +421,14 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
                   pressed && "bg-[var(--raised)] ring-1 ring-inset ring-[var(--line-strong)]",
                 )}
               >
-                <span className="flex w-[22px] shrink-0 items-center gap-[3px] text-xs tabular-nums text-[var(--text-muted)]">
+                <span className="flex w-[22px] shrink-0 items-center gap-[3px] text-xs text-[var(--text-muted)]">
                   {bucket.score}
                   <Star className="size-2.5 fill-[var(--star)] text-[var(--star)]" />
                 </span>
                 <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--line-soft)]">
                   <span className={cn("block h-full rounded-full transition-[width,background-color] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]", pressed ? "bg-[var(--star)]" : "bg-[var(--star)]/55")} style={{ width: `${bucket.share}%` }} />
                 </span>
-                <span className="w-6 shrink-0 text-right text-xs tabular-nums text-[var(--text-dim)]">{bucket.count}</span>
+                <span className="w-6 shrink-0 text-right text-xs text-[var(--text-dim)]">{bucket.count}</span>
               </button>
             )
           })}

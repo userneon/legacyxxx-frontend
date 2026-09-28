@@ -60,7 +60,7 @@ export function HomeReviews({ onWriteReview }: { onWriteReview: () => void }) {
           {total > 0 && (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--accent-solid)]/25 bg-[var(--accent-solid)]/[0.08] px-2.5 py-1 text-xs text-[var(--text-2)]">
               <Star className="size-3 fill-[var(--star)] text-[var(--star)]" aria-hidden="true" />
-              <span className="font-semibold tabular-nums">{average.toFixed(1)}</span>
+              <span className="font-semibold">{average.toFixed(1)}</span>
               <span className="text-[var(--text-dim)]">· {total.toLocaleString()} review{total === 1 ? "" : "s"}</span>
             </span>
           )}

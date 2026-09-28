@@ -76,7 +76,7 @@ export function ClanPage({ onProfileNavigate, onClanNavigate }: { onProfileNavig
         ].map((stat) => (
           <div key={stat.label} className="glass rounded-xl p-4 hover-lift">
             <stat.icon className="size-4 text-muted-foreground" />
-            <div className="mt-2 text-xl font-bold tabular-nums">{stat.value}</div>
+            <div className="mt-2 text-xl font-bold">{stat.value}</div>
             <div className="text-xs text-muted-foreground mt-0.5">{stat.label}</div>
           </div>
         ))}
@@ -176,7 +176,7 @@ function ClanCardItem({ clan, onClanNavigate, onChanged }: { clan: ClanCard; onC
               <span>Members</span>
             </div>
             <span className={cn(
-              "font-bold tabular-nums",
+              "font-bold",
               isFull ? "text-destructive" : "text-foreground"
             )}>
               {clan.currentPlayers}/{clan.maxPlayers}

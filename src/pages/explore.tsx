@@ -53,7 +53,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <span className="flex min-w-0 flex-col gap-1.5">
       <span className="text-[11px] text-[var(--text-dim)]">{label}</span>
-      <span className="truncate text-[13px] font-medium tabular-nums text-[var(--text)]">{value}</span>
+      <span className="truncate text-[13px] font-medium text-[var(--text)]">{value}</span>
     </span>
   )
 }
@@ -228,7 +228,7 @@ export function ExplorePage({ onProfileNavigate }: { onProfileNavigate: (userId:
           <div className="flex flex-col gap-3">
             <span className="flex items-center gap-2 text-xs text-[var(--text-dim)]">
               <span aria-hidden="true" className="h-3 w-[3px] rounded-full bg-[var(--brand-bright)]" />
-              {players.length > 0 ? <><span className="font-semibold tabular-nums text-[var(--text-2)]">{players.length}</span> player{players.length === 1 ? "" : "s"}</> : "Results"}
+              {players.length > 0 ? <><span className="font-semibold text-[var(--text-2)]">{players.length}</span> player{players.length === 1 ? "" : "s"}</> : "Results"}
             </span>
             {loading && players.length === 0 ? (
               <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-3">

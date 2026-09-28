@@ -166,7 +166,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                           <span className="flex-1 truncate text-left">{item.label}</span>
                           {locked && <Lock className="size-3.5 shrink-0 text-[var(--text-dim)]" />}
                           {count > 0 && (
-                            <span className="flex shrink-0 items-center gap-1.5 text-xs tabular-nums text-[var(--text-muted)]">
+                            <span className="flex shrink-0 items-center gap-1.5 text-xs text-[var(--text-muted)]">
                               <span className="size-1.5 rounded-full bg-[var(--status-green)]" />
                               {count}
                             </span>

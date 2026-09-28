@@ -29,7 +29,7 @@ export function StatTile({ icon: Icon, label, value, tone, suffix, pulse, fallba
         <span className={cn("flex size-8 items-center justify-center rounded-lg bg-[var(--raised)]", iconClassName ?? tone)}><Icon className="size-4" /></span>
         {pulse && Boolean(value) && <span className="lx-live-dot size-2 rounded-full bg-[var(--status-green)]" />}
       </div>
-      <div className={cn("mt-3 text-2xl font-bold tabular-nums", tone)}><AnimatedNumber value={value} suffix={suffix} fallback={fallback} /></div>
+      <div className={cn("mt-3 text-2xl font-bold", tone)}><AnimatedNumber value={value} suffix={suffix} fallback={fallback} /></div>
       <div className="mt-0.5 truncate text-xs text-muted-foreground">{label}</div>
     </div>
   )

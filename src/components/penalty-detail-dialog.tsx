@@ -53,7 +53,7 @@ export function StatusPill({ penalty, className }: { penalty: PenaltyEntry; clas
 /** Term text in its colour ("Permanent", "Ends in 2d 4h", or the stored term once it's over). */
 export function TermLabel({ penalty, className }: { penalty: PenaltyEntry; className?: string }) {
   const label = penaltyTermLabel(penalty)
-  return <span className={cn("min-w-0 truncate tabular-nums", className)} style={{ color: penaltyTermColor(penalty) }} title={label}>{label}</span>
+  return <span className={cn("min-w-0 truncate", className)} style={{ color: penaltyTermColor(penalty) }} title={label}>{label}</span>
 }
 
 /**
@@ -175,7 +175,7 @@ export function PenaltyDetailSheet({
                 <PlayerModerationAvatar avatar={penalty.avatar} name={penalty.player} status={penalty.moderationStatus} className="size-14 shrink-0 rounded-2xl text-base" />
                 <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                   <SheetTitle className="truncate text-lg font-bold tracking-[-0.2px] text-[var(--text)]">{penalty.player}</SheetTitle>
-                  <SheetDescription className="truncate text-xs tabular-nums text-[var(--text-dim)]">{penalty.playerSteamId ?? "Steam ID unavailable"}</SheetDescription>
+                  <SheetDescription className="truncate text-xs text-[var(--text-dim)]">{penalty.playerSteamId ?? "Steam ID unavailable"}</SheetDescription>
                   <span className="flex flex-wrap items-center gap-1.5"><TypePill type={penalty.type} /><StatusPill penalty={penalty} /></span>
                 </div>
                 <button type="button" onClick={onClose} aria-label="Close" className="flex size-8 shrink-0 items-center justify-center self-start rounded-lg border border-[var(--line)] bg-[var(--panel)]/70 text-[var(--text-muted)] backdrop-blur transition-[color,border-color,rotate] duration-300 hover:rotate-90 hover:border-[var(--brand)]/50 hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60">
@@ -193,12 +193,12 @@ export function PenaltyDetailSheet({
                 <div className="flex flex-col gap-2 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-3.5">
                   <span className="flex items-center justify-between text-xs text-[var(--text-muted)]">
                     <span>Time served</span>
-                    <span className="font-semibold tabular-nums text-[var(--text-2)]">{Math.round(served)}%</span>
+                    <span className="font-semibold text-[var(--text-2)]">{Math.round(served)}%</span>
                   </span>
                   <span className="h-2 overflow-hidden rounded-full bg-[var(--line-soft)]">
                     <span className="lx-bar-grow block h-full rounded-full" style={{ width: `${served}%`, background: `linear-gradient(90deg, color-mix(in oklab, ${color} 55%, transparent), ${color})`, boxShadow: `0 0 10px -2px ${color}` }} />
                   </span>
-                  <span className="flex justify-between text-[11px] tabular-nums text-[var(--text-dim)]">
+                  <span className="flex justify-between text-[11px] text-[var(--text-dim)]">
                     <span>{formatPenaltyDate(penalty.date)}</span>
                     <span>{formatPenaltyDate(penalty.expiresAt!)}</span>
                   </span>

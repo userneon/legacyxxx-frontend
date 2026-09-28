@@ -36,7 +36,8 @@ brightness and weight, not hue:
 - Rank emblems use the CS2 rarity ladder (`--rank-<tier>`) **only** inside emblem
   images and the rank name next to one — never on buttons, backgrounds, or chrome
 - Radius: 8px controls, 10–12px cards, 14px floating panels, 999px pills
-- Font: Onest (400/500/600/700), tabular numbers on every stat
+- Font: Onest (400/500/600/700) with its default proportional figures. Owner request
+  2026-09-28: no `tabular-nums` — Onest's tabular "1" made numbers like "11" read as "1 1"
 
 ### Brand accent exception (owner request 2026-09-27)
 

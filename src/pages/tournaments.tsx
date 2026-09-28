@@ -157,7 +157,7 @@ function CountdownBlocks({ value }: { value: string }) {
     <span className="flex items-end gap-1.5">
       {parts.map(([digits, unit]) => (
         <span key={unit} className="flex flex-col items-center gap-1">
-          <span className="flex h-11 min-w-11 items-center justify-center rounded-[10px] border border-[var(--brand)]/35 bg-[var(--panel)]/80 px-2 text-[22px] font-bold tabular-nums text-[var(--text)] backdrop-blur">
+          <span className="flex h-11 min-w-11 items-center justify-center rounded-[10px] border border-[var(--brand)]/35 bg-[var(--panel)]/80 px-2 text-[22px] font-bold text-[var(--text)] backdrop-blur">
             <span key={digits} className="lx-swap-in">{digits}</span>
           </span>
           <span className="text-[10px] font-medium uppercase tracking-[0.6px] text-[var(--text-dim)]">{unit}</span>
@@ -225,7 +225,7 @@ function Hero({ tournament, now }: { tournament: TournamentSummary; now: number 
               ) : null}
               <span className="flex justify-between text-xs text-[var(--text-dim)]">
                 <span>Players</span>
-                <span className="tabular-nums text-[var(--text-2)]">{tournament.registeredPlayers}{slots ? ` / ${slots}` : ""}</span>
+                <span className="text-[var(--text-2)]">{tournament.registeredPlayers}{slots ? ` / ${slots}` : ""}</span>
               </span>
             </div>
           </div>
@@ -258,7 +258,7 @@ function Overview({ tournament, now }: { tournament: TournamentDetail; now: numb
             <>Single elimination{tournament.format ? ` · ${tournament.format}` : ""}.</>,
           ].map((text: ReactNode, index) => (
             <li key={index} className="flex gap-3">
-              <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-[var(--brand)]/45 bg-[var(--brand)]/12 text-[11px] font-bold tabular-nums text-[var(--brand-bright)]">{index + 1}</span>
+              <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-[var(--brand)]/45 bg-[var(--brand)]/12 text-[11px] font-bold text-[var(--brand-bright)]">{index + 1}</span>
               <span className="pt-0.5">{text}</span>
             </li>
           ))}
@@ -297,7 +297,7 @@ function TeamRow({ name, score, winner, loser, mine }: { name: string | null; sc
     <span className="flex h-9 items-center gap-2.5 px-3">
       <span className={cn("size-5 shrink-0 rounded-md", winner ? "bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))]" : mine ? "bg-[var(--brand)]/40" : "bg-[var(--line-soft)]")} />
       <span className={cn("min-w-0 flex-1 truncate text-[13px]", !name ? "text-[var(--text-faint)]" : winner ? "font-semibold text-[var(--text)]" : loser ? "text-[var(--text-dim)]" : "text-[var(--text-2)]")}>{name ?? "TBD"}</span>
-      <span className={cn("shrink-0 text-[13px] tabular-nums", winner ? "font-bold text-[var(--brand-bright)]" : "text-[var(--text-dim)]")}>{score ?? "–"}</span>
+      <span className={cn("shrink-0 text-[13px]", winner ? "font-bold text-[var(--brand-bright)]" : "text-[var(--text-dim)]")}>{score ?? "–"}</span>
     </span>
   )
 }
@@ -338,7 +338,7 @@ function Bracket({ tournament }: { tournament: TournamentDetail }) {
         {tournament.bracket.map((round, roundIndex) => (
           <div key={round.round} className="flex min-w-0 flex-col">
             <span className="mb-3.5 flex items-center gap-2 text-xs font-semibold text-[var(--text-muted)]">
-              <span className="flex size-5 items-center justify-center rounded-md bg-[var(--raised)] text-[10px] tabular-nums text-[var(--text-2)]">{roundIndex + 1}</span>
+              <span className="flex size-5 items-center justify-center rounded-md bg-[var(--raised)] text-[10px] text-[var(--text-2)]">{roundIndex + 1}</span>
               {round.round}
             </span>
             <div className="flex flex-1 flex-col justify-around gap-3.5">
@@ -403,10 +403,10 @@ function Players({ tournament, onProfileNavigate, onJoinTeam, busy }: { tourname
               >
                 <div className="flex items-center justify-between gap-3 px-2 pt-1">
                   <span className="flex min-w-0 items-center gap-2">
-                    {team.seed !== null && <span className="flex h-5 min-w-5 items-center justify-center rounded-md bg-[var(--brand)]/15 px-1 text-[10px] font-bold tabular-nums text-[var(--brand-bright)]">#{team.seed}</span>}
+                    {team.seed !== null && <span className="flex h-5 min-w-5 items-center justify-center rounded-md bg-[var(--brand)]/15 px-1 text-[10px] font-bold text-[var(--brand-bright)]">#{team.seed}</span>}
                     <span className="truncate text-sm font-semibold text-[var(--text)]">{team.name}</span>
                   </span>
-                  <span className="flex shrink-0 items-center gap-2 text-xs tabular-nums text-[var(--text-dim)]">
+                  <span className="flex shrink-0 items-center gap-2 text-xs text-[var(--text-dim)]">
                     <span className="h-1 w-12 overflow-hidden rounded-full bg-[var(--line-soft)]">
                       <span className="block h-full rounded-full bg-[var(--brand)]" style={{ width: `${Math.min(100, (team.players.length / tournament.teamSize) * 100)}%` }} />
                     </span>
@@ -460,12 +460,12 @@ function Matches({ tournament }: { tournament: TournamentDetail }) {
           )}
         >
           <span className="flex flex-col gap-0.5 max-md:hidden">
-            <span className="text-[13px] tabular-nums text-[var(--text-2)]">{match.scheduledTime ? formatDateTime(match.scheduledTime) : "TBA"}</span>
+            <span className="text-[13px] text-[var(--text-2)]">{match.scheduledTime ? formatDateTime(match.scheduledTime) : "TBA"}</span>
             <span className="text-[11px] text-[var(--text-dim)]">{match.round}</span>
           </span>
           <span className="flex min-w-0 items-center gap-2 text-[13px]">
             <span className={cn("truncate", match.winnerTeamId && match.winnerTeamId === match.teamA?.id ? "font-semibold text-[var(--text)]" : "text-[var(--text-2)]")}>{match.teamA?.name ?? "TBD"}</span>
-            <span className="flex shrink-0 items-center gap-1 rounded-md bg-[var(--raised)] px-2 py-0.5 font-semibold tabular-nums text-[var(--text-2)]"><Swords className="size-3 text-[var(--brand-bright)]" />{match.scoreA ?? "–"} : {match.scoreB ?? "–"}</span>
+            <span className="flex shrink-0 items-center gap-1 rounded-md bg-[var(--raised)] px-2 py-0.5 font-semibold text-[var(--text-2)]"><Swords className="size-3 text-[var(--brand-bright)]" />{match.scoreA ?? "–"} : {match.scoreB ?? "–"}</span>
             <span className={cn("truncate", match.winnerTeamId && match.winnerTeamId === match.teamB?.id ? "font-semibold text-[var(--text)]" : "text-[var(--text-2)]")}>{match.teamB?.name ?? "TBD"}</span>
           </span>
           <span className="truncate text-xs text-[var(--text-dim)] max-md:hidden">{match.server?.name ?? "Server TBA"}{match.map ? ` · ${match.map}` : ""}</span>

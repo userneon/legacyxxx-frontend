@@ -97,7 +97,7 @@ function funModeLabel(modeLabel: string) {
 function StatusPill({ server }: { server: PlayServer }) {
   if (server.status === "live") {
     return (
-      <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-[rgba(10,10,10,0.72)] px-2.5 text-xs font-semibold tabular-nums text-[var(--text)] backdrop-blur-sm">
+      <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-[rgba(10,10,10,0.72)] px-2.5 text-xs font-semibold text-[var(--text)] backdrop-blur-sm">
         <span className="lx-live-dot size-1.5 rounded-full bg-[var(--status-green)]" />
         {server.score ? <><span className="text-[var(--team-t)]">{server.score.t}</span>:<span className="text-[var(--team-ct)]">{server.score.ct}</span></> : "Live"}
         {server.round !== null && <span className="font-medium text-[var(--text-muted)]">· R{server.round}</span>}
@@ -143,7 +143,7 @@ function Slots({ server }: { server: PlayServer }) {
         <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--line-soft)]">
           <span className="lx-progress-fill block h-full rounded-full transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]" style={{ width: `${share}%` }} />
         </span>
-        <span className="text-xs tabular-nums text-[var(--text-muted)]">{server.players}/{server.maxPlayers}</span>
+        <span className="text-xs text-[var(--text-muted)]">{server.players}/{server.maxPlayers}</span>
       </div>
     )
   }
@@ -154,7 +154,7 @@ function Slots({ server }: { server: PlayServer }) {
           <span key={index} className={cn("size-3.5 rounded-[4px] transition-[background-color,box-shadow] duration-500", index < server.players ? "lx-slot-on" : "bg-[var(--line-soft)]")} style={{ transitionDelay: `${index * 30}ms` }} />
         ))}
       </span>
-      <span className="text-xs tabular-nums text-[var(--text-muted)]">{server.players}/{server.maxPlayers}</span>
+      <span className="text-xs text-[var(--text-muted)]">{server.players}/{server.maxPlayers}</span>
     </div>
   )
 }
@@ -278,9 +278,9 @@ function TeamTable({ title, players, side }: { title: string; players: ServerLiv
             <PlayerAvatar name={player.name} className="size-[22px] shrink-0 rounded-md text-[9px]" />
             <span className={cn("truncate", player.connected ? "text-[var(--text)]" : "text-[var(--text-dim)]")} title={player.name}>{player.name}</span>
           </span>
-          <span className="font-semibold tabular-nums text-[var(--text)]">{stat(player.kills)}</span>
-          <span className="tabular-nums text-[var(--text-2)]">{stat(player.deaths)}</span>
-          <span className="tabular-nums text-[var(--text-2)]">{stat(player.assists)}</span>
+          <span className="font-semibold text-[var(--text)]">{stat(player.kills)}</span>
+          <span className="text-[var(--text-2)]">{stat(player.deaths)}</span>
+          <span className="text-[var(--text-2)]">{stat(player.assists)}</span>
         </div>
       ))}
     </div>
@@ -337,7 +337,7 @@ function ServerSheet({ server, onClose }: { server: PlayServer | null; onClose: 
                 {live?.score && (
                   <span className="flex shrink-0 items-center gap-2 rounded-xl border border-[var(--line)] bg-[rgba(10,10,10,0.7)] px-3 py-1.5 backdrop-blur">
                     <TeamIcon side="t" className="size-5" />
-                    <span className="flex items-center gap-1.5 text-2xl font-bold tabular-nums">
+                    <span className="flex items-center gap-1.5 text-2xl font-bold">
                       <span key={`t${live.score.t}`} className="lx-swap-in text-[var(--team-t)]">{live.score.t}</span>
                       <span className="text-[var(--text-faint)]">:</span>
                       <span key={`ct${live.score.ct}`} className="lx-swap-in text-[var(--team-ct)]">{live.score.ct}</span>
@@ -449,12 +449,12 @@ function PlayHero({ title, description, heroMap, list, loading, mode, pickRule, 
           </h1>
           <span className="min-h-[46px] max-w-xl text-[14px] leading-relaxed text-[var(--text-2)] @3xl:min-h-0">{description}</span>
           <div className="flex flex-wrap gap-2">
-            <span className="inline-flex h-7 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--panel)]/70 px-3 text-xs tabular-nums text-[var(--text-2)] backdrop-blur">
+            <span className="inline-flex h-7 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--panel)]/70 px-3 text-xs text-[var(--text-2)] backdrop-blur">
               <span className={cn("size-1.5 rounded-full", live ? "lx-live-dot bg-[var(--status-green)]" : "bg-[var(--text-faint)]")} />
               <Users className="size-3.5 text-[var(--brand-bright)]" />
               {list ? `${list.players} playing` : "—"}
             </span>
-            <span className="inline-flex h-7 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--panel)]/70 px-3 text-xs tabular-nums text-[var(--text-2)] backdrop-blur">
+            <span className="inline-flex h-7 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--panel)]/70 px-3 text-xs text-[var(--text-2)] backdrop-blur">
               <Server className="size-3.5 text-[var(--brand-bright)]" />
               {list ? `${list.onlineServers} server${list.onlineServers === 1 ? "" : "s"} online` : "—"}
             </span>
@@ -491,7 +491,7 @@ function Header({ title, description, list, loading }: { title: string; descript
         <span className="text-[13px] leading-[1.2] text-[var(--text-muted)]">{description}</span>
       </div>
       {list && list.onlineServers > 0 && (
-        <span className="flex items-center gap-2 text-[13px] tabular-nums text-[var(--text-muted)]">
+        <span className="flex items-center gap-2 text-[13px] text-[var(--text-muted)]">
           <span className="size-1.5 rounded-full bg-[var(--status-green)]" />
           {list.players} player{list.players === 1 ? "" : "s"} · {list.onlineServers} server{list.onlineServers === 1 ? "" : "s"}
         </span>
@@ -630,7 +630,7 @@ function ProLocked({ access }: { access: CompetitiveAccess }) {
             <span className="h-2 overflow-hidden rounded-full bg-[var(--line-soft)]">
               <span className="lx-progress-fill block h-full rounded-full transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]" style={{ width: `${share}%` }} />
             </span>
-            <span className="text-center text-xs tabular-nums text-[var(--text-dim)]">{toGo.toLocaleString()} EXP to go</span>
+            <span className="text-center text-xs text-[var(--text-dim)]">{toGo.toLocaleString()} EXP to go</span>
           </div>
           <Link to={PAGE_ROUTES["play-5vs5"]} className={cn(primary, "relative mt-1 h-10 px-[18px] text-[13px]")}>
             <Play className="size-3.5 fill-current" />

@@ -44,16 +44,16 @@ function RowsPlaceholder({ rows }: { rows: number }) {
  * rank emblem. The EXP bar and stat columns fill the width instead of leaving it empty.
  */
 const ROW = "grid grid-cols-[28px_minmax(0,1fr)_28px] items-center gap-3 @xl:grid-cols-[28px_minmax(170px,1fr)_minmax(140px,1.3fr)_28px] @4xl:grid-cols-[28px_minmax(190px,1fr)_minmax(180px,1.4fr)_64px_72px_72px_28px] @4xl:gap-5"
-const STAT = "hidden text-right text-[13px] tabular-nums text-[var(--text-2)] @4xl:block"
+const STAT = "hidden text-right text-[13px] text-[var(--text-2)] @4xl:block"
 const HEAD = "hidden text-right @4xl:block"
 
 /** Gold, silver, bronze reading as crimson medals: #1 filled, #2 and #3 outlined. */
 function Position({ position }: { position: number }) {
-  if (position > 3) return <span className="w-7 text-center text-xs font-bold tabular-nums text-[var(--text-dim)]">{position}</span>
+  if (position > 3) return <span className="w-7 text-center text-xs font-bold text-[var(--text-dim)]">{position}</span>
   return (
     <span
       className={cn(
-        "flex size-7 items-center justify-center rounded-full text-xs font-bold tabular-nums",
+        "flex size-7 items-center justify-center rounded-full text-xs font-bold",
         position === 1
           ? "bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))] text-[var(--brand-on)]"
           : "border border-[var(--brand)]/50 bg-[var(--brand)]/10 text-[var(--brand-bright)]",
@@ -113,7 +113,7 @@ export function TopPlayers({ onOpenProfile, onViewAll }: { onOpenProfile: (steam
                       </span>
                     </span>
                     <span className="hidden min-w-0 flex-col gap-1.5 @xl:flex">
-                      <span className="text-[13px] font-semibold tabular-nums text-[var(--text)]">{player.current_exp.toLocaleString()}</span>
+                      <span className="text-[13px] font-semibold text-[var(--text)]">{player.current_exp.toLocaleString()}</span>
                       <span className="h-1.5 overflow-hidden rounded-full bg-[var(--line-soft)]">
                         <span
                           className={cn("lx-bar-grow block h-full rounded-full", player.position === 1 ? "lx-progress-fill" : "bg-[linear-gradient(90deg,color-mix(in_oklab,var(--brand)_55%,transparent),var(--brand))]")}

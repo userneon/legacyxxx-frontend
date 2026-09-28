@@ -146,7 +146,6 @@
   body {
     @apply bg-background text-foreground;
     font-family: "Onest", system-ui, -apple-system, sans-serif;
-    font-variant-numeric: tabular-nums;
     -webkit-user-select: none;
     -moz-user-select: none;
     user-select: none;

@@ -75,7 +75,7 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
       <span className="flex items-center justify-between">
         <span className="flex items-center gap-2">
           {first && <Crown aria-hidden="true" className="size-6 fill-[var(--brand)]/30 text-[var(--brand-bright)] drop-" />}
-          <span className={cn("font-bold leading-none tracking-[-1px] tabular-nums", first ? "text-[34px] text-[var(--text)]" : "text-[28px] text-[var(--text-2)]")}>#{player.position}</span>
+          <span className={cn("font-bold leading-none tracking-[-1px]", first ? "text-[34px] text-[var(--text)]" : "text-[28px] text-[var(--text-2)]")}>#{player.position}</span>
         </span>
         <CompetitiveRankBadge rankId={player.rank_id} rankName={player.rank_name} imageKey={player.rank_image_key} currentExp={player.current_exp} size={first ? 48 : 40} />
       </span>
@@ -96,16 +96,16 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
       <span className="flex items-end justify-between border-t border-[var(--line-soft)] pt-3.5">
         <span className="flex flex-col gap-1.5">
           <span className="text-[11px] text-[var(--text-dim)]">{SORTS.find((entry) => entry.value === sort)!.metric}</span>
-          <span key={sort} className={cn("lx-swap-in font-bold leading-none tabular-nums", first ? "text-[22px] text-[var(--brand-bright)]" : "text-lg text-[var(--text)]")}>{METRIC[sort](player)}</span>
+          <span key={sort} className={cn("lx-swap-in font-bold leading-none", first ? "text-[22px] text-[var(--brand-bright)]" : "text-lg text-[var(--text)]")}>{METRIC[sort](player)}</span>
         </span>
         <span className="flex gap-3.5">
           <span className="flex flex-col items-end gap-1.5">
             <span className="text-[11px] text-[var(--text-dim)]">Matches</span>
-            <span className="text-xs tabular-nums text-[var(--text-2)]">{player.matches_completed.toLocaleString()}</span>
+            <span className="text-xs text-[var(--text-2)]">{player.matches_completed.toLocaleString()}</span>
           </span>
           <span className="flex flex-col items-end gap-1.5">
             <span className="text-[11px] text-[var(--text-dim)]">Win rate</span>
-            <span className="text-xs tabular-nums text-[var(--text-2)]">{formatWinRate(player)}</span>
+            <span className="text-xs text-[var(--text-2)]">{formatWinRate(player)}</span>
           </span>
         </span>
       </span>
@@ -114,7 +114,7 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
 }
 
 function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: CompetitiveLeaderboardEntry; sort: LeaderboardSort; onOpen: () => void; you?: boolean; index?: number }) {
-  const cell = (column: LeaderboardSort | "matches") => cn("text-right text-[13px] tabular-nums transition-colors duration-300", column === sort ? "font-semibold text-[var(--text)]" : "text-[var(--text-muted)]")
+  const cell = (column: LeaderboardSort | "matches") => cn("text-right text-[13px] transition-colors duration-300", column === sort ? "font-semibold text-[var(--text)]" : "text-[var(--text-muted)]")
   return (
     <button
       type="button"
@@ -139,7 +139,7 @@ function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: Competiti
           you ? "opacity-100" : "scale-y-0 opacity-0 group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
         )}
       />
-      <span className={cn("text-sm font-semibold tabular-nums", you ? "text-[var(--brand-bright)]" : "text-[var(--text-muted)] transition-colors duration-300 group-hover:text-[var(--text)]")}>{player.position}</span>
+      <span className={cn("text-sm font-semibold", you ? "text-[var(--brand-bright)]" : "text-[var(--text-muted)] transition-colors duration-300 group-hover:text-[var(--text)]")}>{player.position}</span>
       <span className="flex min-w-0 items-center gap-3 transition-[translate] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:translate-x-1 group-hover:duration-300 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]">
         <PlayerAvatar
           avatar={player.avatar}

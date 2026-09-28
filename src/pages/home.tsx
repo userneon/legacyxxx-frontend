@@ -68,7 +68,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
           {(homeStats?.playersOnline ?? 0) > 0 ? (
             <>
               <span className="lx-live-dot size-1.5 rounded-full bg-[var(--status-green)]" />
-              <span className="text-xs font-medium tabular-nums text-[var(--text-2)]">Live now · {homeStats?.playersOnline} playing</span>
+              <span className="text-xs font-medium text-[var(--text-2)]">Live now · {homeStats?.playersOnline} playing</span>
             </>
           ) : (
             <>
@@ -93,7 +93,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 {stat.flagship && Boolean(stat.value) && <span className="lx-live-dot size-1.5 shrink-0 rounded-full bg-[var(--status-green)]" />}
                 {stat.label}
               </dt>
-              <dd className={cn("text-2xl font-bold leading-none tracking-[-0.02em] [font-variant-numeric:proportional-nums] @2xl:text-4xl", stat.flagship ? "text-[var(--brand-bright)]" : "text-[var(--text)]")}>
+              <dd className={cn("text-2xl font-bold leading-none tracking-[-0.02em] @2xl:text-4xl", stat.flagship ? "text-[var(--brand-bright)]" : "text-[var(--text)]")}>
                 {statsLoading && stat.value === undefined ? <Skeleton className="h-6 w-12 @2xl:h-9 @2xl:w-14" /> : <AnimatedNumber value={stat.value} />}
               </dd>
             </div>
@@ -130,7 +130,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
               </div>
               <div className={cn("relative mt-4 flex h-4 items-center gap-1.5 transition-opacity duration-150", status ? "opacity-100" : "opacity-0")}>
                 {status?.live && <span className="lx-live-dot size-1.5 rounded-full bg-[var(--status-green)]" />}
-                <span className="text-xs tabular-nums text-[var(--text-dim)]">{status?.text ?? " "}</span>
+                <span className="text-xs text-[var(--text-dim)]">{status?.text ?? " "}</span>
               </div>
             </button>
           )

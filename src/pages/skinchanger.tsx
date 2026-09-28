@@ -1139,7 +1139,7 @@ export function SkinchangerPage() {
               <span className="inline-flex h-9 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--panel)]/75 px-3.5 text-xs text-[var(--text-muted)] backdrop-blur">
                 <span className="size-1.5 rounded-full bg-[var(--brand-bright)]" />
                 Equipped
-                <span key={`${viewTeam}:${equippedCount}`} className="lx-swap-in text-sm font-bold tabular-nums text-[var(--text)]">{equippedCount}</span>
+                <span key={`${viewTeam}:${equippedCount}`} className="lx-swap-in text-sm font-bold text-[var(--text)]">{equippedCount}</span>
               </span>
             </div>
           </div>
@@ -1331,7 +1331,7 @@ export function SkinchangerPage() {
               <div className="min-h-0 overflow-hidden">
               <div className="space-y-4 border-t border-border pt-4">
                 <div>
-                  <div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Wear</span><span className="text-xs font-medium tabular-nums" style={{ color: wearColor(customOptions.wear ?? defaultWear) }}>{wearName(customOptions.wear ?? defaultWear)} · {(customOptions.wear ?? defaultWear).toFixed(4)}</span></div>
+                  <div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Wear</span><span className="text-xs font-medium" style={{ color: wearColor(customOptions.wear ?? defaultWear) }}>{wearName(customOptions.wear ?? defaultWear)} · {(customOptions.wear ?? defaultWear).toFixed(4)}</span></div>
                   <div className="mb-2 grid grid-cols-5 gap-1">
                     {wearTiers.map((tier) => {
                       const available = tier.from < maxWear && tier.to > minWear

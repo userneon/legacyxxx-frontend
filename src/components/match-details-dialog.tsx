@@ -85,17 +85,17 @@ function Scoreboard({ team, highlightSteamId, onPlayer }: { team: MatchDetailTea
                       <span className="truncate font-medium group-enabled:group-hover:underline">{player.username}</span>
                     </button>
                   </td>
-                  <td className="px-2 py-2 text-right font-semibold tabular-nums">{player.kills}</td>
-                  <td className="px-2 py-2 text-right tabular-nums text-white/70">{player.deaths}</td>
-                  <td className="px-2 py-2 text-right tabular-nums text-white/70">{player.assists}</td>
-                  <td className={cn("px-2 py-2 text-right tabular-nums", player.kdDiff > 0 ? "text-chart-2" : player.kdDiff < 0 ? "text-destructive" : "text-white/60")}>
+                  <td className="px-2 py-2 text-right font-semibold">{player.kills}</td>
+                  <td className="px-2 py-2 text-right text-white/70">{player.deaths}</td>
+                  <td className="px-2 py-2 text-right text-white/70">{player.assists}</td>
+                  <td className={cn("px-2 py-2 text-right", player.kdDiff > 0 ? "text-chart-2" : player.kdDiff < 0 ? "text-destructive" : "text-white/60")}>
                     {player.kdDiff > 0 ? `+${player.kdDiff}` : player.kdDiff}
                   </td>
-                  <td className="px-2 py-2 text-right tabular-nums text-white/70">{player.headshotPercent}%</td>
-                  <td className="px-2 py-2 text-right tabular-nums">{dash(player.adr)}</td>
-                  <td className="px-2 py-2 text-right tabular-nums text-white/70">{dash(player.kastPercent, "%")}</td>
-                  <td className="px-2 py-2 text-right tabular-nums text-white/70">{dash(player.mvps)}</td>
-                  <td className={cn("px-2 py-2 text-right font-semibold tabular-nums", player.ratingDelta >= 0 ? "text-chart-2" : "text-destructive")}>
+                  <td className="px-2 py-2 text-right text-white/70">{player.headshotPercent}%</td>
+                  <td className="px-2 py-2 text-right">{dash(player.adr)}</td>
+                  <td className="px-2 py-2 text-right text-white/70">{dash(player.kastPercent, "%")}</td>
+                  <td className="px-2 py-2 text-right text-white/70">{dash(player.mvps)}</td>
+                  <td className={cn("px-2 py-2 text-right font-semibold", player.ratingDelta >= 0 ? "text-chart-2" : "text-destructive")}>
                     {player.ratingDelta > 0 ? `+${player.ratingDelta}` : player.ratingDelta}
                   </td>
                 </tr>
@@ -143,7 +143,7 @@ function RoundTimeline({ detail }: { detail: MatchDetail }) {
           <div className="stagger-in flex gap-1">
             {detail.rounds.map((round) => (
               <div key={round.number} className={cn("flex flex-col items-center gap-1.5", isHalfBreak(round.number) && "mr-3")}>
-                <span className="text-[10px] tabular-nums text-muted-foreground">{round.number}</span>
+                <span className="text-[10px] text-muted-foreground">{round.number}</span>
                 {detail.teams.map((team) => <RoundCell key={team.key} round={round} teamKey={team.key} teamName={team.name} />)}
               </div>
             ))}
@@ -197,9 +197,9 @@ function ComparisonBar({ label, left, right, suffix = "" }: { label: string; lef
   return (
     <div>
       <div className="mb-1 flex items-center justify-between text-xs">
-        <span className="font-semibold tabular-nums text-[var(--text)]">{dash(left, suffix)}</span>
+        <span className="font-semibold text-[var(--text)]">{dash(left, suffix)}</span>
         <span className="text-muted-foreground">{label}</span>
-        <span className="font-semibold tabular-nums text-[var(--text-muted)]">{dash(right, suffix)}</span>
+        <span className="font-semibold text-[var(--text-muted)]">{dash(right, suffix)}</span>
       </div>
       <div className="flex h-1.5 gap-0.5 overflow-hidden rounded-full bg-white/[0.06]">
         <div className="match-compare-bar h-full rounded-l-full bg-[var(--accent-solid)]" style={{ width: ready ? `${leftShare}%` : "50%" }} />
@@ -251,7 +251,7 @@ function TeamComparison({ detail, onPlayer }: { detail: MatchDetail; onPlayer: (
               <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground"><Icon className="size-3" />{label}</div>
               <div className={cn("truncate text-sm font-semibold", TEAM_TONE[entry!.team].text)}>{entry!.player.username}</div>
             </div>
-            <span className="shrink-0 text-xs font-semibold tabular-nums">{value(entry!.player)}</span>
+            <span className="shrink-0 text-xs font-semibold">{value(entry!.player)}</span>
           </button>
         ))}
       </div>
@@ -303,9 +303,9 @@ export function MatchDetailsDialog({ matchId, mapNumber, highlightSteamId, onOpe
                   {team1.won && <div className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-bold uppercase text-[var(--result-win)]"><Medal className="size-3" />Winner</div>}
                 </div>
                 <div className="match-score-pop flex items-center gap-3 rounded-xl border border-white/10 bg-black/40 px-4 py-2 backdrop-blur">
-                  <span className={cn("text-3xl font-black tabular-nums", team1.won ? "text-white" : "text-white/50")}>{team1.score}</span>
+                  <span className={cn("text-3xl font-black", team1.won ? "text-white" : "text-white/50")}>{team1.score}</span>
                   <span className="text-sm font-bold text-white/30">:</span>
-                  <span className={cn("text-3xl font-black tabular-nums", team2.won ? "text-white" : "text-white/50")}>{team2.score}</span>
+                  <span className={cn("text-3xl font-black", team2.won ? "text-white" : "text-white/50")}>{team2.score}</span>
                 </div>
                 <div className="min-w-0 text-left">
                   <div className={cn("truncate text-sm font-semibold", TEAM_TONE.team2.text)}>{team2.name}</div>
