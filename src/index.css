@@ -1241,6 +1241,39 @@
   to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
+/* A crimson light runs around the edge while hovered (no glow around the card). */
+@property --lx-edge-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+.lx-fx-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: 1px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--lx-edge-angle), transparent 0deg, transparent 220deg, var(--brand) 290deg, var(--brand-bright) 330deg, transparent 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 400ms cubic-bezier(0.37, 0, 0.18, 1);
+  /* Paused at rest: an always-running @property animation repaints every card, and its images, on
+     every frame. It runs only while the card is hovered or focused, and freezes as it fades out. */
+  animation: lx-edge-spin 3.2s linear infinite paused;
+}
+.lx-fx-card:hover::before,
+.lx-fx-card:focus-visible::before {
+  opacity: 1;
+  animation-play-state: running;
+}
+@keyframes lx-edge-spin {
+  to { --lx-edge-angle: 360deg; }
+}
+
 /* Map artwork slowly pans so the cards never sit still. */
 .lx-map-drift {
   animation: lx-map-drift 22s ease-in-out infinite alternate;
