@@ -83,17 +83,17 @@ export function HomePage({ onNavigate }: HomePageProps) {
         <p className="relative z-10 max-w-xl text-[15px] leading-relaxed text-[var(--text-2)]">
           The premier CS2 / CSGO community server platform. Join matches and compete with the Mongolian CS2 community.
         </p>
-        <dl className="relative z-10 mt-3 grid w-full max-w-2xl grid-cols-3">
+        <dl className="relative z-10 mt-3 flex">
           {heroStats.map((stat, index) => (
             <div
               key={stat.label}
-              className={cn("flex min-w-0 flex-col-reverse justify-end gap-2 pr-3 @2xl:pr-8", index > 0 && "border-l border-[var(--line-strong)] pl-3 @2xl:pl-8")}
+              className={cn("flex min-w-0 flex-col-reverse justify-end gap-2 pr-4 @2xl:pr-6", index > 0 && "border-l border-[var(--line-strong)] pl-4 @2xl:pl-6")}
             >
               <dt className="flex items-center gap-1.5 text-[11px] font-medium uppercase leading-tight tracking-wide text-[var(--text-muted)] @2xl:text-xs">
                 {stat.flagship && Boolean(stat.value) && <span className="lx-live-dot size-1.5 shrink-0 rounded-full bg-[var(--status-green)]" />}
                 {stat.label}
               </dt>
-              <dd className={cn("font-display text-2xl leading-none tracking-wide tabular-nums @2xl:text-4xl", stat.flagship ? "text-[var(--brand-bright)]" : "text-[var(--text)]")}>
+              <dd className={cn("text-2xl font-bold leading-none tracking-[-0.02em] [font-variant-numeric:proportional-nums] @2xl:text-4xl", stat.flagship ? "text-[var(--brand-bright)]" : "text-[var(--text)]")}>
                 {statsLoading && stat.value === undefined ? <Skeleton className="h-6 w-12 @2xl:h-9 @2xl:w-14" /> : <AnimatedNumber value={stat.value} />}
               </dd>
             </div>
