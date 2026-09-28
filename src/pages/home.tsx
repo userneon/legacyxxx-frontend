@@ -87,7 +87,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
           {heroStats.map((stat, index) => (
             <div
               key={stat.label}
-              className={cn("flex min-w-0 flex-col-reverse justify-end gap-1.5 pr-5 @2xl:pr-8", index > 0 && "border-l border-[var(--line)] pl-5 @2xl:pl-8")}
+              className={cn("flex min-w-0 flex-col-reverse justify-end gap-1.5 pr-5 @2xl:pr-12 @5xl:pr-16", index > 0 && "border-l border-[var(--line)] pl-5 @2xl:pl-12 @5xl:pl-16")}
             >
               <dt className="flex items-center gap-1.5 text-[11px] font-medium uppercase leading-tight tracking-wide text-[var(--text-muted)] @2xl:text-xs">
                 {stat.flagship && Boolean(stat.value) && <span className="lx-live-dot size-1.5 shrink-0 rounded-full bg-[var(--status-green)]" />}
