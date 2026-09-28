@@ -53,13 +53,13 @@ export function HomePage({ onNavigate }: HomePageProps) {
   }
 
   return (
-    <div className="@container flex flex-col gap-5 p-4 @2xl:p-6">
+    <div className="lx-glass-page @container flex flex-col gap-5 p-4 @2xl:p-6">
       {/* Hero */}
-      <div className="relative flex flex-col gap-4 overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-8 @2xl:p-10">
+      <div className="lx-glass relative flex flex-col gap-4 overflow-hidden rounded-xl p-8 @2xl:p-10">
         <picture className="pointer-events-none absolute inset-0">
           <OptimizedImage src={homeHeroGif} width={480} height={268} priority alt="" aria-hidden="true" className="h-full w-full object-cover opacity-35" />
         </picture>
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--card-surface)] via-[var(--card-surface)]/80 to-[var(--card-surface)]/20" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--card-surface)]/85 via-[var(--card-surface)]/60 to-transparent" />
         <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
         <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
@@ -112,7 +112,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
               type="button"
               onClick={() => onNavigate(mode.id)}
               style={{ animationDelay: `${120 + index * 80}ms` }}
-              className="lx-fx-card group relative flex min-h-[168px] flex-col justify-end overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
+              className="lx-fx-card lx-glass group relative flex min-h-[168px] flex-col justify-end overflow-hidden rounded-xl p-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
             >
               {art && (
                 <img
@@ -123,7 +123,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30 transition-[opacity,scale] duration-500 ease-out group-hover:scale-[1.03] group-hover:opacity-45"
                 />
               )}
-              <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--card-surface)] via-[var(--card-surface)]/75 to-[var(--card-surface)]/10" />
+              <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--card-surface)]/85 via-[var(--card-surface)]/55 to-transparent" />
               <div className="relative">
                 <h3 className="text-lg font-semibold tracking-[-0.2px] text-[var(--text)]">{mode.label}</h3>
                 <p className="mt-1 text-[13px] leading-snug text-[var(--text-muted)]">{mode.desc}</p>

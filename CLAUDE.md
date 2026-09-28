@@ -62,6 +62,12 @@ it passes today — that's a coincidence of the exact value chosen, not a loopho
 rely on. If `--brand` ever changes, rerun `npm run check:colors` and re-verify by eye
 that it still reads as the one deliberate exception, not a second UI accent.
 
+### Glass on Home (owner request 2026-09-28)
+
+Home is the one page with glass surfaces: `.lx-glass-page` puts a soft crimson light behind the
+page, and `.lx-glass` (plus `.glass` inside that page) makes surfaces translucent and blurred.
+Every other page keeps the flat cards. Don't spread glass to other pages without asking.
+
 ## Icons and assets
 
 lucide-react only, stroke 2, no emoji, no placeholder icons. Sizes: 18px nav/top bar,
