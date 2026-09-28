@@ -64,16 +64,16 @@ export function HomePage({ onNavigate }: HomePageProps) {
         <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
 
-        <div className="relative z-10 flex w-fit items-center gap-2 rounded-full border border-[var(--brand)]/35 bg-[var(--brand)]/10 px-3 py-1">
+        <div className="relative z-10 flex w-fit items-center gap-2">
           {(homeStats?.playersOnline ?? 0) > 0 ? (
             <>
               <span className="lx-live-dot size-1.5 rounded-full bg-[var(--status-green)]" />
-              <span className="text-xs font-medium text-[var(--text-2)]">Live now · {homeStats?.playersOnline} playing</span>
+              <span className="text-xs font-medium text-[var(--text-muted)]">Live now · {homeStats?.playersOnline} playing</span>
             </>
           ) : (
             <>
               <span className="size-1.5 rounded-full bg-[var(--brand-bright)]" />
-              <span className="text-xs font-medium text-[var(--text-2)]">Mongolian CS2 community</span>
+              <span className="text-xs font-medium text-[var(--text-muted)]">Mongolian CS2 community</span>
             </>
           )}
         </div>
