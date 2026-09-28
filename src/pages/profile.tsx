@@ -317,17 +317,11 @@ function HiddenCard({ section }: { section: ProfileSection }) {
 function StatsRow({ stats }: { stats: NonNullable<ProfileOverview["stats"]> }) {
   const format = (key: string, value: number) => (key === "winRate" || key === "hs" ? `${value}%` : key === "kd" ? value.toFixed(2) : value.toLocaleString())
   return (
-    <section aria-label="Legacy-X stats" className="grid grid-cols-2 gap-3 sm:flex">
-      {stats.map((tile, index) => (
-        <div
-          key={tile.key}
-          title={format(tile.key, tile.value)}
-          style={{ animationDelay: `${160 + index * 60}ms` }}
-          className={cn(card, "lx-fx-card group relative flex min-w-0 flex-1 flex-col gap-2 overflow-hidden px-4 py-3.5")}
-        >
-          <span aria-hidden="true" className="absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/80 to-transparent" />
-          <span className="text-xs text-[var(--text-muted)]">{tile.label}</span>
-          <span className="text-2xl font-bold text-[var(--text)]">
+    <section aria-label="Legacy-X stats" className="lx-stat-grid grid-cols-2 sm:grid-flow-col sm:grid-cols-none sm:auto-cols-fr">
+      {stats.map((tile) => (
+        <div key={tile.key} title={format(tile.key, tile.value)} className="lx-stat-cell px-4 py-3.5">
+          <span className="lx-stat-label">{tile.label}</span>
+          <span className="text-2xl font-semibold leading-none text-[var(--text)]">
             <AnimatedNumber value={tile.value} decimals={tile.key === "kd" ? 2 : 0} suffix={tile.key === "winRate" || tile.key === "hs" ? "%" : ""} />
           </span>
         </div>

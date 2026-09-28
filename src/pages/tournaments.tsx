@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react"
-import { Calendar, ChevronRight, Crown, LoaderCircle, Play, RotateCcw, Swords, Trophy, UserPlus, Users, X } from "lucide-react"
+import { ChevronRight, Crown, LoaderCircle, Play, RotateCcw, Swords, Trophy, UserPlus, Users, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { PAGE_TITLES } from "@/lib/routes"
@@ -154,13 +154,11 @@ function DiscordMark({ className }: { className?: string }) {
 function CountdownBlocks({ value }: { value: string }) {
   const parts = value.includes("d ") ? value.split(" ").map((part) => [part.slice(0, -1), part.slice(-1)] as const) : value.split(":").map((part, index) => [part, ["h", "m", "s"][index]] as const)
   return (
-    <span className="flex items-end gap-1.5">
+    <span className="lx-stat-grid w-fit grid-flow-col">
       {parts.map(([digits, unit]) => (
-        <span key={unit} className="flex flex-col items-center gap-1">
-          <span className="flex h-11 min-w-11 items-center justify-center rounded-[10px] border border-[var(--brand)]/35 bg-[var(--panel)]/80 px-2 text-[22px] font-bold text-[var(--text)] backdrop-blur">
-            <span key={digits} className="lx-swap-in">{digits}</span>
-          </span>
-          <span className="text-[10px] font-medium uppercase tracking-[0.6px] text-[var(--text-dim)]">{unit}</span>
+        <span key={unit} className="lx-stat-cell min-w-[56px] items-center gap-1 px-3 py-2">
+          <span key={digits} className="lx-swap-in text-[22px] font-semibold leading-none text-[var(--text)]">{digits}</span>
+          <span className="lx-stat-label text-[10px]">{unit}</span>
         </span>
       ))}
     </span>
@@ -179,9 +177,9 @@ function Hero({ tournament, now }: { tournament: TournamentSummary; now: number 
   const share = slots ? Math.min(100, (tournament.registeredPlayers / slots) * 100) : 0
   const art = cs2MapArtwork("de_ancient")
   const meta = [
-    { icon: Calendar, label: "Starts", value: tournament.startsAt ? formatDateTime(tournament.startsAt) : "TBA" },
-    { icon: Users, label: "Format", value: tournament.format ?? `${tournament.teamSize}v${tournament.teamSize}` },
-    { icon: Trophy, label: "Prize", value: tournament.prizePool ?? "—" },
+    { label: "Starts", value: tournament.startsAt ? formatDateTime(tournament.startsAt) : "TBA" },
+    { label: "Format", value: tournament.format ?? `${tournament.teamSize}v${tournament.teamSize}` },
+    { label: "Prize", value: tournament.prizePool ?? "—" },
   ]
   return (
     <section className={cn(card, "lx-swap-in relative overflow-hidden")}>
@@ -203,15 +201,14 @@ function Hero({ tournament, now }: { tournament: TournamentSummary; now: number 
             <h2 className="truncate text-[32px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">{tournament.name}</h2>
             {tournament.description && <p className="max-w-[640px] text-[14px] leading-[1.55] text-[var(--text-2)]">{tournament.description}</p>}
           </div>
-          <div className="flex flex-wrap gap-2">
+          <dl className="lx-stat-grid w-fit max-w-full grid-cols-1 sm:grid-flow-col sm:grid-cols-none">
             {meta.map((item) => (
-              <span key={item.label} className="inline-flex h-8 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--panel)]/70 px-3 text-[13px] text-[var(--text-muted)] backdrop-blur">
-                <item.icon className="size-3.5 text-[var(--brand-bright)]" />
-                <span>{item.label}</span>
-                <span className="font-semibold text-[var(--text)]">{item.value}</span>
-              </span>
+              <div key={item.label} className="lx-stat-cell gap-1.5 px-4 py-2.5">
+                <dt className="lx-stat-label">{item.label}</dt>
+                <dd className="text-[14px] font-semibold text-[var(--text)]">{item.value}</dd>
+              </div>
             ))}
-          </div>
+          </dl>
         </div>
         {tournament.phase !== "finished" && (
           <div className="flex min-w-[280px] flex-col gap-3 rounded-xl border border-[var(--brand)]/30 bg-[var(--panel)]/70 p-4 backdrop-blur-md lg:items-end">

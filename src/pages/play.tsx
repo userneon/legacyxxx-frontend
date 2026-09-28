@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
-import { Copy, Eye, Info, LoaderCircle, Lock, Play, RotateCcw, Server, Star, Users, X, Zap } from "lucide-react"
+import { Copy, Eye, Info, LoaderCircle, Lock, Play, RotateCcw, Star, X, Zap } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -448,15 +448,17 @@ function PlayHero({ title, description, heroMap, list, loading, mode, pickRule, 
             {loading && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
           </h1>
           <span className="min-h-[46px] max-w-xl text-[14px] leading-relaxed text-[var(--text-2)] @3xl:min-h-0">{description}</span>
-          <div className="flex flex-wrap gap-2">
-            <span className="inline-flex h-7 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--panel)]/70 px-3 text-xs text-[var(--text-2)] backdrop-blur">
-              <span className={cn("size-1.5 rounded-full", live ? "lx-live-dot bg-[var(--status-green)]" : "bg-[var(--text-faint)]")} />
-              <Users className="size-3.5 text-[var(--brand-bright)]" />
-              {list ? `${list.players} playing` : "—"}
+          <div className="lx-stat-grid w-fit grid-flow-col">
+            <span className="lx-stat-cell min-w-[112px] gap-1.5 px-4 py-2.5">
+              <span className="lx-stat-label flex items-center gap-1.5">
+                <span className={cn("size-1.5 rounded-full", live ? "lx-live-dot bg-[var(--status-green)]" : "bg-[var(--text-faint)]")} />
+                Playing
+              </span>
+              <span className="text-lg font-semibold leading-none text-[var(--text)]">{list ? list.players : "—"}</span>
             </span>
-            <span className="inline-flex h-7 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--panel)]/70 px-3 text-xs text-[var(--text-2)] backdrop-blur">
-              <Server className="size-3.5 text-[var(--brand-bright)]" />
-              {list ? `${list.onlineServers} server${list.onlineServers === 1 ? "" : "s"} online` : "—"}
+            <span className="lx-stat-cell min-w-[112px] gap-1.5 px-4 py-2.5">
+              <span className="lx-stat-label">Servers online</span>
+              <span className="text-lg font-semibold leading-none text-[var(--text)]">{list ? list.onlineServers : "—"}</span>
             </span>
           </div>
         </div>

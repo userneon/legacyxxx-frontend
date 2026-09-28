@@ -262,6 +262,33 @@
   -webkit-backdrop-filter: blur(20px) saturate(170%);
 }
 
+/* Stat grid: numbers side by side in one frame, split by hairlines, instead of a box per number.
+   The frame colour shows through a 1px gap between the cells, so it also draws the lines when the
+   cells wrap onto a second row. */
+.lx-stat-grid {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--line-soft);
+  background: var(--line-soft);
+}
+.lx-stat-cell {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 16px;
+  background: var(--card-surface);
+}
+.lx-stat-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
 /* Profile avatar media: GIF/WebP URLs play natively inside PlayerAvatar. */
 .profile-avatar-frame {
   position: relative;

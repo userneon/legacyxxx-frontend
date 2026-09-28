@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react"
-import { Ban, ChevronRight, ExternalLink, LoaderCircle, MessageSquareOff, MicOff, RotateCcw, Search, ShieldAlert, ShieldCheck, Siren } from "lucide-react"
+import { ChevronRight, ExternalLink, LoaderCircle, RotateCcw, Search, ShieldAlert, ShieldCheck } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { PAGE_TITLES } from "@/lib/routes"
@@ -139,36 +139,32 @@ function GroupHeader({ label, active, count }: { label: string; active: boolean;
   )
 }
 
-/** Summary tile that doubles as a filter: Active now, Bans, Mutes, Gags. */
-function SummaryTile({ icon: Icon, label, value, color, selected, pulse, onClick, index }: {
-  icon: typeof Ban
+/** Summary cell that doubles as a filter: Active now, Bans, Mutes, Gags. */
+function SummaryCell({ label, value, color, selected, pulse, onClick }: {
   label: string
   value: number | null
   color: string
   selected: boolean
   pulse?: boolean
   onClick: () => void
-  index: number
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={selected}
-      style={{ animationDelay: `${80 + index * 60}ms`, "--tile": color } as CSSProperties}
+      style={{ "--tile": color } as CSSProperties}
       className={cn(
-        "lx-fx-card group relative flex items-center gap-3 overflow-hidden rounded-xl border bg-[var(--card-surface)] p-3.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60",
-        selected ? "border-[color-mix(in_oklab,var(--tile)_55%,transparent)] bg-[linear-gradient(135deg,color-mix(in_oklab,var(--tile)_12%,var(--card-surface)),var(--card-surface)_70%)]" : "border-[var(--line-soft)]",
+        "lx-stat-cell relative text-left transition-colors duration-200 hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--brand-bright)]/60",
+        selected && "bg-[color-mix(in_oklab,var(--tile)_10%,var(--card-surface))] hover:bg-[color-mix(in_oklab,var(--tile)_14%,var(--card-surface))]",
       )}
     >
-      <span className="lx-layer relative flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-[color-mix(in_oklab,var(--tile)_14%,transparent)] text-[var(--tile)] ring-1 ring-inset ring-[color-mix(in_oklab,var(--tile)_30%,transparent)] transition-[scale] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-105 group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]">
-        <Icon className="size-[18px]" />
-        {pulse && Boolean(value) && <span className="lx-live-dot absolute -right-0.5 -top-0.5 size-2 rounded-full bg-[var(--tile)]" />}
+      {selected && <span aria-hidden="true" className="absolute inset-x-0 top-0 h-[2px] bg-[var(--tile)]" />}
+      <span className="lx-stat-label flex items-center gap-1.5">
+        <span className={cn("size-1.5 rounded-full bg-[var(--tile)]", pulse && Boolean(value) && "lx-live-dot")} />
+        {label}
       </span>
-      <span className="flex min-w-0 flex-col">
-        <span className="text-xl font-bold leading-tight text-[var(--text)]"><AnimatedNumber value={value} /></span>
-        <span className="truncate text-xs text-[var(--text-muted)]">{label}</span>
-      </span>
+      <span className="text-xl font-semibold leading-none text-[var(--text)]"><AnimatedNumber value={value} /></span>
     </button>
   )
 }
@@ -304,11 +300,11 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
               </div>
             </section>
 
-            <div className="grid grid-cols-4 gap-3">
-              <SummaryTile index={0} icon={Siren} label="Active now" value={firstLoad ? null : activeTotal} color="var(--status-red)" pulse selected={status === "active" && type === "all"} onClick={() => update({ status: status === "active" && type === "all" ? null : "active", type: null })} />
-              <SummaryTile index={1} icon={Ban} label="Bans" value={firstLoad ? null : counts.ban} color={TYPE_META.ban.color} selected={type === "ban"} onClick={() => update({ type: type === "ban" ? null : "ban" })} />
-              <SummaryTile index={2} icon={MicOff} label="Mutes" value={firstLoad ? null : counts.comm} color={TYPE_META.comm.color} selected={type === "comm"} onClick={() => update({ type: type === "comm" ? null : "comm" })} />
-              <SummaryTile index={3} icon={MessageSquareOff} label="Gags" value={firstLoad ? null : counts.gag} color={TYPE_META.gag.color} selected={type === "gag"} onClick={() => update({ type: type === "gag" ? null : "gag" })} />
+            <div className="lx-stat-grid grid-cols-2 sm:grid-cols-4">
+              <SummaryCell label="Active now" value={firstLoad ? null : activeTotal} color="var(--status-red)" pulse selected={status === "active" && type === "all"} onClick={() => update({ status: status === "active" && type === "all" ? null : "active", type: null })} />
+              <SummaryCell label="Bans" value={firstLoad ? null : counts.ban} color={TYPE_META.ban.color} selected={type === "ban"} onClick={() => update({ type: type === "ban" ? null : "ban" })} />
+              <SummaryCell label="Mutes" value={firstLoad ? null : counts.comm} color={TYPE_META.comm.color} selected={type === "comm"} onClick={() => update({ type: type === "comm" ? null : "comm" })} />
+              <SummaryCell label="Gags" value={firstLoad ? null : counts.gag} color={TYPE_META.gag.color} selected={type === "gag"} onClick={() => update({ type: type === "gag" ? null : "gag" })} />
             </div>
 
             {user && <YourStatus penalties={mine ?? []} loading={mineLoading} onDetails={(penalty) => update({ penalty: penalty.id })} />}
