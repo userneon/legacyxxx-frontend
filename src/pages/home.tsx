@@ -102,7 +102,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 {stat.flagship && Boolean(stat.value) && <span className="lx-live-dot size-1.5 shrink-0 rounded-full bg-[var(--status-green)]" />}
                 {stat.label}
               </dt>
-              <dd className={cn("text-2xl font-bold leading-none tabular-nums @2xl:text-4xl", stat.flagship ? "text-[var(--brand-bright)]" : "text-[var(--text)]")}>
+              <dd className={cn("font-display text-2xl leading-none tracking-wide tabular-nums @2xl:text-4xl", stat.flagship ? "text-[var(--brand-bright)]" : "text-[var(--text)]")}>
                 {statsLoading && stat.value === undefined ? <Skeleton className="h-6 w-12 @2xl:h-9 @2xl:w-14" /> : <AnimatedNumber value={stat.value} />}
               </dd>
             </div>
