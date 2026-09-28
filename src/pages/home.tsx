@@ -1,5 +1,5 @@
 /** LEGACY-X Home: hero, live stats, play modes, the top of the ladder, reviews and Discord. */
-import { ArrowRight, Crosshair, Flame, Crown, Trophy, Server, Users, Gamepad2, Play } from "lucide-react"
+import { ArrowRight, Crosshair, Flame, Crown, Trophy } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { serversService } from "@/api"
@@ -13,7 +13,8 @@ import { DiscordStrip } from "@/components/discord-strip"
 import { TopPlayers } from "@/components/home-top-players"
 import { useNavigate } from "react-router-dom"
 import type { PointerEvent } from "react"
-import { StatTile } from "@/components/page-kit"
+import { AnimatedNumber } from "@/components/animated-number"
+import { Skeleton } from "@/components/ui/skeleton"
 import { cs2MapArtwork } from "@/lib/cs2-map-art"
 
 interface HomePageProps {
@@ -39,13 +40,13 @@ const TOURNAMENT_STATE = { registration: "Registration open", upcoming: "Startin
 
 export function HomePage({ onNavigate }: HomePageProps) {
   const navigate = useNavigate()
-  const { data: homeStats } = useApiQuery<HomeStats>((signal) => serversService.getHomeStats({ signal }))
+  const { data: homeStats, loading: statsLoading } = useApiQuery<HomeStats>((signal) => serversService.getHomeStats({ signal }))
   const { data: tournaments } = useApiQuery((signal) => tournamentsService.list({ signal }), { queryKey: "home-tournaments" })
 
-  const statTiles = [
-    { label: "Players Online", value: homeStats?.playersOnline, icon: Users, tone: "text-[var(--text)]", pulse: true },
-    { label: "Live Servers", value: homeStats?.liveServers, icon: Server, tone: "text-[var(--text)]" },
-    { label: "Matches Today", value: homeStats?.matchesToday, icon: Gamepad2, tone: "text-[var(--text)]" },
+  const heroStats = [
+    { label: "Players Online", value: homeStats?.playersOnline, flagship: true },
+    { label: "Live Servers", value: homeStats?.liveServers, flagship: false },
+    { label: "Matches Today", value: homeStats?.matchesToday, flagship: false },
   ]
 
   /** Real status line per mode card: players on that mode's servers, or the tournament state. */
@@ -91,41 +92,22 @@ export function HomePage({ onNavigate }: HomePageProps) {
         <p className="relative z-10 max-w-xl text-[15px] leading-relaxed text-[var(--text-2)]">
           The premier CS2 / CSGO community server platform. Join matches and compete with the Mongolian CS2 community.
         </p>
-        <div className="relative z-10 mt-2 flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={() => onNavigate("play-5vs5")}
-            className="lx-brand-button group flex h-11 items-center gap-2 rounded-lg px-5 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
-          >
-            <Play className="size-4 fill-current" />
-            Play now
-            <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => onNavigate("leaders")}
-            className="flex h-11 items-center gap-2 rounded-lg border border-[var(--line-strong)] bg-[var(--panel)]/70 px-5 text-sm font-medium text-[var(--text)] backdrop-blur transition-colors duration-150 hover:border-[var(--brand)]/60 hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
-          >
-            <Trophy className="size-4 text-[var(--brand-bright)]" />
-            Leaders
-          </button>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-3 @3xl:grid-cols-3">
-        {statTiles.map((stat) => (
-          <StatTile
-            key={stat.label}
-            icon={stat.icon}
-            label={stat.label}
-            value={stat.value}
-            tone={stat.tone}
-            pulse={stat.pulse}
-            className="lx-lift"
-            iconClassName="bg-[var(--brand)]/15 text-[var(--brand-bright)] ring-1 ring-inset ring-[var(--brand)]/30"
-          />
-        ))}
+        <dl className="relative z-10 mt-3 grid w-full max-w-2xl grid-cols-3">
+          {heroStats.map((stat, index) => (
+            <div
+              key={stat.label}
+              className={cn("flex min-w-0 flex-col-reverse justify-end gap-2 pr-3 @2xl:pr-8", index > 0 && "border-l border-[var(--line-strong)] pl-3 @2xl:pl-8")}
+            >
+              <dt className="flex items-center gap-1.5 text-[11px] font-medium uppercase leading-tight tracking-wide text-[var(--text-muted)] @2xl:text-xs">
+                {stat.flagship && Boolean(stat.value) && <span className="lx-live-dot size-1.5 shrink-0 rounded-full bg-[var(--status-green)]" />}
+                {stat.label}
+              </dt>
+              <dd className={cn("text-2xl font-bold leading-none tabular-nums @2xl:text-4xl", stat.flagship ? "text-[var(--brand-bright)]" : "text-[var(--text)]")}>
+                {statsLoading && stat.value === undefined ? <Skeleton className="h-6 w-12 @2xl:h-9 @2xl:w-14" /> : <AnimatedNumber value={stat.value} />}
+              </dd>
+            </div>
+          ))}
+        </dl>
       </div>
 
       {/* Mode cards */}
