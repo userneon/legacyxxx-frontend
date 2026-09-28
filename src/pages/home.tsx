@@ -12,7 +12,6 @@ import { HomeReviews } from "@/components/home-reviews"
 import { DiscordStrip } from "@/components/discord-strip"
 import { TopPlayers } from "@/components/home-top-players"
 import { useNavigate } from "react-router-dom"
-import type { PointerEvent } from "react"
 import { AnimatedNumber } from "@/components/animated-number"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cs2MapArtwork } from "@/lib/cs2-map-art"
@@ -29,12 +28,6 @@ const MODE_CARDS: { id: PageId; key: ModeKey; label: string; desc: string; icon:
   { id: "play-tournaments", key: "tournaments", label: "Tournaments", desc: "5v5 events on Legacy-X servers", icon: Trophy, map: "de_ancient" },
 ]
 
-/** Feeds the pointer position to the card's spotlight (--mx / --my). */
-function trackSpotlight(event: PointerEvent<HTMLElement>) {
-  const rect = event.currentTarget.getBoundingClientRect()
-  event.currentTarget.style.setProperty("--mx", `${event.clientX - rect.left}px`)
-  event.currentTarget.style.setProperty("--my", `${event.clientY - rect.top}px`)
-}
 
 const TOURNAMENT_STATE = { registration: "Registration open", upcoming: "Starting soon", live: "Live now", finished: "Finished" } as const
 
@@ -120,7 +113,6 @@ export function HomePage({ onNavigate }: HomePageProps) {
               key={mode.id}
               type="button"
               onClick={() => onNavigate(mode.id)}
-              onPointerMove={trackSpotlight}
               style={{ animationDelay: `${120 + index * 80}ms` }}
               className="lx-fx-card group relative flex min-h-[176px] flex-col gap-3 overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
             >
@@ -130,9 +122,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 </div>
               )}
               <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--card-surface)] via-[var(--card-surface)]/70 to-transparent transition-opacity duration-[900ms] ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:opacity-80 group-hover:duration-500" />
-              <div aria-hidden="true" className="lx-spotlight pointer-events-none absolute inset-0" />
               <div className="relative flex items-start justify-between">
-                <div className="lx-layer flex size-10 items-center justify-center rounded-lg bg-[var(--brand)]/15 text-[var(--brand-bright)] ring-1 ring-inset ring-[var(--brand)]/30 transition-[background-color,color,scale,rotate,box-shadow] duration-[800ms] ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-rotate-3 group-hover:scale-[1.06] group-hover:bg-[var(--brand)] group-hover:text-[var(--brand-on)] group-hover:shadow-[0_0_20px_var(--brand)]">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-[var(--brand)]/15 text-[var(--brand-bright)] ring-1 ring-inset ring-[var(--brand)]/30">
                   <mode.icon className="size-5" />
                 </div>
                 <ArrowRight className="size-4 -translate-x-2 text-[var(--brand-bright)] opacity-0 transition-[opacity,translate] duration-[800ms] ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-0 group-hover:opacity-100" />

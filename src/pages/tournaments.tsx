@@ -75,7 +75,7 @@ function PageHeader({ loading }: { loading?: boolean }) {
     <div className="flex items-end justify-between">
       <div className="flex flex-col gap-1">
         <h1 className="flex items-center gap-2.5 text-[28px] font-bold leading-[1.15] tracking-[-0.5px] text-[var(--text)]">
-          <span aria-hidden="true" className="h-6 w-1 rounded-full bg-[var(--brand-bright)] shadow-[0_0_14px_var(--brand)]" />
+          <span aria-hidden="true" className="h-6 w-1 rounded-full bg-[var(--brand-bright)]" />
           {PAGE_TITLES["play-tournaments"]}
           {loading && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
         </h1>
@@ -89,7 +89,7 @@ function PastTournaments({ past, onOpen }: { past: PastTournament[]; onOpen: (id
   if (past.length === 0) return null
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]"><span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--brand-bright)] shadow-[0_0_8px_var(--brand)]" />Past tournaments</h2>
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]"><span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--brand-bright)]" />Past tournaments</h2>
       <div className={cn(card, "overflow-hidden")}>
         {past.map((tournament, index) => (
           <button
@@ -99,7 +99,7 @@ function PastTournaments({ past, onOpen }: { past: PastTournament[]; onOpen: (id
             style={{ animationDelay: `${index * 50}ms` }}
             className="lx-row-in group relative grid h-[60px] w-full grid-cols-[minmax(0,1fr)_200px_120px_20px] items-center gap-4 border-b border-[var(--raised)] px-[18px] text-left transition-[background-color] duration-500 last:border-b-0 hover:bg-[var(--brand)]/[0.06] hover:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--brand-bright)]/60 max-sm:grid-cols-[minmax(0,1fr)_20px]"
           >
-            <span aria-hidden="true" className="absolute bottom-2.5 left-0 top-2.5 w-[3px] scale-y-0 rounded-r-full bg-[var(--brand-bright)] opacity-0 shadow-[0_0_10px_var(--brand)] transition-[scale,opacity] duration-500 group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300" />
+            <span aria-hidden="true" className="absolute bottom-2.5 left-0 top-2.5 w-[3px] scale-y-0 rounded-r-full bg-[var(--brand-bright)] opacity-0 transition-[scale,opacity] duration-500 group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300" />
             <span className="flex min-w-0 flex-col gap-1">
               <span className="truncate text-[13px] font-medium text-[var(--text)]">{tournament.name}</span>
               <span className="text-xs text-[var(--text-dim)]">{tournament.startsAt ? formatDate(tournament.startsAt) : "—"}</span>
@@ -123,7 +123,7 @@ function NoTournament({ past, onOpen }: { past: PastTournament[]; onOpen: (id: s
       <section className={cn(card, "lx-swap-in relative flex flex-col items-center gap-3 overflow-hidden px-8 py-12 text-center")}>
         <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10 opacity-70" />
         <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
-        <span className="relative flex size-14 items-center justify-center rounded-2xl border border-[var(--brand)]/40 bg-[var(--brand)]/12 text-[var(--brand-bright)] shadow-[0_0_30px_-8px_var(--brand)]">
+        <span className="relative flex size-14 items-center justify-center rounded-2xl border border-[var(--brand)]/40 bg-[var(--brand)]/12 text-[var(--brand-bright)]">
           <Trophy className="size-6" />
         </span>
         <span className="relative text-lg font-semibold text-[var(--text)]">No tournament scheduled right now</span>
@@ -157,7 +157,7 @@ function CountdownBlocks({ value }: { value: string }) {
     <span className="flex items-end gap-1.5">
       {parts.map(([digits, unit]) => (
         <span key={unit} className="flex flex-col items-center gap-1">
-          <span className="flex h-11 min-w-11 items-center justify-center rounded-[10px] border border-[var(--brand)]/35 bg-[var(--panel)]/80 px-2 text-[22px] font-bold tabular-nums text-[var(--text)] shadow-[inset_0_-10px_20px_-12px_var(--brand)] backdrop-blur">
+          <span className="flex h-11 min-w-11 items-center justify-center rounded-[10px] border border-[var(--brand)]/35 bg-[var(--panel)]/80 px-2 text-[22px] font-bold tabular-nums text-[var(--text)] backdrop-blur">
             <span key={digits} className="lx-swap-in">{digits}</span>
           </span>
           <span className="text-[10px] font-medium uppercase tracking-[0.6px] text-[var(--text-dim)]">{unit}</span>
@@ -276,7 +276,7 @@ function Overview({ tournament, now }: { tournament: TournamentDetail; now: numb
             return (
               <li key={step.label} className="flex gap-3">
                 <span className="flex flex-col items-center">
-                  <span className={cn("mt-1 size-2.5 rounded-full", active ? "lx-live-dot bg-[var(--brand-bright)] shadow-[0_0_10px_var(--brand)]" : done ? "bg-[var(--brand)]" : "bg-[var(--line)]")} />
+                  <span className={cn("mt-1 size-2.5 rounded-full", active ? "lx-live-dot bg-[var(--brand-bright)]" : done ? "bg-[var(--brand)]" : "bg-[var(--line)]")} />
                   {index < steps.length - 1 && <span className={cn("my-1 w-px flex-1", done ? "bg-[var(--brand)]/70" : "bg-[var(--line)]")} />}
                 </span>
                 <span className="flex flex-col gap-1 pb-4">
@@ -295,7 +295,7 @@ function Overview({ tournament, now }: { tournament: TournamentDetail; now: numb
 function TeamRow({ name, score, winner, loser, mine }: { name: string | null; score: number | null; winner: boolean; loser: boolean; mine: boolean }) {
   return (
     <span className="flex h-9 items-center gap-2.5 px-3">
-      <span className={cn("size-5 shrink-0 rounded-md", winner ? "bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))] shadow-[0_0_8px_-1px_var(--brand)]" : mine ? "bg-[var(--brand)]/40" : "bg-[var(--line-soft)]")} />
+      <span className={cn("size-5 shrink-0 rounded-md", winner ? "bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))]" : mine ? "bg-[var(--brand)]/40" : "bg-[var(--line-soft)]")} />
       <span className={cn("min-w-0 flex-1 truncate text-[13px]", !name ? "text-[var(--text-faint)]" : winner ? "font-semibold text-[var(--text)]" : loser ? "text-[var(--text-dim)]" : "text-[var(--text-2)]")}>{name ?? "TBD"}</span>
       <span className={cn("shrink-0 text-[13px] tabular-nums", winner ? "font-bold text-[var(--brand-bright)]" : "text-[var(--text-dim)]")}>{score ?? "–"}</span>
     </span>
@@ -310,7 +310,7 @@ function MatchCard({ match, myTeamId }: { match: TournamentMatch; myTeamId: stri
     <div
       className={cn(
         "lx-layer relative w-full rounded-[10px] border bg-[var(--card-surface)] transition-[border-color,box-shadow,translate] duration-500 hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:duration-300",
-        mine ? "border-[var(--brand)]/60 shadow-[0_0_24px_-10px_var(--brand)]" : match.status === "live" ? "border-[var(--status-green)]/35" : "border-[var(--line-soft)]",
+        mine ? "border-[var(--brand)]/60" : match.status === "live" ? "border-[var(--status-green)]/35" : "border-[var(--line-soft)]",
       )}
     >
       {match.status === "live" && (
@@ -353,9 +353,9 @@ function Bracket({ tournament }: { tournament: TournamentDetail }) {
         <div className="flex flex-col">
           <span className="mb-3.5 text-xs font-semibold text-[var(--text-muted)]">Champion</span>
           <div className="flex flex-1 items-center">
-            <div className={cn(card, "relative flex w-full flex-col items-center gap-2.5 overflow-hidden p-5 text-center", tournament.winner && "border-[var(--brand)]/55 shadow-[0_0_36px_-12px_var(--brand)]")}>
+            <div className={cn(card, "relative flex w-full flex-col items-center gap-2.5 overflow-hidden p-5 text-center", tournament.winner && "border-[var(--brand)]/55")}>
               {tournament.winner && <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10 opacity-80" />}
-              <span className={cn("relative flex size-11 items-center justify-center rounded-xl", tournament.winner ? "bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))] text-[var(--brand-on)] shadow-[0_0_20px_-4px_var(--brand)]" : "border border-dashed border-[var(--line-strong)] text-[var(--text-faint)]")}>
+              <span className={cn("relative flex size-11 items-center justify-center rounded-xl", tournament.winner ? "bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))] text-[var(--brand-on)]" : "border border-dashed border-[var(--line-strong)] text-[var(--text-faint)]")}>
                 {tournament.winner ? <Crown className="size-5" /> : <Trophy className="size-5" />}
               </span>
               <span className={cn("relative text-[13px]", tournament.winner ? "font-bold text-[var(--text)]" : "text-[var(--text-dim)]")}>{tournament.winner?.name ?? "Decided in the final"}</span>
@@ -612,7 +612,7 @@ function YouPanel({ tournament, busy, error, onJoinSolo, onRegisterTeam, onLeave
   return (
     <aside aria-label="Your status" className={cn(card, "lx-swap-in relative flex flex-col gap-3.5 overflow-hidden p-[18px] lg:sticky lg:top-0")}>
       <span aria-hidden="true" className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--brand-bright)] to-transparent" />
-      <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]"><span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--brand-bright)] shadow-[0_0_8px_var(--brand)]" />You</h2>
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]"><span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--brand-bright)]" />You</h2>
       {body}
       {error && <p role="alert" className="text-xs text-[var(--text-2)]">{error}</p>}
       {myTeam && (

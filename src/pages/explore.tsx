@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent } from "react"
+import { useEffect, useRef, useState } from "react"
 import { ArrowUpRight, LoaderCircle, RotateCcw, Search, Sparkles, X } from "lucide-react"
 
 import { competitiveService, searchService } from "@/api"
@@ -35,11 +35,6 @@ function StatusPill({ status }: { status: ModerationStatus }) {
 }
 
 /** Feeds the pointer position to a card's spotlight (--mx / --my). */
-function trackSpotlight(event: PointerEvent<HTMLElement>) {
-  const rect = event.currentTarget.getBoundingClientRect()
-  event.currentTarget.style.setProperty("--mx", `${event.clientX - rect.left}px`)
-  event.currentTarget.style.setProperty("--my", `${event.clientY - rect.top}px`)
-}
 
 /** The player's name with the searched part in crimson. */
 function Highlight({ text, match }: { text: string; match: string }) {
@@ -72,11 +67,9 @@ function PlayerCard({ player, match, index, onOpen }: { player: CommunityPlayer;
       onClick={onOpen}
       disabled={!identity}
       aria-label={`Open ${player.name} profile`}
-      onPointerMove={trackSpotlight}
       style={{ animationDelay: `${Math.min(index, 10) * 50}ms` }}
       className="lx-fx-card group relative flex flex-col gap-4 overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:cursor-default"
     >
-      <span aria-hidden="true" className="lx-spotlight pointer-events-none absolute inset-0" />
       <ArrowUpRight aria-hidden="true" className="absolute right-3.5 top-3.5 size-4 -translate-x-1 translate-y-1 text-[var(--brand-bright)] opacity-0 transition-[opacity,translate] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:translate-x-0 group-hover:translate-y-0 group-hover:opacity-100 group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]" />
       <span className="relative flex items-center gap-3 pr-5">
         <PlayerAvatar
@@ -171,12 +164,12 @@ export function ExplorePage({ onProfileNavigate }: { onProfileNavigate: (userId:
           <div className="relative z-10 flex flex-col gap-5 p-7">
             <div className="flex min-w-0 flex-col gap-2.5">
               <h1 className="flex items-center gap-2.5 text-[34px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
-                <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)] shadow-[0_0_14px_var(--brand)]" />
+                <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)]" />
                 {PAGE_TITLES["explore"]}
               </h1>
               <span className="text-[14px] text-[var(--text-2)]">Find any player on Legacy-X by name, Steam ID or profile link.</span>
             </div>
-            <label className="group flex h-14 w-full max-w-[720px] items-center gap-3 rounded-xl border border-[var(--line)] bg-[var(--panel)]/80 px-4 backdrop-blur transition-[border-color,box-shadow] duration-300 focus-within:border-[var(--brand)]/60 focus-within:shadow-[0_0_0_4px_color-mix(in_oklab,var(--brand)_16%,transparent),0_14px_40px_-18px_var(--brand)]">
+            <label className="group flex h-14 w-full max-w-[720px] items-center gap-3 rounded-xl border border-[var(--line)] bg-[var(--panel)]/80 px-4 backdrop-blur transition-[border-color,box-shadow] duration-300 focus-within:border-[var(--brand)]/60 focus-within:shadow-[0_0_0_4px_color-mix(in_oklab,var(--brand)_16%,transparent)]">
               <Search className="size-5 shrink-0 text-[var(--text-dim)] transition-colors duration-300 group-focus-within:text-[var(--brand-bright)]" />
               <input
                 ref={input}
@@ -203,7 +196,7 @@ export function ExplorePage({ onProfileNavigate }: { onProfileNavigate: (userId:
       <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 pb-7 pt-4">
         {!searching ? (
           <div className="lx-swap-in flex min-h-[320px] flex-col items-center justify-center gap-3 text-center">
-            <span className="relative flex size-14 items-center justify-center rounded-2xl border border-[var(--brand)]/35 bg-[var(--brand)]/10 text-[var(--brand-bright)] shadow-[0_0_30px_-8px_var(--brand)]">
+            <span className="relative flex size-14 items-center justify-center rounded-2xl border border-[var(--brand)]/35 bg-[var(--brand)]/10 text-[var(--brand-bright)]">
               <Search className="size-6" />
             </span>
             <span className="text-base font-semibold text-[var(--text)]">Start typing to search</span>
@@ -234,7 +227,7 @@ export function ExplorePage({ onProfileNavigate }: { onProfileNavigate: (userId:
         ) : (
           <div className="flex flex-col gap-3">
             <span className="flex items-center gap-2 text-xs text-[var(--text-dim)]">
-              <span aria-hidden="true" className="h-3 w-[3px] rounded-full bg-[var(--brand-bright)] shadow-[0_0_8px_var(--brand)]" />
+              <span aria-hidden="true" className="h-3 w-[3px] rounded-full bg-[var(--brand-bright)]" />
               {players.length > 0 ? <><span className="font-semibold tabular-nums text-[var(--text-2)]">{players.length}</span> player{players.length === 1 ? "" : "s"}</> : "Results"}
             </span>
             {loading && players.length === 0 ? (

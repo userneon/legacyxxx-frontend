@@ -34,13 +34,13 @@ export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
       <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10 opacity-80" />
       <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
 
-      <section className="lx-swap-in relative w-full max-w-[460px] overflow-hidden rounded-2xl border border-[var(--brand)]/30 bg-[var(--card-surface)]/85 p-7 text-center shadow-[0_30px_80px_-30px_var(--brand)] backdrop-blur-xl sm:p-9">
+      <section className="lx-swap-in relative w-full max-w-[460px] overflow-hidden rounded-2xl border border-[var(--brand)]/30 bg-[var(--card-surface)]/85 p-7 text-center backdrop-blur-xl sm:p-9">
         <span aria-hidden="true" className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--brand-bright)] to-transparent" />
 
         {/* Lock inside a slowly turning crimson ring. */}
         <span className="relative mx-auto flex size-16 items-center justify-center">
           <span aria-hidden="true" className="lx-gate-ring absolute inset-0 rounded-[20px]" />
-          <span className="relative flex size-[58px] items-center justify-center rounded-[17px] bg-[var(--card-surface)] text-[var(--brand-bright)] shadow-[inset_0_0_20px_-6px_var(--brand)]">
+          <span className="relative flex size-[58px] items-center justify-center rounded-[17px] bg-[var(--card-surface)] text-[var(--brand-bright)]">
             <Lock className="size-6" />
           </span>
         </span>

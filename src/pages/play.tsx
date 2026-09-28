@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
 import { Copy, Eye, Info, LoaderCircle, Lock, Play, RotateCcw, Server, Star, Users, X, Zap } from "lucide-react"
 import { toast } from "sonner"
@@ -65,11 +65,6 @@ async function copyAddress(address: string | null | undefined) {
 }
 
 /** Feeds the pointer position to a card's spotlight (--mx / --my). */
-function trackSpotlight(event: PointerEvent<HTMLElement>) {
-  const rect = event.currentTarget.getBoundingClientRect()
-  event.currentTarget.style.setProperty("--mx", `${event.clientX - rect.left}px`)
-  event.currentTarget.style.setProperty("--my", `${event.clientY - rect.top}px`)
-}
 
 /* ------------------------------------------------------------------ favourites (per device) */
 
@@ -215,11 +210,9 @@ function ServerCard({ server, favourite, onFavourite, onDetails, index }: { serv
   )
   return (
     <article
-      onPointerMove={trackSpotlight}
       style={{ animationDelay: `${Math.min(index, 8) * 60}ms` }}
       className={cn("lx-fx-card group relative flex flex-col overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]", unavailable && "opacity-70 hover:opacity-100")}
     >
-      <div aria-hidden="true" className="lx-spotlight pointer-events-none absolute inset-0 z-[1]" />
       <MapArt map={server.map} className="h-[120px]" zoomOnHover>
         {server.status === "live" && <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand-bright)] to-transparent" />}
         <span className="absolute left-3 top-3"><StatusPill server={server} /></span>
@@ -357,7 +350,7 @@ function ServerSheet({ server, onClose }: { server: PlayServer | null; onClose: 
             <div className="scrollbar-hidden lx-sheet-rise flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-[18px] py-4">
               <div className="flex items-center justify-between text-xs text-[var(--text-dim)]">
                 <span className="flex items-center gap-2 font-medium text-[var(--text-muted)]">
-                  <span aria-hidden="true" className="h-3 w-[3px] rounded-full bg-[var(--brand-bright)] shadow-[0_0_8px_var(--brand)]" />
+                  <span aria-hidden="true" className="h-3 w-[3px] rounded-full bg-[var(--brand-bright)]" />
                   Scoreboard
                 </span>
                 <span className="flex items-center gap-1.5">
@@ -450,7 +443,7 @@ function PlayHero({ title, description, heroMap, list, loading, mode, pickRule, 
       <div className="relative z-10 flex flex-col gap-5 p-6 @3xl:min-h-[212px] @3xl:flex-row @3xl:items-end @3xl:justify-between @3xl:p-7">
         <div key={title} className="lx-swap-in flex min-w-0 flex-col gap-3">
           <h1 className="flex items-center gap-2.5 text-[28px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)] @2xl:text-[34px]">
-            <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)] shadow-[0_0_14px_var(--brand)]" />
+            <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)]" />
             {title}
             {loading && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
           </h1>
@@ -615,7 +608,7 @@ function ProLocked({ access }: { access: CompetitiveAccess }) {
         <section className="relative flex flex-col items-center gap-4 overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-9 text-center">
           <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10 opacity-60" />
           <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
-          <span className="relative flex size-[52px] items-center justify-center rounded-[14px] border border-[var(--brand)]/40 bg-[var(--brand)]/15 text-[var(--brand-bright)] shadow-[0_0_24px_-6px_var(--brand)]"><Lock className="size-[22px]" /></span>
+          <span className="relative flex size-[52px] items-center justify-center rounded-[14px] border border-[var(--brand)]/40 bg-[var(--brand)]/15 text-[var(--brand-bright)]"><Lock className="size-[22px]" /></span>
           <span className="relative flex flex-wrap items-center justify-center gap-2 text-[17px] font-semibold text-[var(--text)]">
             Pro League unlocks at
             <RankLabel rankId={access.requiredRankId} rankName={access.requiredRankName} size={24} nameClassName="text-[17px] font-semibold" />

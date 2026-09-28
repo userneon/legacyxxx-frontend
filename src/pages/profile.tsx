@@ -33,7 +33,7 @@ const SECTION_LABEL: Record<ProfileSection, string> = { stats: "Stats", matches:
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
-      <span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--brand-bright)] shadow-[0_0_8px_var(--brand)]" />
+      <span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--brand-bright)]" />
       {children}
     </h2>
   )
@@ -102,7 +102,7 @@ function Avatar({ user }: { user: ProfileOverview["user"] }) {
 function RoleBadge({ role }: { role: string }) {
   if (!role || role === "Player") return null
   if (role === "Owner") {
-    return <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))] px-2.5 text-xs font-semibold text-[var(--brand-on)] shadow-[0_0_14px_-4px_var(--brand)]"><Crown className="size-3.5" />Owner</span>
+    return <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))] px-2.5 text-xs font-semibold text-[var(--brand-on)]"><Crown className="size-3.5" />Owner</span>
   }
   return <span className="inline-flex h-6 items-center gap-1.5 rounded-full border border-[var(--brand)]/45 bg-[var(--brand)]/12 px-2.5 text-xs font-medium text-[var(--text-2)]"><Shield className="size-3.5 text-[var(--brand-bright)]" />{role}</span>
 }
@@ -115,7 +115,7 @@ function Switch({ checked, onChange, label }: { checked: boolean; onChange: (nex
       aria-checked={checked}
       aria-label={label}
       onClick={() => onChange(!checked)}
-      className={cn("relative h-[22px] w-[38px] shrink-0 rounded-full p-0.5 transition-[background-color,box-shadow] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60", checked ? "bg-[var(--brand)] shadow-[0_0_12px_-3px_var(--brand)]" : "bg-[var(--line-strong)]")}
+      className={cn("relative h-[22px] w-[38px] shrink-0 rounded-full p-0.5 transition-[background-color,box-shadow] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60", checked ? "bg-[var(--brand)]" : "bg-[var(--line-strong)]")}
     >
       <span className={cn("block size-[18px] rounded-full bg-white transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:transition-none", checked && "translate-x-4")} />
     </button>
@@ -257,7 +257,7 @@ function RankCard({ competitive }: { competitive: NonNullable<ProfileOverview["c
   return (
     <section aria-label="Rank" className={cn(card, "relative flex items-center gap-[18px] overflow-hidden p-[18px]")}>
       <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10 opacity-50" />
-      <CompetitiveRankBadge rankId={competitive.rankId} rankName={competitive.rankName} imageKey={competitive.rankImageKey} size={72} className="relative shrink-0 drop-shadow-[0_0_18px_color-mix(in_oklab,var(--brand)_45%,transparent)]" />
+      <CompetitiveRankBadge rankId={competitive.rankId} rankName={competitive.rankName} imageKey={competitive.rankImageKey} size={72} className="relative shrink-0 drop-" />
       <div className="relative flex min-w-0 flex-1 flex-col gap-2.5">
         <div className="flex items-baseline justify-between gap-3">
           <span className="flex flex-col gap-1.5">
@@ -378,7 +378,7 @@ function RecentMatches({ matches, onOpen }: { matches: ProfileMatchRow[]; onOpen
                 style={{ animationDelay: `${Math.min(index, 12) * 35}ms` }}
                 className={cn(grid, "lx-row-in group relative h-[52px] w-full border-t border-[var(--raised)] text-left text-[13px] transition-[background-color] duration-500 enabled:hover:bg-[var(--brand)]/[0.06] enabled:hover:duration-200 disabled:cursor-default")}
               >
-                <span aria-hidden="true" className="absolute bottom-2 left-0 top-2 w-[3px] scale-y-0 rounded-r-full bg-[var(--brand-bright)] opacity-0 shadow-[0_0_10px_var(--brand)] transition-[scale,opacity] duration-500 group-enabled:group-hover:scale-y-100 group-enabled:group-hover:opacity-100 group-hover:duration-300" />
+                <span aria-hidden="true" className="absolute bottom-2 left-0 top-2 w-[3px] scale-y-0 rounded-r-full bg-[var(--brand-bright)] opacity-0 transition-[scale,opacity] duration-500 group-enabled:group-hover:scale-y-100 group-enabled:group-hover:opacity-100 group-hover:duration-300" />
                 <span className="flex min-w-0 items-center gap-2.5">
                   <span className="h-[30px] w-[52px] shrink-0 overflow-hidden rounded-md bg-[var(--line-soft)]">{art && <img src={art} alt="" className="lx-layer size-full object-cover transition-[scale] duration-700 group-hover:scale-110 group-hover:duration-500" />}</span>
                   <span className="truncate text-[var(--text)]">{cs2MapLabel(match.map)}</span>
@@ -488,7 +488,7 @@ function LoadoutCard({ loadout }: { loadout: NonNullable<ProfileOverview["loadou
       <div className="grid grid-cols-2 gap-2.5">
         {loadout.items.map((item) => (
           <div key={item.key} className="flex min-w-0 flex-col gap-1.5">
-            <div className="group flex h-14 items-center justify-center overflow-hidden rounded-lg border border-[var(--line-soft)] bg-[var(--panel)] px-2 transition-[border-color,box-shadow] duration-500 hover:border-[var(--brand)]/50 hover:shadow-[0_8px_20px_-12px_var(--brand)] hover:duration-300" title={item.name ?? "Default"}>
+            <div className="group flex h-14 items-center justify-center overflow-hidden rounded-lg border border-[var(--line-soft)] bg-[var(--panel)] px-2 transition-[border-color,box-shadow] duration-500 hover:border-[var(--brand)]/50 hover:duration-300" title={item.name ?? "Default"}>
               {item.image ? <img src={item.image} alt={item.name ?? ""} className="lx-layer max-h-full max-w-full object-contain transition-[scale] duration-500 group-hover:scale-110" loading="lazy" /> : <span className="text-[11px] text-[var(--text-faint)]">Default</span>}
             </div>
             <span className="truncate text-[11px] text-[var(--text-dim)]">{item.label}</span>

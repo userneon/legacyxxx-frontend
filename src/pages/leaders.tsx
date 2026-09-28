@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { Crown, LoaderCircle, RotateCcw, Search } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -40,11 +40,6 @@ const readSort = (value: string | null): LeaderboardSort => (value === "kd" || v
 const PODIUM_ORDER = [2, 1, 3]
 
 /** Feeds the pointer position to a card's spotlight (--mx / --my). */
-function trackSpotlight(event: PointerEvent<HTMLElement>) {
-  const rect = event.currentTarget.getBoundingClientRect()
-  event.currentTarget.style.setProperty("--mx", `${event.clientX - rect.left}px`)
-  event.currentTarget.style.setProperty("--my", `${event.clientY - rect.top}px`)
-}
 
 /** A fresh number each time the leaderboard data changes, so the rows replay their entrance. */
 let listVersion = 0
@@ -56,16 +51,14 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
     <button
       type="button"
       onClick={onOpen}
-      onPointerMove={trackSpotlight}
       aria-label={`Open ${player.username} profile`}
       // The player's rank tier colour tints the corner glow (--tier); the podium spot sets the order and height.
       style={{ "--tier": rankTierColor(player.rank_id), order: slot, animationDelay: `${first ? 60 : 160 + slot * 60}ms` } as CSSProperties}
       className={cn(
         "lx-fx-card group relative isolate flex min-w-0 flex-col gap-4 overflow-hidden rounded-xl border bg-[var(--card-surface)] p-[18px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60",
-        first ? "border-[var(--brand)]/45 shadow-[0_18px_48px_-22px_var(--brand)]" : "mt-6 border-[var(--line-soft)]",
+        first ? "border-[var(--brand)]/45" : "mt-6 border-[var(--line-soft)]",
       )}
     >
-      <span aria-hidden="true" className="lx-spotlight pointer-events-none absolute inset-0 -z-10" />
       <span
         aria-hidden="true"
         className={cn(
@@ -81,7 +74,7 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
       )}
       <span className="flex items-center justify-between">
         <span className="flex items-center gap-2">
-          {first && <Crown aria-hidden="true" className="size-6 fill-[var(--brand)]/30 text-[var(--brand-bright)] drop-shadow-[0_0_10px_var(--brand)]" />}
+          {first && <Crown aria-hidden="true" className="size-6 fill-[var(--brand)]/30 text-[var(--brand-bright)] drop-" />}
           <span className={cn("font-bold leading-none tracking-[-1px] tabular-nums", first ? "text-[34px] text-[var(--text)]" : "text-[28px] text-[var(--text-2)]")}>#{player.position}</span>
         </span>
         <CompetitiveRankBadge rankId={player.rank_id} rankName={player.rank_name} imageKey={player.rank_image_key} currentExp={player.current_exp} size={first ? 48 : 40} />
@@ -142,7 +135,7 @@ function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: Competiti
       <span
         aria-hidden="true"
         className={cn(
-          "absolute bottom-2 left-0 top-2 w-[3px] origin-center rounded-r-full bg-[var(--brand-bright)] shadow-[0_0_10px_var(--brand)] transition-[scale,opacity] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)]",
+          "absolute bottom-2 left-0 top-2 w-[3px] origin-center rounded-r-full bg-[var(--brand-bright)] transition-[scale,opacity] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)]",
           you ? "opacity-100" : "scale-y-0 opacity-0 group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
         )}
       />
@@ -218,7 +211,7 @@ function TableHeader({ sort }: { sort: LeaderboardSort }) {
       {bar && (
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute -bottom-px left-0 h-0.5 rounded-full bg-[var(--brand-bright)] shadow-[0_0_8px_var(--brand)] transition-[translate,width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+          className="pointer-events-none absolute -bottom-px left-0 h-0.5 rounded-full bg-[var(--brand-bright)] transition-[translate,width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
           style={{ translate: `${bar.x - 6}px 0`, width: bar.width + 12 }}
         />
       )}
@@ -323,7 +316,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
             <div className="relative z-10 flex items-end justify-between gap-6 p-7">
               <div className="flex min-w-0 flex-col gap-2.5">
                 <h1 className="flex items-center gap-2.5 text-[34px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
-                  <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)] shadow-[0_0_14px_var(--brand)]" />
+                  <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)]" />
                   {PAGE_TITLES["leaders"]}
                   {loading && players.length > 0 && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
                 </h1>

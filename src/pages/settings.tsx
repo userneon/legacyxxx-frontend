@@ -32,7 +32,7 @@ function Switch({ checked, onChange, label, disabled }: { checked: boolean; onCh
       className={cn(
         "group",
         "relative h-6 w-[42px] shrink-0 rounded-full p-0.5 transition-[background-color,box-shadow] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:cursor-default disabled:opacity-50",
-        checked ? "bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))] shadow-[0_0_14px_-3px_var(--brand)]" : "bg-[var(--line-strong)]",
+        checked ? "bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))]" : "bg-[var(--line-strong)]",
       )}
     >
       {/* The knob springs across and stretches a little on the way. */}
@@ -105,7 +105,7 @@ function Section({ id, title, description, aside, children, index = 0 }: { id: S
 
 function ConnectionRow({ icon, title, description, action }: { icon: React.ReactNode; title: string; description: React.ReactNode; action: React.ReactNode }) {
   return (
-    <div className="lx-layer flex items-center gap-3.5 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] px-3.5 py-3 transition-[border-color,translate,box-shadow] duration-500 hover:-translate-y-0.5 hover:border-[var(--brand)]/40 hover:shadow-[0_10px_24px_-16px_var(--brand)] hover:duration-300">
+    <div className="lx-layer flex items-center gap-3.5 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] px-3.5 py-3 transition-[border-color,translate,box-shadow] duration-500 hover:-translate-y-0.5 hover:border-[var(--brand)]/40 hover:duration-300">
       <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-[9px] bg-[var(--line-soft)] text-[var(--text)]">{icon}</span>
       <span className="flex min-w-0 flex-1 flex-col gap-[5px]">
         <span className="text-sm font-medium text-[var(--text)]">{title}</span>
@@ -245,7 +245,7 @@ export function SettingsPage() {
           <div className="relative z-10 flex flex-wrap items-end justify-between gap-5 p-7">
             <div className="flex min-w-0 flex-col gap-2.5">
               <h1 className="flex items-center gap-2.5 text-[34px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
-                <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)] shadow-[0_0_14px_var(--brand)]" />
+                <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)]" />
                 {PAGE_TITLES["settings"]}
               </h1>
               <span className="text-[14px] text-[var(--text-2)]">Your connections, notifications and how the site behaves on this device.</span>
@@ -270,7 +270,7 @@ export function SettingsPage() {
               className="pointer-events-none absolute rounded-lg bg-[linear-gradient(90deg,color-mix(in_oklab,var(--brand)_18%,transparent),transparent)] transition-[top,left,height,width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
               style={indicator}
             >
-              <span className="absolute bottom-2 left-0 top-2 w-[3px] rounded-full bg-[var(--brand-bright)] shadow-[0_0_10px_var(--brand)]" />
+              <span className="absolute bottom-2 left-0 top-2 w-[3px] rounded-full bg-[var(--brand-bright)]" />
             </span>
           )}
           {SECTIONS.map((section) => (

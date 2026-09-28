@@ -810,7 +810,7 @@ export function SkinchangerPage() {
                     data-catalog-item-id={item.id}
                     className={cn(
                       "relative flex flex-col overflow-hidden rounded-lg border bg-[var(--card-surface)] p-2 text-left transition-colors duration-150",
-                      isCurrent ? "border-[var(--brand)] shadow-[0_0_16px_-6px_var(--brand)]" : "border-[var(--line-soft)] hover:border-[var(--brand)]/45",
+                      isCurrent ? "border-[var(--brand)]" : "border-[var(--line-soft)] hover:border-[var(--brand)]/45",
                     )}
                   >
                     <span className="flex h-16 items-center justify-center">
@@ -919,7 +919,7 @@ export function SkinchangerPage() {
         className={cn(
           "lx-layer group relative overflow-hidden rounded-lg border bg-[var(--card-surface)]",
           // Lift and a crimson edge on hover; leaving eases back slower than entering, like the other cards.
-          "transition-[border-color,box-shadow,translate] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] hover:-translate-y-0.5 hover:border-[var(--brand)]/55 hover:shadow-[0_12px_28px_-14px_var(--brand)] hover:duration-300 hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
+          "transition-[border-color,box-shadow,translate] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] hover:-translate-y-0.5 hover:border-[var(--brand)]/55 hover:duration-300 hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
           savedItem ? "border-[var(--line)] bg-[linear-gradient(160deg,color-mix(in_oklab,var(--brand)_7%,var(--card-surface)),var(--card-surface)_55%)]" : "border-[var(--line-soft)]",
           tall ? "h-44" : "h-24",
         )}
@@ -950,7 +950,7 @@ export function SkinchangerPage() {
           type="button"
           onClick={(event) => { event.stopPropagation(); (onCustomize ?? onOpen)() }}
           aria-label={onCustomize && savedItem ? `Customize ${savedItem.display_name}` : openLabel}
-          className="absolute left-1/2 top-1/2 z-[2] flex size-[34px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[10px] border border-[var(--brand-bright)]/60 bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))] text-[var(--brand-on)] shadow-[0_6px_18px_-6px_var(--brand)] scale-90 opacity-0 transition-[opacity,scale] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:scale-100 group-hover:opacity-100 group-hover:delay-75 group-hover:duration-[280ms] group-hover:ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:scale-100 focus-visible:opacity-100 [@media(hover:none)]:scale-100 [@media(hover:none)]:opacity-100"
+          className="absolute left-1/2 top-1/2 z-[2] flex size-[34px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[10px] border border-[var(--brand-bright)]/60 bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))] text-[var(--brand-on)] scale-90 opacity-0 transition-[opacity,scale] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:scale-100 group-hover:opacity-100 group-hover:delay-75 group-hover:duration-[280ms] group-hover:ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:scale-100 focus-visible:opacity-100 [@media(hover:none)]:scale-100 [@media(hover:none)]:opacity-100"
         >
           <SlidersHorizontal className="size-[18px]" />
         </button>
@@ -1125,7 +1125,7 @@ export function SkinchangerPage() {
           <div className="relative z-10 flex flex-wrap items-center gap-x-4 gap-y-4 p-6 lg:grid lg:grid-cols-[1fr_auto_1fr]">
             <div className="flex min-w-0 flex-1 flex-col gap-2 lg:flex-none">
               <h1 className="flex items-center gap-2.5 text-[30px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
-                <span aria-hidden="true" className="h-6 w-1 rounded-full bg-[var(--brand-bright)] shadow-[0_0_14px_var(--brand)]" />
+                <span aria-hidden="true" className="h-6 w-1 rounded-full bg-[var(--brand-bright)]" />
                 {PAGE_TITLES["skinchanger"]}
               </h1>
               <span className="flex items-center gap-1.5 text-[13px] text-[var(--text-2)]">
@@ -1137,7 +1137,7 @@ export function SkinchangerPage() {
             <div className="order-last flex basis-full justify-center lg:order-none lg:basis-auto">{renderTeamSwitch()}</div>
             <div className="flex shrink-0 items-center justify-end">
               <span className="inline-flex h-9 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--panel)]/75 px-3.5 text-xs text-[var(--text-muted)] backdrop-blur">
-                <span className="size-1.5 rounded-full bg-[var(--brand-bright)] shadow-[0_0_8px_var(--brand)]" />
+                <span className="size-1.5 rounded-full bg-[var(--brand-bright)]" />
                 Equipped
                 <span key={`${viewTeam}:${equippedCount}`} className="lx-swap-in text-sm font-bold tabular-nums text-[var(--text)]">{equippedCount}</span>
               </span>
@@ -1262,7 +1262,7 @@ export function SkinchangerPage() {
                         className={cn(
                           "h-7 rounded-full border px-3 text-xs font-medium transition-colors duration-150",
                           isActive
-                            ? "border-[var(--brand)]/50 bg-[var(--brand)]/15 text-[var(--text)] shadow-[0_0_12px_-4px_var(--brand)]"
+                            ? "border-[var(--brand)]/50 bg-[var(--brand)]/15 text-[var(--text)]"
                             : "border-[var(--line)] bg-[var(--card-surface)] text-[var(--text-muted)] hover:text-[var(--text)]",
                         )}
                       >
@@ -1290,7 +1290,7 @@ export function SkinchangerPage() {
                           data-catalog-item-id={item.id}
                           className={cn(
                             "lx-layer relative flex flex-col overflow-hidden rounded-lg border bg-[var(--card-surface)] p-2 text-left transition-[border-color,box-shadow,translate] duration-300 hover:-translate-y-0.5",
-                            isSelected ? "border-[var(--brand)] shadow-[0_0_18px_-6px_var(--brand)]" : "border-[var(--line-soft)] hover:border-[var(--brand)]/45",
+                            isSelected ? "border-[var(--brand)]" : "border-[var(--line-soft)] hover:border-[var(--brand)]/45",
                           )}
                         >
                           {rarity && <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px]" style={{ backgroundColor: rarity.accent }} />}

@@ -1,5 +1,5 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent } from "react"
-import { Clock, LoaderCircle, PenLine, Quote, RotateCcw, ShieldCheck, Star, X } from "lucide-react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { Clock, LoaderCircle, PenLine, RotateCcw, ShieldCheck, Star, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { PAGE_TITLES } from "@/lib/routes"
@@ -32,11 +32,6 @@ function fullDate(value: string) {
 }
 
 /** Feeds the pointer position to a card's spotlight (--mx / --my). */
-function trackSpotlight(event: PointerEvent<HTMLElement>) {
-  const rect = event.currentTarget.getBoundingClientRect()
-  event.currentTarget.style.setProperty("--mx", `${event.clientX - rect.left}px`)
-  event.currentTarget.style.setProperty("--my", `${event.clientY - rect.top}px`)
-}
 
 /** "3d 4h" until a moment in the future. */
 function countdown(target: number, now: number) {
@@ -93,18 +88,12 @@ function ReviewCard({ entry, own, fresh, index, onOpenProfile }: { entry: Feedba
   )
   return (
     <article
-      onPointerMove={trackSpotlight}
       style={{ animationDelay: `${fresh ? 0 : Math.min(index, 10) * 50}ms` }}
       className={cn(
         "lx-fx-card group relative flex flex-col gap-3 overflow-hidden rounded-xl border bg-[var(--card-surface)] px-5 py-[18px]",
         own ? "border-[var(--brand)]/50 bg-[linear-gradient(160deg,color-mix(in_oklab,var(--brand)_10%,var(--card-surface)),var(--card-surface)_55%)]" : "border-[var(--line-soft)]",
       )}
     >
-      <span aria-hidden="true" className="lx-spotlight pointer-events-none absolute inset-0" />
-      <Quote
-        aria-hidden="true"
-        className="pointer-events-none absolute right-4 top-4 size-9 rotate-180 fill-current text-[var(--brand)] opacity-[0.12] transition-[opacity,scale,rotate] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:rotate-[168deg] group-hover:scale-110 group-hover:opacity-30 group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]"
-      />
       {own && (
         <span className="relative w-fit rounded-full border border-[var(--brand)]/45 bg-[var(--brand)]/15 px-2 py-0.5 text-[10px] font-bold tracking-[0.6px] text-[var(--brand-bright)]">YOUR REVIEW</span>
       )}
@@ -344,7 +333,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
             <div className="relative z-10 flex flex-col gap-5 p-7">
               <div className="flex min-w-0 flex-col gap-2.5">
                 <h1 className="flex items-center gap-2.5 text-[34px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
-                  <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)] shadow-[0_0_14px_var(--brand)]" />
+                  <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)]" />
                   {PAGE_TITLES["feedback"]}
                   {loading && reviews.length > 0 && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
                 </h1>
@@ -437,7 +426,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
                   <Star className="size-2.5 fill-[var(--star)] text-[var(--star)]" />
                 </span>
                 <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--line-soft)]">
-                  <span className={cn("block h-full rounded-full transition-[width,background-color] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]", pressed ? "bg-[var(--star)] shadow-[0_0_8px_var(--star)]" : "bg-[var(--star)]/55")} style={{ width: `${bucket.share}%` }} />
+                  <span className={cn("block h-full rounded-full transition-[width,background-color] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]", pressed ? "bg-[var(--star)]" : "bg-[var(--star)]/55")} style={{ width: `${bucket.share}%` }} />
                 </span>
                 <span className="w-6 shrink-0 text-right text-xs tabular-nums text-[var(--text-dim)]">{bucket.count}</span>
               </button>

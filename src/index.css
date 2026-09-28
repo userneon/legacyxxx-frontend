@@ -1115,33 +1115,22 @@
 /* ========================================
    Brand crimson: glows, buttons and the hero
    ======================================== */
-/* Primary action: solid crimson with a soft glow that grows on hover. */
+/* Primary action: flat crimson. No gradient, no glow: the colour alone carries it. */
 .lx-brand-button {
-  background: linear-gradient(180deg, var(--brand-bright), var(--brand));
+  background: var(--brand);
   color: var(--brand-on);
-  box-shadow: 0 0 0 1px color-mix(in oklch, var(--brand-bright) 60%, transparent) inset, 0 6px 20px -6px color-mix(in oklch, var(--brand) 70%, transparent);
-  transition: box-shadow var(--dur-base) var(--ease-out), transform var(--dur-fast) var(--ease-out), filter var(--dur-base) var(--ease-out);
+  transition: background-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
 }
 .lx-brand-button:hover {
-  filter: brightness(1.08);
-  box-shadow: 0 0 0 1px color-mix(in oklch, var(--brand-bright) 80%, transparent) inset, 0 10px 32px -6px color-mix(in oklch, var(--brand) 90%, transparent);
+  background: var(--brand-bright);
 }
 .lx-brand-button:active {
-  transform: scale(0.98);
+  transform: translateY(1px);
 }
 
-/* Heading word painted with the brand gradient. */
+/* Heading word in the brand colour. */
 .lx-brand-text {
-  background: linear-gradient(90deg, var(--brand-bright), var(--brand) 60%, var(--brand-bright));
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: lx-brand-text-shift 6s ease-in-out infinite;
-}
-@keyframes lx-brand-text-shift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  color: var(--brand-bright);
 }
 
 /* Hero backdrop: two slow-drifting crimson glows over the key art. */
@@ -1182,15 +1171,14 @@
   will-change: transform, translate, scale, rotate;
   backface-visibility: hidden;
 }
-/* Things that fade in on hover (remove buttons, arrows, markers, the pointer spotlight): an opacity
+/* Things that fade in on hover (remove buttons, arrows, markers): an opacity
    transition also promotes the element and everything painted over it, then demotes them all when
    it ends. Keeping them composited at rest stops that second flash. */
-[class*="hover:opacity-"],
-.lx-spotlight {
+[class*="hover:opacity-"] {
   will-change: opacity;
 }
 
-/* Card that lifts and picks up a crimson edge on hover. */
+/* Card whose edge brightens on hover. */
 .lx-lift {
   will-change: transform;
   backface-visibility: hidden;
@@ -1198,9 +1186,7 @@
   transition: transform var(--dur-slow) var(--ease-out), border-color var(--dur-slow) var(--ease-out), box-shadow var(--dur-slow) var(--ease-out);
 }
 .lx-lift:hover {
-  transform: translate3d(0, -3px, 0);
-  border-color: color-mix(in oklch, var(--brand) 55%, transparent);
-  box-shadow: 0 14px 36px -14px color-mix(in oklch, var(--brand) 55%, transparent);
+  border-color: var(--line-strong);
 }
 
 /* Live dot with a soft ping. */
@@ -1221,14 +1207,8 @@
 }
 
 /* ========================================
-   Interactive cards (Home modes, Play servers): entrance, drifting map, spotlight, spinning crimson edge
+   Interactive cards (Home modes, Play servers): entrance, a small lift and a brighter edge on hover
    ======================================== */
-@property --lx-edge-angle {
-  syntax: "<angle>";
-  initial-value: 0deg;
-  inherits: false;
-}
-
 .lx-fx-card {
   isolation: isolate;
   /* Own layer at rest (see .lx-layer): no promote/demote flash when a hover ends. */
@@ -1247,60 +1227,19 @@
 .lx-fx-card:hover {
   /* Entering hover: quicker lift. */
   transition:
-    transform 450ms cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 450ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 450ms cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 450ms cubic-bezier(0.22, 1, 0.36, 1);
-  transform: translate3d(0, -5px, 0);
-  border-color: color-mix(in oklch, var(--brand) 35%, transparent);
-  box-shadow: 0 18px 40px -16px color-mix(in oklch, var(--brand) 60%, transparent);
+    transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 300ms cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translate3d(0, -2px, 0);
+  border-color: var(--line-strong);
 }
 .lx-fx-card:active {
-  transform: translate3d(0, -2px, 0) scale(0.99);
+  transform: translate3d(0, 0, 0);
   transition-duration: 150ms;
 }
 @keyframes lx-fx-card-in {
-  from { opacity: 0; transform: translate3d(0, 14px, 0) scale(0.98); filter: blur(4px); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); filter: blur(0); }
-}
-
-/* Crimson light running around the edge while hovered. */
-.lx-fx-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  padding: 1px;
-  border-radius: inherit;
-  background: conic-gradient(from var(--lx-edge-angle), transparent 0deg, transparent 220deg, var(--brand) 290deg, var(--brand-bright) 330deg, transparent 360deg);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 800ms cubic-bezier(0.37, 0, 0.18, 1);
-  /* Paused at rest: an always-running @property animation repaints every card, and its images, on
-     every frame. It runs only while the card is hovered or focused, and freezes as it fades out. */
-  animation: lx-edge-spin 3.2s linear infinite paused;
-}
-.lx-fx-card:hover::before,
-.lx-fx-card:focus-visible::before {
-  opacity: 1;
-  animation-play-state: running;
-}
-@keyframes lx-edge-spin {
-  to { --lx-edge-angle: 360deg; }
-}
-
-/* Soft crimson light that follows the pointer. */
-.lx-spotlight {
-  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), color-mix(in oklch, var(--brand) 22%, transparent), transparent 65%);
-  opacity: 0;
-  transition: opacity 800ms cubic-bezier(0.37, 0, 0.18, 1);
-}
-.group:hover > .lx-spotlight {
-  opacity: 1;
-  transition-duration: 450ms;
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
 /* Map artwork slowly pans so the cards never sit still. */
@@ -1380,15 +1319,13 @@
   to { transform: scaleX(1); }
 }
 
-/* Login gate: a crimson ring that slowly turns around the lock. */
+/* Login gate: a thin, still ring around the lock. */
 .lx-gate-ring {
-  padding: 2px;
-  background: conic-gradient(from var(--lx-edge-angle), transparent 0deg, var(--brand) 120deg, var(--brand-bright) 180deg, transparent 300deg);
+  padding: 1px;
+  background: var(--line-strong);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  animation: lx-edge-spin 4s linear infinite;
-  filter: drop-shadow(0 0 8px var(--brand));
 }
 
 /* ========================================

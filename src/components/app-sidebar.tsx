@@ -60,7 +60,7 @@ function labelClass(collapsed: boolean) {
 }
 
 function ActiveBar() {
-  return <span aria-hidden="true" className="absolute -left-3 bottom-2 top-2 w-[3px] rounded-full bg-[var(--brand-bright)] shadow-[0_0_12px_var(--brand)]" />
+  return <span aria-hidden="true" className="absolute -left-3 bottom-2 top-2 w-[3px] rounded-full bg-[var(--brand-bright)]" />
 }
 
 export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
@@ -90,7 +90,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
       <SidebarContent className="gap-0 overflow-x-hidden px-3 pb-3">
         <div className={cn("flex h-[60px] shrink-0 items-center transition-[padding] duration-300 motion-reduce:transition-none", EASE, collapsed ? "px-1" : "pl-3 pr-1")}>
           <span className={cn("flex min-w-0 flex-1 items-center gap-2 overflow-hidden text-base font-bold tracking-[0.3px] text-[var(--text)]", labelClass(collapsed))}>
-            <img src="/logolegacyx.webp" alt="" aria-hidden="true" className="size-6 shrink-0 drop-shadow-[0_0_10px_var(--brand)]" />
+            <img src="/logolegacyx.webp" alt="" aria-hidden="true" className="size-6 shrink-0 drop-" />
             <span>LEGACY-<span className="text-[var(--brand-bright)]">X</span></span>
           </span>
           <button
@@ -162,7 +162,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                           onClick={() => onNavigate(item.id)}
                           className={cn(rowClass, "overflow-visible px-3", active && activeRowClass, locked && !active && "text-[var(--text-dim)]")}
                         >
-                          {active && <span aria-hidden="true" className="absolute -left-[9px] bottom-2.5 top-2.5 w-0.5 bg-[var(--brand-bright)] shadow-[0_0_10px_var(--brand)]" />}
+                          {active && <span aria-hidden="true" className="absolute -left-[9px] bottom-2.5 top-2.5 w-0.5 bg-[var(--brand-bright)]" />}
                           <span className="flex-1 truncate text-left">{item.label}</span>
                           {locked && <Lock className="size-3.5 shrink-0 text-[var(--text-dim)]" />}
                           {count > 0 && (
