@@ -1,6 +1,4 @@
 /** LEGACY-X Home: hero, live stats, play modes, the top of the ladder, reviews and Discord. */
-import { ArrowRight, Crosshair, Flame, Crown, Trophy } from "lucide-react"
-
 import { cn } from "@/lib/utils"
 import { serversService } from "@/api"
 import { tournamentsService } from "@/api/tournaments"
@@ -21,11 +19,11 @@ interface HomePageProps {
 }
 
 type ModeKey = "5x5" | "fun" | "pro" | "tournaments"
-const MODE_CARDS: { id: PageId; key: ModeKey; label: string; desc: string; icon: typeof Crosshair; map: string }[] = [
-  { id: "play-5vs5", key: "5x5", label: "5x5 Matches", desc: "Competitive matches", icon: Crosshair, map: "de_mirage" },
-  { id: "play-fun", key: "fun", label: "Fun Mode", desc: "Surf, aim, deathmatch and more", icon: Flame, map: "de_vertigo" },
-  { id: "play-proleague", key: "pro", label: "Pro League", desc: "Ranked 5v5 for high-rank players", icon: Crown, map: "de_inferno" },
-  { id: "play-tournaments", key: "tournaments", label: "Tournaments", desc: "5v5 events on Legacy-X servers", icon: Trophy, map: "de_ancient" },
+const MODE_CARDS: { id: PageId; key: ModeKey; label: string; desc: string; map: string }[] = [
+  { id: "play-5vs5", key: "5x5", label: "5x5 Matches", desc: "Competitive matches", map: "de_mirage" },
+  { id: "play-fun", key: "fun", label: "Fun Mode", desc: "Surf, aim, deathmatch and more", map: "de_vertigo" },
+  { id: "play-proleague", key: "pro", label: "Pro League", desc: "Ranked 5v5 for high-rank players", map: "de_inferno" },
+  { id: "play-tournaments", key: "tournaments", label: "Tournaments", desc: "5v5 events on Legacy-X servers", map: "de_ancient" },
 ]
 
 
@@ -114,25 +112,23 @@ export function HomePage({ onNavigate }: HomePageProps) {
               type="button"
               onClick={() => onNavigate(mode.id)}
               style={{ animationDelay: `${120 + index * 80}ms` }}
-              className="lx-fx-card group relative flex min-h-[176px] flex-col gap-3 overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
+              className="lx-fx-card group relative flex min-h-[168px] flex-col justify-end overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
             >
               {art && (
-                <div aria-hidden="true" className="lx-map-drift pointer-events-none absolute inset-0" style={{ animationDelay: `${index * -5}s` }}>
-                  <img src={art} alt="" loading="lazy" className="lx-map-img h-full w-full object-cover opacity-30 transition-[opacity,scale] duration-[1000ms] ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-[1.08] group-hover:opacity-50 group-hover:duration-700 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]" />
-                </div>
+                <img
+                  src={art}
+                  alt=""
+                  aria-hidden="true"
+                  loading="lazy"
+                  className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30 transition-[opacity,scale] duration-500 ease-out group-hover:scale-[1.03] group-hover:opacity-45"
+                />
               )}
-              <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--card-surface)] via-[var(--card-surface)]/70 to-transparent transition-opacity duration-[900ms] ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:opacity-80 group-hover:duration-500" />
-              <div className="relative flex items-start justify-between">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-[var(--brand)]/15 text-[var(--brand-bright)] ring-1 ring-inset ring-[var(--brand)]/30">
-                  <mode.icon className="size-5" />
-                </div>
-                <ArrowRight className="size-4 -translate-x-2 text-[var(--brand-bright)] opacity-0 transition-[opacity,translate] duration-[800ms] ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-0 group-hover:opacity-100" />
+              <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--card-surface)] via-[var(--card-surface)]/75 to-[var(--card-surface)]/10" />
+              <div className="relative">
+                <h3 className="text-lg font-semibold tracking-[-0.2px] text-[var(--text)]">{mode.label}</h3>
+                <p className="mt-1 text-[13px] leading-snug text-[var(--text-muted)]">{mode.desc}</p>
               </div>
-              <div className="relative mt-auto transition-[translate] duration-[800ms] ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-0.5">
-                <div className="font-semibold text-[var(--text)]">{mode.label}</div>
-                <div className="mt-1 text-xs text-[var(--text-muted)] transition-colors duration-[800ms] ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:duration-500 group-hover:text-[var(--text-2)]">{mode.desc}</div>
-              </div>
-              <div className={cn("relative flex h-4 items-center gap-1.5 transition-opacity duration-150", status ? "opacity-100" : "opacity-0")}>
+              <div className={cn("relative mt-4 flex h-4 items-center gap-1.5 transition-opacity duration-150", status ? "opacity-100" : "opacity-0")}>
                 {status?.live && <span className="lx-live-dot size-1.5 rounded-full bg-[var(--status-green)]" />}
                 <span className="text-xs tabular-nums text-[var(--text-dim)]">{status?.text ?? " "}</span>
               </div>
