@@ -21,6 +21,10 @@ get wrong (like the accent-color exception below).
 - **Git: main only.** No branches, worktrees, or PRs for this project — work directly
   on `main`, one commit per logical change, push after. If a tool creates a branch
   anyway, merge it back into main and delete it.
+- **Commit subjects are public.** Every deploy posts the subjects of the commits it brought, as
+  written, to a Discord channel (`legacyxxx-plugins/scripts/announce.sh`; same in all four repos).
+  Write the subject as one plain sentence a player could read. A security fix, or anything that must
+  not be announced, gets `[skip announce]` in the commit message. Docs-only commits are skipped.
 - **Escape all user text.** Names, review text, penalty reasons — anything a player
   typed — renders as escaped text, never raw HTML.
 

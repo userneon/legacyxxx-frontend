@@ -15,6 +15,17 @@ cd "$(dirname "$0")/.."
 
 echo "==> Node $(node -v) (needs 20.19+ or 22.12+)"
 
+# Discord: the subjects of the commits this deploy brought, as written (legacyxxx-plugins/scripts/announce.sh
+# on this VPS; it posts nothing without a webhook and never fails the deploy).
+announce() {
+  local script="${ANNOUNCE:-/opt/legacyxxx-plugins/scripts/announce.sh}" to
+  [[ -f "$script" ]] || return 0
+  to="$(git rev-parse HEAD)"
+  bash "$script" --title "Website updated" --commits "$(pwd)" "$FROM" "$to" \
+    --footer "legacyxxx-frontend $(git rev-parse --short "$FROM") → $(git rev-parse --short "$to")" || true
+}
+
+FROM="$(git rev-parse HEAD)"
 echo "==> Pulling $BRANCH"
 git fetch origin "$BRANCH"
 git checkout "$BRANCH"
@@ -50,3 +61,4 @@ sudo nginx -t
 sudo systemctl reload nginx
 
 echo "==> Done: $(git log -1 --format='%h %s')"
+announce
