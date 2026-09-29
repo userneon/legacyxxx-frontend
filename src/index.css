@@ -247,7 +247,12 @@
    ======================================== */
 :root {
   --glass-fill: rgb(255 255 255 / 0.035);
-  --glass-shell: rgb(14 14 16 / 0.55);
+  /* Shell glass (owner pick 2026-09-29, "B"): thinner and less blurred so the backdrop's colour shows
+     through instead of reading as a flat dark slab. */
+  --glass-shell: rgb(18 18 20 / 0.32);
+  --glass-shell-line: rgb(255 255 255 / 0.1);
+  --glass-shell-highlight: inset 0 1px 0 rgb(255 255 255 / 0.08);
+  --glass-shell-filter: blur(12px) saturate(170%) brightness(1.08);
   --glass-line: rgb(255 255 255 / 0.08);
   --glass-highlight: inset 0 1px 0 rgb(255 255 255 / 0.05);
 }
@@ -265,10 +270,10 @@ body::before {
 .lx-glass-shell,
 .lx-glass-sidebar > [data-sidebar="sidebar"] {
   background: var(--glass-shell);
-  border: 1px solid var(--glass-line);
-  box-shadow: var(--glass-highlight);
-  backdrop-filter: blur(24px) saturate(140%);
-  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid var(--glass-shell-line);
+  box-shadow: var(--glass-shell-highlight);
+  backdrop-filter: var(--glass-shell-filter);
+  -webkit-backdrop-filter: var(--glass-shell-filter);
 }
 .glass,
 .lx-glass {
