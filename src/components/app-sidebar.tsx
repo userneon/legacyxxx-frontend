@@ -45,7 +45,8 @@ const EASE = "ease-[cubic-bezier(0.2,0,0,1)]"
  * Every row keeps its icon at the same x in both states: the rail narrows around it, so collapsing
  * never makes an icon jump. The row is 40px tall and, collapsed, a 40px square.
  * Hover has no fill (it would sit flat on the glass): a thin white tick at the left edge and the label
- * nudged 2px. Crimson stays on the active row only.
+ * nudged 2px. The active row uses the same tick in crimson (the one brand mark in the nav), a crimson
+ * icon and a semibold label; no fill or glow either.
  */
 const rowClass = cn(
   "relative flex h-10 w-full items-center gap-2.5 overflow-hidden rounded-lg pl-[11px] pr-3 text-sm font-medium text-[var(--text-muted)]",
@@ -54,7 +55,7 @@ const rowClass = cn(
   "hover:[&>.lx-nav-label]:translate-x-0.5",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/60",
 )
-const activeRowClass = "bg-gradient-to-r from-[var(--brand)]/20 via-[var(--brand)]/[0.07] to-transparent text-[var(--text)] [&>svg]:text-[var(--brand-bright)] before:hidden"
+const activeRowClass = "font-semibold text-[var(--text)] [&>svg]:text-[var(--brand-bright)] before:inset-y-2.5 before:bg-[var(--brand-bright)] before:opacity-100"
 
 /** Labels fade out (120ms) before the width shrinks, and fade back in once it has grown. */
 function labelClass(collapsed: boolean) {
@@ -62,10 +63,6 @@ function labelClass(collapsed: boolean) {
     "lx-nav-label min-w-0 truncate whitespace-nowrap text-left transition-[opacity,translate] motion-reduce:transition-none",
     collapsed ? "opacity-0 duration-[120ms]" : "opacity-100 delay-150 duration-200",
   )
-}
-
-function ActiveBar() {
-  return <span aria-hidden="true" className="absolute -left-3 bottom-2 top-2 w-[3px] rounded-full bg-[var(--brand-bright)]" />
 }
 
 export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
@@ -111,7 +108,6 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
 
         <nav aria-label="Main" className="flex flex-col gap-0.5">
           <div className="relative">
-            {isActive("home") && <ActiveBar />}
             <button type="button" onClick={() => onNavigate("home")} aria-label="Home" className={cn(rowClass, isActive("home") && activeRowClass)}>
               <DoorOpen className="size-[18px] shrink-0" />
               <span className={labelClass(collapsed)}>Home</span>
@@ -121,7 +117,6 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
           {PLAY_ITEMS.length > 0 && (
             <>
               <div className="relative">
-              {collapsed && playActive && <ActiveBar />}
               <button
                 type="button"
                 // On the icon rail there's no room for the submenu, so Play opens 5x5 directly.
@@ -167,7 +162,6 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                           onClick={() => onNavigate(item.id)}
                           className={cn(rowClass, "overflow-visible px-3", active && activeRowClass, locked && !active && "text-[var(--text-dim)]")}
                         >
-                          {active && <span aria-hidden="true" className="absolute -left-[9px] bottom-2.5 top-2.5 w-0.5 bg-[var(--brand-bright)]" />}
                           <span className="lx-nav-label flex-1 truncate text-left transition-[translate] duration-150 motion-reduce:transition-none">{item.label}</span>
                           {locked && <Lock className="size-3.5 shrink-0 text-[var(--text-dim)]" />}
                           {count > 0 && (
@@ -187,7 +181,6 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
 
           {NAV_ITEMS.map((item) => (
             <div key={item.id} className="relative">
-              {isActive(item.id) && <ActiveBar />}
               <button type="button" onClick={() => onNavigate(item.id)} aria-label={item.label} className={cn(rowClass, isActive(item.id) && activeRowClass)}>
                 <item.icon className="size-[18px] shrink-0" />
                 <span className={labelClass(collapsed)}>{item.label}</span>
