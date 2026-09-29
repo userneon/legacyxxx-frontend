@@ -1,5 +1,5 @@
 import { useEffect, useState, type ComponentType } from "react"
-import { House, Play, Trophy, Gavel, MessageSquare, Search, Lock, PanelLeft, ChevronDown } from "lucide-react"
+import { DoorOpen, Swords, MountainSnow, Scale, ScrollText, Telescope, Lock, PanelLeft, ChevronDown } from "lucide-react"
 
 import { isPageEnabled } from "@/lib/features"
 import { competitiveService } from "@/api"
@@ -23,19 +23,20 @@ function enabledNav(items: NavItem[]): NavItem[] {
   return items.filter((item) => isPageEnabled(item.id))
 }
 
+// The Play submenu rows show no icon; the type only needs one for the other rows.
 const PLAY_ITEMS: NavItem[] = enabledNav([
-  { id: "play-5vs5", label: "5x5 Matches", icon: Play },
-  { id: "play-fun", label: "Fun Mode", icon: Play },
-  { id: "play-proleague", label: "Pro League", icon: Play },
-  { id: "play-tournaments", label: "Tournaments", icon: Play },
+  { id: "play-5vs5", label: "5x5 Matches", icon: Swords },
+  { id: "play-fun", label: "Fun Mode", icon: Swords },
+  { id: "play-proleague", label: "Pro League", icon: Swords },
+  { id: "play-tournaments", label: "Tournaments", icon: Swords },
 ])
 
 const NAV_ITEMS: NavItem[] = enabledNav([
   { id: "skinchanger", label: "Skinchanger", icon: KnifeIcon },
-  { id: "leaders", label: "Leaders", icon: Trophy },
-  { id: "penalties", label: "Penalties", icon: Gavel },
-  { id: "feedback", label: "Reviews", icon: MessageSquare },
-  { id: "explore", label: "Explore", icon: Search },
+  { id: "leaders", label: "Leaders", icon: MountainSnow },
+  { id: "penalties", label: "Penalties", icon: Scale },
+  { id: "feedback", label: "Reviews", icon: ScrollText },
+  { id: "explore", label: "Explore", icon: Telescope },
 ])
 
 const EASE = "ease-[cubic-bezier(0.2,0,0,1)]"
@@ -108,7 +109,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
           <div className="relative">
             {isActive("home") && <ActiveBar />}
             <button type="button" onClick={() => onNavigate("home")} aria-label="Home" className={cn(rowClass, isActive("home") && activeRowClass)}>
-              <House className="size-[18px] shrink-0" />
+              <DoorOpen className="size-[18px] shrink-0" />
               <span className={labelClass(collapsed)}>Home</span>
             </button>
           </div>
@@ -125,7 +126,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                 aria-expanded={collapsed ? undefined : playOpen}
                 className={cn(rowClass, collapsed && playActive && activeRowClass)}
               >
-                <Play className="size-[18px] shrink-0" />
+                <Swords className="size-[18px] shrink-0" />
                 <span className={cn(labelClass(collapsed), "flex-1")}>Play</span>
                 <ChevronDown
                   aria-hidden="true"
