@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
+import fbiAgents from "@/assets/fbi-agents.webp"
 
 interface SteamLoginGateProps {
   /** The page the player was trying to open, so the gate can say what signing in opens. */
@@ -12,12 +13,19 @@ export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
   const { loginWithSteam } = useAuth()
 
   // No backdrop of its own: the app's Dust II backdrop already shows through the glass panel, the same
-  // as on every other page. Only a faint light sits behind the card so it doesn't float in a void.
+  // as on every other page. The FBI squad (owner-supplied art) stands next to the card, above it on
+  // narrow screens, on a soft floor shadow with a faint light behind both.
   return (
     <div className="relative flex min-h-[calc(100dvh-5rem)] flex-1 items-center justify-center overflow-hidden px-4 py-10 sm:px-6">
       {/* Wrapped: the page's section stagger animates direct children to full opacity. */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-        <div className="size-full bg-[radial-gradient(38%_42%_at_50%_48%,rgb(255_255_255/0.06),transparent_70%)]" />
+        <div className="size-full bg-[radial-gradient(50%_48%_at_50%_50%,rgb(255_255_255/0.06),transparent_70%)]" />
+      </div>
+
+      <div className="relative flex w-full max-w-[880px] flex-col items-center gap-6 lg:flex-row lg:justify-center lg:gap-12">
+      <div aria-hidden="true" className="lx-swap-in relative shrink-0">
+        <div className="absolute inset-x-[10%] -bottom-1 h-6 rounded-[50%] bg-black/55 blur-md" />
+        <img src={fbiAgents} alt="" draggable={false} className="relative h-[190px] w-auto drop-shadow-[0_20px_28px_rgb(0_0_0/0.5)] sm:h-[250px] lg:h-[400px]" />
       </div>
 
       <section className="lx-swap-in relative w-full max-w-[380px] rounded-xl border border-[var(--glass-line)] bg-[rgb(255_255_255/0.06)] p-7 text-center shadow-[inset_0_1px_0_rgb(255_255_255/0.08),0_24px_48px_-20px_rgb(0_0_0/0.7)] sm:p-8">
@@ -29,6 +37,7 @@ export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
         <SteamLoginButton onClick={loginWithSteam} className="mt-6 h-11 w-full text-[15px]" />
         <p className="mt-4 text-[11px] leading-4 text-[var(--text-dim)]">Steam handles the password. LEGACY-X never sees it.</p>
       </section>
+      </div>
     </div>
   )
 }
