@@ -8,6 +8,8 @@ import {
   type ReactNode,
 } from "react"
 
+import { toast } from "sonner"
+
 import { authService, getAccessToken, setAccessToken } from "@/api"
 import type { UserProfile } from "@/api/types"
 
@@ -54,6 +56,23 @@ function consumeSteamCallbackToken(): string | null {
   return token
 }
 
+/**
+ * The API sends a Steam sign-in that did not finish back here with ?login=cancelled|failed instead of
+ * showing an error page. Say so in one line and drop the parameter from the address bar.
+ */
+function consumeLoginResult() {
+  const url = new URL(window.location.href)
+  const result = url.searchParams.get("login")
+  if (result !== "cancelled" && result !== "failed") return
+  url.searchParams.delete("login")
+  window.history.replaceState(window.history.state, document.title, `${url.pathname}${url.search}${url.hash}`)
+  // After this render, so the Toaster is mounted.
+  window.setTimeout(() => {
+    if (result === "cancelled") toast("Steam sign-in cancelled")
+    else toast.error("Steam sign-in failed", { description: "Try again in a moment." })
+  }, 0)
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
@@ -89,6 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [rotateSession])
 
   useEffect(() => {
+    consumeLoginResult()
     void refreshUser()
   }, [refreshUser])
 

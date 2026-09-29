@@ -2,11 +2,11 @@
 import { useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import { Database, Power, ShieldAlert, UserRoundCog, UsersRound, Map, Megaphone, MonitorUp, Loader2, LockKeyhole, ServerCog } from "lucide-react"
+import { steamLoginUrl } from "@/api/auth"
 import { setAccessToken } from "@/api/client"
 import { staffPanelService } from "@/api/staffpanel"
 import type { ApiError, StaffPanelAccess, StaffPanelActionRequest, StaffPanelDatabaseOverview, StaffPanelOverview } from "@/api/types"
 
-const apiOrigin = (import.meta.env.VITE_API_URL?.trim() || (import.meta.env.PROD ? "https://api.legacyx.cc" : "")).replace(/\/$/, "")
 
 const managerActions: Array<{ type: StaffPanelActionRequest["type"]; label: string; icon: typeof UsersRound; needsPlayer?: boolean; needsMessage?: boolean; needsMap?: boolean }> = [
   { type: "ban", label: "Player ban", icon: ShieldAlert, needsPlayer: true, needsMessage: true },
@@ -49,7 +49,7 @@ export function StaffPanelPage() {
   useEffect(() => {
     if (params.get("reauth") !== "done") {
       setAccessToken(null)
-      window.location.replace(`${apiOrigin}/api/v1/auth/steam?staffpanel=1`)
+      window.location.replace(steamLoginUrl("?staffpanel=1"))
     }
   }, [params])
 
@@ -66,7 +66,7 @@ export function StaffPanelPage() {
       const api = error as ApiError
       if (api?.status === 401) {
         setAccessToken(null)
-        window.location.replace(`${apiOrigin}/api/v1/auth/steam?staffpanel=1`)
+        window.location.replace(steamLoginUrl("?staffpanel=1"))
         return
       }
       setNotice(toUiError(error))
