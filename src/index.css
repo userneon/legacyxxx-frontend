@@ -145,6 +145,7 @@
   }
   html {
     background: #070708;
+    cursor: var(--lx-cursor);
   }
   body {
     @apply text-foreground;
@@ -184,7 +185,7 @@
   [tabindex]:not([tabindex="-1"]),
   label:has(input:not([type="hidden"])),
   .cursor-pointer {
-    cursor: pointer;
+    cursor: var(--lx-cursor-link);
   }
 
   /* Keep text caret where typing is expected */
@@ -197,6 +198,31 @@
   input[type="range"] {
     cursor: ew-resize;
   }
+}
+
+/*
+ * Site cursor (owner request 2026-09-29): a small tail-less white arrow with a dark edge, readable on
+ * light art too; its tip (6,5) is the hotspot. On buttons and links a thin ring shows around the tip.
+ * Text fields keep the text caret, disabled things keep not-allowed, resize handles keep theirs.
+ * Browsers without image-set() in cursor get the 1x file.
+ */
+:root {
+  --lx-cursor: url("/cursors/lx-cursor-default.png") 6 5, default;
+  --lx-cursor-link: url("/cursors/lx-cursor-link.png") 6 5, pointer;
+}
+@supports (cursor: image-set(url("/cursors/lx-cursor-default.png") 1x) 6 5, default) {
+  :root {
+    --lx-cursor: image-set(url("/cursors/lx-cursor-default.png") 1x, url("/cursors/lx-cursor-default@2x.png") 2x) 6 5, default;
+    --lx-cursor-link: image-set(url("/cursors/lx-cursor-link.png") 1x, url("/cursors/lx-cursor-link@2x.png") 2x) 6 5, pointer;
+  }
+}
+/* Tailwind's own cursor utilities would bring the system pointer and arrow back. */
+.cursor-pointer {
+  cursor: var(--lx-cursor-link);
+}
+.cursor-default,
+.disabled\:cursor-default:disabled {
+  cursor: var(--lx-cursor);
 }
 
 /* Keep page scrolling available without a visible right-side scrollbar. */
