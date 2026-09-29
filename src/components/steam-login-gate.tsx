@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
-import { cs2MapArtwork } from "@/lib/cs2-map-art"
 import { cn } from "@/lib/utils"
 
 interface SteamLoginGateProps {
@@ -11,25 +10,24 @@ interface SteamLoginGateProps {
 /** Shown in place of a page that needs an account: what it is, and the one button that opens it. */
 export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
   const { loginWithSteam } = useAuth()
-  const art = cs2MapArtwork("de_dust2")
 
+  // No backdrop of its own: the app's Dust II backdrop already shows through the glass panel, the same
+  // as on every other page. Only a faint light sits behind the card so it doesn't float in a void.
   return (
     <div className="relative flex min-h-[calc(100dvh-5rem)] flex-1 items-center justify-center overflow-hidden px-4 py-10 sm:px-6">
       {/* Wrapped: the page's section stagger animates direct children to full opacity. */}
-      {art && (
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-          <img src={art} alt="" className="size-full object-cover opacity-10" />
-        </div>
-      )}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_60%_at_50%_45%,transparent,var(--panel)_80%)]" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <div className="size-full bg-[radial-gradient(38%_42%_at_50%_48%,rgb(255_255_255/0.06),transparent_70%)]" />
+      </div>
 
-      <section className="lx-swap-in relative w-full max-w-[380px] rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-7 text-center sm:p-8">
+      <section className="lx-swap-in relative w-full max-w-[380px] rounded-xl border border-[var(--glass-line)] bg-[rgb(255_255_255/0.06)] p-7 text-center shadow-[inset_0_1px_0_rgb(255_255_255/0.08),0_24px_48px_-20px_rgb(0_0_0/0.7)] sm:p-8">
+        <img src="/logolegacyx.webp" alt="" aria-hidden="true" className="mx-auto mb-4 size-10" />
         <h1 className="text-xl font-semibold tracking-[-0.3px] text-[var(--text)]">Sign in to open {pageName}</h1>
         <p className="mx-auto mt-2 max-w-[300px] text-[13px] leading-[1.55] text-[var(--text-muted)]">
-          Your Legacy-X account is your Steam account.
+          Your LEGACY-X account is your Steam account.
         </p>
         <SteamLoginButton onClick={loginWithSteam} className="mt-6 h-11 w-full text-[15px]" />
-        <p className="mt-4 text-[11px] leading-4 text-[var(--text-dim)]">Steam handles the password. Legacy-X never sees it.</p>
+        <p className="mt-4 text-[11px] leading-4 text-[var(--text-dim)]">Steam handles the password. LEGACY-X never sees it.</p>
       </section>
     </div>
   )
