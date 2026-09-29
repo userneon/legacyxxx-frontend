@@ -44,18 +44,22 @@ const EASE = "ease-[cubic-bezier(0.2,0,0,1)]"
 /**
  * Every row keeps its icon at the same x in both states: the rail narrows around it, so collapsing
  * never makes an icon jump. The row is 40px tall and, collapsed, a 40px square.
+ * Hover has no fill (it would sit flat on the glass): a thin white tick at the left edge and the label
+ * nudged 2px. Crimson stays on the active row only.
  */
 const rowClass = cn(
   "relative flex h-10 w-full items-center gap-2.5 overflow-hidden rounded-lg pl-[11px] pr-3 text-sm font-medium text-[var(--text-muted)]",
-  "transition-colors duration-150 hover:bg-[var(--raised)] hover:text-[var(--text)]",
+  "transition-colors duration-150 hover:text-[var(--text)]",
+  "before:absolute before:inset-y-3 before:left-0 before:w-0.5 before:rounded-full before:bg-[var(--text)]/55 before:opacity-0 before:transition-opacity before:duration-150 hover:before:opacity-100",
+  "hover:[&>.lx-nav-label]:translate-x-0.5",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/60",
 )
-const activeRowClass = "bg-gradient-to-r from-[var(--brand)]/20 via-[var(--brand)]/[0.07] to-transparent text-[var(--text)] [&>svg]:text-[var(--brand-bright)]"
+const activeRowClass = "bg-gradient-to-r from-[var(--brand)]/20 via-[var(--brand)]/[0.07] to-transparent text-[var(--text)] [&>svg]:text-[var(--brand-bright)] before:hidden"
 
 /** Labels fade out (120ms) before the width shrinks, and fade back in once it has grown. */
 function labelClass(collapsed: boolean) {
   return cn(
-    "min-w-0 truncate whitespace-nowrap text-left transition-opacity motion-reduce:transition-none",
+    "lx-nav-label min-w-0 truncate whitespace-nowrap text-left transition-[opacity,translate] motion-reduce:transition-none",
     collapsed ? "opacity-0 duration-[120ms]" : "opacity-100 delay-150 duration-200",
   )
 }
@@ -164,7 +168,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                           className={cn(rowClass, "overflow-visible px-3", active && activeRowClass, locked && !active && "text-[var(--text-dim)]")}
                         >
                           {active && <span aria-hidden="true" className="absolute -left-[9px] bottom-2.5 top-2.5 w-0.5 bg-[var(--brand-bright)]" />}
-                          <span className="flex-1 truncate text-left">{item.label}</span>
+                          <span className="lx-nav-label flex-1 truncate text-left transition-[translate] duration-150 motion-reduce:transition-none">{item.label}</span>
                           {locked && <Lock className="size-3.5 shrink-0 text-[var(--text-dim)]" />}
                           {count > 0 && (
                             <span className="flex shrink-0 items-center gap-1.5 text-xs text-[var(--text-muted)]">
