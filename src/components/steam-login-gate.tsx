@@ -15,6 +15,7 @@ export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
   // No backdrop of its own: the app's Dust II backdrop already shows through the glass panel, the same
   // as on every other page. The FBI squad (owner-supplied art, cropped to the upper body) sits inside
   // the card, faint, rising from its bottom edge and fading out towards the top so the text stays readable.
+  // Scaled so the two outer agents' bodies (x 94-549 of the 609px art) meet the card's side edges.
   return (
     <div className="relative flex min-h-[calc(100dvh-5rem)] flex-1 items-center justify-center overflow-hidden px-4 py-10 sm:px-6">
       {/* Wrapped: the page's section stagger animates direct children to full opacity. */}
@@ -28,7 +29,7 @@ export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
           alt=""
           aria-hidden="true"
           draggable={false}
-          className="pointer-events-none absolute bottom-0 left-1/2 w-[104%] max-w-none -translate-x-1/2 opacity-[0.22] [mask-image:linear-gradient(to_top,black_45%,transparent_100%)]"
+          className="pointer-events-none absolute bottom-0 left-[-20.6%] w-[133.8%] max-w-none opacity-[0.22] [mask-image:linear-gradient(to_top,black_45%,transparent_100%)]"
         />
         <div className="relative">
         <img src="/logolegacyx.webp" alt="" aria-hidden="true" className="mx-auto mb-4 size-10" />
