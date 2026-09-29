@@ -13,8 +13,8 @@ export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
   const { loginWithSteam } = useAuth()
 
   // No backdrop of its own: the app's Dust II backdrop already shows through the glass panel, the same
-  // as on every other page. The FBI squad (owner-supplied art) stands next to the card, above it on
-  // narrow screens, on a soft floor shadow with a faint light behind both.
+  // as on every other page. The FBI squad (owner-supplied art) sits inside the card, faint, standing on
+  // its bottom edge and fading out towards the top so the text stays readable.
   return (
     <div className="relative flex min-h-[calc(100dvh-5rem)] flex-1 items-center justify-center overflow-hidden px-4 py-10 sm:px-6">
       {/* Wrapped: the page's section stagger animates direct children to full opacity. */}
@@ -22,13 +22,15 @@ export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
         <div className="size-full bg-[radial-gradient(50%_48%_at_50%_50%,rgb(255_255_255/0.06),transparent_70%)]" />
       </div>
 
-      <div className="relative flex w-full max-w-[880px] flex-col items-center gap-6 lg:flex-row lg:justify-center lg:gap-12">
-      <div aria-hidden="true" className="lx-swap-in relative shrink-0">
-        <div className="absolute inset-x-[10%] -bottom-1 h-6 rounded-[50%] bg-black/55 blur-md" />
-        <img src={fbiAgents} alt="" draggable={false} className="relative h-[190px] w-auto drop-shadow-[0_20px_28px_rgb(0_0_0/0.5)] sm:h-[250px] lg:h-[400px]" />
-      </div>
-
-      <section className="lx-swap-in relative w-full max-w-[380px] rounded-xl border border-[var(--glass-line)] bg-[rgb(255_255_255/0.06)] p-7 text-center shadow-[inset_0_1px_0_rgb(255_255_255/0.08),0_24px_48px_-20px_rgb(0_0_0/0.7)] sm:p-8">
+      <section className="lx-swap-in relative w-full max-w-[380px] overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[rgb(255_255_255/0.06)] p-7 text-center shadow-[inset_0_1px_0_rgb(255_255_255/0.08),0_24px_48px_-20px_rgb(0_0_0/0.7)] sm:p-8">
+        <img
+          src={fbiAgents}
+          alt=""
+          aria-hidden="true"
+          draggable={false}
+          className="pointer-events-none absolute bottom-0 left-1/2 h-[92%] w-auto max-w-none -translate-x-1/2 opacity-[0.22] [mask-image:linear-gradient(to_top,black_40%,transparent_100%)]"
+        />
+        <div className="relative">
         <img src="/logolegacyx.webp" alt="" aria-hidden="true" className="mx-auto mb-4 size-10" />
         <h1 className="text-xl font-semibold tracking-[-0.3px] text-[var(--text)]">Sign in to open {pageName}</h1>
         <p className="mx-auto mt-2 max-w-[300px] text-[13px] leading-[1.55] text-[var(--text-muted)]">
@@ -36,8 +38,8 @@ export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
         </p>
         <SteamLoginButton onClick={loginWithSteam} className="mt-6 h-11 w-full text-[15px]" />
         <p className="mt-4 text-[11px] leading-4 text-[var(--text-dim)]">Steam handles the password. LEGACY-X never sees it.</p>
+        </div>
       </section>
-      </div>
     </div>
   )
 }
