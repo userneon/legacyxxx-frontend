@@ -18,6 +18,8 @@ export interface ProfileMatchRow {
   playedAt?: string | null
   expDelta?: number
   expAfter?: number
+  /** How the EXP was worked out; `limited` is set when the daily (×¼) or weekly (stopped) limit reduced the gain. */
+  expBreakdown?: { limited?: "daily" | "weekly" } | null
 }
 
 export interface ProfileOverview {
@@ -45,7 +47,7 @@ export interface ProfileOverview {
     proLeagueUnlocked: boolean
     position: number | null
     /** EXP gained against the daily / weekly limits. Absent until the API sends it; nothing is shown then. */
-    expLimits?: { day: { used: number; cap: number }; week: { used: number; cap: number } } | null
+    expLimits?: { day: { used: number; cap: number; resetsAt?: string }; week: { used: number; cap: number; resetsAt?: string } } | null
   } | null
   lastPlayedAt: string | null
   trust: { steamAccountCreatedAt: string | null; activePenalty: { id: string; type: PenaltyEntry["type"] } | null }

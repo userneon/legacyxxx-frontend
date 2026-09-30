@@ -381,7 +381,7 @@ function profileOverview(identity: string) {
     viewer: { isOwner: own, isStaff: false },
     visibility: own ? { stats: true, matches: true, faceit: true, loadout: true } : null,
     hidden: [],
-    competitive: { exp, rankId, rankName, rankImageKey: null, currentRankMinExp: Math.floor(exp / 200) * 200 - 100, nextRankName: "Vanguard I", nextRankMinExp: Math.floor(exp / 200) * 200 + 220, proLeagueUnlocked: false, position: own ? 42 : index + 1 },
+    competitive: { exp, rankId, rankName, rankImageKey: null, currentRankMinExp: Math.floor(exp / 200) * 200 - 100, nextRankName: "Vanguard I", nextRankMinExp: Math.floor(exp / 200) * 200 + 220, proLeagueUnlocked: false, position: own ? 42 : index + 1, expLimits: own ? { day: { used: 150, cap: 150, resetsAt: new Date(Date.now() + 6 * 3_600_000).toISOString() }, week: { used: 380, cap: 600, resetsAt: new Date(Date.now() + 4 * 24 * 3_600_000).toISOString() } } : null },
     lastPlayedAt: new Date(Date.now() - 3 * HOUR).toISOString(),
     trust: { steamAccountCreatedAt: new Date(Date.now() - 6.5 * 365 * 24 * HOUR).toISOString(), activePenalty: null },
     stats: [
@@ -397,7 +397,8 @@ function profileOverview(identity: string) {
       score: result === "Win" ? `13 : ${6 + (i % 5)}` : `${7 + (i % 4)} : 13`,
       kd: (0.8 + ((i * 37) % 90) / 100).toFixed(2),
       playedAt: new Date(Date.now() - (i + 1) * 9 * HOUR).toISOString(),
-      expDelta: result === "Win" ? 18 + (i % 7) : -(12 + (i % 5)),
+      expDelta: result === "Win" ? (i === 1 ? 5 : i === 3 ? 0 : 18 + (i % 7)) : -(12 + (i % 5)),
+      expBreakdown: i === 1 ? { limited: "daily" } : i === 3 && result === "Win" ? { limited: "weekly" } : null,
     })),
     maps: maps.map((map, i) => ({ map, matches: 30 - i * 3, wins: 20 - i * 3, winRate: 68 - i * 7 })),
     penalties: [],

@@ -281,7 +281,16 @@ function RankCard({ competitive }: { competitive: NonNullable<ProfileOverview["c
   )
 }
 
-function LimitBar({ label, used, cap, stoppedLabel }: { label: string; used: number; cap: number; stoppedLabel: string }) {
+/** "resets in 6h" / "resets in 25m", or "resets Monday" when the week is still days away. */
+function resetLabel(resetsAt: string | undefined, weekly: boolean) {
+  const at = resetsAt ? new Date(resetsAt).getTime() : NaN
+  if (!Number.isFinite(at)) return null
+  const minutes = Math.max(1, Math.round((at - Date.now()) / 60_000))
+  if (minutes >= 24 * 60) return weekly ? "resets Monday" : null
+  return minutes >= 60 ? `resets in ${Math.floor(minutes / 60)}h` : `resets in ${minutes}m`
+}
+
+function LimitBar({ label, used, cap, stoppedLabel, reset }: { label: string; used: number; cap: number; stoppedLabel: string; reset?: string | null }) {
   const reached = used >= cap
   const target = Math.max(0, Math.min(100, (used / Math.max(1, cap)) * 100))
   const [shown, setShown] = useState(0)
@@ -292,7 +301,7 @@ function LimitBar({ label, used, cap, stoppedLabel }: { label: string; used: num
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
       <div className="flex justify-between gap-2 text-xs text-[var(--text-dim)]">
-        <span>{label}</span>
+        <span>{label}{reset && <> · <span className="text-[var(--text-faint)]">{reset}</span></>}</span>
         <span className={cn("transition-colors duration-500", reached && "text-[var(--status-red)]")}>
           <span className={cn("font-semibold transition-colors duration-500", reached ? "text-[var(--status-red)]" : "text-[var(--text)]")}><AnimatedNumber value={Math.min(used, cap)} /></span> / {cap.toLocaleString()}{reached && <> · {stoppedLabel}</>}
         </span>
@@ -312,8 +321,8 @@ function ExpLimits({ limits }: { limits: NonNullable<NonNullable<ProfileOverview
   const weekReached = limits.week.used >= limits.week.cap
   return (
     <div className="mt-1 grid grid-cols-2 gap-x-[18px] gap-y-2 border-t border-[var(--line-soft)] pt-3 max-sm:grid-cols-1">
-      <LimitBar label="Today" used={limits.day.used} cap={limits.day.cap} stoppedLabel="×¼" />
-      <LimitBar label="This week" used={limits.week.used} cap={limits.week.cap} stoppedLabel="stopped" />
+      <LimitBar label="Today" used={limits.day.used} cap={limits.day.cap} stoppedLabel="×¼" reset={resetLabel(limits.day.resetsAt, false)} />
+      <LimitBar label="This week" used={limits.week.used} cap={limits.week.cap} stoppedLabel="stopped" reset={resetLabel(limits.week.resetsAt, true)} />
       <div
         className={cn(
           "col-span-2 grid text-xs text-[var(--status-red)] transition-[grid-template-rows,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] max-sm:col-span-1",
@@ -322,7 +331,7 @@ function ExpLimits({ limits }: { limits: NonNullable<NonNullable<ProfileOverview
       >
         <span className="flex items-center gap-1.5 overflow-hidden">
           <Info className="size-3.5 shrink-0" />
-          {weekReached ? "Weekly EXP limit reached. Wins give no EXP for now. Losses still count." : "Daily EXP limit reached. Wins give a quarter of the EXP for now. Losses still count."}
+          {weekReached ? "Weekly EXP limit reached. Wins give no EXP until Monday. Losses still count." : "Daily EXP limit reached. Wins give a quarter of the EXP until midnight. Losses still count."}
         </span>
       </div>
     </div>
@@ -429,7 +438,7 @@ function RecentMatches({ matches, onOpen }: { matches: ProfileMatchRow[]; onOpen
                 <span className={cn("font-medium", match.result === "Win" ? "text-[var(--result-win)]" : match.result === "Loss" ? "text-[var(--result-loss)]" : "text-[var(--text-muted)]")}>{match.result}</span>
                 <span className="text-[var(--text-2)]">{match.score}</span>
                 <span className="text-[var(--text-2)] max-md:hidden">{match.kd}</span>
-                <span className={cn("font-medium", (match.expDelta ?? 0) > 0 ? "text-[var(--result-win)]" : (match.expDelta ?? 0) < 0 ? "text-[var(--result-loss)]" : "text-[var(--text-dim)]")}>{typeof match.expDelta === "number" ? `${match.expDelta > 0 ? "+" : ""}${match.expDelta}` : "—"}</span>
+                <span className={cn("font-medium", (match.expDelta ?? 0) > 0 ? "text-[var(--result-win)]" : (match.expDelta ?? 0) < 0 ? "text-[var(--result-loss)]" : "text-[var(--text-dim)]")}>{typeof match.expDelta === "number" ? `${match.expDelta > 0 ? "+" : ""}${match.expDelta}` : "—"}{match.expBreakdown?.limited && <span title={match.expBreakdown.limited === "weekly" ? "Weekly EXP limit: no EXP until Monday" : "Daily EXP limit: this gain counted for a quarter"} className="ml-1.5 text-[10px] font-semibold uppercase text-[var(--status-red)]">{match.expBreakdown.limited === "weekly" ? "stop" : "×¼"}</span>}</span>
                 <span className="truncate text-xs text-[var(--text-dim)] max-md:hidden">{match.playedAt ? <RelativeTime value={match.playedAt} /> : "—"}</span>
               </button>
             )
