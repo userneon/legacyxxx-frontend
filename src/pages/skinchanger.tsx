@@ -274,7 +274,7 @@ export function SkinchangerPage() {
     useApiQuery((signal) => skinchangerService.getCatalog({ category: "knife", limit: 100, offset: 0 }, { signal }), { queryKey: "grid:knives" })
   const { data: gloveModels, loading: glovesLoading, error: glovesError, refetch: refetchGloves } =
     useApiQuery((signal) => skinchangerService.getCatalog({ category: "glove", limit: 100, offset: 0 }, { signal }), { queryKey: "grid:gloves" })
-  const { data: loadoutResponse, refetch: refetchLoadout } =
+  const { data: loadoutResponse, loading: loadoutLoading, error: loadoutError, refetch: refetchLoadout } =
     useApiQuery((signal) => skinchangerService.getLoadout({ signal }))
   const { data: stickerCatalog, loading: stickersLoading, error: stickerCatalogError, refetch: refetchStickers } = useApiQuery(
     (signal) => skinchangerService.getCatalog({ category: "sticker", query: accessoryQuery || undefined, limit: 60, offset: 0 }, { signal }),
@@ -291,6 +291,21 @@ export function SkinchangerPage() {
   const remoteLoadoutEntries = loadoutResponse?.loadout.skinchanger_loadout_entries ?? []
   const loadoutEntries = optimisticLoadoutEntries ?? remoteLoadoutEntries
   const loadoutVersion = optimisticLoadoutVersion ?? loadoutResponse?.loadout.version ?? 0
+  // Wait (at most 1.5 s) for the equipped skins' pictures before the grid is dealt in.
+  const [equippedImagesReady, setEquippedImagesReady] = useState(false)
+  useEffect(() => {
+    if (equippedImagesReady || !loadoutResponse) return
+    const urls = Array.from(new Set(remoteLoadoutEntries.map((entry) => entry.skinchanger_catalog_items).filter((item): item is SkinchangerCatalogItem => Boolean(item)).map(catalogImageUrl).filter((url): url is string => Boolean(url))))
+    let cancelled = false
+    const done = () => { if (!cancelled) setEquippedImagesReady(true) }
+    const timer = window.setTimeout(done, 1500)
+    void Promise.allSettled(urls.map((url) => new Promise<void>((resolve) => {
+      const image = new Image()
+      image.onload = image.onerror = () => resolve()
+      image.src = url
+    }))).then(() => { window.clearTimeout(timer); done() })
+    return () => { cancelled = true; window.clearTimeout(timer) }
+  }, [loadoutResponse, equippedImagesReady])
   const catalogTeamScope = activeWeapon ? teamScopeFromMetadata(activeWeapon) : "all"
   const selectedTeamScope: TeamScope = slotTeam ?? (category === "agent" && agentTeam ? agentTeam : catalogTeamScope !== "all" ? catalogTeamScope : teamScope)
   const selectedSlotKey = activeWeapon ? slotKeyForCatalogItem(activeWeapon, category) : activeSlot
@@ -712,8 +727,10 @@ export function SkinchangerPage() {
   const showKnives = knifeList.length > 0
   const showGloves = gloveList.length > 0
   const defaultKnifeImage = (() => { const item = (knifeModels?.data ?? []).find((model) => model.display_name === "Knife"); return item ? catalogImageUrl(item) : null })()
-  const gridLoading = firearmsLoading || knivesLoading || glovesLoading
-  const gridError = firearmsError ?? knivesError ?? glovesError
+  // The grid shows only once the collection AND the player's loadout are here, and the equipped skins' pictures
+  // have had a moment to arrive, so the cards never appear empty and then fill in one by one.
+  const gridLoading = firearmsLoading || knivesLoading || glovesLoading || (loadoutLoading && !loadoutResponse) || !equippedImagesReady
+  const gridError = firearmsError ?? knivesError ?? glovesError ?? (loadoutResponse ? undefined : loadoutError)
 
   const isModelBrowse = (category === "weapon" || category === "glove" || category === "knife") && !activeWeapon
   const browsableCatalogItems = catalogItems.filter((item) => !(isModelBrowse && category === "knife" && item.display_name === "Knife"))
@@ -1045,12 +1062,13 @@ export function SkinchangerPage() {
   const viewTeam: "t" | "ct" = teamScope === "ct" ? "ct" : "t"
   const equippedCount = loadoutEntries.filter((entry) => entry.team_scope === viewTeam || entry.team_scope === "all").length
 
-  // Switching T/CT re-deals the loadout: every card drops in from above, top to bottom and column
-  // by column, so the grid flows down instead of snapping. Skipped on first paint and with reduced motion.
+  // The grid is dealt in the first time it shows and again on every T/CT switch: every card drops in from above,
+  // top to bottom and column by column, so the grid flows down instead of snapping.
   const gridRef = useRef<HTMLDivElement>(null)
-  const dealtTeam = useRef(viewTeam)
+  const dealtTeam = useRef<string | null>(null)
+  const gridShown = !gridLoading && !gridError
   useLayoutEffect(() => {
-    if (dealtTeam.current === viewTeam) return
+    if (!gridShown || dealtTeam.current === viewTeam) return
     dealtTeam.current = viewTeam
     const grid = gridRef.current
     if (!grid || motionReduced()) return
@@ -1065,7 +1083,7 @@ export function SkinchangerPage() {
       })
     })
     return () => animations.forEach((animation) => animation.cancel())
-  }, [viewTeam])
+  }, [viewTeam, gridShown])
 
   const skinGridRef = useRef<HTMLDivElement>(null)
   const skinGridKey = pickerOpen && !accessoryOpen ? displayedCatalogItems.map((item) => item.id).join(",") : ""
@@ -1167,8 +1185,8 @@ export function SkinchangerPage() {
       {/* pt-5 leaves room for the cards' hover lift: the scroll area clips anything above its top. */}
       <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 pb-7 pt-5">
         {gridError ? (
-          <QueryState loading={false} error={{ ...gridError, message: "Could not load the collection. Please try again." }} empty={false} onRetry={() => { refetchFirearms(); refetchKnives(); refetchGloves() }} />
-        ) : gridLoading && !firearmModels ? (
+          <QueryState loading={false} error={{ ...gridError, message: "Could not load the collection. Please try again." }} empty={false} onRetry={() => { refetchFirearms(); refetchKnives(); refetchGloves(); refetchLoadout() }} />
+        ) : gridLoading ? (
           <div className="grid grid-cols-1 items-start gap-[18px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" aria-hidden="true">
             {[6, 5, 5, 4, 3].map((count, column) => (
               <div key={column} className="flex flex-col gap-2.5">
