@@ -1235,16 +1235,20 @@ body::before {
    Brand crimson: glows, buttons and the hero
    ======================================== */
 /* Primary action: flat crimson. No gradient, no glow: the colour alone carries it. */
-.lx-brand-button {
-  background: var(--brand);
-  color: var(--brand-on);
+/* Primary action: the neutral white accent, like every other button (no hue). Owner request 2026-09-30. */
+.lx-primary-button {
+  background: var(--accent-solid);
+  color: #0a0a0a;
   transition: background-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
 }
-.lx-brand-button:hover {
-  background: var(--brand-bright);
+.lx-primary-button:hover {
+  background: #e5e5e5;
 }
-.lx-brand-button:active {
+.lx-primary-button:active {
   transform: translateY(1px);
+}
+.lx-primary-button:focus-visible {
+  --tw-ring-color: rgb(250 250 250 / 0.6) !important;
 }
 
 /* Sign in with Steam: Steam's own dark "Sign in through Steam" look (owner choice 2026-09-28). */

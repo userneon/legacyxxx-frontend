@@ -26,7 +26,7 @@ const TABS: { value: Tab; label: string }[] = [
 ]
 const readTab = (value: string | null): Tab => (TABS.some((tab) => tab.value === value) ? (value as Tab) : "overview")
 
-const primaryButton = "lx-brand-button flex h-10 items-center justify-center gap-2 rounded-lg text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:pointer-events-none disabled:opacity-40 disabled:saturate-50"
+const primaryButton = "lx-primary-button flex h-10 items-center justify-center gap-2 rounded-lg text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:pointer-events-none disabled:opacity-40 disabled:saturate-50"
 const secondaryButton = "flex h-10 items-center justify-center gap-2 rounded-lg border border-[var(--line)] text-sm font-medium text-[var(--text)] transition-[background-color,border-color,transform] duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:pointer-events-none disabled:opacity-50"
 const card = "rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]"
 

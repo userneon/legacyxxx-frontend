@@ -88,7 +88,7 @@ function YourStatus({ penalties, loading, onDetails }: { penalties: PenaltyEntry
           href={LINKS.discordAppeals}
           target="_blank"
           rel="noreferrer"
-          className="lx-brand-button flex h-9 shrink-0 items-center rounded-lg px-3.5 text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
+          className="lx-primary-button flex h-9 shrink-0 items-center rounded-lg px-3.5 text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
         >
           Appeal on Discord
         </a>

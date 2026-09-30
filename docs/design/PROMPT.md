@@ -58,7 +58,7 @@ Define in src/index.css as CSS variables and map shadcn's variables to them:
   --brand #e11d48 (fills, borders, glows), --brand-bright #ff3d6e (text, icons,
   markers, the light end of gradients), --brand-deep #4c0717, --brand-on #fff5f7
   (text on a crimson fill). Never hard-code these values; use the tokens.
-- Crimson goes on: primary buttons (.lx-brand-button: crimson gradient + soft glow,
+- Crimson goes on: primary buttons (.lx-primary-button: neutral white, no hue; was crimson until 2026-09-30,
   e.g. Play now, Sign in with Steam, Save, Connect, Appeal), the active nav item
   (crimson marker + faint tint), section-title markers (3px bar), selected items
   and their borders, focus rings (--brand-bright at 60%), progress / EXP / slot
@@ -550,7 +550,7 @@ Data loading (all pages):
 
 Controls:
 - Buttons: hover color 150ms, press scale 0.98. Disabled = 40–50% opacity, no motion.
-  Primary buttons use .lx-brand-button (crimson); secondary buttons stay outlined.
+  Primary buttons use .lx-primary-button (neutral white); secondary buttons stay outlined.
 - Segmented controls (T/CT, All/Bans/Mutes/Gags, Recent/Top rated): a sliding
   thumb animates to the selected option (200ms) instead of instant color swaps.
 - Focus ring appears instantly (no transition) for accessibility.

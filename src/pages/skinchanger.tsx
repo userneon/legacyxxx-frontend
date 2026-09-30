@@ -1418,7 +1418,7 @@ export function SkinchangerPage() {
                 )}
                 <div className="flex gap-2">
                   <Button variant="outline" className="flex-1" disabled={saving} onClick={closePicker}>Cancel</Button>
-                  <Button className="lx-brand-button flex-1 disabled:opacity-40 disabled:saturate-50" disabled={!selected || saving || selectedAlreadyEquipped} onClick={saveAndClose}>
+                  <Button className="lx-primary-button flex-1 disabled:opacity-40 disabled:saturate-50" disabled={!selected || saving || selectedAlreadyEquipped} onClick={saveAndClose}>
                     {saving ? <Loader2 className="size-4 animate-spin" /> : <BadgeCheck className="size-4" />}
                     {selectedAlreadyEquipped ? "Saved" : "Save"}
                   </Button>

@@ -36,7 +36,7 @@ const MODES: Record<PlayPageMode, { mode: PlayMode; title: string; description: 
 }
 
 const secondary = "inline-flex h-[34px] items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] font-medium text-[var(--text)] transition-[background-color,border-color,transform] duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 disabled:pointer-events-none disabled:opacity-50"
-const primary = "lx-brand-button inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:pointer-events-none disabled:opacity-40 disabled:saturate-50"
+const primary = "lx-primary-button inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:pointer-events-none disabled:opacity-40 disabled:saturate-50"
 /** On/off switches in the same tray as the Segmented control (Leaders' EXP / K/D / Win rate). */
 const toggleTray = "flex shrink-0 gap-0.5 rounded-[10px] border border-[var(--line)] bg-[var(--glass-fill)] p-[3px]"
 const toggleItem = "inline-flex h-[30px] items-center gap-1.5 rounded-[7px] px-3 text-[13px] font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"

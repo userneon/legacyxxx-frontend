@@ -199,7 +199,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
       </div>
       <div className="flex items-center gap-2 pb-1.5">
         {presence?.connectAddress && (
-          <a href={`steam://connect/${presence.connectAddress}`} className="lx-brand-button inline-flex h-[34px] items-center gap-1.5 rounded-lg px-3.5 text-[13px] font-semibold">
+          <a href={`steam://connect/${presence.connectAddress}`} className="lx-primary-button inline-flex h-[34px] items-center gap-1.5 rounded-lg px-3.5 text-[13px] font-semibold">
             <Play className="size-3.5 fill-current" />
             Join
           </a>

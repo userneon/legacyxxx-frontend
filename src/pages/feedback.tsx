@@ -246,7 +246,7 @@ function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () =
             type="button"
             onClick={() => void post()}
             disabled={!canPost}
-            className="lx-brand-button inline-flex h-9 items-center gap-1.5 rounded-lg px-[18px] text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:pointer-events-none disabled:opacity-40 disabled:saturate-50"
+            className="lx-primary-button inline-flex h-9 items-center gap-1.5 rounded-lg px-[18px] text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:pointer-events-none disabled:opacity-40 disabled:saturate-50"
           >
             {submitting && <LoaderCircle className="size-3.5 animate-spin" />}
             Post review
@@ -454,7 +454,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
               <button
                 type="button"
                 onClick={() => setWriting(true)}
-                className="lx-brand-button group flex h-10 items-center justify-center gap-2 rounded-lg text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
+                className="lx-primary-button group flex h-10 items-center justify-center gap-2 rounded-lg text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
               >
                 <PenLine className="size-4 transition-[rotate] duration-300 group-hover:-rotate-12" />
                 Write a review
