@@ -37,7 +37,7 @@ export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
         <p className="mx-auto mt-2 max-w-[300px] text-[13px] leading-[1.55] text-[var(--text-muted)]">
           Your LEGACY-X account is your Steam account.
         </p>
-        <SteamLoginButton onClick={loginWithSteam} className="mt-6 h-11 w-full text-[15px]" />
+        <SteamLoginButton onClick={loginWithSteam} className="mt-6 h-10 min-w-[200px] text-sm" />
         <p className="mt-4 text-[11px] leading-4 text-[var(--text-dim)]">Steam handles the password. LEGACY-X never sees it.</p>
         </div>
       </section>
@@ -48,8 +48,8 @@ export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
 /** Sign-in button in Steam's own dark style with the Steam mark, matching the top bar. */
 export function SteamLoginButton({ onClick, className, label = "Sign in with Steam" }: { onClick: () => void; className?: string; label?: string }) {
   return (
-    <Button type="button" onClick={onClick} className={cn("lx-steam-button h-10 min-w-[176px] gap-2 rounded-lg px-4 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60", className)}>
-      <SteamIcon className="size-[18px] shrink-0" />
+    <Button type="button" onClick={onClick} className={cn("lx-steam-button h-9 min-w-[168px] gap-2 rounded-lg px-4 text-[13px] font-semibold focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60", className)}>
+      <SteamIcon className="size-4 shrink-0" />
       {label}
     </Button>
   )
