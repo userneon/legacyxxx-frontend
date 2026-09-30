@@ -545,15 +545,19 @@ function LoadoutCard({ loadout }: { loadout: NonNullable<ProfileOverview["loadou
 function ProfileSkeleton() {
   return (
     <div aria-hidden="true">
-      <div className="h-[180px] bg-[linear-gradient(180deg,#1c1c1c_0%,#121212_100%)]" />
-      <div className="-mt-14 flex flex-col gap-4 px-6 pb-8">
-        <div className="flex items-end gap-5">
-          <Skeleton className="size-[104px] rounded-[26px] border-4 border-[var(--panel)] bg-[var(--line)]" />
-          <div className="flex flex-1 flex-col gap-2.5 pb-2">
-            <Skeleton className="h-6 w-56 rounded-full bg-[var(--line-strong)]" />
-            <Skeleton className="h-3 w-80 rounded-full bg-[var(--line-soft)]" />
+      <div className="px-6 pt-6 max-md:px-4 max-md:pt-4">
+        <div className="overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--panel)]">
+          <div className="h-[180px] bg-[linear-gradient(180deg,#1c1c1c_0%,#121212_100%)]" />
+          <div className="-mt-14 flex items-end gap-5 px-5 pb-5 max-md:px-4">
+            <Skeleton className="size-[104px] rounded-[26px] border-4 border-[var(--panel)] bg-[var(--line)]" />
+            <div className="flex flex-1 flex-col gap-2.5 pb-2">
+              <Skeleton className="h-6 w-56 rounded-full bg-[var(--line-strong)]" />
+              <Skeleton className="h-3 w-80 rounded-full bg-[var(--line-soft)]" />
+            </div>
           </div>
         </div>
+      </div>
+      <div className="flex flex-col gap-4 px-6 pb-8 pt-4">
         <div className="grid gap-4 md:grid-cols-[1.3fr_1fr]">
           <Skeleton className="h-[108px] rounded-xl bg-[var(--glass-fill)]" />
           <Skeleton className="h-[108px] rounded-xl bg-[var(--glass-fill)]" />
@@ -603,9 +607,16 @@ export function ProfilePage({ userId }: { userId?: string }) {
 
   return (
     <div ref={topRef}>
-      <Banner user={data.user} />
-      <div className="-mt-14 flex flex-col gap-4 px-6 pb-8 max-md:px-4">
-        <Header overview={data} onVisibilityChange={refetch} />
+      <div className="px-6 pt-6 max-md:px-4 max-md:pt-4">
+        {/* The banner lives inside the profile box: the box clips it, it never bleeds past the box edges. */}
+        <section aria-label="Profile" className="overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--panel)]">
+          <Banner user={data.user} />
+          <div className="-mt-14 px-5 pb-5 max-md:px-4">
+            <Header overview={data} onVisibilityChange={refetch} />
+          </div>
+        </section>
+      </div>
+      <div className="flex flex-col gap-4 px-6 pb-8 pt-4 max-md:px-4">
         {data.staff && <div {...rise(0)}><StaffCard staff={data.staff} username={data.user.username} /></div>}
 
         <div {...rise(1)} className={cn(rise(1).className, "grid gap-4 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]")}>
