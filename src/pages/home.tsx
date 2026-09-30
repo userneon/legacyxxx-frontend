@@ -77,7 +77,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
             </>
           )}
         </div>
-        <h1 className="relative z-10 text-4xl font-bold tracking-[-1px] text-[var(--text)] md:text-6xl">
+        <h1 className="relative z-10 text-4xl font-bold tracking-normal text-[var(--text)] md:text-6xl">
           LegacyX <span className="lx-brand-text">Ecosystem</span>
         </h1>
         <p className="relative z-10 max-w-xl text-[15px] leading-relaxed text-[var(--text-2)]">
