@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react"
-import { useSearchParams } from "react-router-dom"
+import { Link, useSearchParams } from "react-router-dom"
 import { Check, Copy, MapPin, Play, RotateCcw, Users } from "lucide-react"
 
 import { playService, type PlayServer } from "@/api/play"
 import { serversService } from "@/api/servers"
-import type { ServerInfo } from "@/api/types"
+import type { ServerInfo, ServerLiveMatch, ServerLiveMatchPlayer } from "@/api/types"
+import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
+import { PlayerAvatar } from "@/components/player-avatar"
 import { copyText } from "@/components/profile-ids"
+import { TeamIcon, teamTextClass, type TeamSide } from "@/components/team-icon"
+import { useApiQuery } from "@/hooks/use-api-query"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { cn } from "@/lib/utils"
@@ -16,6 +20,7 @@ const SERVER_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{1,63}$/i
 const CONNECT_ADDRESS_PATTERN = /^[a-zA-Z0-9.-]+:\d{1,5}$/
 
 interface ServerDetails {
+  id: string
   name: string
   map: string
   modeLabel: string
@@ -34,6 +39,7 @@ function details(server: ServerInfo | PlayServer): ServerDetails {
   if (!CONNECT_ADDRESS_PATTERN.test(address)) throw new Error("This server does not expose a valid connection address.")
   const play = "modeLabel" in server ? server : null
   return {
+    id: server.id,
     name: server.name,
     map: server.map,
     modeLabel: play?.modeLabel || MODE_LABELS[server.mode] || "",
@@ -116,7 +122,7 @@ export function ConnectPage() {
 
 function ConnectSkeleton() {
   return (
-    <div aria-hidden="true" className="w-full max-w-[460px] overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
+    <div aria-hidden="true" className="w-full max-w-[520px] overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
       <Skeleton className="h-36 rounded-none bg-[var(--raised)]" />
       <div className="flex flex-col gap-3 p-5">
         <Skeleton className="h-6 w-56 rounded-full bg-[var(--line-strong)]" />
@@ -141,7 +147,7 @@ function ServerCard({ server }: { server: ServerDetails }) {
   }
 
   return (
-    <section aria-label={server.name} className="lx-swap-in w-full max-w-[460px] overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
+    <section aria-label={server.name} className="lx-swap-in w-full max-w-[520px] overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
       <div className="relative h-36 overflow-hidden bg-[var(--raised)]">
         {art && <img src={art} alt="" className="size-full object-cover opacity-50" />}
         <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[var(--card-surface)] via-[var(--card-surface)]/30 to-transparent" />
@@ -192,7 +198,88 @@ function ServerCard({ server }: { server: ServerDetails }) {
             ? "This server is not answering right now. Try again in a moment."
             : <>Steam should open by itself. If it does not, press Join, or paste <span className="font-mono text-[var(--text-2)]">connect {server.address}</span> into the CS2 console.</>}
         </p>
+
+        {!offline && <Roster serverId={server.id} />}
       </div>
     </section>
+  )
+}
+
+const LIVE_REFRESH_MS = 5_000
+const stat = (value: number | null | undefined) => (typeof value === "number" ? String(value) : "–")
+
+/** Who is on the server right now: the two teams of a live match, or the connected players when there is no snapshot. */
+function Roster({ serverId }: { serverId: string }) {
+  const { data, loading, error, refetch } = useApiQuery<ServerLiveMatch>((signal) => serversService.getLiveMatch(serverId, { signal }), {
+    queryKey: `connect-live:${serverId}`,
+    keepPreviousData: true,
+  })
+  useEffect(() => {
+    const timer = window.setInterval(refetch, LIVE_REFRESH_MS)
+    return () => window.clearInterval(timer)
+  }, [refetch])
+
+  const live = data && data.serverId === serverId ? data : null
+  const heading = <h2 className="text-[13px] font-semibold text-[var(--text)]">On the server</h2>
+
+  if (!live) {
+    return (
+      <div className="flex flex-col gap-2 border-t border-[var(--line-soft)] pt-4">
+        {heading}
+        {loading || !error
+          ? <div aria-hidden="true" className="flex flex-col gap-1.5">{[0, 1, 2, 3].map((row) => <Skeleton key={row} className="h-[30px] rounded-md bg-[var(--line-soft)]" />)}</div>
+          : (
+            <p className="flex items-center gap-3 text-xs text-[var(--text-dim)]">
+              The player list is not available right now.
+              <button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button>
+            </p>
+          )}
+      </div>
+    )
+  }
+
+  const teams = live.availability === "live_snapshot" && live.teams.t.length + live.teams.ct.length > 0
+  const groups: Array<{ key: string; title: string; side?: TeamSide; players: ServerLiveMatchPlayer[]; stats: boolean }> = teams
+    ? [
+        { key: "t", title: "Terrorists", side: "t", players: live.teams.t, stats: true },
+        { key: "ct", title: "Counter-Terrorists", side: "ct", players: live.teams.ct, stats: true },
+        { key: "spec", title: "Spectators", players: live.spectators, stats: false },
+      ]
+    : [{ key: "all", title: "Players", players: live.connectedPlayers, stats: false }]
+  const shown = groups.filter((group) => group.players.length > 0)
+
+  return (
+    <div className="flex flex-col gap-2 border-t border-[var(--line-soft)] pt-4">
+      {heading}
+      {shown.length === 0 ? (
+        <p className="text-xs text-[var(--text-dim)]">Nobody is on the server right now. Be the first.</p>
+      ) : (
+        <div className="scrollbar-hidden flex max-h-72 flex-col gap-3 overflow-y-auto">
+          {shown.map((group) => (
+            <div key={group.key} className="overflow-hidden rounded-lg border border-[var(--line-soft)]">
+              <div className="grid h-8 grid-cols-[minmax(0,1fr)_34px_34px_34px] items-center gap-2 bg-[var(--raised)] px-3 text-[11px] font-medium uppercase tracking-[0.4px] text-[var(--text-muted)]">
+                <span className={cn("flex items-center gap-2", group.side && teamTextClass(group.side))}>
+                  {group.side && <TeamIcon side={group.side} />}
+                  {group.title} · {group.players.length}
+                </span>
+                {group.stats ? <><span>K</span><span>D</span><span>A</span></> : <span className="col-span-3 text-right">Ping</span>}
+              </div>
+              {group.players.map((player) => (
+                <div key={player.steamId} className="grid h-[34px] grid-cols-[minmax(0,1fr)_34px_34px_34px] items-center gap-2 border-t border-[var(--line-soft)] px-3 text-[13px]">
+                  <span className="flex min-w-0 items-center gap-2">
+                    <PlayerAvatar name={player.name} className="size-5 shrink-0 rounded-md text-[9px]" />
+                    <Link to={`/profile/${player.steamId}`} className={cn("truncate transition-colors hover:text-[var(--text)]", player.connected ? "text-[var(--text-2)]" : "text-[var(--text-dim)]")} title={player.name}>{player.name}</Link>
+                    {player.rankId != null && <CompetitiveRankBadge rankId={player.rankId} rankName={player.rankName} imageKey={player.rankImageKey} size={16} />}
+                  </span>
+                  {group.stats
+                    ? <><span className="font-semibold text-[var(--text)]">{stat(player.kills)}</span><span className="text-[var(--text-2)]">{stat(player.deaths)}</span><span className="text-[var(--text-2)]">{stat(player.assists)}</span></>
+                    : <span className="col-span-3 text-right text-[var(--text-dim)]">{typeof player.ping === "number" ? `${player.ping} ms` : "–"}</span>}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
