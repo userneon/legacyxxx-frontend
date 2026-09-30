@@ -933,8 +933,8 @@ export function SkinchangerPage() {
         <span className={cn(
           // blur-[0px] at rest keeps the filter (and its layer) alive, so the un-blur never flashes.
           "lx-layer pointer-events-none absolute inset-0 flex items-center justify-center px-6 pb-6 blur-[0px]",
-          "transition-[filter,opacity,scale] duration-[260ms] ease-[cubic-bezier(0.4,0,0.2,1)] will-change-[filter] group-hover:duration-[320ms] group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
-          "group-hover:scale-[1.03] group-hover:opacity-55 group-hover:blur-[4px] group-has-[:focus-visible]:opacity-55 group-has-[:focus-visible]:blur-[4px]",
+          "transition-[filter,opacity,scale] duration-[450ms] ease-[cubic-bezier(0.33,1,0.68,1)] will-change-[filter] [@media(hover:hover)]:group-hover:duration-[380ms]",
+          "[@media(hover:hover)]:group-hover:scale-[1.03] [@media(hover:hover)]:group-hover:opacity-55 [@media(hover:hover)]:group-hover:blur-[4px] group-has-[:focus-visible]:opacity-55 group-has-[:focus-visible]:blur-[4px]",
           tall ? "pt-5" : "pt-3",
         )}>
           {src
@@ -950,7 +950,7 @@ export function SkinchangerPage() {
           type="button"
           onClick={(event) => { event.stopPropagation(); (onCustomize ?? onOpen)() }}
           aria-label={onCustomize && savedItem ? `Customize ${savedItem.display_name}` : openLabel}
-          className="absolute left-1/2 top-1/2 z-[2] flex size-[34px] -translate-x-1/2 -translate-y-1/2 items-center justify-center text-[var(--text)] drop-shadow-[0_1px_6px_rgb(0_0_0/0.6)] scale-90 opacity-0 transition-[opacity,scale] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:scale-100 group-hover:opacity-100 group-hover:delay-75 group-hover:duration-[280ms] group-hover:ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:scale-100 focus-visible:opacity-100 [@media(hover:none)]:scale-100 [@media(hover:none)]:opacity-100"
+          className="absolute left-1/2 top-1/2 z-[2] flex size-[34px] -translate-x-1/2 -translate-y-1/2 items-center justify-center text-[var(--text)] drop-shadow-[0_1px_6px_rgb(0_0_0/0.6)] scale-90 opacity-0 transition-[opacity,scale] duration-[350ms] ease-[cubic-bezier(0.33,1,0.68,1)] [@media(hover:hover)]:group-hover:scale-100 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-hover:delay-75 focus-visible:scale-100 focus-visible:opacity-100 [@media(hover:none)]:pointer-events-none"
         >
           <SlidersHorizontal className="size-[22px]" />
         </button>
@@ -961,7 +961,7 @@ export function SkinchangerPage() {
             onClick={(event) => { event.stopPropagation(); onRemove() }}
             disabled={saving}
             aria-label={`Remove ${savedItem.display_name}`}
-            className="absolute right-1.5 top-1.5 z-[2] flex size-7 items-center justify-center text-[var(--text-2)] drop-shadow-[0_1px_4px_rgb(0_0_0/0.6)] opacity-0 transition-[opacity,color] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] hover:text-[var(--text)] focus-visible:text-[var(--text)] group-hover:opacity-100 group-hover:delay-75 group-hover:duration-[280ms] focus-visible:opacity-100 disabled:pointer-events-none [@media(hover:none)]:opacity-100"
+            className="absolute right-1.5 top-1.5 z-[2] flex size-7 items-center justify-center text-[var(--text-2)] drop-shadow-[0_1px_4px_rgb(0_0_0/0.6)] opacity-0 transition-[opacity,color] duration-[350ms] ease-[cubic-bezier(0.33,1,0.68,1)] hover:text-[var(--text)] focus-visible:text-[var(--text)] [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-hover:delay-75 focus-visible:opacity-100 disabled:pointer-events-none [@media(hover:none)]:pointer-events-none"
           >
             <Trash2 className="size-3.5" />
           </button>
