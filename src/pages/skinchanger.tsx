@@ -912,7 +912,7 @@ export function SkinchangerPage() {
   )
 
   /** An inventory slot card. Hover blurs the render; Customize and remove sit on top of the card button. */
-  const renderCard = ({ id, image, fallback, title, savedItem, entry, openLabel, tall, onOpen, onCustomize, onRemove }: {
+  const renderCard = ({ id, image, fallback, title, savedItem, entry, openLabel, tall, placeholderArt, onOpen, onCustomize, onRemove }: {
     id: string
     image: string | null
     fallback?: string
@@ -923,6 +923,8 @@ export function SkinchangerPage() {
     openLabel: string
     /** Agents are portraits, so their card is given more room. */
     tall?: boolean
+    /** A stand-in picture (nothing equipped): shown quieter so it does not out-shout the equipped look. */
+    placeholderArt?: boolean
     onOpen: () => void
     onCustomize?: () => void
     onRemove?: () => void
@@ -964,7 +966,7 @@ export function SkinchangerPage() {
           tall ? "pt-5" : "pt-3",
         )}>
           {src
-            ? <OptimizedImage key={src} src={src} width={220} height={90} alt="" className={cn("max-h-full w-full object-contain", swapIn)} />
+            ? <OptimizedImage key={src} src={src} width={220} height={90} alt="" className={cn("max-h-full w-full object-contain", swapIn, placeholderArt && "opacity-40 saturate-[0.3] brightness-90")} />
             : <ImageOff className="size-6 text-[var(--text-faint)]" />}
         </span>
 
@@ -1124,6 +1126,7 @@ export function SkinchangerPage() {
       entry,
       openLabel: `Choose a ${viewTeam === "t" ? "T" : "CT"} agent`,
       tall: true,
+      placeholderArt: !savedItem,
       onOpen: () => openAgentPicker(viewTeam),
       onRemove: entry && savedItem ? () => setRemoveTarget({ model: savedItem, entry }) : undefined,
     })
