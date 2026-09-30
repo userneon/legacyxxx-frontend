@@ -120,7 +120,7 @@ Real game and brand assets (already in the repo — reuse, don't redraw):
   nothing is equipped) and every skin tile in the picker.
 - Category art: src/assets/skinchanger/pistol.png, rifles.png, knife.png,
   gloves.png etc. may be used as the default image for empty cards.
-- Steam: public/assets/steam-logo…webp on the "Sign in with Steam" button.
+- Steam: the Steam mark is an inline SVG (`SteamIcon` in `src/components/steam-login-gate.tsx`) on the "Sign in with Steam" button.
 - Avatars: real Steam avatars from the API, rounded square (radius ~ 28% of size).
   Fallback: first letter of the name on --raised.
 - Rarity colors (CS2 official) are allowed ONLY as a thin indicator on skin tiles
