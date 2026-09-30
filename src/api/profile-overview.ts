@@ -44,6 +44,8 @@ export interface ProfileOverview {
     nextRankMinExp: number | null
     proLeagueUnlocked: boolean
     position: number | null
+    /** EXP gained against the daily / weekly limits. Absent until the API sends it; nothing is shown then. */
+    expLimits?: { day: { used: number; cap: number }; week: { used: number; cap: number } } | null
   } | null
   lastPlayedAt: string | null
   trust: { steamAccountCreatedAt: string | null; activePenalty: { id: string; type: PenaltyEntry["type"] } | null }

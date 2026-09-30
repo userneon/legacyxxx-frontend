@@ -69,7 +69,7 @@ that it still reads as the one deliberate exception, not a second UI accent.
 ### Limit red (owner request 2026-09-30)
 
 When a player hits the daily or weekly EXP limit (gains count for ¼), the limit bar, the `×¼` label,
-its one-line note and the `×¼ limit` pill in the match row are red (`--limit-red` `#ef4444`). Nothing else
+its one-line note and the `×¼ limit` pill in the match row are red (`--status-red` `#ef4444`, already in `src/index.css`). Nothing else
 uses red; it is a status color like `--status-green`, not a general accent. Reference: `docs/design/exp-limit.png`.
 
 ### Glass (owner request 2026-09-28)

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
-import { ChevronRight, Copy, Crown, ExternalLink, Eye, EyeOff, MessageCircle, MoreHorizontal, Play, RotateCcw, ShieldAlert, ShieldCheck, Shield } from "lucide-react"
+import { ChevronRight, Copy, Crown, ExternalLink, Eye, EyeOff, Info, MessageCircle, MoreHorizontal, Play, RotateCcw, ShieldAlert, ShieldCheck, Shield } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -275,8 +275,57 @@ function RankCard({ competitive }: { competitive: NonNullable<ProfileOverview["c
           <span>EXP <span className="font-semibold text-[var(--text)]"><AnimatedNumber value={competitive.exp} /></span></span>
           <span>{competitive.nextRankName ? <>Next <span className="text-[var(--text-2)]">{competitive.nextRankName}</span> · <span>{competitive.nextRankMinExp?.toLocaleString()}</span></> : "Top rank"}</span>
         </div>
+        {competitive.expLimits && <ExpLimits limits={competitive.expLimits} />}
       </div>
     </section>
+  )
+}
+
+function LimitBar({ label, used, cap, stoppedLabel }: { label: string; used: number; cap: number; stoppedLabel: string }) {
+  const reached = used >= cap
+  const target = Math.max(0, Math.min(100, (used / Math.max(1, cap)) * 100))
+  const [shown, setShown] = useState(0)
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setShown(target))
+    return () => cancelAnimationFrame(frame)
+  }, [target])
+  return (
+    <div className="flex min-w-0 flex-col gap-1.5">
+      <div className="flex justify-between gap-2 text-xs text-[var(--text-dim)]">
+        <span>{label}</span>
+        <span className={cn("transition-colors duration-500", reached && "text-[var(--status-red)]")}>
+          <span className={cn("font-semibold transition-colors duration-500", reached ? "text-[var(--status-red)]" : "text-[var(--text)]")}><AnimatedNumber value={Math.min(used, cap)} /></span> / {cap.toLocaleString()}{reached && <> · {stoppedLabel}</>}
+        </span>
+      </div>
+      <span className="h-1 overflow-hidden rounded-full bg-[var(--line-soft)]">
+        <span
+          className={cn("block h-full rounded-full transition-[width,background-color] duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)]", reached ? "bg-[var(--status-red)]" : "bg-[var(--text-2)]")}
+          style={{ width: `${shown}%` }}
+        />
+      </span>
+    </div>
+  )
+}
+
+function ExpLimits({ limits }: { limits: NonNullable<NonNullable<ProfileOverview["competitive"]>["expLimits"]> }) {
+  const dayReached = limits.day.used >= limits.day.cap
+  const weekReached = limits.week.used >= limits.week.cap
+  return (
+    <div className="mt-1 grid grid-cols-2 gap-x-[18px] gap-y-2 border-t border-[var(--line-soft)] pt-3 max-sm:grid-cols-1">
+      <LimitBar label="Today" used={limits.day.used} cap={limits.day.cap} stoppedLabel="×¼" />
+      <LimitBar label="This week" used={limits.week.used} cap={limits.week.cap} stoppedLabel="stopped" />
+      <div
+        className={cn(
+          "col-span-2 grid text-xs text-[var(--status-red)] transition-[grid-template-rows,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] max-sm:col-span-1",
+          dayReached || weekReached ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+        )}
+      >
+        <span className="flex items-center gap-1.5 overflow-hidden">
+          <Info className="size-3.5 shrink-0" />
+          {weekReached ? "Weekly EXP limit reached. Wins give no EXP for now. Losses still count." : "Daily EXP limit reached. Wins give a quarter of the EXP for now. Losses still count."}
+        </span>
+      </div>
+    </div>
   )
 }
 
