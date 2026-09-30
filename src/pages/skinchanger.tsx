@@ -912,6 +912,15 @@ export function SkinchangerPage() {
   }) => {
     const rarity = savedItem ? rarityStyle(savedItem) : null
     const src = image ?? fallback ?? null
+    // Stickers (by slot) then the charm, each only when the API resolved its catalogue item and image.
+    const resolved = new Map((entry?.resolved_accessories ?? []).map((item) => [item.id, item]))
+    const accessories: Array<{ kind: "sticker" | "charm"; slot: number; item: SkinchangerCatalogItem }> = []
+    for (const sticker of entry?.options.stickers ?? []) {
+      const item = resolved.get(sticker.catalogItemId)
+      if (item && catalogImageUrl(item)) accessories.push({ kind: "sticker", slot: sticker.slot, item })
+    }
+    const charmItem = entry?.options.charm ? resolved.get(entry.options.charm.catalogItemId) : undefined
+    if (charmItem && catalogImageUrl(charmItem)) accessories.push({ kind: "charm", slot: -1, item: charmItem })
     return (
       <div
         key={id}
@@ -942,7 +951,16 @@ export function SkinchangerPage() {
             : <ImageOff className="size-6 text-[var(--text-faint)]" />}
         </span>
 
-        <span aria-hidden="true" className="pointer-events-none absolute bottom-[26px] left-2 h-4 w-3 rounded border border-dashed border-[var(--line-strong)]" />
+        {/* Applied stickers and the charm sit in the bottom-left corner, above the name. */}
+        {accessories.length > 0
+          ? (
+            <span className="pointer-events-none absolute bottom-[24px] left-2 flex items-center gap-1">
+              {accessories.map((item) => (
+                <OptimizedImage key={`${item.kind}:${item.item.id}:${item.slot}`} src={catalogImageUrl(item.item) ?? ""} width={40} height={40} alt={`${item.item.display_name} ${item.kind}`} className="size-5 object-contain drop-shadow-[0_1px_3px_rgb(0_0_0/0.7)]" />
+              ))}
+            </span>
+          )
+          : <span aria-hidden="true" className="pointer-events-none absolute bottom-[26px] left-2 h-4 w-3 rounded border border-dashed border-[var(--line-strong)]" />}
         <span className="pointer-events-none absolute bottom-[7px] left-2 right-2 truncate text-[11px] font-semibold uppercase tracking-[0.4px] text-[var(--text-2)]">{title}</span>
         {rarity && <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px]" style={{ backgroundColor: rarity.accent }} />}
 
