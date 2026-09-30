@@ -950,9 +950,9 @@ export function SkinchangerPage() {
           type="button"
           onClick={(event) => { event.stopPropagation(); (onCustomize ?? onOpen)() }}
           aria-label={onCustomize && savedItem ? `Customize ${savedItem.display_name}` : openLabel}
-          className="absolute left-1/2 top-1/2 z-[2] flex size-[34px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[10px] border border-[var(--brand-bright)]/60 bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))] text-[var(--brand-on)] scale-90 opacity-0 transition-[opacity,scale] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:scale-100 group-hover:opacity-100 group-hover:delay-75 group-hover:duration-[280ms] group-hover:ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:scale-100 focus-visible:opacity-100 [@media(hover:none)]:scale-100 [@media(hover:none)]:opacity-100"
+          className="absolute left-1/2 top-1/2 z-[2] flex size-[34px] -translate-x-1/2 -translate-y-1/2 items-center justify-center text-[var(--text)] drop-shadow-[0_1px_6px_rgb(0_0_0/0.6)] scale-90 opacity-0 transition-[opacity,scale] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:scale-100 group-hover:opacity-100 group-hover:delay-75 group-hover:duration-[280ms] group-hover:ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:scale-100 focus-visible:opacity-100 [@media(hover:none)]:scale-100 [@media(hover:none)]:opacity-100"
         >
-          <SlidersHorizontal className="size-[18px]" />
+          <SlidersHorizontal className="size-[22px]" />
         </button>
 
         {entry && savedItem && onRemove && (
@@ -961,7 +961,7 @@ export function SkinchangerPage() {
             onClick={(event) => { event.stopPropagation(); onRemove() }}
             disabled={saving}
             aria-label={`Remove ${savedItem.display_name}`}
-            className="absolute right-1.5 top-1.5 z-[2] flex size-7 items-center justify-center rounded-lg border border-[var(--line-strong)] bg-[var(--panel)] text-[var(--text-muted)] opacity-0 transition-[opacity,color,background-color,border-color] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] hover:border-[var(--status-red)]/60 hover:bg-[var(--status-red)]/15 hover:text-[var(--status-red)] focus-visible:text-[var(--status-red)] group-hover:opacity-100 group-hover:delay-75 group-hover:duration-[280ms] focus-visible:opacity-100 disabled:pointer-events-none [@media(hover:none)]:opacity-100"
+            className="absolute right-1.5 top-1.5 z-[2] flex size-7 items-center justify-center text-[var(--text-2)] drop-shadow-[0_1px_4px_rgb(0_0_0/0.6)] opacity-0 transition-[opacity,color] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] hover:text-[var(--text)] focus-visible:text-[var(--text)] group-hover:opacity-100 group-hover:delay-75 group-hover:duration-[280ms] focus-visible:opacity-100 disabled:pointer-events-none [@media(hover:none)]:opacity-100"
           >
             <Trash2 className="size-3.5" />
           </button>
