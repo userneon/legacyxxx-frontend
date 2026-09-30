@@ -15,12 +15,12 @@ const paths = Array.from({ length: PATH_COUNT }, (_, i) => {
 })
 
 // Deterministic spread so every load looks the same and nothing needs Math.random during render.
-const timing = (i: number) => ({ dur: 10 + ((i * 7) % 11), begin: -((i * 5) % 13) })
+const timing = (i: number) => ({ dur: 16 + ((i * 7) % 11), begin: -((i * 5) % 17) })
 
 function BackgroundBeamsBase() {
   return (
-    <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-[1] overflow-hidden">
-      <svg className="absolute inset-0 size-full" viewBox="0 0 696 316" fill="none" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <div aria-hidden="true" className="lx-beams pointer-events-none fixed inset-0 -z-[1] overflow-hidden">
+      <svg className="lx-beams-drift absolute -inset-4 size-[calc(100%+2rem)]" viewBox="0 0 696 316" fill="none" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
         <g transform="translate(400 90)">
         {paths.map((d, i) => (
           <path key={`base-${i}`} d={d} stroke="white" strokeOpacity="0.09" strokeWidth="0.5" />
@@ -35,10 +35,10 @@ function BackgroundBeamsBase() {
             const { dur, begin } = timing(i)
             return (
               <linearGradient key={`grad-${i}`} id={`beam-${i}`} gradientUnits="userSpaceOnUse" x1="0%" x2="0%" y1="0%" y2="0%">
-                <animate attributeName="x1" values="0%;100%" dur={`${dur}s`} begin={`${begin}s`} repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.2 1" keyTimes="0;1" />
-                <animate attributeName="x2" values="0%;105%" dur={`${dur}s`} begin={`${begin}s`} repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.2 1" keyTimes="0;1" />
-                <animate attributeName="y1" values="0%;100%" dur={`${dur}s`} begin={`${begin}s`} repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.2 1" keyTimes="0;1" />
-                <animate attributeName="y2" values="0%;120%" dur={`${dur}s`} begin={`${begin}s`} repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.2 1" keyTimes="0;1" />
+                <animate attributeName="x1" values="0%;100%" dur={`${dur}s`} begin={`${begin}s`} repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1" keyTimes="0;1" />
+                <animate attributeName="x2" values="0%;105%" dur={`${dur}s`} begin={`${begin}s`} repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1" keyTimes="0;1" />
+                <animate attributeName="y1" values="0%;100%" dur={`${dur}s`} begin={`${begin}s`} repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1" keyTimes="0;1" />
+                <animate attributeName="y2" values="0%;120%" dur={`${dur}s`} begin={`${begin}s`} repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1" keyTimes="0;1" />
                 <stop stopColor="white" stopOpacity="0" />
                 <stop stopColor="white" stopOpacity="0.9" />
                 <stop offset="32.5%" stopColor="white" stopOpacity="0.5" />
