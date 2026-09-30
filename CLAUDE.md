@@ -66,6 +66,12 @@ it passes today — that's a coincidence of the exact value chosen, not a loopho
 rely on. If `--brand` ever changes, rerun `npm run check:colors` and re-verify by eye
 that it still reads as the one deliberate exception, not a second UI accent.
 
+### Limit red (owner request 2026-09-30)
+
+When a player hits the daily or weekly EXP limit (gains count for ¼), the limit bar, the `×¼` label,
+its one-line note and the `×¼ limit` pill in the match row are red (`--limit-red` `#ef4444`). Nothing else
+uses red; it is a status color like `--status-green`, not a general accent. Reference: `docs/design/exp-limit.png`.
+
 ### Glass (owner request 2026-09-28)
 
 The whole app sits on a dim Dust II backdrop (`body::before`). The shell — sidebar, top bar and
