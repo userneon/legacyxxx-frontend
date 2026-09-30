@@ -74,7 +74,7 @@ uses red; it is a status color like `--status-green`, not a general accent. Refe
 
 ### Glass (owner request 2026-09-28)
 
-The whole app sits on a dim Dust II backdrop (`body::before`). The shell — sidebar, top bar and
+The whole app sits on a near-black backdrop (`body::before`) with white `<BackgroundBeams />` (owner request 2026-09-30, replaces the Dust II art). The shell — sidebar, top bar and
 page panel — is `.lx-glass-shell`: translucent and blurred. Cards inside use `--glass-fill`
 (`bg-[var(--glass-fill)]`, `.glass`, `.lx-glass`) with a `--glass-line` hairline; they do not blur
 themselves, the panel under them already does. Keep new surfaces on these tokens; image overlays

@@ -252,7 +252,7 @@
   --glass-shell: rgb(18 18 20 / 0.32);
   --glass-shell-line: rgb(255 255 255 / 0.1);
   --glass-shell-highlight: inset 0 1px 0 rgb(255 255 255 / 0.08);
-  --glass-shell-filter: blur(12px) saturate(170%) brightness(1.08);
+  --glass-shell-filter: blur(3px) saturate(170%) brightness(1.08);
   --glass-line: rgb(255 255 255 / 0.08);
   --glass-highlight: inset 0 1px 0 rgb(255 255 255 / 0.05);
 }
@@ -262,10 +262,9 @@ body::before {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background:
-    linear-gradient(rgb(7 7 8 / 0.8), rgb(7 7 8 / 0.88)),
-    url("./assets/maps/de_dust2.webp") center / cover no-repeat,
-    #070708;
+  /* Plain near-black; the light comes from <BackgroundBeams />. The Dust II art (assets/maps/de_dust2.webp)
+     was here until 2026-09-30. */
+  background: #070708;
 }
 .lx-glass-shell,
 .lx-glass-sidebar > [data-sidebar="sidebar"] {
