@@ -64,6 +64,14 @@ Performance = clamp( round(8 × z) , −8 , +8 )
 | EXP would go below 0 | Floor at 0 |
 | Bots | Never count as players, never in lobby averages |
 
+
+## 2b. Daily gain cap (anti-farming)
+
+A player can gain at most **150 EXP in any rolling 24 hours**, however the matches were played. A gain that
+would go past the cap is trimmed to what is left (`exp_breakdown.dailyCapped = true`); once it is used up,
+wins give 0 until older gains fall out of the window. Losses are never limited. This makes farming with
+friends (win-trading, feeding kills) slow: reaching Legacy from the 1000 start takes at least ~9 days.
+
 ## 3. When a match counts (valid)
 
 All must be true:
