@@ -266,21 +266,13 @@ body::before {
      was here until 2026-09-30. */
   background: #070708;
 }
-/* Beams fade in once, then the whole fan drifts a few pixels back and forth so it never sits still. */
+/* Beams fade in once. (They used to drift as a whole too, but moving the layer under the blurred glass forced the blur to be redone every frame: the page lost its frame rate. The travelling light is enough movement.) */
 .lx-beams {
   animation: lx-beams-in 1800ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-.lx-beams-drift {
-  will-change: transform;
-  animation: lx-beams-drift 42s ease-in-out infinite alternate;
 }
 @keyframes lx-beams-in {
   from { opacity: 0; }
   to { opacity: 1; }
-}
-@keyframes lx-beams-drift {
-  from { transform: translate3d(-10px, -6px, 0) scale(1); }
-  to { transform: translate3d(10px, 8px, 0) scale(1.015); }
 }
 .lx-glass-shell,
 .lx-glass-sidebar > [data-sidebar="sidebar"] {
