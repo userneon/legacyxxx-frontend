@@ -596,7 +596,7 @@ export function SkinchangerPage() {
     setSelected(null)
   }
 
-  /** Customize button: straight to the options of the saved skin; without one, the picker. */
+  /** Straight to the options of the saved skin (card body and Customize button alike); without one, the picker. */
   const openModelCustomize = (item: SkinchangerCatalogItem, kind: ModelKind, entry: SkinchangerLoadoutEntry | undefined, team?: TeamScope) => {
     if (!entry?.skinchanger_catalog_items) {
       openModelPicker(item, kind, team)
@@ -1029,7 +1029,9 @@ export function SkinchangerPage() {
       savedItem,
       entry,
       openLabel: savedItem ? `Change ${item.display_name} skin (${savedSkinLabel(savedItem)})` : `Choose a ${item.display_name} skin`,
-      onOpen: () => openModelPicker(item, kind),
+      // With a skin already equipped the card opens on that skin and its options, so it can be customised straight away
+      // without picking it again; the grid beside it still lets you swap to another skin.
+      onOpen: () => openModelCustomize(item, kind, entry),
       onCustomize: () => openModelCustomize(item, kind, entry),
       onRemove: entry ? () => setRemoveTarget({ model: item, entry }) : undefined,
     })
