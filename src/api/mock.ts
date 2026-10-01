@@ -471,6 +471,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
     if (!found) throw notFound()
     const roster = (offset: number, count: number) => Array.from({ length: count }, (_, i) => ({
       steamId: `76561198${offset + i}`, name: NAMES[(offset + i) % NAMES.length], connected: i !== 3, rankId: RANKS[(offset + i) % RANKS.length][0], rankName: RANKS[(offset + i) % RANKS.length][1], rankImageKey: null,
+      avatar: (offset + i) % 2 === 0 ? `${location.origin}/logolegacyx.webp` : null,
       adr: 60 + ((offset + i) * 13) % 70, ping: 20 + i * 7, kills: 18 - i * 3 + (offset % 3), deaths: 9 + i, assists: 3 + (i % 4),
     }))
     const tCount = Math.ceil(found.players / 2)

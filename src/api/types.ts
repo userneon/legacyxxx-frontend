@@ -337,6 +337,8 @@ export interface ServerLiveMatchPlayer {
   kills?: number | null
   deaths?: number | null
   assists?: number | null
+  /** Steam avatar of a player with a LEGACY-X account; null for anyone else. */
+  avatar?: string | null
 }
 
 export interface ServerLiveMatch {

@@ -279,7 +279,7 @@ function TeamTable({ title, players, side }: { title: string; players: ServerLiv
       ) : players.map((player) => (
         <div key={player.steamId} className="grid h-[38px] grid-cols-[minmax(0,1fr)_34px_34px_34px] items-center gap-2 border-t border-[var(--raised)] px-3 text-[13px] transition-colors duration-300 hover:bg-[var(--raised)]">
           <span className="flex min-w-0 items-center gap-2">
-            <PlayerAvatar name={player.name} className="size-[22px] shrink-0 rounded-md text-[9px]" />
+            <PlayerAvatar avatar={player.avatar ?? undefined} name={player.name} className="size-[22px] shrink-0 rounded-md text-[9px]" />
             <span className={cn("truncate", player.connected ? "text-[var(--text)]" : "text-[var(--text-dim)]")} title={player.name}>{player.name}</span>
           </span>
           <span className="font-semibold text-[var(--text)]">{stat(player.kills)}</span>
