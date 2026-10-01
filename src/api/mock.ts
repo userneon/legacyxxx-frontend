@@ -42,6 +42,7 @@ function server(id: string, name: string, map: string, mode: "5x5" | "fun" | "pr
     id, name, map, mode, modeLabel, status, players, maxPlayers,
     round: live ? 14 : null,
     score: live ? { t: 7, ct: 6 } : null,
+    teams: status === "offline" || players === 0 ? null : { t: Math.ceil(players / 2), ct: Math.floor(players / 2) },
     connectAddress: status === "offline" ? null : `203.0.113.10:270${id.slice(-2)}`,
     gotvAddress: live ? `203.0.113.10:280${id.slice(-2)}` : null,
     joinable: status === "waiting" || status === "warmup" || (mode === "fun" && players < maxPlayers),

@@ -149,10 +149,14 @@ function Slots({ server }: { server: PlayServer }) {
   }
   return (
     <div className="flex flex-1 items-center justify-between gap-3">
+      {/* Terrorists first, then Counter-Terrorists, then players not on a side yet (warmup, spectators), then free slots. */}
       <span aria-hidden="true" className="flex gap-[3px]">
-        {Array.from({ length: server.maxPlayers }, (_, index) => (
-          <span key={index} className={cn("size-3.5 rounded-[4px] transition-[background-color,box-shadow] duration-500", index < server.players ? "lx-slot-on" : "bg-[var(--line-soft)]")} style={{ transitionDelay: `${index * 30}ms` }} />
-        ))}
+        {Array.from({ length: server.maxPlayers }, (_, index) => {
+          const t = server.teams?.t ?? 0
+          const ct = server.teams?.ct ?? 0
+          const tone = index >= server.players ? "bg-[var(--line-soft)]" : index < t ? "bg-[var(--team-t)]" : index < t + ct ? "bg-[var(--team-ct)]" : "lx-slot-on"
+          return <span key={index} className={cn("size-3.5 rounded-[4px] transition-[background-color,box-shadow] duration-500", tone)} style={{ transitionDelay: `${index * 30}ms` }} />
+        })}
       </span>
       <span className="text-xs text-[var(--text-muted)]">{server.players}/{server.maxPlayers}</span>
     </div>

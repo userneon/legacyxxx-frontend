@@ -18,6 +18,8 @@ export interface PlayServer {
   status: PlayServerStatus
   round: number | null
   score: { t: number; ct: number } | null
+  /** Players on each side right now; null when the server has not reported a live snapshot. */
+  teams: { t: number; ct: number } | null
   connectAddress: string | null
   gotvAddress: string | null
   joinable: boolean
