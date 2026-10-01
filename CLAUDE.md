@@ -30,41 +30,36 @@ get wrong (like the accent-color exception below).
 
 ## Design tokens (`src/index.css`)
 
-Neutral surfaces + white as the workhorse accent — emphasis normally comes from
-brightness and weight, not hue:
+Neutral surfaces, white as the workhorse accent, and **crimson as the brand accent** (owner decision
+2026-09-27, see `docs/design/PROMPT.md`). This is what the site does today; the earlier orange `#ff5a1f`
+exception was dropped and no longer exists in `src/`.
 - Surfaces: `--bg` `#0a0a0a`, `--panel` `#0f0f0f`, `--card-surface` `#141414`, `--raised` `#1a1a1a`
 - Lines: `--line-soft` `#1f1f1f`, `--line` `#262626`, `--line-strong` `#333333`
 - Text: `--text` `#fafafa` → `--text-faint` `#525252`
-- `--accent-solid` `#fafafa` (on `#0a0a0a`) — primary buttons, active states, focus rings
-- `--status-green` `#22c55e` is the only status color (online/live/verified)
+- `--accent-solid` `#fafafa` (on `#0a0a0a`): primary buttons (`.lx-primary-button`), progress fills, unread dots
+- `--brand` `#e11d48` (fills, borders, glows), `--brand-bright` `#ff3d6e` (text, icons, focus rings),
+  `--brand-deep` `#4c0717`, `--brand-on` `#fff5f7`: the wordmark's "-X", the active nav item, selected
+  and active states, focus rings, highlights and glows. It is an accent, not a surface: no large flat
+  crimson panels, and a primary button stays white.
+- `--status-green` `#22c55e` (online/live/verified) and `--status-red` `#ef4444` (limits, bans) are the status colors
 - Rank emblems use the CS2 rarity ladder (`--rank-<tier>`) **only** inside emblem
   images and the rank name next to one — never on buttons, backgrounds, or chrome
-- Radius: 8px controls, 10–12px cards, 14px floating panels, 999px pills
 - Font: Onest (400/500/600/700) with its default proportional figures. Owner request
   2026-09-28: no `tabular-nums` — Onest's tabular "1" made numbers like "11" read as "1 1"
 
-### Brand accent exception (owner request 2026-09-27)
+### One scale for everything (use these, not new values)
 
-`--brand` `#ff5a1f` was added on top of the rule above. It is **not** a general UI
-accent — the original "no hue accent" rule still governs everything else. `--brand`
-is reserved for a short, deliberate list of high-signal spots only:
-- the `-X` suffix in the LEGACY-X wordmark
-- the active sidebar nav indicator bar
-- the flagship "Players Online" home stat
-- the Pro League mode card's featured/premium treatment
-
-Do not spread `--brand` to buttons, borders, focus rings, or other chrome — that
-was tried and explicitly rejected ("бүү full orange болго, чухал хэсэгт л тавь").
-When adding a new "this matters most" spot, ask whether it's truly flagship-level
-before reaching for `--brand`; when in doubt, leave it white.
-
-`scripts/check-no-blue.mjs` (`npm run check:colors`) fails the build on hex/hsl
-colors and Tailwind color classes in `src/**` whose hue falls in the blue/purple
-(180–340°) or yellow/orange (25–70°) bands, unless the line is marked
-`palette-exempt` or `rarity`. `#ff5a1f` sits at ~16° hue, just under that band, so
-it passes today — that's a coincidence of the exact value chosen, not a loophole to
-rely on. If `--brand` ever changes, rerun `npm run check:colors` and re-verify by eye
-that it still reads as the one deliberate exception, not a second UI accent.
+- **Radius:** 8px controls (`rounded-lg`), 10–12px cards (`rounded-[10px]`, `rounded-xl`), 14–16px floating
+  panels (`rounded-2xl`), 999px pills (`rounded-full`). An avatar or tile may use a proportional radius
+  (about a quarter of its size), and a thing nested in a padded box uses the box's radius minus the padding;
+  nothing else gets its own number.
+- **Text:** 10–11px meta and labels, 13px body and controls, 15px emphasis, 22px+ headings, `font-display`
+  only for the wordmark and page titles. Don't add a new pixel size.
+- **Buttons:** the primary action is `.lx-primary-button` (white); a secondary action is a bordered
+  `--raised` button; hover on neutral controls is `hover:bg-[var(--raised)]`. Brand crimson appears on a
+  button only as a selected/active state, never as the default look.
+- **Surfaces:** shell and cards use the glass tokens below; a plain `--panel`/`--raised` fill is for nested
+  or solid-over-art cases. Overlays that must stay readable over images use a solid `--card-surface` gradient.
 
 ### Limit red (owner request 2026-09-30)
 
