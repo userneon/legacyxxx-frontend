@@ -13,7 +13,7 @@ function SectionHeader({ title, subtitle, action, onAction }: { title: string; s
   return (
     <div className="mb-3 flex items-center justify-between gap-3">
       <h2 className="flex items-center gap-2 text-sm font-semibold">
-        <span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--brand-bright)]" />
+        <span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--text-faint)]" />
         {title}
         {subtitle && <span className="text-xs font-normal text-[var(--text-dim)]">{subtitle}</span>}
       </h2>
@@ -55,8 +55,8 @@ function Position({ position }: { position: number }) {
       className={cn(
         "flex size-7 items-center justify-center rounded-full text-xs font-bold",
         position === 1
-          ? "bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))] text-[var(--brand-on)]"
-          : "border border-[var(--brand)]/50 bg-[var(--brand)]/10 text-[var(--brand-bright)]",
+          ? "bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))] text-[var(--text)]"
+          : "border border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text-2)]",
       )}
     >
       {position}
@@ -93,17 +93,17 @@ export function TopPlayers({ onOpenProfile, onViewAll }: { onOpenProfile: (steam
                     onClick={() => onOpenProfile(player.steam_id)}
                     className={cn(
                       ROW,
-                      "group relative w-full rounded-xl px-2 py-2.5 text-left transition-[background-color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] hover:bg-[var(--brand)]/[0.07] hover:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60",
+                      "group relative w-full rounded-xl px-2 py-2.5 text-left transition-[background-color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] hover:bg-[var(--raised)] hover:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
                       player.position === 1 && "bg-[linear-gradient(90deg,color-mix(in_oklab,var(--brand)_9%,transparent),transparent_55%)]",
                     )}
                   >
                     <span
                       aria-hidden="true"
-                      className="absolute bottom-2.5 left-0 top-2.5 w-[3px] scale-y-0 rounded-r-full bg-[var(--brand-bright)] opacity-0 transition-[scale,opacity] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]"
+                      className="absolute bottom-2.5 left-0 top-2.5 w-[3px] scale-y-0 rounded-r-full bg-[var(--text-2)] opacity-0 transition-[scale,opacity] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]"
                     />
                     <Position position={player.position} />
                     <span className="flex min-w-0 items-center gap-3 transition-[translate] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:translate-x-1 group-hover:duration-300 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]">
-                      <PlayerAvatar avatar={player.avatar} name={player.username} className={cn("size-9 shrink-0 rounded-[10px] text-[11px]", player.position === 1 && "ring-2 ring-[var(--brand)]/70")} />
+                      <PlayerAvatar avatar={player.avatar} name={player.username} className={cn("size-9 shrink-0 rounded-[10px] text-[11px]", player.position === 1 && "ring-2 ring-[var(--line-strong)]")} />
                       <span className="flex min-w-0 flex-col gap-0.5">
                         <span className="truncate text-sm font-semibold text-[var(--text)]">{player.username}</span>
                         <span className="truncate text-[11px] font-medium" style={{ color: rankTierColor(player.rank_id) }}>

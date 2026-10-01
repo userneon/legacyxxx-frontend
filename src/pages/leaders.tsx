@@ -55,7 +55,7 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
       // The player's rank tier colour tints the corner glow (--tier); the podium spot sets the order and height.
       style={{ "--tier": rankTierColor(player.rank_id), order: slot, animationDelay: `${first ? 60 : 160 + slot * 60}ms` } as CSSProperties}
       className={cn(
-        "lx-fx-card group relative isolate flex min-w-0 flex-col gap-4 overflow-hidden rounded-xl border bg-[var(--glass-fill)] p-[18px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60",
+        "lx-fx-card group relative isolate flex min-w-0 flex-col gap-4 overflow-hidden rounded-xl border bg-[var(--glass-fill)] p-[18px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
         first ? "border-[var(--brand)]/45" : "mt-6 border-[var(--line-soft)]",
       )}
     >
@@ -125,10 +125,10 @@ function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: Competiti
         GRID,
         // lx-layer: rows pass under the sticky header, so Chrome layers them for overlap anyway; a
         // fixed layer keeps a podium hover from re-creating (and repainting) the row below it.
-        "lx-layer group relative w-full text-left transition-[background-color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] hover:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--brand-bright)]/60",
+        "lx-layer group relative w-full text-left transition-[background-color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] hover:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50",
         you
           ? "h-[60px] shrink-0 border-t border-[var(--brand)]/40 bg-[linear-gradient(90deg,color-mix(in_oklab,var(--brand)_16%,var(--card-surface)),var(--card-surface)_45%)]"
-          : "lx-row-in h-14 border-b border-[var(--raised)] hover:bg-[var(--brand)]/[0.06]",
+          : "lx-row-in h-14 border-b border-[var(--raised)] hover:bg-[var(--raised)]",
       )}
     >
       {/* Crimson marker: always on your pinned row, slides in on hover for the others. */}
@@ -312,11 +312,11 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
           <section aria-label="Leaders" className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
             <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
             <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
-            <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
+            <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
             <div className="relative z-10 flex items-end justify-between gap-6 p-7">
               <div className="flex min-w-0 flex-col gap-2.5">
                 <h1 className="flex items-center gap-2.5 text-[34px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
-                  <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)]" />
+                  <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--text-faint)]" />
                   {PAGE_TITLES["leaders"]}
                   {loading && players.length > 0 && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
                 </h1>
@@ -324,7 +324,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
               </div>
               <div className="flex items-center gap-2.5">
                 <Segmented ariaLabel="Sort by" value={sort} onChange={setSort} options={SORTS} />
-                <label className="flex h-[38px] w-[220px] items-center gap-2 rounded-[10px] border border-[var(--line)] bg-[var(--glass-fill)] px-3 transition-[border-color,box-shadow] duration-300 focus-within:border-[var(--brand)]/60 focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_18%,transparent)]">
+                <label className="flex h-[38px] w-[220px] items-center gap-2 rounded-[10px] border border-[var(--line)] bg-[var(--glass-fill)] px-3 transition-[border-color,box-shadow] duration-300 focus-within:border-[var(--text-dim)] focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_18%,transparent)]">
                   <Search className="size-4 shrink-0 text-[var(--text-dim)]" />
                   <input
                     type="search"

@@ -827,7 +827,7 @@ export function SkinchangerPage() {
                     data-catalog-item-id={item.id}
                     className={cn(
                       "relative flex flex-col overflow-hidden rounded-lg border bg-[var(--glass-fill)] p-2 text-left transition-colors duration-150",
-                      isCurrent ? "border-[var(--brand)]" : "border-[var(--line-soft)] hover:border-[var(--brand)]/45",
+                      isCurrent ? "border-[var(--brand)]" : "border-[var(--line-soft)] hover:border-[var(--line-strong)]",
                     )}
                   >
                     <span className="flex h-16 items-center justify-center">
@@ -889,7 +889,7 @@ export function SkinchangerPage() {
             className={cn(
               "relative z-[1] flex h-8 items-center gap-2 rounded-[7px] px-[18px] text-[13px] font-semibold",
               "transition-colors duration-200 ease-[var(--ease-out)] motion-reduce:transition-none",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
               isActive
                 ? team.id === "t" ? "text-[var(--team-t)]" : "text-[var(--team-ct)]"
                 : "text-[var(--text-muted)] hover:text-[var(--text)]",
@@ -947,15 +947,15 @@ export function SkinchangerPage() {
         className={cn(
           "lx-layer group relative overflow-hidden rounded-lg border bg-[var(--glass-fill)]",
           // Lift and a crimson edge on hover; leaving eases back slower than entering, like the other cards.
-          "transition-[border-color,box-shadow,translate] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] hover:-translate-y-0.5 hover:border-[var(--brand)]/55 hover:duration-300 hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
+          "transition-[border-color,box-shadow,translate] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:duration-300 hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
           savedItem ? "border-[var(--line)] bg-[linear-gradient(160deg,color-mix(in_oklab,var(--brand)_7%,var(--card-surface)),var(--card-surface)_55%)]" : "border-[var(--line-soft)]",
           tall ? "h-44" : "h-24",
         )}
       >
         {/* Corner tab: crimson once a look is equipped in this slot. */}
-        <span aria-hidden="true" className={cn("pointer-events-none absolute left-0 top-0 size-[18px] [clip-path:polygon(0_0,100%_0,0_100%)] transition-colors duration-500", savedItem ? "bg-[var(--brand-bright)]" : "bg-[var(--line)] group-hover:bg-[var(--brand)]/60")} />
+        <span aria-hidden="true" className={cn("pointer-events-none absolute left-0 top-0 size-[18px] [clip-path:polygon(0_0,100%_0,0_100%)] transition-colors duration-500", savedItem ? "bg-[var(--brand-bright)]" : "bg-[var(--line)] group-hover:bg-[var(--raised)]")} />
 
-        <button type="button" onClick={onOpen} aria-label={openLabel} className="absolute inset-0 z-[1] rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--brand-bright)]/60" />
+        <button type="button" onClick={onOpen} aria-label={openLabel} className="absolute inset-0 z-[1] rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50" />
 
         {/* Keyed by the look, so switching team fades the new skin in instead of swapping it. */}
         <span className={cn(
@@ -1010,9 +1010,9 @@ export function SkinchangerPage() {
   const renderSection = (title: string, cards: ReactNode[]) => cards.length === 0 ? null : (
     <section key={title} aria-label={title} className="flex flex-col gap-2.5">
       <h2 className="flex items-center justify-center gap-2 text-[13px] font-bold tracking-[1.2px] text-[var(--text-2)]">
-        <span aria-hidden="true" className="h-px w-5 bg-gradient-to-r from-transparent to-[var(--brand)]" />
+        <span aria-hidden="true" className="h-px w-5 bg-gradient-to-r from-transparent to-[var(--line-strong)]" />
         {title}
-        <span aria-hidden="true" className="h-px w-5 bg-gradient-to-l from-transparent to-[var(--brand)]" />
+        <span aria-hidden="true" className="h-px w-5 bg-gradient-to-l from-transparent to-[var(--line-strong)]" />
       </h2>
       {cards}
     </section>
@@ -1161,17 +1161,17 @@ export function SkinchangerPage() {
           ))}
           <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
           <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
-          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
           {/* Three columns when there is room; on a narrow panel the switch drops to its own row. */}
           <div className="relative z-10 flex flex-wrap items-center gap-x-4 gap-y-4 p-6 lg:grid lg:grid-cols-[1fr_auto_1fr]">
             <div className="flex min-w-0 flex-1 flex-col gap-2 lg:flex-none">
               <h1 className="flex items-center gap-2.5 text-[30px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
-                <span aria-hidden="true" className="h-6 w-1 rounded-full bg-[var(--brand-bright)]" />
+                <span aria-hidden="true" className="h-6 w-1 rounded-full bg-[var(--text-faint)]" />
                 {PAGE_TITLES["skinchanger"]}
               </h1>
               <span className="flex items-center gap-1.5 text-[13px] text-[var(--text-2)]">
                 Pick skins, then type
-                <span className="rounded-md border border-[var(--brand)]/45 bg-[var(--brand)]/15 px-1.5 py-px font-mono text-xs font-semibold text-[var(--brand-bright)]">!rs</span>
+                <span className="rounded-md border border-[var(--line-strong)] bg-[var(--raised)] px-1.5 py-px font-mono text-xs font-semibold text-[var(--text-2)]">!rs</span>
                 in game.
               </span>
             </div>
@@ -1273,7 +1273,7 @@ export function SkinchangerPage() {
                         onClick={() => switchSlotModel(model)}
                         className={cn(
                           "relative h-8 shrink-0 rounded-md border px-3 text-xs font-medium transition-colors",
-                          isActive ? "border-[var(--brand)]/60 bg-[var(--brand)]/15 text-[var(--text)]" : "border-border text-muted-foreground hover:text-foreground",
+                          isActive ? "border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text)]" : "border-border text-muted-foreground hover:text-foreground",
                         )}
                       >
                         {model.display_name.replace(/\s+(Gloves|Knife)$/i, "")}
@@ -1303,7 +1303,7 @@ export function SkinchangerPage() {
                         className={cn(
                           "h-7 rounded-full border px-3 text-xs font-medium transition-colors duration-150",
                           isActive
-                            ? "border-[var(--brand)]/50 bg-[var(--brand)]/15 text-[var(--text)]"
+                            ? "border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text)]"
                             : "border-[var(--line)] bg-[var(--glass-fill)] text-[var(--text-muted)] hover:text-[var(--text)]",
                         )}
                       >
@@ -1331,11 +1331,11 @@ export function SkinchangerPage() {
                           data-catalog-item-id={item.id}
                           className={cn(
                             "lx-layer relative flex flex-col overflow-hidden rounded-lg border bg-[var(--glass-fill)] p-2 text-left transition-[border-color,box-shadow,translate] duration-300 hover:-translate-y-0.5",
-                            isSelected ? "border-[var(--brand)]" : "border-[var(--line-soft)] hover:border-[var(--brand)]/45",
+                            isSelected ? "border-[var(--brand)]" : "border-[var(--line-soft)] hover:border-[var(--line-strong)]",
                           )}
                         >
                           {rarity && <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px]" style={{ backgroundColor: rarity.accent }} />}
-                          {isSaved && <span className="absolute right-1.5 top-1.5 inline-flex items-center gap-1 rounded border border-[var(--brand)]/45 bg-[var(--brand)]/15 px-1 py-px text-[9px] font-semibold uppercase text-[var(--brand-bright)]"><BadgeCheck className="size-3" />Saved</span>}
+                          {isSaved && <span className="absolute right-1.5 top-1.5 inline-flex items-center gap-1 rounded border border-[var(--line-strong)] bg-[var(--raised)] px-1 py-px text-[9px] font-semibold uppercase text-[var(--text-2)]"><BadgeCheck className="size-3" />Saved</span>}
                           <span className="flex h-20 items-center justify-center">
                             {image ? <OptimizedImage src={image} width={180} height={90} alt="" className="h-full w-full object-contain" /> : <ImageOff className="size-6 text-muted-foreground/50" />}
                           </span>
@@ -1435,13 +1435,13 @@ export function SkinchangerPage() {
                     {Array.from({ length: 5 }, (_, slot) => {
                       const sticker = customOptions.stickers?.find((entry) => entry.slot === slot)
                       const stickerItem = sticker ? selectedAccessories[sticker.catalogItemId] : null
-                      return <button key={slot} onClick={() => openStickerPicker(slot)} className={cn("relative flex h-10 items-center justify-center rounded-md border text-[10px] transition-colors", sticker ? "border-foreground bg-secondary text-foreground" : "border-border bg-background text-muted-foreground hover:bg-secondary", accessoryPicker === "sticker" && editingStickerSlot === slot && "ring-2 ring-[var(--brand-bright)]/70")} aria-label={sticker ? `Change sticker slot ${slot + 1}` : `Add sticker to slot ${slot + 1}`}>{stickerItem && catalogImageUrl(stickerItem) ? <img src={catalogImageUrl(stickerItem) ?? undefined} alt={`${stickerItem.display_name} in slot ${slot + 1}`} data-catalog-item-id={stickerItem.id} className="size-7 object-contain" /> : <><Sticker className="size-3.5" /><span className="ml-1">{slot + 1}</span></>}{sticker && <span className="absolute -right-1 -top-1 size-2 rounded-full bg-foreground" />}</button>
+                      return <button key={slot} onClick={() => openStickerPicker(slot)} className={cn("relative flex h-10 items-center justify-center rounded-md border text-[10px] transition-colors", sticker ? "border-foreground bg-secondary text-foreground" : "border-border bg-background text-muted-foreground hover:bg-secondary", accessoryPicker === "sticker" && editingStickerSlot === slot && "ring-2 ring-[var(--line-strong)]")} aria-label={sticker ? `Change sticker slot ${slot + 1}` : `Add sticker to slot ${slot + 1}`}>{stickerItem && catalogImageUrl(stickerItem) ? <img src={catalogImageUrl(stickerItem) ?? undefined} alt={`${stickerItem.display_name} in slot ${slot + 1}`} data-catalog-item-id={stickerItem.id} className="size-7 object-contain" /> : <><Sticker className="size-3.5" /><span className="ml-1">{slot + 1}</span></>}{sticker && <span className="absolute -right-1 -top-1 size-2 rounded-full bg-foreground" />}</button>
                     })}
                   </div>
                 </div>}
                 {canCustomizeAccessories && <div>
                   <div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Charm</span>{customOptions.charm && <button onClick={() => setCustomOptions((current) => ({ ...current, charm: undefined }))} className="text-[10px] text-muted-foreground hover:text-foreground">Remove</button>}</div>
-                  <button onClick={() => { setAccessoryPicker("charm"); setEditingStickerSlot(null); setAccessoryQuery("") }} className={cn("flex h-10 w-full items-center justify-center gap-2 rounded-md border text-xs transition-colors", customOptions.charm ? "border-foreground bg-secondary text-foreground" : "border-border bg-background text-muted-foreground hover:bg-secondary", accessoryPicker === "charm" && "ring-2 ring-[var(--brand-bright)]/70")}>{selectedCharmItem && catalogImageUrl(selectedCharmItem) ? <img src={catalogImageUrl(selectedCharmItem) ?? undefined} alt={`${selectedCharmItem.display_name} selected charm`} data-catalog-item-id={selectedCharmItem.id} className="size-6 object-contain" /> : <Tag className="size-3.5" />} {customOptions.charm ? "Change charm" : "Choose charm"}</button>
+                  <button onClick={() => { setAccessoryPicker("charm"); setEditingStickerSlot(null); setAccessoryQuery("") }} className={cn("flex h-10 w-full items-center justify-center gap-2 rounded-md border text-xs transition-colors", customOptions.charm ? "border-foreground bg-secondary text-foreground" : "border-border bg-background text-muted-foreground hover:bg-secondary", accessoryPicker === "charm" && "ring-2 ring-[var(--line-strong)]")}>{selectedCharmItem && catalogImageUrl(selectedCharmItem) ? <img src={catalogImageUrl(selectedCharmItem) ?? undefined} alt={`${selectedCharmItem.display_name} selected charm`} data-catalog-item-id={selectedCharmItem.id} className="size-6 object-contain" /> : <Tag className="size-3.5" />} {customOptions.charm ? "Change charm" : "Choose charm"}</button>
                 </div>}
                 <button onClick={() => setResetConfirmOpen(true)} className="flex w-full items-center justify-center gap-2 text-xs text-muted-foreground hover:text-foreground"><RotateCcw className="size-3.5" /> Reset customization</button>
               </div>

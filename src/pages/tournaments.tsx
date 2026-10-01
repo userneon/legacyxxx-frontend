@@ -26,8 +26,8 @@ const TABS: { value: Tab; label: string }[] = [
 ]
 const readTab = (value: string | null): Tab => (TABS.some((tab) => tab.value === value) ? (value as Tab) : "overview")
 
-const primaryButton = "lx-primary-button flex h-10 items-center justify-center gap-2 rounded-lg text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:pointer-events-none disabled:opacity-40 disabled:saturate-50"
-const secondaryButton = "flex h-10 items-center justify-center gap-2 rounded-lg border border-[var(--line)] text-sm font-medium text-[var(--text)] transition-[background-color,border-color,transform] duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:pointer-events-none disabled:opacity-50"
+const primaryButton = "lx-primary-button flex h-10 items-center justify-center gap-2 rounded-lg text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 disabled:pointer-events-none disabled:opacity-40 disabled:saturate-50"
+const secondaryButton = "flex h-10 items-center justify-center gap-2 rounded-lg border border-[var(--line)] text-sm font-medium text-[var(--text)] transition-[background-color,border-color,transform] duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 disabled:pointer-events-none disabled:opacity-50"
 const card = "rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]"
 
 function useNow(intervalMs = 1000) {
@@ -57,7 +57,7 @@ function errorMessage(caught: unknown, fallback: string) {
 
 function PhasePill({ phase }: { phase: TournamentPhase }) {
   const meta = {
-    registration: { label: "Registration open", className: "border border-[var(--brand)]/45 bg-[var(--brand)]/15 text-[var(--text)]", dot: "lx-live-dot bg-[var(--brand-bright)]" },
+    registration: { label: "Registration open", className: "border border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text)]", dot: "lx-live-dot bg-[var(--brand-bright)]" },
     live: { label: "Live", className: "border border-[var(--status-green)]/35 bg-[var(--status-green)]/12 text-[var(--status-green)]", dot: "lx-live-dot bg-[var(--status-green)]" },
     upcoming: { label: "Upcoming", className: "bg-[var(--raised)] text-[var(--text-muted)]", dot: "bg-[var(--text-dim)]" },
     finished: { label: "Finished", className: "bg-[var(--raised)] text-[var(--text-muted)]", dot: "bg-[var(--text-dim)]" },
@@ -75,7 +75,7 @@ function PageHeader({ loading }: { loading?: boolean }) {
     <div className="flex items-end justify-between">
       <div className="flex flex-col gap-1">
         <h1 className="flex items-center gap-2.5 text-[28px] font-bold leading-[1.15] tracking-[-0.5px] text-[var(--text)]">
-          <span aria-hidden="true" className="h-6 w-1 rounded-full bg-[var(--brand-bright)]" />
+          <span aria-hidden="true" className="h-6 w-1 rounded-full bg-[var(--text-faint)]" />
           {PAGE_TITLES["play-tournaments"]}
           {loading && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
         </h1>
@@ -89,7 +89,7 @@ function PastTournaments({ past, onOpen }: { past: PastTournament[]; onOpen: (id
   if (past.length === 0) return null
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]"><span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--brand-bright)]" />Past tournaments</h2>
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]"><span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--text-faint)]" />Past tournaments</h2>
       <div className={cn(card, "overflow-hidden")}>
         {past.map((tournament, index) => (
           <button
@@ -97,19 +97,19 @@ function PastTournaments({ past, onOpen }: { past: PastTournament[]; onOpen: (id
             type="button"
             onClick={() => onOpen(tournament.id)}
             style={{ animationDelay: `${index * 50}ms` }}
-            className="lx-row-in group relative grid h-[60px] w-full grid-cols-[minmax(0,1fr)_200px_120px_20px] items-center gap-4 border-b border-[var(--raised)] px-[18px] text-left transition-[background-color] duration-500 last:border-b-0 hover:bg-[var(--brand)]/[0.06] hover:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--brand-bright)]/60 max-sm:grid-cols-[minmax(0,1fr)_20px]"
+            className="lx-row-in group relative grid h-[60px] w-full grid-cols-[minmax(0,1fr)_200px_120px_20px] items-center gap-4 border-b border-[var(--raised)] px-[18px] text-left transition-[background-color] duration-500 last:border-b-0 hover:bg-[var(--raised)] hover:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50 max-sm:grid-cols-[minmax(0,1fr)_20px]"
           >
-            <span aria-hidden="true" className="absolute bottom-2.5 left-0 top-2.5 w-[3px] scale-y-0 rounded-r-full bg-[var(--brand-bright)] opacity-0 transition-[scale,opacity] duration-500 group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300" />
+            <span aria-hidden="true" className="absolute bottom-2.5 left-0 top-2.5 w-[3px] scale-y-0 rounded-r-full bg-[var(--text-2)] opacity-0 transition-[scale,opacity] duration-500 group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300" />
             <span className="flex min-w-0 flex-col gap-1">
               <span className="truncate text-[13px] font-medium text-[var(--text)]">{tournament.name}</span>
               <span className="text-xs text-[var(--text-dim)]">{tournament.startsAt ? formatDate(tournament.startsAt) : "—"}</span>
             </span>
             <span className="flex min-w-0 items-center gap-2 max-sm:hidden">
-              <Trophy className="size-3.5 shrink-0 text-[var(--brand-bright)]" />
+              <Trophy className="size-3.5 shrink-0 text-[var(--text-2)]" />
               <span className="truncate text-[13px] text-[var(--text-2)]">{tournament.winner ?? "—"}</span>
             </span>
             <span className="text-xs text-[var(--text-dim)] max-sm:hidden">Winner</span>
-            <ChevronRight className="size-4 text-[var(--text-faint)] transition-[translate,color] duration-500 group-hover:translate-x-1 group-hover:text-[var(--brand-bright)] group-hover:duration-300" />
+            <ChevronRight className="size-4 text-[var(--text-faint)] transition-[translate,color] duration-500 group-hover:translate-x-1 group-hover:text-[var(--text)] group-hover:duration-300" />
           </button>
         ))}
       </div>
@@ -123,7 +123,7 @@ function NoTournament({ past, onOpen }: { past: PastTournament[]; onOpen: (id: s
       <section className={cn(card, "lx-swap-in relative flex flex-col items-center gap-3 overflow-hidden px-8 py-12 text-center")}>
         <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10 opacity-70" />
         <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
-        <span className="relative flex size-14 items-center justify-center rounded-2xl border border-[var(--brand)]/40 bg-[var(--brand)]/12 text-[var(--brand-bright)]">
+        <span className="relative flex size-14 items-center justify-center rounded-2xl border border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text-2)]">
           <Trophy className="size-6" />
         </span>
         <span className="relative text-lg font-semibold text-[var(--text)]">No tournament scheduled right now</span>
@@ -191,8 +191,8 @@ function Hero({ tournament, now }: { tournament: TournamentSummary; now: number 
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--card-surface)] via-[var(--card-surface)]/85 to-[var(--card-surface)]/40" />
       <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
       <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
-      <Trophy aria-hidden="true" strokeWidth={1} className="pointer-events-none absolute -right-6 -top-6 size-56 rotate-12 text-[var(--brand)] opacity-[0.08]" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
+      <Trophy aria-hidden="true" strokeWidth={1} className="pointer-events-none absolute -right-6 -top-6 size-56 rotate-12 text-[var(--line-strong)] opacity-[0.08]" />
 
       <div className="relative z-10 grid items-end gap-6 p-7 lg:grid-cols-[minmax(0,1fr)_auto]">
         <div className="flex min-w-0 flex-col gap-4">
@@ -211,7 +211,7 @@ function Hero({ tournament, now }: { tournament: TournamentSummary; now: number 
           </dl>
         </div>
         {tournament.phase !== "finished" && (
-          <div className="flex min-w-[280px] flex-col gap-3 rounded-xl border border-[var(--brand)]/30 bg-[var(--panel)]/70 p-4 backdrop-blur-md lg:items-end">
+          <div className="flex min-w-[280px] flex-col gap-3 rounded-xl border border-[var(--line-strong)] bg-[var(--panel)]/70 p-4 backdrop-blur-md lg:items-end">
             {left && <span className="text-xs font-medium text-[var(--text-muted)]">{label}</span>}
             {left && <CountdownBlocks value={left} />}
             <div className="flex w-full flex-col gap-1.5">
@@ -255,13 +255,13 @@ function Overview({ tournament, now }: { tournament: TournamentDetail; now: numb
             <>Single elimination{tournament.format ? ` · ${tournament.format}` : ""}.</>,
           ].map((text: ReactNode, index) => (
             <li key={index} className="flex gap-3">
-              <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-[var(--brand)]/45 bg-[var(--brand)]/12 text-[11px] font-bold text-[var(--brand-bright)]">{index + 1}</span>
+              <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-[var(--line-strong)] bg-[var(--raised)] text-[11px] font-bold text-[var(--text-2)]">{index + 1}</span>
               <span className="pt-0.5">{text}</span>
             </li>
           ))}
         </ol>
         {LINKS.tournamentRules && (
-          <a href={LINKS.tournamentRules} target="_blank" rel="noreferrer" className="self-start text-[13px] font-medium text-[var(--brand-bright)] underline-offset-4 hover:underline">Full rules</a>
+          <a href={LINKS.tournamentRules} target="_blank" rel="noreferrer" className="self-start text-[13px] font-medium text-[var(--text-2)] underline-offset-4 hover:underline">Full rules</a>
         )}
       </section>
       <section className={cn(card, "flex flex-col gap-3.5 p-[18px]")}>
@@ -274,10 +274,10 @@ function Overview({ tournament, now }: { tournament: TournamentDetail; now: numb
               <li key={step.label} className="flex gap-3">
                 <span className="flex flex-col items-center">
                   <span className={cn("mt-1 size-2.5 rounded-full", active ? "lx-live-dot bg-[var(--brand-bright)]" : done ? "bg-[var(--brand)]" : "bg-[var(--line)]")} />
-                  {index < steps.length - 1 && <span className={cn("my-1 w-px flex-1", done ? "bg-[var(--brand)]/70" : "bg-[var(--line)]")} />}
+                  {index < steps.length - 1 && <span className={cn("my-1 w-px flex-1", done ? "bg-[var(--raised)]" : "bg-[var(--line)]")} />}
                 </span>
                 <span className="flex flex-col gap-1 pb-4">
-                  <span className={cn("text-[13px]", active ? "font-semibold text-[var(--brand-bright)]" : done ? "font-medium text-[var(--text-2)]" : "font-medium text-[var(--text-muted)]")}>{step.label}</span>
+                  <span className={cn("text-[13px]", active ? "font-semibold text-[var(--text-2)]" : done ? "font-medium text-[var(--text-2)]" : "font-medium text-[var(--text-muted)]")}>{step.label}</span>
                   <span className="text-xs text-[var(--text-dim)]">{step.at ? formatDateTime(step.at) : "TBA"}</span>
                 </span>
               </li>
@@ -292,9 +292,9 @@ function Overview({ tournament, now }: { tournament: TournamentDetail; now: numb
 function TeamRow({ name, score, winner, loser, mine }: { name: string | null; score: number | null; winner: boolean; loser: boolean; mine: boolean }) {
   return (
     <span className="flex h-9 items-center gap-2.5 px-3">
-      <span className={cn("size-5 shrink-0 rounded-md", winner ? "bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))]" : mine ? "bg-[var(--brand)]/40" : "bg-[var(--line-soft)]")} />
+      <span className={cn("size-5 shrink-0 rounded-md", winner ? "bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))]" : mine ? "bg-[var(--raised)]" : "bg-[var(--line-soft)]")} />
       <span className={cn("min-w-0 flex-1 truncate text-[13px]", !name ? "text-[var(--text-faint)]" : winner ? "font-semibold text-[var(--text)]" : loser ? "text-[var(--text-dim)]" : "text-[var(--text-2)]")}>{name ?? "TBD"}</span>
-      <span className={cn("shrink-0 text-[13px]", winner ? "font-bold text-[var(--brand-bright)]" : "text-[var(--text-dim)]")}>{score ?? "–"}</span>
+      <span className={cn("shrink-0 text-[13px]", winner ? "font-bold text-[var(--text-2)]" : "text-[var(--text-dim)]")}>{score ?? "–"}</span>
     </span>
   )
 }
@@ -307,7 +307,7 @@ function MatchCard({ match, myTeamId }: { match: TournamentMatch; myTeamId: stri
     <div
       className={cn(
         "lx-layer relative w-full rounded-[10px] border bg-[var(--glass-fill)] transition-[border-color,box-shadow,translate] duration-500 hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:duration-300",
-        mine ? "border-[var(--brand)]/60" : match.status === "live" ? "border-[var(--status-green)]/35" : "border-[var(--line-soft)]",
+        mine ? "border-[var(--line-strong)]" : match.status === "live" ? "border-[var(--status-green)]/35" : "border-[var(--line-soft)]",
       )}
     >
       {match.status === "live" && (
@@ -350,9 +350,9 @@ function Bracket({ tournament }: { tournament: TournamentDetail }) {
         <div className="flex flex-col">
           <span className="mb-3.5 text-xs font-semibold text-[var(--text-muted)]">Champion</span>
           <div className="flex flex-1 items-center">
-            <div className={cn(card, "relative flex w-full flex-col items-center gap-2.5 overflow-hidden p-5 text-center", tournament.winner && "border-[var(--brand)]/55")}>
+            <div className={cn(card, "relative flex w-full flex-col items-center gap-2.5 overflow-hidden p-5 text-center", tournament.winner && "border-[var(--line-strong)]")}>
               {tournament.winner && <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10 opacity-80" />}
-              <span className={cn("relative flex size-11 items-center justify-center rounded-xl", tournament.winner ? "bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))] text-[var(--brand-on)]" : "border border-dashed border-[var(--line-strong)] text-[var(--text-faint)]")}>
+              <span className={cn("relative flex size-11 items-center justify-center rounded-xl", tournament.winner ? "bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))] text-[var(--text)]" : "border border-dashed border-[var(--line-strong)] text-[var(--text-faint)]")}>
                 {tournament.winner ? <Crown className="size-5" /> : <Trophy className="size-5" />}
               </span>
               <span className={cn("relative text-[13px]", tournament.winner ? "font-bold text-[var(--text)]" : "text-[var(--text-dim)]")}>{tournament.winner?.name ?? "Decided in the final"}</span>
@@ -370,11 +370,11 @@ function PlayerLine({ player, captain, onOpen }: { player: TournamentPlayer; cap
       type="button"
       disabled={!player.steamId}
       onClick={() => player.steamId && onOpen(player.steamId)}
-      className="flex h-11 w-full items-center gap-3 rounded-lg px-2 text-left transition-colors duration-300 hover:bg-[var(--brand)]/[0.07] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:cursor-default"
+      className="flex h-11 w-full items-center gap-3 rounded-lg px-2 text-left transition-colors duration-300 hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 disabled:cursor-default"
     >
       <PlayerAvatar avatar={player.avatar} name={player.name} className="size-7 shrink-0 rounded-lg text-[10px]" />
       <span className="min-w-0 flex-1 truncate text-[13px] text-[var(--text)]" title={player.name}>{player.name}</span>
-      {captain && <span className="flex items-center gap-1 text-[11px] font-medium text-[var(--brand-bright)]"><Crown className="size-3" />Captain</span>}
+      {captain && <span className="flex items-center gap-1 text-[11px] font-medium text-[var(--text-2)]"><Crown className="size-3" />Captain</span>}
       {player.checkedIn && <span className="text-[11px] text-[var(--status-green)]">Checked in</span>}
     </button>
   )
@@ -396,11 +396,11 @@ function Players({ tournament, onProfileNavigate, onJoinTeam, busy }: { tourname
               <section
                 key={team.id}
                 style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}
-                className={cn(card, "lx-row-in flex flex-col gap-2 p-3", mine && "border-[var(--brand)]/55 bg-[linear-gradient(160deg,color-mix(in_oklab,var(--brand)_9%,var(--card-surface)),var(--card-surface)_55%)]")}
+                className={cn(card, "lx-row-in flex flex-col gap-2 p-3", mine && "border-[var(--line-strong)] bg-[linear-gradient(160deg,color-mix(in_oklab,var(--brand)_9%,var(--card-surface)),var(--card-surface)_55%)]")}
               >
                 <div className="flex items-center justify-between gap-3 px-2 pt-1">
                   <span className="flex min-w-0 items-center gap-2">
-                    {team.seed !== null && <span className="flex h-5 min-w-5 items-center justify-center rounded-md bg-[var(--brand)]/15 px-1 text-[10px] font-bold text-[var(--brand-bright)]">#{team.seed}</span>}
+                    {team.seed !== null && <span className="flex h-5 min-w-5 items-center justify-center rounded-md bg-[var(--raised)] px-1 text-[10px] font-bold text-[var(--text-2)]">#{team.seed}</span>}
                     <span className="truncate text-sm font-semibold text-[var(--text)]">{team.name}</span>
                   </span>
                   <span className="flex shrink-0 items-center gap-2 text-xs text-[var(--text-dim)]">
@@ -452,7 +452,7 @@ function Matches({ tournament }: { tournament: TournamentDetail }) {
           key={match.id}
           style={{ animationDelay: `${Math.min(index, 12) * 35}ms` }}
           className={cn(
-            "lx-row-in grid min-h-[56px] grid-cols-[130px_minmax(0,1fr)_160px_80px] items-center gap-4 border-b border-[var(--raised)] px-[18px] py-2 transition-colors duration-500 last:border-b-0 hover:bg-[var(--brand)]/[0.05] hover:duration-200 max-md:grid-cols-[minmax(0,1fr)_80px]",
+            "lx-row-in grid min-h-[56px] grid-cols-[130px_minmax(0,1fr)_160px_80px] items-center gap-4 border-b border-[var(--raised)] px-[18px] py-2 transition-colors duration-500 last:border-b-0 hover:bg-[var(--raised)] hover:duration-200 max-md:grid-cols-[minmax(0,1fr)_80px]",
             match.status === "live" && "bg-[linear-gradient(90deg,color-mix(in_oklab,var(--status-green)_7%,transparent),transparent_40%)]",
           )}
         >
@@ -462,7 +462,7 @@ function Matches({ tournament }: { tournament: TournamentDetail }) {
           </span>
           <span className="flex min-w-0 items-center gap-2 text-[13px]">
             <span className={cn("truncate", match.winnerTeamId && match.winnerTeamId === match.teamA?.id ? "font-semibold text-[var(--text)]" : "text-[var(--text-2)]")}>{match.teamA?.name ?? "TBD"}</span>
-            <span className="flex shrink-0 items-center gap-1 rounded-md bg-[var(--raised)] px-2 py-0.5 font-semibold text-[var(--text-2)]"><Swords className="size-3 text-[var(--brand-bright)]" />{match.scoreA ?? "–"} : {match.scoreB ?? "–"}</span>
+            <span className="flex shrink-0 items-center gap-1 rounded-md bg-[var(--raised)] px-2 py-0.5 font-semibold text-[var(--text-2)]"><Swords className="size-3 text-[var(--text-2)]" />{match.scoreA ?? "–"} : {match.scoreB ?? "–"}</span>
             <span className={cn("truncate", match.winnerTeamId && match.winnerTeamId === match.teamB?.id ? "font-semibold text-[var(--text)]" : "text-[var(--text-2)]")}>{match.teamB?.name ?? "TBD"}</span>
           </span>
           <span className="truncate text-xs text-[var(--text-dim)] max-md:hidden">{match.server?.name ?? "Server TBA"}{match.map ? ` · ${match.map}` : ""}</span>
@@ -506,7 +506,7 @@ function TeamNameDialog({ open, onClose, onSubmit, busy, error }: { open: boolea
               value={name}
               maxLength={32}
               onChange={(event) => setName(event.target.value)}
-              className="h-10 rounded-[10px] border border-[var(--line)] bg-[var(--glass-fill)] px-3 text-sm text-[var(--text)] outline-none transition-[border-color,box-shadow] duration-300 placeholder:text-[var(--text-dim)] focus:border-[var(--brand)]/60 focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_18%,transparent)]"
+              className="h-10 rounded-[10px] border border-[var(--line)] bg-[var(--glass-fill)] px-3 text-sm text-[var(--text)] outline-none transition-[border-color,box-shadow] duration-300 placeholder:text-[var(--text-dim)] focus:border-[var(--text-dim)] focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_18%,transparent)]"
               placeholder="2–32 characters"
             />
           </label>
@@ -551,8 +551,8 @@ function YouPanel({ tournament, busy, error, onJoinSolo, onRegisterTeam, onLeave
   } else if (tournament.phase === "live" && next) {
     body = (
       <>
-        <div className="flex flex-col gap-2.5 rounded-[10px] border border-[var(--brand)]/50 bg-[linear-gradient(160deg,color-mix(in_oklab,var(--brand)_12%,var(--panel)),var(--panel)_60%)] p-3.5">
-          <span className="text-[11px] font-bold tracking-[0.6px] text-[var(--brand-bright)]">YOUR NEXT MATCH</span>
+        <div className="flex flex-col gap-2.5 rounded-[10px] border border-[var(--line-strong)] bg-[linear-gradient(160deg,color-mix(in_oklab,var(--brand)_12%,var(--panel)),var(--panel)_60%)] p-3.5">
+          <span className="text-[11px] font-bold tracking-[0.6px] text-[var(--text-2)]">YOUR NEXT MATCH</span>
           <span className="flex items-center gap-2 text-[13px] text-[var(--text-muted)]">vs <span className="truncate font-medium text-[var(--text)]">{next.opponent?.name ?? "TBD"}</span></span>
           <span className="flex flex-wrap gap-3 text-xs text-[var(--text-dim)]">
             <span>{next.status === "live" ? "Live now" : next.scheduledTime ? formatDateTime(next.scheduledTime) : "Time TBA"}</span>
@@ -608,8 +608,8 @@ function YouPanel({ tournament, busy, error, onJoinSolo, onRegisterTeam, onLeave
 
   return (
     <aside aria-label="Your status" className={cn(card, "lx-swap-in relative flex flex-col gap-3.5 overflow-hidden p-[18px] lg:sticky lg:top-0")}>
-      <span aria-hidden="true" className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--brand-bright)] to-transparent" />
-      <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]"><span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--brand-bright)]" />You</h2>
+      <span aria-hidden="true" className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]"><span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--text-faint)]" />You</h2>
       {body}
       {error && <p role="alert" className="text-xs text-[var(--text-2)]">{error}</p>}
       {myTeam && (

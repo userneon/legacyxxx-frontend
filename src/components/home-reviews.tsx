@@ -56,7 +56,7 @@ export function HomeReviews({ onWriteReview }: { onWriteReview: () => void }) {
     <section className="scroll-reveal flex flex-col gap-3" aria-label="What players say">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <h2 className="flex items-center gap-2 text-lg font-semibold"><span aria-hidden="true" className="h-4 w-[3px] rounded-full bg-[var(--brand-bright)]" />What players say</h2>
+          <h2 className="flex items-center gap-2 text-lg font-semibold"><span aria-hidden="true" className="h-4 w-[3px] rounded-full bg-[var(--text-faint)]" />What players say</h2>
           {total > 0 && (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--accent-solid)]/25 bg-[var(--accent-solid)]/[0.08] px-2.5 py-1 text-xs text-[var(--text-2)]">
               <Star className="size-3 fill-[var(--star)] text-[var(--star)]" aria-hidden="true" />

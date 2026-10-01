@@ -37,10 +37,14 @@ exception was dropped and no longer exists in `src/`.
 - Lines: `--line-soft` `#1f1f1f`, `--line` `#262626`, `--line-strong` `#333333`
 - Text: `--text` `#fafafa` → `--text-faint` `#525252`
 - `--accent-solid` `#fafafa` (on `#0a0a0a`): primary buttons (`.lx-primary-button`), progress fills, unread dots
-- `--brand` `#e11d48` (fills, borders, glows), `--brand-bright` `#ff3d6e` (text, icons, focus rings),
-  `--brand-deep` `#4c0717`, `--brand-on` `#fff5f7`: the wordmark's "-X", the active nav item, selected
-  and active states, focus rings, highlights and glows. It is an accent, not a surface: no large flat
-  crimson panels, and a primary button stays white.
+- `--brand` `#e11d48` (fills, borders, glows), `--brand-bright` `#ff3d6e` (text, icons), `--brand-deep`
+  `#4c0717`, `--brand-on` `#fff5f7`. Crimson is used sparingly (owner request 2026-10-01: too much of it).
+  It belongs to: the wordmark's "-X", the active sidebar item, the hero's accent word, the flagship
+  "Players Online" figure, the #1 leader and the viewer's own row, the active sort column, the Pro League
+  card, the rank/EXP progress fill and the soft page glows. Everything else is neutral: section-heading bars
+  (`--text-faint`), hover borders (`--line-strong`), hover fills (`--raised`), focus rings (`--accent-solid`),
+  icon tiles, slot dots (`--text-2`). A primary button stays white. Before adding crimson somewhere new,
+  ask whether it is one of the spots above; if not, leave it neutral.
 - `--status-green` `#22c55e` (online/live/verified) and `--status-red` `#ef4444` (limits, bans) are the status colors
 - Rank emblems use the CS2 rarity ladder (`--rank-<tier>`) **only** inside emblem
   images and the rank name next to one — never on buttons, backgrounds, or chrome

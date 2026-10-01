@@ -31,7 +31,7 @@ function Switch({ checked, onChange, label, disabled }: { checked: boolean; onCh
       onClick={() => onChange?.(!checked)}
       className={cn(
         "group",
-        "relative h-6 w-[42px] shrink-0 rounded-full p-0.5 transition-[background-color,box-shadow] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:cursor-default disabled:opacity-50",
+        "relative h-6 w-[42px] shrink-0 rounded-full p-0.5 transition-[background-color,box-shadow] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 disabled:cursor-default disabled:opacity-50",
         checked ? "bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))]" : "bg-[var(--line-strong)]",
       )}
     >
@@ -43,7 +43,7 @@ function Switch({ checked, onChange, label, disabled }: { checked: boolean; onCh
 
 function Row({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
   return (
-    <div className="-mx-2 flex items-center gap-4 rounded-lg px-2 py-1.5 transition-colors duration-300 hover:bg-[var(--brand)]/[0.05]">
+    <div className="-mx-2 flex items-center gap-4 rounded-lg px-2 py-1.5 transition-colors duration-300 hover:bg-[var(--raised)]">
       <span className="flex min-w-0 flex-1 flex-col gap-[3px]">
         <span className="text-sm font-medium text-[var(--text)]">{title}</span>
         <span className="text-xs text-[var(--text-dim)]">{description}</span>
@@ -67,11 +67,11 @@ function useSavedFlash() {
     <span
       aria-live="polite"
       className={cn(
-        "inline-flex h-7 items-center gap-1.5 rounded-full border border-[var(--brand)]/40 bg-[var(--brand)]/12 px-2.5 text-xs font-medium text-[var(--text-2)] transition-[opacity,scale] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
+        "inline-flex h-7 items-center gap-1.5 rounded-full border border-[var(--line-strong)] bg-[var(--raised)] px-2.5 text-xs font-medium text-[var(--text-2)] transition-[opacity,scale] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
         visible ? "scale-100 opacity-100" : "scale-90 opacity-0",
       )}
     >
-      <Check className="size-3.5 text-[var(--brand-bright)]" />
+      <Check className="size-3.5 text-[var(--text-2)]" />
       Saved
     </span>
   )
@@ -87,10 +87,10 @@ function Section({ id, title, description, aside, children, index = 0 }: { id: S
       style={{ animationDelay: `${120 + index * 80}ms` }}
       className="lx-swap-in relative scroll-mt-6 overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] transition-[border-color,box-shadow] duration-500 hover:border-[var(--line)]"
     >
-      <span aria-hidden="true" className="absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
+      <span aria-hidden="true" className="absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
       <div className="flex items-start justify-between gap-4 px-5 pb-1 pt-[18px]">
         <div className="flex items-start gap-3">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-[var(--brand)]/15 text-[var(--brand-bright)] ring-1 ring-inset ring-[var(--brand)]/30"><Icon className="size-[18px]" /></span>
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-[var(--raised)] text-[var(--text-2)] ring-1 ring-inset ring-[var(--line-strong)]"><Icon className="size-[18px]" /></span>
           <div className="flex flex-col gap-1">
             <h2 id={`${id}-t`} className="text-[15px] font-semibold text-[var(--text)]">{title}</h2>
             <span className="text-[13px] text-[var(--text-muted)]">{description}</span>
@@ -105,7 +105,7 @@ function Section({ id, title, description, aside, children, index = 0 }: { id: S
 
 function ConnectionRow({ icon, title, description, action }: { icon: React.ReactNode; title: string; description: React.ReactNode; action: React.ReactNode }) {
   return (
-    <div className="lx-layer flex items-center gap-3.5 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] px-3.5 py-3 transition-[border-color,translate,box-shadow] duration-500 hover:-translate-y-0.5 hover:border-[var(--brand)]/40 hover:duration-300">
+    <div className="lx-layer flex items-center gap-3.5 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] px-3.5 py-3 transition-[border-color,translate,box-shadow] duration-500 hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:duration-300">
       <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-[9px] bg-[var(--line-soft)] text-[var(--text)]">{icon}</span>
       <span className="flex min-w-0 flex-1 flex-col gap-[5px]">
         <span className="text-sm font-medium text-[var(--text)]">{title}</span>
@@ -241,18 +241,18 @@ export function SettingsPage() {
         <section aria-label="Settings" className="lx-swap-in relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
           <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
           <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
-          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
           <div className="relative z-10 flex flex-wrap items-end justify-between gap-5 p-7">
             <div className="flex min-w-0 flex-col gap-2.5">
               <h1 className="flex items-center gap-2.5 text-[34px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
-                <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)]" />
+                <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--text-faint)]" />
                 {PAGE_TITLES["settings"]}
               </h1>
               <span className="text-[14px] text-[var(--text-2)]">Your connections, notifications and how the site behaves on this device.</span>
             </div>
             {user && (
               <span className="flex items-center gap-2.5 rounded-full border border-[var(--line)] bg-[var(--panel)]/75 py-1 pl-1 pr-3.5 backdrop-blur">
-                <PlayerAvatar avatar={user.avatar} name={user.username} className="size-8 rounded-full text-[10px] ring-2 ring-[var(--brand)]/60" />
+                <PlayerAvatar avatar={user.avatar} name={user.username} className="size-8 rounded-full text-[10px] ring-2 ring-[var(--line-strong)]" />
                 <span className="flex flex-col">
                   <span className="text-[13px] font-semibold text-[var(--text)]">{user.username}</span>
                   <span className="text-[11px] text-[var(--text-dim)]">Signed in with Steam</span>
@@ -270,7 +270,7 @@ export function SettingsPage() {
               className="pointer-events-none absolute rounded-lg bg-[linear-gradient(90deg,color-mix(in_oklab,var(--brand)_18%,transparent),transparent)] transition-[top,left,height,width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
               style={indicator}
             >
-              <span className="absolute bottom-2 left-0 top-2 w-[3px] rounded-full bg-[var(--brand-bright)]" />
+              <span className="absolute bottom-2 left-0 top-2 w-[3px] rounded-full bg-[var(--text-faint)]" />
             </span>
           )}
           {SECTIONS.map((section) => (
@@ -284,8 +284,8 @@ export function SettingsPage() {
               aria-current={active === section.id}
               onClick={() => jump(section.id)}
               className={cn(
-                "relative flex h-10 items-center gap-2.5 rounded-lg px-3 text-left text-sm font-medium transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60",
-                active === section.id ? "text-[var(--text)] [&>svg]:text-[var(--brand-bright)]" : "text-[var(--text-muted)] hover:text-[var(--text)]",
+                "relative flex h-10 items-center gap-2.5 rounded-lg px-3 text-left text-sm font-medium transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
+                active === section.id ? "text-[var(--text)] [&>svg]:text-[var(--text-2)]" : "text-[var(--text-muted)] hover:text-[var(--text)]",
               )}
             >
               <section.icon className="size-4 transition-colors duration-300" />

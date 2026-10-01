@@ -67,7 +67,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--card-surface)]/85 via-[var(--card-surface)]/60 to-transparent" />
         <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
         <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
 
         <div className="relative z-10 flex w-fit items-center gap-2">
           {(homeStats?.playersOnline ?? 0) > 0 ? (
@@ -126,7 +126,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
               onBlur={() => setActiveMode(null)}
               style={{ animationDelay: `${120 + index * 80}ms`, flexGrow: wide(mode.key) ? 2 : 1 }}
               className={cn(
-                "lx-fx-card lx-glass group relative flex min-h-[168px] min-w-0 basis-0 flex-col justify-end overflow-hidden rounded-xl p-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60",
+                "lx-fx-card lx-glass group relative flex min-h-[168px] min-w-0 basis-0 flex-col justify-end overflow-hidden rounded-xl p-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
                 // Pro League is the one marked as special.
                 mode.key === "pro" && "border-[var(--brand)]/50",
               )}

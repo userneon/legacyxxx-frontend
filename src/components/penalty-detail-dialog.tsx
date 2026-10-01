@@ -178,7 +178,7 @@ export function PenaltyDetailSheet({
                   <SheetDescription className="truncate text-xs text-[var(--text-dim)]">{penalty.playerSteamId ?? "Steam ID unavailable"}</SheetDescription>
                   <span className="flex flex-wrap items-center gap-1.5"><TypePill type={penalty.type} /><StatusPill penalty={penalty} /></span>
                 </div>
-                <button type="button" onClick={onClose} aria-label="Close" className="flex size-8 shrink-0 items-center justify-center self-start rounded-lg border border-[var(--line)] bg-[var(--panel)]/70 text-[var(--text-muted)] backdrop-blur transition-[color,border-color,rotate] duration-300 hover:rotate-90 hover:border-[var(--brand)]/50 hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60">
+                <button type="button" onClick={onClose} aria-label="Close" className="flex size-8 shrink-0 items-center justify-center self-start rounded-lg border border-[var(--line)] bg-[var(--panel)]/70 text-[var(--text-muted)] backdrop-blur transition-[color,border-color,rotate] duration-300 hover:rotate-90 hover:border-[var(--line-strong)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
                   <X className="size-4" />
                 </button>
               </div>
@@ -216,7 +216,7 @@ export function PenaltyDetailSheet({
                 type="button"
                 disabled={!penalty.playerSteamId}
                 onClick={() => { if (penalty.playerSteamId) { onClose(); onProfileNavigate(penalty.playerSteamId) } }}
-                className="flex h-10 flex-1 items-center justify-center rounded-lg border border-[var(--line)] text-[13px] font-medium text-[var(--text)] transition-colors hover:border-[var(--brand)]/50 hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:opacity-50"
+                className="flex h-10 flex-1 items-center justify-center rounded-lg border border-[var(--line)] text-[13px] font-medium text-[var(--text)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 disabled:opacity-50"
               >
                 View profile
               </button>
@@ -225,7 +225,7 @@ export function PenaltyDetailSheet({
                   href={LINKS.discordAppeals}
                   target="_blank"
                   rel="noreferrer"
-                  className="lx-primary-button flex h-10 flex-1 items-center justify-center rounded-lg text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
+                  className="lx-primary-button flex h-10 flex-1 items-center justify-center rounded-lg text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
                 >
                   Appeal on Discord
                 </a>

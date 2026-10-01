@@ -91,18 +91,18 @@ function ReviewCard({ entry, own, fresh, index, onOpenProfile }: { entry: Feedba
       style={{ animationDelay: `${fresh ? 0 : Math.min(index, 10) * 50}ms` }}
       className={cn(
         "lx-fx-card group relative flex flex-col gap-3 overflow-hidden rounded-xl border bg-[var(--glass-fill)] px-5 py-[18px]",
-        own ? "border-[var(--brand)]/50 bg-[linear-gradient(160deg,color-mix(in_oklab,var(--brand)_10%,var(--card-surface)),var(--card-surface)_55%)]" : "border-[var(--line-soft)]",
+        own ? "border-[var(--line-strong)] bg-[linear-gradient(160deg,color-mix(in_oklab,var(--brand)_10%,var(--card-surface)),var(--card-surface)_55%)]" : "border-[var(--line-soft)]",
       )}
     >
       {own && (
-        <span className="relative w-fit rounded-full border border-[var(--brand)]/45 bg-[var(--brand)]/15 px-2 py-0.5 text-[10px] font-bold tracking-[0.6px] text-[var(--brand-bright)]">YOUR REVIEW</span>
+        <span className="relative w-fit rounded-full border border-[var(--line-strong)] bg-[var(--raised)] px-2 py-0.5 text-[10px] font-bold tracking-[0.6px] text-[var(--text-2)]">YOUR REVIEW</span>
       )}
       {entry.steamId ? (
         <button
           type="button"
           onClick={() => onOpenProfile(entry.steamId!)}
           aria-label={`Open ${entry.name} profile`}
-          className="relative flex min-w-0 items-center gap-3 rounded-lg transition-opacity duration-150 hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
+          className="relative flex min-w-0 items-center gap-3 rounded-lg transition-opacity duration-150 hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
         >
           {author}
         </button>
@@ -112,7 +112,7 @@ function ReviewCard({ entry, own, fresh, index, onOpenProfile }: { entry: Feedba
       <div className="relative flex flex-col gap-1">
         <p ref={message} className={cn("whitespace-pre-wrap break-words text-[13px] leading-6 text-[var(--text-2)]", !expanded && "line-clamp-4")}>{entry.message}</p>
         {(clamped || expanded) && (
-          <button type="button" onClick={() => setExpanded((open) => !open)} className="self-start text-xs font-medium text-[var(--brand-bright)] transition-colors hover:text-[var(--text)]">
+          <button type="button" onClick={() => setExpanded((open) => !open)} className="self-start text-xs font-medium text-[var(--text-2)] transition-colors hover:text-[var(--text)]">
             {expanded ? "Show less" : "Read more"}
           </button>
         )}
@@ -207,7 +207,7 @@ function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () =
                   onFocus={() => setHover(star)}
                   onBlur={() => setHover(0)}
                   onClick={() => setRating(star)}
-                  className="flex size-9 items-center justify-center rounded-lg transition-colors hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
+                  className="flex size-9 items-center justify-center rounded-lg transition-colors hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
                 >
                   <Star
                     className={cn(
@@ -232,7 +232,7 @@ function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () =
               maxLength={MAX_LENGTH}
               rows={5}
               placeholder="Servers, community, staff, anything that stood out…"
-              className="resize-none rounded-[10px] border border-[var(--line)] bg-[var(--glass-fill)] p-3 text-sm leading-6 text-[var(--text)] outline-none transition-[border-color,box-shadow] duration-300 placeholder:text-[var(--text-dim)] focus:border-[var(--brand)]/60 focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_18%,transparent)]"
+              className="resize-none rounded-[10px] border border-[var(--line)] bg-[var(--glass-fill)] p-3 text-sm leading-6 text-[var(--text)] outline-none transition-[border-color,box-shadow] duration-300 placeholder:text-[var(--text-dim)] focus:border-[var(--text-dim)] focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_18%,transparent)]"
             />
           </label>
           <span className="text-xs text-[var(--text-dim)]">Posted publicly with your Steam name. One review per week.</span>
@@ -246,7 +246,7 @@ function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () =
             type="button"
             onClick={() => void post()}
             disabled={!canPost}
-            className="lx-primary-button inline-flex h-9 items-center gap-1.5 rounded-lg px-[18px] text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:pointer-events-none disabled:opacity-40 disabled:saturate-50"
+            className="lx-primary-button inline-flex h-9 items-center gap-1.5 rounded-lg px-[18px] text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 disabled:pointer-events-none disabled:opacity-40 disabled:saturate-50"
           >
             {submitting && <LoaderCircle className="size-3.5 animate-spin" />}
             Post review
@@ -329,11 +329,11 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
           <section aria-label="Reviews" className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
             <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
             <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
-            <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
+            <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
             <div className="relative z-10 flex flex-col gap-5 p-7">
               <div className="flex min-w-0 flex-col gap-2.5">
                 <h1 className="flex items-center gap-2.5 text-[34px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
-                  <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)]" />
+                  <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--text-faint)]" />
                   {PAGE_TITLES["feedback"]}
                   {loading && reviews.length > 0 && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
                 </h1>
@@ -398,7 +398,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
       </section>
 
       <aside aria-label="Summary" className="scrollbar-hidden flex w-[340px] shrink-0 flex-col gap-5 overflow-y-auto border-l border-[var(--line-soft)] p-6 max-lg:w-full max-lg:overflow-visible max-lg:border-l-0 max-lg:border-t">
-        <div className="lx-swap-in relative flex items-center gap-4 overflow-hidden rounded-xl border border-[var(--brand)]/35 bg-[var(--glass-fill)] p-5">
+        <div className="lx-swap-in relative flex items-center gap-4 overflow-hidden rounded-xl border border-[var(--line-strong)] bg-[var(--glass-fill)] p-5">
           <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10 opacity-70" />
           <span className="lx-brand-text relative text-5xl font-bold leading-none tracking-[-1.5px]">{average.toFixed(1)}</span>
           <span className="relative flex flex-col gap-2">
@@ -417,7 +417,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
                 aria-pressed={pressed}
                 onClick={() => update({ rating: pressed ? null : String(bucket.score) })}
                 className={cn(
-                  "flex h-8 items-center gap-2.5 rounded-lg px-2 transition-colors duration-300 hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60",
+                  "flex h-8 items-center gap-2.5 rounded-lg px-2 transition-colors duration-300 hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
                   pressed && "bg-[var(--raised)] ring-1 ring-inset ring-[var(--line-strong)]",
                 )}
               >
@@ -454,7 +454,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
               <button
                 type="button"
                 onClick={() => setWriting(true)}
-                className="lx-primary-button group flex h-10 items-center justify-center gap-2 rounded-lg text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
+                className="lx-primary-button group flex h-10 items-center justify-center gap-2 rounded-lg text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
               >
                 <PenLine className="size-4 transition-[rotate] duration-300 group-hover:-rotate-12" />
                 Write a review

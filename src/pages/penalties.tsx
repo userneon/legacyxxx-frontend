@@ -79,7 +79,7 @@ function YourStatus({ penalties, loading, onDetails }: { penalties: PenaltyEntry
       <button
         type="button"
         onClick={() => onDetails(active)}
-        className="h-9 shrink-0 rounded-lg border border-[var(--line)] px-3.5 text-[13px] font-medium text-[var(--text)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
+        className="h-9 shrink-0 rounded-lg border border-[var(--line)] px-3.5 text-[13px] font-medium text-[var(--text)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
       >
         Details
       </button>
@@ -88,7 +88,7 @@ function YourStatus({ penalties, loading, onDetails }: { penalties: PenaltyEntry
           href={LINKS.discordAppeals}
           target="_blank"
           rel="noreferrer"
-          className="lx-primary-button flex h-9 shrink-0 items-center rounded-lg px-3.5 text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
+          className="lx-primary-button flex h-9 shrink-0 items-center rounded-lg px-3.5 text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
         >
           Appeal on Discord
         </a>
@@ -108,12 +108,12 @@ function PenaltyRow({ penalty, onOpen, index }: { penalty: PenaltyEntry; onOpen:
       className={cn(
         GRID,
         "lx-row-in group relative h-14 w-full border-b border-[var(--raised)] text-left transition-[background-color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] hover:duration-200",
-        "hover:bg-[var(--brand)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--brand-bright)]/60",
+        "hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50",
       )}
     >
       <span
         aria-hidden="true"
-        className="absolute bottom-2 left-0 top-2 w-[3px] scale-y-0 rounded-r-full bg-[var(--brand-bright)] opacity-0 transition-[scale,opacity] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]"
+        className="absolute bottom-2 left-0 top-2 w-[3px] scale-y-0 rounded-r-full bg-[var(--text-2)] opacity-0 transition-[scale,opacity] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]"
       />
       <span className="flex min-w-0 items-center gap-3 transition-[translate] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:translate-x-1 group-hover:duration-300 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]">
         <PlayerModerationAvatar avatar={penalty.avatar} name={penalty.player} status={penalty.moderationStatus} className="size-8 shrink-0 rounded-[9px] text-xs" />
@@ -124,7 +124,7 @@ function PenaltyRow({ penalty, onOpen, index }: { penalty: PenaltyEntry; onOpen:
       <span className="min-w-0 truncate text-[13px] text-[var(--text-2)]" title={reason}>{reason}</span>
       <TermLabel penalty={penalty} className="text-[13px] font-medium" />
       <span className="text-[13px] text-[var(--text-muted)]" title={formatPenaltyDate(penalty.date, true)}>{formatPenaltyDate(penalty.date)}</span>
-      <ChevronRight className="size-4 text-[var(--text-faint)] transition-[translate,color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:translate-x-1 group-hover:text-[var(--brand-bright)] group-hover:duration-300" />
+      <ChevronRight className="size-4 text-[var(--text-faint)] transition-[translate,color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:translate-x-1 group-hover:text-[var(--text)] group-hover:duration-300" />
     </button>
   )
 }
@@ -155,7 +155,7 @@ function SummaryCell({ label, value, color, selected, pulse, onClick }: {
       aria-pressed={selected}
       style={{ "--tile": color } as CSSProperties}
       className={cn(
-        "lx-stat-cell relative text-left transition-colors duration-200 hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--brand-bright)]/60",
+        "lx-stat-cell relative text-left transition-colors duration-200 hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50",
         selected && "bg-[color-mix(in_oklab,var(--tile)_10%,var(--card-surface))] hover:bg-[color-mix(in_oklab,var(--tile)_14%,var(--card-surface))]",
       )}
     >
@@ -246,26 +246,26 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
             <section aria-label="Penalties" className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
               <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
               <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
-              <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
+              <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
               <div className="relative z-10 flex flex-col gap-5 p-7">
                 <div className="flex items-end justify-between gap-4">
                   <div className="flex min-w-0 flex-col gap-2.5">
                     <h1 className="flex items-center gap-2.5 text-[34px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
-                      <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)]" />
+                      <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--text-faint)]" />
                       {PAGE_TITLES["penalties"]}
                       {loading && all.length > 0 && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
                     </h1>
                     <span className="text-[14px] text-[var(--text-2)]">Every ban, mute and gag on Legacy-X servers is public.</span>
                   </div>
                   {LINKS.serverRules && (
-                    <a href={LINKS.serverRules} target="_blank" rel="noreferrer" className="group flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--panel)]/70 px-3 text-[13px] text-[var(--text-2)] backdrop-blur transition-colors duration-300 hover:border-[var(--brand)]/60 hover:text-[var(--text)]">
+                    <a href={LINKS.serverRules} target="_blank" rel="noreferrer" className="group flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--panel)]/70 px-3 text-[13px] text-[var(--text-2)] backdrop-blur transition-colors duration-300 hover:border-[var(--line-strong)] hover:text-[var(--text)]">
                       Server rules
                       <ExternalLink className="size-3.5 transition-[translate] duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                     </a>
                   )}
                 </div>
                 <div className="flex flex-wrap items-center gap-2.5">
-                  <label className="flex h-10 min-w-[260px] flex-1 items-center gap-2 rounded-[10px] border border-[var(--line)] bg-[var(--panel)]/80 px-3 backdrop-blur transition-[border-color,box-shadow] duration-300 focus-within:border-[var(--brand)]/60 focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_18%,transparent)]">
+                  <label className="flex h-10 min-w-[260px] flex-1 items-center gap-2 rounded-[10px] border border-[var(--line)] bg-[var(--panel)]/80 px-3 backdrop-blur transition-[border-color,box-shadow] duration-300 focus-within:border-[var(--text-dim)] focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_18%,transparent)]">
                     <Search className="size-4 shrink-0 text-[var(--text-dim)]" />
                     <input
                       type="search"

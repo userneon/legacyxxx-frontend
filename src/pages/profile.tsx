@@ -25,7 +25,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Skeleton } from "@/components/ui/skeleton"
 
 const card = "rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]"
-const outline = "inline-flex h-[34px] items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] font-medium text-[var(--text)] transition-[background-color,border-color,transform] duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
+const outline = "inline-flex h-[34px] items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] font-medium text-[var(--text)] transition-[background-color,border-color,transform] duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
 
 const SECTION_LABEL: Record<ProfileSection, string> = { stats: "Stats", matches: "Recent matches", faceit: "FACEIT stats", loadout: "Loadout" }
 
@@ -33,7 +33,7 @@ const SECTION_LABEL: Record<ProfileSection, string> = { stats: "Stats", matches:
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
-      <span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--brand-bright)]" />
+      <span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--text-faint)]" />
       {children}
     </h2>
   )
@@ -102,9 +102,9 @@ function Avatar({ user }: { user: ProfileOverview["user"] }) {
 function RoleBadge({ role }: { role: string }) {
   if (!role || role === "Player") return null
   if (role === "Owner") {
-    return <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))] px-2.5 text-xs font-semibold text-[var(--brand-on)]"><Crown className="size-3.5" />Owner</span>
+    return <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))] px-2.5 text-xs font-semibold text-[var(--text)]"><Crown className="size-3.5" />Owner</span>
   }
-  return <span className="inline-flex h-6 items-center gap-1.5 rounded-full border border-[var(--brand)]/45 bg-[var(--brand)]/12 px-2.5 text-xs font-medium text-[var(--text-2)]"><Shield className="size-3.5 text-[var(--brand-bright)]" />{role}</span>
+  return <span className="inline-flex h-6 items-center gap-1.5 rounded-full border border-[var(--line-strong)] bg-[var(--raised)] px-2.5 text-xs font-medium text-[var(--text-2)]"><Shield className="size-3.5 text-[var(--text-2)]" />{role}</span>
 }
 
 function Switch({ checked, onChange, label }: { checked: boolean; onChange: (next: boolean) => void; label: string }) {
@@ -115,7 +115,7 @@ function Switch({ checked, onChange, label }: { checked: boolean; onChange: (nex
       aria-checked={checked}
       aria-label={label}
       onClick={() => onChange(!checked)}
-      className={cn("relative h-[22px] w-[38px] shrink-0 rounded-full p-0.5 transition-[background-color,box-shadow] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60", checked ? "bg-[var(--brand)]" : "bg-[var(--line-strong)]")}
+      className={cn("relative h-[22px] w-[38px] shrink-0 rounded-full p-0.5 transition-[background-color,box-shadow] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50", checked ? "bg-[var(--brand)]" : "bg-[var(--line-strong)]")}
     >
       <span className={cn("block size-[18px] rounded-full bg-white transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:transition-none", checked && "translate-x-4")} />
     </button>
@@ -192,7 +192,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
           )}
         </div>
         <div className="flex flex-wrap items-center gap-3.5 text-[13px] text-[var(--text-muted)]">
-          {competitive?.position && <><span><span className="font-semibold text-[var(--brand-bright)]">#{competitive.position}</span> on leaderboard</span><span className="text-[var(--line-strong)]">·</span></>}
+          {competitive?.position && <><span><span className="font-semibold text-[var(--text-2)]">#{competitive.position}</span> on leaderboard</span><span className="text-[var(--line-strong)]">·</span></>}
           {user.memberSince && <><span>Member since {formatDate(user.memberSince)}</span><span className="text-[var(--line-strong)]">·</span></>}
           <span>{overview.lastPlayedAt ? <>Last played <RelativeTime value={overview.lastPlayedAt} /></> : "No matches yet"}</span>
         </div>
@@ -231,8 +231,8 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
 
 function StaffCard({ staff, username }: { staff: NonNullable<ProfileOverview["staff"]>; username: string }) {
   return (
-    <section aria-label="Legacy-X team" className={cn(card, "flex flex-wrap items-center gap-4 border-[var(--brand)]/35 bg-[linear-gradient(90deg,color-mix(in_oklab,var(--brand)_9%,var(--card-surface)),var(--card-surface)_55%)] px-[18px] py-3.5")}>
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-[var(--brand)]/15 text-[var(--brand-bright)] ring-1 ring-inset ring-[var(--brand)]/35">{staff.role === "Owner" ? <Crown className="size-4" /> : <Shield className="size-4" />}</span>
+    <section aria-label="Legacy-X team" className={cn(card, "flex flex-wrap items-center gap-4 border-[var(--line-strong)] bg-[linear-gradient(90deg,color-mix(in_oklab,var(--brand)_9%,var(--card-surface)),var(--card-surface)_55%)] px-[18px] py-3.5")}>
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-[var(--raised)] text-[var(--text-2)] ring-1 ring-inset ring-[var(--line-strong)]">{staff.role === "Owner" ? <Crown className="size-4" /> : <Shield className="size-4" />}</span>
       <span className="flex min-w-[220px] flex-1 flex-col gap-[3px]">
         <span className="text-sm font-semibold text-[var(--text)]">Legacy-X team · {staff.role}</span>
         <span className="text-[13px] text-[var(--text-muted)]">{staff.description} Staff never ask for your password or items.</span>
@@ -264,7 +264,7 @@ function RankCard({ competitive }: { competitive: NonNullable<ProfileOverview["c
             <span className="text-xs text-[var(--text-muted)]">Rank</span>
             <RankLabel rankId={competitive.rankId} rankName={competitive.rankName} imageKey={competitive.rankImageKey} size={0} nameClassName="text-base font-semibold" className="[&>img]:hidden" />
           </span>
-          <Link to={`${PAGE_ROUTES.leaders}${competitive.position ? `?focus=${competitive.position}` : ""}`} className="group flex items-center gap-1 text-xs text-[var(--text-muted)] transition-colors hover:text-[var(--brand-bright)]">
+          <Link to={`${PAGE_ROUTES.leaders}${competitive.position ? `?focus=${competitive.position}` : ""}`} className="group flex items-center gap-1 text-xs text-[var(--text-muted)] transition-colors hover:text-[var(--text)]">
             Leaderboard <ChevronRight className="size-3.5" />
           </Link>
         </div>
@@ -428,9 +428,9 @@ function RecentMatches({ matches, onOpen }: { matches: ProfileMatchRow[]; onOpen
                 disabled={!clickable}
                 onClick={() => onOpen(match)}
                 style={{ animationDelay: `${Math.min(index, 12) * 35}ms` }}
-                className={cn(grid, "lx-row-in group relative h-[52px] w-full border-t border-[var(--raised)] text-left text-[13px] transition-[background-color] duration-500 enabled:hover:bg-[var(--brand)]/[0.06] enabled:hover:duration-200 disabled:cursor-default")}
+                className={cn(grid, "lx-row-in group relative h-[52px] w-full border-t border-[var(--raised)] text-left text-[13px] transition-[background-color] duration-500 enabled:hover:bg-[var(--raised)] enabled:hover:duration-200 disabled:cursor-default")}
               >
-                <span aria-hidden="true" className="absolute bottom-2 left-0 top-2 w-[3px] scale-y-0 rounded-r-full bg-[var(--brand-bright)] opacity-0 transition-[scale,opacity] duration-500 group-enabled:group-hover:scale-y-100 group-enabled:group-hover:opacity-100 group-hover:duration-300" />
+                <span aria-hidden="true" className="absolute bottom-2 left-0 top-2 w-[3px] scale-y-0 rounded-r-full bg-[var(--text-2)] opacity-0 transition-[scale,opacity] duration-500 group-enabled:group-hover:scale-y-100 group-enabled:group-hover:opacity-100 group-hover:duration-300" />
                 <span className="flex min-w-0 items-center gap-2.5">
                   <span className="h-[30px] w-[52px] shrink-0 overflow-hidden rounded-md bg-[var(--line-soft)]">{art && <img src={art} alt="" className="lx-layer size-full object-cover transition-[scale] duration-700 group-hover:scale-110 group-hover:duration-500" />}</span>
                   <span className="truncate text-[var(--text)]">{cs2MapLabel(match.map)}</span>
@@ -514,7 +514,7 @@ function PenaltyHistory({ penalties, total, steamId, onOpen }: { penalties: Pena
         {total > penalties.length || steamId ? <Link to={`${PAGE_ROUTES.penalties}?q=${encodeURIComponent(steamId)}`} className="text-xs text-[var(--text-muted)] transition-colors hover:text-[var(--text)]">View all</Link> : null}
       </div>
       {penalties.map((penalty) => (
-        <button key={penalty.id} type="button" onClick={() => onOpen(penalty)} className="group flex items-center gap-2.5 rounded-md border-t border-[var(--line-soft)] px-1 py-2.5 text-left transition-colors duration-300 hover:bg-[var(--brand)]/[0.06]">
+        <button key={penalty.id} type="button" onClick={() => onOpen(penalty)} className="group flex items-center gap-2.5 rounded-md border-t border-[var(--line-soft)] px-1 py-2.5 text-left transition-colors duration-300 hover:bg-[var(--raised)]">
           <TypeIcon type={penalty.type} className="size-8" />
           <span className="flex min-w-0 flex-1 flex-col gap-1">
             <span className="flex min-w-0 items-center gap-2">
@@ -523,7 +523,7 @@ function PenaltyHistory({ penalties, total, steamId, onOpen }: { penalties: Pena
             </span>
             <span className="truncate text-xs text-[var(--text-dim)]">{penalty.reason || "No reason given"} · {formatPenaltyDate(penalty.date)}</span>
           </span>
-          <ChevronRight className="size-4 text-[var(--text-faint)] transition-[translate,color] duration-300 group-hover:translate-x-0.5 group-hover:text-[var(--brand-bright)]" />
+          <ChevronRight className="size-4 text-[var(--text-faint)] transition-[translate,color] duration-300 group-hover:translate-x-0.5 group-hover:text-[var(--text)]" />
         </button>
       ))}
     </section>
@@ -540,7 +540,7 @@ function LoadoutCard({ loadout }: { loadout: NonNullable<ProfileOverview["loadou
       <div className="grid grid-cols-2 gap-2.5">
         {loadout.items.map((item) => (
           <div key={item.key} className="flex min-w-0 flex-col gap-1.5">
-            <div className="group flex h-14 items-center justify-center overflow-hidden rounded-lg border border-[var(--line-soft)] bg-[var(--panel)] px-2 transition-[border-color,box-shadow] duration-500 hover:border-[var(--brand)]/50 hover:duration-300" title={item.name ?? "Default"}>
+            <div className="group flex h-14 items-center justify-center overflow-hidden rounded-lg border border-[var(--line-soft)] bg-[var(--panel)] px-2 transition-[border-color,box-shadow] duration-500 hover:border-[var(--line-strong)] hover:duration-300" title={item.name ?? "Default"}>
               {item.image ? <img src={item.image} alt={item.name ?? ""} className="lx-layer max-h-full max-w-full object-contain transition-[scale] duration-500 group-hover:scale-110" loading="lazy" /> : <span className="text-[11px] text-[var(--text-faint)]">Default</span>}
             </div>
             <span className="truncate text-[11px] text-[var(--text-dim)]">{item.label}</span>

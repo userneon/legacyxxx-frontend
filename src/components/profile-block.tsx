@@ -32,7 +32,7 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
         <button
           type="button"
           onClick={loginWithSteam}
-          className="lx-steam-button flex h-9 items-center gap-2 rounded-lg px-3.5 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
+          className="lx-steam-button flex h-9 items-center gap-2 rounded-lg px-3.5 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
         >
           <SteamIcon className="size-4 shrink-0" />
           Sign in with Steam

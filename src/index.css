@@ -1435,8 +1435,7 @@ body::before {
 
 /* Play: filled player slot lights up crimson. */
 .lx-slot-on {
-  background: linear-gradient(180deg, var(--brand-bright), var(--brand));
-  box-shadow: 0 0 8px -1px color-mix(in oklch, var(--brand) 80%, transparent);
+  background: var(--text-2);
 }
 
 /* Progress fill with a light sweep (fun capacity, Pro League EXP). */

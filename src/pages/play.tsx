@@ -36,7 +36,7 @@ const MODES: Record<PlayPageMode, { mode: PlayMode; title: string; description: 
 }
 
 const secondary = "inline-flex h-[34px] items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] font-medium text-[var(--text)] transition-[background-color,border-color,transform] duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 disabled:pointer-events-none disabled:opacity-50"
-const primary = "lx-primary-button inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60 disabled:pointer-events-none disabled:opacity-40 disabled:saturate-50"
+const primary = "lx-primary-button inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 disabled:pointer-events-none disabled:opacity-40 disabled:saturate-50"
 /** On/off switches in the same tray as the Segmented control (Leaders' EXP / K/D / Win rate). */
 const toggleTray = "flex shrink-0 gap-0.5 rounded-[10px] border border-[var(--line)] bg-[var(--glass-fill)] p-[3px]"
 const toggleItem = "inline-flex h-[30px] items-center gap-1.5 rounded-[7px] px-3 text-[13px] font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
@@ -273,7 +273,7 @@ function TeamTable({ title, players, side }: { title: string; players: ServerLiv
       {players.length === 0 ? (
         <div className="border-t border-[var(--raised)] px-3 py-3 text-xs text-[var(--text-dim)]">No players</div>
       ) : players.map((player) => (
-        <div key={player.steamId} className="grid h-[38px] grid-cols-[minmax(0,1fr)_34px_34px_34px] items-center gap-2 border-t border-[var(--raised)] px-3 text-[13px] transition-colors duration-300 hover:bg-[var(--brand)]/[0.06]">
+        <div key={player.steamId} className="grid h-[38px] grid-cols-[minmax(0,1fr)_34px_34px_34px] items-center gap-2 border-t border-[var(--raised)] px-3 text-[13px] transition-colors duration-300 hover:bg-[var(--raised)]">
           <span className="flex min-w-0 items-center gap-2">
             <PlayerAvatar name={player.name} className="size-[22px] shrink-0 rounded-md text-[9px]" />
             <span className={cn("truncate", player.connected ? "text-[var(--text)]" : "text-[var(--text-dim)]")} title={player.name}>{player.name}</span>
@@ -318,7 +318,7 @@ function ServerSheet({ server, onClose }: { server: PlayServer | null; onClose: 
             <MapArt map={live?.map ?? server.map} className="h-[180px] shrink-0">
               <span aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,10,10,0.1),rgba(10,10,10,0.35)_45%,var(--panel))]" />
               <span aria-hidden="true" className="lx-hero-glow absolute -inset-10 opacity-60" />
-              <button type="button" onClick={onClose} aria-label="Close" className="absolute right-3 top-3 z-10 flex size-8 items-center justify-center rounded-lg border border-[var(--line)] bg-[rgba(15,15,15,0.7)] text-[var(--text-muted)] backdrop-blur transition-[color,border-color,rotate] duration-300 hover:rotate-90 hover:border-[var(--brand)]/50 hover:text-[var(--text)]">
+              <button type="button" onClick={onClose} aria-label="Close" className="absolute right-3 top-3 z-10 flex size-8 items-center justify-center rounded-lg border border-[var(--line)] bg-[rgba(15,15,15,0.7)] text-[var(--text-muted)] backdrop-blur transition-[color,border-color,rotate] duration-300 hover:rotate-90 hover:border-[var(--line-strong)] hover:text-[var(--text)]">
                 <X className="size-4" />
               </button>
               <span className="absolute left-[18px] top-3.5 z-10">
@@ -350,7 +350,7 @@ function ServerSheet({ server, onClose }: { server: PlayServer | null; onClose: 
             <div className="scrollbar-hidden lx-sheet-rise flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-[18px] py-4">
               <div className="flex items-center justify-between text-xs text-[var(--text-dim)]">
                 <span className="flex items-center gap-2 font-medium text-[var(--text-muted)]">
-                  <span aria-hidden="true" className="h-3 w-[3px] rounded-full bg-[var(--brand-bright)]" />
+                  <span aria-hidden="true" className="h-3 w-[3px] rounded-full bg-[var(--text-faint)]" />
                   Scoreboard
                 </span>
                 <span className="flex items-center gap-1.5">
@@ -438,12 +438,12 @@ function PlayHero({ title, description, heroMap, list, loading, mode, pickRule, 
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--card-surface)] via-[var(--card-surface)]/85 to-[var(--card-surface)]/30" />
       <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
       <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
 
       <div className="relative z-10 flex flex-col gap-5 p-6 @3xl:min-h-[212px] @3xl:flex-row @3xl:items-end @3xl:justify-between @3xl:p-7">
         <div key={title} className="lx-swap-in flex min-w-0 flex-col gap-3">
           <h1 className="flex items-center gap-2.5 text-[28px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)] @2xl:text-[34px]">
-            <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--brand-bright)]" />
+            <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--text-faint)]" />
             {title}
             {loading && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
           </h1>
@@ -463,9 +463,9 @@ function PlayHero({ title, description, heroMap, list, loading, mode, pickRule, 
           </div>
         </div>
 
-        <div aria-label="Quick join" className="flex shrink-0 flex-col gap-2 rounded-xl border border-[var(--brand)]/30 bg-[var(--panel)]/75 p-4 backdrop-blur-md @3xl:w-[320px]">
+        <div aria-label="Quick join" className="flex shrink-0 flex-col gap-2 rounded-xl border border-[var(--line-strong)] bg-[var(--panel)]/75 p-4 backdrop-blur-md @3xl:w-[320px]">
           <span className="flex items-center gap-2 text-[13px] font-semibold text-[var(--text)]">
-            <Zap className="size-4 fill-[var(--brand-bright)] text-[var(--brand-bright)]" />
+            <Zap className="size-4 fill-[var(--text-2)] text-[var(--text-2)]" />
             Quick join
           </span>
           {/* Always two lines tall, so every mode's hero is the same height. */}
@@ -610,7 +610,7 @@ function ProLocked({ access }: { access: CompetitiveAccess }) {
         <section className="relative flex flex-col items-center gap-4 overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-9 text-center">
           <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10 opacity-60" />
           <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
-          <span className="relative flex size-[52px] items-center justify-center rounded-[14px] border border-[var(--brand)]/40 bg-[var(--brand)]/15 text-[var(--brand-bright)]"><Lock className="size-[22px]" /></span>
+          <span className="relative flex size-[52px] items-center justify-center rounded-[14px] border border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text-2)]"><Lock className="size-[22px]" /></span>
           <span className="relative flex flex-wrap items-center justify-center gap-2 text-[17px] font-semibold text-[var(--text)]">
             Pro League unlocks at
             <RankLabel rankId={access.requiredRankId} rankName={access.requiredRankName} size={24} nameClassName="text-[17px] font-semibold" />
