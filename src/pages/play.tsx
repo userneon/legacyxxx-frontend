@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
-import { Copy, Eye, Info, LoaderCircle, Lock, Play, RotateCcw, Star, X, Zap } from "lucide-react"
+import { Copy, Info, LoaderCircle, Lock, Play, RotateCcw, Star, X, Zap } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -307,7 +307,6 @@ function ServerSheet({ server, onClose }: { server: PlayServer | null; onClose: 
 
   const live = data && data.serverId === serverId ? data : null
   const address = live?.connectAddress ?? server?.connectAddress ?? null
-  const gotv = live?.gotvAddress ?? server?.gotvAddress ?? null
   const connectable = Boolean(server?.joinable && validAddress(address))
   return (
     <Sheet open={server !== null} onOpenChange={(open) => { if (!open) onClose() }}>
@@ -385,12 +384,6 @@ function ServerSheet({ server, onClose }: { server: PlayServer | null; onClose: 
                 <Copy className="size-3.5" />
                 Copy IP
               </button>
-              {gotv && validAddress(gotv) && (
-                <a href={`steam://connect/${gotv}`} className={cn(secondary, "h-10 flex-1")}>
-                  <Eye className="size-3.5" />
-                  Spectate
-                </a>
-              )}
               <button type="button" disabled={!connectable} onClick={() => connect(address, server.name)} className={cn(primary, "h-10 flex-1 text-[13px]")}>
                 <Play className="size-3.5" />
                 Connect
