@@ -1,4 +1,5 @@
 /** LEGACY-X Home: hero, live stats, play modes, the top of the ladder, reviews and Discord. */
+import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { serversService } from "@/api"
 import { tournamentsService } from "@/api/tournaments"
@@ -33,6 +34,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const navigate = useNavigate()
   const { data: homeStats, loading: statsLoading } = useApiQuery<HomeStats>((signal) => serversService.getHomeStats({ signal }))
   const { data: tournaments } = useApiQuery((signal) => tournamentsService.list({ signal }), { queryKey: "home-tournaments" })
+
+  // On wide screens the card under the pointer stretches to twice the width of the others; with none hovered the 5x5 card is the wide one.
+  const [activeMode, setActiveMode] = useState<ModeKey | null>(null)
+  const wide = (key: ModeKey) => (activeMode === null ? key === "5x5" : activeMode === key)
 
   const heroStats = [
     { label: "Players Online", value: homeStats?.playersOnline, flagship: true },
@@ -77,19 +82,23 @@ export function HomePage({ onNavigate }: HomePageProps) {
             </>
           )}
         </div>
-        <h1 className="relative z-10 text-4xl font-bold tracking-normal text-[var(--text)] md:text-6xl">
-          LegacyX <span className="lx-brand-text">Ecosystem</span>
+        <div className="relative z-10 flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between @3xl:gap-10">
+        <div className="flex shrink-0 flex-col gap-4">
+        <h1 className="whitespace-nowrap text-4xl font-bold leading-[1.05] tracking-normal text-[var(--text)] md:text-6xl">
+          Play ranked.<br />
+          Climb to <span className="lx-brand-text">Legacy.</span>
         </h1>
-        <p className="relative z-10 max-w-xl text-[15px] leading-relaxed text-[var(--text-2)]">
-          The premier CS2 / CSGO community server platform. Join matches and compete with the Mongolian CS2 community.
+        <p className="max-w-md text-[15px] leading-relaxed text-[var(--text-2)]">
+          Every match on our servers counts toward your rank.
         </p>
-        <dl className="relative z-10 mt-3 flex">
+        </div>
+        <dl className="mt-3 flex @3xl:mt-0">
           {heroStats.map((stat, index) => (
             <div
               key={stat.label}
-              className={cn("flex min-w-0 flex-col-reverse justify-end gap-1.5 pr-5 @2xl:pr-12 @5xl:pr-16", index > 0 && "border-l border-[var(--line)] pl-5 @2xl:pl-12 @5xl:pl-16")}
+              className={cn("flex min-w-0 flex-col-reverse justify-end gap-1.5 pr-5 @3xl:pr-8", index > 0 && "border-l border-[var(--line)] pl-5 @3xl:pl-8")}
             >
-              <dt className="flex items-center gap-1.5 text-[11px] font-medium uppercase leading-tight tracking-wide text-[var(--text-muted)] @2xl:text-xs">
+              <dt className="flex items-center gap-1.5 whitespace-nowrap text-[11px] font-medium uppercase leading-tight tracking-wide text-[var(--text-muted)] @2xl:text-xs">
                 {stat.flagship && Boolean(stat.value) && <span className="lx-live-dot size-1.5 shrink-0 rounded-full bg-[var(--status-green)]" />}
                 {stat.label}
               </dt>
@@ -99,10 +108,11 @@ export function HomePage({ onNavigate }: HomePageProps) {
             </div>
           ))}
         </dl>
+        </div>
       </div>
 
       {/* Mode cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:flex" onMouseLeave={() => setActiveMode(null)}>
         {MODE_CARDS.map((mode, index) => {
           const status = modeStatus(mode.key)
           const art = cs2MapArtwork(mode.map)
@@ -111,8 +121,15 @@ export function HomePage({ onNavigate }: HomePageProps) {
               key={mode.id}
               type="button"
               onClick={() => onNavigate(mode.id)}
-              style={{ animationDelay: `${120 + index * 80}ms` }}
-              className="lx-fx-card lx-glass group relative flex min-h-[168px] flex-col justify-end overflow-hidden rounded-xl p-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60"
+              onMouseEnter={() => setActiveMode(mode.key)}
+              onFocus={() => setActiveMode(mode.key)}
+              onBlur={() => setActiveMode(null)}
+              style={{ animationDelay: `${120 + index * 80}ms`, flexGrow: wide(mode.key) ? 2 : 1 }}
+              className={cn(
+                "lx-fx-card lx-glass group relative flex min-h-[168px] min-w-0 basis-0 flex-col justify-end overflow-hidden rounded-xl p-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-bright)]/60",
+                // Pro League is the one marked as special.
+                mode.key === "pro" && "border-[var(--brand)]/50",
+              )}
             >
               {art && (
                 <img
@@ -125,7 +142,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
               )}
               <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--card-surface)]/85 via-[var(--card-surface)]/55 to-transparent" />
               <div className="relative">
-                <h3 className="text-lg font-semibold tracking-[-0.2px] text-[var(--text)]">{mode.label}</h3>
+                <h3 className={cn("font-semibold tracking-[-0.2px] text-[var(--text)]", wide(mode.key) ? "lg:text-2xl" : "text-lg")}>{mode.label}</h3>
                 <p className="mt-1 text-[13px] leading-snug text-[var(--text-muted)]">{mode.desc}</p>
               </div>
               <div className={cn("relative mt-4 flex h-4 items-center gap-1.5 transition-opacity duration-150", status ? "opacity-100" : "opacity-0")}>

@@ -1360,14 +1360,17 @@ body::before {
     transform 800ms cubic-bezier(0.37, 0, 0.18, 1),
     border-color 800ms cubic-bezier(0.37, 0, 0.18, 1),
     box-shadow 900ms cubic-bezier(0.37, 0, 0.18, 1),
-    opacity 800ms cubic-bezier(0.37, 0, 0.18, 1);
+    opacity 800ms cubic-bezier(0.37, 0, 0.18, 1),
+    /* Home's mode cards stretch to the pointer. */
+    flex-grow 400ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .lx-fx-card:hover {
   /* Entering hover: quicker lift. */
   transition:
     transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
     border-color 300ms cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 300ms cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    flex-grow 400ms cubic-bezier(0.22, 1, 0.36, 1);
   transform: translate3d(0, -2px, 0);
   border-color: var(--line-strong);
 }
