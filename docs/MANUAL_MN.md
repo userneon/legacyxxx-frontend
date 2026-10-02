@@ -110,7 +110,7 @@ Route-ийн жагсаалт: `src/lib/routes.ts` (хуучин хаягууд 
 - Нэвтрэлт: Steam OpenID (backend). Session нь `.legacyx.cc` HTTP-only cookie; `legacyx_access_token` нь `localStorage`-д.
 - Өгөгдөл татахдаа `useApiQuery(...)`: `loading`, `error`, `refetch`, `keepPreviousData`. Хуудас бүр дөрвөн төлөвийг зохицуулна:
   ачаалж байна (skeleton), хоосон, алдаа (Retry), өгөгдөлтэй.
-- Новый endpoint нэмэхдээ `src/api/<хэсэг>.ts` дотор service, `types.ts` дотор төрөл, `mock.ts` дотор mock хариу нэмнэ.
+- Шинэ endpoint нэмэхдээ `src/api/<хэсэг>.ts` дотор service, `types.ts` дотор төрөл, `mock.ts` дотор mock хариу нэмнэ.
 - Шинэ талбар backend-д байхгүй бол UI-д зохиож харуулахгүй; талбарыг nullable болгож, байхгүй үед юу ч харуулахгүй/зөв хоосон мессеж.
 
 ## 7. Дизайн систем
