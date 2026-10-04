@@ -370,7 +370,11 @@ export function ComparePage() {
       const link = document.createElement("a")
       const slug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "player"
       link.href = url
-      link.download = `legacyx-${slug(a.user.username)}-vs-${slug(b.user.username)}.png`
+      // The time makes every file name different, so saving the same pair again never overwrites or renames the first one.
+      const now = new Date()
+      const pad = (value: number, size = 2) => String(value).padStart(size, "0")
+      const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}${pad(now.getMilliseconds(), 3)}`
+      link.download = `legacyx-${slug(a.user.username)}-vs-${slug(b.user.username)}-${stamp}.png`
       document.body.appendChild(link)
       link.click()
       link.remove()
