@@ -388,6 +388,18 @@ function profileOverview(identity: string) {
     // Only the sample Owner has Respect and links, like the real Owner profile will.
     ...(index === 0 ? {
       respect: ownerRespect,
+      message: "Legacy-X will always be on top.",
+      team: [
+        { steamId: "7656119800000001", username: NAMES[1], avatar: "", role: "Manager" },
+        { steamId: "7656119800000002", username: NAMES[2], avatar: "", role: "Admin" },
+        { steamId: "7656119800000005", username: NAMES[5], avatar: "", role: "Developer" },
+        { steamId: "7656119800000006", username: NAMES[6], avatar: "", role: "Designer" },
+      ],
+      updates: [
+        { id: "mock-update-1", title: "CS2 update installed on every server", at: new Date(Date.now() - 3 * HOUR).toISOString() },
+        { id: "mock-update-2", title: "New Compare page for players", at: new Date(Date.now() - 2 * 24 * HOUR).toISOString() },
+        { id: "mock-update-3", title: "Tournament check-in is open", at: new Date(Date.now() - 6 * 24 * HOUR).toISOString() },
+      ],
       links: [
         { url: "https://instagram.com/example" },
         { url: "https://facebook.com/example" },

@@ -64,6 +64,12 @@ export interface ProfileOverview {
   links?: ProfileLink[] | null
   /** The respect count and whether the signed-in viewer gave one. Absent: no Respect button. */
   respect?: { count: number; given: boolean } | null
+  /** A short message from the player (the Owner). Absent: no message card. */
+  message?: string | null
+  /** The team shown on the Owner's profile (staff with their roles). Absent or empty: no team card. */
+  team?: { steamId: string; username: string; avatar: string; role: string }[] | null
+  /** The latest community updates for the Owner's profile. Absent or empty: no updates card. */
+  updates?: { id: string; title: string; at: string }[] | null
 }
 
 export const profileOverviewService = {
