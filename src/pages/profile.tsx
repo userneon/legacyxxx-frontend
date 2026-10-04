@@ -633,6 +633,8 @@ export function ProfilePage({ userId }: { userId?: string }) {
           </div>
         </section>
       </div>
+      {/* The Owner role has no match statistics, so everything under the header stays empty for now; something of its own goes here later. */}
+      {data.user.role !== "Owner" && (
       <div className="flex flex-col gap-4 px-6 pb-8 pt-4 max-md:px-4">
         {data.staff && <div {...rise(0)}><StaffCard staff={data.staff} username={data.user.username} /></div>}
 
@@ -659,6 +661,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
           </div>
         </div>
       </div>
+      )}
 
       {openMatch?.matchId && (
         <MatchDetailsDialog matchId={openMatch.matchId} mapNumber={openMatch.mapNumber ?? 1} highlightSteamId={data.user.steamId} onOpenChange={(open) => { if (!open) setOpenMatch(null) }} />
