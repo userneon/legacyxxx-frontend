@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import {
   ArrowLeft,
   BadgeCheck,
-  Box,
   ImageOff,
   Loader2,
   RotateCcw,
@@ -11,11 +10,10 @@ import {
   Sticker,
   Tag,
   Trash2,
-  X,
 } from "lucide-react"
 import { toast } from "sonner"
 
-import { skinchangerService, type SkinchangerAppearanceOptions, type SkinchangerStickerOption, type SkinchangerCatalogItem, type SkinchangerCategory, type SkinchangerFirearmGroup, type SkinchangerLoadoutEntry, type SkinchangerSlot, type TeamScope } from "@/api"
+import { skinchangerService, type SkinchangerAppearanceOptions, type SkinchangerCatalogItem, type SkinchangerCategory, type SkinchangerFirearmGroup, type SkinchangerLoadoutEntry, type SkinchangerSlot, type TeamScope } from "@/api"
 import type { ApiError } from "@/api/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -35,8 +33,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
 import { OptimizedImage } from "@/components/optimized-image"
-import { SkinViewer } from "@/components/skin-viewer"
-import { findSkin3d, type Skin3dSource } from "@/lib/skin-3d"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useViewParams } from "@/hooks/use-view-params"
 import { cn } from "@/lib/utils"
@@ -337,23 +333,6 @@ export function SkinchangerPage() {
     ?? (fallsBackToBoth ? loadoutEntries.find((entry) => entry.slot_key === selectedSlotKey && entry.team_scope === "all") : undefined)
   const savedItemForActiveSlot = savedEntryForActiveSlot?.skinchanger_catalog_items ?? null
   const previewChoice = selected ?? savedItemForActiveSlot ?? (defaultChoice === category ? defaultModelItem(defaultChoice) : null)
-  // 3D view: only for a skin the manifest names; everything else stays a picture.
-  const [skin3d, setSkin3d] = useState<Skin3dSource | null>(null)
-  const [open3d, setOpen3d] = useState(false)
-  const previewWeaponClass = previewChoice?.weapon_class ?? null
-  const previewPaintId = previewChoice?.paint_id ?? null
-  useEffect(() => {
-    let cancelled = false
-    setSkin3d(null)
-    setOpen3d(false)
-    setSlot3d(null)
-    if (previewChoice?.category === "weapon_skin") {
-      void findSkin3d(previewWeaponClass, previewPaintId).then((found) => { if (!cancelled) setSkin3d(found) })
-    }
-    return () => { cancelled = true }
-  }, [previewChoice?.id, previewChoice?.category, previewWeaponClass, previewPaintId])
-  const closeView3d = useCallback(() => setOpen3d(false), [])
-  const [slot3d, setSlot3d] = useState<number | null>(null)
   const canCustomizeAccessories = Boolean(activeWeapon && category === "weapon")
   const selectedCharmItem = customOptions.charm ? selectedAccessories[customOptions.charm.catalogItemId] ?? null : null
   const savedAccessories = savedEntryForActiveSlot?.resolved_accessories ?? []
@@ -1279,7 +1258,7 @@ export function SkinchangerPage() {
           <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,1fr)_340px]">
             {/* Catalogue */}
             <div className={cn("flex min-h-0 flex-col", selected && pickerHasOptions && !accessoryOpen && "hidden lg:flex")}>
-              {accessoryOpen && !open3d ? renderAccessoryBrowser() : (<>
+              {accessoryOpen ? renderAccessoryBrowser() : (<>
               {slotTeam && (category === "knife" || category === "glove") && (
                 <div role="tablist" aria-label={category === "knife" ? "Knife type" : "Glove type"} className="flex gap-1.5 overflow-x-auto border-b border-border px-3 py-2.5 [scrollbar-width:thin]">
                   {modelsForSlot(category).map((model) => {
@@ -1385,16 +1364,6 @@ export function SkinchangerPage() {
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">{selected ? "Your choice" : "Nothing picked yet"}</p>
               <p className="mb-3 mt-1 truncate text-sm font-semibold">{previewChoice?.display_name || `Pick ${activeWeapon ? `a ${activeWeapon.display_name} skin` : "one from the list"}`}</p>
             <div className="relative flex h-40 items-center justify-center rounded-lg border border-border bg-background">
-              {skin3d && previewChoice && (
-                <button
-                  type="button"
-                  onClick={() => setOpen3d(true)}
-                  aria-label={`View ${previewChoice.display_name} in 3D`}
-                  className="absolute right-2 top-2 z-[1] inline-flex h-7 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--card-surface)] px-2.5 text-[11px] font-medium text-[var(--text)] transition-colors duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
-                >
-                  <Box className="size-3.5" />3D
-                </button>
-              )}
               {previewChoice && catalogImageUrl(previewChoice) ? <OptimizedImage src={catalogImageUrl(previewChoice) ?? ""} width={320} height={160} priority alt={`${previewChoice.display_name} selected collectible`} data-catalog-item-id={previewChoice.id} className="h-full w-full object-contain p-3" /> : <span className="flex flex-col items-center gap-2 px-6 text-center"><ImageOff className="size-7 text-muted-foreground/50" /><span className="text-[11px] leading-4 text-muted-foreground">Pick one from the list.</span></span>}
               {canCustomizeAccessories && (previewStickerItems.length > 0 || previewCharmItem) && <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-2"><div className="flex -space-x-1.5">{previewStickerItems.slice(0, 5).map((item) => catalogImageUrl(item) && <OptimizedImage key={item.id} src={catalogImageUrl(item) ?? ""} width={28} height={28} alt={`${item.display_name} selected sticker`} data-catalog-item-id={item.id} className="size-7 rounded-full border border-background bg-card object-contain p-0.5" />)}</div>{previewCharmItem && catalogImageUrl(previewCharmItem) && <OptimizedImage src={catalogImageUrl(previewCharmItem) ?? ""} width={32} height={32} alt={`${previewCharmItem.display_name} selected charm`} data-catalog-item-id={previewCharmItem.id} className="size-8 rounded-md border border-background bg-card object-contain p-0.5" />}</div>}
             </div>
@@ -1497,108 +1466,6 @@ export function SkinchangerPage() {
                 </div>
               </div>
             </aside>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={open3d && Boolean(skin3d && previewChoice)} onOpenChange={(open) => { setOpen3d(open); if (!open) closeAccessoryPicker() }}>
-        <DialogContent
-          overlayClassName="lx-blur-overlay bg-black/55 backdrop-blur-[10px]"
-          className="flex max-h-[92dvh] w-[calc(100%-1.5rem)] max-w-5xl flex-col gap-0 overflow-hidden rounded-[14px] border-[var(--line)] bg-[var(--panel)] p-0 sm:max-w-5xl"
-        >
-          <div className="border-b border-[var(--line-soft)] px-4 py-3 pr-12">
-            <DialogTitle className="truncate text-base">{previewChoice?.display_name}</DialogTitle>
-            <DialogDescription className="text-xs">Preview of the paint, stickers and charm. Wear and pattern are not shown in 3D.</DialogDescription>
-          </div>
-          <div className="grid min-h-0 flex-1 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_320px] lg:overflow-hidden">
-            <div className="min-h-0 p-4">
-              {skin3d && previewChoice && (
-                <SkinViewer
-                  source={skin3d}
-                  label={previewChoice.display_name}
-                  stickers={(previewOptions?.stickers ?? []).flatMap((sticker) => {
-                    const item = previewAccessoryById.get(sticker.catalogItemId)
-                    const image = item ? catalogImageUrl(item) : null
-                    return image ? [{ slot: sticker.slot, image, scale: sticker.scale ?? 1, rotation: sticker.rotation ?? 0 }] : []
-                  })}
-                  charm={previewCharmItem && catalogImageUrl(previewCharmItem) ? { image: catalogImageUrl(previewCharmItem) ?? "" } : null}
-                  className="h-[min(56dvh,520px)] min-h-64 rounded-xl border border-[var(--line)] bg-background"
-                  onUnavailable={closeView3d}
-                />
-              )}
-            </div>
-            {selected && canCustomizeAccessories && (
-              <aside className="flex min-h-0 flex-col border-t border-[var(--line-soft)] lg:border-l lg:border-t-0">
-                {accessoryOpen ? renderAccessoryBrowser() : (
-                  <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-4">
-                    <div>
-                      <div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Stickers</span><span className="text-[11px] text-[var(--text-dim)]">Up to 5</span></div>
-                      <div className="grid grid-cols-5 gap-1.5">
-                        {Array.from({ length: 5 }, (_, slot) => {
-                          const sticker = customOptions.stickers?.find((entry) => entry.slot === slot)
-                          const stickerItem = sticker ? selectedAccessories[sticker.catalogItemId] : null
-                          const image = stickerItem ? catalogImageUrl(stickerItem) : null
-                          return (
-                            <div key={slot} className="relative">
-                              <button
-                                type="button"
-                                onClick={() => (sticker ? setSlot3d(slot) : openStickerPicker(slot))}
-                                aria-label={sticker ? `Adjust sticker ${slot + 1}` : `Choose sticker ${slot + 1}`}
-                                aria-pressed={sticker ? slot3d === slot : undefined}
-                                className={cn(
-                                  "flex aspect-square w-full items-center justify-center rounded-lg border text-[11px] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
-                                  sticker ? "bg-[var(--raised)] text-[var(--text)]" : "border-dashed border-[var(--line)] bg-[var(--glass-fill)] text-[var(--text-dim)] hover:border-[var(--line-strong)] hover:text-[var(--text)]",
-                                  sticker && (slot3d === slot ? "border-[var(--text)]" : "border-[var(--line-strong)]"),
-                                )}
-                              >
-                                {image ? <OptimizedImage src={image} width={40} height={40} alt="" className="size-8 object-contain" /> : sticker ? <ImageOff className="size-4" /> : slot + 1}
-                              </button>
-                              {sticker && (
-                                <button
-                                  type="button"
-                                  aria-label={`Remove sticker ${slot + 1}`}
-                                  onClick={() => { setCustomOptions((current) => ({ ...current, stickers: (current.stickers ?? []).filter((entry) => entry.slot !== slot) })); if (slot3d === slot) setSlot3d(null) }}
-                                  className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--card-surface)] text-[var(--text-dim)] hover:text-[var(--text)]"
-                                ><X className="size-2.5" /></button>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                    {slot3d !== null && customOptions.stickers?.some((entry) => entry.slot === slot3d) && (() => {
-                      const active = customOptions.stickers?.find((entry) => entry.slot === slot3d)!
-                      const update = (patch: Partial<SkinchangerStickerOption>) => setCustomOptions((current) => ({ ...current, stickers: (current.stickers ?? []).map((entry) => (entry.slot === slot3d ? { ...entry, ...patch } : entry)) }))
-                      return (
-                        <div className="space-y-3 rounded-lg border border-[var(--line)] p-3">
-                          <div className="flex items-center justify-between"><span className="text-xs font-medium">Sticker {slot3d + 1}</span><button type="button" onClick={() => openStickerPicker(slot3d)} className="text-[11px] text-[var(--text-dim)] hover:text-[var(--text)]">Change</button></div>
-                          <label className="block">
-                            <span className="mb-1 flex items-center justify-between text-[11px] text-[var(--text-dim)]"><span>Size</span><span>{Math.round((active.scale ?? 1) * 100)}%</span></span>
-                            <input type="range" min={0.5} max={2} step={0.05} value={active.scale ?? 1} onChange={(event) => update({ scale: Number(event.target.value) })} className="w-full accent-[var(--accent-solid)]" />
-                          </label>
-                          <label className="block">
-                            <span className="mb-1 flex items-center justify-between text-[11px] text-[var(--text-dim)]"><span>Rotation</span><span>{Math.round(active.rotation ?? 0)}°</span></span>
-                            <input type="range" min={-180} max={180} step={5} value={active.rotation ?? 0} onChange={(event) => update({ rotation: Number(event.target.value) })} className="w-full accent-[var(--accent-solid)]" />
-                          </label>
-                        </div>
-                      )
-                    })()}
-                    <div>
-                      <div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Charm</span>{customOptions.charm && <button type="button" onClick={() => setCustomOptions((current) => ({ ...current, charm: undefined }))} className="text-[11px] text-[var(--text-dim)] hover:text-[var(--text)]">Remove</button>}</div>
-                      <button
-                        type="button"
-                        onClick={() => { setAccessoryPicker("charm"); setEditingStickerSlot(null); setAccessoryQuery("") }}
-                        className={cn("flex h-10 w-full items-center justify-center gap-2 rounded-lg border text-xs transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50", customOptions.charm ? "border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text)]" : "border-dashed border-[var(--line)] bg-[var(--glass-fill)] text-[var(--text-dim)] hover:border-[var(--line-strong)] hover:text-[var(--text)]")}
-                      >
-                        {selectedCharmItem ? selectedCharmItem.display_name : "Choose a charm"}
-                      </button>
-                      {!skin3d?.charmAnchor && customOptions.charm && <p className="mt-2 text-[11px] leading-4 text-[var(--text-dim)]">The charm is saved but not drawn on this weapon in 3D.</p>}
-                      {skin3d?.charmAnchor && <p className="mt-2 text-[11px] leading-4 text-[var(--text-dim)]">The charm is drawn as a flat picture at an approximate spot.</p>}
-                    </div>
-                  </div>
-                )}
-              </aside>
-            )}
           </div>
         </DialogContent>
       </Dialog>

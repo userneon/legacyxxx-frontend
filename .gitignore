@@ -33,6 +33,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-# Local 3D demo files for `npm run dev:mock` (model + textures are large and not ours to commit)
-public/skin3d-demo/

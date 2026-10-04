@@ -308,7 +308,7 @@ function skinsFor(weaponClass: string, category: "weapon_skin" | "knife" | "glov
   const knife = KNIVES.find(([name]) => name === weaponClass)
   const image = firearm ? `${ICON}/weapon_${firearm[1]}_png.png` : knife ? `${ICON}/weapon_${knife[1]}_png.png` : null
   const prefix = category === "weapon_skin" ? "" : "★ "
-  const skins = SKIN_NAMES.map((skin, index) => item(
+  return SKIN_NAMES.map((skin, index) => item(
     `skin-${weaponClass.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${index}`,
     category,
     weaponClass,
@@ -317,15 +317,7 @@ function skinsFor(weaponClass: string, category: "weapon_skin" | "knife" | "glov
     { rarity: category === "weapon_skin" ? RARITIES[index % RARITIES.length] : "Covert", minWear: 0, maxWear: 1 },
     100 + index,
   ))
-  // One extra AK-47 skin whose 3D files are in the local demo set (see src/lib/skin-3d.ts); the real paint name is not known here.
-  if (weaponClass === "AK-47" && category === "weapon_skin") {
-    skins.push(item("skin-ak-47-paint-1004", category, weaponClass, "AK-47 | Paint 1004", image, { rarity: "Covert", minWear: 0, maxWear: 1 }, 1004))
-  }
-  return skins
 }
-
-/** Sample sticker and charm art for the design preview: round badges drawn for it, kept in public/mock-art. */
-const badge = (name: string) => `/mock-art/${name.toLowerCase().replace(/\s+/g, "-")}.svg`
 
 function catalog(query: Record<string, string | number | boolean | undefined | null> | undefined) {
   const category = String(query?.category ?? "")
@@ -341,7 +333,7 @@ function catalog(query: Record<string, string | number | boolean | undefined | n
   else if (category === "agent") items = ["Sir Bloody Darryl", "Cmdr. Mae", "Number K", "Lt. Commander Ricksaw"].map((name, index) => item(`agent-${index}`, "agent", null, name, null, { rarity: index % 2 ? "Classified" : "Covert", team: query?.team === "ct" ? "Counter-Terrorist" : "Terrorist" }))
   else if (category === "music_kit") items = ["Neck Deep", "Amon Tobin", "Knock2", "The Verkkars"].map((name, index) => item(`music-${index}`, "music_kit", null, `Music Kit | ${name}`, null))
   else if (category === "pin") items = ["Dust II Pin", "Mirage Pin", "Guardian Pin", "Howl Pin"].map((name, index) => item(`pin-${index}`, "pin", null, name, null))
-  else if (category === "sticker" || category === "charm") items = ["Legacy-X", "Mongolia", "Headshot", "Clutch King"].map((name, index) => item(`${category}-${index}`, category, null, `${category === "sticker" ? "Sticker" : "Charm"} | ${name}`, badge(name)))
+  else if (category === "sticker" || category === "charm") items = ["Legacy-X", "Mongolia", "Headshot", "Clutch King"].map((name, index) => item(`${category}-${index}`, category, null, `${category === "sticker" ? "Sticker" : "Charm"} | ${name}`, null))
   const matching = search ? items.filter((entry) => entry.display_name.toLowerCase().includes(search)) : items
   return { data: matching.slice(offset, offset + limit), pagination: { limit, offset, total: matching.length } }
 }
