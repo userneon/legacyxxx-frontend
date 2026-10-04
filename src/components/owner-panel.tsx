@@ -111,9 +111,13 @@ export function OwnerPanel({ overview }: { overview: ProfileOverview }) {
                   className="group relative flex items-center gap-3.5 overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--panel)]/60 p-3 pr-4 text-left transition-[border-color,background-color,translate] duration-200 hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
                 >
                   <span aria-hidden="true" className="absolute inset-y-3 left-0 w-0.5 origin-center scale-y-0 rounded-r-full bg-[var(--text)] opacity-0 transition-[scale,opacity] duration-300 group-hover:scale-y-100 group-hover:opacity-70" />
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-[var(--raised)] text-[var(--text-muted)] transition-colors group-hover:text-[var(--text)]">
-                    <link.Icon className="size-[18px]" aria-hidden="true" />
-                  </span>
+                  {link.logo ? (
+                    <img src={link.logo} alt="" width={40} height={40} className="size-10 shrink-0 rounded-[10px]" />
+                  ) : (
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-[var(--raised)] text-[var(--text-muted)] transition-colors group-hover:text-[var(--text)]">
+                      <link.Icon className="size-[18px]" aria-hidden="true" />
+                    </span>
+                  )}
                   <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                     <span className="truncate text-sm font-semibold text-[var(--text)]">{link.label}</span>
                     <span className="truncate text-xs text-[var(--text-dim)]">{link.detail}</span>

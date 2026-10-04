@@ -1,3 +1,6 @@
+import discordLogo from "@/assets/social/discord.png"
+import facebookLogo from "@/assets/social/facebook.png"
+import instagramLogo from "@/assets/social/instagram.png"
 import { Camera, Globe, MessageCircle, ThumbsUp, Video, type LucideIcon } from "lucide-react"
 
 /** A link a player (here: the Owner) shows on their profile. The label is optional; the address decides the icon. */
@@ -12,12 +15,14 @@ export interface DescribedLink {
   /** A second line under the name: the handle (@name) or the address. */
   detail: string
   Icon: LucideIcon
+  /** The site's own logo, when we have it; otherwise the tile shows Icon. */
+  logo?: string
 }
 
-const KINDS: Array<{ hosts: string[]; label: string; Icon: LucideIcon }> = [
-  { hosts: ["instagram.com"], label: "Instagram", Icon: Camera },
-  { hosts: ["facebook.com", "fb.com", "fb.me", "m.me"], label: "Facebook", Icon: ThumbsUp },
-  { hosts: ["discord.gg", "discord.com", "discordapp.com"], label: "Discord", Icon: MessageCircle },
+const KINDS: Array<{ hosts: string[]; label: string; Icon: LucideIcon; logo?: string }> = [
+  { hosts: ["instagram.com"], label: "Instagram", Icon: Camera, logo: instagramLogo },
+  { hosts: ["facebook.com", "fb.com", "fb.me", "m.me"], label: "Facebook", Icon: ThumbsUp, logo: facebookLogo },
+  { hosts: ["discord.gg", "discord.com", "discordapp.com"], label: "Discord", Icon: MessageCircle, logo: discordLogo },
   { hosts: ["youtube.com", "youtu.be"], label: "YouTube", Icon: Video },
   { hosts: ["twitch.tv"], label: "Twitch", Icon: Video },
   { hosts: ["tiktok.com"], label: "TikTok", Icon: Video },
@@ -48,5 +53,5 @@ export function describeLink(link: ProfileLink): DescribedLink | null {
   const detail = handleSites.some((site) => host === site) && segments[0]
     ? `@${segments[0].replace(/^@/, "")}`
     : `${host}${segments.length ? `/${segments.join("/")}` : ""}`
-  return { href: url.toString(), label: custom || kind?.label || host, detail: detail.length > 30 ? `${detail.slice(0, 29)}…` : detail, Icon: kind?.Icon ?? Globe }
+  return { href: url.toString(), label: custom || kind?.label || host, detail: detail.length > 30 ? `${detail.slice(0, 29)}…` : detail, Icon: kind?.Icon ?? Globe, logo: kind?.logo }
 }
