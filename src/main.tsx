@@ -11,23 +11,27 @@ import { LaunchCountdown } from "@/components/launch-countdown.tsx"
 import { launchGateActive } from "@/lib/launch.ts"
 
 // Before launch every address shows the countdown; no auth or API request is made.
-const gated = launchGateActive()
+async function start() {
+  const gated = await launchGateActive()
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    {gated ? (
-      <ThemeProvider defaultTheme="dark">
-        <LaunchCountdown />
-      </ThemeProvider>
-    ) : (
-      <BrowserRouter>
+  createRoot(document.getElementById("root")!).render(
+    <StrictMode>
+      {gated ? (
         <ThemeProvider defaultTheme="dark">
-          <AuthProvider>
-            <App />
-            <Toaster richColors position="top-center" />
-          </AuthProvider>
+          <LaunchCountdown />
         </ThemeProvider>
-      </BrowserRouter>
-    )}
-  </StrictMode>
-)
+      ) : (
+        <BrowserRouter>
+          <ThemeProvider defaultTheme="dark">
+            <AuthProvider>
+              <App />
+              <Toaster richColors position="top-center" />
+            </AuthProvider>
+          </ThemeProvider>
+        </BrowserRouter>
+      )}
+    </StrictMode>
+  )
+}
+
+void start()
