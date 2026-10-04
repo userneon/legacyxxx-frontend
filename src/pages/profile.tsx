@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
-import { ChevronRight, Copy, Crown, ExternalLink, Eye, EyeOff, Info, MessageCircle, MoreHorizontal, Play, RotateCcw, ShieldAlert, ShieldCheck, Shield } from "lucide-react"
+import { ArrowLeftRight, ChevronRight, Copy, Crown, ExternalLink, Eye, EyeOff, Info, MessageCircle, MoreHorizontal, Play, RotateCcw, ShieldAlert, ShieldCheck, Shield } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -10,6 +10,7 @@ import { profileOverviewService, type ProfileMatchRow, type ProfileOverview, typ
 import type { FaceitProfileData, PenaltyEntry } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
+import { isFeatureEnabled } from "@/lib/features"
 import { LINKS } from "@/lib/links"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { formatDate, useWebsitePreferences } from "@/lib/preferences"
@@ -172,6 +173,10 @@ function PrivacyPopover({ visibility, onSaved }: { visibility: Record<ProfileSec
 
 function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; onVisibilityChange: () => void }) {
   const { user, competitive, viewer, presence } = overview
+  const { user: me } = useAuth()
+  const navigate = useNavigate()
+  // Signed in and looking at someone else: one click puts the two of you side by side.
+  const canCompare = isFeatureEnabled("compare") && Boolean(me?.steamId) && !viewer.isOwner && Boolean(user.steamId)
   const copyLink = async () => {
     const url = `${window.location.origin}/profile/${user.steamId || user.id}`
     if (await copyText(url, "Profile link")) toast.success("Profile link copied")
@@ -205,6 +210,9 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
           </a>
         )}
         {viewer.isOwner && overview.visibility && <PrivacyPopover visibility={overview.visibility} onSaved={onVisibilityChange} />}
+        {canCompare && (
+          <button type="button" onClick={() => navigate(`/compare?a=${encodeURIComponent(me!.steamId)}&b=${encodeURIComponent(user.steamId)}`)} className={outline}><ArrowLeftRight className="size-3.5" />Compare with me</button>
+        )}
         <button type="button" onClick={() => void copyLink()} className={outline}><Copy className="size-3.5" />Copy link</button>
         {user.steamId && (
           <a href={steamProfileUrl(user.steamId) ?? undefined} target="_blank" rel="noreferrer" aria-label="Steam profile" className={outline}><ExternalLink className="size-3.5" /></a>
