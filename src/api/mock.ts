@@ -401,7 +401,8 @@ function profileOverview(identity: string) {
       expDelta: result === "Win" ? (i === 1 ? 5 : i === 3 ? 0 : 18 + (i % 7)) : -(12 + (i % 5)),
       expBreakdown: i === 1 ? { limited: "daily" } : i === 3 && result === "Win" ? { limited: "weekly" } : null,
     })),
-    maps: maps.map((map, i) => ({ map, matches: 30 - i * 3, wins: 20 - i * 3, winRate: 68 - i * 7 })),
+    // Per-map results with different sizes and rates, including a map with too few matches to rank.
+    maps: [["de_mirage", 34, 24], ["de_inferno", 28, 15], ["de_dust2", 31, 16], ["de_ancient", 12, 9], ["de_nuke", 9, 3], ["de_anubis", 6, 2], ["de_overpass", 2, 1]].map(([map, matches, wins]) => ({ map: map as string, matches: matches as number, wins: wins as number, winRate: Math.round(((wins as number) / (matches as number)) * 100) })),
     penalties: [],
     penaltyCount: 0,
     loadout: {

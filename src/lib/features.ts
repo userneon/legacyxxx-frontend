@@ -1,3 +1,4 @@
+import { MOCK_API } from "@/api/client"
 import type { PageId } from "@/api/types"
 
 /**
@@ -18,6 +19,8 @@ export const FEATURES = {
   explore: true,
   feedback: true,
   tournaments: true,
+  /** Per-map results of the signed-in player. Shown in sample-data mode, or on a build made with VITE_FEATURE_MAPS=1. */
+  maps: MOCK_API || import.meta.env.VITE_FEATURE_MAPS === "1",
 } as const
 
 export type FeatureName = keyof typeof FEATURES
@@ -30,6 +33,7 @@ export function isFeatureEnabled(feature: FeatureName): boolean {
 const PAGE_FEATURES: Partial<Record<PageId, FeatureName>> = {
   clan: "clan",
   skinchanger: "skinchanger",
+  maps: "maps",
   penalties: "penalties",
   leaders: "leaders",
   explore: "explore",
