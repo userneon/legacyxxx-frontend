@@ -14,7 +14,6 @@ import { TournamentsPage } from "@/pages/tournaments"
 import { LeadersPage } from "@/pages/leaders"
 import { ClanPage } from "@/pages/clan"
 import { SkinchangerPage } from "@/pages/skinchanger"
-import { MapsPage } from "@/pages/maps"
 import { ComparePage } from "@/pages/compare"
 import { PenaltiesPage } from "@/pages/penalties"
 import { ExplorePage } from "@/pages/explore"
@@ -124,7 +123,6 @@ export function App() {
               {isFeatureEnabled("clan") && <Route path="/clan/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
               {isFeatureEnabled("clan") && <Route path="/clans/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
               <Route path="/skinchanger" element={<ProtectedPage pageName="Skinchanger"><SkinchangerPage /></ProtectedPage>} />
-              {isFeatureEnabled("maps") && <Route path="/maps" element={<ProtectedPage pageName="Maps"><MapsPage /></ProtectedPage>} />}
               {isFeatureEnabled("compare") && <Route path="/compare" element={<ComparePage />} />}
               <Route path="/penalties" element={<PenaltiesPage onProfileNavigate={handleProfileNavigate} />} />
               <Route path="/settings" element={<ProtectedPage pageName="Settings"><SettingsPage /></ProtectedPage>} />

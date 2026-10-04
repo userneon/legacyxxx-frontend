@@ -18,8 +18,6 @@ export const FEATURES = {
   explore: true,
   feedback: true,
   tournaments: true,
-  /** Per-map results of the signed-in player. Shown on every dev server, or on a build made with VITE_FEATURE_MAPS=1. */
-  maps: import.meta.env.DEV || import.meta.env.VITE_FEATURE_MAPS === "1",
   /** Two players side by side. Shown on every dev server, or on a build made with VITE_FEATURE_COMPARE=1. */
   compare: import.meta.env.DEV || import.meta.env.VITE_FEATURE_COMPARE === "1",
 } as const
@@ -34,7 +32,6 @@ export function isFeatureEnabled(feature: FeatureName): boolean {
 const PAGE_FEATURES: Partial<Record<PageId, FeatureName>> = {
   clan: "clan",
   skinchanger: "skinchanger",
-  maps: "maps",
   compare: "compare",
   penalties: "penalties",
   leaders: "leaders",

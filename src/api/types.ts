@@ -54,7 +54,6 @@ export type PageId =
   | "leaders"
   | "clan"
   | "skinchanger"
-  | "maps"
   | "compare"
   | "penalties"
   | "explore"
