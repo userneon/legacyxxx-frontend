@@ -1,4 +1,5 @@
 import { BackgroundBeams } from "@/components/background-beams"
+import { ProfileBackdrop } from "@/components/profile-backdrop"
 import { Component, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react"
 import { Navigate, Routes, Route, useNavigate, useLocation } from "react-router-dom"
 
@@ -89,11 +90,14 @@ export function App() {
   }, [shownSection])
 
   const websitePrefs = useWebsitePreferences()
+  const profileGrid = currentPage === "profile" && isFeatureEnabled("profileGrid")
 
   // A narrow window, or the "Start with sidebar collapsed" setting, starts on the icon rail.
   return (
     <SidebarProvider defaultOpen={typeof window === "undefined" || (!getWebsitePreferences().sidebarCollapsed && window.innerWidth >= 1280)} style={{ "--sidebar-width": "264px", "--sidebar-width-icon": "62px" } as CSSProperties}>
-      <BackgroundBeams />
+      {/* On a profile the whole backdrop is the Grid Scan; the beams come back when the visitor leaves. */}
+      {!profileGrid && <BackgroundBeams />}
+      <ProfileBackdrop active={profileGrid} />
       <AppSidebar currentPage={currentPage} onNavigate={handleNavigate} />
       {/* Floating shell: sidebar, top bar and content panel are separate cards with an 8px gutter. */}
       <SidebarInset className="m-0 flex h-svh min-w-0 flex-col gap-2 bg-transparent p-2 pl-0">

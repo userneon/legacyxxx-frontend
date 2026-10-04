@@ -9,6 +9,12 @@ import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
 type GridScanProps = {
+  /** Follow the pointer anywhere in the window instead of only over the component. */
+  trackWindow?: boolean;
+  /** Upper limit for the render resolution (device pixels per CSS pixel). */
+  maxPixelRatio?: number;
+  /** Upper limit for frames per second. */
+  maxFps?: number;
   sensitivity?: number;
 
   lineThickness?: number;
@@ -316,6 +322,9 @@ void main(){
 `;
 
 export const GridScan: React.FC<GridScanProps> = ({
+  trackWindow = false,
+  maxPixelRatio = 2,
+  maxFps = 60,
   sensitivity = 0.55,
   lineThickness = 1,
   linesColor = '#2a2a2a',
@@ -399,7 +408,7 @@ export const GridScan: React.FC<GridScanProps> = ({
         clearTimeout(leaveTimer);
         leaveTimer = null;
       }
-      const rect = el.getBoundingClientRect();
+      const rect = trackWindow ? { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight } : el.getBoundingClientRect();
       const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       const ny = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
       lookTarget.current.set(nx, ny);
@@ -425,18 +434,19 @@ export const GridScan: React.FC<GridScanProps> = ({
         Math.max(0, snapBackDelay || 0)
       );
     };
-    el.addEventListener('mousemove', onMove);
+    const moveTarget: HTMLElement | Window = trackWindow ? window : el;
+    moveTarget.addEventListener('mousemove', onMove as EventListener);
     el.addEventListener('mouseenter', onEnter);
     if (scanOnClick) el.addEventListener('click', onClick);
     el.addEventListener('mouseleave', onLeave);
     return () => {
-      el.removeEventListener('mousemove', onMove);
+      moveTarget.removeEventListener('mousemove', onMove as EventListener);
       el.removeEventListener('mouseenter', onEnter);
       el.removeEventListener('mouseleave', onLeave);
       if (scanOnClick) el.removeEventListener('click', onClick);
       if (leaveTimer) clearTimeout(leaveTimer);
     };
-  }, [snapBackDelay, scanOnClick]);
+  }, [snapBackDelay, scanOnClick, trackWindow]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -444,7 +454,7 @@ export const GridScan: React.FC<GridScanProps> = ({
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     rendererRef.current = renderer;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxPixelRatio));
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.NoToneMapping;
@@ -530,7 +540,12 @@ export const GridScan: React.FC<GridScanProps> = ({
     window.addEventListener('resize', onResize);
 
     let last = performance.now();
+    const minFrameMs = maxFps >= 60 ? 0 : 1000 / maxFps - 2;
     const tick = () => {
+      if (minFrameMs && performance.now() - last < minFrameMs) {
+        rafRef.current = requestAnimationFrame(tick);
+        return;
+      }
       if (document.hidden) {
         last = performance.now();
         rafRef.current = requestAnimationFrame(tick);
@@ -605,7 +620,9 @@ export const GridScan: React.FC<GridScanProps> = ({
     lineStyle,
     lineJitter,
     scanDirection,
-    enablePost
+    enablePost,
+    maxPixelRatio,
+    maxFps
   ]);
 
   useEffect(() => {

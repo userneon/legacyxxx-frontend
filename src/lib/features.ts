@@ -19,8 +19,8 @@ export const FEATURES = {
   feedback: true,
   tournaments: true,
   /** Two players side by side. Shown on every dev server, or on a build made with VITE_FEATURE_COMPARE=1. */
-  /** The Grid Scan background on the Owner role's profile banner. Shown on every dev server, or with VITE_FEATURE_OWNER_GRIDSCAN=1. */
-  ownerGridScan: import.meta.env.DEV || import.meta.env.VITE_FEATURE_OWNER_GRIDSCAN === "1",
+  /** The Grid Scan as the page backdrop while a profile is open. Shown on every dev server, or with VITE_FEATURE_PROFILE_GRID=1. */
+  profileGrid: import.meta.env.DEV || import.meta.env.VITE_FEATURE_PROFILE_GRID === "1",
   compare: import.meta.env.DEV || import.meta.env.VITE_FEATURE_COMPARE === "1",
 } as const
 

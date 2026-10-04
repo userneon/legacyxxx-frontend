@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { ArrowLeftRight, ChevronRight, Copy, Crown, ExternalLink, Eye, EyeOff, Info, MessageCircle, MoreHorizontal, Play, RotateCcw, ShieldAlert, ShieldCheck, Shield } from "lucide-react"
 import { toast } from "sonner"
@@ -24,9 +24,6 @@ import { copyText, steamProfileUrl } from "@/components/profile-ids"
 import { RelativeTime } from "@/components/relative-time"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Skeleton } from "@/components/ui/skeleton"
-
-// three.js and its post-processing load only when an Owner's profile is opened.
-const GridScan = lazy(() => import("@/components/grid-scan").then((module) => ({ default: module.GridScan })))
 
 const card = "rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]"
 const outline = "inline-flex h-[34px] items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] font-medium text-[var(--text)] transition-[background-color,border-color,transform] duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
@@ -65,8 +62,6 @@ function Banner({ user }: { user: ProfileOverview["user"] }) {
   const [videoFailed, setVideoFailed] = useState(false)
   const still = user.steamBackground
   const art = cs2MapArtwork("de_mirage")
-  // The Owner role gets a live grid with a light line sweeping through it.
-  const owner = user.role === "Owner" && isFeatureEnabled("ownerGridScan")
   return (
     <div aria-hidden="true" className="relative h-[180px] overflow-hidden bg-[linear-gradient(180deg,#1c1c1c_0%,#121212_100%)]">
       {/* No Steam background: Mirage drifting under the crimson glow, like the page heroes. */}
@@ -83,13 +78,6 @@ function Banner({ user }: { user: ProfileOverview["user"] }) {
       ) : still ? (
         <div className="absolute inset-0 bg-cover bg-center opacity-60" style={{ backgroundImage: `url("${still}")` }} />
       ) : null}
-      {owner && (
-        <Suspense fallback={null}>
-          <div className="absolute inset-0">
-            <GridScan linesColor="#2a2a2a" scanColor="#ff3d6e" scanOpacity={0.55} gridScale={0.09} lineJitter={0.06} scanDirection="pingpong" scanDuration={3} scanDelay={1.5} scanGlow={0.6} chromaticAberration={0} noiseIntensity={0.012} bloomIntensity={0.35} bloomThreshold={0.1} bloomSmoothing={0.4} />
-          </div>
-        </Suspense>
-      )}
       <div className="lx-hero-glow absolute -inset-10 opacity-80" />
       <div className="lx-hero-grid absolute inset-0" />
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[var(--panel)]" />
