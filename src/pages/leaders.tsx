@@ -7,6 +7,8 @@ import { competitiveService } from "@/api"
 import type { CompetitiveLeaderboardEntry, LeaderboardSort } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useFlip } from "@/hooks/use-flip"
+import { LeadersBackdrop } from "@/components/leaders-backdrop"
+import { isFeatureEnabled } from "@/lib/features"
 import { useViewParams } from "@/hooks/use-view-params"
 import { useAuth } from "@/hooks/use-auth"
 import { PlayerAvatar } from "@/components/player-avatar"
@@ -305,7 +307,8 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
   const open = (player: CompetitiveLeaderboardEntry) => onProfileNavigate(player.steam_id || player.user_id)
 
   return (
-    <div className="scrollbar-hidden flex min-h-0 flex-1 overflow-x-auto">
+    <div className="scrollbar-hidden relative isolate flex min-h-0 flex-1 overflow-x-auto">
+      {isFeatureEnabled("leadersBackdrop") && <LeadersBackdrop />}
       <div className="flex min-w-[900px] flex-1 flex-col">
         <div className="px-6 pb-2 pt-6">
           <section aria-label="Leaders" className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">

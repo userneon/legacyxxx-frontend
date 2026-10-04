@@ -1,0 +1,73 @@
+/* Leaders backdrop: a spotlight over the podium. Only transform and opacity move, so it stays cheap to animate. */
+.lx-lb {
+  position: absolute;
+  inset: 0;
+  z-index: -10;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* The cone is a triangle of light fading downward; its soft sides come from a horizontal mask, not a blur filter. */
+.lx-lb-cone {
+  position: absolute;
+  left: 50%;
+  top: -30px;
+  width: var(--w, 640px);
+  height: var(--h, 700px);
+  margin-left: calc(var(--w, 640px) / -2);
+  transform-origin: 50% 0;
+  background: linear-gradient(180deg, rgb(255 255 255 / var(--a, 0.2)) 0%, rgb(255 255 255 / calc(var(--a, 0.2) * 0.35)) 45%, transparent 90%);
+  clip-path: polygon(44% 0, 56% 0, 100% 100%, 0 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 30%, #000 70%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 30%, #000 70%, transparent 100%);
+  animation: lx-lb-sway var(--sway, 11s) ease-in-out infinite alternate, lx-lb-breathe var(--breathe, 6s) ease-in-out infinite alternate;
+  animation-delay: var(--delay, 0s);
+  will-change: transform, opacity;
+}
+
+@keyframes lx-lb-sway {
+  from { transform: translateX(var(--shift, 0px)) rotate(-1.8deg); }
+  to { transform: translateX(var(--shift, 0px)) rotate(1.8deg); }
+}
+@keyframes lx-lb-breathe {
+  from { opacity: 0.65; }
+  to { opacity: 1; }
+}
+
+/* Where the light lands on the #1 card: a soft crimson pool (the one brand spot on this page). */
+.lx-lb-pool {
+  position: absolute;
+  left: 50%;
+  top: 250px;
+  width: 560px;
+  height: 260px;
+  margin-left: -280px;
+  background: radial-gradient(ellipse at 50% 50%, color-mix(in oklab, var(--brand) 26%, transparent) 0%, transparent 68%);
+  animation: lx-lb-pool 7s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+@keyframes lx-lb-pool {
+  from { opacity: 0.55; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1.06); }
+}
+
+/* Specks of dust drifting up through the beam. */
+.lx-lb-speck {
+  position: absolute;
+  top: var(--y, 400px);
+  left: var(--x, 50%);
+  width: var(--s, 2px);
+  height: var(--s, 2px);
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 0.7);
+  opacity: 0;
+  animation: lx-lb-rise var(--d, 9s) linear infinite;
+  animation-delay: var(--delay, 0s);
+  will-change: transform, opacity;
+}
+@keyframes lx-lb-rise {
+  0% { opacity: 0; transform: translate3d(0, 0, 0); }
+  15% { opacity: 0.8; }
+  85% { opacity: 0.5; }
+  100% { opacity: 0; transform: translate3d(var(--dx, 10px), -150px, 0); }
+}
