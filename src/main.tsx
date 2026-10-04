@@ -7,16 +7,27 @@ import App from "./App.tsx"
 import { ThemeProvider } from "@/components/theme-provider.tsx"
 import { AuthProvider } from "@/hooks/use-auth.tsx"
 import { Toaster } from "@/components/ui/sonner"
+import { LaunchCountdown } from "@/components/launch-countdown.tsx"
+import { launchGateActive } from "@/lib/launch.ts"
+
+// Before launch every address shows the countdown; no auth or API request is made.
+const gated = launchGateActive()
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter>
+    {gated ? (
       <ThemeProvider defaultTheme="dark">
-        <AuthProvider>
-          <App />
-          <Toaster richColors position="top-center" />
-        </AuthProvider>
+        <LaunchCountdown />
       </ThemeProvider>
-    </BrowserRouter>
+    ) : (
+      <BrowserRouter>
+        <ThemeProvider defaultTheme="dark">
+          <AuthProvider>
+            <App />
+            <Toaster richColors position="top-center" />
+          </AuthProvider>
+        </ThemeProvider>
+      </BrowserRouter>
+    )}
   </StrictMode>
 )
