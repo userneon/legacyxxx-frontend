@@ -4,7 +4,6 @@
  * so the page shows its real empty / error state and nothing reaches the network.
  */
 import type { ApiError } from "./types"
-import { mockMatchDetail, mockMatchReplay } from "./mock-match"
 
 type Query = Record<string, string | number | boolean | undefined | null> | undefined
 
@@ -398,8 +397,6 @@ function profileOverview(identity: string) {
       result,
       score: result === "Win" ? `13 : ${6 + (i % 5)}` : `${7 + (i % 4)} : 13`,
       kd: (0.8 + ((i * 37) % 90) / 100).toFixed(2),
-      matchId: `sample-${i + 1}`,
-      mapNumber: 1,
       playedAt: new Date(Date.now() - (i + 1) * 9 * HOUR).toISOString(),
       expDelta: result === "Win" ? (i === 1 ? 5 : i === 3 ? 0 : 18 + (i % 7)) : -(12 + (i % 5)),
       expBreakdown: i === 1 ? { limited: "daily" } : i === 3 && result === "Win" ? { limited: "weekly" } : null,
@@ -486,12 +483,6 @@ export async function mockResponse(method: string, path: string, query: Query, b
         updatedAt: new Date().toISOString(), availability: found.players > 0 ? "live_snapshot" : "unavailable",
       },
     }
-  }
-
-  const matchRoute = /^\/api\/v1\/public\/matches\/([^/]+)\/maps\/(\d+)(\/replay)?$/.exec(path)
-  if (matchRoute) {
-    const id = decodeURIComponent(matchRoute[1]!)
-    return matchRoute[3] ? mockMatchReplay(id, Number(matchRoute[2])) : mockMatchDetail(id, Number(matchRoute[2]))
   }
 
   const profile = /^\/api\/v1\/profile\/([^/]+)\/(overview|faceit)$/.exec(path)

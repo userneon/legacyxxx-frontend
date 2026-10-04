@@ -10,11 +10,9 @@ import { matchesService } from "@/api"
 import type { MatchDetail, MatchDetailPlayer, MatchDetailRound, MatchDetailTeam, MatchRoundOutcome } from "@/api/types"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { MatchReplayView } from "@/components/match-replay"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { TeamIcon } from "@/components/team-icon"
 import { RelativeTime } from "@/components/relative-time"
-import { MOCK_API } from "@/api/client"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { cn } from "@/lib/utils"
@@ -36,9 +34,6 @@ const OUTCOME: Record<MatchRoundOutcome, { icon: typeof Skull; label: string }> 
   surrender: { icon: Flag, label: "Surrender" },
   other: { icon: Circle, label: "Round won" },
 }
-
-/** The Replay tab shows in sample-data mode, or on a build made with VITE_MATCH_REPLAY=1 once the API serves replays. */
-const REPLAY_ENABLED = MOCK_API || import.meta.env.VITE_MATCH_REPLAY === "1"
 
 const dash = (value: number | null | undefined, suffix = "") => (value === null || value === undefined ? "—" : `${value}${suffix}`)
 
@@ -279,8 +274,6 @@ export function MatchDetailsDialog({ matchId, mapNumber, highlightSteamId, onOpe
   )
   const art = detail ? cs2MapArtwork(detail.mapName) : null
   const [team1, team2] = (detail?.teams ?? []) as MatchDetailTeam[]
-  const [tab, setTab] = useState("scoreboard")
-  useEffect(() => { if (!open) setTab("scoreboard") }, [open])
 
   const openPlayer = (steamId: string) => {
     if (!steamId) return
@@ -332,19 +325,17 @@ export function MatchDetailsDialog({ matchId, mapNumber, highlightSteamId, onOpe
                 {error?.code === "not_found" ? "This match could not be found." : "Match details are unavailable right now."}
               </p>
             ) : (
-              <Tabs value={tab} onValueChange={setTab}>
+              <Tabs defaultValue="scoreboard">
                 <TabsList className="mb-4">
                   <TabsTrigger value="scoreboard">Scoreboard</TabsTrigger>
                   <TabsTrigger value="rounds">Rounds{detail.rounds.length ? ` (${detail.rounds.length})` : ""}</TabsTrigger>
                   <TabsTrigger value="stats">Stats</TabsTrigger>
-                  {REPLAY_ENABLED && <TabsTrigger value="replay">Replay</TabsTrigger>}
                 </TabsList>
                 <TabsContent value="scoreboard" className="flex flex-col gap-4">
                   {detail.teams.map((team) => <Scoreboard key={team.key} team={team} highlightSteamId={highlightSteamId} onPlayer={openPlayer} />)}
                 </TabsContent>
                 <TabsContent value="rounds"><RoundTimeline detail={detail} /></TabsContent>
                 <TabsContent value="stats"><TeamComparison detail={detail} onPlayer={openPlayer} /></TabsContent>
-                {REPLAY_ENABLED && <TabsContent value="replay"><MatchReplayView matchId={detail.matchId} mapNumber={detail.mapNumber} enabled={tab === "replay"} /></TabsContent>}
               </Tabs>
             )}
           </div>

@@ -287,59 +287,6 @@ export interface MatchDetail {
   rounds: MatchDetailRound[]
 }
 
-/* Match replay: where every player was during a round, sampled a few times a second. Coordinates are 0..1 on the map's
- * radar picture (x to the right, y downwards); the API converts the game's world coordinates. */
-
-export type MatchReplaySide = "t" | "ct"
-
-export interface MatchReplayPlayer {
-  steamId: string
-  name: string
-  team: "team1" | "team2"
-}
-
-export interface MatchReplayFrame {
-  /** Seconds since the round started. */
-  t: number
-  /** One entry per replay player, in the same order as `MatchReplay.players`. */
-  players: Array<{ x: number; y: number; yaw: number; alive: boolean }>
-}
-
-export interface MatchReplayEvent {
-  t: number
-  type: "kill" | "plant" | "defuse" | "explode"
-  /** Index into `MatchReplay.players`. */
-  actor?: number
-  victim?: number
-  weapon?: string
-  headshot?: boolean
-  site?: "A" | "B"
-}
-
-export interface MatchReplayRound {
-  number: number
-  seconds: number
-  /** The side team1 played this round. */
-  team1Side: MatchReplaySide
-  winnerSide: MatchReplaySide | null
-  frames: MatchReplayFrame[]
-  events: MatchReplayEvent[]
-}
-
-/** GET /api/v1/public/matches/:matchId/maps/:mapNumber/replay */
-export interface MatchReplay {
-  matchId: string
-  mapNumber: number
-  mapName: string
-  /** Frames per second of every round's `frames`. */
-  sampleRate: number
-  /** The radar picture; null draws a plain grid instead. */
-  radar: { image: string | null }
-  sites: { A: { x: number; y: number }; B: { x: number; y: number } }
-  players: MatchReplayPlayer[]
-  rounds: MatchReplayRound[]
-}
-
 /* ----------------------------------------------------------------------------
  * Play / matches
  * ------------------------------------------------------------------------- */
