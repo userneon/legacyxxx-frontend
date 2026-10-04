@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import {
   ArrowLeft,
   BadgeCheck,
@@ -33,6 +33,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
 import { OptimizedImage } from "@/components/optimized-image"
+import { SkinViewer } from "@/components/skin-viewer"
+import { findSkin3d, type Skin3dSource } from "@/lib/skin-3d"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useViewParams } from "@/hooks/use-view-params"
 import { cn } from "@/lib/utils"
@@ -333,6 +335,21 @@ export function SkinchangerPage() {
     ?? (fallsBackToBoth ? loadoutEntries.find((entry) => entry.slot_key === selectedSlotKey && entry.team_scope === "all") : undefined)
   const savedItemForActiveSlot = savedEntryForActiveSlot?.skinchanger_catalog_items ?? null
   const previewChoice = selected ?? savedItemForActiveSlot ?? (defaultChoice === category ? defaultModelItem(defaultChoice) : null)
+  // 3D view: only for a skin the manifest names; everything else stays a picture.
+  const [skin3d, setSkin3d] = useState<Skin3dSource | null>(null)
+  const [view3d, setView3d] = useState(false)
+  const previewWeaponClass = previewChoice?.weapon_class ?? null
+  const previewPaintId = previewChoice?.paint_id ?? null
+  useEffect(() => {
+    let cancelled = false
+    setSkin3d(null)
+    setView3d(false)
+    if (previewChoice?.category === "weapon_skin") {
+      void findSkin3d(previewWeaponClass, previewPaintId).then((found) => { if (!cancelled) setSkin3d(found) })
+    }
+    return () => { cancelled = true }
+  }, [previewChoice?.id, previewChoice?.category, previewWeaponClass, previewPaintId])
+  const closeView3d = useCallback(() => setView3d(false), [])
   const canCustomizeAccessories = Boolean(activeWeapon && category === "weapon")
   const selectedCharmItem = customOptions.charm ? selectedAccessories[customOptions.charm.catalogItemId] ?? null : null
   const savedAccessories = savedEntryForActiveSlot?.resolved_accessories ?? []
@@ -1363,10 +1380,33 @@ export function SkinchangerPage() {
             <aside className={cn("min-h-0 overflow-y-auto border-t border-border px-4 pt-4 lg:border-l lg:border-t-0", !(selected && pickerHasOptions) && "max-lg:max-h-[40dvh]", accessoryOpen && "max-lg:hidden")}>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">{selected ? "Your choice" : "Nothing picked yet"}</p>
               <p className="mb-3 mt-1 truncate text-sm font-semibold">{previewChoice?.display_name || `Pick ${activeWeapon ? `a ${activeWeapon.display_name} skin` : "one from the list"}`}</p>
+            {skin3d && (
+              <div role="tablist" aria-label="Preview type" className="mb-2 inline-flex rounded-lg border border-[var(--line)] bg-[var(--panel)] p-0.5">
+                {([false, true] as const).map((is3d) => (
+                  <button
+                    key={String(is3d)}
+                    type="button"
+                    role="tab"
+                    aria-selected={view3d === is3d}
+                    onClick={() => setView3d(is3d)}
+                    className={cn("h-6 rounded-md px-3 text-[11px] font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50", view3d === is3d ? "bg-[var(--raised)] text-[var(--text)]" : "text-[var(--text-muted)] hover:text-[var(--text)]")}
+                  >
+                    {is3d ? "3D" : "2D"}
+                  </button>
+                ))}
+              </div>
+            )}
+            {skin3d && view3d && previewChoice ? (
+              <>
+                <SkinViewer source={skin3d} label={previewChoice.display_name} className="h-40 rounded-lg border border-border bg-background" onUnavailable={closeView3d} />
+                <p className="mt-2 text-[11px] leading-4 text-[var(--text-dim)]">Preview of the paint only. Wear, pattern and stickers are not shown in 3D.</p>
+              </>
+            ) : (
             <div className="relative flex h-40 items-center justify-center rounded-lg border border-border bg-background">
               {previewChoice && catalogImageUrl(previewChoice) ? <OptimizedImage src={catalogImageUrl(previewChoice) ?? ""} width={320} height={160} priority alt={`${previewChoice.display_name} selected collectible`} data-catalog-item-id={previewChoice.id} className="h-full w-full object-contain p-3" /> : <span className="flex flex-col items-center gap-2 px-6 text-center"><ImageOff className="size-7 text-muted-foreground/50" /><span className="text-[11px] leading-4 text-muted-foreground">Pick one from the list.</span></span>}
               {canCustomizeAccessories && (previewStickerItems.length > 0 || previewCharmItem) && <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-2"><div className="flex -space-x-1.5">{previewStickerItems.slice(0, 5).map((item) => catalogImageUrl(item) && <OptimizedImage key={item.id} src={catalogImageUrl(item) ?? ""} width={28} height={28} alt={`${item.display_name} selected sticker`} data-catalog-item-id={item.id} className="size-7 rounded-full border border-background bg-card object-contain p-0.5" />)}</div>{previewCharmItem && catalogImageUrl(previewCharmItem) && <OptimizedImage src={catalogImageUrl(previewCharmItem) ?? ""} width={32} height={32} alt={`${previewCharmItem.display_name} selected charm`} data-catalog-item-id={previewCharmItem.id} className="size-8 rounded-md border border-background bg-card object-contain p-0.5" />}</div>}
             </div>
+            )}
             {selected && activeWeapon && (
               <div className="mt-3 grid grid-rows-[1fr] overflow-hidden">
               <div className="min-h-0 overflow-hidden">

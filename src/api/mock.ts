@@ -308,7 +308,7 @@ function skinsFor(weaponClass: string, category: "weapon_skin" | "knife" | "glov
   const knife = KNIVES.find(([name]) => name === weaponClass)
   const image = firearm ? `${ICON}/weapon_${firearm[1]}_png.png` : knife ? `${ICON}/weapon_${knife[1]}_png.png` : null
   const prefix = category === "weapon_skin" ? "" : "★ "
-  return SKIN_NAMES.map((skin, index) => item(
+  const skins = SKIN_NAMES.map((skin, index) => item(
     `skin-${weaponClass.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${index}`,
     category,
     weaponClass,
@@ -317,6 +317,11 @@ function skinsFor(weaponClass: string, category: "weapon_skin" | "knife" | "glov
     { rarity: category === "weapon_skin" ? RARITIES[index % RARITIES.length] : "Covert", minWear: 0, maxWear: 1 },
     100 + index,
   ))
+  // One extra AK-47 skin whose 3D files are in the local demo set (see src/lib/skin-3d.ts); the real paint name is not known here.
+  if (weaponClass === "AK-47" && category === "weapon_skin") {
+    skins.push(item("skin-ak-47-paint-1004", category, weaponClass, "AK-47 | Paint 1004", image, { rarity: "Covert", minWear: 0, maxWear: 1 }, 1004))
+  }
+  return skins
 }
 
 function catalog(query: Record<string, string | number | boolean | undefined | null> | undefined) {
