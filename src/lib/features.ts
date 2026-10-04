@@ -1,4 +1,3 @@
-import { MOCK_API } from "@/api/client"
 import type { PageId } from "@/api/types"
 
 /**
@@ -19,8 +18,8 @@ export const FEATURES = {
   explore: true,
   feedback: true,
   tournaments: true,
-  /** Per-map results of the signed-in player. Shown in sample-data mode, or on a build made with VITE_FEATURE_MAPS=1. */
-  maps: MOCK_API || import.meta.env.VITE_FEATURE_MAPS === "1",
+  /** Per-map results of the signed-in player. Shown on every dev server, or on a build made with VITE_FEATURE_MAPS=1. */
+  maps: import.meta.env.DEV || import.meta.env.VITE_FEATURE_MAPS === "1",
 } as const
 
 export type FeatureName = keyof typeof FEATURES
