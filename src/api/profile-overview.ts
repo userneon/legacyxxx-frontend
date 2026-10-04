@@ -1,4 +1,5 @@
-import { get, put, type CallOptions } from "./client"
+import { del, get, post, put, type CallOptions } from "./client"
+import type { ProfileLink } from "@/lib/profile-links"
 import type { PenaltyEntry, UserProfile } from "./types"
 
 /**
@@ -59,11 +60,21 @@ export interface ProfileOverview {
   loadout: { side: "t" | "ct"; items: { key: string; label: string; name: string | null; image: string | null }[] } | null
   staff: { role: string; description: string; penaltiesIssued: number } | null
   presence: { serverId: string; serverName: string; connectAddress: string | null; map: string } | null
+  /** Links the player shows on the profile (the Owner role). Absent or empty: nothing is shown. */
+  links?: ProfileLink[] | null
+  /** The respect count and whether the signed-in viewer gave one. Absent: no Respect button. */
+  respect?: { count: number; given: boolean } | null
 }
 
 export const profileOverviewService = {
   async get(userId: string, options?: CallOptions): Promise<ProfileOverview> {
     return get<ProfileOverview>(`/api/v1/profile/${encodeURIComponent(userId)}/overview`, undefined, options)
+  },
+
+  /** Give (`true`) or take back (`false`) respect for a profile; answers with the new count. */
+  async setRespect(userId: string, give: boolean, options?: CallOptions): Promise<{ count: number; given: boolean }> {
+    const path = `/api/v1/profile/${encodeURIComponent(userId)}/respect`
+    return give ? post<{ count: number; given: boolean }>(path, undefined, options) : del<{ count: number; given: boolean }>(path, options)
   },
 
   /** "What others can see": sends the sections to hide; saved immediately. */

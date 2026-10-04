@@ -368,6 +368,10 @@ function loadout() {
 
 /* ------------------------------------------------------------------ profile */
 
+/** Sample Respect for the sample Owner; it resets when the page is reloaded. */
+const OWNER_RESPECT_BASE = 1284
+let ownerRespect = { count: OWNER_RESPECT_BASE, given: false }
+
 function profileOverview(identity: string) {
   const own = identity === "me" || identity === MOCK_USER.id || identity === MOCK_USER.steamId
   if (own && !signedIn()) throw unauthorized()
@@ -381,6 +385,16 @@ function profileOverview(identity: string) {
   return {
     user: { id: own ? MOCK_USER.id : `mock-${index}`, steamId: own ? MOCK_USER.steamId : identity, username: name, avatar: "", role: own ? "Player" : index === 0 ? "Owner" : "Player", memberSince: new Date(Date.now() - 400 * 24 * HOUR).toISOString(), steamBackground: null, steamMedia: null },
     viewer: { isOwner: own, isStaff: false },
+    // Only the sample Owner has Respect and links, like the real Owner profile will.
+    ...(index === 0 ? {
+      respect: ownerRespect,
+      links: [
+        { url: "https://instagram.com/example" },
+        { url: "https://facebook.com/example" },
+        { url: "https://discord.gg/example" },
+        { url: "https://example.com", label: "Website" },
+      ],
+    } : {}),
     visibility: own ? { stats: true, matches: true, faceit: true, loadout: true } : null,
     hidden: [],
     competitive: { exp, rankId, rankName, rankImageKey: null, currentRankMinExp: Math.floor(exp / 200) * 200 - 100, nextRankName: "Vanguard I", nextRankMinExp: Math.floor(exp / 200) * 200 + 220, proLeagueUnlocked: false, position: own ? 42 : index + 1, expLimits: own ? { day: { used: 150, cap: 150, resetsAt: new Date(Date.now() + 6 * 3_600_000).toISOString() }, week: { used: 380, cap: 600, resetsAt: new Date(Date.now() + 4 * 24 * 3_600_000).toISOString() } } : null },
@@ -464,6 +478,12 @@ export async function mockResponse(method: string, path: string, query: Query, b
     if (!signedIn()) throw unauthorized()
     if (method === "PUT") notificationPrefs = { ...notificationPrefs, ...(body as Partial<typeof notificationPrefs>), penalties: true }
     return notificationPrefs
+  }
+  const respectRoute = /^\/api\/v1\/profile\/([^/]+)\/respect$/.exec(path)
+  if (respectRoute && (method === "POST" || method === "DELETE")) {
+    if (!signedIn()) throw unauthorized()
+    ownerRespect = { given: method === "POST", count: OWNER_RESPECT_BASE + (method === "POST" ? 1 : 0) }
+    return ownerRespect
   }
   if (method !== "GET") throw notFound()
 

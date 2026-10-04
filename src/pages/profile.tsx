@@ -18,6 +18,7 @@ import { PAGE_ROUTES, PAGE_TITLES, documentTitle } from "@/lib/routes"
 import { CompetitiveRankBadge, RankLabel, RankPill } from "@/components/competitive-rank-badge"
 import { FaceitLevelBadge } from "@/components/faceit-level-badge"
 import { MatchDetailsDialog } from "@/components/match-details-dialog"
+import { OwnerPanel } from "@/components/owner-panel"
 import { PenaltyDetailSheet, StatusPill, TypeIcon, TYPE_META, formatPenaltyDate } from "@/components/penalty-detail-dialog"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { copyText, steamProfileUrl } from "@/components/profile-ids"
@@ -633,7 +634,8 @@ export function ProfilePage({ userId }: { userId?: string }) {
           </div>
         </section>
       </div>
-      {/* The Owner role has no match statistics, so everything under the header stays empty for now; something of its own goes here later. */}
+      {/* The Owner role has no match statistics: under the header it shows Respect and its links instead. */}
+      {data.user.role === "Owner" && <div className="px-6 pb-8 pt-4 max-md:px-4"><OwnerPanel overview={data} /></div>}
       {data.user.role !== "Owner" && (
       <div className="flex flex-col gap-4 px-6 pb-8 pt-4 max-md:px-4">
         {data.staff && <div {...rise(0)}><StaffCard staff={data.staff} username={data.user.username} /></div>}
