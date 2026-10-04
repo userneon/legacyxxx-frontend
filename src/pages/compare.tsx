@@ -11,6 +11,7 @@ import { competitiveService, searchService } from "@/api"
 import { profileOverviewService, type ProfileOverview } from "@/api/profile-overview"
 import type { CommunityPlayer } from "@/api/types"
 import { CompetitiveRankBadge, rankTierColor } from "@/components/competitive-rank-badge"
+import { AnimatedNumber } from "@/components/animated-number"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -46,6 +47,9 @@ interface Row {
   a: number | null
   b: number | null
   show: (value: number) => string
+  /** How the number counts up on screen. */
+  decimals: number
+  suffix: string
   /** The gap between the two, for the pill next to the leader. */
   gap: (difference: number) => string
 }
@@ -56,12 +60,12 @@ function buildRows(a: ProfileOverview, b: ProfileOverview): Row[] {
   const whole = (value: number) => Math.round(value).toLocaleString()
   const points = (value: number) => `${Math.round(value)} pts`
   return [
-    { key: "rank", label: "EXP", a: a.competitive?.exp ?? null, b: b.competitive?.exp ?? null, show: whole, gap: whole },
-    { key: "matches", label: "Matches", a: statValue(a, "matches"), b: statValue(b, "matches"), show: whole, gap: whole },
-    { key: "winRate", label: "Win rate", a: statValue(a, "winRate"), b: statValue(b, "winRate"), show: (value) => `${Math.round(value)}%`, gap: points },
-    { key: "kd", label: "K/D", a: statValue(a, "kd"), b: statValue(b, "kd"), show: (value) => value.toFixed(2), gap: (value) => value.toFixed(2) },
-    { key: "hs", label: "Headshot %", a: statValue(a, "hs"), b: statValue(b, "hs"), show: (value) => `${Math.round(value)}%`, gap: points },
-    { key: "avgKills", label: "Avg. kills", a: statValue(a, "avgKills"), b: statValue(b, "avgKills"), show: (value) => value.toFixed(1), gap: (value) => value.toFixed(1) },
+    { key: "rank", label: "EXP", a: a.competitive?.exp ?? null, b: b.competitive?.exp ?? null, show: whole, decimals: 0, suffix: "", gap: whole },
+    { key: "matches", label: "Matches", a: statValue(a, "matches"), b: statValue(b, "matches"), show: whole, decimals: 0, suffix: "", gap: whole },
+    { key: "winRate", label: "Win rate", a: statValue(a, "winRate"), b: statValue(b, "winRate"), show: (value) => `${Math.round(value)}%`, decimals: 0, suffix: "%", gap: points },
+    { key: "kd", label: "K/D", a: statValue(a, "kd"), b: statValue(b, "kd"), show: (value) => value.toFixed(2), decimals: 2, suffix: "", gap: (value) => value.toFixed(2) },
+    { key: "hs", label: "Headshot %", a: statValue(a, "hs"), b: statValue(b, "hs"), show: (value) => `${Math.round(value)}%`, decimals: 0, suffix: "%", gap: points },
+    { key: "avgKills", label: "Avg. kills", a: statValue(a, "avgKills"), b: statValue(b, "avgKills"), show: (value) => value.toFixed(1), decimals: 1, suffix: "", gap: (value) => value.toFixed(1) },
   ]
 }
 
@@ -121,7 +125,7 @@ function SearchBox({ side, onPick }: { side: Side; onPick: (steamId: string) => 
         />
       </label>
       {open && searching && (
-        <ul id={`compare-results-${side}`} role="listbox" aria-label={`${label} results`} className="absolute inset-x-0 top-[52px] z-20 max-h-72 overflow-y-auto rounded-xl border border-[var(--line)] bg-[var(--card-surface)] p-1 shadow-lg">
+        <ul id={`compare-results-${side}`} role="listbox" aria-label={`${label} results`} className="animate-in fade-in-0 slide-in-from-top-1 absolute inset-x-0 top-[52px] z-20 max-h-72 overflow-y-auto rounded-xl border border-[var(--line)] bg-[var(--card-surface)] p-1 shadow-lg duration-150">
           {found.loading && !found.data ? (
             <li className="px-3 py-3 text-xs text-[var(--text-dim)]">Searching…</li>
           ) : results.length === 0 ? (
@@ -200,7 +204,7 @@ function PlayerPanel({ side, selectedId, overview, loading, failed, onPick, onCl
   }
   const { user, competitive } = overview
   return (
-    <div className={panel}>
+    <div key={user.steamId} className={cn(panel, "lx-swap-in")}>
       <button type="button" onClick={onClear} aria-label={`Change ${label}`} className="absolute right-3 top-3 flex size-8 items-center justify-center rounded-lg text-[var(--text-dim)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)]"><X className="size-4" /></button>
       <PlayerAvatar avatar={user.avatar} name={user.username} className="size-12 shrink-0 rounded-xl text-sm md:size-16 md:rounded-2xl md:text-lg" />
       <div className="flex min-w-0 flex-col items-start gap-1.5 pr-8 md:items-center md:pr-0">
@@ -222,7 +226,14 @@ function PlayerPanel({ side, selectedId, overview, loading, failed, onPick, onCl
   )
 }
 
-function StatRow({ row, names }: { row: Row; names: { a: string; b: string } }) {
+function StatRow({ row, names, index }: { row: Row; names: { a: string; b: string }; index: number }) {
+  // The bars start empty and grow in, then glide whenever the players change.
+  const [grown, setGrown] = useState(false)
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setGrown(true))
+    return () => cancelAnimationFrame(frame)
+  }, [])
+  const barStyle = (share: number) => ({ width: grown && total ? `${share * 100}%` : 0, transitionDelay: grown ? "0ms" : `${index * 60}ms` })
   const lead = leader(row)
   const total = row.a !== null && row.b !== null ? Math.max(row.a + row.b, 1e-9) : 0
   const difference = row.a !== null && row.b !== null ? Math.abs(row.a - row.b) : 0
@@ -233,8 +244,8 @@ function StatRow({ row, names }: { row: Row; names: { a: string; b: string } }) 
     const gap = !known ? null : lead === null ? "Draw" : lead === side ? `+${row.gap(difference)}` : null
     return (
       <div className={cn("flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-2", side === "a" ? "items-end text-right sm:flex-row-reverse sm:justify-start" : "items-start text-left sm:justify-start")}>
-        <span className={cn("text-[22px] font-bold leading-none sm:text-[24px]", value === null ? "text-[var(--text-faint)]" : known ? outcome.text : "text-[var(--text)]")}>{value === null ? "—" : row.show(value)}</span>
-        {value === null ? <span className="text-[10px] text-[var(--text-faint)]">Hidden</span> : gap ? <span className={cn("rounded-full border px-2 py-0.5 text-[10px] font-medium", outcome.pill)}>{gap}</span> : null}
+        <span className={cn("text-[22px] font-bold leading-none transition-colors duration-500 sm:text-[24px]", value === null ? "text-[var(--text-faint)]" : known ? outcome.text : "text-[var(--text)]")}>{value === null ? "—" : <AnimatedNumber value={value} decimals={row.decimals} suffix={row.suffix} durationMs={800} />}</span>
+        {value === null ? <span className="text-[10px] text-[var(--text-faint)]">Hidden</span> : gap ? <span key={gap} className={cn("lx-swap-in rounded-full border px-2 py-0.5 text-[10px] font-medium transition-colors duration-500", outcome.pill)}>{gap}</span> : null}
       </div>
     )
   }
@@ -246,8 +257,8 @@ function StatRow({ row, names }: { row: Row; names: { a: string; b: string } }) 
         {cell("b")}
       </div>
       <div aria-hidden="true" className="flex h-1.5 gap-1">
-        <div className="flex flex-1 justify-end overflow-hidden rounded-full bg-[var(--line-soft)]"><div className={cn("h-full rounded-full transition-[width] duration-500", known ? OUTCOME[outcomeOf(lead, "a")].bar : TONE.a.bar)} style={{ width: total ? `${((row.a ?? 0) / total) * 100}%` : 0 }} /></div>
-        <div className="flex flex-1 overflow-hidden rounded-full bg-[var(--line-soft)]"><div className={cn("h-full rounded-full transition-[width] duration-500", known ? OUTCOME[outcomeOf(lead, "b")].bar : TONE.b.bar)} style={{ width: total ? `${((row.b ?? 0) / total) * 100}%` : 0 }} /></div>
+        <div className="flex flex-1 justify-end overflow-hidden rounded-full bg-[var(--line-soft)]"><div className={cn("h-full rounded-full transition-[width,background-color] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]", known ? OUTCOME[outcomeOf(lead, "a")].bar : TONE.a.bar)} style={barStyle((row.a ?? 0) / (total || 1))} /></div>
+        <div className="flex flex-1 overflow-hidden rounded-full bg-[var(--line-soft)]"><div className={cn("h-full rounded-full transition-[width,background-color] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]", known ? OUTCOME[outcomeOf(lead, "b")].bar : TONE.b.bar)} style={barStyle((row.b ?? 0) / (total || 1))} /></div>
       </div>
     </div>
   )
@@ -261,7 +272,7 @@ function SharedMaps({ a, b }: { a: ProfileOverview; b: ProfileOverview }) {
   })
   if (shared.length === 0) return null
   return (
-    <section aria-label="Maps both have played" className="overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
+    <section aria-label="Maps both have played" className="lx-swap-in overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
       <div className="flex items-baseline justify-between gap-3 border-b border-[var(--line-soft)] px-4 py-3">
         <h2 className="text-sm font-semibold text-[var(--text)]">Maps both have played</h2>
         <span className="text-xs text-[var(--text-dim)]">Win rate · {MIN_MAP_MATCHES}+ matches each</span>
@@ -415,9 +426,9 @@ export function ComparePage() {
             {ready && compared > 0 ? (
               <div className="flex flex-col items-center gap-1">
                 <span className="flex items-baseline gap-2 text-[30px] font-black leading-none text-[var(--text)]">
-                  <span className={OUTCOME[outcomeOf(leads.a === leads.b ? null : leads.a > leads.b ? "a" : "b", "a")].text}>{leads.a}</span>
+                  <span className={cn("transition-colors duration-500", OUTCOME[outcomeOf(leads.a === leads.b ? null : leads.a > leads.b ? "a" : "b", "a")].text)}><AnimatedNumber value={leads.a} durationMs={700} /></span>
                   <span className="text-lg text-[var(--text-faint)]">:</span>
-                  <span className={OUTCOME[outcomeOf(leads.a === leads.b ? null : leads.a > leads.b ? "a" : "b", "b")].text}>{leads.b}</span>
+                  <span className={cn("transition-colors duration-500", OUTCOME[outcomeOf(leads.a === leads.b ? null : leads.a > leads.b ? "a" : "b", "b")].text)}><AnimatedNumber value={leads.b} durationMs={700} /></span>
                 </span>
                 <span className="text-[10px] uppercase tracking-wider text-[var(--text-dim)]">stats led</span>
               </div>
@@ -434,13 +445,15 @@ export function ComparePage() {
           <p className="py-10 text-center text-[13px] text-[var(--text-dim)]">Choose {idA || idB ? "one more player" : "two players"} to compare.</p>
         ) : ready && a && b ? (
           <>
-            <section aria-label="Stats" className="overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
+            <section aria-label="Stats" className="lx-swap-in overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
               <div className="grid grid-cols-[1fr_88px_1fr] items-center gap-3 border-b border-[var(--line-soft)] px-4 py-2.5 text-xs font-semibold">
                 <span className="flex items-center justify-end gap-2 text-[var(--text)]"><span className="truncate">{a.user.username}</span><span aria-hidden="true" className={cn("size-2 shrink-0 rounded-full", TONE.a.dot)} /></span>
                 <span />
                 <span className="flex items-center gap-2 text-[var(--text-muted)]"><span aria-hidden="true" className={cn("size-2 shrink-0 rounded-full", TONE.b.dot)} /><span className="truncate">{b.user.username}</span></span>
               </div>
-              {rows.map((row) => <StatRow key={row.key} row={row} names={{ a: a.user.username, b: b.user.username }} />)}
+              <div className="stagger-in">
+                {rows.map((row, index) => <StatRow key={row.key} row={row} index={index} names={{ a: a.user.username, b: b.user.username }} />)}
+              </div>
             </section>
             <p className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-[var(--text-dim)]">
               <span className="inline-flex items-center gap-1.5"><span aria-hidden="true" className={cn("size-2 rounded-full", OUTCOME.win.bar)} />Ahead</span>
