@@ -371,6 +371,7 @@ function loadout() {
 function profileOverview(identity: string) {
   const own = identity === "me" || identity === MOCK_USER.id || identity === MOCK_USER.steamId
   if (own && !signedIn()) throw unauthorized()
+  const variant = own ? 0 : Math.max(0, NAMES.findIndex((_, i) => identity.endsWith(String(i).padStart(4, "0")))) + 1
   const index = own ? -1 : Math.max(0, NAMES.findIndex((_, i) => identity.endsWith(String(i).padStart(4, "0"))))
   const name = own ? MOCK_USER.username : NAMES[index]
   const [rankId, rankName] = own ? [7, "Operator III"] : RANKS[index]
@@ -385,12 +386,13 @@ function profileOverview(identity: string) {
     competitive: { exp, rankId, rankName, rankImageKey: null, currentRankMinExp: Math.floor(exp / 200) * 200 - 100, nextRankName: "Vanguard I", nextRankMinExp: Math.floor(exp / 200) * 200 + 220, proLeagueUnlocked: false, position: own ? 42 : index + 1, expLimits: own ? { day: { used: 150, cap: 150, resetsAt: new Date(Date.now() + 6 * 3_600_000).toISOString() }, week: { used: 380, cap: 600, resetsAt: new Date(Date.now() + 4 * 24 * 3_600_000).toISOString() } } : null },
     lastPlayedAt: new Date(Date.now() - 3 * HOUR).toISOString(),
     trust: { steamAccountCreatedAt: new Date(Date.now() - 6.5 * 365 * 24 * HOUR).toISOString(), activePenalty: null },
+    // Each sample player gets different numbers, so comparing two of them shows a real difference.
     stats: [
-      { key: "matches", label: "Matches", value: 184 },
-      { key: "winRate", label: "Win rate", value: 58 },
-      { key: "kd", label: "K/D", value: 1.27 },
-      { key: "hs", label: "Headshot %", value: 46 },
-      { key: "avgKills", label: "Avg. kills", value: 19 },
+      { key: "matches", label: "Matches", value: 184 - variant * 11 + ((variant * 17) % 40) },
+      { key: "winRate", label: "Win rate", value: 58 + ((variant * 7) % 13) - 6 },
+      { key: "kd", label: "K/D", value: Number((1.27 + (((variant * 5) % 9) - 4) * 0.07).toFixed(2)) },
+      { key: "hs", label: "Headshot %", value: 46 + ((variant * 11) % 17) - 8 },
+      { key: "avgKills", label: "Avg. kills", value: 19 + ((variant * 3) % 7) - 3 },
     ],
     recentMatches: results.map((result, i) => ({
       map: maps[i % maps.length],
@@ -402,7 +404,7 @@ function profileOverview(identity: string) {
       expBreakdown: i === 1 ? { limited: "daily" } : i === 3 && result === "Win" ? { limited: "weekly" } : null,
     })),
     // Per-map results with different sizes and rates, including a map with too few matches to rank.
-    maps: [["de_mirage", 34, 24], ["de_inferno", 28, 15], ["de_dust2", 31, 16], ["de_ancient", 12, 9], ["de_nuke", 9, 3], ["de_anubis", 6, 2], ["de_overpass", 2, 1]].map(([map, matches, wins]) => ({ map: map as string, matches: matches as number, wins: wins as number, winRate: Math.round(((wins as number) / (matches as number)) * 100) })),
+    maps: [["de_mirage", 34, 24], ["de_inferno", 28, 15], ["de_dust2", 31, 16], ["de_ancient", 12, 9], ["de_nuke", 9, 3], ["de_anubis", 6, 2], ["de_overpass", 2, 1]].map(([map, matches, wins], i) => { const played = Math.max(2, (matches as number) + ((variant * (i + 2)) % 7) - 3); const won = Math.min(played, Math.max(0, (wins as number) + ((variant * (i + 3)) % 5) - 2)); return { map: map as string, matches: played, wins: won, winRate: Math.round((won / played) * 100) } }),
     penalties: [],
     penaltyCount: 0,
     loadout: {
