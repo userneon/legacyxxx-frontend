@@ -24,6 +24,8 @@ for (const [url, target] of FILES) {
   console.log(`ok  ${target}`)
 }
 
-const manifest = { weapons: [{ key: "weapon_ak47", classes: ["AK-47"], model: "models/weapon_ak47.glb", paints: { 1004: "textures/weapon_ak47/1004.png" } }] }
+// Sticker slot positions are the ones CS2-WeaponPaints-Website uses for the AK-47 (fractions of the body box).
+const stickerSlots = [{ x: 0.155, y: 0.31 }, { x: 0.065, y: 0.3 }, { x: -0.03, y: 0.31 }, { x: -0.165, y: 0.335 }, { x: 0.37, y: 0.16 }]
+const manifest = { weapons: [{ key: "weapon_ak47", classes: ["AK-47"], model: "models/weapon_ak47.glb", paints: { 1004: "textures/weapon_ak47/1004.png" }, stickerSlots, charm: { x: 0.3, y: -0.1 } }] }
 await writeFile(join(OUT, "manifest.json"), JSON.stringify(manifest, null, 2) + "\n")
 console.log("ok  manifest.json\nDone. Now: npm run dev, open /skinchanger, pick AK-47 > Paint 1004 > 3D.")

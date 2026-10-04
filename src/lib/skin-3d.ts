@@ -8,17 +8,20 @@
  *   { "weapons": [ { "key": "weapon_ak47", "classes": ["AK-47"], "model": "models/weapon_ak47.glb",
  *                    "paints": { "1004": "textures/weapon_ak47/1004.png" } } ] }
  *
- * The metal map sits next to each texture as `<name>_metal.<ext>`.
+ * `stickerSlots` (one {x, y} per slot) and `charm` ({x, y}) say where stickers and the charm sit; without them the 3D view
+ * shows the paint only. The metal map sits next to each texture as `<name>_metal.<ext>`.
  */
 import { MOCK_API } from "@/api/client"
 
 // Sample-data mode (`npm run dev` without an API, or `dev:mock`) looks for the local demo files; a real build needs the env var.
 const base = (import.meta.env.VITE_SKIN3D_BASE_URL ?? (MOCK_API ? "/skin3d-demo" : "")).replace(/\/+$/, "")
 
-interface ManifestWeapon { key: string; classes: string[]; model: string; paints: Record<string, string> }
+/** Sticker slot and charm positions as fractions of the weapon body's box: x along its length, y along its height. */
+export interface Skin3dSlot { x: number; y: number }
+interface ManifestWeapon { key: string; classes: string[]; model: string; paints: Record<string, string>; stickerSlots?: Skin3dSlot[]; charm?: Skin3dSlot }
 interface Manifest { weapons: ManifestWeapon[] }
 
-export interface Skin3dSource { model: string; texture: string; textureMetal: string }
+export interface Skin3dSource { model: string; texture: string; textureMetal: string; stickerSlots: Skin3dSlot[]; charmAnchor: Skin3dSlot | null }
 
 let manifestPromise: Promise<Manifest | null> | null = null
 
@@ -41,5 +44,7 @@ export async function findSkin3d(weaponClass: string | null, paintId: number | n
     model: `${base}/${weapon.model}`,
     texture: `${base}/${texture}`,
     textureMetal: `${base}/${texture.replace(/(\.[a-z0-9]+)$/i, "_metal$1")}`,
+    stickerSlots: weapon.stickerSlots ?? [],
+    charmAnchor: weapon.charm ?? null,
   }
 }

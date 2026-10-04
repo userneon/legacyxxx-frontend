@@ -11,10 +11,11 @@ import {
   Sticker,
   Tag,
   Trash2,
+  X,
 } from "lucide-react"
 import { toast } from "sonner"
 
-import { skinchangerService, type SkinchangerAppearanceOptions, type SkinchangerCatalogItem, type SkinchangerCategory, type SkinchangerFirearmGroup, type SkinchangerLoadoutEntry, type SkinchangerSlot, type TeamScope } from "@/api"
+import { skinchangerService, type SkinchangerAppearanceOptions, type SkinchangerStickerOption, type SkinchangerCatalogItem, type SkinchangerCategory, type SkinchangerFirearmGroup, type SkinchangerLoadoutEntry, type SkinchangerSlot, type TeamScope } from "@/api"
 import type { ApiError } from "@/api/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -345,12 +346,14 @@ export function SkinchangerPage() {
     let cancelled = false
     setSkin3d(null)
     setOpen3d(false)
+    setSlot3d(null)
     if (previewChoice?.category === "weapon_skin") {
       void findSkin3d(previewWeaponClass, previewPaintId).then((found) => { if (!cancelled) setSkin3d(found) })
     }
     return () => { cancelled = true }
   }, [previewChoice?.id, previewChoice?.category, previewWeaponClass, previewPaintId])
   const closeView3d = useCallback(() => setOpen3d(false), [])
+  const [slot3d, setSlot3d] = useState<number | null>(null)
   const canCustomizeAccessories = Boolean(activeWeapon && category === "weapon")
   const selectedCharmItem = customOptions.charm ? selectedAccessories[customOptions.charm.catalogItemId] ?? null : null
   const savedAccessories = savedEntryForActiveSlot?.resolved_accessories ?? []
@@ -1276,7 +1279,7 @@ export function SkinchangerPage() {
           <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,1fr)_340px]">
             {/* Catalogue */}
             <div className={cn("flex min-h-0 flex-col", selected && pickerHasOptions && !accessoryOpen && "hidden lg:flex")}>
-              {accessoryOpen ? renderAccessoryBrowser() : (<>
+              {accessoryOpen && !open3d ? renderAccessoryBrowser() : (<>
               {slotTeam && (category === "knife" || category === "glove") && (
                 <div role="tablist" aria-label={category === "knife" ? "Knife type" : "Glove type"} className="flex gap-1.5 overflow-x-auto border-b border-border px-3 py-2.5 [scrollbar-width:thin]">
                   {modelsForSlot(category).map((model) => {
@@ -1498,18 +1501,103 @@ export function SkinchangerPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={open3d && Boolean(skin3d && previewChoice)} onOpenChange={setOpen3d}>
+      <Dialog open={open3d && Boolean(skin3d && previewChoice)} onOpenChange={(open) => { setOpen3d(open); if (!open) closeAccessoryPicker() }}>
         <DialogContent
           overlayClassName="lx-blur-overlay bg-black/55 backdrop-blur-[10px]"
-          className="flex max-h-[92dvh] w-[calc(100%-1.5rem)] max-w-4xl flex-col gap-0 overflow-hidden rounded-[14px] border-[var(--line)] bg-[var(--panel)] p-0 sm:max-w-4xl"
+          className="flex max-h-[92dvh] w-[calc(100%-1.5rem)] max-w-5xl flex-col gap-0 overflow-hidden rounded-[14px] border-[var(--line)] bg-[var(--panel)] p-0 sm:max-w-5xl"
         >
           <div className="border-b border-[var(--line-soft)] px-4 py-3 pr-12">
             <DialogTitle className="truncate text-base">{previewChoice?.display_name}</DialogTitle>
-            <DialogDescription className="text-xs">Preview of the paint only. Wear, pattern and stickers are not shown in 3D.</DialogDescription>
+            <DialogDescription className="text-xs">Preview of the paint, stickers and charm. Wear and pattern are not shown in 3D.</DialogDescription>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto p-4">
-            {skin3d && previewChoice && (
-              <SkinViewer source={skin3d} label={previewChoice.display_name} className="h-[min(56dvh,520px)] min-h-64 rounded-xl border border-[var(--line)] bg-background" onUnavailable={closeView3d} />
+          <div className="grid min-h-0 flex-1 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_320px] lg:overflow-hidden">
+            <div className="min-h-0 p-4">
+              {skin3d && previewChoice && (
+                <SkinViewer
+                  source={skin3d}
+                  label={previewChoice.display_name}
+                  stickers={(previewOptions?.stickers ?? []).flatMap((sticker) => {
+                    const item = previewAccessoryById.get(sticker.catalogItemId)
+                    const image = item ? catalogImageUrl(item) : null
+                    return image ? [{ slot: sticker.slot, image, scale: sticker.scale ?? 1, rotation: sticker.rotation ?? 0 }] : []
+                  })}
+                  charm={previewCharmItem && catalogImageUrl(previewCharmItem) ? { image: catalogImageUrl(previewCharmItem) ?? "" } : null}
+                  className="h-[min(56dvh,520px)] min-h-64 rounded-xl border border-[var(--line)] bg-background"
+                  onUnavailable={closeView3d}
+                />
+              )}
+            </div>
+            {selected && canCustomizeAccessories && (
+              <aside className="flex min-h-0 flex-col border-t border-[var(--line-soft)] lg:border-l lg:border-t-0">
+                {accessoryOpen ? renderAccessoryBrowser() : (
+                  <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-4">
+                    <div>
+                      <div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Stickers</span><span className="text-[11px] text-[var(--text-dim)]">Up to 5</span></div>
+                      <div className="grid grid-cols-5 gap-1.5">
+                        {Array.from({ length: 5 }, (_, slot) => {
+                          const sticker = customOptions.stickers?.find((entry) => entry.slot === slot)
+                          const stickerItem = sticker ? selectedAccessories[sticker.catalogItemId] : null
+                          const image = stickerItem ? catalogImageUrl(stickerItem) : null
+                          return (
+                            <div key={slot} className="relative">
+                              <button
+                                type="button"
+                                onClick={() => (sticker ? setSlot3d(slot) : openStickerPicker(slot))}
+                                aria-label={sticker ? `Adjust sticker ${slot + 1}` : `Choose sticker ${slot + 1}`}
+                                aria-pressed={sticker ? slot3d === slot : undefined}
+                                className={cn(
+                                  "flex aspect-square w-full items-center justify-center rounded-lg border text-[11px] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
+                                  sticker ? "bg-[var(--raised)] text-[var(--text)]" : "border-dashed border-[var(--line)] bg-[var(--glass-fill)] text-[var(--text-dim)] hover:border-[var(--line-strong)] hover:text-[var(--text)]",
+                                  sticker && (slot3d === slot ? "border-[var(--text)]" : "border-[var(--line-strong)]"),
+                                )}
+                              >
+                                {image ? <OptimizedImage src={image} width={40} height={40} alt="" className="size-8 object-contain" /> : sticker ? <ImageOff className="size-4" /> : slot + 1}
+                              </button>
+                              {sticker && (
+                                <button
+                                  type="button"
+                                  aria-label={`Remove sticker ${slot + 1}`}
+                                  onClick={() => { setCustomOptions((current) => ({ ...current, stickers: (current.stickers ?? []).filter((entry) => entry.slot !== slot) })); if (slot3d === slot) setSlot3d(null) }}
+                                  className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--card-surface)] text-[var(--text-dim)] hover:text-[var(--text)]"
+                                ><X className="size-2.5" /></button>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                    {slot3d !== null && customOptions.stickers?.some((entry) => entry.slot === slot3d) && (() => {
+                      const active = customOptions.stickers?.find((entry) => entry.slot === slot3d)!
+                      const update = (patch: Partial<SkinchangerStickerOption>) => setCustomOptions((current) => ({ ...current, stickers: (current.stickers ?? []).map((entry) => (entry.slot === slot3d ? { ...entry, ...patch } : entry)) }))
+                      return (
+                        <div className="space-y-3 rounded-lg border border-[var(--line)] p-3">
+                          <div className="flex items-center justify-between"><span className="text-xs font-medium">Sticker {slot3d + 1}</span><button type="button" onClick={() => openStickerPicker(slot3d)} className="text-[11px] text-[var(--text-dim)] hover:text-[var(--text)]">Change</button></div>
+                          <label className="block">
+                            <span className="mb-1 flex items-center justify-between text-[11px] text-[var(--text-dim)]"><span>Size</span><span>{Math.round((active.scale ?? 1) * 100)}%</span></span>
+                            <input type="range" min={0.5} max={2} step={0.05} value={active.scale ?? 1} onChange={(event) => update({ scale: Number(event.target.value) })} className="w-full accent-[var(--accent-solid)]" />
+                          </label>
+                          <label className="block">
+                            <span className="mb-1 flex items-center justify-between text-[11px] text-[var(--text-dim)]"><span>Rotation</span><span>{Math.round(active.rotation ?? 0)}°</span></span>
+                            <input type="range" min={-180} max={180} step={5} value={active.rotation ?? 0} onChange={(event) => update({ rotation: Number(event.target.value) })} className="w-full accent-[var(--accent-solid)]" />
+                          </label>
+                        </div>
+                      )
+                    })()}
+                    <div>
+                      <div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Charm</span>{customOptions.charm && <button type="button" onClick={() => setCustomOptions((current) => ({ ...current, charm: undefined }))} className="text-[11px] text-[var(--text-dim)] hover:text-[var(--text)]">Remove</button>}</div>
+                      <button
+                        type="button"
+                        onClick={() => { setAccessoryPicker("charm"); setEditingStickerSlot(null); setAccessoryQuery("") }}
+                        className={cn("flex h-10 w-full items-center justify-center gap-2 rounded-lg border text-xs transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50", customOptions.charm ? "border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text)]" : "border-dashed border-[var(--line)] bg-[var(--glass-fill)] text-[var(--text-dim)] hover:border-[var(--line-strong)] hover:text-[var(--text)]")}
+                      >
+                        {selectedCharmItem ? selectedCharmItem.display_name : "Choose a charm"}
+                      </button>
+                      {!skin3d?.charmAnchor && customOptions.charm && <p className="mt-2 text-[11px] leading-4 text-[var(--text-dim)]">The charm is saved but not drawn on this weapon in 3D.</p>}
+                      {skin3d?.charmAnchor && <p className="mt-2 text-[11px] leading-4 text-[var(--text-dim)]">The charm is drawn as a flat picture at an approximate spot.</p>}
+                    </div>
+                  </div>
+                )}
+              </aside>
             )}
           </div>
         </DialogContent>

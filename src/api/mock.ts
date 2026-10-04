@@ -324,6 +324,9 @@ function skinsFor(weaponClass: string, category: "weapon_skin" | "knife" | "glov
   return skins
 }
 
+/** Sample sticker and charm art for the design preview: round badges drawn for it, kept in public/mock-art. */
+const badge = (name: string) => `/mock-art/${name.toLowerCase().replace(/\s+/g, "-")}.svg`
+
 function catalog(query: Record<string, string | number | boolean | undefined | null> | undefined) {
   const category = String(query?.category ?? "")
   const weaponClass = query?.weaponClass ? String(query.weaponClass) : null
@@ -338,7 +341,7 @@ function catalog(query: Record<string, string | number | boolean | undefined | n
   else if (category === "agent") items = ["Sir Bloody Darryl", "Cmdr. Mae", "Number K", "Lt. Commander Ricksaw"].map((name, index) => item(`agent-${index}`, "agent", null, name, null, { rarity: index % 2 ? "Classified" : "Covert", team: query?.team === "ct" ? "Counter-Terrorist" : "Terrorist" }))
   else if (category === "music_kit") items = ["Neck Deep", "Amon Tobin", "Knock2", "The Verkkars"].map((name, index) => item(`music-${index}`, "music_kit", null, `Music Kit | ${name}`, null))
   else if (category === "pin") items = ["Dust II Pin", "Mirage Pin", "Guardian Pin", "Howl Pin"].map((name, index) => item(`pin-${index}`, "pin", null, name, null))
-  else if (category === "sticker" || category === "charm") items = ["Legacy-X", "Mongolia", "Headshot", "Clutch King"].map((name, index) => item(`${category}-${index}`, category, null, `${category === "sticker" ? "Sticker" : "Charm"} | ${name}`, null))
+  else if (category === "sticker" || category === "charm") items = ["Legacy-X", "Mongolia", "Headshot", "Clutch King"].map((name, index) => item(`${category}-${index}`, category, null, `${category === "sticker" ? "Sticker" : "Charm"} | ${name}`, badge(name)))
   const matching = search ? items.filter((entry) => entry.display_name.toLowerCase().includes(search)) : items
   return { data: matching.slice(offset, offset + limit), pagination: { limit, offset, total: matching.length } }
 }
