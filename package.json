@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "preview:mock": "vite build --mode mock && vite preview",
     "images:webp": "node scripts/convert-static-images-to-webp.mjs",
-    "check:colors": "node scripts/check-no-blue.mjs"
+    "check:colors": "node scripts/check-no-blue.mjs",
+    "demo:3d": "node scripts/fetch-skin3d-demo.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.1",
