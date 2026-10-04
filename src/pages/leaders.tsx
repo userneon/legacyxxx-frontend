@@ -6,6 +6,7 @@ import { PAGE_TITLES } from "@/lib/routes"
 import { competitiveService } from "@/api"
 import type { CompetitiveLeaderboardEntry, LeaderboardSort } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
+import { useFlip } from "@/hooks/use-flip"
 import { useViewParams } from "@/hooks/use-view-params"
 import { useAuth } from "@/hooks/use-auth"
 import { PlayerAvatar } from "@/components/player-avatar"
@@ -40,9 +41,6 @@ const readSort = (value: string | null): LeaderboardSort => (value === "kd" || v
 const PODIUM_ORDER = [2, 1, 3]
 
 /** Feeds the pointer position to a card's spotlight (--mx / --my). */
-
-/** A fresh number each time the leaderboard data changes, so the rows replay their entrance. */
-let listVersion = 0
 
 function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry; sort: LeaderboardSort; onOpen: () => void }) {
   const first = player.position === 1
@@ -120,6 +118,7 @@ function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: Competiti
       type="button"
       onClick={onOpen}
       aria-label={you ? "Your position" : `Open ${player.username} profile`}
+      data-flip={you ? undefined : player.user_id}
       style={you ? undefined : { animationDelay: `${Math.min(index, 14) * 28}ms` }}
       className={cn(
         GRID,
@@ -301,8 +300,8 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
   // Your real position for the active sort; hidden when logged out or not on this ladder.
   const you = user ? players.find((player) => player.user_id === user.id || player.steam_id === user.steamId) : undefined
   const firstLoad = loading && players.length === 0
-  // A new number per data change, so a re-sorted list replays its entrance.
-  const rowsKey = useMemo(() => ++listVersion, [data])
+  // Re-sorting or searching makes the rows glide to their new places.
+  const listRef = useFlip<HTMLDivElement>(`${sort}:${rows.map((player) => player.user_id).join(",")}`)
   const open = (player: CompetitiveLeaderboardEntry) => onProfileNavigate(player.steam_id || player.user_id)
 
   return (
@@ -370,7 +369,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
           ) : rows.length === 0 ? (
             <p className="px-6 py-10 text-center text-[13px] text-[var(--text-dim)]">{search ? "No player matches this search." : "Only the top three so far."}</p>
           ) : (
-            <div key={rowsKey}>
+            <div ref={listRef}>
               {rows.map((player, index) => <PlayerRow key={player.user_id} index={index} player={player} sort={sort} onOpen={() => open(player)} />)}
             </div>
           )}

@@ -23,6 +23,7 @@ import {
 import { Segmented } from "@/components/segmented"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AnimatedNumber } from "@/components/animated-number"
+import { useFlip } from "@/hooks/use-flip"
 
 type TypeFilter = "all" | PenaltyType
 type StatusFilter = "all" | "active"
@@ -104,6 +105,7 @@ function PenaltyRow({ penalty, onOpen, index }: { penalty: PenaltyEntry; onOpen:
       type="button"
       onClick={onOpen}
       aria-label={`${(TYPE_META[penalty.type] ?? TYPE_META.ban).label} · ${penalty.player}`}
+      data-flip={penalty.id}
       style={{ animationDelay: `${Math.min(index, 14) * 28}ms` }}
       className={cn(
         GRID,
@@ -233,6 +235,7 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
   const filtered = type === "all" ? found : found.filter((penalty) => penalty.type === type)
   const activeRows = filtered.filter((penalty) => penaltyStatus(penalty) === "active")
   const historyRows = status === "active" ? [] : filtered.filter((penalty) => penaltyStatus(penalty) !== "active")
+  const listRef = useFlip<HTMLDivElement>([...activeRows, ...historyRows].map((penalty) => penalty.id).join(","))
   const selected = openId ? [...all, ...(mine ?? [])].find((penalty) => penalty.id === openId) ?? null : null
   const isOwn = Boolean(selected && user && (selected.playerSteamId === user.steamId || (mine ?? []).some((penalty) => penalty.id === selected.id)))
   const firstLoad = loading && all.length === 0
@@ -320,8 +323,8 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
             <span />
           </div>
 
-          {/* Keyed on the filters so the rows cascade in again after every change. */}
-          <div key={`${type}:${status}:${search}`}>
+          {/* Rows that stay glide to their new place when a filter changes; new ones cascade in. */}
+          <div ref={listRef}>
             {firstLoad ? (
               Array.from({ length: 8 }, (_, index) => <RowSkeleton key={index} />)
             ) : error && all.length === 0 ? (
