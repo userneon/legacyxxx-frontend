@@ -10,7 +10,10 @@
  *
  * The metal map sits next to each texture as `<name>_metal.<ext>`.
  */
-const base = (import.meta.env.VITE_SKIN3D_BASE_URL ?? "").replace(/\/+$/, "")
+import { MOCK_API } from "@/api/client"
+
+// Sample-data mode (`npm run dev` without an API, or `dev:mock`) looks for the local demo files; a real build needs the env var.
+const base = (import.meta.env.VITE_SKIN3D_BASE_URL ?? (MOCK_API ? "/skin3d-demo" : "")).replace(/\/+$/, "")
 
 interface ManifestWeapon { key: string; classes: string[]; model: string; paints: Record<string, string> }
 interface Manifest { weapons: ManifestWeapon[] }
