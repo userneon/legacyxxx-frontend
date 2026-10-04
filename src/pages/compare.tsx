@@ -4,7 +4,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { ArrowLeftRight, Link2, RotateCcw, Search, X } from "lucide-react"
+import { ArrowLeftRight, Download, Link2, LoaderCircle, RotateCcw, Search, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { competitiveService, searchService } from "@/api"
@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { useViewParams } from "@/hooks/use-view-params"
+import { renderComparePng } from "@/lib/compare-image"
 import { cs2MapLabel } from "@/lib/cs2-map-art"
 import { PAGE_TITLES } from "@/lib/routes"
 import { cn } from "@/lib/utils"
@@ -324,6 +325,8 @@ export function ComparePage() {
     }
   }
 
+  const [saving, setSaving] = useState(false)
+
   const first = useApiQuery<ProfileOverview>((signal) => profileOverviewService.get(idA!, { signal }), { enabled: Boolean(idA), queryKey: `compare:${idA}` })
   const second = useApiQuery<ProfileOverview>((signal) => profileOverviewService.get(idB!, { signal }), { enabled: Boolean(idB), queryKey: `compare:${idB}` })
 
@@ -334,6 +337,50 @@ export function ComparePage() {
   const rows = useMemo(() => (a && b ? buildRows(a, b) : []), [a, b])
   const leads = { a: rows.filter((row) => leader(row) === "a").length, b: rows.filter((row) => leader(row) === "b").length }
   const compared = rows.filter((row) => row.a !== null && row.b !== null).length
+
+  const downloadPng = async () => {
+    if (!a || !b || saving) return
+    setSaving(true)
+    try {
+      const player = (overview: ProfileOverview) => ({
+        name: overview.user.username,
+        avatar: overview.user.avatar,
+        rankId: overview.competitive?.rankId ?? null,
+        rankName: overview.competitive?.rankName ?? null,
+        rankImageKey: overview.competitive?.rankImageKey ?? null,
+        exp: overview.competitive?.exp ?? null,
+      })
+      const blob = await renderComparePng({
+        players: [player(a), player(b)],
+        score: compared > 0 ? leads : null,
+        rows: rows.map((row) => {
+          const known = row.a !== null && row.b !== null
+          return {
+            label: row.label,
+            a: row.a === null ? null : row.show(row.a),
+            b: row.b === null ? null : row.show(row.b),
+            lead: leader(row),
+            compared: known,
+            gap: known ? row.gap(Math.abs(row.a! - row.b!)) : null,
+            share: known ? row.a! / Math.max(row.a! + row.b!, 1e-9) : 0.5,
+          }
+        }),
+      })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      const slug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "player"
+      link.href = url
+      link.download = `legacyx-${slug(a.user.username)}-vs-${slug(b.user.username)}.png`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+    } catch {
+      toast.error("Could not create the image", { description: "Try again in a moment." })
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
@@ -353,6 +400,7 @@ export function ComparePage() {
             <div className="flex items-center gap-2">
               <button type="button" onClick={swap} disabled={!idA && !idB} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text)] transition-colors enabled:hover:border-[var(--line-strong)] disabled:opacity-40"><ArrowLeftRight className="size-4" />Swap</button>
               <button type="button" onClick={copyLink} disabled={!ready} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text)] transition-colors enabled:hover:border-[var(--line-strong)] disabled:opacity-40"><Link2 className="size-4" />Copy link</button>
+              <button type="button" onClick={downloadPng} disabled={!ready || saving} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text)] transition-colors enabled:hover:border-[var(--line-strong)] disabled:opacity-40">{saving ? <LoaderCircle className="size-4 animate-spin" /> : <Download className="size-4" />}Download PNG</button>
             </div>
           </div>
         </section>
