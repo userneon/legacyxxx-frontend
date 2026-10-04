@@ -9,6 +9,8 @@ export interface ProfileLink {
 export interface DescribedLink {
   href: string
   label: string
+  /** A second line under the name: the handle (@name) or the address. */
+  detail: string
   Icon: LucideIcon
 }
 
@@ -41,5 +43,10 @@ export function describeLink(link: ProfileLink): DescribedLink | null {
   const host = url.hostname.toLowerCase().replace(/^(www|m)\./, "")
   const kind = KINDS.find((entry) => entry.hosts.some((known) => host === known || host.endsWith(`.${known}`)))
   const custom = link.label?.trim().slice(0, 32)
-  return { href: url.toString(), label: custom || kind?.label || host, Icon: kind?.Icon ?? Globe }
+  const segments = url.pathname.split("/").filter(Boolean)
+  const handleSites = ["instagram.com", "x.com", "twitter.com", "tiktok.com", "github.com", "twitch.tv", "t.me"]
+  const detail = handleSites.some((site) => host === site) && segments[0]
+    ? `@${segments[0].replace(/^@/, "")}`
+    : `${host}${segments.length ? `/${segments.join("/")}` : ""}`
+  return { href: url.toString(), label: custom || kind?.label || host, detail: detail.length > 30 ? `${detail.slice(0, 29)}…` : detail, Icon: kind?.Icon ?? Globe }
 }

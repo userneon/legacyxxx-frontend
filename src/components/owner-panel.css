@@ -1,0 +1,62 @@
+/* Owner panel: a slow glow behind the count, and a small burst when respect is given. Only transform and opacity move. */
+.lx-op-glow {
+  position: absolute;
+  left: 50%;
+  top: -40px;
+  width: 460px;
+  height: 260px;
+  margin-left: -230px;
+  background: radial-gradient(ellipse at 50% 40%, color-mix(in oklab, var(--brand) 22%, transparent) 0%, transparent 70%);
+  animation: lx-op-breathe 7s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes lx-op-breathe {
+  from { opacity: 0.55; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1.05); }
+}
+
+.lx-op-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  border-radius: 9999px;
+  border: 1.5px solid var(--text);
+  opacity: 0;
+  animation: lx-op-ring 700ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  pointer-events: none;
+}
+@keyframes lx-op-ring {
+  from { opacity: 0.7; transform: scale(0.6); }
+  to { opacity: 0; transform: scale(3.2); }
+}
+
+.lx-op-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 9999px;
+  background: var(--text);
+  opacity: 0;
+  animation: lx-op-spark 700ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: var(--delay, 0ms);
+  pointer-events: none;
+}
+@keyframes lx-op-spark {
+  0% { opacity: 1; transform: rotate(var(--a)) translateX(24px) scale(1); }
+  100% { opacity: 0; transform: rotate(var(--a)) translateX(84px) scale(0.3); }
+}
+
+/* The count pops once when it changes. */
+.lx-op-pop {
+  animation: lx-op-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes lx-op-pop {
+  from { transform: scale(0.9); }
+  to { transform: scale(1); }
+}
