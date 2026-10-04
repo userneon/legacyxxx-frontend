@@ -28,6 +28,15 @@ const TONE: Record<Side, { dot: string; text: string; bar: string }> = {
   b: { dot: "bg-[var(--text-dim)]", text: "text-[var(--text-muted)]", bar: "bg-[var(--text-dim)]" },
 }
 
+/** Ahead is green, behind is red, level is grey (the site's win / loss colours; draw is neutral). */
+type Outcome = "win" | "loss" | "draw"
+const OUTCOME: Record<Outcome, { text: string; bar: string; pill: string }> = {
+  win: { text: "text-[var(--result-win)]", bar: "bg-[var(--result-win)]", pill: "border-[var(--result-win)]/40 bg-[var(--result-win)]/15 text-[var(--result-win)]" },
+  loss: { text: "text-[var(--result-loss)]", bar: "bg-[var(--result-loss)]", pill: "border-[var(--result-loss)]/40 bg-[var(--result-loss)]/15 text-[var(--result-loss)]" },
+  draw: { text: "text-[var(--result-draw)]", bar: "bg-[var(--result-draw)]", pill: "border-[var(--line)] bg-[var(--raised)] text-[var(--result-draw)]" },
+}
+const outcomeOf = (lead: Side | null, side: Side): Outcome => (lead === null ? "draw" : lead === side ? "win" : "loss")
+
 const MIN_MAP_MATCHES = 3
 
 interface Row {
@@ -216,13 +225,15 @@ function StatRow({ row, names }: { row: Row; names: { a: string; b: string } }) 
   const lead = leader(row)
   const total = row.a !== null && row.b !== null ? Math.max(row.a + row.b, 1e-9) : 0
   const difference = row.a !== null && row.b !== null ? Math.abs(row.a - row.b) : 0
+  const known = row.a !== null && row.b !== null
   const cell = (side: Side) => {
     const value = row[side]
-    const winning = lead === side
+    const outcome = OUTCOME[outcomeOf(lead, side)]
+    const gap = !known ? null : lead === null ? "Draw" : lead === side ? `+${row.gap(difference)}` : null
     return (
       <div className={cn("flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-2", side === "a" ? "items-end text-right sm:flex-row-reverse sm:justify-start" : "items-start text-left sm:justify-start")}>
-        <span className={cn("text-[22px] font-bold leading-none sm:text-[24px]", value === null ? "text-[var(--text-faint)]" : winning || !lead ? "text-[var(--text)]" : "text-[var(--text-dim)]")}>{value === null ? "—" : row.show(value)}</span>
-        {value === null ? <span className="text-[10px] text-[var(--text-faint)]">Hidden</span> : winning ? <span className="rounded-full border border-[var(--line)] bg-[var(--raised)] px-2 py-0.5 text-[10px] font-medium text-[var(--text-muted)]">+{row.gap(difference)}</span> : null}
+        <span className={cn("text-[22px] font-bold leading-none sm:text-[24px]", value === null ? "text-[var(--text-faint)]" : known ? outcome.text : "text-[var(--text)]")}>{value === null ? "—" : row.show(value)}</span>
+        {value === null ? <span className="text-[10px] text-[var(--text-faint)]">Hidden</span> : gap ? <span className={cn("rounded-full border px-2 py-0.5 text-[10px] font-medium", outcome.pill)}>{gap}</span> : null}
       </div>
     )
   }
@@ -234,8 +245,8 @@ function StatRow({ row, names }: { row: Row; names: { a: string; b: string } }) 
         {cell("b")}
       </div>
       <div aria-hidden="true" className="flex h-1.5 gap-1">
-        <div className="flex flex-1 justify-end overflow-hidden rounded-full bg-[var(--line-soft)]"><div className={cn("h-full rounded-full transition-[width] duration-500", TONE.a.bar, lead === "b" && "opacity-35")} style={{ width: total ? `${((row.a ?? 0) / total) * 100}%` : 0 }} /></div>
-        <div className="flex flex-1 overflow-hidden rounded-full bg-[var(--line-soft)]"><div className={cn("h-full rounded-full transition-[width] duration-500", TONE.b.bar, lead === "a" && "opacity-35")} style={{ width: total ? `${((row.b ?? 0) / total) * 100}%` : 0 }} /></div>
+        <div className="flex flex-1 justify-end overflow-hidden rounded-full bg-[var(--line-soft)]"><div className={cn("h-full rounded-full transition-[width] duration-500", known ? OUTCOME[outcomeOf(lead, "a")].bar : TONE.a.bar)} style={{ width: total ? `${((row.a ?? 0) / total) * 100}%` : 0 }} /></div>
+        <div className="flex flex-1 overflow-hidden rounded-full bg-[var(--line-soft)]"><div className={cn("h-full rounded-full transition-[width] duration-500", known ? OUTCOME[outcomeOf(lead, "b")].bar : TONE.b.bar)} style={{ width: total ? `${((row.b ?? 0) / total) * 100}%` : 0 }} /></div>
       </div>
     </div>
   )
@@ -256,18 +267,18 @@ function SharedMaps({ a, b }: { a: ProfileOverview; b: ProfileOverview }) {
       </div>
       {shared.map(({ map, a: left, b: right }) => {
         const lead: Side | null = left.winRate === right.winRate ? null : left.winRate > right.winRate ? "a" : "b"
-        const value = (win: number, matches: number, winning: boolean, align: "right" | "left") => (
+        const value = (win: number, matches: number, align: "right" | "left") => (
           <span className={cn("flex items-baseline gap-1.5", align === "right" ? "justify-end" : "justify-start")}>
             {align === "left" && <span className="text-[11px] text-[var(--text-dim)]">{matches}</span>}
-            <span className={cn("text-lg font-bold", winning || !lead ? "text-[var(--text)]" : "text-[var(--text-dim)]")}>{win}%</span>
+            <span className={cn("text-lg font-bold", OUTCOME[outcomeOf(lead, align === "right" ? "a" : "b")].text)}>{win}%</span>
             {align === "right" && <span className="text-[11px] text-[var(--text-dim)]">{matches}</span>}
           </span>
         )
         return (
           <div key={map} className="grid grid-cols-[1fr_104px_1fr] items-center gap-3 border-b border-[var(--line-soft)] px-4 py-3 last:border-b-0 hover:bg-[var(--raised)]/40">
-            {value(left.winRate, left.matches, lead === "a", "right")}
+            {value(left.winRate, left.matches, "right")}
             <span className="truncate text-center text-xs text-[var(--text-2)]">{cs2MapLabel(map)}</span>
-            {value(right.winRate, right.matches, lead === "b", "left")}
+            {value(right.winRate, right.matches, "left")}
           </div>
         )
       })}
@@ -352,9 +363,9 @@ export function ComparePage() {
             {ready && compared > 0 ? (
               <div className="flex flex-col items-center gap-1">
                 <span className="flex items-baseline gap-2 text-[30px] font-black leading-none text-[var(--text)]">
-                  <span className={cn(leads.a < leads.b && "text-[var(--text-dim)]")}>{leads.a}</span>
+                  <span className={OUTCOME[outcomeOf(leads.a === leads.b ? null : leads.a > leads.b ? "a" : "b", "a")].text}>{leads.a}</span>
                   <span className="text-lg text-[var(--text-faint)]">:</span>
-                  <span className={cn(leads.b < leads.a && "text-[var(--text-dim)]")}>{leads.b}</span>
+                  <span className={OUTCOME[outcomeOf(leads.a === leads.b ? null : leads.a > leads.b ? "a" : "b", "b")].text}>{leads.b}</span>
                 </span>
                 <span className="text-[10px] uppercase tracking-wider text-[var(--text-dim)]">stats led</span>
               </div>
@@ -379,6 +390,11 @@ export function ComparePage() {
               </div>
               {rows.map((row) => <StatRow key={row.key} row={row} names={{ a: a.user.username, b: b.user.username }} />)}
             </section>
+            <p className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-[var(--text-dim)]">
+              <span className="inline-flex items-center gap-1.5"><span aria-hidden="true" className={cn("size-2 rounded-full", OUTCOME.win.bar)} />Ahead</span>
+              <span className="inline-flex items-center gap-1.5"><span aria-hidden="true" className={cn("size-2 rounded-full", OUTCOME.loss.bar)} />Behind</span>
+              <span className="inline-flex items-center gap-1.5"><span aria-hidden="true" className={cn("size-2 rounded-full", OUTCOME.draw.bar)} />Draw</span>
+            </p>
             <SharedMaps a={a} b={b} />
           </>
         ) : null}

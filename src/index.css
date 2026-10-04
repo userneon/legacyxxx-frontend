@@ -77,6 +77,7 @@
   --status-amber: #eab308; /* palette-exempt: timed penalty term */
   --result-win: var(--status-green);
   --result-loss: var(--status-red);
+  --result-draw: var(--text-muted);
   --team-t: #d6b25e; /* palette-exempt: CS2 Terrorist side (muted yellow) */
   --team-ct: #5ab8ee; /* palette-exempt: CS2 Counter-Terrorist side (sky blue) */
   --penalty-ban: var(--status-red);

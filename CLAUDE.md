@@ -71,6 +71,10 @@ When a player hits the daily or weekly EXP limit (gains count for ¼), the limit
 its one-line note and the `×¼ limit` pill in the match row are red (`--status-red` `#ef4444`, already in `src/index.css`). Nothing else
 uses red; it is a status color like `--status-green`, not a general accent. Reference: `docs/design/exp-limit.png`.
 
+The one other place is the Compare page (owner request 2026-10-04): the player who is ahead on a stat is green
+(`--result-win`), the one behind is red (`--result-loss`) and a draw is grey (`--result-draw`). Win/loss/draw outcomes only;
+it is still not a general accent.
+
 ### Glass (owner request 2026-09-28)
 
 The whole app sits on a near-black backdrop (`body::before`) with white `<BackgroundBeams />` (owner request 2026-09-30, replaces the Dust II art). The shell — sidebar, top bar and
