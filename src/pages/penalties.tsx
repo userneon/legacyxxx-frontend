@@ -247,8 +247,6 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
         <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
           <div className="flex flex-col gap-4 px-6 pb-4 pt-6">
             <section aria-label="Penalties" className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-              <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
-              <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
               <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
               <div className="relative z-10 flex flex-col gap-5 p-7">
                 <div className="flex items-end justify-between gap-4">

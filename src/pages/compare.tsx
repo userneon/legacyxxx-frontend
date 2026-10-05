@@ -401,8 +401,6 @@ export function ComparePage() {
     <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-6 pb-8 pt-6">
         <section aria-label={PAGE_TITLES.compare} className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-          <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
-          <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
           <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
           <div className="relative z-10 flex flex-wrap items-end justify-between gap-4 p-7">
             <div className="flex flex-col gap-2.5">

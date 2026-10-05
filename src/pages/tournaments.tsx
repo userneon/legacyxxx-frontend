@@ -121,8 +121,6 @@ function NoTournament({ past, onOpen }: { past: PastTournament[]; onOpen: (id: s
   return (
     <>
       <section className={cn(card, "lx-swap-in relative flex flex-col items-center gap-3 overflow-hidden px-8 py-12 text-center")}>
-        <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10 opacity-70" />
-        <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
         <span className="relative flex size-14 items-center justify-center rounded-2xl border border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text-2)]">
           <Trophy className="size-6" />
         </span>
@@ -189,8 +187,6 @@ function Hero({ tournament, now }: { tournament: TournamentSummary; now: number 
         </div>
       )}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--card-surface)] via-[var(--card-surface)]/85 to-[var(--card-surface)]/40" />
-      <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
-      <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
       <Trophy aria-hidden="true" strokeWidth={1} className="pointer-events-none absolute -right-6 -top-6 size-56 rotate-12 text-[var(--line-strong)] opacity-[0.08]" />
 

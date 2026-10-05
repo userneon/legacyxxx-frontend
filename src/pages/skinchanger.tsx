@@ -1159,8 +1159,6 @@ export function SkinchangerPage() {
               )}
             />
           ))}
-          <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
-          <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
           <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
           {/* Three columns when there is room; on a narrow panel the switch drops to its own row. */}
           <div className="relative z-10 flex flex-wrap items-center gap-x-4 gap-y-4 p-6 lg:grid lg:grid-cols-[1fr_auto_1fr]">

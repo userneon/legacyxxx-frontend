@@ -327,8 +327,6 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
       <section aria-label="Reviews" className="flex min-w-0 flex-1 flex-col max-lg:min-h-0">
         <div className="shrink-0 px-6 pb-1 pt-6">
           <section aria-label="Reviews" className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-            <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
-            <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
             <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
             <div className="relative z-10 flex flex-col gap-5 p-7">
               <div className="flex min-w-0 flex-col gap-2.5">
@@ -399,7 +397,6 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
 
       <aside aria-label="Summary" className="scrollbar-hidden flex w-[340px] shrink-0 flex-col gap-5 overflow-y-auto border-l border-[var(--line-soft)] p-6 max-lg:w-full max-lg:overflow-visible max-lg:border-l-0 max-lg:border-t">
         <div className="lx-swap-in relative flex items-center gap-4 overflow-hidden rounded-xl border border-[var(--line-strong)] bg-[var(--glass-fill)] p-5">
-          <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10 opacity-70" />
           <span className="lx-brand-text relative text-5xl font-bold leading-none tracking-[-1.5px]">{average.toFixed(1)}</span>
           <span className="relative flex flex-col gap-2">
             <Stars value={average} size={17} />

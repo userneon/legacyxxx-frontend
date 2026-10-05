@@ -309,8 +309,6 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
       <div className="flex min-w-[900px] flex-1 flex-col">
         <div className="px-6 pb-2 pt-6">
           <section aria-label="Leaders" className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-            <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
-            <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
             <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
             <div className="relative z-10 flex items-end justify-between gap-6 p-7">
               <div className="flex min-w-0 flex-col gap-2.5">
