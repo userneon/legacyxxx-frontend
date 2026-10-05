@@ -62,7 +62,7 @@ exception was dropped and no longer exists in `src/`.
 - **Buttons:** the primary action is `.lx-primary-button` (white); a secondary action is a bordered
   `--raised` button; hover on neutral controls is `hover:bg-[var(--raised)]`. Brand crimson appears on a
   button only as a selected/active state, never as the default look.
-- **Surfaces:** shell and cards use the glass tokens below; a plain `--panel`/`--raised` fill is for nested
+- **Surfaces:** shell and cards use the flat-outline tokens below; a plain `--panel`/`--raised` fill is for nested
   or solid-over-art cases. Overlays that must stay readable over images use a solid `--card-surface` gradient.
 
 ### Limit red (owner request 2026-09-30)
@@ -75,14 +75,14 @@ The one other place is the Compare page (owner request 2026-10-04): the player w
 (`--result-win`), the one behind is red (`--result-loss`) and a draw is grey (`--result-draw`). Win/loss/draw outcomes only;
 it is still not a general accent.
 
-### Glass (owner request 2026-09-28)
+### Flat outline (owner pick 2026-10-05, replaces the glass look of 2026-09-28)
 
 The whole app sits on a near-black backdrop (`body::before`) with white `<BackgroundBeams />` (owner request 2026-09-30, replaces the Dust II art). The shell — sidebar, top bar and
-page panel — is `.lx-glass-shell`: translucent and blurred. Cards inside use `--glass-fill`
-(`bg-[var(--glass-fill)]`, `.glass`, `.lx-glass`) with a `--glass-line` hairline; they do not blur
-themselves, the panel under them already does. Keep new surfaces on these tokens; image overlays
-(`from-[var(--card-surface)]` gradients) stay solid so text over art stays readable. Home adds a
-soft crimson light (`.lx-glass-page`). Stats and timers use `.lx-stat-grid` cells, not a box each.
+page panel — is `.lx-glass-shell`: transparent with a 1px `--glass-shell-line` hairline, no fill, no blur. Cards inside use `--glass-fill` (transparent)
+(`bg-[var(--glass-fill)]`, `.glass`, `.lx-glass`) with a `--glass-line` hairline. The token and class names keep their old "glass" prefix so everything
+follows from `src/index.css`. Nothing may use `backdrop-filter` on the page itself. What scrolls under something (`.glass-strong` sticky toolbars) or floats over
+content (dialogs, `.lx-sheet`) stays solid (`--panel`) so text never sits on moving lines; image overlays (`from-[var(--card-surface)]` gradients) stay solid too.
+Home adds a soft crimson light (`.lx-glass-page`). Stats and timers use `.lx-stat-grid` cells, not a box each.
 
 ## Icons and assets
 

@@ -242,20 +242,19 @@
    Glassmorphism
    ======================================== */
 /* ========================================
-   Glass (owner request 2026-09-28): a dim Dust II backdrop behind the whole app, a blurred
-   translucent shell (sidebar, top bar, page panel) and translucent cards inside it. Only the shell
-   blurs; cards sit on the already-blurred panel, which keeps scrolling light on phones.
+   Flat outline (owner pick 2026-10-05, replaces the glass look of 2026-09-28): the shell (sidebar, top bar,
+   page panel) and the cards inside it are transparent with a 1px hairline, nothing blurs. The token names
+   keep their old "glass" prefix so every surface that uses them follows. Anything that scrolls under it
+   (sticky toolbars) or floats over content (dialogs, sheets) stays solid so text never sits on moving lines.
    ======================================== */
 :root {
-  --glass-fill: rgb(255 255 255 / 0.035);
-  /* Shell glass (owner pick 2026-09-29, "B"): thinner and less blurred so the backdrop's colour shows
-     through instead of reading as a flat dark slab. */
-  --glass-shell: rgb(18 18 20 / 0.32);
-  --glass-shell-line: rgb(255 255 255 / 0.1);
-  --glass-shell-highlight: inset 0 1px 0 rgb(255 255 255 / 0.08);
-  --glass-shell-filter: blur(3px) saturate(170%) brightness(1.08);
-  --glass-line: rgb(255 255 255 / 0.08);
-  --glass-highlight: inset 0 1px 0 rgb(255 255 255 / 0.05);
+  --glass-fill: transparent;
+  --glass-shell: transparent;
+  --glass-shell-line: #2e2e2e;
+  --glass-shell-highlight: none;
+  --glass-shell-filter: none;
+  --glass-line: #2e2e2e;
+  --glass-highlight: none;
 }
 body::before {
   content: "";
@@ -306,16 +305,12 @@ body::before {
 }
 
 .glass-strong {
-  background: color-mix(in oklch, var(--card) 75%, transparent);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+  background: var(--panel);
+  border: 1px solid var(--glass-line);
 }
 
 .glass-sidebar {
-  background: color-mix(in oklch, var(--sidebar) 70%, transparent);
-  backdrop-filter: blur(20px) saturate(170%);
-  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  background: var(--panel);
 }
 
 /* Stat grid: numbers side by side in one frame, split by hairlines, instead of a box per number. */
@@ -1497,7 +1492,7 @@ body::before {
 /* ========================================
    Side detail panels (server details, penalty details)
    ======================================== */
-/* Glass panel with a crimson top line; slides in on a soft ease-out. */
+/* Solid panel with a crimson top line; slides in on a soft ease-out. */
 .lx-sheet {
   /* Nearly opaque: the page behind only tints the edges, it never shows through the text. */
   background: color-mix(in oklab, var(--panel) 97%, transparent);
