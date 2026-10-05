@@ -270,6 +270,22 @@ body::before {
 .lx-beams {
   animation: lx-beams-in 1800ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+/* The light on a beam: a short dash gliding along the curve; each beam has its own length of time and offset. */
+.lx-beam-lit {
+  stroke-dasharray: 0.1 1.2;
+  animation: lx-beam-dash var(--d, 20s) linear infinite;
+  animation-delay: var(--b, 0s);
+}
+.lx-beams[data-resting] .lx-beam-lit {
+  animation-play-state: paused;
+}
+@keyframes lx-beam-dash {
+  from { stroke-dashoffset: 0.1; }
+  to { stroke-dashoffset: -1.1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lx-beam-lit { animation: none; }
+}
 @keyframes lx-beams-in {
   from { opacity: 0; }
   to { opacity: 1; }
