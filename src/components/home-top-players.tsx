@@ -47,16 +47,13 @@ const ROW = "grid grid-cols-[28px_minmax(0,1fr)_28px] items-center gap-3 @xl:gri
 const STAT = "hidden text-right text-[13px] text-[var(--text-2)] @4xl:block"
 const HEAD = "hidden text-right @4xl:block"
 
-/** Gold, silver, bronze reading as crimson medals: #1 filled, #2 and #3 outlined. */
+/** Rank number: plain figures, no badge. #1 is the brand colour, #2 and #3 are brighter than the rest. */
 function Position({ position }: { position: number }) {
-  if (position > 3) return <span className="w-7 text-center text-xs font-bold text-[var(--text-dim)]">{position}</span>
   return (
     <span
       className={cn(
-        "flex size-7 items-center justify-center rounded-full text-xs font-bold",
-        position === 1
-          ? "bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))] text-[var(--text)]"
-          : "border border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text-2)]",
+        "text-center text-[15px] font-semibold leading-none",
+        position === 1 ? "text-[var(--brand-bright)]" : position <= 3 ? "text-[var(--text-2)]" : "text-[var(--text-faint)]",
       )}
     >
       {position}
