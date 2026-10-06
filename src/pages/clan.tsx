@@ -13,6 +13,7 @@ import { PageBar, PageBarEnd, PageTabs } from "@/components/page-tabs"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { QueryState } from "@/components/query-state"
+import { AnimatedNumber } from "@/components/animated-number"
 import { PlayerAvatar } from "@/components/player-avatar"
 import {
   Dialog,
@@ -138,9 +139,9 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
           {!loading && !error && (
             <div className="lx-stat-grid grid-cols-3">
               {[{ label: "Clans", value: list.length }, { label: "Members", value: members }, { label: "Open slots", value: open }].map((stat) => (
-                <div key={stat.label} className="flex flex-col gap-1 p-4">
-                  <span className="text-[22px] font-semibold leading-none">{stat.value}</span>
-                  <span className="text-[11px] uppercase tracking-wider text-[var(--text-dim)]">{stat.label}</span>
+                <div key={stat.label} className="lx-stat-cell">
+                  <span className="lx-stat-label">{stat.label}</span>
+                  <span className="text-xl font-semibold leading-none text-[var(--text)]"><AnimatedNumber value={stat.value} /></span>
                 </div>
               ))}
             </div>
