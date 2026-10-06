@@ -59,19 +59,18 @@ const prefersReducedMotion = () => false
 
 /* ------------------------------------------------------------------ header */
 
+/** The player's own Steam profile background, when they have one. Without it the header starts with the avatar: no stock art. */
+function hasBanner(user: ProfileOverview["user"]) {
+  return Boolean(user.steamMedia?.backgroundVideo || user.steamBackground)
+}
+
 function Banner({ user }: { user: ProfileOverview["user"] }) {
   const video = user.steamMedia?.backgroundVideo
   const [videoFailed, setVideoFailed] = useState(false)
   const still = user.steamBackground
-  const art = cs2MapArtwork("de_mirage")
+  if (!hasBanner(user)) return null
   return (
-    <div aria-hidden="true" className="relative h-[180px] overflow-hidden bg-[linear-gradient(180deg,#1c1c1c_0%,#121212_100%)]">
-      {/* No Steam background: Mirage drifting under the crimson glow, like the page heroes. */}
-      {!video && !still && art && (
-        <div className="lx-map-drift absolute inset-0">
-          <img src={art} alt="" className="lx-map-img size-full object-cover opacity-30" />
-        </div>
-      )}
+    <div aria-hidden="true" className="relative h-[180px] overflow-hidden bg-[var(--card-surface)]">
       {video && !videoFailed && !prefersReducedMotion() ? (
         <video className="absolute inset-0 size-full object-cover opacity-60" autoPlay muted loop playsInline poster={still ?? undefined} onError={() => setVideoFailed(true)}>
           {video.webm && <source src={video.webm} type="video/webm" />}
@@ -80,9 +79,7 @@ function Banner({ user }: { user: ProfileOverview["user"] }) {
       ) : still ? (
         <div className="absolute inset-0 bg-cover bg-center opacity-60" style={{ backgroundImage: `url("${still}")` }} />
       ) : null}
-      <div className="lx-hero-glow absolute -inset-10 opacity-80" />
-      <div className="lx-hero-grid absolute inset-0" />
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[var(--panel)]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[var(--card-surface)]" />
     </div>
   )
 }
@@ -92,9 +89,7 @@ function Avatar({ user }: { user: ProfileOverview["user"] }) {
   const [ready, setReady] = useState(false)
   return (
     <span className="relative flex size-[116px] shrink-0 items-center justify-center">
-      {/* A crimson ring slowly turns around the avatar. */}
-      <span aria-hidden="true" className="lx-gate-ring absolute inset-0 rounded-[30px]" />
-      <span className="relative size-[108px] overflow-hidden rounded-[27px] border-4 border-[var(--panel)] bg-[var(--line)]">
+      <span className="relative size-[108px] overflow-hidden rounded-[27px] border-4 border-[var(--card-surface)] bg-[var(--line)]">
         <PlayerAvatar avatar={user.avatar} name={user.username} className="size-full rounded-none text-2xl" />
         {animated && <img src={animated} alt="" aria-hidden="true" onLoad={() => setReady(true)} className={cn("absolute inset-0 size-full object-cover transition-opacity duration-300", ready ? "opacity-100" : "opacity-0")} />}
       </span>
@@ -241,7 +236,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
 
 function StaffCard({ staff, username }: { staff: NonNullable<ProfileOverview["staff"]>; username: string }) {
   return (
-    <section aria-label="Legacy-X team" className={cn(card, "flex flex-wrap items-center gap-4 border-[var(--line-strong)] bg-[linear-gradient(90deg,color-mix(in_oklab,var(--brand)_9%,var(--card-surface)),var(--card-surface)_55%)] px-[18px] py-3.5")}>
+    <section aria-label="Legacy-X team" className={cn(card, "flex flex-wrap items-center gap-4 border-[var(--line-strong)] bg-[var(--glass-fill)] px-[18px] py-3.5")}>
       <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-[var(--raised)] text-[var(--text-2)] ring-1 ring-inset ring-[var(--line-strong)]">{staff.role === "Owner" ? <Crown className="size-4" /> : <Shield className="size-4" />}</span>
       <span className="flex min-w-[220px] flex-1 flex-col gap-[3px]">
         <span className="text-sm font-semibold text-[var(--text)]">Legacy-X team · {staff.role}</span>
@@ -266,7 +261,6 @@ function RankCard({ competitive }: { competitive: NonNullable<ProfileOverview["c
   }, [share])
   return (
     <section aria-label="Rank" className={cn(card, "relative flex items-center gap-[18px] overflow-hidden p-[18px]")}>
-      <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10 opacity-50" />
       <CompetitiveRankBadge rankId={competitive.rankId} rankName={competitive.rankName} imageKey={competitive.rankImageKey} size={72} className="relative shrink-0 drop-" />
       <div className="relative flex min-w-0 flex-1 flex-col gap-2.5">
         <div className="flex items-baseline justify-between gap-3">
@@ -565,9 +559,8 @@ function ProfileSkeleton() {
   return (
     <div aria-hidden="true">
       <div className="px-6 pt-6 max-md:px-4 max-md:pt-4">
-        <div className="overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--panel)]">
-          <div className="h-[180px] bg-[linear-gradient(180deg,#1c1c1c_0%,#121212_100%)]" />
-          <div className="-mt-14 flex items-end gap-5 px-5 pb-5 max-md:px-4">
+        <div className="overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
+          <div className="flex items-end gap-5 px-5 py-5 max-md:px-4">
             <Skeleton className="size-[104px] rounded-[26px] border-4 border-[var(--panel)] bg-[var(--line)]" />
             <div className="flex flex-1 flex-col gap-2.5 pb-2">
               <Skeleton className="h-6 w-56 rounded-full bg-[var(--line-strong)]" />
@@ -628,9 +621,9 @@ export function ProfilePage({ userId }: { userId?: string }) {
     <div ref={topRef}>
       <div className="px-6 pt-6 max-md:px-4 max-md:pt-4">
         {/* The banner lives inside the profile box: the box clips it, it never bleeds past the box edges. */}
-        <section aria-label="Profile" className="overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--panel)]">
+        <section aria-label="Profile" className="overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
           <Banner user={data.user} />
-          <div className="-mt-14 px-5 pb-5 max-md:px-4">
+          <div className={cn("px-5 pb-5 max-md:px-4", hasBanner(data.user) ? "-mt-14" : "pt-5")}>
             <Header overview={data} onVisibilityChange={refetch} />
           </div>
         </section>
