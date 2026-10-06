@@ -376,15 +376,18 @@ let ownerRespect = { count: OWNER_RESPECT_BASE, given: false }
 function profileOverview(identity: string) {
   const own = identity === "me" || identity === MOCK_USER.id || identity === MOCK_USER.steamId
   if (own && !signedIn()) throw unauthorized()
-  const variant = own ? 0 : Math.max(0, NAMES.findIndex((_, i) => identity.endsWith(String(i).padStart(4, "0")))) + 1
-  const index = own ? -1 : Math.max(0, NAMES.findIndex((_, i) => identity.endsWith(String(i).padStart(4, "0"))))
+  // A profile address can also be a player's name (/profile/Temuulen), like the real API accepts.
+  const byName = NAMES.findIndex((candidate) => candidate.toLowerCase() === identity.toLowerCase())
+  const found = byName >= 0 ? byName : NAMES.findIndex((_, i) => identity.endsWith(String(i).padStart(4, "0")))
+  const variant = own ? 0 : Math.max(0, found) + 1
+  const index = own ? -1 : Math.max(0, found)
   const name = own ? MOCK_USER.username : NAMES[index]
   const [rankId, rankName] = own ? [7, "Operator III"] : RANKS[index]
   const exp = own ? 1180 : 4200 - index * 190
   const maps = ["de_mirage", "de_inferno", "de_dust2", "de_ancient", "de_nuke", "de_anubis"]
   const results = ["Win", "Win", "Loss", "Win", "Win", "Loss", "Win", "Loss", "Win", "Win"]
   return {
-    user: { id: own ? MOCK_USER.id : `mock-${index}`, steamId: own ? MOCK_USER.steamId : identity, username: name, avatar: "", role: own ? "Player" : index === 0 ? "Owner" : "Player", memberSince: new Date(Date.now() - 400 * 24 * HOUR).toISOString(), steamBackground: null, steamMedia: null },
+    user: { id: own ? MOCK_USER.id : `mock-${index}`, steamId: own ? MOCK_USER.steamId : byName >= 0 ? `7656119800000${String(index).padStart(4, "0")}` : identity, username: name, avatar: "", role: own ? "Player" : index === 0 ? "Owner" : "Player", memberSince: new Date(Date.now() - 400 * 24 * HOUR).toISOString(), steamBackground: null, steamMedia: null },
     viewer: { isOwner: own, isStaff: false },
     // Only the sample Owner has Respect and links, like the real Owner profile will.
     ...(index === 0 ? {
