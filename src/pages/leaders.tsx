@@ -1,8 +1,8 @@
+import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { Crown, LoaderCircle, RotateCcw, Search } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { PAGE_TITLES } from "@/lib/routes"
 import { competitiveService } from "@/api"
 import type { CompetitiveLeaderboardEntry, LeaderboardSort } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -11,7 +11,6 @@ import { useViewParams } from "@/hooks/use-view-params"
 import { useAuth } from "@/hooks/use-auth"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { CompetitiveRankBadge, RankLabel, rankTierColor } from "@/components/competitive-rank-badge"
-import { Segmented } from "@/components/segmented"
 import { Skeleton } from "@/components/ui/skeleton"
 
 /** One grid for the header row, every player row and the pinned "You" row. */
@@ -307,35 +306,24 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
   return (
     <div className="scrollbar-hidden flex min-h-0 flex-1 overflow-x-auto">
       <div className="flex min-w-[900px] flex-1 flex-col">
-        <div className="px-6 pb-2 pt-6">
-          <section aria-label="Leaders" className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-            <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
-            <div className="relative z-10 flex items-end justify-between gap-6 p-7">
-              <div className="flex min-w-0 flex-col gap-2.5">
-                <h1 className="flex items-center gap-2.5 text-[34px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
-                  <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--text-faint)]" />
-                  {PAGE_TITLES["leaders"]}
-                  {loading && players.length > 0 && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
-                </h1>
-                <span key={sort} className="lx-swap-in text-[14px] text-[var(--text-2)]">{SUBTITLE[sort]}</span>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <Segmented ariaLabel="Sort by" value={sort} onChange={setSort} options={SORTS} />
-                <label className="flex h-[38px] w-[220px] items-center gap-2 rounded-[10px] border border-[var(--line)] bg-[var(--glass-fill)] px-3 transition-[border-color,box-shadow] duration-300 focus-within:border-[var(--text-dim)] focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_18%,transparent)]">
-                  <Search className="size-4 shrink-0 text-[var(--text-dim)]" />
-                  <input
-                    type="search"
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                    aria-label="Search player"
-                    placeholder="Search player"
-                    className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text)] outline-none placeholder:text-[var(--text-dim)]"
-                  />
-                </label>
-              </div>
-            </div>
-          </section>
-        </div>
+        <PageBar>
+          <PageTabs ariaLabel="Sort by" lead="Ranked by" value={sort} onChange={setSort} options={SORTS} />
+          <PageBarEnd>
+            {loading && players.length > 0 && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
+            <span key={sort} className="lx-swap-in text-[13px] text-[var(--text-dim)] max-xl:hidden">{SUBTITLE[sort]}</span>
+            <label className={pageSearchClass}>
+              <Search className="size-4 shrink-0 text-[var(--text-dim)]" />
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                aria-label="Search player"
+                placeholder="Search player"
+                className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text)] outline-none placeholder:text-[var(--text-dim)]"
+              />
+            </label>
+          </PageBarEnd>
+        </PageBar>
 
         <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
           {/* pt-3 leaves room above the podium: cards lift 5px on hover and the scroll area clips anything above its top.
