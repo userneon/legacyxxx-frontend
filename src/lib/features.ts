@@ -8,8 +8,8 @@ import type { PageId } from "@/api/types"
  * code that belongs to it stays in the repo and re-appears wherever `isFeatureEnabled` guards it.
  */
 export const FEATURES = {
-  /** Clans: clan pages, clan search, clan badges on profiles. Off until the clan backend is live. */
-  clan: false,
+  /** Clans: clan pages, clan search, clan badges on profiles. The server also needs CLAN_ENABLED=true. */
+  clan: true,
   /** Live server roster dialog (who is on a server right now). Temporarily off. */
   roster: false,
   skinchanger: true,

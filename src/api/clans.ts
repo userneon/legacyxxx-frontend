@@ -4,6 +4,7 @@ import type {
   ClanDetail,
   ClanMember,
   CreateClanRequest,
+  MyClanMembership,
 } from "./types"
 
 /**
@@ -20,6 +21,11 @@ export const clansService = {
     return get<ClanDetail>(`/api/v1/clans/${clanId}`, undefined, options)
   },
 
+  async getMine(options?: CallOptions): Promise<MyClanMembership | null> {
+    const response = await get<{ membership: MyClanMembership | null }>("/api/v1/clans/me", undefined, options)
+    return response.membership
+  },
+
   async getClanMembers(clanId: string, options?: CallOptions): Promise<ClanMember[]> {
     return get<ClanMember[]>(`/api/v1/clans/${clanId}/members`, undefined, options)
   },
@@ -30,7 +36,7 @@ export const clansService = {
 
   async updateClan(
     clanId: string,
-    payload: Partial<CreateClanRequest>,
+    payload: { description: string },
     options?: CallOptions,
   ): Promise<ClanDetail> {
     return put<ClanDetail>(`/api/v1/clans/${clanId}`, payload, options)
@@ -42,6 +48,10 @@ export const clansService = {
 
   async leaveClan(clanId: string, options?: CallOptions): Promise<void> {
     await post<void>(`/api/v1/clans/${clanId}/leave`, undefined, options)
+  },
+
+  async removeMember(clanId: string, userId: string, options?: CallOptions): Promise<void> {
+    await del<void>(`/api/v1/clans/${clanId}/members/${userId}`, options)
   },
 
   async deleteClan(clanId: string, options?: CallOptions): Promise<void> {

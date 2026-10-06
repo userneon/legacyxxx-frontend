@@ -476,6 +476,12 @@ function notFound(): ApiError {
 }
 
 /** Resolves a mock response for a GET request, or throws the API's 404 shape. */
+const MOCK_CLANS = [
+  { id: "c1", name: "Steppe Wolves", tag: "WOLF", logo: "", thumbnail: null, currentPlayers: 7, maxPlayers: 10, region: "Mongolia" },
+  { id: "c2", name: "Blue Sky Five", tag: "SKY", logo: "", thumbnail: null, currentPlayers: 10, maxPlayers: 10, region: "Mongolia" },
+  { id: "c3", name: "Night Riders", tag: "NRDR", logo: "", thumbnail: null, currentPlayers: 3, maxPlayers: 10, region: "Mongolia" },
+]
+
 /** Notification settings for the session, so the switches in Settings really toggle. */
 let notificationPrefs = { tournaments: true, rankChanges: false, penalties: true }
 
@@ -491,6 +497,16 @@ export async function mockResponse(method: string, path: string, query: Query, b
     return MOCK_USER
   }
   if (path === "/api/v1/auth/refresh") throw unauthorized()
+  if (path === "/api/v1/clans/me") {
+    if (!signedIn()) throw unauthorized()
+    return { membership: null }
+  }
+  if (path === "/api/v1/clans") return MOCK_CLANS
+  if (path.startsWith("/api/v1/clans/")) {
+    const clan = MOCK_CLANS.find((entry) => path === `/api/v1/clans/${entry.id}`)
+    if (!clan) throw notFound()
+    return { ...clan, description: "Ranked five-stack. Evenings, Ulaanbaatar time.", members: Array.from({ length: clan.currentPlayers }, (_, index) => ({ id: `m${index}`, name: index === 0 ? "Leader" : `Member ${index}`, role: index === 0 ? "leader" : "member", avatar: "", description: "" })) }
+  }
   if (path === "/api/v1/wallet/me") {
     if (!signedIn()) throw unauthorized()
     return {

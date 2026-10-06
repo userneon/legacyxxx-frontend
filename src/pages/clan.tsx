@@ -1,13 +1,15 @@
 import { useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft, Swords, Plus, Users, Upload, X, Globe, UserPlus, BatteryFull } from "lucide-react"
+import { ArrowLeft, Check, Coins, Plus, UserMinus, UserPlus, Users, X } from "lucide-react"
+import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
 import { clansService } from "@/api"
-import type { ClanCard } from "@/api/types"
+import type { ApiError, ClanCard, ClanDetail, MyClanMembership } from "@/api/types"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
+import { PageBar, PageBarEnd, PageTabs } from "@/components/page-tabs"
 import { useApiQuery } from "@/hooks/use-api-query"
+import { useAuth } from "@/hooks/use-auth"
 import { QueryState } from "@/components/query-state"
 import { PlayerAvatar } from "@/components/player-avatar"
 import {
@@ -16,355 +18,303 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-// LEGACY-X visual system: retain the dark glass card rhythm while exposing clan identity, roster, and member navigation as first-class flows.
+/** What a clan costs and needs. The server enforces both; these numbers only explain them. */
+const CLAN_FEE = 500
+const CLAN_MIN_MATCHES = 15
 
-export function ClanPage({ onProfileNavigate, onClanNavigate }: { onProfileNavigate: (userId: string) => void; onClanNavigate: (clanId: string) => void }) {
-  const { clanId } = useParams()
-  const [open, setOpen] = useState(false)
-
-  const { data: clans, loading, error, refetch } = useApiQuery<ClanCard[]>((signal) =>
-    clansService.getClans({ signal }),
-  )
-
-  if (clanId) return <ClanDetailView clanId={clanId} onProfileNavigate={onProfileNavigate} />
-
-  const list = clans ?? []
-  const totalMembers = list.reduce((acc, c) => acc + c.currentPlayers, 0)
-  const totalSlots = list.reduce((acc, c) => acc + c.maxPlayers, 0)
-  const fullClans = list.filter((c) => c.currentPlayers >= c.maxPlayers).length
-
+/** A clan has no uploaded picture: its tag on a plain tile is its mark. */
+function TagTile({ tag, className }: { tag: string; className?: string }) {
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex justify-end">
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="size-4" />
-              Create Clan
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="glass-strong">
-            <DialogHeader>
-              <DialogTitle>Create a New Clan</DialogTitle>
-              <DialogDescription>
-                Set up your clan. Logo and name are required, thumbnail is optional. Clan creation costs 10 coins.
-              </DialogDescription>
-            </DialogHeader>
-            <CreateClanForm
-
-              onClose={() => {
-                setOpen(false)
-                void refetch()
-              }}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        {[
-          { label: "Active Clans", value: list.length.toString(), icon: Swords },
-          { label: "Total Members", value: totalMembers.toString(), icon: Users },
-          { label: "Open Slots", value: (totalSlots - totalMembers).toString(), icon: UserPlus },
-          { label: "Full Clans", value: fullClans.toString(), icon: BatteryFull },
-        ].map((stat) => (
-          <div key={stat.label} className="glass rounded-xl p-4 hover-lift">
-            <stat.icon className="size-4 text-muted-foreground" />
-            <div className="mt-2 text-xl font-bold">{stat.value}</div>
-            <div className="text-xs text-muted-foreground mt-0.5">{stat.label}</div>
-          </div>
-        ))}
-      </div>
-
-      <QueryState
-        loading={loading}
-        error={error}
-        empty={!loading && !error && list.length === 0}
-        emptyMessage="No clans found yet."
-        onRetry={refetch}
-      />
-
-      {/* Clan cards */}
-      {!loading && !error && list.length > 0 && (
-        <div className="stagger-in grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {list.map((clan) => (
-            <ClanCardItem key={clan.id} clan={clan} onClanNavigate={onClanNavigate} onChanged={refetch} />
-          ))}
-        </div>
-      )}
+    <div className={cn("flex shrink-0 items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--raised)] text-[13px] font-bold tracking-wide text-[var(--text)]", className)}>
+      {tag}
     </div>
   )
 }
 
-function ClanCardItem({ clan, onClanNavigate, onChanged }: { clan: ClanCard; onClanNavigate: (clanId: string) => void; onChanged: () => void }) {
-  const isFull = clan.currentPlayers >= clan.maxPlayers
-  const fillPercent = Math.round((clan.currentPlayers / clan.maxPlayers) * 100)
-  const [joining, setJoining] = useState(false)
+function failureMessage(error: unknown, fallback: string) {
+  const status = (error as Partial<ApiError> | null)?.status
+  if (status === 401) return "Sign in with Steam first."
+  if (status === 402) return `A clan costs ${CLAN_FEE} coins and your wallet is short.`
+  if (status === 409) return "That did not work: the name or tag is taken, you are already in a clan, or you have not played enough ranked matches yet."
+  if (status === 429) return "Too many tries. Wait a moment."
+  return fallback
+}
 
-  const handleJoin = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (isFull) return
-    setJoining(true)
-    void clansService
-      .joinClan(clan.id)
-      .then(() => onChanged())
-      .finally(() => setJoining(false))
+export function ClanPage({ onProfileNavigate, onClanNavigate }: { onProfileNavigate: (userId: string) => void; onClanNavigate: (clanId: string) => void }) {
+  const { clanId } = useParams()
+  if (clanId) return <ClanDetailView clanId={clanId} onProfileNavigate={onProfileNavigate} />
+  return <ClanList onClanNavigate={onClanNavigate} />
+}
+
+function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void }) {
+  const { isAuthenticated, loginWithSteam } = useAuth()
+  const [creating, setCreating] = useState(false)
+  const { data: clans, loading, error, refetch } = useApiQuery<ClanCard[]>((signal) => clansService.getClans({ signal }))
+  const { data: mine, refetch: refetchMine } = useApiQuery<MyClanMembership | null>(
+    (signal) => clansService.getMine({ signal }),
+    { enabled: isAuthenticated, queryKey: String(isAuthenticated) },
+  )
+
+  const list = clans ?? []
+  const members = list.reduce((sum, clan) => sum + clan.currentPlayers, 0)
+  const open = list.reduce((sum, clan) => sum + Math.max(0, clan.maxPlayers - clan.currentPlayers), 0)
+  const changed = () => { void refetch(); void refetchMine() }
+
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      <PageBar>
+        <PageTabs ariaLabel="Clans" value="all" onChange={() => undefined} options={[{ value: "all", label: "All clans", count: loading ? undefined : list.length }]} />
+        <PageBarEnd>
+          <span className="text-[13px] text-[var(--text-dim)] max-md:hidden">{CLAN_FEE} coins · {CLAN_MIN_MATCHES} ranked matches</span>
+          {!mine && (
+            <button type="button" onClick={() => (isAuthenticated ? setCreating(true) : loginWithSteam())} className="lx-primary-button inline-flex h-9 items-center gap-2 rounded-lg px-3.5 text-[13px] font-semibold">
+              <Plus className="size-4" aria-hidden="true" />
+              Create clan
+            </button>
+          )}
+        </PageBarEnd>
+      </PageBar>
+
+      <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
+        <div className="flex flex-col gap-4 px-6 pb-4 pt-4">
+          {!loading && !error && (
+            <div className="lx-stat-grid grid-cols-3">
+              {[{ label: "Clans", value: list.length }, { label: "Members", value: members }, { label: "Open slots", value: open }].map((stat) => (
+                <div key={stat.label} className="flex flex-col gap-1 p-4">
+                  <span className="text-[22px] font-semibold leading-none">{stat.value}</span>
+                  <span className="text-[11px] uppercase tracking-wider text-[var(--text-dim)]">{stat.label}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <QueryState loading={loading} error={error} empty={!loading && !error && list.length === 0} emptyMessage="No clans yet." onRetry={refetch} />
+
+          {!loading && !error && list.length > 0 && (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {list.map((clan) => (
+                <ClanCardItem key={clan.id} clan={clan} mine={mine ?? null} canJoin={!mine} onClanNavigate={onClanNavigate} onChanged={changed} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <Dialog open={creating} onOpenChange={setCreating}>
+        <DialogContent className="rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Create a clan</DialogTitle>
+            <DialogDescription>
+              {CLAN_FEE} coins are taken from your wallet when the clan is created. You need {CLAN_MIN_MATCHES} ranked matches played. A clan holds up to 10 players.
+            </DialogDescription>
+          </DialogHeader>
+          <CreateClanForm onClose={() => setCreating(false)} onCreated={(clan) => { setCreating(false); changed(); onClanNavigate(clan.id) }} />
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
+function ClanCardItem({ clan, mine, canJoin, onClanNavigate, onChanged }: { clan: ClanCard; mine: MyClanMembership | null; canJoin: boolean; onClanNavigate: (clanId: string) => void; onChanged: () => void }) {
+  const { isAuthenticated, loginWithSteam } = useAuth()
+  const isFull = clan.currentPlayers >= clan.maxPlayers
+  const isMine = mine?.clan.id === clan.id
+  const fill = Math.round((clan.currentPlayers / Math.max(1, clan.maxPlayers)) * 100)
+  const [busy, setBusy] = useState(false)
+
+  const join = async () => {
+    if (!isAuthenticated) { loginWithSteam(); return }
+    setBusy(true)
+    try {
+      await clansService.joinClan(clan.id)
+      toast.success(`You joined ${clan.name}`)
+      onChanged()
+    } catch (error) {
+      toast.error("Could not join the clan", { description: failureMessage(error, "Try again in a moment.") })
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
-    <div
-      onClick={() => onClanNavigate(clan.id)}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => { if (e.key === "Enter") onClanNavigate(clan.id) }}
-      className="glass group flex flex-col overflow-hidden rounded-xl transition-all hover-lift cursor-pointer"
-    >
-      {/* Banner */}
-      <div className="relative h-36 overflow-hidden">
-        {clan.thumbnail ? (
-          <img
-            src={clan.thumbnail}
-            alt={`${clan.name} banner`}
-            className="lx-layer size-full object-cover transition-[scale] duration-300 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex size-full items-center justify-center bg-gradient-to-br from-secondary via-secondary/80 to-muted">
-            <Swords className="size-10 text-muted-foreground/30" />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-card/80 via-transparent to-transparent" />
+    <div className="flex flex-col gap-4 rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4 transition-[border-color] duration-200 hover:border-[var(--line-strong)]">
+      <button type="button" onClick={() => onClanNavigate(clan.id)} className="flex items-center gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 rounded-lg">
+        <TagTile tag={clan.tag} className="size-12" />
+        <span className="flex min-w-0 flex-col gap-0.5">
+          <span className="truncate text-[15px] font-semibold">{clan.name}</span>
+          <span className="text-[11px] text-[var(--text-dim)]">{clan.region}</span>
+        </span>
+      </button>
 
-        {/* Region badge */}
-        <div className="absolute top-3 right-3 glass-strong rounded-md px-2 py-1 flex items-center gap-1.5">
-          <Globe className="size-3 text-muted-foreground" />
-          <span className="text-[11px] font-medium">{clan.region}</span>
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between text-[11px] text-[var(--text-dim)]">
+          <span className="inline-flex items-center gap-1.5"><Users className="size-3.5" aria-hidden="true" /> Members</span>
+          <span className={cn("font-semibold", isFull ? "text-[var(--text)]" : "text-[var(--text-dim)]")}>{clan.currentPlayers}/{clan.maxPlayers}</span>
         </div>
-
-        {/* Logo + name overlay */}
-        <div className="absolute bottom-3 left-4 flex items-center gap-3">
-          <div className="size-12 rounded-xl border-2 border-card/80 bg-card overflow-hidden shadow-lg shrink-0">
-            <img
-              src={clan.logo}
-              alt={`${clan.name} logo`}
-              className="size-full object-cover"
-            />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-bold text-[15px] drop-shadow-sm">{clan.name}</h3>
-            </div>
-            <span className="text-[11px] font-bold text-muted-foreground drop-shadow-sm">
-              [{clan.tag}]
-            </span>
-          </div>
+        <div className="h-1 overflow-hidden rounded-full bg-[var(--raised)]">
+          <div className="h-full rounded-full bg-[var(--accent-solid)]" style={{ width: `${fill}%` }} />
         </div>
       </div>
 
-      {/* Body */}
-      <div className="flex flex-col gap-3 p-4">
-        {/* Member progress */}
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Users className="size-3.5" />
-              <span>Members</span>
-            </div>
-            <span className={cn(
-              "font-bold",
-              isFull ? "text-destructive" : "text-foreground"
-            )}>
-              {clan.currentPlayers}/{clan.maxPlayers}
-            </span>
-          </div>
-          <Progress
-            value={fillPercent}
-            className="h-1.5"
-          />
-        </div>
-
-        {/* Action */}
-        <Button
-          className="w-full"
-          variant={isFull ? "secondary" : "default"}
-          disabled={isFull || joining}
-          onClick={handleJoin}
+      {isMine ? (
+        <span className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] text-[var(--text-dim)]"><Check className="size-4" aria-hidden="true" /> Your clan</span>
+      ) : (
+        <button
+          type="button"
+          disabled={isFull || busy || (isAuthenticated && !canJoin)}
+          onClick={() => void join()}
+          className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-medium transition-colors hover:border-[var(--line-strong)] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isFull ? (
-            <>
-              <BatteryFull className="size-3.5" />
-              Clan Full
-            </>
-          ) : joining ? (
-            "Joining..."
-          ) : (
-            <>
-              <UserPlus className="size-3.5" />
-              Join Clan
-            </>
-          )}
-        </Button>
-      </div>
+          <UserPlus className="size-4" aria-hidden="true" />
+          {isFull ? "Full" : busy ? "Joining…" : "Join"}
+        </button>
+      )}
     </div>
   )
 }
 
 function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfileNavigate: (userId: string) => void }) {
   const navigate = useNavigate()
-  const { data: clan, loading, error, refetch } = useApiQuery<ClanCard & { description?: string; members?: { id: string; name: string; role: string; avatar: string }[] }>(
-    (signal) => clansService.getClan(clanId, { signal }),
-  )
+  const { user } = useAuth()
+  const [busy, setBusy] = useState(false)
+  const { data: clan, loading, error, refetch } = useApiQuery<ClanDetail>((signal) => clansService.getClan(clanId, { signal }))
   const members = clan?.members ?? []
+  const me = members.find((member) => member.id === user?.id)
+  const isLeader = me?.role === "leader"
+
+  const run = async (action: () => Promise<void>, done: string, after?: () => void) => {
+    setBusy(true)
+    try {
+      await action()
+      toast.success(done)
+      if (after) after(); else void refetch()
+    } catch (failure) {
+      toast.error("That did not work", { description: failureMessage(failure, "Try again in a moment.") })
+    } finally {
+      setBusy(false)
+    }
+  }
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center justify-between gap-3">
-        <Button variant="outline" size="sm" onClick={() => navigate("/clans")}><ArrowLeft className="size-3.5" /> Back to Clans</Button>
-        {clan && <span className="text-xs font-semibold text-muted-foreground">[{clan.tag}] roster</span>}
+    <div className="flex h-full min-h-0 flex-col">
+      <PageBar>
+        <button type="button" onClick={() => navigate("/clans")} className="inline-flex h-11 items-center gap-2 text-[13px] text-[var(--text-dim)] transition-colors hover:text-[var(--text)]">
+          <ArrowLeft className="size-4" aria-hidden="true" /> All clans
+        </button>
+        <PageBarEnd>
+          {me && !isLeader && (
+            <button type="button" disabled={busy} onClick={() => void run(() => clansService.leaveClan(clanId), "You left the clan", () => navigate("/clans"))} className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] hover:border-[var(--line-strong)] disabled:opacity-50">
+              Leave clan
+            </button>
+          )}
+          {isLeader && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => { if (window.confirm("Delete this clan? Your coins are not given back.")) void run(() => clansService.deleteClan(clanId), "Clan deleted", () => navigate("/clans")) }}
+              className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--status-red)] hover:border-[var(--line-strong)] disabled:opacity-50"
+            >
+              Delete clan
+            </button>
+          )}
+        </PageBarEnd>
+      </PageBar>
+
+      <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
+        <div className="flex flex-col gap-4 px-6 pb-4 pt-4">
+          <QueryState loading={loading} error={error} empty={!loading && !error && !clan} emptyMessage="Clan not found." onRetry={refetch} />
+          {!loading && !error && clan && (
+            <>
+              <section className="flex flex-wrap items-center gap-4 rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-5">
+                <TagTile tag={clan.tag} className="size-16 text-[15px]" />
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                  <h1 className="truncate text-[22px] font-semibold leading-tight">{clan.name}</h1>
+                  <p className="text-[13px] text-[var(--text-dim)]">{clan.region} · {clan.currentPlayers}/{clan.maxPlayers} members</p>
+                  {clan.description && <p className="max-w-2xl text-[13px] text-[var(--text-dim)]">{clan.description}</p>}
+                </div>
+              </section>
+
+              <section className="flex flex-col gap-3">
+                <h2 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-dim)]"><Users className="size-3.5" aria-hidden="true" /> Members</h2>
+                {members.length === 0 ? (
+                  <p className="text-[13px] text-[var(--text-dim)]">No members to show.</p>
+                ) : (
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {members.map((member) => (
+                      <div key={member.id} className="flex items-center gap-1 rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] transition-[border-color] duration-200 hover:border-[var(--line-strong)]">
+                        <button type="button" onClick={() => onProfileNavigate(member.id)} className="flex min-w-0 flex-1 items-center gap-3 rounded-[10px] p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
+                          <PlayerAvatar avatar={member.avatar} name={member.name} className="size-10 rounded-[10px] text-sm" />
+                          <span className="min-w-0">
+                            <span className="block truncate text-[13px] font-medium">{member.name}</span>
+                            <span className="block text-[11px] capitalize text-[var(--text-dim)]">{member.role}</span>
+                          </span>
+                        </button>
+                        {isLeader && member.id !== user?.id && (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            aria-label={`Remove ${member.name}`}
+                            onClick={() => { if (window.confirm(`Remove ${member.name} from the clan?`)) void run(() => clansService.removeMember(clanId, member.id), `${member.name} was removed`) }}
+                            className="mr-2 flex size-8 items-center justify-center rounded-lg text-[var(--text-dim)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)] disabled:opacity-50"
+                          >
+                            <UserMinus className="size-4" aria-hidden="true" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            </>
+          )}
+        </div>
       </div>
-      <QueryState loading={loading} error={error} empty={!loading && !error && !clan} emptyMessage="Clan not found." onRetry={refetch} />
-      {!loading && !error && clan && <>
-        <section className="glass overflow-hidden rounded-xl">
-          <div className="relative h-40 bg-secondary">
-            {clan.thumbnail ? <img src={clan.thumbnail} alt={`${clan.name} banner`} className="size-full object-cover" /> : <div className="size-full bg-gradient-to-br from-secondary via-secondary/70 to-muted" />}
-            <div className="absolute inset-0 bg-gradient-to-t from-card via-card/10 to-transparent" />
-            <div className="absolute inset-x-5 bottom-5 flex items-end gap-4"><div className="size-16 overflow-hidden rounded-xl border-2 border-card bg-card shadow-lg"><img src={clan.logo} alt={`${clan.name} logo`} className="size-full object-cover" /></div><div><h1 className="text-xl font-bold">{clan.name}</h1><p className="text-sm text-muted-foreground">[{clan.tag}] · {clan.region}</p></div></div>
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-3 p-5 text-sm"><p className="max-w-2xl text-muted-foreground">{clan.description || "This LEGACY-X clan has not added a public description yet."}</p><div className="rounded-lg bg-secondary px-3 py-2 font-semibold">{clan.currentPlayers}/{clan.maxPlayers} members</div></div>
-        </section>
-        <section className="flex flex-col gap-3"><div className="flex items-center gap-2"><Users className="size-4 text-muted-foreground" /><h2 className="font-semibold">Members</h2></div>
-          {members.length === 0 ? <div className="glass rounded-xl p-5 text-sm text-muted-foreground">Member roster will appear here as players join this clan.</div> : <div className="stagger-in grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{members.map((member) => <button key={member.id} onClick={() => onProfileNavigate(member.id)} className="glass flex items-center gap-3 rounded-xl p-4 text-left transition-all hover:bg-secondary/40 hover-lift"><PlayerAvatar avatar={member.avatar} name={member.name} className="size-10 rounded-md text-sm" /><div className="min-w-0"><div className="truncate font-medium">{member.name}</div><div className="text-xs text-muted-foreground">{member.role}</div></div></button>)}</div>}
-        </section>
-      </>}
     </div>
   )
 }
 
-function CreateClanForm({ onClose }: { onClose: () => void }) {
+function CreateClanForm({ onClose, onCreated }: { onClose: () => void; onCreated: (clan: ClanDetail) => void }) {
   const [name, setName] = useState("")
   const [tag, setTag] = useState("")
-  const [logo, setLogo] = useState("")
-  const [thumbnail, setThumbnail] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
+  const valid = name.trim().length >= 3 && /^[A-Za-z0-9]{2,5}$/.test(tag)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!name.trim() || !tag.trim() || !logo) return
-    if (false) {
-      setError("")
-      return
-    }
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!valid || submitting) return
     setSubmitting(true)
     setError("")
     try {
-      await clansService.createClan({
-        name: name.trim(),
-        tag: tag.trim(),
-        logo,
-        thumbnail,
-      })
-      onClose()
-    } catch {
-      setError("Unable to create the clan right now. Please try again.")
+      onCreated(await clansService.createClan({ name: name.trim(), tag: tag.trim().toUpperCase() }))
+    } catch (failure) {
+      setError(failureMessage(failure, "Could not create the clan right now. Try again."))
     } finally {
       setSubmitting(false)
     }
   }
 
-  const handleFileUpload = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    setter: (value: string) => void,
-  ) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = () => {
-      setter(reader.result as string)
-    }
-    reader.readAsDataURL(file)
-  }
-
   return (
-    <form className="flex flex-col gap-4 mt-4" onSubmit={handleSubmit}>
+    <form className="mt-2 flex flex-col gap-4" onSubmit={(event) => void submit(event)}>
       <div className="flex flex-col gap-2">
-        <Label>Clan Logo (Required)</Label>
-        <div className="flex items-center gap-3">
-          <div className="flex size-16 items-center justify-center rounded-xl border-2 border-dashed border-border bg-secondary/50 overflow-hidden">
-            {logo ? (
-              <img src={logo} alt="Logo preview" className="size-full object-cover" />
-            ) : (
-              <Upload className="size-5 text-muted-foreground" />
-            )}
-          </div>
-          <Button type="button" variant="outline" size="sm" onClick={() => document.getElementById("clan-logo")?.click()}>
-            <Upload className="size-3.5" />
-            Upload Logo
-          </Button>
-          <input
-            id="clan-logo"
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => handleFileUpload(e, setLogo)}
-          />
-        </div>
+        <Label htmlFor="clan-name">Clan name</Label>
+        <Input id="clan-name" placeholder="3-24 characters" minLength={3} maxLength={24} required value={name} onChange={(event) => setName(event.target.value)} />
       </div>
-
       <div className="flex flex-col gap-2">
-        <Label>Thumbnail (Optional)</Label>
-        {thumbnail && (
-          <div className="size-32 rounded-lg overflow-hidden border border-border">
-            <img src={thumbnail} alt="Thumbnail preview" className="size-full object-cover" />
-          </div>
-        )}
-        <div className="flex items-center gap-2">
-          <Button type="button" variant="outline" size="sm" onClick={() => document.getElementById("clan-thumbnail")?.click()}>
-            <Upload className="size-3.5" />
-            Upload Thumbnail
-          </Button>
-          {thumbnail && (
-            <Button type="button" variant="ghost" size="sm" onClick={() => setThumbnail(null)}>
-              <X className="size-3.5" />
-              Remove
-            </Button>
-          )}
-        </div>
-        <input
-          id="clan-thumbnail"
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => handleFileUpload(e, (v) => setThumbnail(v))}
-        />
+        <Label htmlFor="clan-tag">Clan tag</Label>
+        <Input id="clan-tag" placeholder="e.g. WOLF" minLength={2} maxLength={5} required value={tag} onChange={(event) => setTag(event.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase())} />
       </div>
-
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="clan-name">Clan Name (Required)</Label>
-        <Input id="clan-name" placeholder="Enter clan name" required value={name} onChange={(e) => setName(e.target.value)} />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="clan-tag">Clan Tag (Required)</Label>
-        <Input id="clan-tag" placeholder="e.g. SHDW" maxLength={6} required value={tag} onChange={(e) => setTag(e.target.value)} />
-      </div>
-
-      {error && <p className="text-xs text-destructive">{error}</p>}
-
-      <div className="flex justify-end gap-2 mt-2">
-        <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
-          <X className="size-3.5" />
-          Cancel
-        </Button>
-        <Button type="submit" disabled={submitting || !name.trim() || !tag.trim() || !logo}>
-          <Plus className="size-3.5" />
-          {submitting ? "Creating..." : "Create Clan · 10 coins"}
-        </Button>
+      {error && <p role="alert" className="text-[13px] text-[var(--status-red)]">{error}</p>}
+      <div className="mt-2 flex justify-end gap-2">
+        <Button type="button" variant="outline" onClick={onClose} disabled={submitting}><X className="size-4" /> Cancel</Button>
+        <button type="submit" disabled={!valid || submitting} className="lx-primary-button inline-flex h-9 items-center gap-2 rounded-lg px-3.5 text-[13px] font-semibold disabled:opacity-50">
+          <Coins className="size-4" aria-hidden="true" />
+          {submitting ? "Creating…" : `Create · ${CLAN_FEE} coins`}
+        </button>
       </div>
     </form>
   )

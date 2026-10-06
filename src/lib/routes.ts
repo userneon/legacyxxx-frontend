@@ -30,7 +30,7 @@ export const PAGE_TITLES: Record<PageId, string> = {
   "play-proleague": "Pro League",
   "play-tournaments": "Tournaments",
   leaders: "Leaders",
-  clan: "Clan",
+  clan: "Clans",
   skinchanger: "Skinchanger",
   compare: "Compare",
   penalties: "Penalties",
@@ -44,7 +44,7 @@ function matchPage(pathname: string): PageId {
   if (pathname.startsWith("/players/")) return "profile"
   if (pathname.startsWith("/profile/")) return "profile"
   if (pathname.startsWith("/clan/")) return "clan"
-  if (pathname.startsWith("/clans/")) return "clan"
+  if (pathname === "/clans" || pathname.startsWith("/clans/")) return "clan"
   if (pathname === "/search") return "explore"
   if (pathname === "/feedback") return "feedback"
   // Older addresses of the Play pages keep working.
