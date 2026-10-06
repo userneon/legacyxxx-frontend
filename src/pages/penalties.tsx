@@ -1,8 +1,8 @@
+import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
 import { useEffect, useMemo, useState, type CSSProperties } from "react"
 import { ChevronRight, ExternalLink, LoaderCircle, RotateCcw, Search, ShieldAlert, ShieldCheck } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { PAGE_TITLES } from "@/lib/routes"
 import { moderationService, profileService } from "@/api"
 import type { PenaltyEntry, PenaltyType } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -20,7 +20,6 @@ import {
   formatPenaltyDate,
   penaltyStatus,
 } from "@/components/penalty-detail-dialog"
-import { Segmented } from "@/components/segmented"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AnimatedNumber } from "@/components/animated-number"
 import { useFlip } from "@/hooks/use-flip"
@@ -244,63 +243,53 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
   return (
     <div className="scrollbar-hidden flex min-h-0 flex-1 overflow-x-auto">
       <div className="flex min-w-[900px] flex-1 flex-col">
-        <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
-          <div className="flex flex-col gap-4 px-6 pb-4 pt-6">
-            <section aria-label="Penalties" className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-              <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
-              <div className="relative z-10 flex flex-col gap-5 p-7">
-                <div className="flex items-end justify-between gap-4">
-                  <div className="flex min-w-0 flex-col gap-2.5">
-                    <h1 className="flex items-center gap-2.5 text-[34px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
-                      <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--text-faint)]" />
-                      {PAGE_TITLES["penalties"]}
-                      {loading && all.length > 0 && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
-                    </h1>
-                    <span className="text-[14px] text-[var(--text-2)]">Every ban, mute and gag on Legacy-X servers is public.</span>
-                  </div>
-                  {LINKS.serverRules && (
-                    <a href={LINKS.serverRules} target="_blank" rel="noreferrer" className="group flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--panel)]/70 px-3 text-[13px] text-[var(--text-2)] backdrop-blur transition-colors duration-300 hover:border-[var(--line-strong)] hover:text-[var(--text)]">
-                      Server rules
-                      <ExternalLink className="size-3.5 transition-[translate] duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                    </a>
-                  )}
-                </div>
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <label className="flex h-10 min-w-[260px] flex-1 items-center gap-2 rounded-[10px] border border-[var(--line)] bg-[var(--panel)]/80 px-3 backdrop-blur transition-[border-color,box-shadow] duration-300 focus-within:border-[var(--text-dim)] focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_18%,transparent)]">
-                    <Search className="size-4 shrink-0 text-[var(--text-dim)]" />
-                    <input
-                      type="search"
-                      value={query}
-                      onChange={(event) => setQuery(event.target.value)}
-                      aria-label="Check a player"
-                      placeholder="Check a player — name, Steam ID or profile link"
-                      className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text)] outline-none placeholder:text-[var(--text-dim)]"
-                    />
-                  </label>
-                  <Segmented
-                    ariaLabel="Type"
-                    value={type}
-                    onChange={(value) => update({ type: value === "all" ? null : value })}
-                    options={[
-                      { value: "all", label: "All", count: counts.all },
-                      { value: "ban", label: "Bans", count: counts.ban },
-                      { value: "comm", label: "Mutes", count: counts.comm },
-                      { value: "gag", label: "Gags", count: counts.gag },
-                    ]}
-                  />
-                  <Segmented
-                    ariaLabel="Status"
-                    value={status}
-                    onChange={(value) => update({ status: value === "all" ? null : value })}
-                    options={[
-                      { value: "all", label: "All" },
-                      { value: "active", label: "Active only" },
-                    ]}
-                  />
-                </div>
-              </div>
-            </section>
+        <PageBar>
+          <PageTabs
+            ariaLabel="Type"
+            value={type}
+            onChange={(value) => update({ type: value === "all" ? null : value })}
+            options={[
+              { value: "all", label: "All", count: counts.all },
+              { value: "ban", label: "Bans", count: counts.ban },
+              { value: "comm", label: "Mutes", count: counts.comm },
+              { value: "gag", label: "Gags", count: counts.gag },
+            ]}
+          />
+          <PageBarEnd>
+            {loading && all.length > 0 && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
+            {LINKS.serverRules && (
+              <a href={LINKS.serverRules} target="_blank" rel="noreferrer" className="group flex items-center gap-1.5 text-[13px] text-[var(--text-dim)] transition-colors hover:text-[var(--text)]">
+                Server rules
+                <ExternalLink className="size-3.5 transition-[translate] duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+              </a>
+            )}
+            <button
+              type="button"
+              aria-pressed={status === "active"}
+              onClick={() => update({ status: status === "active" ? null : "active" })}
+              className={cn(
+                "inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-[13px] transition-colors duration-200",
+                status === "active" ? "border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text)]" : "border-[var(--glass-line)] text-[var(--text-muted)] hover:text-[var(--text)]",
+              )}
+            >
+              Active only
+            </button>
+            <label className={pageSearchClass}>
+              <Search className="size-4 shrink-0 text-[var(--text-dim)]" />
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                aria-label="Check a player"
+                placeholder="Check a player"
+                className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text)] outline-none placeholder:text-[var(--text-dim)]"
+              />
+            </label>
+          </PageBarEnd>
+        </PageBar>
 
+        <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
+          <div className="flex flex-col gap-4 px-6 pb-4 pt-4">
             <div className="lx-stat-grid grid-cols-2 sm:grid-cols-4">
               <SummaryCell label="Active now" value={firstLoad ? null : activeTotal} color="var(--status-red)" pulse selected={status === "active" && type === "all"} onClick={() => update({ status: status === "active" && type === "all" ? null : "active", type: null })} />
               <SummaryCell label="Bans" value={firstLoad ? null : counts.ban} color={TYPE_META.ban.color} selected={type === "ban"} onClick={() => update({ type: type === "ban" ? null : "ban" })} />
