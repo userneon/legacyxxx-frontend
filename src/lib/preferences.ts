@@ -6,13 +6,12 @@ import { useSyncExternalStore } from "react"
 export type TimeFormat = "24h" | "12h"
 
 export interface WebsitePreferences {
-  killFeed: boolean
   sidebarCollapsed: boolean
   timeFormat: TimeFormat
 }
 
 export const WEBSITE_PREFS_KEY = "legacyx.website-prefs"
-const DEFAULTS: WebsitePreferences = { killFeed: true, sidebarCollapsed: false, timeFormat: "24h" }
+const DEFAULTS: WebsitePreferences = { sidebarCollapsed: false, timeFormat: "24h" }
 
 function read(): WebsitePreferences {
   try {
@@ -20,7 +19,6 @@ function read(): WebsitePreferences {
     if (!raw) return DEFAULTS
     const parsed = JSON.parse(raw) as Partial<WebsitePreferences>
     return {
-      killFeed: typeof parsed.killFeed === "boolean" ? parsed.killFeed : DEFAULTS.killFeed,
       sidebarCollapsed: typeof parsed.sidebarCollapsed === "boolean" ? parsed.sidebarCollapsed : DEFAULTS.sidebarCollapsed,
       timeFormat: parsed.timeFormat === "12h" ? "12h" : "24h",
     }

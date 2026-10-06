@@ -167,15 +167,12 @@ function Notifications() {
 function Website() {
   const prefs = useWebsitePreferences()
   const saved = useSavedFlash()
-  const set = <K extends "killFeed" | "sidebarCollapsed" | "timeFormat">(key: K, value: Parameters<typeof setWebsitePreference<K>>[1]) => {
+  const set = <K extends "sidebarCollapsed" | "timeFormat">(key: K, value: Parameters<typeof setWebsitePreference<K>>[1]) => {
     setWebsitePreference(key, value)
     saved.flash()
   }
   return (
     <Section id="website" index={2} title="Website" description="How Legacy-X looks and behaves on this device. Changes apply right away." aside={saved.node}>
-      <Row title="Kill feed" description="Live kills in the top bar.">
-        <Switch label="Kill feed" checked={prefs.killFeed} onChange={(next) => set("killFeed", next)} />
-      </Row>
       <Row title="Start with sidebar collapsed" description="Open the site with the icon-only sidebar.">
         <Switch label="Start with sidebar collapsed" checked={prefs.sidebarCollapsed} onChange={(next) => set("sidebarCollapsed", next)} />
       </Row>

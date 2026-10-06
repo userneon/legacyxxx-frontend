@@ -4,13 +4,12 @@ import { Component, useEffect, useRef, useState, type CSSProperties, type ReactN
 import { Navigate, Routes, Route, useNavigate, useLocation } from "react-router-dom"
 
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
-import { KillFeed } from "@/components/kill-feed"
 import { AppSidebar } from "@/components/app-sidebar"
 import { ProfileBlock } from "@/components/profile-block"
 import { HomePage } from "@/pages/home"
 import { PlayPage } from "@/pages/play"
 import { SettingsPage } from "@/pages/settings"
-import { getWebsitePreferences, useWebsitePreferences } from "@/lib/preferences"
+import { getWebsitePreferences } from "@/lib/preferences"
 import { TournamentsPage } from "@/pages/tournaments"
 import { LeadersPage } from "@/pages/leaders"
 import { ClanPage } from "@/pages/clan"
@@ -89,7 +88,6 @@ export function App() {
     panelRef.current?.scrollTo({ top: 0 })
   }, [shownSection])
 
-  const websitePrefs = useWebsitePreferences()
   const profileGrid = currentPage === "profile" && isFeatureEnabled("profileGrid")
 
   // A narrow window, or the "Start with sidebar collapsed" setting, starts on the icon rail.
@@ -104,7 +102,11 @@ export function App() {
         <header className="lx-glass-shell flex h-14 shrink-0 items-center gap-4 rounded-[14px] pl-4 pr-2 max-md:pl-2">
           {/* On a phone the sidebar is a sheet, so the top bar carries its only trigger. */}
           <SidebarTrigger className="size-9 shrink-0 rounded-[10px] text-[var(--text-muted)] hover:bg-[var(--raised)] hover:text-[var(--text)] min-[560px]:hidden" />
-          {websitePrefs.killFeed ? <KillFeed /> : <div className="min-w-0 flex-1" />}
+          <div className="flex min-w-0 flex-1 items-center gap-2 text-[13px]">
+            <span className="shrink-0 text-[var(--text-dim)]">LEGACY-X</span>
+            <span aria-hidden="true" className="text-[var(--text-faint)]">/</span>
+            <span className="truncate font-semibold text-[var(--text)]">{PAGE_TITLES[currentPage]}</span>
+          </div>
           <span aria-hidden="true" className="h-6 w-px shrink-0 bg-[var(--line)]" />
           <ProfileBlock onNavigate={handleNavigate} />
         </header>
