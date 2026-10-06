@@ -178,6 +178,8 @@ export type LeaderboardSort = "exp" | "kd" | "win"
 
 export interface CompetitiveLeaderboardEntry extends CompetitiveProfile {
   position: number
+  /** The player linked Discord (only the fact is public). Absent from an older API. */
+  discord_linked?: boolean
   deaths: number
   kd_ratio: number
   /** wins / matches_completed, 0–1. */

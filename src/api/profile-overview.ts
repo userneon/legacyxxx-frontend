@@ -60,6 +60,8 @@ export interface ProfileOverview {
   loadout: { side: "t" | "ct"; items: { key: string; label: string; name: string | null; image: string | null }[] } | null
   staff: { role: string; description: string; penaltiesIssued: number } | null
   presence: { serverId: string; serverName: string; connectAddress: string | null; map: string } | null
+  /** The player linked Discord (only the fact is public). Absent from an older API: no mark. */
+  discordLinked?: boolean
   /** Links the player shows on the profile (the Owner role). Absent or empty: nothing is shown. */
   links?: ProfileLink[] | null
   /** The respect count and whether the signed-in viewer gave one. Absent: no Respect button. */

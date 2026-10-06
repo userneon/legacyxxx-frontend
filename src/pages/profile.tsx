@@ -1,3 +1,4 @@
+import { DiscordLinkedMark } from "@/components/discord-linked-mark"
 import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { ArrowLeftRight, ChevronRight, Copy, Crown, ExternalLink, Eye, EyeOff, Info, MessageCircle, MoreHorizontal, Play, RotateCcw, ShieldAlert, ShieldCheck, Shield } from "lucide-react"
@@ -185,6 +186,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
         <div className="flex flex-wrap items-center gap-2.5">
           <h1 className="truncate text-[30px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]" title={user.username}>{user.username}</h1>
           <RoleBadge role={user.role} />
+          <DiscordLinkedMark linked={overview.discordLinked} className="[&_svg]:size-4" />
           {competitive && <RankPill rankId={competitive.rankId} rankName={competitive.rankName} imageKey={competitive.rankImageKey} currentExp={competitive.exp} />}
           {presence && (
             <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-[var(--status-green)]/12 px-2.5 text-xs font-semibold text-[var(--status-green)]">

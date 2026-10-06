@@ -19,6 +19,7 @@ function leaderboard(sort: string) {
     user_id: `mock-${index}`,
     steam_id: `7656119800000${String(index).padStart(4, "0")}`,
     username,
+    discord_linked: index % 3 !== 1,
     avatar: null,
     rank_id: RANKS[index][0],
     rank_name: RANKS[index][1],
@@ -444,6 +445,7 @@ function profileOverview(identity: string) {
     },
     staff: null,
     presence: own ? null : { serverId: "5x5-01", serverName: "LEGACY-X #1 | MIRAGE", connectAddress: "203.0.113.10:27001", map: "de_mirage" },
+    discordLinked: index % 3 !== 1,
   }
 }
 
