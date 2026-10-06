@@ -477,9 +477,9 @@ function notFound(): ApiError {
 
 /** Resolves a mock response for a GET request, or throws the API's 404 shape. */
 const MOCK_CLANS = [
-  { id: "c1", name: "Steppe Wolves", tag: "WOLF", logo: "ghost", thumbnail: "de_inferno", currentPlayers: 7, maxPlayers: 10, region: "Mongolia" },
-  { id: "c2", name: "Blue Sky Five", tag: "SKY", logo: "bird", thumbnail: "de_mirage", currentPlayers: 10, maxPlayers: 10, region: "Mongolia" },
-  { id: "c3", name: "Night Riders", tag: "NRDR", logo: "skull", thumbnail: "de_nuke", currentPlayers: 3, maxPlayers: 10, region: "Mongolia" },
+  { id: "c1", name: "Steppe Wolves", tag: "WOLF", logo: "", thumbnail: null, currentPlayers: 7, maxPlayers: 10, region: "Mongolia" },
+  { id: "c2", name: "Blue Sky Five", tag: "SKY", logo: "", thumbnail: null, currentPlayers: 10, maxPlayers: 10, region: "Mongolia" },
+  { id: "c3", name: "Night Riders", tag: "NRDR", logo: "", thumbnail: null, currentPlayers: 3, maxPlayers: 10, region: "Mongolia" },
 ]
 
 /** Notification settings for the session, so the switches in Settings really toggle. */

@@ -1,4 +1,4 @@
-import { del, get, post, put, type CallOptions } from "./client"
+import { API_BASE_URL, MOCK_API, del, get, post, put, type CallOptions } from "./client"
 import type {
   ClanCard,
   ClanDetail,
@@ -36,7 +36,7 @@ export const clansService = {
 
   async updateClan(
     clanId: string,
-    payload: { description?: string; icon?: string; banner?: string | null },
+    payload: { description: string },
     options?: CallOptions,
   ): Promise<ClanDetail> {
     return put<ClanDetail>(`/api/v1/clans/${clanId}`, payload, options)
@@ -50,6 +50,15 @@ export const clansService = {
     await post<void>(`/api/v1/clans/${clanId}/leave`, undefined, options)
   },
 
+  /** Sends the clan's logo (PNG only) or banner (PNG, JPEG or GIF). The server checks the real file type. */
+  async uploadArt(clanId: string, kind: ClanArtKind, file: Blob, options?: CallOptions): Promise<ClanDetail> {
+    return put<ClanDetail>(`/api/v1/clans/${clanId}/${kind}`, file, options)
+  },
+
+  async removeArt(clanId: string, kind: ClanArtKind, options?: CallOptions): Promise<void> {
+    await del<void>(`/api/v1/clans/${clanId}/${kind}`, options)
+  },
+
   async removeMember(clanId: string, userId: string, options?: CallOptions): Promise<void> {
     await del<void>(`/api/v1/clans/${clanId}/members/${userId}`, options)
   },
@@ -57,4 +66,26 @@ export const clansService = {
   async deleteClan(clanId: string, options?: CallOptions): Promise<void> {
     await del<void>(`/api/v1/clans/${clanId}`, options)
   },
+}
+export type ClanArtKind = "logo" | "banner"
+
+/** What a clan picture may be; the same limits the server enforces. */
+export const CLAN_ART_RULES: Record<ClanArtKind, { types: string[]; maxBytes: number; hint: string }> = {
+  logo: { types: ["image/png"], maxBytes: 256 * 1024, hint: "PNG, up to 256 KB" },
+  banner: { types: ["image/png", "image/jpeg", "image/gif"], maxBytes: 900 * 1024, hint: "PNG, JPEG or GIF, up to 900 KB" },
+}
+
+/** Why a chosen file cannot be used, or null when it can. */
+export function clanArtProblem(kind: ClanArtKind, file: File): string | null {
+  const rule = CLAN_ART_RULES[kind]
+  if (!rule.types.includes(file.type)) return kind === "logo" ? "The logo must be a PNG." : "The banner must be a PNG, JPEG or GIF."
+  if (file.size > rule.maxBytes) return `That file is too big. ${rule.hint}.`
+  return null
+}
+
+/** The address of a clan picture the API sent, or null. A path from the API gets the API origin in front. */
+export function clanArtSrc(value: string | null | undefined): string | null {
+  if (!value) return null
+  if (value.startsWith("/api/")) return `${API_BASE_URL}${value}`
+  return MOCK_API && value.startsWith("data:image/") ? value : null
 }

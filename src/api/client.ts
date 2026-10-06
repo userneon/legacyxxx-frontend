@@ -325,7 +325,13 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   }
 
   if (body !== undefined && method !== "GET") {
-    init.body = JSON.stringify(body)
+    if (body instanceof Blob) {
+      // A picture goes up as it is, under its own type.
+      init.body = body
+      ;(init.headers as Record<string, string>)["Content-Type"] = body.type
+    } else {
+      init.body = JSON.stringify(body)
+    }
   }
 
   let response: Response
