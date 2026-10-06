@@ -19,12 +19,12 @@ export const TYPE_META: Record<PenaltyType, { label: string; plural: string; ico
   gag: { label: "Gag", plural: "Gags", icon: MessageSquareOff, color: "var(--penalty-gag)" },
 }
 
-/** Colour of a penalty's state: active red, permanent rose, timed-and-running amber, expired grey, unbanned green. */
+/** Colour of a penalty's state: active red, inactive (ran out) grey, unbanned or lifted green. How long it lasts is the term's job, not the state's. */
 export function penaltyStatusColor(penalty: PenaltyEntry) {
   const status = penaltyStatus(penalty)
   if (status === "unbanned") return "var(--status-green)"
   if (status === "expired") return "var(--text-dim)"
-  return penalty.isPermanent ? "var(--penalty-permanent)" : "var(--status-red)"
+  return "var(--status-red)"
 }
 
 /** Colour of the term text: permanent rose, a running timer amber, finished grey. */
@@ -35,7 +35,7 @@ export function penaltyTermColor(penalty: PenaltyEntry) {
   return "var(--text-muted)"
 }
 
-/** Status pill: Active / Permanent / Expired / Unbanned in its colour, with a dot. */
+/** Status pill: Active / Inactive / Unbanned / Lifted in its colour, with a dot. */
 export function StatusPill({ penalty, className }: { penalty: PenaltyEntry; className?: string }) {
   const color = penaltyStatusColor(penalty)
   const live = penaltyStatus(penalty) === "active"
@@ -67,12 +67,15 @@ export function penaltyStatus(penalty: PenaltyEntry): PenaltyStatus {
   return "active"
 }
 
-/** Active / Expired / Unbanned / Permanent — the word shown for a penalty's state. */
+/**
+ * The word for a penalty's state: Active, Inactive (its time ran out), Unbanned (a ban staff lifted) or Lifted (a mute
+ * or gag staff lifted). "Permanent" is never a state: it is a term and shows in the term column.
+ */
 export function penaltyStatusLabel(penalty: PenaltyEntry): string {
   const status = penaltyStatus(penalty)
-  if (status === "unbanned") return "Unbanned"
-  if (status === "expired") return "Expired"
-  return penalty.isPermanent ? "Permanent" : "Active"
+  if (status === "unbanned") return penalty.type === "ban" ? "Unbanned" : "Lifted"
+  if (status === "expired") return "Inactive"
+  return "Active"
 }
 
 /** "Ends in 2d 4h" for a running timed penalty, otherwise the stored term. */
