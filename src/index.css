@@ -270,6 +270,30 @@ body::before {
 .lx-beams {
   animation: lx-beams-in 1800ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+/* Verified seal: the seal pops in, its check draws itself, one ring spreads out and fades. */
+.lx-verified-seal {
+  animation: lx-verified-pop 520ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.lx-verified-seal path:nth-child(2) {
+  stroke-dasharray: 9;
+  animation: lx-verified-check 360ms 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.lx-verified-ring {
+  animation: lx-verified-ring 800ms 120ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes lx-verified-pop {
+  from { transform: scale(0) rotate(-35deg); opacity: 0; }
+  to { transform: scale(1) rotate(0); opacity: 1; }
+}
+@keyframes lx-verified-check {
+  from { stroke-dashoffset: 9; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes lx-verified-ring {
+  from { transform: scale(0.6); opacity: 0.7; }
+  to { transform: scale(2.4); opacity: 0; }
+}
+
 /* The light on a beam: a short dash gliding along the curve; each beam has its own length of time and offset. */
 .lx-beam-lit {
   stroke-dasharray: 0.1 1.2;

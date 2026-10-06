@@ -41,6 +41,7 @@ import pinsIcon from "@/assets/skinchanger/pins.png"
 import defaultAgentT from "@/assets/skinchanger/default-agent-t.webp"
 import defaultAgentCt from "@/assets/skinchanger/default-agent-ct.webp"
 import defaultMusicKit from "@/assets/skinchanger/default-music-kit.webp"
+import { VerifiedBadge } from "@/components/verified-badge"
 import teamTIcon from "@/assets/skinchanger/team-t.webp"
 import teamCtIcon from "@/assets/skinchanger/team-ct.webp"
 
@@ -954,8 +955,10 @@ export function SkinchangerPage() {
           tall ? "h-44" : "h-24",
         )}
       >
-        {/* Dot: crimson once a look is equipped in this slot. */}
-        <span aria-hidden="true" className={cn("pointer-events-none absolute left-2.5 top-2.5 size-[7px] rounded-full transition-colors duration-500", savedItem ? "bg-[var(--brand-bright)]" : "bg-[var(--line-strong)]")} />
+        {/* Verified seal once a look is equipped in this slot; a quiet dot while it is empty. */}
+        {savedItem
+          ? <VerifiedBadge className="absolute left-2 top-2 size-4" />
+          : <span aria-hidden="true" className="pointer-events-none absolute left-2.5 top-2.5 size-[7px] rounded-full bg-[var(--line-strong)]" />}
 
         <button type="button" onClick={onOpen} aria-label={openLabel} className="absolute inset-0 z-[1] rounded-[10px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50" />
 
@@ -1187,7 +1190,7 @@ export function SkinchangerPage() {
               in game.
             </span>
             <span className="inline-flex h-9 items-center gap-2 rounded-full border border-[var(--glass-line)] px-3.5 text-xs text-[var(--text-muted)]">
-              <span className="size-1.5 rounded-full bg-[var(--brand-bright)]" />
+              <VerifiedBadge className="size-3.5" />
               Equipped
               <span key={`${viewTeam}:${equippedCount}`} className="lx-swap-in text-sm font-bold text-[var(--text)]">{equippedCount}</span>
             </span>
