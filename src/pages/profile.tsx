@@ -1,3 +1,4 @@
+import { DiscordIcon } from "@/components/discord-strip"
 import { DiscordLinkedMark } from "@/components/discord-linked-mark"
 import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
@@ -353,6 +354,14 @@ function TrustCard({ overview, onOpenPenalty }: { overview: ProfileOverview; onO
       <div className={row}><span className="text-[13px] text-[var(--text-muted)]">On Legacy-X since</span><span className="text-[13px] font-medium text-[var(--text)]">{user.memberSince ? formatDate(user.memberSince) : "—"}</span></div>
       {trust.steamAccountCreatedAt && (
         <div className={row}><span className="text-[13px] text-[var(--text-muted)]">Steam account age</span><span className="text-[13px] font-medium text-[var(--text)]">{yearsSince(trust.steamAccountCreatedAt)}</span></div>
+      )}
+      {overview.discordLinked !== undefined && (
+        <div className={row}>
+          <span className="text-[13px] text-[var(--text-muted)]">Discord</span>
+          {overview.discordLinked
+            ? <span className="flex items-center gap-[5px] text-[13px] font-medium text-[var(--status-green)]"><DiscordIcon className="size-3.5" />Linked</span>
+            : <span className="text-[13px] font-medium text-[var(--text-dim)]">Not linked</span>}
+        </div>
       )}
       <div className={row}>
         <span className="text-[13px] text-[var(--text-muted)]">Record</span>
