@@ -24,7 +24,6 @@ import { Label } from "@/components/ui/label"
 
 /** What a clan costs and needs. The server enforces both; these numbers only explain them. */
 const CLAN_FEE = 500
-const CLAN_MIN_MATCHES = 15
 
 /** A clan has no uploaded picture: its tag on a plain tile is its mark. */
 function TagTile({ tag, className }: { tag: string; className?: string }) {
@@ -39,7 +38,7 @@ function failureMessage(error: unknown, fallback: string) {
   const status = (error as Partial<ApiError> | null)?.status
   if (status === 401) return "Sign in with Steam first."
   if (status === 402) return `A clan costs ${CLAN_FEE} coins and your wallet is short.`
-  if (status === 409) return "That did not work: the name or tag is taken, you are already in a clan, or you have not played enough ranked matches yet."
+  if (status === 409) return "That did not work: the name or tag is taken, or you are already in a clan."
   if (status === 429) return "Too many tries. Wait a moment."
   return fallback
 }
@@ -69,7 +68,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
       <PageBar>
         <PageTabs ariaLabel="Clans" value="all" onChange={() => undefined} options={[{ value: "all", label: "All clans", count: loading ? undefined : list.length }]} />
         <PageBarEnd>
-          <span className="text-[13px] text-[var(--text-dim)] max-md:hidden">{CLAN_FEE} coins · {CLAN_MIN_MATCHES} ranked matches</span>
+          <span className="text-[13px] text-[var(--text-dim)] max-md:hidden">{CLAN_FEE} coins to create</span>
           {!mine && (
             <button type="button" onClick={() => (isAuthenticated ? setCreating(true) : loginWithSteam())} className="lx-primary-button inline-flex h-9 items-center gap-2 rounded-lg px-3.5 text-[13px] font-semibold">
               <Plus className="size-4" aria-hidden="true" />
@@ -109,7 +108,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
           <DialogHeader>
             <DialogTitle>Create a clan</DialogTitle>
             <DialogDescription>
-              {CLAN_FEE} coins are taken from your wallet when the clan is created. You need {CLAN_MIN_MATCHES} ranked matches played. A clan holds up to 10 players.
+              {CLAN_FEE} coins are taken from your wallet when the clan is created. A clan holds up to 10 players.
             </DialogDescription>
           </DialogHeader>
           <CreateClanForm onClose={() => setCreating(false)} onCreated={(clan) => { setCreating(false); changed(); onClanNavigate(clan.id) }} />
