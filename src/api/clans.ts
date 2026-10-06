@@ -71,8 +71,8 @@ export type ClanArtKind = "logo" | "banner"
 
 /** What a clan picture may be; the same limits the server enforces. */
 export const CLAN_ART_RULES: Record<ClanArtKind, { types: string[]; maxBytes: number; hint: string }> = {
-  logo: { types: ["image/png"], maxBytes: 256 * 1024, hint: "PNG, up to 256 KB" },
-  banner: { types: ["image/png", "image/jpeg", "image/gif"], maxBytes: 900 * 1024, hint: "PNG, JPEG or GIF, up to 900 KB" },
+  logo: { types: ["image/png"], maxBytes: 1024 * 1024, hint: "PNG, up to 1 MB" },
+  banner: { types: ["image/png", "image/jpeg", "image/gif"], maxBytes: 5 * 1024 * 1024, hint: "PNG, JPEG or GIF, up to 5 MB" },
 }
 
 /** Why a chosen file cannot be used, or null when it can. */
