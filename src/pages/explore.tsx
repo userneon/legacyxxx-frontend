@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react"
 import { ArrowUpRight, LoaderCircle, RotateCcw, Search, Sparkles, X } from "lucide-react"
 
+import { cn } from "@/lib/utils"
 import { competitiveService, searchService } from "@/api"
 import type { CommunityPlayer, CompetitiveLeaderboardEntry, ModerationStatus } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useViewParams } from "@/hooks/use-view-params"
 import { steamIdFromInput } from "@/lib/links"
-import { PAGE_TITLES } from "@/lib/routes"
+import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { RelativeTime } from "@/components/relative-time"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -156,39 +157,31 @@ export function ExplorePage({ onProfileNavigate }: { onProfileNavigate: (userId:
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="shrink-0 px-6 pb-1 pt-6">
-        <section aria-label="Explore" className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
-          <div className="relative z-10 flex flex-col gap-5 p-7">
-            <div className="flex min-w-0 flex-col gap-2.5">
-              <h1 className="flex items-center gap-2.5 text-[34px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
-                <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--text-faint)]" />
-                {PAGE_TITLES["explore"]}
-              </h1>
-              <span className="text-[14px] text-[var(--text-2)]">Find any player on Legacy-X by name, Steam ID or profile link.</span>
-            </div>
-            <label className="group flex h-14 w-full max-w-[720px] items-center gap-3 rounded-xl border border-[var(--line)] bg-[var(--panel)]/80 px-4 backdrop-blur transition-[border-color,box-shadow] duration-300 focus-within:border-[var(--text-dim)] focus-within:shadow-[0_0_0_4px_color-mix(in_oklab,var(--brand)_16%,transparent)]">
-              <Search className="size-5 shrink-0 text-[var(--text-dim)] transition-colors duration-300 group-focus-within:text-[var(--text)]" />
-              <input
-                ref={input}
-                type="search"
-                autoFocus
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                aria-label="Search players"
-                placeholder="Search by name or Steam ID"
-                className="min-w-0 flex-1 bg-transparent text-base text-[var(--text)] outline-none placeholder:text-[var(--text-dim)] [&::-webkit-search-cancel-button]:hidden"
-              />
-              {loading && searching && <LoaderCircle aria-label="Searching" className="size-4 shrink-0 animate-spin text-[var(--text-dim)]" />}
-              {query && (
-                <button type="button" onClick={() => pick("")} aria-label="Clear search" className="flex size-7 shrink-0 items-center justify-center rounded-lg text-[var(--text-dim)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)]">
-                  <X className="size-4" />
-                </button>
-              )}
-            </label>
-          </div>
-        </section>
-      </div>
+      <PageBar>
+        <PageTabs ariaLabel="Explore" value="players" onChange={() => undefined} options={[{ value: "players", label: "Players" }]} />
+        <PageBarEnd>
+          <span className="text-[13px] text-[var(--text-dim)] max-lg:hidden">Name, Steam ID or profile link</span>
+          <label className={cn(pageSearchClass, "w-[300px] max-sm:w-full")}>
+            <Search className="size-4 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />
+            <input
+              ref={input}
+              type="search"
+              autoFocus
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              aria-label="Search players"
+              placeholder="Search players"
+              className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text)] outline-none placeholder:text-[var(--text-dim)] [&::-webkit-search-cancel-button]:hidden"
+            />
+            {loading && searching && <LoaderCircle aria-label="Searching" className="size-4 shrink-0 animate-spin text-[var(--text-dim)]" />}
+            {query && (
+              <button type="button" onClick={() => pick("")} aria-label="Clear search" className="flex size-6 shrink-0 items-center justify-center rounded-md text-[var(--text-dim)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)]">
+                <X className="size-3.5" />
+              </button>
+            )}
+          </label>
+        </PageBarEnd>
+      </PageBar>
 
       {/* pt-4 leaves room for the 5px hover lift: the scroll area clips anything above its top. */}
       <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 pb-7 pt-4">

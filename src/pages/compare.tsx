@@ -12,6 +12,7 @@ import { profileOverviewService, type ProfileOverview } from "@/api/profile-over
 import type { CommunityPlayer } from "@/api/types"
 import { CompetitiveRankBadge, rankTierColor } from "@/components/competitive-rank-badge"
 import { AnimatedNumber } from "@/components/animated-number"
+import { PageBar, PageBarEnd, PageTabs } from "@/components/page-tabs"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -19,7 +20,6 @@ import { useAuth } from "@/hooks/use-auth"
 import { useViewParams } from "@/hooks/use-view-params"
 import { renderComparePng } from "@/lib/compare-image"
 import { cs2MapLabel } from "@/lib/cs2-map-art"
-import { PAGE_TITLES } from "@/lib/routes"
 import { cn } from "@/lib/utils"
 
 type Side = "a" | "b"
@@ -398,26 +398,18 @@ export function ComparePage() {
   }
 
   return (
-    <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-6 pb-8 pt-6">
-        <section aria-label={PAGE_TITLES.compare} className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
-          <div className="relative z-10 flex flex-wrap items-end justify-between gap-4 p-7">
-            <div className="flex flex-col gap-2.5">
-              <h1 className="flex items-center gap-2.5 text-[34px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
-                <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--text-faint)]" />
-                {PAGE_TITLES.compare}
-              </h1>
-              <span className="text-[14px] text-[var(--text-2)]">Put two players side by side.</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button type="button" onClick={swap} disabled={!idA && !idB} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text)] transition-colors enabled:hover:border-[var(--line-strong)] disabled:opacity-40"><ArrowLeftRight className="size-4" />Swap</button>
-              <button type="button" onClick={copyLink} disabled={!ready} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text)] transition-colors enabled:hover:border-[var(--line-strong)] disabled:opacity-40"><Link2 className="size-4" />Copy link</button>
-              <button type="button" onClick={downloadPng} disabled={!ready || saving} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text)] transition-colors enabled:hover:border-[var(--line-strong)] disabled:opacity-40">{saving ? <LoaderCircle className="size-4 animate-spin" /> : <Download className="size-4" />}Download PNG</button>
-            </div>
-          </div>
-        </section>
-
+    <div className="flex min-h-0 flex-1 flex-col">
+      <PageBar>
+        <PageTabs ariaLabel="Compare" value="players" onChange={() => undefined} options={[{ value: "players", label: "Players" }]} />
+        <PageBarEnd>
+          <span className="text-[13px] text-[var(--text-dim)] max-lg:hidden">Put two players side by side</span>
+          <button type="button" onClick={swap} disabled={!idA && !idB} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text)] transition-colors enabled:hover:border-[var(--line-strong)] disabled:opacity-40"><ArrowLeftRight className="size-4" />Swap</button>
+          <button type="button" onClick={copyLink} disabled={!ready} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text)] transition-colors enabled:hover:border-[var(--line-strong)] disabled:opacity-40"><Link2 className="size-4" />Copy link</button>
+          <button type="button" onClick={downloadPng} disabled={!ready || saving} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text)] transition-colors enabled:hover:border-[var(--line-strong)] disabled:opacity-40">{saving ? <LoaderCircle className="size-4 animate-spin" /> : <Download className="size-4" />}Download PNG</button>
+        </PageBarEnd>
+      </PageBar>
+      <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-6 pb-8 pt-4">
         <section aria-label="Players" className="grid rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] md:grid-cols-[1fr_auto_1fr]">
           <PlayerPanel side="a" selectedId={idA} overview={first.data} loading={first.loading} failed={Boolean(first.error)} onPick={(id) => set("a", id)} onClear={() => set("a", null)} onRetry={first.refetch} />
           <div className="flex items-center justify-center border-y border-[var(--line-soft)] px-2 py-2 md:w-28 md:border-x md:border-y-0 md:py-0" aria-live="polite">
@@ -461,6 +453,7 @@ export function ComparePage() {
             <SharedMaps a={a} b={b} />
           </>
         ) : null}
+      </div>
       </div>
     </div>
   )
