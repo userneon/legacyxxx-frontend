@@ -39,9 +39,9 @@ exception was dropped and no longer exists in `src/`.
 - `--accent-solid` `#fafafa` (on `#0a0a0a`): primary buttons (`.lx-primary-button`), progress fills, unread dots
 - `--brand` `#e11d48` (fills, borders, glows), `--brand-bright` `#ff3d6e` (text, icons), `--brand-deep`
   `#4c0717`, `--brand-on` `#fff5f7`. Crimson is used sparingly (owner request 2026-10-01: too much of it).
-  It belongs to: the wordmark's "-X", the active sidebar item, the flagship "Players Online" figure, the #1 leader
+  It belongs to: the wordmark's "-X", the active sidebar item, the Home hero's accent word and the soft glow behind its art, the flagship "Players Online" figure, the #1 leader
   and the viewer's own row, the active sort column, the Pro League card, the rank/EXP progress fill, the "equipped" verified seal
-  on Skinchanger cards and the Owner badge. No page has a glow or a hero banner (owner request 2026-10-06): a page starts with
+  on Skinchanger cards and the Owner badge. No other page has a glow or a hero banner (owner request 2026-10-06; Home keeps its hero): a page starts with
   `PageBar` (`components/page-tabs.tsx`: underlined tabs on the left, hint and controls on the right, one hairline) and the page
   name lives in the top bar. Everything else is neutral: section-heading bars
   (`--text-faint`), hover borders (`--line-strong`), hover fills (`--raised`), focus rings (`--accent-solid`),
