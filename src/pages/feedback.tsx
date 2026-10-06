@@ -1,8 +1,8 @@
+import { PageBar, PageBarEnd, PageTabs } from "@/components/page-tabs"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { Clock, LoaderCircle, PenLine, RotateCcw, ShieldCheck, Star, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { PAGE_TITLES } from "@/lib/routes"
 import { feedbackService } from "@/api"
 import type { ApiError, FeedbackEntry } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -325,43 +325,32 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
   return (
     <div className="flex min-h-0 flex-1 max-lg:flex-col max-lg:overflow-y-auto">
       <section aria-label="Reviews" className="flex min-w-0 flex-1 flex-col max-lg:min-h-0">
-        <div className="shrink-0 px-6 pb-1 pt-6">
-          <section aria-label="Reviews" className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-            <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
-            <div className="relative z-10 flex flex-col gap-5 p-7">
-              <div className="flex min-w-0 flex-col gap-2.5">
-                <h1 className="flex items-center gap-2.5 text-[34px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
-                  <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--text-faint)]" />
-                  {PAGE_TITLES["feedback"]}
-                  {loading && reviews.length > 0 && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
-                </h1>
-                <span className="text-[14px] text-[var(--text-2)]">What players say about Legacy-X.</span>
-              </div>
-              <div className="flex flex-wrap items-center justify-between gap-2.5">
-                <Segmented
-                  ariaLabel="Filter by rating"
-                  value={rating}
-                  onChange={(value) => update({ rating: value === "all" ? null : value })}
-                  options={(["all", "5", "4", "3", "2", "1"] as const).map((value) => ({
-                    value,
-                    label: value === "all" ? "All" : <>{value}<Star className="size-3 fill-[var(--star)] text-[var(--star)]" /></>,
-                  }))}
-                  className="scrollbar-hidden max-w-full overflow-x-auto"
-                />
-                <Segmented
-                  ariaLabel="Sort"
-                  value={sort}
-                  onChange={(value) => update({ sort: value === "newest" ? null : value })}
-                  options={[
-                    { value: "newest", label: "Newest" },
-                    { value: "highest", label: "Highest" },
-                    { value: "lowest", label: "Lowest" },
-                  ]}
-                />
-              </div>
-            </div>
-          </section>
-        </div>
+        <PageBar>
+          <PageTabs
+            ariaLabel="Filter by rating"
+            value={rating}
+            onChange={(value) => update({ rating: value === "all" ? null : value })}
+            options={(["all", "5", "4", "3", "2", "1"] as const).map((value) => ({
+              value,
+              label: value === "all" ? "All" : <>{value}<Star className="size-3 fill-[var(--star)] text-[var(--star)]" /></>,
+            }))}
+          />
+          <PageBarEnd>
+            {loading && reviews.length > 0 && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
+            <span className="text-[13px] text-[var(--text-dim)] max-xl:hidden">What players say about Legacy-X.</span>
+            <Segmented
+              ariaLabel="Sort"
+              size="sm"
+              value={sort}
+              onChange={(value) => update({ sort: value === "newest" ? null : value })}
+              options={[
+                { value: "newest", label: "Newest" },
+                { value: "highest", label: "Highest" },
+                { value: "lowest", label: "Lowest" },
+              ]}
+            />
+          </PageBarEnd>
+        </PageBar>
 
         {/* pt-4 leaves room for the 5px hover lift: the scroll area clips anything above its top. */}
         <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-4 max-lg:overflow-visible">
