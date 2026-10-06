@@ -139,7 +139,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
           {!loading && !error && (
             <div className="lx-stat-grid grid-cols-3">
               {[{ label: "Clans", value: list.length }, { label: "Members", value: members }, { label: "Open slots", value: open }].map((stat) => (
-                <div key={stat.label} className="lx-stat-cell">
+                <div key={stat.label} className="lx-stat-cell shadow-none!">
                   <span className="lx-stat-label">{stat.label}</span>
                   <span className="text-xl font-semibold leading-none text-[var(--text)]"><AnimatedNumber value={stat.value} /></span>
                 </div>
