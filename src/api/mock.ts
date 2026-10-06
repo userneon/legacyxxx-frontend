@@ -491,6 +491,17 @@ export async function mockResponse(method: string, path: string, query: Query, b
     return MOCK_USER
   }
   if (path === "/api/v1/auth/refresh") throw unauthorized()
+  if (path === "/api/v1/wallet/me") {
+    if (!signedIn()) throw unauthorized()
+    return {
+      balance: 640,
+      transactions: [
+        { id: "3", amount: 50, kind: "grant", reason: "Ranked match won", balanceAfter: 640, at: new Date(Date.now() - 2 * HOUR).toISOString() },
+        { id: "2", amount: 20, kind: "grant", reason: "Ranked match played", balanceAfter: 590, at: new Date(Date.now() - 5 * HOUR).toISOString() },
+        { id: "1", amount: 570, kind: "grant", reason: "Tournament prize", balanceAfter: 570, at: new Date(Date.now() - 3 * 24 * HOUR).toISOString() },
+      ],
+    }
+  }
   if (path === "/api/v1/settings/notifications") {
     if (!signedIn()) throw unauthorized()
     if (method === "PUT") notificationPrefs = { ...notificationPrefs, ...(body as Partial<typeof notificationPrefs>), penalties: true }

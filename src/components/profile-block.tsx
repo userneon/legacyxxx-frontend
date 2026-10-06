@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { RankLabel } from "@/components/competitive-rank-badge"
 import { NotificationsMenu } from "@/components/notifications-menu"
+import { WalletMenu } from "@/components/wallet-menu"
 import { SteamIcon } from "@/components/steam-login-gate"
 
 interface ProfileBlockProps {
@@ -48,6 +49,7 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
 
   return (
     <div className="flex items-center gap-2">
+      <WalletMenu />
       <NotificationsMenu />
 
       <Popover open={open} onOpenChange={setOpen}>

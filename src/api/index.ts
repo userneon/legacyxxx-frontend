@@ -54,3 +54,5 @@ export type {
   SkinchangerStickerOption,
   TeamScope,
 } from "./skinchanger"
+export { walletService } from "./wallet"
+export type { Wallet, WalletTransaction } from "./wallet"
