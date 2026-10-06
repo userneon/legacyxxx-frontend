@@ -36,7 +36,6 @@ import { OptimizedImage } from "@/components/optimized-image"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useViewParams } from "@/hooks/use-view-params"
 import { cn } from "@/lib/utils"
-import { PAGE_TITLES } from "@/lib/routes"
 import { rarityStyles } from "@/lib/cs2-rarity"
 import pinsIcon from "@/assets/skinchanger/pins.png"
 import defaultAgentT from "@/assets/skinchanger/default-agent-t.webp"
@@ -201,6 +200,12 @@ function savedSkinLabel(item: SkinchangerCatalogItem) {
 function motionReduced() {
   return false
 }
+
+/** On a T/CT switch the cards slide in from the right, rightmost column first, so the grid sweeps from right to left. */
+const SLIDE_IN_FROM_RIGHT: Keyframe[] = [
+  { opacity: 0, transform: "translateX(72px)" },
+  { opacity: 1, transform: "translateX(0)" },
+]
 
 const DROP_IN: Keyframe[] = [
   { opacity: 0, transform: "translateY(-14px) scale(0.985)" },
@@ -862,19 +867,7 @@ export function SkinchangerPage() {
   }, [shownTeam])
 
   const renderTeamSwitch = () => (
-    <div role="tablist" aria-label="Team" className="relative flex gap-0.5 rounded-[10px] border border-[var(--line)] bg-[var(--glass-fill)] p-[3px]">
-      {teamPill && (
-        <span
-          aria-hidden="true"
-          style={{ left: teamPill.left, width: teamPill.width }}
-          className={cn(
-            "pointer-events-none absolute inset-y-[3px] rounded-[7px]",
-            // The thumb takes the side's colour (muted yellow T, sky-blue CT) as a light tint, so the label and art stay readable.
-            "border transition-[left,width,background-color,border-color] duration-200 ease-[var(--ease-out)] motion-reduce:transition-none",
-            shownTeam === "t" ? "border-[var(--team-t)]/55 bg-[var(--team-t)]/20" : "border-[var(--team-ct)]/55 bg-[var(--team-ct)]/20",
-          )}
-        />
-      )}
+    <div role="tablist" aria-label="Team" className="relative flex gap-6">
       {teamOptions.map((team) => {
         const isActive = shownTeam === team.id
         return (
@@ -887,8 +880,8 @@ export function SkinchangerPage() {
             disabled={teamLocked}
             onClick={() => setTeamScope(team.id)}
             className={cn(
-              "relative z-[1] flex h-8 items-center gap-2 rounded-[7px] px-[18px] text-[13px] font-semibold",
-              "transition-colors duration-200 ease-[var(--ease-out)] motion-reduce:transition-none",
+              "relative z-[1] flex h-12 items-center gap-2 text-[13px] font-semibold",
+              "transition-colors duration-300 ease-[var(--ease-out)] motion-reduce:transition-none",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
               isActive
                 ? team.id === "t" ? "text-[var(--team-t)]" : "text-[var(--team-ct)]"
@@ -899,15 +892,24 @@ export function SkinchangerPage() {
             <img
               src={team.id === "t" ? teamTIcon : teamCtIcon}
               alt=""
-              className={cn(
-                "size-4 object-contain transition-opacity duration-200 motion-reduce:transition-none",
-                isActive ? "opacity-100" : "opacity-60",
-              )}
+              className={cn("size-4 object-contain transition-opacity duration-300 motion-reduce:transition-none", isActive ? "opacity-100" : "opacity-60")}
             />
             {team.label}
           </button>
         )
       })}
+      {/* The line under the tabs glides to the chosen side and takes its colour on the way. */}
+      {teamPill && (
+        <span
+          aria-hidden="true"
+          style={{ left: teamPill.left, width: teamPill.width }}
+          className={cn(
+            "pointer-events-none absolute -bottom-px h-[2px] rounded-full",
+            "transition-[left,width,background-color] duration-[450ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+            shownTeam === "t" ? "bg-[var(--team-t)]" : "bg-[var(--team-ct)]",
+          )}
+        />
+      )}
     </div>
   )
 
@@ -945,17 +947,17 @@ export function SkinchangerPage() {
         key={id}
         data-slot-card={id}
         className={cn(
-          "lx-layer group relative overflow-hidden rounded-lg border bg-[var(--glass-fill)]",
+          "lx-layer group relative overflow-hidden rounded-[10px] border bg-[var(--glass-fill)]",
           // Lift and a crimson edge on hover; leaving eases back slower than entering, like the other cards.
           "transition-[border-color,box-shadow,translate] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:duration-300 hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
-          savedItem ? "border-[var(--line)] bg-[linear-gradient(160deg,color-mix(in_oklab,var(--brand)_7%,var(--card-surface)),var(--card-surface)_55%)]" : "border-[var(--line-soft)]",
+          savedItem ? "border-[var(--line-strong)]" : "border-[var(--glass-line)]",
           tall ? "h-44" : "h-24",
         )}
       >
-        {/* Corner tab: crimson once a look is equipped in this slot. */}
-        <span aria-hidden="true" className={cn("pointer-events-none absolute left-0 top-0 size-[18px] [clip-path:polygon(0_0,100%_0,0_100%)] transition-colors duration-500", savedItem ? "bg-[var(--brand-bright)]" : "bg-[var(--line)] group-hover:bg-[var(--raised)]")} />
+        {/* Dot: crimson once a look is equipped in this slot. */}
+        <span aria-hidden="true" className={cn("pointer-events-none absolute left-2.5 top-2.5 size-[7px] rounded-full transition-colors duration-500", savedItem ? "bg-[var(--brand-bright)]" : "bg-[var(--line-strong)]")} />
 
-        <button type="button" onClick={onOpen} aria-label={openLabel} className="absolute inset-0 z-[1] rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50" />
+        <button type="button" onClick={onOpen} aria-label={openLabel} className="absolute inset-0 z-[1] rounded-[10px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50" />
 
         {/* Keyed by the look, so switching team fades the new skin in instead of swapping it. */}
         <span className={cn(
@@ -981,7 +983,7 @@ export function SkinchangerPage() {
           )
           : <span aria-hidden="true" className="pointer-events-none absolute bottom-[26px] left-2 h-4 w-3 rounded border border-dashed border-[var(--line-strong)]" />}
         <span className="pointer-events-none absolute bottom-[7px] left-2 truncate text-[11px] font-semibold uppercase tracking-[0.4px] text-[var(--text-2)]" style={{ right: accessories.length > 0 ? `${accessories.length * 24 + 16}px` : "8px" }}>{title}</span>
-        {rarity && <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px]" style={{ backgroundColor: rarity.accent }} />}
+        {rarity && <span aria-hidden="true" className="pointer-events-none absolute right-2.5 top-2.5 size-[7px] rounded-full transition-opacity duration-300 group-hover:opacity-0" style={{ backgroundColor: rarity.accent }} />}
 
         <button
           type="button"
@@ -1066,26 +1068,62 @@ export function SkinchangerPage() {
   const viewTeam: "t" | "ct" = teamScope === "ct" ? "ct" : "t"
   const equippedCount = loadoutEntries.filter((entry) => entry.team_scope === viewTeam || entry.team_scope === "all").length
 
-  // The grid is dealt in the first time it shows and again on every T/CT switch: every card drops in from above,
-  // top to bottom and column by column, so the grid flows down instead of snapping.
+  // The grid drops in the first time it shows. On every T/CT switch it slides in from the right instead, column by
+  // column from the rightmost, with a soft band of the side's colour (muted yellow T, sky-blue CT) sweeping across.
   const gridRef = useRef<HTMLDivElement>(null)
   const dealtTeam = useRef<string | null>(null)
   const gridShown = !gridLoading && !gridError
   useLayoutEffect(() => {
     if (!gridShown || dealtTeam.current === viewTeam) return
+    const firstDeal = dealtTeam.current === null
     dealtTeam.current = viewTeam
     const grid = gridRef.current
     if (!grid || motionReduced()) return
     const top = grid.getBoundingClientRect().top
     const columns = Array.from(grid.children) as HTMLElement[]
+    const color = viewTeam === "t" ? "var(--team-t)" : "var(--team-ct)"
     const animations: Animation[] = []
     columns.forEach((column, columnIndex) => {
       column.querySelectorAll<HTMLElement>("h2, [data-slot-card]").forEach((card) => {
         const row = Math.max(0, (card.getBoundingClientRect().top - top) / 114)
-        const delay = Math.min(640, Math.round(row * 55 + columnIndex * 35))
-        animations.push(card.animate(DROP_IN, { duration: 420, delay, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "backwards" }))
+        if (firstDeal) {
+          const delay = Math.min(640, Math.round(row * 55 + columnIndex * 35))
+          animations.push(card.animate(DROP_IN, { duration: 420, delay, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "backwards" }))
+          return
+        }
+        const delay = Math.round((columns.length - 1 - columnIndex) * 70 + Math.min(row, 6) * 22)
+        const isCard = card.hasAttribute("data-slot-card")
+        // A card also carries a one-pixel edge in the side's colour that fades out while it settles.
+        const frames: Keyframe[] = SLIDE_IN_FROM_RIGHT.map((frame, index) => (
+          isCard ? { ...frame, boxShadow: index === 0 ? `0 0 0 1px color-mix(in oklab, ${color} 70%, transparent)` : "0 0 0 1px transparent" } : frame
+        ))
+        animations.push(card.animate(frames, { duration: 620, delay, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "backwards" }))
       })
     })
+    if (!firstDeal) {
+      const width = grid.clientWidth
+      const band = document.createElement("div")
+      band.setAttribute("aria-hidden", "true")
+      Object.assign(band.style, {
+        position: "absolute", top: "-20px", bottom: "0", left: "0", width: "45%", pointerEvents: "none", zIndex: "3",
+        background: `linear-gradient(90deg, transparent, color-mix(in oklab, ${color} 16%, transparent) 55%, transparent)`,
+      })
+      grid.appendChild(band)
+      const sweep = band.animate(
+        [
+          { transform: `translateX(${width}px)`, opacity: 0 },
+          { transform: `translateX(${width * 0.6}px)`, opacity: 1, offset: 0.25 },
+          { transform: `translateX(${-width * 0.45}px)`, opacity: 0 },
+        ],
+        { duration: 1100, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" },
+      )
+      sweep.onfinish = () => band.remove()
+      animations.push(sweep)
+      return () => {
+        animations.forEach((animation) => animation.cancel())
+        band.remove()
+      }
+    }
     return () => animations.forEach((animation) => animation.cancel())
   }, [viewTeam, gridShown])
 
@@ -1139,50 +1177,22 @@ export function SkinchangerPage() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="shrink-0 px-6 pb-1 pt-6">
-        <section aria-label="Loadout" className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-          {/*
-            The side's default agent stands behind the header. Both are always mounted: switching to
-            CT (the right tab) slides the CT agent in from the right while T leaves to the left, and
-            switching back reverses it.
-          */}
-          {(["t", "ct"] as const).map((side) => (
-            <img
-              key={side}
-              src={side === "t" ? defaultAgentT : defaultAgentCt}
-              alt=""
-              aria-hidden="true"
-              className={cn(
-                "pointer-events-none absolute -bottom-10 right-[15%] h-[165%] w-auto object-contain [mask-image:linear-gradient(to_left,black_45%,transparent)] max-lg:hidden",
-                "transition-[translate,opacity] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]",
-                viewTeam === side ? "translate-x-0 opacity-40" : side === "t" ? "-translate-x-24 opacity-0" : "translate-x-24 opacity-0",
-              )}
-            />
-          ))}
-          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
-          {/* Three columns when there is room; on a narrow panel the switch drops to its own row. */}
-          <div className="relative z-10 flex flex-wrap items-center gap-x-4 gap-y-4 p-6 lg:grid lg:grid-cols-[1fr_auto_1fr]">
-            <div className="flex min-w-0 flex-1 flex-col gap-2 lg:flex-none">
-              <h1 className="flex items-center gap-2.5 text-[30px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
-                <span aria-hidden="true" className="h-6 w-1 rounded-full bg-[var(--text-faint)]" />
-                {PAGE_TITLES["skinchanger"]}
-              </h1>
-              <span className="flex items-center gap-1.5 text-[13px] text-[var(--text-2)]">
-                Pick skins, then type
-                <span className="rounded-md border border-[var(--line-strong)] bg-[var(--raised)] px-1.5 py-px font-mono text-xs font-semibold text-[var(--text-2)]">!rs</span>
-                in game.
-              </span>
-            </div>
-            <div className="order-last flex basis-full justify-center lg:order-none lg:basis-auto">{renderTeamSwitch()}</div>
-            <div className="flex shrink-0 items-center justify-end">
-              <span className="inline-flex h-9 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--panel)]/75 px-3.5 text-xs text-[var(--text-muted)] backdrop-blur">
-                <span className="size-1.5 rounded-full bg-[var(--brand-bright)]" />
-                Equipped
-                <span key={`${viewTeam}:${equippedCount}`} className="lx-swap-in text-sm font-bold text-[var(--text)]">{equippedCount}</span>
-              </span>
-            </div>
+      <div className="shrink-0 border-b border-[var(--glass-line)] px-6">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-1">
+          {renderTeamSwitch()}
+          <div className="ml-auto flex items-center gap-4">
+            <span className="flex items-center gap-1.5 text-[13px] text-[var(--text-dim)] max-md:hidden">
+              Pick skins, then type
+              <span className="rounded-md border border-[var(--line-strong)] bg-[var(--raised)] px-1.5 py-px font-mono text-xs font-semibold text-[var(--text-2)]">!rs</span>
+              in game.
+            </span>
+            <span className="inline-flex h-9 items-center gap-2 rounded-full border border-[var(--glass-line)] px-3.5 text-xs text-[var(--text-muted)]">
+              <span className="size-1.5 rounded-full bg-[var(--brand-bright)]" />
+              Equipped
+              <span key={`${viewTeam}:${equippedCount}`} className="lx-swap-in text-sm font-bold text-[var(--text)]">{equippedCount}</span>
+            </span>
           </div>
-        </section>
+        </div>
       </div>
 
       {/* pt-5 leaves room for the cards' hover lift: the scroll area clips anything above its top. */}
@@ -1199,7 +1209,7 @@ export function SkinchangerPage() {
             ))}
           </div>
         ) : (
-          <div ref={gridRef} className="grid grid-cols-1 items-start gap-[18px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <div ref={gridRef} className="relative grid grid-cols-1 items-start gap-[18px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             <div className="flex flex-col gap-[22px]">{weaponSection("PISTOLS", "Pistols")}</div>
             <div className="flex flex-col gap-[22px]">{weaponSection("SMGS", "SMGs")}</div>
             <div className="flex flex-col gap-[22px]">
