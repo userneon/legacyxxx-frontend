@@ -494,8 +494,9 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path === "/api/v1/wallet/me") {
     if (!signedIn()) throw unauthorized()
     return {
-      balance: 640,
+      balance: 600,
       transactions: [
+        { id: "4", amount: -40, kind: "penalty", reason: "Penalty", balanceAfter: 600, at: new Date(Date.now() - 1 * HOUR).toISOString() },
         { id: "3", amount: 50, kind: "grant", reason: "Ranked match won", balanceAfter: 640, at: new Date(Date.now() - 2 * HOUR).toISOString() },
         { id: "2", amount: 20, kind: "grant", reason: "Ranked match played", balanceAfter: 590, at: new Date(Date.now() - 5 * HOUR).toISOString() },
         { id: "1", amount: 570, kind: "grant", reason: "Tournament prize", balanceAfter: 570, at: new Date(Date.now() - 3 * 24 * HOUR).toISOString() },

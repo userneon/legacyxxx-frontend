@@ -48,7 +48,7 @@ export function WalletMenu() {
                   <span className="truncate text-[13px] text-[var(--text)]" title={entry.reason}>{entry.reason}</span>
                   <RelativeTime value={entry.at} className="text-[11px] text-[var(--text-dim)]" />
                 </span>
-                <span className={cn("shrink-0 text-[13px] font-semibold", entry.amount > 0 ? "text-[var(--status-green)]" : "text-[var(--text-muted)]")}>
+                <span className={cn("shrink-0 text-[13px] font-semibold", entry.amount > 0 ? "text-[var(--status-green)]" : entry.kind === "penalty" ? "text-[var(--status-red)]" : "text-[var(--text-muted)]")}>
                   {entry.amount > 0 ? "+" : "−"}{Math.abs(entry.amount).toLocaleString()}
                 </span>
               </li>
