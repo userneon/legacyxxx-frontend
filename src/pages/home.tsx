@@ -5,8 +5,6 @@ import { serversService } from "@/api"
 import { tournamentsService } from "@/api/tournaments"
 import type { HomeStats, PageId } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
-import { OptimizedImage } from "@/components/optimized-image"
-import homeHeroGif from "@/assets/skinchanger/hero.gif"
 import { HomeReviews } from "@/components/home-reviews"
 import { DiscordStrip } from "@/components/discord-strip"
 import { TopPlayers } from "@/components/home-top-players"
@@ -58,58 +56,21 @@ export function HomePage({ onNavigate }: HomePageProps) {
   }
 
   return (
-    <div className="lx-glass-page @container flex flex-col gap-5 p-4 @2xl:p-6">
-      {/* Hero */}
-      <div className="lx-glass relative flex flex-col gap-4 overflow-hidden rounded-xl p-8 @2xl:p-10">
-        <picture className="pointer-events-none absolute inset-0">
-          <OptimizedImage src={homeHeroGif} width={480} height={268} priority alt="" aria-hidden="true" className="h-full w-full object-cover opacity-35" />
-        </picture>
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--card-surface)]/85 via-[var(--card-surface)]/60 to-transparent" />
-        <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
-        <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
-
-        <div className="relative z-10 flex w-fit items-center gap-2">
-          {(homeStats?.playersOnline ?? 0) > 0 ? (
-            <>
-              <span className="lx-live-dot size-1.5 rounded-full bg-[var(--status-green)]" />
-              <span className="text-xs font-medium text-[var(--text-muted)]">Live now · {homeStats?.playersOnline} playing</span>
-            </>
-          ) : (
-            <>
-              <span className="size-1.5 rounded-full bg-[var(--brand-bright)]" />
-              <span className="text-xs font-medium text-[var(--text-muted)]">Mongolian CS2 community</span>
-            </>
-          )}
-        </div>
-        <div className="relative z-10 flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between @3xl:gap-10">
-        <div className="flex shrink-0 flex-col gap-4">
-        <h1 className="whitespace-nowrap text-4xl font-bold leading-[1.05] tracking-normal text-[var(--text)] md:text-6xl">
-          Play ranked.<br />
-          Climb to <span className="lx-brand-text">Legacy.</span>
-        </h1>
-        <p className="max-w-md text-[15px] leading-relaxed text-[var(--text-2)]">
-          Every match on our servers counts toward your rank.
-        </p>
-        </div>
-        <dl className="mt-3 flex @3xl:mt-0">
-          {heroStats.map((stat, index) => (
-            <div
-              key={stat.label}
-              className={cn("flex min-w-0 flex-col-reverse justify-end gap-1.5 pr-5 @3xl:pr-8", index > 0 && "border-l border-[var(--line)] pl-5 @3xl:pl-8")}
-            >
-              <dt className="flex items-center gap-1.5 whitespace-nowrap text-[11px] font-medium uppercase leading-tight tracking-wide text-[var(--text-muted)] @2xl:text-xs">
-                {stat.flagship && Boolean(stat.value) && <span className="lx-live-dot size-1.5 shrink-0 rounded-full bg-[var(--status-green)]" />}
-                {stat.label}
-              </dt>
-              <dd className={cn("text-xl font-semibold leading-none @2xl:text-[28px]", stat.flagship ? "text-[var(--brand-bright)]" : "text-[var(--text)]")}>
-                {statsLoading && stat.value === undefined ? <Skeleton className="h-5 w-10 @2xl:h-7 @2xl:w-12" /> : <AnimatedNumber value={stat.value} />}
-              </dd>
-            </div>
-          ))}
-        </dl>
-        </div>
-      </div>
+    <div className="@container flex flex-col gap-5 p-4 @2xl:p-6">
+      {/* The community right now */}
+      <dl aria-label="Legacy-X right now" className="lx-stat-grid grid-cols-3">
+        {heroStats.map((stat) => (
+          <div key={stat.label} className="lx-stat-cell">
+            <dt className="lx-stat-label flex items-center gap-1.5 text-[var(--text-muted)]">
+              {stat.flagship && Boolean(stat.value) && <span className="lx-live-dot size-1.5 shrink-0 rounded-full bg-[var(--status-green)]" />}
+              {stat.label}
+            </dt>
+            <dd className={cn("text-[26px] font-bold leading-none", stat.flagship ? "text-[var(--brand-bright)]" : "text-[var(--text)]")}>
+              {statsLoading && stat.value === undefined ? <Skeleton className="h-6 w-14" /> : <AnimatedNumber value={stat.value} />}
+            </dd>
+          </div>
+        ))}
+      </dl>
 
       {/* Mode cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:flex" onMouseLeave={() => setActiveMode(null)}>
