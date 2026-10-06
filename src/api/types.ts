@@ -404,6 +404,8 @@ export interface ClanCard {
   currentPlayers: number
   maxPlayers: number
   region: string
+  /** open: anyone joins at once. request: the leader accepts or declines. */
+  joinMode: "open" | "request"
 }
 
 export interface ClanDetail extends ClanCard {
@@ -422,12 +424,28 @@ export interface ClanMember {
 export interface CreateClanRequest {
   name: string
   tag: string
+  joinMode?: "open" | "request"
+  maxPlayers?: number
+}
+
+/** A player waiting for the leader to accept them. */
+export interface ClanJoinRequest {
+  id: string
+  name: string
+  avatar: string
+  at: string
 }
 
 /** The signed-in player's own clan, or null when they are in none. */
 export interface MyClanMembership {
   role: string
   clan: ClanCard
+}
+
+export interface MyClanState {
+  membership: MyClanMembership | null
+  /** Clans this player has asked to join and not heard back from. */
+  pendingClanIds: string[]
 }
 
 /* ----------------------------------------------------------------------------

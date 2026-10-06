@@ -4,7 +4,8 @@ import type {
   ClanDetail,
   ClanMember,
   CreateClanRequest,
-  MyClanMembership,
+  ClanJoinRequest,
+  MyClanState,
 } from "./types"
 
 /**
@@ -21,9 +22,8 @@ export const clansService = {
     return get<ClanDetail>(`/api/v1/clans/${clanId}`, undefined, options)
   },
 
-  async getMine(options?: CallOptions): Promise<MyClanMembership | null> {
-    const response = await get<{ membership: MyClanMembership | null }>("/api/v1/clans/me", undefined, options)
-    return response.membership
+  async getMine(options?: CallOptions): Promise<MyClanState> {
+    return get<MyClanState>("/api/v1/clans/me", undefined, options)
   },
 
   async getClanMembers(clanId: string, options?: CallOptions): Promise<ClanMember[]> {
@@ -36,14 +36,31 @@ export const clansService = {
 
   async updateClan(
     clanId: string,
-    payload: { description: string },
+    payload: { description?: string; joinMode?: "open" | "request"; maxPlayers?: number },
     options?: CallOptions,
   ): Promise<ClanDetail> {
     return put<ClanDetail>(`/api/v1/clans/${clanId}`, payload, options)
   },
 
-  async joinClan(clanId: string, options?: CallOptions): Promise<void> {
-    await post<void>(`/api/v1/clans/${clanId}/join`, undefined, options)
+  /** Joins an open clan at once, or sends a request to a clan that takes requests. */
+  async joinClan(clanId: string, options?: CallOptions): Promise<{ status: "joined" | "requested" }> {
+    return post<{ status: "joined" | "requested" }>(`/api/v1/clans/${clanId}/join`, undefined, options)
+  },
+
+  async cancelRequest(clanId: string, options?: CallOptions): Promise<void> {
+    await del<void>(`/api/v1/clans/${clanId}/join-request`, options)
+  },
+
+  async getRequests(clanId: string, options?: CallOptions): Promise<ClanJoinRequest[]> {
+    return get<ClanJoinRequest[]>(`/api/v1/clans/${clanId}/requests`, undefined, options)
+  },
+
+  async acceptRequest(clanId: string, userId: string, options?: CallOptions): Promise<void> {
+    await post<void>(`/api/v1/clans/${clanId}/requests/${userId}/accept`, undefined, options)
+  },
+
+  async declineRequest(clanId: string, userId: string, options?: CallOptions): Promise<void> {
+    await del<void>(`/api/v1/clans/${clanId}/requests/${userId}`, options)
   },
 
   async leaveClan(clanId: string, options?: CallOptions): Promise<void> {
