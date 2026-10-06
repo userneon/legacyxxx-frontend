@@ -1,8 +1,9 @@
 import { useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft, Check, Coins, Plus, UserMinus, UserPlus, Users, X } from "lucide-react"
+import { ArrowLeft, Check, Coins, Pencil, Plus, UserMinus, UserPlus, Users, X } from "lucide-react"
 import { toast } from "sonner"
 
+import { CLAN_BANNER_KEYS, CLAN_ICONS, clanBanner, clanBannerLabel, clanIcon } from "@/lib/clan-look"
 import { cn } from "@/lib/utils"
 import { clansService } from "@/api"
 import type { ApiError, ClanCard, ClanDetail, MyClanMembership } from "@/api/types"
@@ -25,12 +26,52 @@ import { Label } from "@/components/ui/label"
 /** What a clan costs and needs. The server enforces both; these numbers only explain them. */
 const CLAN_FEE = 500
 
-/** A clan has no uploaded picture: its tag on a plain tile is its mark. */
-function TagTile({ tag, className }: { tag: string; className?: string }) {
+/** A clan's mark: the icon it picked, or its tag on a plain tile when it has not picked one. */
+function ClanMark({ icon, tag, className }: { icon?: string | null; tag: string; className?: string }) {
+  const Icon = clanIcon(icon)
   return (
     <div className={cn("flex shrink-0 items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--raised)] text-[13px] font-bold tracking-wide text-[var(--text)]", className)}>
-      {tag}
+      {Icon ? <Icon className="size-1/2" aria-hidden="true" /> : tag}
     </div>
+  )
+}
+
+/** The map picture a clan picked as its banner, under a solid fade so text stays readable; plain when none. */
+function ClanBanner({ banner, className }: { banner?: string | null; className?: string }) {
+  const art = clanBanner(banner)
+  return (
+    <div className={cn("relative overflow-hidden bg-[var(--raised)]", className)}>
+      {art && <img src={art} alt="" loading="lazy" className="size-full object-cover" />}
+      <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[var(--card-surface)] to-transparent" />
+    </div>
+  )
+}
+
+/** Icon and banner choices, used when a clan is created and when its leader changes the look. */
+function LookPicker({ icon, banner, onIcon, onBanner }: { icon: string; banner: string; onIcon: (key: string) => void; onBanner: (key: string) => void }) {
+  return (
+    <>
+      <div className="flex flex-col gap-2">
+        <Label>Icon</Label>
+        <div className="grid grid-cols-6 gap-2">
+          {Object.entries(CLAN_ICONS).map(([key, Icon]) => (
+            <button key={key} type="button" aria-label={key} aria-pressed={icon === key} onClick={() => onIcon(key)} className={cn("flex h-10 items-center justify-center rounded-lg border transition-colors", icon === key ? "border-[var(--accent-solid)] bg-[var(--raised)] text-[var(--text)]" : "border-[var(--line)] text-[var(--text-dim)] hover:border-[var(--line-strong)] hover:bg-[var(--raised)]")}>
+              <Icon className="size-[18px]" aria-hidden="true" />
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label>Banner</Label>
+        <div className="grid grid-cols-5 gap-2">
+          {CLAN_BANNER_KEYS.map((key) => (
+            <button key={key} type="button" aria-label={clanBannerLabel(key)} aria-pressed={banner === key} onClick={() => onBanner(key)} className={cn("relative h-12 overflow-hidden rounded-lg border transition-[border-color]", banner === key ? "border-[var(--accent-solid)]" : "border-[var(--line)] hover:border-[var(--line-strong)]")}>
+              <img src={clanBanner(key) ?? ""} alt="" loading="lazy" className="size-full object-cover" />
+            </button>
+          ))}
+        </div>
+      </div>
+    </>
   )
 }
 
@@ -140,9 +181,11 @@ function ClanCardItem({ clan, mine, canJoin, onClanNavigate, onChanged }: { clan
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4 transition-[border-color] duration-200 hover:border-[var(--line-strong)]">
+    <div className="flex flex-col overflow-hidden rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] transition-[border-color] duration-200 hover:border-[var(--line-strong)]">
+      <ClanBanner banner={clan.thumbnail} className="h-16" />
+      <div className="flex flex-col gap-4 p-4">
       <button type="button" onClick={() => onClanNavigate(clan.id)} className="flex items-center gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 rounded-lg">
-        <TagTile tag={clan.tag} className="size-12" />
+        <ClanMark icon={clan.logo} tag={clan.tag} className="size-12" />
         <span className="flex min-w-0 flex-col gap-0.5">
           <span className="truncate text-[15px] font-semibold">{clan.name}</span>
           <span className="text-[11px] text-[var(--text-dim)]">{clan.region}</span>
@@ -172,6 +215,7 @@ function ClanCardItem({ clan, mine, canJoin, onClanNavigate, onChanged }: { clan
           {isFull ? "Full" : busy ? "Joining…" : "Join"}
         </button>
       )}
+      </div>
     </div>
   )
 }
@@ -180,6 +224,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
   const navigate = useNavigate()
   const { user } = useAuth()
   const [busy, setBusy] = useState(false)
+  const [editing, setEditing] = useState(false)
   const { data: clan, loading, error, refetch } = useApiQuery<ClanDetail>((signal) => clansService.getClan(clanId, { signal }))
   const members = clan?.members ?? []
   const me = members.find((member) => member.id === user?.id)
@@ -228,14 +273,24 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
           <QueryState loading={loading} error={error} empty={!loading && !error && !clan} emptyMessage="Clan not found." onRetry={refetch} />
           {!loading && !error && clan && (
             <>
-              <section className="flex flex-wrap items-center gap-4 rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-5">
-                <TagTile tag={clan.tag} className="size-16 text-[15px]" />
+              <section className="overflow-hidden rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)]">
+              <ClanBanner banner={clan.thumbnail} className="h-28" />
+              <div className="flex flex-wrap items-center gap-4 p-5">
+                <ClanMark icon={clan.logo} tag={clan.tag} className="size-16 text-[15px]" />
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <h1 className="truncate text-[22px] font-semibold leading-tight">{clan.name}</h1>
                   <p className="text-[13px] text-[var(--text-dim)]">{clan.region} · {clan.currentPlayers}/{clan.maxPlayers} members</p>
                   {clan.description && <p className="max-w-2xl text-[13px] text-[var(--text-dim)]">{clan.description}</p>}
                 </div>
+                {isLeader && <button type="button" onClick={() => setEditing(true)} className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] hover:border-[var(--line-strong)]"><Pencil className="size-4" aria-hidden="true" /> Edit look</button>}
+              </div>
               </section>
+              <Dialog open={editing} onOpenChange={setEditing}>
+                <DialogContent className="rounded-2xl">
+                  <DialogHeader><DialogTitle>Clan look</DialogTitle><DialogDescription>Pick an icon and a banner for {clan.name}.</DialogDescription></DialogHeader>
+                  <EditLook clan={clan} onDone={() => { setEditing(false); void refetch() }} />
+                </DialogContent>
+              </Dialog>
 
               <section className="flex flex-col gap-3">
                 <h2 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-dim)]"><Users className="size-3.5" aria-hidden="true" /> Members</h2>
@@ -279,6 +334,8 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
 function CreateClanForm({ onClose, onCreated }: { onClose: () => void; onCreated: (clan: ClanDetail) => void }) {
   const [name, setName] = useState("")
   const [tag, setTag] = useState("")
+  const [icon, setIcon] = useState("swords")
+  const [banner, setBanner] = useState("de_dust2")
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
   const valid = name.trim().length >= 3 && /^[A-Za-z0-9]{2,5}$/.test(tag)
@@ -289,7 +346,7 @@ function CreateClanForm({ onClose, onCreated }: { onClose: () => void; onCreated
     setSubmitting(true)
     setError("")
     try {
-      onCreated(await clansService.createClan({ name: name.trim(), tag: tag.trim().toUpperCase() }))
+      onCreated(await clansService.createClan({ name: name.trim(), tag: tag.trim().toUpperCase(), icon, banner }))
     } catch (failure) {
       setError(failureMessage(failure, "Could not create the clan right now. Try again."))
     } finally {
@@ -307,6 +364,7 @@ function CreateClanForm({ onClose, onCreated }: { onClose: () => void; onCreated
         <Label htmlFor="clan-tag">Clan tag</Label>
         <Input id="clan-tag" placeholder="e.g. WOLF" minLength={2} maxLength={5} required value={tag} onChange={(event) => setTag(event.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase())} />
       </div>
+      <LookPicker icon={icon} banner={banner} onIcon={setIcon} onBanner={setBanner} />
       {error && <p role="alert" className="text-[13px] text-[var(--status-red)]">{error}</p>}
       <div className="mt-2 flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onClose} disabled={submitting}><X className="size-4" /> Cancel</Button>
@@ -316,5 +374,31 @@ function CreateClanForm({ onClose, onCreated }: { onClose: () => void; onCreated
         </button>
       </div>
     </form>
+  )
+}
+
+function EditLook({ clan, onDone }: { clan: ClanDetail; onDone: () => void }) {
+  const [icon, setIcon] = useState(clanIcon(clan.logo) ? clan.logo : "swords")
+  const [banner, setBanner] = useState(clanBanner(clan.thumbnail) ? (clan.thumbnail as string) : "de_dust2")
+  const [saving, setSaving] = useState(false)
+  const save = async () => {
+    setSaving(true)
+    try {
+      await clansService.updateClan(clan.id, { icon, banner })
+      toast.success("Clan look saved")
+      onDone()
+    } catch (error) {
+      toast.error("Could not save the look", { description: failureMessage(error, "Try again in a moment.") })
+    } finally {
+      setSaving(false)
+    }
+  }
+  return (
+    <div className="mt-2 flex flex-col gap-4">
+      <LookPicker icon={icon} banner={banner} onIcon={setIcon} onBanner={setBanner} />
+      <div className="flex justify-end">
+        <button type="button" disabled={saving} onClick={() => void save()} className="lx-primary-button inline-flex h-9 items-center gap-2 rounded-lg px-3.5 text-[13px] font-semibold disabled:opacity-50">{saving ? "Saving…" : "Save"}</button>
+      </div>
+    </div>
   )
 }

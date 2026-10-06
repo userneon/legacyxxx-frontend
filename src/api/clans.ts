@@ -36,7 +36,7 @@ export const clansService = {
 
   async updateClan(
     clanId: string,
-    payload: { description: string },
+    payload: { description?: string; icon?: string; banner?: string | null },
     options?: CallOptions,
   ): Promise<ClanDetail> {
     return put<ClanDetail>(`/api/v1/clans/${clanId}`, payload, options)

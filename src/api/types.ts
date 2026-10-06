@@ -422,6 +422,8 @@ export interface ClanMember {
 export interface CreateClanRequest {
   name: string
   tag: string
+  icon?: string
+  banner?: string
 }
 
 /** The signed-in player's own clan, or null when they are in none. */
