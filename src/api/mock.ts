@@ -258,6 +258,35 @@ function tournamentList() {
 
 /* ------------------------------------------------------------------ sign-in (design preview) */
 
+const COLLECTION_PICKS: Array<[string, string, string, string]> = [
+  ["AK-47", "weapon_ak47", "Redline", "Classified"], ["AWP", "weapon_awp", "Asiimov", "Covert"], ["M4A4", "weapon_m4a1", "Neo-Noir", "Covert"],
+  ["Desert Eagle", "weapon_deagle", "Printstream", "Covert"], ["Glock-18", "weapon_glock", "Fade", "Restricted"], ["USP-S", "weapon_usp_silencer", "Kill Confirmed", "Covert"],
+  ["Karambit", "weapon_knife_karambit", "Doppler", "Covert"], ["Butterfly Knife", "weapon_knife_butterfly", "Slaughter", "Covert"],
+]
+function collectionItems(offset: number, count: number) {
+  return Array.from({ length: count }, (_, index) => {
+    const [weaponClass, file, skin, rarity] = COLLECTION_PICKS[(offset + index) % COLLECTION_PICKS.length]
+    const knife = file.includes("knife")
+    return { slot: knife ? "knife" : "weapon", weaponClass, name: `${knife ? "★ " : ""}${weaponClass} | ${skin}`, imageUrl: `${ICON}/${file}_png.png`, rarity }
+  })
+}
+const mockCollections = () => [
+  { id: "col-1", name: "Steppe Fire", description: "Red and orange across the whole loadout.", author: { steamId: "76561198000000001", username: "Temuujin", avatar: "" }, applies: 842, likes: 311, liked: true, items: collectionItems(0, 7), days: 3 },
+  { id: "col-2", name: "Clean Slate", description: "Quiet, high contrast. Nothing loud.", author: { steamId: "76561198000000002", username: "Nomin", avatar: "" }, applies: 615, likes: 244, liked: false, items: collectionItems(2, 6), days: 9 },
+  { id: "col-3", name: "Gobi Sniper Kit", description: "AWP first. The rest follows.", author: { steamId: "76561198000000003", username: "Bayar", avatar: "" }, applies: 377, likes: 120, liked: false, items: collectionItems(1, 5), days: 14 },
+  { id: "col-4", name: "Ice Pack", description: "Cold blues and whites.", author: { steamId: "76561198000000004", username: "Oyuna", avatar: "" }, applies: 158, likes: 64, liked: false, items: collectionItems(4, 6), days: 1 },
+  { id: "col-5", name: "Pistol Round Only", description: "Every pistol, one theme.", author: { steamId: "76561198000000005", username: "Ganzo", avatar: "" }, applies: 96, likes: 31, liked: false, items: collectionItems(3, 4), days: 22 },
+  { id: "col-6", name: "Knife Drawer", description: "Four knives for four moods.", author: { steamId: "mock-me", username: "Legacy Player", avatar: "" }, applies: 12, likes: 5, liked: false, items: collectionItems(6, 2), days: 5 },
+]
+function skinCollections(query: Query) {
+  const sort = String(query?.sort ?? "popular")
+  const search = String(query?.query ?? "").toLowerCase()
+  let list = mockCollections().filter((entry) => !search || `${entry.name} ${entry.author.username}`.toLowerCase().includes(search))
+  if (sort === "mine") list = list.filter((entry) => entry.author.steamId === "mock-me")
+  list = [...list].sort((a, b) => (sort === "new" ? a.days - b.days : b.applies - a.applies))
+  return { collections: list.map(({ days, ...entry }) => ({ ...entry, createdAt: new Date(Date.now() - days * 24 * HOUR).toISOString() })) }
+}
+
 const MOCK_TOKEN = "mock-session"
 
 function signedIn() {
@@ -505,6 +534,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
     if (!signedIn()) throw unauthorized()
     return { membership: null, pendingClanIds: ["c3"], invites: [{ clan: { ...MOCK_CLANS[2], joinMode: "request" }, at: new Date(Date.now() - HOUR).toISOString() }] }
   }
+  if (/^\/api\/v1\/skinchanger\/collections\/[^/]+\/apply$/.test(path)) return { version: 2, applied: 6 }
   if (path === "/api/v1/clans") return MOCK_CLANS
   if (path === "/api/v1/clans/leaderboard") return { clans: MOCK_CLANS.map((clan, index) => ({ ...clan, rank: index + 1, totalExp: 9400 - index * 2100, matches: 120 - index * 30, wins: 70 - index * 20 })) }
   if (path.endsWith("/activity")) return [{ id: "1", text: "Member 2 joined", at: new Date(Date.now() - 2 * HOUR).toISOString() }, { id: "2", text: "Member 4 asked to join", at: new Date(Date.now() - 5 * HOUR).toISOString() }, { id: "3", text: "Leader created the clan", at: new Date(Date.now() - 3 * 24 * HOUR).toISOString() }]
@@ -593,6 +623,8 @@ export async function mockResponse(method: string, path: string, query: Query, b
       return catalog(query)
     case "/api/v1/skinchanger/loadout":
       return loadout()
+    case "/api/v1/skinchanger/collections":
+      return skinCollections(query)
     case "/api/v1/skinchanger/active-server":
       return { session: null }
     case "/api/v1/search/players":

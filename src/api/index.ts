@@ -51,6 +51,9 @@ export type {
   SkinchangerLoadoutEntry,
   SkinchangerLoadoutInput,
   SkinchangerSlot,
+  SkinCollection,
+  SkinCollectionItem,
+  SkinCollectionSort,
   SkinchangerStickerOption,
   TeamScope,
 } from "./skinchanger"

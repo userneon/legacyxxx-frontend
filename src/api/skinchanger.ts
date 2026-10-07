@@ -19,6 +19,22 @@ export interface SkinchangerLoadoutInput { entries: Array<{ catalogItemId: strin
 export interface SkinchangerEntryMutationInput { expectedVersion: number; entry: { catalogItemId: string; slot: SkinchangerSlot; slotKey: string; teamScope: TeamScope; options: SkinchangerAppearanceOptions } }
 export interface SkinchangerEntryRemovalInput { expectedVersion: number; slotKey: string; teamScope: TeamScope }
 
+/** One skin in a community collection. */
+export interface SkinCollectionItem { slot: SkinchangerSlot; weaponClass: string | null; name: string; imageUrl: string | null; rarity: string | null }
+/** A loadout a player shared with the community; anyone can apply it to their own loadout. */
+export interface SkinCollection {
+  id: string
+  name: string
+  description: string
+  author: { steamId: string; username: string; avatar: string }
+  createdAt: string
+  applies: number
+  likes: number
+  liked: boolean
+  items: SkinCollectionItem[]
+}
+export type SkinCollectionSort = "popular" | "new" | "mine"
+
 export const skinchangerService = {
   getCatalog(filters: { category: SkinchangerCategory; weaponClass?: string; weaponGroup?: SkinchangerFirearmGroup; team?: "t" | "ct"; query?: string; limit?: number; offset?: number }, options?: CallOptions) {
     return get<SkinchangerCatalogPage>("/skinchanger/catalog", filters, options)
@@ -43,6 +59,12 @@ export const skinchangerService = {
   },
   queueApply(serverId: string, options?: CallOptions) {
     return post<{ jobId: string; status: "queued" }>("/skinchanger/apply", { serverId }, options)
+  },
+  getCollections(filters: { sort: SkinCollectionSort; query?: string }, options?: CallOptions) {
+    return get<{ collections: SkinCollection[] }>("/skinchanger/collections", filters, options)
+  },
+  applyCollection(id: string, team: TeamScope, options?: CallOptions) {
+    return post<{ version: number; applied: number }>(`/skinchanger/collections/${encodeURIComponent(id)}/apply`, { team }, options)
   },
   getStatus(options?: CallOptions) {
     return get<{ jobs: SkinchangerJob[] }>("/skinchanger/status", undefined, options)

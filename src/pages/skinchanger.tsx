@@ -42,6 +42,9 @@ import defaultAgentT from "@/assets/skinchanger/default-agent-t.webp"
 import defaultAgentCt from "@/assets/skinchanger/default-agent-ct.webp"
 import defaultMusicKit from "@/assets/skinchanger/default-music-kit.webp"
 import { VerifiedBadge } from "@/components/verified-badge"
+import { Segmented } from "@/components/segmented"
+import { SkinCollections } from "@/components/skin-collections"
+import { isFeatureEnabled } from "@/lib/features"
 import teamTIcon from "@/assets/skinchanger/team-t.webp"
 import teamCtIcon from "@/assets/skinchanger/team-ct.webp"
 
@@ -232,6 +235,7 @@ function cascadeTiles(root: HTMLElement | null, selector: string) {
 
 export function SkinchangerPage() {
   const [collection, setCollection] = useState<CollectionId>("skins")
+  const [view, setView] = useState<"loadout" | "collections">("loadout")
   const [skinGroup, setSkinGroup] = useState<SkinchangerFirearmGroup | "agents">("Rifles")
   const [query, setQuery] = useState("")
   const [weaponClass, setWeaponClass] = useState("")
@@ -1184,6 +1188,9 @@ export function SkinchangerPage() {
         <div className="flex flex-wrap items-center gap-x-6 gap-y-1">
           {renderTeamSwitch()}
           <div className="ml-auto flex items-center gap-4">
+            {isFeatureEnabled("skinCollections") && (
+              <Segmented size="sm" value={view} onChange={setView} ariaLabel="Skinchanger view" options={[{ value: "loadout", label: "Loadout" }, { value: "collections", label: "Collections" }]} />
+            )}
             <span className="flex items-center gap-1.5 text-[13px] text-[var(--text-dim)] max-md:hidden">
               Pick skins, then type
               <span className="rounded-md border border-[var(--line-strong)] bg-[var(--raised)] px-1.5 py-px font-mono text-xs font-semibold text-[var(--text-2)]">!rs</span>
@@ -1200,7 +1207,9 @@ export function SkinchangerPage() {
 
       {/* pt-5 leaves room for the cards' hover lift: the scroll area clips anything above its top. */}
       <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 pb-7 pt-5">
-        {gridError ? (
+        {view === "collections" && isFeatureEnabled("skinCollections") ? (
+          <SkinCollections team={viewTeam} onApplied={() => { refetchLoadout(); setView("loadout") }} />
+        ) : gridError ? (
           <QueryState loading={false} error={{ ...gridError, message: "Could not load the collection. Please try again." }} empty={false} onRetry={() => { refetchFirearms(); refetchKnives(); refetchGloves(); refetchLoadout() }} />
         ) : gridLoading ? (
           <div className="grid grid-cols-1 items-start gap-[18px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" aria-hidden="true">
