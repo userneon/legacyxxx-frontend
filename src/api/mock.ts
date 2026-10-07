@@ -271,12 +271,12 @@ function collectionItems(offset: number, count: number) {
   })
 }
 const mockCollections = () => [
-  { id: "col-1", name: "Steppe Fire", description: "Red and orange across the whole loadout.", author: { steamId: "76561198000000001", username: "Temuujin", avatar: "" }, applies: 842, likes: 311, liked: true, items: collectionItems(0, 7), days: 3 },
-  { id: "col-2", name: "Clean Slate", description: "Quiet, high contrast. Nothing loud.", author: { steamId: "76561198000000002", username: "Nomin", avatar: "" }, applies: 615, likes: 244, liked: false, items: collectionItems(2, 6), days: 9 },
-  { id: "col-3", name: "Gobi Sniper Kit", description: "AWP first. The rest follows.", author: { steamId: "76561198000000003", username: "Bayar", avatar: "" }, applies: 377, likes: 120, liked: false, items: collectionItems(1, 5), days: 14 },
-  { id: "col-4", name: "Ice Pack", description: "Cold blues and whites.", author: { steamId: "76561198000000004", username: "Oyuna", avatar: "" }, applies: 158, likes: 64, liked: false, items: collectionItems(4, 6), days: 1 },
-  { id: "col-5", name: "Pistol Round Only", description: "Every pistol, one theme.", author: { steamId: "76561198000000005", username: "Ganzo", avatar: "" }, applies: 96, likes: 31, liked: false, items: collectionItems(3, 4), days: 22 },
-  { id: "col-6", name: "Knife Drawer", description: "Four knives for four moods.", author: { steamId: "mock-me", username: "Legacy Player", avatar: "" }, applies: 12, likes: 5, liked: false, items: collectionItems(6, 2), days: 5 },
+  { id: "col-1", price: 250, owned: true, name: "Steppe Fire", description: "Red and orange across the whole loadout.", author: { steamId: "76561198000000001", username: "Temuujin", avatar: "" }, applies: 842, likes: 311, liked: true, items: collectionItems(0, 7), days: 3 },
+  { id: "col-2", price: 0, owned: false, name: "Clean Slate", description: "Quiet, high contrast. Nothing loud.", author: { steamId: "76561198000000002", username: "Nomin", avatar: "" }, applies: 615, likes: 244, liked: false, items: collectionItems(2, 6), days: 9 },
+  { id: "col-3", price: 150, owned: false, name: "Gobi Sniper Kit", description: "AWP first. The rest follows.", author: { steamId: "76561198000000003", username: "Bayar", avatar: "" }, applies: 377, likes: 120, liked: false, items: collectionItems(1, 5), days: 14 },
+  { id: "col-4", price: 0, owned: false, name: "Ice Pack", description: "Cold blues and whites.", author: { steamId: "76561198000000004", username: "Oyuna", avatar: "" }, applies: 158, likes: 64, liked: false, items: collectionItems(4, 6), days: 1 },
+  { id: "col-5", price: 100, owned: false, name: "Pistol Round Only", description: "Every pistol, one theme.", author: { steamId: "76561198000000005", username: "Ganzo", avatar: "" }, applies: 96, likes: 31, liked: false, items: collectionItems(3, 4), days: 22 },
+  { id: "col-6", price: 0, owned: true, name: "Knife Drawer", description: "Four knives for four moods.", author: { steamId: "mock-me", username: "Legacy Player", avatar: "" }, applies: 12, likes: 5, liked: false, items: collectionItems(6, 2), days: 5 },
 ]
 function skinCollections(query: Query) {
   const sort = String(query?.sort ?? "popular")
