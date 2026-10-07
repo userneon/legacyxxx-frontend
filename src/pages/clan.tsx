@@ -9,7 +9,7 @@ import { clansService } from "@/api"
 import { CLAN_ART_RULES, clanArtProblem, clanArtSrc, type ClanArtKind } from "@/api/clans"
 import type { ClanCard, ClanDetail, ClanJoinRequest, ClanRole, MyClanState } from "@/api/types"
 import { ClanMark } from "@/components/clan-mark"
-import { ActivityPanel, CLAN_FEE, InvitePanel, MemberControls, ModerationPanel, RenameForm, clanFailure, roleLabel } from "@/components/clan-manage"
+import { ActivityPanel, CLAN_FEE, InvitePanel, MemberControls, ModerateClan, RenameForm, clanFailure, roleLabel } from "@/components/clan-manage"
 import { Button } from "@/components/ui/button"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -330,6 +330,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
           <ArrowLeft className="size-4" aria-hidden="true" /> All clans
         </button>
         <PageBarEnd>
+          {canModerate && clan && <ModerateClan key={`${clan.name}:${clan.tag}:${clan.description ?? ""}`} clan={clan} onChanged={() => void refetch()} onDeleted={() => navigate("/clans")} />}
           {role && !isLeader && (
             <button type="button" disabled={busy} onClick={() => void run(() => clansService.leaveClan(clanId), "You left the clan", () => navigate("/clans"))} className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] hover:border-[var(--line-strong)] disabled:opacity-50">
               Leave clan
@@ -398,8 +399,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
 
               {isManager && <InvitePanel clanId={clanId} />}
               {isManager && <ActivityPanel clanId={clanId} />}
-              {canModerate && <ModerationPanel clan={clan} onChanged={() => void refetch()} onDeleted={() => navigate("/clans")} />}
-            </>
+                    </>
           )}
         </div>
       </div>

@@ -70,6 +70,10 @@ export const clansService = {
     await del<void>(`/api/v1/staff/clans/${clanId}/art/${kind}`, options)
   },
 
+  async moderateDescription(clanId: string, options?: CallOptions): Promise<void> {
+    await del<void>(`/api/v1/staff/clans/${clanId}/description`, options)
+  },
+
   async moderateRename(clanId: string, payload: { name: string; tag: string }, options?: CallOptions): Promise<void> {
     await put<void>(`/api/v1/staff/clans/${clanId}/name`, payload, options)
   },

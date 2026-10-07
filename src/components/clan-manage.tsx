@@ -7,6 +7,7 @@ import type { ApiError, ClanActivityLine, ClanDetail, ClanJoinRequest, ClanMembe
 import { PlayerAvatar } from "@/components/player-avatar"
 import { formatRelativeTime } from "@/components/relative-time"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -184,8 +185,12 @@ export function RenameForm({ clan, onChanged }: { clan: ClanDetail; onChanged: (
   )
 }
 
-/** Staff only: take a picture down, fix a name, or remove a clan that breaks the rules. */
-export function ModerationPanel({ clan, onChanged, onDeleted }: { clan: ClanDetail; onChanged: () => void; onDeleted: () => void }) {
+/**
+ * Staff only: a "Moderate" button in the clan's top bar. It opens the same kind of box as penalties do: take a picture
+ * down, clear a description, fix a name, or delete a clan that breaks the rules. Everything is written to the clan's log.
+ */
+export function ModerateClan({ clan, onChanged, onDeleted }: { clan: ClanDetail; onChanged: () => void; onDeleted: () => void }) {
+  const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [name, setName] = useState(clan.name)
   const [tag, setTag] = useState(clan.tag)
@@ -201,19 +206,41 @@ export function ModerationPanel({ clan, onChanged, onDeleted }: { clan: ClanDeta
       setBusy(false)
     }
   }
+  const renameOk = name.trim().length >= 3 && /^[A-Za-z0-9]{2,5}$/.test(tag) && (name.trim() !== clan.name || tag !== clan.tag)
   return (
-    <section className="flex flex-col gap-3 rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4">
-      <h2 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-dim)]"><ShieldAlert className="size-3.5" aria-hidden="true" /> Staff moderation</h2>
-      <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => void run(() => clansService.moderateArt(clan.id, "logo"), "Logo removed", onChanged)}>Remove logo</Button>
-        <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => void run(() => clansService.moderateArt(clan.id, "banner"), "Banner removed", onChanged)}>Remove banner</Button>
-        <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => { if (window.confirm(`Delete ${clan.name}? Its members are released.`)) void run(() => clansService.moderateDelete(clan.id), "Clan deleted", onDeleted) }}><Trash2 className="size-3.5 text-[var(--status-red)]" /> Delete clan</Button>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        <Input aria-label="Clan name" className="max-w-[220px]" maxLength={24} value={name} onChange={(event) => setName(event.target.value)} />
-        <Input aria-label="Clan tag" className="w-24" maxLength={5} value={tag} onChange={(event) => setTag(event.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase())} />
-        <Button type="button" variant="outline" size="sm" disabled={busy || name.trim().length < 3 || !/^[A-Za-z0-9]{2,5}$/.test(tag) || (name.trim() === clan.name && tag === clan.tag)} onClick={() => void run(() => clansService.moderateRename(clan.id, { name: name.trim(), tag }), "Name changed", onChanged)}>Rename</Button>
-      </div>
-    </section>
+    <>
+      <button type="button" onClick={() => setOpen(true)} className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] hover:border-[var(--line-strong)]">
+        <ShieldAlert className="size-4" aria-hidden="true" /> Moderate
+      </button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Moderate {clan.name}</DialogTitle>
+            <DialogDescription>Staff actions. The clan's leader is not asked first.</DialogDescription>
+          </DialogHeader>
+          <div className="mt-2 flex flex-col gap-5">
+            <div className="flex flex-col gap-2">
+              <Label>Content</Label>
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => void run(() => clansService.moderateArt(clan.id, "logo"), "Logo removed", onChanged)}>Remove logo</Button>
+                <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => void run(() => clansService.moderateArt(clan.id, "banner"), "Banner removed", onChanged)}>Remove banner</Button>
+                <Button type="button" variant="outline" size="sm" disabled={busy || !clan.description} onClick={() => void run(() => clansService.moderateDescription(clan.id), "Description cleared", onChanged)}>Clear description</Button>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="moderate-name">Name and tag</Label>
+              <div className="flex gap-2">
+                <Input id="moderate-name" aria-label="Clan name" maxLength={24} value={name} onChange={(event) => setName(event.target.value)} />
+                <Input aria-label="Clan tag" className="w-24" maxLength={5} value={tag} onChange={(event) => setTag(event.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase())} />
+              </div>
+              <div><Button type="button" variant="outline" size="sm" disabled={busy || !renameOk} onClick={() => void run(() => clansService.moderateRename(clan.id, { name: name.trim(), tag }), "Name changed", onChanged)}>Save name</Button></div>
+            </div>
+            <button type="button" disabled={busy} onClick={() => { if (window.confirm(`Delete ${clan.name}? Its members are released.`)) void run(() => clansService.moderateDelete(clan.id), "Clan deleted", () => { setOpen(false); onDeleted() }) }} className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-semibold text-[var(--status-red)] transition-colors hover:border-[var(--line-strong)] disabled:opacity-50">
+              <Trash2 className="size-4" aria-hidden="true" /> Delete clan
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
