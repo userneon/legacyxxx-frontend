@@ -5,8 +5,6 @@ import {
   ImageOff,
   Loader2,
   RotateCcw,
-  Check,
-  ChevronDown,
   Search,
   SlidersHorizontal,
   Sticker,
@@ -44,7 +42,7 @@ import defaultAgentT from "@/assets/skinchanger/default-agent-t.webp"
 import defaultAgentCt from "@/assets/skinchanger/default-agent-ct.webp"
 import defaultMusicKit from "@/assets/skinchanger/default-music-kit.webp"
 import { VerifiedBadge } from "@/components/verified-badge"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { setSkinchangerView, useSkinchangerView } from "@/lib/skinchanger-view"
 import { SkinCollections } from "@/components/skin-collections"
 import { isFeatureEnabled } from "@/lib/features"
 import teamTIcon from "@/assets/skinchanger/team-t.webp"
@@ -237,8 +235,7 @@ function cascadeTiles(root: HTMLElement | null, selector: string) {
 
 export function SkinchangerPage() {
   const [collection, setCollection] = useState<CollectionId>("skins")
-  const [view, setView] = useState<"loadout" | "collections">("loadout")
-  const [viewMenuOpen, setViewMenuOpen] = useState(false)
+  const view = useSkinchangerView()
   const [skinGroup, setSkinGroup] = useState<SkinchangerFirearmGroup | "agents">("Rifles")
   const [query, setQuery] = useState("")
   const [weaponClass, setWeaponClass] = useState("")
@@ -1191,23 +1188,7 @@ export function SkinchangerPage() {
         <div className="flex flex-wrap items-center gap-x-6 gap-y-1">
           {renderTeamSwitch()}
           <div className="ml-auto flex items-center gap-4">
-            {isFeatureEnabled("skinCollections") && (
-              <Popover open={viewMenuOpen} onOpenChange={setViewMenuOpen}>
-                <PopoverTrigger aria-label="Skinchanger view" className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] pl-3 pr-2.5 text-[13px] font-medium text-[var(--text)] transition-colors hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
-                  {view === "loadout" ? "Loadout" : "Collections"}
-                  <ChevronDown className={cn("size-4 text-[var(--text-dim)] transition-transform duration-200", viewMenuOpen && "rotate-180")} />
-                </PopoverTrigger>
-                <PopoverContent align="end" sideOffset={6} className="w-44 rounded-xl border-[var(--line)] bg-[var(--panel)] p-1">
-                  {([["loadout", "Loadout"], ["collections", "Collections"]] as const).map(([id, label]) => (
-                    <button key={id} type="button" onClick={() => { setView(id); setViewMenuOpen(false) }} className="flex h-9 w-full items-center justify-between rounded-lg px-2.5 text-[13px] text-[var(--text)] transition-colors hover:bg-[var(--raised)]">
-                      {label}
-                      {view === id && <Check className="size-4 text-[var(--text-muted)]" />}
-                    </button>
-                  ))}
-                </PopoverContent>
-              </Popover>
-            )}
-            <span className="flex items-center gap-1.5 text-[13px] text-[var(--text-dim)] max-md:hidden">
+                        <span className="flex items-center gap-1.5 text-[13px] text-[var(--text-dim)] max-md:hidden">
               Pick skins, then type
               <span className="rounded-md border border-[var(--line-strong)] bg-[var(--raised)] px-1.5 py-px font-mono text-xs font-semibold text-[var(--text-2)]">!rs</span>
               in game.
@@ -1224,7 +1205,7 @@ export function SkinchangerPage() {
       {/* pt-5 leaves room for the cards' hover lift: the scroll area clips anything above its top. */}
       <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 pb-7 pt-5">
         {view === "collections" && isFeatureEnabled("skinCollections") ? (
-          <SkinCollections team={viewTeam} onApplied={() => { refetchLoadout(); setView("loadout") }} />
+          <SkinCollections team={viewTeam} onApplied={() => { refetchLoadout(); setSkinchangerView("loadout") }} />
         ) : gridError ? (
           <QueryState loading={false} error={{ ...gridError, message: "Could not load the collection. Please try again." }} empty={false} onRetry={() => { refetchFirearms(); refetchKnives(); refetchGloves(); refetchLoadout() }} />
         ) : gridLoading ? (

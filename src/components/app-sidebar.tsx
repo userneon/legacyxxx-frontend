@@ -1,7 +1,7 @@
 import { useEffect, useState, type ComponentType } from "react"
 import { ArrowLeftRight, DoorOpen, Swords, MountainSnow, Scale, ScrollText, Telescope, Users, Lock, PanelLeft, ChevronDown } from "lucide-react"
 
-import { isPageEnabled } from "@/lib/features"
+import { isFeatureEnabled, isPageEnabled } from "@/lib/features"
 import { competitiveService } from "@/api"
 import { playService, type PlayServerList } from "@/api/play"
 import type { CompetitiveAccess, PageId } from "@/api/types"
@@ -9,6 +9,7 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { Sidebar, SidebarContent, useSidebar } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
+import { setSkinchangerView, useSkinchangerView, type SkinchangerView } from "@/lib/skinchanger-view"
 import { KnifeIcon } from "@/components/knife-icon"
 
 interface AppSidebarProps {
@@ -41,6 +42,12 @@ const NAV_ITEMS: NavItem[] = enabledNav([
   { id: "explore", label: "Explore", icon: Telescope },
 ])
 
+// Skinchanger gets a submenu only while community collections are switched on.
+const SKIN_VIEWS: Array<{ id: SkinchangerView; label: string }> = [
+  { id: "loadout", label: "Loadout" },
+  { id: "collections", label: "Collections" },
+]
+
 const EASE = "ease-[cubic-bezier(0.2,0,0,1)]"
 
 /**
@@ -72,6 +79,8 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
   const collapsed = state === "collapsed" && !isMobile
   const { isAuthenticated } = useAuth()
   const [playOpen, setPlayOpen] = useState(true)
+  const [skinOpen, setSkinOpen] = useState(true)
+  const skinView = useSkinchangerView()
 
   // Live player counts next to the Play rows, refreshed every 30s while the tab is visible.
   const { data: competitive, refetch: refetchCompetitive } = useApiQuery<PlayServerList>((signal) => playService.getServers("5x5", { signal }), { queryKey: "sidebar-play-5x5", keepPreviousData: true })
@@ -181,14 +190,47 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
             </>
           )}
 
-          {NAV_ITEMS.map((item) => (
-            <div key={item.id} className="relative">
-              <button type="button" onClick={() => onNavigate(item.id)} aria-label={item.label} className={cn(rowClass, isActive(item.id) && activeRowClass)}>
-                <item.icon className="size-[18px] shrink-0" />
-                <span className={labelClass(collapsed)}>{item.label}</span>
-              </button>
-            </div>
-          ))}
+          {NAV_ITEMS.map((item) => {
+            if (item.id === "skinchanger" && isFeatureEnabled("skinCollections")) {
+              const open = skinOpen && !collapsed
+              return (
+                <div key={item.id} className="flex flex-col gap-0.5">
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => { if (collapsed || !isActive("skinchanger")) onNavigate("skinchanger"); if (!collapsed) setSkinOpen((was) => (isActive("skinchanger") ? !was : true)) }}
+                      aria-label={item.label}
+                      aria-expanded={collapsed ? undefined : skinOpen}
+                      className={cn(rowClass, collapsed && isActive("skinchanger") && activeRowClass)}
+                    >
+                      <item.icon className="size-[18px] shrink-0" />
+                      <span className={cn(labelClass(collapsed), "flex-1")}>{item.label}</span>
+                      <ChevronDown aria-hidden="true" className={cn("size-4 shrink-0 text-[var(--text-dim)] transition-[rotate,opacity] duration-300 motion-reduce:transition-none", EASE, skinOpen && "rotate-180", collapsed ? "opacity-0" : "opacity-100")} />
+                    </button>
+                  </div>
+                  <div className={cn("grid transition-[grid-template-rows,opacity] duration-300 motion-reduce:transition-none", EASE, open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")} inert={!open || undefined}>
+                    <div className="overflow-hidden">
+                      <div className="ml-5 flex flex-col gap-0.5 border-l border-[var(--line)] pl-2">
+                        {SKIN_VIEWS.map((entry) => (
+                          <button key={entry.id} type="button" onClick={() => { setSkinchangerView(entry.id); onNavigate("skinchanger") }} className={cn(rowClass, "overflow-visible px-3", isActive("skinchanger") && skinView === entry.id && activeRowClass)}>
+                            <span className="lx-nav-label flex-1 truncate text-left transition-[translate] duration-150 motion-reduce:transition-none">{entry.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            }
+            return (
+              <div key={item.id} className="relative">
+                <button type="button" onClick={() => onNavigate(item.id)} aria-label={item.label} className={cn(rowClass, isActive(item.id) && activeRowClass)}>
+                  <item.icon className="size-[18px] shrink-0" />
+                  <span className={labelClass(collapsed)}>{item.label}</span>
+                </button>
+              </div>
+            )
+          })}
         </nav>
       </SidebarContent>
     </Sidebar>

@@ -97,7 +97,7 @@ export function SkinCollections({ team, onApplied }: { team: "t" | "ct"; onAppli
                   const accent = item.rarity ? rarityStyles[item.rarity]?.accent : undefined
                   return (
                     <div key={`${item.name}:${index}`} title={item.name} className="relative flex h-[58px] items-center justify-center overflow-hidden rounded-lg border border-[var(--line-soft)] bg-[var(--card-surface)]">
-                      <OptimizedImage src={item.imageUrl ?? ""} alt={item.name} className="max-h-[46px] w-[88%] object-contain" />
+                      <OptimizedImage src={item.imageUrl ?? ""} width={120} height={64} alt={item.name} className="max-h-[46px] w-[88%] object-contain" />
                       {accent && <span aria-hidden="true" className="absolute bottom-0 left-0 h-[2px] w-full" style={{ background: accent }} />}
                     </div>
                   )
