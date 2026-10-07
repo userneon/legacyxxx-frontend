@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Plus, RotateCcw, ShieldCheck } from "lucide-react"
 
@@ -172,12 +172,13 @@ export function PenaltyStaffControls({ penalty, access, onChanged }: { penalty: 
 }
 
 /** Staff-only: issue a ban, mute or gag by Steam ID from the Penalties page. */
-export function IssuePenaltyDialog({ open, onOpenChange, access, onIssued }: { open: boolean; onOpenChange: (open: boolean) => void; access: ModerationAccess; onIssued: () => void }) {
-  const [steamId, setSteamId] = useState("")
+export function IssuePenaltyDialog({ open, onOpenChange, access, onIssued, initialSteamId = "" }: { open: boolean; onOpenChange: (open: boolean) => void; access: ModerationAccess; onIssued: () => void; initialSteamId?: string }) {
+  const [steamId, setSteamId] = useState(initialSteamId)
   const [type, setType] = useState<PenaltyKind>("ban")
   const [minutes, setMinutes] = useState<number>(1440)
   const [reason, setReason] = useState("")
   const [busy, setBusy] = useState(false)
+  useEffect(() => { if (open) setSteamId(initialSteamId) }, [open, initialSteamId])
   const kinds = ([["ban", "Ban", access.can.ban], ["comm", "Mute", access.can.ban || access.can.edit || access.can.unban], ["gag", "Gag", access.can.ban || access.can.edit || access.can.unban]] as const).filter((entry) => entry[2])
   const valid = /^7656119\d{10}$/.test(steamId.trim()) && reason.trim().length > 0
   const submit = async (event: React.FormEvent) => {

@@ -21,6 +21,7 @@ import { CompetitiveRankBadge, RankLabel, RankPill } from "@/components/competit
 import { FaceitLevelBadge } from "@/components/faceit-level-badge"
 import { MatchDetailsDialog } from "@/components/match-details-dialog"
 import { setProfileScene } from "@/lib/profile-scene"
+import { ProfileStaffMenu } from "@/components/profile-staff"
 import { OwnerPanel } from "@/components/owner-panel"
 import { OwnerSections } from "@/components/owner-sections"
 import { PenaltyDetailSheet, StatusPill, TypeIcon, TYPE_META, formatPenaltyDate } from "@/components/penalty-detail-dialog"
@@ -188,6 +189,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
           </a>
         )}
         {viewer.isOwner && overview.visibility && <PrivacyPopover visibility={overview.visibility} onSaved={onVisibilityChange} />}
+        <ProfileStaffMenu steamId={user.steamId} name={user.username} onChanged={onVisibilityChange} />
         {canCompare && (
           <button type="button" onClick={() => navigate(`/compare?a=${encodeURIComponent(me!.steamId)}&b=${encodeURIComponent(user.steamId)}`)} className={outline}><ArrowLeftRight className="size-3.5" />Compare with me</button>
         )}
