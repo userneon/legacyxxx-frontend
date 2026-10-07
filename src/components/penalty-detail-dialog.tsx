@@ -7,6 +7,7 @@ import { Ban, MessageSquareOff, MicOff, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { PenaltyEntry, PenaltyType } from "@/api/types"
 import { LINKS } from "@/lib/links"
+import { PenaltyLiftButton, PenaltyStaffControls, useModerationAccess } from "@/components/penalty-staff"
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
 import { PlayerModerationAvatar } from "@/components/player-moderation-avatar"
 
@@ -145,12 +146,16 @@ export function PenaltyDetailSheet({
   onClose,
   onProfileNavigate,
   isOwn = false,
+  onChanged,
 }: {
   penalty: PenaltyEntry | null
   onClose: () => void
   onProfileNavigate: (steamId: string) => void
   isOwn?: boolean
+  /** Staff changed or lifted the penalty: the page reloads its list. */
+  onChanged?: () => void
 }) {
+  const access = useModerationAccess()
   return (
     <Sheet open={penalty !== null} onOpenChange={(open) => { if (!open) onClose() }}>
       <SheetContent
@@ -213,8 +218,10 @@ export function PenaltyDetailSheet({
                   {penalty.reason || "No reason given"}
                 </p>
               </div>
+              {access && <PenaltyStaffControls key={`${penalty.id}:${penalty.reason}:${penalty.term}:${penalty.isUnbanned}`} penalty={penalty} access={access} onChanged={() => { onChanged?.(); onClose() }} />}
             </div>
             <div className="flex shrink-0 gap-2 border-t border-[var(--line-soft)] bg-[var(--panel)]/60 px-[18px] py-3.5">
+              {access && <PenaltyLiftButton penalty={penalty} access={access} onChanged={() => { onChanged?.(); onClose() }} />}
               <button
                 type="button"
                 disabled={!penalty.playerSteamId}

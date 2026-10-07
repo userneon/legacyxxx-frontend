@@ -682,6 +682,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
       )}
       <PenaltyDetailSheet
         penalty={openPenalty}
+        onChanged={refetch}
         isOwn={isOwnPenalty}
         onClose={() => setOpenPenalty(null)}
         onProfileNavigate={(steamId) => navigate(`/profile/${encodeURIComponent(steamId)}`)}

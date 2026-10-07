@@ -1,6 +1,7 @@
+import { IssuePenaltyDialog, useModerationAccess } from "@/components/penalty-staff"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
 import { useEffect, useMemo, useState, type CSSProperties } from "react"
-import { ChevronRight, ExternalLink, LoaderCircle, RotateCcw, Search, ShieldAlert, ShieldCheck } from "lucide-react"
+import { ChevronRight, ExternalLink, LoaderCircle, Plus, RotateCcw, Search, ShieldAlert, ShieldCheck } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { moderationService, profileService } from "@/api"
@@ -214,6 +215,8 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query])
 
+  const access = useModerationAccess()
+  const [issuing, setIssuing] = useState(false)
   const { data: penalties, loading, error, refetch } = useApiQuery<PenaltyEntry[]>((signal) => moderationService.getPenalties(undefined, { signal }))
   const { data: mine, loading: mineLoading } = useApiQuery<PenaltyEntry[]>(
     (signal) => profileService.getPenalties("me", { signal }),
@@ -285,6 +288,12 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
                 className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text)] outline-none placeholder:text-[var(--text-dim)]"
               />
             </label>
+            {access && (
+              <button type="button" onClick={() => setIssuing(true)} className="lx-primary-button inline-flex h-9 items-center gap-2 rounded-lg px-3.5 text-[13px] font-semibold">
+                <Plus className="size-4" aria-hidden="true" />
+                New penalty
+              </button>
+            )}
           </PageBarEnd>
         </PageBar>
 
@@ -347,7 +356,8 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
         </div>
       </div>
 
-      <PenaltyDetailSheet penalty={selected} isOwn={isOwn} onClose={() => update({ penalty: null })} onProfileNavigate={onProfileNavigate} />
+      {access && <IssuePenaltyDialog open={issuing} onOpenChange={setIssuing} access={access} onIssued={refetch} />}
+      <PenaltyDetailSheet penalty={selected} isOwn={isOwn} onChanged={refetch} onClose={() => update({ penalty: null })} onProfileNavigate={onProfileNavigate} />
     </div>
   )
 }
