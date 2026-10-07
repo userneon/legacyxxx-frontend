@@ -154,10 +154,10 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
     if (await copyText(url, "Profile link")) toast.success("Profile link copied")
   }
   return (
-    <header className="lx-swap-in flex flex-wrap items-end gap-5">
+    <header className="lx-swap-in flex flex-col items-center gap-4 text-center">
       <Avatar user={user} />
-      <div className="flex min-w-0 flex-1 flex-col gap-2.5 pb-1.5">
-        <div className="flex flex-wrap items-center gap-2.5">
+      <div className="flex min-w-0 max-w-full flex-col items-center gap-2.5">
+        <div className="flex flex-wrap items-center justify-center gap-2.5">
           <h1 className="truncate text-[30px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]" title={user.username}>{user.username}</h1>
           <RoleBadge role={user.role} />
           <DiscordLinkedMark linked={overview.discordLinked} className="[&_svg]:size-4" />
@@ -174,13 +174,13 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
             </span>
           )}
         </div>
-        <div className="flex flex-wrap items-center gap-3.5 text-[13px] text-[var(--text-muted)]">
+        <div className="flex flex-wrap items-center justify-center gap-3.5 text-[13px] text-[var(--text-muted)]">
           {competitive?.position && <><span title="Leaderboard position" className="font-semibold text-[var(--text-2)]">#{competitive.position}</span><span className="text-[var(--line-strong)]">·</span></>}
           {user.memberSince && <><span title="Member since">Since {formatDate(user.memberSince)}</span><span className="text-[var(--line-strong)]">·</span></>}
           <span title="Last played">{overview.lastPlayedAt ? <>Active <RelativeTime value={overview.lastPlayedAt} /></> : "No matches yet"}</span>
         </div>
       </div>
-      <div className="flex items-center gap-2 pb-1.5">
+      <div className="flex flex-wrap items-center justify-center gap-2">
         {presence?.connectAddress && (
           <a href={`steam://connect/${presence.connectAddress}`} className="lx-primary-button inline-flex h-[34px] items-center gap-1.5 rounded-lg px-3.5 text-[13px] font-semibold">
             <Play className="size-3.5 fill-current" />
@@ -641,7 +641,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
     <div ref={topRef}>
       <div className="px-6 pt-6 max-md:px-4 max-md:pt-4">
         <section aria-label="Profile" className="overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-          <div className="px-5 pb-5 pt-5 max-md:px-4">
+          <div className="px-5 pb-6 pt-7 max-md:px-4">
             <Header overview={data} onVisibilityChange={refetch} />
           </div>
         </section>
