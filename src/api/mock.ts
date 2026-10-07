@@ -534,6 +534,12 @@ export async function mockResponse(method: string, path: string, query: Query, b
     if (!signedIn()) throw unauthorized()
     return { membership: null, pendingClanIds: ["c3"], invites: [{ clan: { ...MOCK_CLANS[2], joinMode: "request" }, at: new Date(Date.now() - HOUR).toISOString() }] }
   }
+  if (method === "GET" && /^\/api\/v1\/skinchanger\/collections\/col-\d$/.test(path)) {
+    const found = skinCollections({ sort: "popular" }).collections.find((entry) => path.endsWith(entry.id))
+    if (!found) throw notFound()
+    const full = collectionItems(Number(found.id.slice(4)) * 2 - 2, found.itemCount)
+    return { collection: { ...found, items: full.map((entry, index) => ({ ...entry, teamScope: entry.slot === "knife" ? "all" : index % 2 ? "ct" : "t", wear: [0.01, 0.07, 0.18, 0.4][index % 4], statTrak: index === 0, stickers: entry.slot === "weapon" ? index % 3 : 0, hasCharm: index === 1 })) } }
+  }
   if (/^\/api\/v1\/skinchanger\/collections\/[^/]+\/apply$/.test(path)) return { version: 2, applied: 6, skipped: 0 }
   if (/^\/api\/v1\/skinchanger\/collections\/[^/]+\/like$/.test(path)) return { likes: 1, liked: true }
   if (method === "POST" && path === "/api/v1/skinchanger/collections") return { id: "col-new" }

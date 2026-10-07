@@ -21,6 +21,8 @@ export interface SkinchangerEntryRemovalInput { expectedVersion: number; slotKey
 
 /** One skin in a community collection. */
 export interface SkinCollectionItem { slot: SkinchangerSlot; weaponClass: string | null; name: string; imageUrl: string | null; rarity: string | null }
+/** One item of a collection in the detail view. */
+export interface SkinCollectionDetailItem extends SkinCollectionItem { teamScope: TeamScope; wear: number | null; statTrak: boolean; stickers: number; hasCharm: boolean }
 /** A loadout a player shared with the community; anyone can apply it to their own loadout. */
 export interface SkinCollection {
   id: string
@@ -37,6 +39,7 @@ export interface SkinCollection {
   itemCount: number
   items: SkinCollectionItem[]
 }
+export type SkinCollectionDetail = Omit<SkinCollection, "items"> & { items: SkinCollectionDetailItem[] }
 export type SkinCollectionSort = "popular" | "new" | "mine"
 
 export const skinchangerService = {
@@ -66,6 +69,9 @@ export const skinchangerService = {
   },
   getCollections(filters: { sort: SkinCollectionSort; query?: string }, options?: CallOptions) {
     return get<{ collections: SkinCollection[] }>("/skinchanger/collections", filters, options)
+  },
+  getCollection(id: string, options?: CallOptions) {
+    return get<{ collection: SkinCollectionDetail }>(`/skinchanger/collections/${encodeURIComponent(id)}`, undefined, options)
   },
   shareCollection(input: { name: string; description: string }, options?: CallOptions) {
     return post<{ id: string }>("/skinchanger/collections", input, options)
