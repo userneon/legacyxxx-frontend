@@ -31,10 +31,6 @@ export interface SkinCollection {
   applies: number
   likes: number
   liked: boolean
-  /** Coins the creator asks for; 0 is free. */
-  price: number
-  /** Already bought (or made by the viewer), so applying costs nothing. */
-  owned: boolean
   items: SkinCollectionItem[]
 }
 export type SkinCollectionSort = "popular" | "new" | "mine"

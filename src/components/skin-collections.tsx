@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Coins, Download, Search, Share2, ThumbsUp } from "lucide-react"
+import { Download, Search, Share2, ThumbsUp } from "lucide-react"
 import { toast } from "sonner"
 
 import { skinchangerService, type SkinCollection, type SkinCollectionSort, type TeamScope } from "@/api"
@@ -8,7 +8,6 @@ import { OptimizedImage } from "@/components/optimized-image"
 import { PageTabs, pageSearchClass } from "@/components/page-tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
-import { walletService, type Wallet } from "@/api"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { rarityStyles } from "@/lib/cs2-rarity"
 import { cn } from "@/lib/utils"
@@ -27,8 +26,6 @@ const TEAMS: Array<{ id: TeamScope; label: string; icon: string | null }> = [
   { id: "all", label: "Both teams", icon: null },
 ]
 
-const paid = (collection: SkinCollection) => collection.price > 0 && !collection.owned
-
 function daysAgo(iso: string) {
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000)
   return days < 1 ? "today" : days === 1 ? "yesterday" : `${days} days ago`
@@ -43,8 +40,6 @@ export function SkinCollections({ team, onApplied }: { team: "t" | "ct"; onAppli
   const [applying, setApplying] = useState(false)
   const [sharing, setSharing] = useState(false)
   const [shareName, setShareName] = useState("")
-  const [sharePrice, setSharePrice] = useState("0")
-  const { data: wallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }))
   const { data, loading, error, refetch } = useApiQuery(
     (signal) => skinchangerService.getCollections({ sort, query: query.trim() || undefined }, { signal }),
     { queryKey: `collections:${sort}:${query.trim()}` },
@@ -56,7 +51,7 @@ export function SkinCollections({ team, onApplied }: { team: "t" | "ct"; onAppli
     setApplying(true)
     try {
       await skinchangerService.applyCollection(target.id, side)
-      toast.success(paid(target) ? `${target.name} bought and applied` : `${target.name} applied`)
+      toast.success(`${target.name} applied`)
       setTarget(null)
       onApplied()
     } catch {
@@ -123,7 +118,7 @@ export function SkinCollections({ team, onApplied }: { team: "t" | "ct"; onAppli
                   {collection.applies}
                 </span>
                 <button type="button" onClick={() => { setSide(team); setTarget(collection) }} className="lx-primary-button ml-auto inline-flex h-8 items-center rounded-lg px-4 text-[13px] font-semibold">
-                  {paid(collection) ? <><Coins className="mr-1.5 size-3.5" />{collection.price}</> : "Apply"}
+                  Apply
                 </button>
               </div>
             </article>
@@ -134,17 +129,10 @@ export function SkinCollections({ team, onApplied }: { team: "t" | "ct"; onAppli
       <AlertDialog open={Boolean(target)} onOpenChange={(open) => { if (!open && !applying) setTarget(null) }}>
         <AlertDialogContent size="sm">
           <AlertDialogHeader>
-            <AlertDialogTitle>{target && paid(target) ? "Buy" : "Apply"} {target?.name}?</AlertDialogTitle>
+            <AlertDialogTitle>Apply {target?.name}?</AlertDialogTitle>
             <AlertDialogDescription>
               {target ? `${target.items.length} items from ${target.author.username} replace the matching slots in your loadout. Everything else stays as it is.` : ""}
             </AlertDialogDescription>
-            {target && paid(target) && (
-              <div className="mt-2 flex flex-col items-center gap-0.5 text-[13px] text-[var(--text-muted)]">
-                <span className="inline-flex items-center gap-1.5 font-semibold text-[var(--text)]"><Coins className="size-3.5 shrink-0" />{target.price} coins</span>
-                <span>Goes to {target.author.username}. You can apply it again for free.</span>
-                {wallet && <span className={cn(wallet.balance < target.price && "text-[var(--status-red)]")}>You have {wallet.balance.toLocaleString()}{wallet.balance < target.price ? " — not enough" : ""}.</span>}
-              </div>
-            )}
           </AlertDialogHeader>
           <div role="radiogroup" aria-label="Apply to" className="flex flex-col gap-1.5">
             {TEAMS.map((option) => (
@@ -163,7 +151,7 @@ export function SkinCollections({ team, onApplied }: { team: "t" | "ct"; onAppli
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={applying}>Cancel</AlertDialogCancel>
-            <AlertDialogAction disabled={applying || Boolean(target && paid(target) && wallet && wallet.balance < target.price)} onClick={(event) => { event.preventDefault(); void apply() }}>{target && paid(target) ? `Buy for ${target.price}` : "Apply"}</AlertDialogAction>
+            <AlertDialogAction disabled={applying} onClick={(event) => { event.preventDefault(); void apply() }}>Apply</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -172,19 +160,14 @@ export function SkinCollections({ team, onApplied }: { team: "t" | "ct"; onAppli
         <AlertDialogContent size="sm">
           <AlertDialogHeader>
             <AlertDialogTitle>Share my loadout</AlertDialogTitle>
-            <AlertDialogDescription>Your current loadout becomes a collection. Set a price in coins, or 0 to give it away.</AlertDialogDescription>
+            <AlertDialogDescription>Your current loadout becomes a free collection anyone can apply.</AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex flex-col gap-2.5">
             <input value={shareName} onChange={(event) => setShareName(event.target.value)} maxLength={40} placeholder="Collection name" aria-label="Collection name" className="h-10 rounded-lg border border-[var(--line)] bg-transparent px-3 text-[13px] text-[var(--text)] outline-none placeholder:text-[var(--text-dim)] focus:border-[var(--text-faint)]" />
-            <label className="flex h-10 items-center gap-2 rounded-lg border border-[var(--line)] px-3 text-[13px] text-[var(--text-muted)] focus-within:border-[var(--text-faint)]">
-              <Coins className="size-4" />
-              <input value={sharePrice} onChange={(event) => setSharePrice(event.target.value.replace(/\D/g, "").slice(0, 5))} inputMode="numeric" aria-label="Price in coins" className="min-w-0 flex-1 bg-transparent text-[var(--text)] outline-none" />
-              <span className="text-[11px] text-[var(--text-faint)]">coins · 0 is free</span>
-            </label>
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction disabled={!shareName.trim()} onClick={() => toast(`Sharing opens when collections go live (${Number(sharePrice) > 0 ? `${sharePrice} coins` : "free"}).`)}>Share</AlertDialogAction>
+            <AlertDialogAction disabled={!shareName.trim()} onClick={() => toast("Sharing opens when collections go live.")}>Share</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
