@@ -391,6 +391,22 @@ function HiddenCard({ section }: { section: ProfileSection }) {
   )
 }
 
+const EMPTY_STATS = [{ key: "matches", label: "Matches" }, { key: "winRate", label: "Win rate" }, { key: "kd", label: "K/D" }, { key: "hs", label: "Headshot %" }, { key: "kills", label: "Avg. kills" }]
+
+/** Before a first match there is nothing to count: the same frame with dashes, never made-up zeros. */
+function EmptyStatsRow() {
+  return (
+    <section aria-label="Legacy-X stats" className="lx-stat-grid grid-cols-2 sm:grid-flow-col sm:grid-cols-none sm:auto-cols-fr">
+      {EMPTY_STATS.map((tile) => (
+        <div key={tile.key} className="lx-stat-cell px-4 py-3.5">
+          <span className="lx-stat-label">{tile.label}</span>
+          <span className="text-2xl font-semibold leading-none text-[var(--text-faint)]">—</span>
+        </div>
+      ))}
+    </section>
+  )
+}
+
 function StatsRow({ stats }: { stats: NonNullable<ProfileOverview["stats"]> }) {
   const format = (key: string, value: number) => (key === "winRate" || key === "hs" ? `${value}%` : key === "kd" ? value.toFixed(2) : value.toLocaleString())
   return (
@@ -469,7 +485,14 @@ function RecentMatches({ matches, onOpen }: { matches: ProfileMatchRow[]; onOpen
 }
 
 function MapsCard({ maps }: { maps: NonNullable<ProfileOverview["maps"]> }) {
-  if (maps.length === 0) return null
+  if (maps.length === 0) {
+    return (
+      <section aria-label="Best maps" className={cn(card, "flex flex-col gap-2.5 p-4")}>
+        <SectionTitle>Maps</SectionTitle>
+        <p className="py-4 text-center text-[13px] text-[var(--text-dim)]">No maps played yet</p>
+      </section>
+    )
+  }
   return (
     <section aria-label="Best maps" className={cn(card, "flex flex-col gap-2.5 p-4")}>
       <div className="flex items-center justify-between">
@@ -643,9 +666,9 @@ export function ProfilePage({ userId }: { userId?: string }) {
           </div>
         </section>
       </div>
-      {/* The Owner role has no match statistics: under the header it shows Respect and its links instead. */}
-      {data.user.role === "Owner" && <div className="px-6 pb-8 pt-4 max-md:px-4"><div className="mx-auto flex w-full max-w-3xl flex-col gap-4"><OwnerPanel overview={data} /><OwnerSections overview={data} /></div></div>}
-      {data.user.role !== "Owner" && (
+      {/* The Owner's Respect and links come first; the rank, stats, matches and FACEIT below are the same as everyone's. */}
+      {data.user.role === "Owner" && <div className="px-6 pt-4 max-md:px-4"><div className="mx-auto flex w-full max-w-3xl flex-col gap-4"><OwnerPanel overview={data} /><OwnerSections overview={data} /></div></div>}
+      {(
       <div className="flex flex-col gap-4 px-6 pb-8 pt-4 max-md:px-4">
         {data.staff && <div {...rise(0)}><StaffCard staff={data.staff} username={data.user.username} /></div>}
 
@@ -654,7 +677,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
           <TrustCard overview={data} onOpenPenalty={(id) => setOpenPenalty(penaltyById(id))} />
         </div>
 
-        {hidden.has("stats") ? <HiddenCard section="stats" /> : data.stats && <StatsRow stats={data.stats} />}
+        {hidden.has("stats") ? <HiddenCard section="stats" /> : data.stats ? <StatsRow stats={data.stats} /> : <EmptyStatsRow />}
 
         <div {...rise(3)} className={cn(rise(3).className, "grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]")}>
           <div className="flex min-w-0 flex-col gap-4">
