@@ -202,9 +202,9 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
           )}
         </div>
         <div className="flex flex-wrap items-center gap-3.5 text-[13px] text-[var(--text-muted)]">
-          {competitive?.position && <><span><span className="font-semibold text-[var(--text-2)]">#{competitive.position}</span> on leaderboard</span><span className="text-[var(--line-strong)]">·</span></>}
-          {user.memberSince && <><span>Member since {formatDate(user.memberSince)}</span><span className="text-[var(--line-strong)]">·</span></>}
-          <span>{overview.lastPlayedAt ? <>Last played <RelativeTime value={overview.lastPlayedAt} /></> : "No matches yet"}</span>
+          {competitive?.position && <><span title="Leaderboard position" className="font-semibold text-[var(--text-2)]">#{competitive.position}</span><span className="text-[var(--line-strong)]">·</span></>}
+          {user.memberSince && <><span title="Member since">Since {formatDate(user.memberSince)}</span><span className="text-[var(--line-strong)]">·</span></>}
+          <span title="Last played">{overview.lastPlayedAt ? <>Active <RelativeTime value={overview.lastPlayedAt} /></> : "No matches yet"}</span>
         </div>
       </div>
       <div className="flex items-center gap-2 pb-1.5">
@@ -313,7 +313,7 @@ function LimitBar({ label, used, cap, stoppedLabel, reset }: { label: string; us
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
       <div className="flex justify-between gap-2 text-xs text-[var(--text-dim)]">
-        <span>{label}{reset && <> · <span className="text-[var(--text-faint)]">{reset}</span></>}</span>
+        <span title={reset ?? undefined}>{label}</span>
         <span className={cn("transition-colors duration-500", reached && "text-[var(--status-red)]")}>
           <span className={cn("font-semibold transition-colors duration-500", reached ? "text-[var(--status-red)]" : "text-[var(--text)]")}><AnimatedNumber value={Math.min(used, cap)} /></span> / {cap.toLocaleString()}{reached && <> · {stoppedLabel}</>}
         </span>
@@ -334,7 +334,7 @@ function ExpLimits({ limits }: { limits: NonNullable<NonNullable<ProfileOverview
   return (
     <div className="mt-1 grid grid-cols-2 gap-x-[18px] gap-y-2 border-t border-[var(--line-soft)] pt-3 max-sm:grid-cols-1">
       <LimitBar label="Today" used={limits.day.used} cap={limits.day.cap} stoppedLabel="×¼" reset={resetLabel(limits.day.resetsAt, false)} />
-      <LimitBar label="This week" used={limits.week.used} cap={limits.week.cap} stoppedLabel="stopped" reset={resetLabel(limits.week.resetsAt, true)} />
+      <LimitBar label="Week" used={limits.week.used} cap={limits.week.cap} stoppedLabel="stopped" reset={resetLabel(limits.week.resetsAt, true)} />
       <div
         className={cn(
           "col-span-2 grid text-xs text-[var(--status-red)] transition-[grid-template-rows,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] max-sm:col-span-1",
@@ -343,7 +343,7 @@ function ExpLimits({ limits }: { limits: NonNullable<NonNullable<ProfileOverview
       >
         <span className="flex items-center gap-1.5 overflow-hidden">
           <Info className="size-3.5 shrink-0" />
-          {weekReached ? "Weekly EXP limit reached. Wins give no EXP until Monday. Losses still count." : "Daily EXP limit reached. Wins give a quarter of the EXP until midnight. Losses still count."}
+          {weekReached ? "Weekly limit reached · wins give no EXP" : "Daily limit reached · wins give ¼ EXP"}
         </span>
       </div>
     </div>
@@ -351,14 +351,13 @@ function ExpLimits({ limits }: { limits: NonNullable<NonNullable<ProfileOverview
 }
 
 function TrustCard({ overview, onOpenPenalty }: { overview: ProfileOverview; onOpenPenalty: (id: string) => void }) {
-  const { trust, user } = overview
+  const { trust } = overview
   const row = "flex h-[34px] items-center justify-between border-b border-[var(--line-soft)] last:border-b-0"
   return (
     <section aria-label="Trust" className={cn(card, "flex flex-col px-[18px] py-3.5")}>
       <div className="mb-1"><SectionTitle>Trust</SectionTitle></div>
-      <div className={row}><span className="text-[13px] text-[var(--text-muted)]">On Legacy-X since</span><span className="text-[13px] font-medium text-[var(--text)]">{user.memberSince ? formatDate(user.memberSince) : "—"}</span></div>
       {trust.steamAccountCreatedAt && (
-        <div className={row}><span className="text-[13px] text-[var(--text-muted)]">Steam account age</span><span className="text-[13px] font-medium text-[var(--text)]">{yearsSince(trust.steamAccountCreatedAt)}</span></div>
+        <div className={row}><span className="text-[13px] text-[var(--text-muted)]">Steam account</span><span className="text-[13px] font-medium text-[var(--text)]">{yearsSince(trust.steamAccountCreatedAt)}</span></div>
       )}
       {overview.discordLinked !== undefined && (
         <div className={row}>
@@ -475,7 +474,7 @@ function MapsCard({ maps }: { maps: NonNullable<ProfileOverview["maps"]> }) {
     <section aria-label="Best maps" className={cn(card, "flex flex-col gap-2.5 p-4")}>
       <div className="flex items-center justify-between">
         <SectionTitle>Maps</SectionTitle>
-        <span className="text-xs text-[var(--text-dim)]">Win rate · min. 3 matches</span>
+        <span className="text-xs text-[var(--text-dim)]">Win rate</span>
       </div>
       {maps.slice(0, 6).map((map, index) => (
         <div key={map.map} className="grid h-[38px] grid-cols-[120px_minmax(0,1fr)_44px] items-center gap-3">
