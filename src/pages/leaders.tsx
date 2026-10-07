@@ -89,6 +89,7 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
         <span className="flex min-w-0 flex-col gap-1.5">
           <span className="flex min-w-0 items-center gap-1.5">
             <span className={cn("truncate font-semibold text-[var(--text)]", first ? "text-base" : "text-sm")} title={player.username}>{player.username}</span>
+            {player.clan_tag && <span className="shrink-0 text-[11px] font-semibold text-[var(--text-dim)]">[{player.clan_tag}]</span>}
             <DiscordLinkedMark linked={player.discord_linked} />
           </span>
           <span className="truncate text-xs font-medium" style={{ color: rankTierColor(player.rank_id) }}>{player.rank_name}</span>
@@ -149,6 +150,7 @@ function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: Competiti
           className={cn("size-8 shrink-0 rounded-[9px] text-xs", you && "ring-2 ring-[var(--brand)]/80")}
         />
         <span className="min-w-0 truncate text-[13px] font-medium text-[var(--text)]" title={player.username}>{you ? "You" : player.username}</span>
+        {player.clan_tag && <span className="shrink-0 text-[11px] font-semibold text-[var(--text-dim)]">[{player.clan_tag}]</span>}
         <DiscordLinkedMark linked={player.discord_linked} />
       </span>
       <RankLabel rankId={player.rank_id} rankName={player.rank_name} imageKey={player.rank_image_key} currentExp={player.current_exp} size={22} nameClassName="font-medium" />

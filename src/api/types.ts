@@ -180,6 +180,8 @@ export interface CompetitiveLeaderboardEntry extends CompetitiveProfile {
   position: number
   /** The player linked Discord (only the fact is public). Absent from an older API. */
   discord_linked?: boolean
+  /** Tag of the clan the player is in. Absent when the clan feature is off or they have none. */
+  clan_tag?: string | null
   deaths: number
   kd_ratio: number
   /** wins / matches_completed, 0–1. */
@@ -411,6 +413,29 @@ export interface ClanCard {
 export interface ClanDetail extends ClanCard {
   description?: string
   members?: ClanMember[]
+  /** The viewer's role in this clan (null: not a member) and whether they are staff who can moderate it. */
+  viewer?: { role: ClanRole | null; canModerate: boolean }
+}
+
+export type ClanRole = "leader" | "co-leader" | "member"
+
+/** A clan in the ranking: the total EXP of its members. */
+export interface ClanRankEntry extends ClanCard {
+  rank: number
+  totalExp: number
+  matches: number
+  wins: number
+}
+
+export interface ClanActivityLine {
+  id: string
+  text: string
+  at: string
+}
+
+export interface ClanInvitation {
+  clan: ClanCard
+  at: string
 }
 
 export interface ClanMember {
@@ -446,6 +471,8 @@ export interface MyClanState {
   membership: MyClanMembership | null
   /** Clans this player has asked to join and not heard back from. */
   pendingClanIds: string[]
+  /** Clans that invited this player. */
+  invites: ClanInvitation[]
 }
 
 /* ----------------------------------------------------------------------------

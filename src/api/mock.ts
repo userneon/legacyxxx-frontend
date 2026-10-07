@@ -20,6 +20,7 @@ function leaderboard(sort: string) {
     steam_id: `7656119800000${String(index).padStart(4, "0")}`,
     username,
     discord_linked: index % 3 !== 1,
+    clan_tag: index % 4 === 0 ? "WOLF" : index % 4 === 1 ? "SKY" : null,
     avatar: null,
     rank_id: RANKS[index][0],
     rank_name: RANKS[index][1],
@@ -449,6 +450,7 @@ function profileOverview(identity: string) {
     staff: null,
     presence: own ? null : { serverId: "5x5-01", serverName: "LEGACY-X #1 | MIRAGE", connectAddress: "203.0.113.10:27001", map: "de_mirage" },
     discordLinked: index % 3 !== 1,
+    clan: index % 4 === 0 ? { id: "c1", name: "Steppe Wolves", tag: "WOLF" } : null,
   }
 }
 
@@ -499,13 +501,17 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path === "/api/v1/auth/refresh") throw unauthorized()
   if (path === "/api/v1/clans/me") {
     if (!signedIn()) throw unauthorized()
-    return { membership: null, pendingClanIds: ["c3"] }
+    return { membership: null, pendingClanIds: ["c3"], invites: [{ clan: { ...MOCK_CLANS[2], joinMode: "request" }, at: new Date(Date.now() - HOUR).toISOString() }] }
   }
   if (path === "/api/v1/clans") return MOCK_CLANS
+  if (path === "/api/v1/clans/leaderboard") return { clans: MOCK_CLANS.map((clan, index) => ({ ...clan, rank: index + 1, totalExp: 9400 - index * 2100, matches: 120 - index * 30, wins: 70 - index * 20 })) }
+  if (path.endsWith("/activity")) return [{ id: "1", text: "Member 2 joined", at: new Date(Date.now() - 2 * HOUR).toISOString() }, { id: "2", text: "Member 4 asked to join", at: new Date(Date.now() - 5 * HOUR).toISOString() }, { id: "3", text: "Leader created the clan", at: new Date(Date.now() - 3 * 24 * HOUR).toISOString() }]
+  if (path.endsWith("/invites")) return [{ id: "p1", name: "xBataa", avatar: "", at: new Date().toISOString() }]
+  if (path.endsWith("/requests")) return [{ id: "p2", name: "Gansukh", avatar: "", at: new Date().toISOString() }]
   if (path.startsWith("/api/v1/clans/")) {
     const clan = MOCK_CLANS.find((entry) => path === `/api/v1/clans/${entry.id}`)
     if (!clan) throw notFound()
-    return { ...clan, description: "Ranked five-stack. Evenings, Ulaanbaatar time.", members: Array.from({ length: clan.currentPlayers }, (_, index) => ({ id: `m${index}`, name: index === 0 ? "Leader" : `Member ${index}`, role: index === 0 ? "leader" : "member", avatar: "", description: "" })) }
+    return { ...clan, description: "Ranked five-stack. Evenings, Ulaanbaatar time.", members: Array.from({ length: clan.currentPlayers }, (_, index) => ({ id: `m${index}`, name: index === 0 ? "Leader" : `Member ${index}`, role: index === 0 ? "leader" : index === 1 ? "co-leader" : "member", avatar: "", description: "" })), viewer: { role: "leader", canModerate: true } }
   }
   if (path === "/api/v1/wallet/me") {
     if (!signedIn()) throw unauthorized()

@@ -1,15 +1,16 @@
 import { useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft, Check, Coins, Globe, Lock, Pencil, Plus, Upload, UserMinus, UserPlus, Users, X } from "lucide-react"
+import { ArrowLeft, Check, Coins, Globe, Lock, Pencil, Plus, Search, Upload, UserPlus, Users, X } from "lucide-react"
 import { toast } from "sonner"
 
 
 import { cn } from "@/lib/utils"
 import { clansService } from "@/api"
 import { CLAN_ART_RULES, clanArtProblem, clanArtSrc, type ClanArtKind } from "@/api/clans"
-import type { ApiError, ClanCard, ClanDetail, ClanJoinRequest, MyClanState } from "@/api/types"
+import type { ClanCard, ClanDetail, ClanJoinRequest, ClanRankEntry, ClanRole, MyClanState } from "@/api/types"
+import { ActivityPanel, CLAN_FEE, InvitePanel, MemberControls, ModerationPanel, RenameForm, clanFailure, roleLabel } from "@/components/clan-manage"
 import { Button } from "@/components/ui/button"
-import { PageBar, PageBarEnd, PageTabs } from "@/components/page-tabs"
+import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { QueryState } from "@/components/query-state"
@@ -25,14 +26,12 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-/** What a clan costs and needs. The server enforces both; these numbers only explain them. */
-const CLAN_FEE = 500
 
 /** A clan's mark: its logo, or its tag on a plain tile when it has none. */
 function ClanMark({ logo, tag, className }: { logo?: string | null; tag: string; className?: string }) {
   const src = clanArtSrc(logo)
   return (
-    <div className={cn("flex shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--raised)] text-[13px] font-bold tracking-wide text-[var(--text)]", className)}>
+    <div className={cn("flex shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--raised)] text-[13px] font-bold tracking-wide text-[var(--text)]", className, !src && tag.length > 3 && /size-(8|10|12)\b/.test(className ?? "") && "text-[10px] tracking-normal")}>
       {src ? <img src={src} alt="" className="size-full object-cover" /> : tag}
     </div>
   )
@@ -88,14 +87,7 @@ function ArtSlot({ kind, preview, onPick, onRemove, busy }: { kind: ClanArtKind;
   )
 }
 
-function failureMessage(error: unknown, fallback: string) {
-  const status = (error as Partial<ApiError> | null)?.status
-  if (status === 401) return "Sign in with Steam first."
-  if (status === 402) return `A clan costs ${CLAN_FEE} coins and your wallet is short.`
-  if (status === 409) return "That did not work: the name or tag is taken, or you are already in a clan."
-  if (status === 429) return "Too many tries. Wait a moment."
-  return fallback
-}
+const failureMessage = clanFailure
 
 export function ClanPage({ onProfileNavigate, onClanNavigate }: { onProfileNavigate: (userId: string) => void; onClanNavigate: (clanId: string) => void }) {
   const { clanId } = useParams()
@@ -103,10 +95,24 @@ export function ClanPage({ onProfileNavigate, onClanNavigate }: { onProfileNavig
   return <ClanList onClanNavigate={onClanNavigate} />
 }
 
+const PAGE_SIZE = 24
+
 function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void }) {
   const { isAuthenticated, loginWithSteam } = useAuth()
   const [creating, setCreating] = useState(false)
-  const { data: clans, loading, error, refetch } = useApiQuery<ClanCard[]>((signal) => clansService.getClans({ signal }))
+  const [tab, setTab] = useState<"all" | "ranking">("all")
+  const [search, setSearch] = useState("")
+  const [sort, setSort] = useState<"new" | "name">("new")
+  const [limit, setLimit] = useState(PAGE_SIZE)
+  const q = search.trim()
+  const { data: clans, loading, error, refetch } = useApiQuery<ClanCard[]>(
+    (signal) => clansService.getClans({ q: q || undefined, sort, limit }, { signal }),
+    { queryKey: `${q}|${sort}|${limit}`, keepPreviousData: true },
+  )
+  const { data: ranking, loading: rankingLoading, error: rankingError, refetch: refetchRanking } = useApiQuery<ClanRankEntry[]>(
+    (signal) => clansService.getRanking({ signal }),
+    { enabled: tab === "ranking" },
+  )
   const { data: mineState, refetch: refetchMine } = useApiQuery<MyClanState>(
     (signal) => clansService.getMine({ signal }),
     { enabled: isAuthenticated, queryKey: String(isAuthenticated) },
@@ -114,21 +120,35 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
 
   const mine = mineState?.membership ?? null
   const pending = mineState?.pendingClanIds ?? []
+  const invites = mineState?.invites ?? []
   const list = clans ?? []
   const members = list.reduce((sum, clan) => sum + clan.currentPlayers, 0)
   const open = list.reduce((sum, clan) => sum + Math.max(0, clan.maxPlayers - clan.currentPlayers), 0)
   const changed = () => { void refetch(); void refetchMine() }
+  const mayShowMore = list.length >= limit
 
   return (
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
-        <PageTabs ariaLabel="Clans" value="all" onChange={() => undefined} options={[{ value: "all", label: "All clans", count: loading ? undefined : list.length }]} />
+        <PageTabs ariaLabel="Clans" value={tab} onChange={setTab} options={[{ value: "all", label: "All clans" }, { value: "ranking", label: "Ranking" }]} />
         <PageBarEnd>
-          <span className="text-[13px] text-[var(--text-dim)] max-md:hidden">{CLAN_FEE} coins to create</span>
+          {tab === "all" && (
+            <>
+              <div className="flex items-center gap-1 text-[13px]" role="group" aria-label="Sort">
+                {(["new", "name"] as const).map((value) => (
+                  <button key={value} type="button" aria-pressed={sort === value} onClick={() => setSort(value)} className={cn("h-8 rounded-md px-2.5 transition-colors", sort === value ? "bg-[var(--raised)] text-[var(--text)]" : "text-[var(--text-dim)] hover:text-[var(--text)]")}>{value === "new" ? "Newest" : "A–Z"}</button>
+                ))}
+              </div>
+              <label className={pageSearchClass}>
+                <Search className="size-4 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />
+                <input type="search" value={search} onChange={(event) => { setSearch(event.target.value); setLimit(PAGE_SIZE) }} aria-label="Search clans" placeholder="Search clans" className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text)] outline-none placeholder:text-[var(--text-dim)] [&::-webkit-search-cancel-button]:hidden" />
+              </label>
+            </>
+          )}
           {!mine && (
             <button type="button" onClick={() => (isAuthenticated ? setCreating(true) : loginWithSteam())} className="lx-primary-button inline-flex h-9 items-center gap-2 rounded-lg px-3.5 text-[13px] font-semibold">
               <Plus className="size-4" aria-hidden="true" />
-              Create clan
+              Create clan · {CLAN_FEE}
             </button>
           )}
         </PageBarEnd>
@@ -136,25 +156,53 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
 
       <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
         <div className="flex flex-col gap-4 px-6 pb-4 pt-4">
-          {!loading && !error && (
-            <div className="lx-stat-grid grid-cols-3">
-              {[{ label: "Clans", value: list.length }, { label: "Members", value: members }, { label: "Open slots", value: open }].map((stat) => (
-                <div key={stat.label} className="lx-stat-cell shadow-none!">
-                  <span className="lx-stat-label">{stat.label}</span>
-                  <span className="text-xl font-semibold leading-none text-[var(--text)]"><AnimatedNumber value={stat.value} /></span>
+          {invites.length > 0 && !mine && <Invitations invites={invites} onChanged={changed} />}
+
+          {tab === "ranking" ? (
+            <>
+              <QueryState loading={rankingLoading} error={rankingError} empty={!rankingLoading && !rankingError && (ranking ?? []).length === 0} emptyMessage="No clan has played yet." onRetry={refetchRanking} />
+              {!rankingLoading && !rankingError && (ranking ?? []).length > 0 && (
+                <div className="overflow-hidden rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)]">
+                  <div className="grid grid-cols-[40px_1fr_70px_90px_60px] items-center gap-3 border-b border-[var(--line-soft)] px-4 py-2 text-[11px] uppercase tracking-wider text-[var(--text-dim)]"><span>#</span><span>Clan</span><span className="text-right">Members</span><span className="text-right">Total EXP</span><span className="text-right">Wins</span></div>
+                  {(ranking ?? []).map((entry) => (
+                    <button key={entry.id} type="button" onClick={() => onClanNavigate(entry.id)} className="grid w-full grid-cols-[40px_1fr_70px_90px_60px] items-center gap-3 border-b border-[var(--line-soft)] px-4 py-2.5 text-left text-[13px] transition-colors last:border-b-0 hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/60">
+                      <span className={cn("font-semibold", entry.rank === 1 ? "text-[var(--brand-bright)]" : "text-[var(--text-dim)]")}>{entry.rank}</span>
+                      <span className="flex min-w-0 items-center gap-3"><ClanMark logo={entry.logo} tag={entry.tag} className="size-8 rounded-lg text-[10px]" /><span className="truncate font-medium">{entry.name}</span><span className="shrink-0 text-[11px] text-[var(--text-dim)]">[{entry.tag}]</span></span>
+                      <span className="text-right text-[var(--text-dim)]">{entry.currentPlayers}</span>
+                      <span className="text-right font-semibold">{entry.totalExp.toLocaleString()}</span>
+                      <span className="text-right text-[var(--text-dim)]">{entry.wins}</span>
+                    </button>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+              )}
+              <p className="text-[11px] text-[var(--text-dim)]">Total EXP of a clan's members from ranked matches.</p>
+            </>
+          ) : (
+            <>
+              {!loading && !error && !q && (
+                <div className="lx-stat-grid grid-cols-3">
+                  {[{ label: "Clans", value: list.length }, { label: "Members", value: members }, { label: "Open slots", value: open }].map((stat) => (
+                    <div key={stat.label} className="lx-stat-cell shadow-none!">
+                      <span className="lx-stat-label">{stat.label}</span>
+                      <span className="text-xl font-semibold leading-none text-[var(--text)]"><AnimatedNumber value={stat.value} /></span>
+                    </div>
+                  ))}
+                </div>
+              )}
 
-          <QueryState loading={loading} error={error} empty={!loading && !error && list.length === 0} emptyMessage="No clans yet." onRetry={refetch} />
+              <QueryState loading={loading && list.length === 0} error={error} empty={!loading && !error && list.length === 0} emptyMessage={q ? "No clan has that name." : "No clans yet."} onRetry={refetch} />
 
-          {!loading && !error && list.length > 0 && (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {list.map((clan) => (
-                <ClanCardItem key={clan.id} clan={clan} mine={mine} pending={pending.includes(clan.id)} canJoin={!mine} onClanNavigate={onClanNavigate} onChanged={changed} />
-              ))}
-            </div>
+              {!error && list.length > 0 && (
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {list.map((clan) => (
+                    <ClanCardItem key={clan.id} clan={clan} mine={mine} pending={pending.includes(clan.id)} canJoin={!mine} onClanNavigate={onClanNavigate} onChanged={changed} />
+                  ))}
+                </div>
+              )}
+              {!error && mayShowMore && (
+                <button type="button" disabled={loading} onClick={() => setLimit((value) => value + PAGE_SIZE)} className="mx-auto inline-flex h-9 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-4 text-[13px] hover:border-[var(--line-strong)] disabled:opacity-50">Show more</button>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -171,6 +219,36 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+/** Clans that invited the signed-in player. */
+function Invitations({ invites, onChanged }: { invites: MyClanState["invites"]; onChanged: () => void }) {
+  const [busy, setBusy] = useState("")
+  const answer = async (clan: ClanCard, accept: boolean) => {
+    setBusy(clan.id)
+    try {
+      if (accept) await clansService.acceptInvite(clan.id); else await clansService.declineInvite(clan.id)
+      toast.success(accept ? `You joined ${clan.name}` : "Invitation declined")
+      onChanged()
+    } catch (error) {
+      toast.error("That did not work", { description: failureMessage(error, "Try again in a moment.") })
+    } finally {
+      setBusy("")
+    }
+  }
+  return (
+    <section className="flex flex-col gap-2">
+      <h2 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-dim)]">Invitations · {invites.length}</h2>
+      {invites.map(({ clan }) => (
+        <div key={clan.id} className="flex items-center gap-3 rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3">
+          <ClanMark logo={clan.logo} tag={clan.tag} className="size-10" />
+          <span className="min-w-0 flex-1"><span className="block truncate text-[13px] font-medium">{clan.name}</span><span className="block text-[11px] text-[var(--text-dim)]">invited you · {clan.currentPlayers}/{clan.maxPlayers} members</span></span>
+          <Button type="button" size="sm" disabled={busy === clan.id} onClick={() => void answer(clan, true)}>Join</Button>
+          <Button type="button" variant="outline" size="sm" disabled={busy === clan.id} onClick={() => void answer(clan, false)}>Decline</Button>
+        </div>
+      ))}
+    </section>
   )
 }
 
@@ -260,8 +338,10 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
   const [editing, setEditing] = useState(false)
   const { data: clan, loading, error, refetch } = useApiQuery<ClanDetail>((signal) => clansService.getClan(clanId, { signal }))
   const members = clan?.members ?? []
-  const me = members.find((member) => member.id === user?.id)
-  const isLeader = me?.role === "leader"
+  const role = (clan?.viewer?.role ?? null) as ClanRole | null
+  const isLeader = role === "leader"
+  const isManager = role === "leader" || role === "co-leader"
+  const canModerate = Boolean(clan?.viewer?.canModerate)
 
   const run = async (action: () => Promise<void>, done: string, after?: () => void) => {
     setBusy(true)
@@ -283,7 +363,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
           <ArrowLeft className="size-4" aria-hidden="true" /> All clans
         </button>
         <PageBarEnd>
-          {me && !isLeader && (
+          {role && !isLeader && (
             <button type="button" disabled={busy} onClick={() => void run(() => clansService.leaveClan(clanId), "You left the clan", () => navigate("/clans"))} className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] hover:border-[var(--line-strong)] disabled:opacity-50">
               Leave clan
             </button>
@@ -311,21 +391,21 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
               <div className="flex flex-wrap items-center gap-4 p-5">
                 <ClanMark logo={clan.logo} tag={clan.tag} className="size-16 text-[15px]" />
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <h1 className="truncate text-[22px] font-semibold leading-tight">{clan.name}</h1>
+                  <h1 className="truncate text-[22px] font-semibold leading-tight">{clan.name} <span className="text-[13px] font-medium text-[var(--text-dim)]">[{clan.tag}]</span></h1>
                   <p className="flex flex-wrap items-center gap-x-3 text-[13px] text-[var(--text-dim)]"><span>{clan.region} · {clan.currentPlayers}/{clan.maxPlayers} members</span><JoinModeLabel mode={clan.joinMode} /></p>
                   {clan.description && <p className="max-w-2xl text-[13px] text-[var(--text-dim)]">{clan.description}</p>}
                 </div>
-                {isLeader && <button type="button" onClick={() => setEditing(true)} className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] hover:border-[var(--line-strong)]"><Pencil className="size-4" aria-hidden="true" /> Edit clan</button>}
+                {isManager && <button type="button" onClick={() => setEditing(true)} className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] hover:border-[var(--line-strong)]"><Pencil className="size-4" aria-hidden="true" /> Edit clan</button>}
               </div>
               </section>
               <Dialog open={editing} onOpenChange={setEditing}>
                 <DialogContent className="rounded-2xl">
-                  <DialogHeader><DialogTitle>Edit clan</DialogTitle><DialogDescription>Who may join, how many players, and the pictures of {clan.name}.</DialogDescription></DialogHeader>
-                  <EditLook clan={clan} onChanged={() => void refetch()} />
+                  <DialogHeader><DialogTitle>Edit clan</DialogTitle><DialogDescription>Description, who may join, how many players and the pictures of {clan.name}.</DialogDescription></DialogHeader>
+                  <EditLook clan={clan} isLeader={isLeader} onChanged={() => void refetch()} />
                 </DialogContent>
               </Dialog>
 
-              {isLeader && <JoinRequests clanId={clanId} onAccepted={() => void refetch()} />}
+              {isManager && <JoinRequests clanId={clanId} onAccepted={() => void refetch()} />}
 
               <section className="flex flex-col gap-3">
                 <h2 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-dim)]"><Users className="size-3.5" aria-hidden="true" /> Members</h2>
@@ -338,26 +418,20 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                         <button type="button" onClick={() => onProfileNavigate(member.id)} className="flex min-w-0 flex-1 items-center gap-3 rounded-[10px] p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
                           <PlayerAvatar avatar={member.avatar} name={member.name} className="size-10 rounded-[10px] text-sm" />
                           <span className="min-w-0">
-                            <span className="block truncate text-[13px] font-medium">{member.name}</span>
-                            <span className="block text-[11px] capitalize text-[var(--text-dim)]">{member.role}</span>
+                            <span className="block truncate text-[13px] font-medium">{member.name}{member.id === user?.id ? " (you)" : ""}</span>
+                            <span className="block text-[11px] text-[var(--text-dim)]">{roleLabel(member.role)}</span>
                           </span>
                         </button>
-                        {isLeader && member.id !== user?.id && (
-                          <button
-                            type="button"
-                            disabled={busy}
-                            aria-label={`Remove ${member.name}`}
-                            onClick={() => { if (window.confirm(`Remove ${member.name} from the clan?`)) void run(() => clansService.removeMember(clanId, member.id), `${member.name} was removed`) }}
-                            className="mr-2 flex size-8 items-center justify-center rounded-lg text-[var(--text-dim)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)] disabled:opacity-50"
-                          >
-                            <UserMinus className="size-4" aria-hidden="true" />
-                          </button>
-                        )}
+                        {member.id !== user?.id && <MemberControls clanId={clanId} member={member} viewerRole={role} onChanged={() => void refetch()} />}
                       </div>
                     ))}
                   </div>
                 )}
               </section>
+
+              {isManager && <InvitePanel clanId={clanId} />}
+              {isManager && <ActivityPanel clanId={clanId} />}
+              {canModerate && <ModerationPanel clan={clan} onChanged={() => void refetch()} onDeleted={() => navigate("/clans")} />}
             </>
           )}
         </div>
@@ -483,8 +557,9 @@ function JoinRequests({ clanId, onAccepted }: { clanId: string; onAccepted: () =
   )
 }
 
-function EditLook({ clan, onChanged }: { clan: ClanDetail; onChanged: () => void }) {
+function EditLook({ clan, isLeader, onChanged }: { clan: ClanDetail; isLeader: boolean; onChanged: () => void }) {
   const [busy, setBusy] = useState(false)
+  const [description, setDescription] = useState(clan.description ?? "")
   const [joinMode, setJoinMode] = useState(clan.joinMode)
   const [maxPlayers, setMaxPlayers] = useState(clan.maxPlayers)
   const run = async (action: () => Promise<unknown>, done: string) => {
@@ -494,18 +569,26 @@ function EditLook({ clan, onChanged }: { clan: ClanDetail; onChanged: () => void
       toast.success(done)
       onChanged()
     } catch (error) {
-      toast.error("Could not save the picture", { description: failureMessage(error, "Try again in a moment.") })
+      toast.error("Could not save", { description: failureMessage(error, "Try again in a moment.") })
     } finally {
       setBusy(false)
     }
   }
+  const tooFew = maxPlayers < Math.max(2, clan.currentPlayers)
+  const unchanged = joinMode === clan.joinMode && maxPlayers === clan.maxPlayers && description.trim() === (clan.description ?? "")
   return (
-    <div className="mt-2 flex max-h-[70vh] flex-col gap-5 overflow-y-auto">
+    <div className="mt-2 flex max-h-[70vh] flex-col gap-5 overflow-y-auto pr-1">
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="clan-description">Description</Label>
+        <textarea id="clan-description" maxLength={200} rows={3} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="What is your clan about?" className="w-full resize-none rounded-lg border border-[var(--line)] bg-transparent px-3 py-2 text-[13px] text-[var(--text)] outline-none transition-[border-color] placeholder:text-[var(--text-dim)] focus:border-[var(--text-faint)]" />
+        <span className="text-right text-[11px] text-[var(--text-dim)]">{description.length}/200</span>
+      </div>
       <JoinSettings joinMode={joinMode} maxPlayers={maxPlayers} onMode={setJoinMode} onMax={setMaxPlayers} />
       <div>
-        <button type="button" disabled={busy || maxPlayers < Math.max(2, clan.currentPlayers) || (joinMode === clan.joinMode && maxPlayers === clan.maxPlayers)} onClick={() => void run(() => clansService.updateClan(clan.id, { joinMode, maxPlayers }), "Settings saved")} className="lx-primary-button inline-flex h-9 items-center rounded-lg px-3.5 text-[13px] font-semibold disabled:opacity-50">Save settings</button>
-        {maxPlayers < clan.currentPlayers && <p className="mt-2 text-[13px] text-[var(--status-red)]">The clan already has {clan.currentPlayers} members.</p>}
+        <button type="button" disabled={busy || tooFew || unchanged} onClick={() => void run(() => clansService.updateClan(clan.id, { description: description.trim(), joinMode, maxPlayers }), "Settings saved")} className="lx-primary-button inline-flex h-9 items-center rounded-lg px-3.5 text-[13px] font-semibold disabled:opacity-50">Save settings</button>
+        {tooFew && <p className="mt-2 text-[13px] text-[var(--status-red)]">The clan already has {clan.currentPlayers} members.</p>}
       </div>
+      {isLeader && <RenameForm clan={clan} onChanged={onChanged} />}
       <ArtSlot kind="logo" busy={busy} preview={clanArtSrc(clan.logo)} onPick={(file) => void run(() => clansService.uploadArt(clan.id, "logo", file), "Logo saved")} onRemove={() => void run(() => clansService.removeArt(clan.id, "logo"), "Logo removed")} />
       <ArtSlot kind="banner" busy={busy} preview={clanArtSrc(clan.thumbnail)} onPick={(file) => void run(() => clansService.uploadArt(clan.id, "banner", file), "Banner saved")} onRemove={() => void run(() => clansService.removeArt(clan.id, "banner"), "Banner removed")} />
     </div>

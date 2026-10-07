@@ -21,6 +21,7 @@ const KIND_TONE: Record<NotificationEntry["kind"], string> = {
   penalty: "bg-[var(--line)]",
   match: "bg-[var(--line)]",
   system: "bg-[var(--line)]",
+  clan: "bg-[var(--line)]",
 }
 
 export function NotificationsMenu() {

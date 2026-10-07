@@ -4,7 +4,9 @@ import type {
   ClanDetail,
   ClanMember,
   CreateClanRequest,
+  ClanActivityLine,
   ClanJoinRequest,
+  ClanRankEntry,
   MyClanState,
 } from "./types"
 
@@ -14,8 +16,62 @@ import type {
  * exposes the staff team roster shown on the clan page.
  */
 export const clansService = {
-  async getClans(options?: CallOptions): Promise<ClanCard[]> {
-    return get<ClanCard[]>("/api/v1/clans", undefined, options)
+  async getClans(params?: { q?: string; sort?: "new" | "name"; limit?: number; offset?: number }, options?: CallOptions): Promise<ClanCard[]> {
+    return get<ClanCard[]>("/api/v1/clans", params, options)
+  },
+
+  async getRanking(options?: CallOptions): Promise<ClanRankEntry[]> {
+    const response = await get<{ clans: ClanRankEntry[] }>("/api/v1/clans/leaderboard", undefined, options)
+    return response.clans
+  },
+
+  async getActivity(clanId: string, options?: CallOptions): Promise<ClanActivityLine[]> {
+    return get<ClanActivityLine[]>(`/api/v1/clans/${clanId}/activity`, undefined, options)
+  },
+
+  async getInvites(clanId: string, options?: CallOptions): Promise<ClanJoinRequest[]> {
+    return get<ClanJoinRequest[]>(`/api/v1/clans/${clanId}/invites`, undefined, options)
+  },
+
+  async invite(clanId: string, username: string, options?: CallOptions): Promise<void> {
+    await post<void>(`/api/v1/clans/${clanId}/invites`, { username }, options)
+  },
+
+  async revokeInvite(clanId: string, userId: string, options?: CallOptions): Promise<void> {
+    await del<void>(`/api/v1/clans/${clanId}/invites/${userId}`, options)
+  },
+
+  async acceptInvite(clanId: string, options?: CallOptions): Promise<void> {
+    await post<void>(`/api/v1/clans/${clanId}/invite/accept`, undefined, options)
+  },
+
+  async declineInvite(clanId: string, options?: CallOptions): Promise<void> {
+    await del<void>(`/api/v1/clans/${clanId}/invite`, options)
+  },
+
+  async setRole(clanId: string, userId: string, role: "co-leader" | "member", options?: CallOptions): Promise<void> {
+    await put<void>(`/api/v1/clans/${clanId}/members/${userId}/role`, { role }, options)
+  },
+
+  async transfer(clanId: string, userId: string, options?: CallOptions): Promise<void> {
+    await post<void>(`/api/v1/clans/${clanId}/transfer`, { userId }, options)
+  },
+
+  async rename(clanId: string, payload: { name?: string; tag?: string }, options?: CallOptions): Promise<ClanDetail> {
+    return put<ClanDetail>(`/api/v1/clans/${clanId}/name`, payload, options)
+  },
+
+  /** Staff only: delete a clan, take a picture down, or fix a name. */
+  async moderateDelete(clanId: string, options?: CallOptions): Promise<void> {
+    await del<void>(`/api/v1/staff/clans/${clanId}`, options)
+  },
+
+  async moderateArt(clanId: string, kind: ClanArtKind, options?: CallOptions): Promise<void> {
+    await del<void>(`/api/v1/staff/clans/${clanId}/art/${kind}`, options)
+  },
+
+  async moderateRename(clanId: string, payload: { name: string; tag: string }, options?: CallOptions): Promise<void> {
+    await put<void>(`/api/v1/staff/clans/${clanId}/name`, payload, options)
   },
 
   async getClan(clanId: string, options?: CallOptions): Promise<ClanDetail> {

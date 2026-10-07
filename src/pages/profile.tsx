@@ -188,6 +188,11 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
           <h1 className="truncate text-[30px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]" title={user.username}>{user.username}</h1>
           <RoleBadge role={user.role} />
           <DiscordLinkedMark linked={overview.discordLinked} className="[&_svg]:size-4" />
+          {overview.clan && (
+            <Link to={`/clans/${overview.clan.id}`} title={overview.clan.name} className="inline-flex h-6 items-center gap-1 rounded-full border border-[var(--line)] px-2 text-[11px] font-semibold text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]">
+              [{overview.clan.tag}] <span className="max-w-[140px] truncate font-medium">{overview.clan.name}</span>
+            </Link>
+          )}
           {competitive && <RankPill rankId={competitive.rankId} rankName={competitive.rankName} imageKey={competitive.rankImageKey} currentExp={competitive.exp} />}
           {presence && (
             <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-[var(--status-green)]/12 px-2.5 text-xs font-semibold text-[var(--status-green)]">

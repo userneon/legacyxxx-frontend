@@ -4,7 +4,7 @@ import { get, post, del, type CallOptions } from "./client"
  * Notifications service. Backs the header bell: the player's own feed, marking it read, and
  * clearing it. Rows are written by the platform, never by the browser.
  */
-export type NotificationKind = "penalty" | "match" | "system"
+export type NotificationKind = "penalty" | "match" | "system" | "clan"
 
 export interface NotificationEntry {
   id: string

@@ -153,6 +153,8 @@ async function toApiError(response: Response): Promise<ApiError> {
         if (apiFields && typeof apiFields === "object") {
           fields = apiFields as Record<string, string[]>
         }
+        const code = (body as { code?: unknown }).code
+        if (typeof code === "string" && /^clan_[a-z_]{2,40}$/.test(code)) reason = code
         if ((body as { error?: unknown }).error === "weekly_cooldown") {
           reason = "weekly_cooldown"
           const nextEligibleAt = (body as { nextEligibleAt?: unknown }).nextEligibleAt

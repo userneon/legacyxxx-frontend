@@ -62,6 +62,8 @@ export interface ProfileOverview {
   presence: { serverId: string; serverName: string; connectAddress: string | null; map: string } | null
   /** The player linked Discord (only the fact is public). Absent from an older API: no mark. */
   discordLinked?: boolean
+  /** The clan the player is in (absent when the clan feature is off). */
+  clan?: { id: string; name: string; tag: string } | null
   /** Links the player shows on the profile (the Owner role). Absent or empty: nothing is shown. */
   links?: ProfileLink[] | null
   /** The respect count and whether the signed-in viewer gave one. Absent: no Respect button. */
