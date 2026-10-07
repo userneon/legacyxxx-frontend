@@ -513,7 +513,9 @@ export async function mockResponse(method: string, path: string, query: Query, b
     if (!clan) throw notFound()
     return { ...clan, description: "Ranked five-stack. Evenings, Ulaanbaatar time.", members: Array.from({ length: clan.currentPlayers }, (_, index) => ({ id: `m${index}`, name: index === 0 ? "Leader" : `Member ${index}`, role: index === 0 ? "leader" : index === 1 ? "co-leader" : "member", avatar: "", description: "" })), viewer: { role: "leader", canModerate: true } }
   }
-  if (path === "/api/v1/moderation/access") return { canManage: true, role: "OWNER", can: { ban: true, unban: true, edit: true } }
+  if (path === "/api/v1/moderation/access") return { canManage: true, role: "OWNER", canApprove: true, requestedPenaltyIds: [], can: { ban: true, unban: true, edit: true } }
+  if (path === "/api/v1/moderation/lift-requests") return [{ id: "r1", penaltyId: "p1", type: "ban", player: "Enkh.", avatar: "", penaltyReason: "Aimbot", reason: null, requestedBy: "Admin", at: new Date(Date.now() - 2 * HOUR).toISOString() }]
+  if (path.startsWith("/api/v1/moderation/lift-requests/")) return undefined
   if (path.startsWith("/api/v1/moderation/penalties") && method !== "GET") return path === "/api/v1/moderation/penalties" ? { penaltyId: "new" } : undefined
   if (path === "/api/v1/wallet/me") {
     if (!signedIn()) throw unauthorized()

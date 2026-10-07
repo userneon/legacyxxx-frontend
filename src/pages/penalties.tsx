@@ -1,4 +1,4 @@
-import { IssuePenaltyDialog, useModerationAccess } from "@/components/penalty-staff"
+import { IssuePenaltyDialog, LiftRequests, useModerationAccess } from "@/components/penalty-staff"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
 import { useEffect, useMemo, useState, type CSSProperties } from "react"
 import { ChevronRight, ExternalLink, LoaderCircle, Plus, RotateCcw, Search, ShieldAlert, ShieldCheck } from "lucide-react"
@@ -305,6 +305,8 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
               <SummaryCell label="Mutes" value={firstLoad ? null : counts.comm} color={TYPE_META.comm.color} selected={type === "comm"} onClick={() => update({ type: type === "comm" ? null : "comm" })} />
               <SummaryCell label="Gags" value={firstLoad ? null : counts.gag} color={TYPE_META.gag.color} selected={type === "gag"} onClick={() => update({ type: type === "gag" ? null : "gag" })} />
             </div>
+
+            {access && <LiftRequests access={access} onDecided={refetch} />}
 
             {user && <YourStatus penalties={mine ?? []} loading={mineLoading} onDetails={(penalty) => update({ penalty: penalty.id })} />}
           </div>

@@ -2,7 +2,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 import { Plus, RotateCcw, ShieldCheck } from "lucide-react"
 
-import { penaltyAdminService, type ModerationAccess, type PenaltyKind } from "@/api/moderation-access"
+import { penaltyAdminService, type LiftRequest, type ModerationAccess, type PenaltyKind } from "@/api/moderation-access"
 import type { ApiError, PenaltyEntry } from "@/api/types"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
+import { PlayerAvatar } from "@/components/player-avatar"
+import { formatRelativeTime } from "@/components/relative-time"
 import { cn } from "@/lib/utils"
 
 /** How long a penalty lasts, in minutes (0 is permanent). Shown as choices so nobody types a length by hand. */
@@ -49,17 +51,32 @@ function TermChoice({ value, onChange }: { value: number | null; onChange: (minu
   )
 }
 
-/** Footer button of a penalty's drawer for staff: unban, unmute or ungag. Nothing for a penalty that is already lifted. */
+/** Requests sent during this visit, so the drawer shows "requested" again without asking the server. */
+const sentRequests = new Set<string>()
+
+/**
+ * Footer button of a penalty's drawer for staff: unban, unmute or ungag. An Admin lifts their own penalties at once; on
+ * someone else's the same button asks a Manager or Owner to approve. Nothing for a penalty that is already lifted.
+ */
 export function PenaltyLiftButton({ penalty, access, onChanged }: { penalty: PenaltyEntry; access: ModerationAccess; onChanged: () => void }) {
+  const { user } = useAuth()
   const [busy, setBusy] = useState(false)
   if (penalty.isUnbanned || !access.can.unban) return null
   const lift = LIFT_LABEL[penalty.type] ?? "Lift"
+  const own = Boolean(user?.steamId && penalty.adminSteamId === user.steamId)
+  const asks = access.role === "ADMIN" && !own
+  const asked = asks && (sentRequests.has(penalty.id) || Boolean(access.requestedPenaltyIds?.includes(penalty.id)))
   const run = async () => {
-    if (!window.confirm(`${lift} ${penalty.player}?`)) return
+    if (!window.confirm(asks ? `Ask a Manager to ${lift.toLowerCase()} ${penalty.player}?` : `${lift} ${penalty.player}?`)) return
     setBusy(true)
     try {
-      await penaltyAdminService.lift(penalty.id)
-      toast.success(`${penalty.player}: ${lift.toLowerCase()} done`)
+      const result = await penaltyAdminService.lift(penalty.id)
+      if (result.status === "requested") {
+        sentRequests.add(penalty.id)
+        toast.success("Request sent", { description: "A Manager or Owner will decide." })
+      } else {
+        toast.success(`${penalty.player}: ${lift.toLowerCase()} done`)
+      }
       onChanged()
     } catch (error) {
       toast.error("That did not work", { description: failure(error) })
@@ -68,9 +85,46 @@ export function PenaltyLiftButton({ penalty, access, onChanged }: { penalty: Pen
     }
   }
   return (
-    <button type="button" disabled={busy} onClick={() => void run()} className="flex h-10 flex-1 items-center justify-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-semibold text-[var(--status-green)] transition-colors hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 disabled:opacity-50">
-      <RotateCcw className="size-4" aria-hidden="true" /> {lift}
+    <button type="button" disabled={busy || asked} onClick={() => void run()} className="flex h-10 flex-1 items-center justify-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-semibold text-[var(--status-green)] transition-colors hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 disabled:opacity-60">
+      <RotateCcw className="size-4" aria-hidden="true" /> {asked ? "Requested" : asks ? `Request ${lift.toLowerCase()}` : lift}
     </button>
+  )
+}
+
+/** Owners and Managers: the unban requests waiting for a decision, above the Penalties list. */
+export function LiftRequests({ access, onDecided }: { access: ModerationAccess; onDecided: () => void }) {
+  const { data, refetch } = useApiQuery<LiftRequest[]>((signal) => penaltyAdminService.getLiftRequests({ signal }), { enabled: Boolean(access.canApprove), queryKey: `lift-requests:${access.role}` })
+  const [busy, setBusy] = useState("")
+  const requests = data ?? []
+  if (!access.canApprove || requests.length === 0) return null
+  const decide = async (request: LiftRequest, approve: boolean) => {
+    setBusy(request.id)
+    try {
+      await penaltyAdminService.decideLift(request.id, approve)
+      toast.success(approve ? `${request.player}: ${(LIFT_LABEL[request.type] ?? "lift").toLowerCase()} done` : "Request declined")
+      void refetch()
+      if (approve) onDecided()
+    } catch (error) {
+      toast.error("That did not work", { description: failure(error) })
+    } finally {
+      setBusy("")
+    }
+  }
+  return (
+    <section aria-label="Unban requests" className="flex flex-col gap-2">
+      <h2 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-dim)]">Unban requests · {requests.length}</h2>
+      {requests.map((request) => (
+        <div key={request.id} className="flex items-center gap-3 rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3">
+          <PlayerAvatar avatar={request.avatar} name={request.player} className="size-10 rounded-[10px] text-sm" />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[13px] font-medium">{request.player} <span className="text-[var(--text-dim)]">· {LIFT_LABEL[request.type] ?? "Lift"}</span></span>
+            <span className="block truncate text-[11px] text-[var(--text-dim)]">{request.requestedBy} asked {formatRelativeTime(new Date(request.at))} · {request.penaltyReason}</span>
+          </span>
+          <Button type="button" size="sm" disabled={busy === request.id} onClick={() => void decide(request, true)}>Approve</Button>
+          <Button type="button" variant="outline" size="sm" disabled={busy === request.id} onClick={() => void decide(request, false)}>Decline</Button>
+        </div>
+      ))}
+    </section>
   )
 }
 
