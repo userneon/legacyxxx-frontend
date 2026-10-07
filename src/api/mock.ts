@@ -284,7 +284,7 @@ function skinCollections(query: Query) {
   let list = mockCollections().filter((entry) => !search || `${entry.name} ${entry.author.username}`.toLowerCase().includes(search))
   if (sort === "mine") list = list.filter((entry) => entry.author.steamId === "mock-me")
   list = [...list].sort((a, b) => (sort === "new" ? a.days - b.days : b.applies - a.applies))
-  return { collections: list.map(({ days, ...entry }) => ({ ...entry, createdAt: new Date(Date.now() - days * 24 * HOUR).toISOString() })) }
+  return { collections: list.map(({ days, ...entry }) => ({ ...entry, itemCount: entry.items.length, mine: entry.author.steamId === "mock-me", createdAt: new Date(Date.now() - days * 24 * HOUR).toISOString() })) }
 }
 
 const MOCK_TOKEN = "mock-session"
@@ -534,7 +534,10 @@ export async function mockResponse(method: string, path: string, query: Query, b
     if (!signedIn()) throw unauthorized()
     return { membership: null, pendingClanIds: ["c3"], invites: [{ clan: { ...MOCK_CLANS[2], joinMode: "request" }, at: new Date(Date.now() - HOUR).toISOString() }] }
   }
-  if (/^\/api\/v1\/skinchanger\/collections\/[^/]+\/apply$/.test(path)) return { version: 2, applied: 6 }
+  if (/^\/api\/v1\/skinchanger\/collections\/[^/]+\/apply$/.test(path)) return { version: 2, applied: 6, skipped: 0 }
+  if (/^\/api\/v1\/skinchanger\/collections\/[^/]+\/like$/.test(path)) return { likes: 1, liked: true }
+  if (method === "POST" && path === "/api/v1/skinchanger/collections") return { id: "col-new" }
+  if (method === "DELETE" && path.startsWith("/api/v1/skinchanger/collections/")) return { removed: true }
   if (path === "/api/v1/clans") return MOCK_CLANS
   if (path === "/api/v1/clans/leaderboard") return { clans: MOCK_CLANS.map((clan, index) => ({ ...clan, rank: index + 1, totalExp: 9400 - index * 2100, matches: 120 - index * 30, wins: 70 - index * 20 })) }
   if (path.endsWith("/activity")) return [{ id: "1", text: "Member 2 joined", at: new Date(Date.now() - 2 * HOUR).toISOString() }, { id: "2", text: "Member 4 asked to join", at: new Date(Date.now() - 5 * HOUR).toISOString() }, { id: "3", text: "Leader created the clan", at: new Date(Date.now() - 3 * 24 * HOUR).toISOString() }]

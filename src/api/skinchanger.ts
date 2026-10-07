@@ -31,6 +31,10 @@ export interface SkinCollection {
   applies: number
   likes: number
   liked: boolean
+  /** Made by the viewer, who can remove it. */
+  mine: boolean
+  /** All items in the collection; `items` is only the preview. */
+  itemCount: number
   items: SkinCollectionItem[]
 }
 export type SkinCollectionSort = "popular" | "new" | "mine"
@@ -63,8 +67,18 @@ export const skinchangerService = {
   getCollections(filters: { sort: SkinCollectionSort; query?: string }, options?: CallOptions) {
     return get<{ collections: SkinCollection[] }>("/skinchanger/collections", filters, options)
   },
-  applyCollection(id: string, team: TeamScope, options?: CallOptions) {
-    return post<{ version: number; applied: number }>(`/skinchanger/collections/${encodeURIComponent(id)}/apply`, { team }, options)
+  shareCollection(input: { name: string; description: string }, options?: CallOptions) {
+    return post<{ id: string }>("/skinchanger/collections", input, options)
+  },
+  removeCollection(id: string, options?: CallOptions) {
+    return request<{ removed: boolean }>(`/skinchanger/collections/${encodeURIComponent(id)}`, { ...options, method: "DELETE" })
+  },
+  likeCollection(id: string, liked: boolean, options?: CallOptions) {
+    return put<{ likes: number; liked: boolean }>(`/skinchanger/collections/${encodeURIComponent(id)}/like`, { liked }, options)
+  },
+  /** Replaces the whole loadout with the collection's look. */
+  applyCollection(id: string, options?: CallOptions) {
+    return post<{ version: number; applied: number; skipped: number }>(`/skinchanger/collections/${encodeURIComponent(id)}/apply`, {}, options)
   },
   getStatus(options?: CallOptions) {
     return get<{ jobs: SkinchangerJob[] }>("/skinchanger/status", undefined, options)

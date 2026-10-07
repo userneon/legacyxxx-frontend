@@ -20,8 +20,8 @@ export const FEATURES = {
   tournaments: true,
   /** The Grid Scan as the page backdrop while a profile is open. Shown on every dev server, or with VITE_FEATURE_PROFILE_GRID=1. */
   profileGrid: import.meta.env.DEV || import.meta.env.VITE_FEATURE_PROFILE_GRID === "1",
-  /** Community skin collections on the Skinchanger page. Design preview only (dev servers) until the server endpoints exist. */
-  skinCollections: import.meta.env.DEV,
+  /** Community skin collections on the Skinchanger page. The server needs the skin_collections migration and a deploy. */
+  skinCollections: true,
   /** Two players side by side. */
   compare: true,
 } as const

@@ -1205,7 +1205,7 @@ export function SkinchangerPage() {
       {/* pt-5 leaves room for the cards' hover lift: the scroll area clips anything above its top. */}
       <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 pb-7 pt-5">
         {view === "collections" && isFeatureEnabled("skinCollections") ? (
-          <SkinCollections team={viewTeam} onApplied={() => { refetchLoadout(); setSkinchangerView("loadout") }} />
+          <SkinCollections onApplied={() => { refetchLoadout(); setSkinchangerView("loadout") }} />
         ) : gridError ? (
           <QueryState loading={false} error={{ ...gridError, message: "Could not load the collection. Please try again." }} empty={false} onRetry={() => { refetchFirearms(); refetchKnives(); refetchGloves(); refetchLoadout() }} />
         ) : gridLoading ? (
