@@ -66,22 +66,28 @@ function hasBanner(user: ProfileOverview["user"]) {
   return Boolean(user.steamMedia?.backgroundVideo || user.steamBackground)
 }
 
-function Banner({ user }: { user: ProfileOverview["user"] }) {
+/**
+ * The player's Steam profile background fills the whole profile, behind everything. It stays put while the page scrolls
+ * and sits under a dark overlay so the text on top is always readable. No background: nothing is drawn.
+ */
+function Scene({ user }: { user: ProfileOverview["user"] }) {
   const video = user.steamMedia?.backgroundVideo
   const [videoFailed, setVideoFailed] = useState(false)
   const still = user.steamBackground
   if (!hasBanner(user)) return null
   return (
-    <div aria-hidden="true" className="relative h-[180px] overflow-hidden bg-[var(--card-surface)]">
-      {video && !videoFailed && !prefersReducedMotion() ? (
-        <video className="absolute inset-0 size-full object-cover opacity-60" autoPlay muted loop playsInline poster={still ?? undefined} onError={() => setVideoFailed(true)}>
-          {video.webm && <source src={video.webm} type="video/webm" />}
-          {video.mp4 && <source src={video.mp4} type="video/mp4" />}
-        </video>
-      ) : still ? (
-        <div className="absolute inset-0 bg-cover bg-center opacity-60" style={{ backgroundImage: `url("${still}")` }} />
-      ) : null}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[var(--card-surface)]" />
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+      <div className="sticky top-0 h-[calc(100vh-72px)] min-h-[480px] overflow-hidden bg-[var(--bg)]">
+        {video && !videoFailed && !prefersReducedMotion() ? (
+          <video className="absolute inset-0 size-full object-cover opacity-45" autoPlay muted loop playsInline poster={still ?? undefined} onError={() => setVideoFailed(true)}>
+            {video.webm && <source src={video.webm} type="video/webm" />}
+            {video.mp4 && <source src={video.mp4} type="video/mp4" />}
+          </video>
+        ) : still ? (
+          <div className="absolute inset-0 bg-cover bg-center opacity-45" style={{ backgroundImage: `url("${still}")` }} />
+        ) : null}
+        <div className="absolute inset-0 bg-gradient-to-b from-[var(--bg)]/55 via-[var(--bg)]/70 to-[var(--bg)]/92" />
+      </div>
     </div>
   )
 }
@@ -656,12 +662,11 @@ export function ProfilePage({ userId }: { userId?: string }) {
   const isOwnPenalty = Boolean(me && me.id === data.user.id)
 
   return (
-    <div ref={topRef}>
-      <div className="px-6 pt-6 max-md:px-4 max-md:pt-4">
-        {/* The banner lives inside the profile box: the box clips it, it never bleeds past the box edges. */}
+    <div ref={topRef} className="relative isolate min-h-full">
+      <Scene user={data.user} />
+      <div className="relative px-6 pt-6 max-md:px-4 max-md:pt-4">
         <section aria-label="Profile" className="overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-          <Banner user={data.user} />
-          <div className={cn("px-5 pb-5 max-md:px-4", hasBanner(data.user) ? "-mt-14" : "pt-5")}>
+          <div className="px-5 pb-5 pt-5 max-md:px-4">
             <Header overview={data} onVisibilityChange={refetch} />
           </div>
         </section>
