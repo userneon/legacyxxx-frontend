@@ -9,7 +9,7 @@ import { clansService } from "@/api"
 import { CLAN_ART_RULES, clanArtProblem, clanArtSrc, type ClanArtKind } from "@/api/clans"
 import type { ClanCard, ClanDetail, ClanJoinRequest, ClanRole, MyClanState } from "@/api/types"
 import { ClanMark } from "@/components/clan-mark"
-import { ActivityPanel, CLAN_FEE, InvitePanel, MemberControls, ModerateClan, RenameForm, clanFailure, roleLabel } from "@/components/clan-manage"
+import { ActivityPanel, ManagersSection, CLAN_FEE, InvitePanel, MemberControls, ModerateClan, RenameForm, clanFailure, roleLabel } from "@/components/clan-manage"
 import { Button } from "@/components/ui/button"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -555,6 +555,7 @@ function EditLook({ clan, isLeader, onChanged }: { clan: ClanDetail; isLeader: b
         <button type="button" disabled={busy || tooFew || unchanged} onClick={() => void run(() => clansService.updateClan(clan.id, { description: description.trim(), joinMode, maxPlayers }), "Settings saved")} className="lx-primary-button inline-flex h-9 items-center rounded-lg px-3.5 text-[13px] font-semibold disabled:opacity-50">Save settings</button>
         {tooFew && <p className="mt-2 text-[13px] text-[var(--status-red)]">The clan already has {clan.currentPlayers} members.</p>}
       </div>
+      {isLeader && <ManagersSection clan={clan} onChanged={onChanged} />}
       {isLeader && <RenameForm clan={clan} onChanged={onChanged} />}
       <ArtSlot kind="logo" busy={busy} preview={clanArtSrc(clan.logo)} onPick={(file) => void run(() => clansService.uploadArt(clan.id, "logo", file), "Logo saved")} onRemove={() => void run(() => clansService.removeArt(clan.id, "logo"), "Logo removed")} />
       <ArtSlot kind="banner" busy={busy} preview={clanArtSrc(clan.thumbnail)} onPick={(file) => void run(() => clansService.uploadArt(clan.id, "banner", file), "Banner saved")} onRemove={() => void run(() => clansService.removeArt(clan.id, "banner"), "Banner removed")} />

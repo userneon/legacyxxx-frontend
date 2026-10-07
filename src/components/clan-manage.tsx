@@ -42,14 +42,14 @@ export function clanFailure(error: unknown, fallback: string) {
   return fallback
 }
 
-const ROLE_LABEL: Record<ClanRole, string> = { leader: "Leader", "co-leader": "Co-leader", member: "Member" }
+const ROLE_LABEL: Record<ClanRole, string> = { leader: "Leader", "co-leader": "Manager", member: "Member" }
 export function roleLabel(role: string) {
   return ROLE_LABEL[role as ClanRole] ?? role
 }
 
 const iconButton = "flex size-8 items-center justify-center rounded-lg text-[var(--text-dim)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)] disabled:opacity-50"
 
-/** The buttons next to a member: make or unmake a co-leader, hand the clan over, remove. Only what the viewer may do shows. */
+/** The buttons next to a member: make or unmake a manager, hand the clan over, remove. Only what the viewer may do shows. */
 export function MemberControls({ clanId, member, viewerRole, onChanged }: { clanId: string; member: ClanMember; viewerRole: ClanRole | null; onChanged: () => void }) {
   const [busy, setBusy] = useState(false)
   const target = member.role as ClanRole
@@ -71,7 +71,7 @@ export function MemberControls({ clanId, member, viewerRole, onChanged }: { clan
     <span className="mr-2 flex shrink-0 items-center">
       {viewerRole === "leader" && (
         <>
-          <button type="button" disabled={busy} aria-label={target === "co-leader" ? `Make ${member.name} a member` : `Make ${member.name} a co-leader`} title={target === "co-leader" ? "Make a member" : "Make co-leader"} onClick={() => void run(() => clansService.setRole(clanId, member.id, target === "co-leader" ? "member" : "co-leader"), target === "co-leader" ? `${member.name} is a member again` : `${member.name} is a co-leader`)} className={iconButton}>
+          <button type="button" disabled={busy} aria-label={target === "co-leader" ? `Make ${member.name} a member` : `Make ${member.name} a manager`} title={target === "co-leader" ? "Remove manager" : "Make manager"} onClick={() => void run(() => clansService.setRole(clanId, member.id, target === "co-leader" ? "member" : "co-leader"), target === "co-leader" ? `${member.name} is a member again` : `${member.name} is a manager`)} className={iconButton}>
             <Crown className="size-4" aria-hidden="true" />
           </button>
           <button type="button" disabled={busy} aria-label={`Hand the clan to ${member.name}`} title="Make leader" onClick={() => { if (window.confirm(`Hand the clan to ${member.name}? You become a co-leader.`)) void run(() => clansService.transfer(clanId, member.id), `${member.name} leads the clan now`) }} className={iconButton}>
@@ -85,6 +85,43 @@ export function MemberControls({ clanId, member, viewerRole, onChanged }: { clan
         </button>
       )}
     </span>
+  )
+}
+
+/** Edit clan: the leader picks which members are managers (they handle requests, invitations and members). */
+export function ManagersSection({ clan, onChanged }: { clan: ClanDetail; onChanged: () => void }) {
+  const [busy, setBusy] = useState("")
+  const others = (clan.members ?? []).filter((member) => member.role !== "leader")
+  const toggle = async (member: ClanMember) => {
+    const makeManager = member.role !== "co-leader"
+    setBusy(member.id)
+    try {
+      await clansService.setRole(clan.id, member.id, makeManager ? "co-leader" : "member")
+      toast.success(makeManager ? `${member.name} is a manager` : `${member.name} is a member again`)
+      onChanged()
+    } catch (error) {
+      toast.error("That did not work", { description: clanFailure(error, "Try again in a moment.") })
+    } finally {
+      setBusy("")
+    }
+  }
+  return (
+    <div className="flex flex-col gap-2">
+      <Label>Managers</Label>
+      {others.length === 0 ? (
+        <p className="text-[13px] text-[var(--text-dim)]">No other members yet.</p>
+      ) : (
+        <ul className="flex flex-col rounded-lg border border-[var(--line)]">
+          {others.map((member) => (
+            <li key={member.id} className="flex items-center gap-3 border-b border-[var(--line-soft)] px-3 py-2 last:border-b-0">
+              <PlayerAvatar avatar={member.avatar} name={member.name} className="size-7 rounded-lg text-[10px]" />
+              <span className="min-w-0 flex-1 truncate text-[13px]">{member.name}</span>
+              <Button type="button" size="sm" variant={member.role === "co-leader" ? "default" : "outline"} disabled={busy === member.id} onClick={() => void toggle(member)}>{member.role === "co-leader" ? "Manager ✓" : "Make manager"}</Button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   )
 }
 
