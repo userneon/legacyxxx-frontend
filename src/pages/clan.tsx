@@ -7,7 +7,8 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { clansService } from "@/api"
 import { CLAN_ART_RULES, clanArtProblem, clanArtSrc, type ClanArtKind } from "@/api/clans"
-import type { ClanCard, ClanDetail, ClanJoinRequest, ClanRankEntry, ClanRole, MyClanState } from "@/api/types"
+import type { ClanCard, ClanDetail, ClanJoinRequest, ClanRole, MyClanState } from "@/api/types"
+import { ClanMark } from "@/components/clan-mark"
 import { ActivityPanel, CLAN_FEE, InvitePanel, MemberControls, ModerationPanel, RenameForm, clanFailure, roleLabel } from "@/components/clan-manage"
 import { Button } from "@/components/ui/button"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
@@ -26,16 +27,6 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-
-/** A clan's mark: its logo, or its tag on a plain tile when it has none. */
-function ClanMark({ logo, tag, className }: { logo?: string | null; tag: string; className?: string }) {
-  const src = clanArtSrc(logo)
-  return (
-    <div className={cn("flex shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--raised)] text-[13px] font-bold tracking-wide text-[var(--text)]", className, !src && tag.length > 3 && /size-(8|10|12)\b/.test(className ?? "") && "text-[10px] tracking-normal")}>
-      {src ? <img src={src} alt="" className="size-full object-cover" /> : tag}
-    </div>
-  )
-}
 
 /** The banner a clan uploaded, under a solid fade so text stays readable; plain when it has none. */
 function ClanBanner({ banner, className }: { banner?: string | null; className?: string }) {
@@ -100,7 +91,6 @@ const PAGE_SIZE = 24
 function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void }) {
   const { isAuthenticated, loginWithSteam } = useAuth()
   const [creating, setCreating] = useState(false)
-  const [tab, setTab] = useState<"all" | "ranking">("all")
   const [search, setSearch] = useState("")
   const [sort, setSort] = useState<"new" | "name">("new")
   const [limit, setLimit] = useState(PAGE_SIZE)
@@ -108,10 +98,6 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
   const { data: clans, loading, error, refetch } = useApiQuery<ClanCard[]>(
     (signal) => clansService.getClans({ q: q || undefined, sort, limit }, { signal }),
     { queryKey: `${q}|${sort}|${limit}`, keepPreviousData: true },
-  )
-  const { data: ranking, loading: rankingLoading, error: rankingError, refetch: refetchRanking } = useApiQuery<ClanRankEntry[]>(
-    (signal) => clansService.getRanking({ signal }),
-    { enabled: tab === "ranking" },
   )
   const { data: mineState, refetch: refetchMine } = useApiQuery<MyClanState>(
     (signal) => clansService.getMine({ signal }),
@@ -130,9 +116,9 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
   return (
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
-        <PageTabs ariaLabel="Clans" value={tab} onChange={setTab} options={[{ value: "all", label: "All clans" }, { value: "ranking", label: "Ranking" }]} />
+        <PageTabs ariaLabel="Clans" value="all" onChange={() => undefined} options={[{ value: "all", label: "All clans" }]} />
         <PageBarEnd>
-          {tab === "all" && (
+          {(
             <>
               <div className="flex items-center gap-1 text-[13px]" role="group" aria-label="Sort">
                 {(["new", "name"] as const).map((value) => (
@@ -158,26 +144,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
         <div className="flex flex-col gap-4 px-6 pb-4 pt-4">
           {invites.length > 0 && !mine && <Invitations invites={invites} onChanged={changed} />}
 
-          {tab === "ranking" ? (
-            <>
-              <QueryState loading={rankingLoading} error={rankingError} empty={!rankingLoading && !rankingError && (ranking ?? []).length === 0} emptyMessage="No clan has played yet." onRetry={refetchRanking} />
-              {!rankingLoading && !rankingError && (ranking ?? []).length > 0 && (
-                <div className="overflow-hidden rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-                  <div className="grid grid-cols-[40px_1fr_70px_90px_60px] items-center gap-3 border-b border-[var(--line-soft)] px-4 py-2 text-[11px] uppercase tracking-wider text-[var(--text-dim)]"><span>#</span><span>Clan</span><span className="text-right">Members</span><span className="text-right">Total EXP</span><span className="text-right">Wins</span></div>
-                  {(ranking ?? []).map((entry) => (
-                    <button key={entry.id} type="button" onClick={() => onClanNavigate(entry.id)} className="grid w-full grid-cols-[40px_1fr_70px_90px_60px] items-center gap-3 border-b border-[var(--line-soft)] px-4 py-2.5 text-left text-[13px] transition-colors last:border-b-0 hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/60">
-                      <span className={cn("font-semibold", entry.rank === 1 ? "text-[var(--brand-bright)]" : "text-[var(--text-dim)]")}>{entry.rank}</span>
-                      <span className="flex min-w-0 items-center gap-3"><ClanMark logo={entry.logo} tag={entry.tag} className="size-8 rounded-lg text-[10px]" /><span className="truncate font-medium">{entry.name}</span><span className="shrink-0 text-[11px] text-[var(--text-dim)]">[{entry.tag}]</span></span>
-                      <span className="text-right text-[var(--text-dim)]">{entry.currentPlayers}</span>
-                      <span className="text-right font-semibold">{entry.totalExp.toLocaleString()}</span>
-                      <span className="text-right text-[var(--text-dim)]">{entry.wins}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-              <p className="text-[11px] text-[var(--text-dim)]">Total EXP of a clan's members from ranked matches.</p>
-            </>
-          ) : (
+          {(
             <>
               {!loading && !error && !q && (
                 <div className="lx-stat-grid grid-cols-3">

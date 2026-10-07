@@ -1,3 +1,5 @@
+import { ClanLadder } from "@/pages/leaders-clans"
+import { GRID } from "@/pages/leaders-grid"
 import { DiscordLinkedMark } from "@/components/discord-linked-mark"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react"
@@ -14,8 +16,6 @@ import { PlayerAvatar } from "@/components/player-avatar"
 import { CompetitiveRankBadge, RankLabel, rankTierColor } from "@/components/competitive-rank-badge"
 import { Skeleton } from "@/components/ui/skeleton"
 
-/** One grid for the header row, every player row and the pinned "You" row. */
-const GRID = "grid grid-cols-[56px_minmax(220px,1fr)_150px_110px_90px_100px_90px] items-center gap-4 px-6"
 const SEARCH_DEBOUNCE_MS = 250
 
 const SORTS: { value: LeaderboardSort; label: string; metric: string }[] = [
@@ -36,6 +36,10 @@ const formatWinRate = (player: CompetitiveLeaderboardEntry) => (player.matches_c
 const METRIC: Record<LeaderboardSort, (player: CompetitiveLeaderboardEntry) => string> = { exp: formatExp, kd: formatKd, win: formatWinRate }
 
 const readSort = (value: string | null): LeaderboardSort => (value === "kd" || value === "win" ? value : "exp")
+
+/** The ladder switch next to the three player sorts: clans ranked by the EXP of their members. */
+type LadderView = LeaderboardSort | "clans"
+const VIEWS: { value: LadderView; label: string }[] = [...SORTS.map(({ value, label }) => ({ value, label })), { value: "clans", label: "Clans" }]
 
 /** Podium order on screen: silver, gold, bronze. */
 const PODIUM_ORDER = [2, 1, 3]
@@ -270,6 +274,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
   const { user } = useAuth()
   const [params, setParams] = useViewParams()
   const sort = readSort(params.get("sort"))
+  const clans = params.get("sort") === "clans"
   const [query, setQuery] = useState(params.get("q") ?? "")
   const search = (params.get("q") ?? "").trim().toLowerCase()
 
@@ -286,7 +291,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
     return () => window.clearTimeout(timer)
   }, [query, setParams])
 
-  const setSort = (value: LeaderboardSort) => {
+  const setSort = (value: LadderView) => {
     setParams((current) => {
       const next = new URLSearchParams(current)
       if (value === "exp") next.delete("sort")
@@ -297,7 +302,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
 
   const { data, loading, error, refetch } = useApiQuery<CompetitiveLeaderboardEntry[]>(
     (signal) => competitiveService.getLeaderboard({ signal }, { sort }),
-    { queryKey: `leaders:${sort}`, keepPreviousData: true },
+    { queryKey: `leaders:${sort}`, keepPreviousData: true, enabled: !clans },
   )
 
   const players = useMemo(() => [...(data ?? [])].sort((a, b) => a.position - b.position), [data])
@@ -314,24 +319,26 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
     <div className="scrollbar-hidden flex min-h-0 flex-1 overflow-x-auto">
       <div className="flex min-w-[900px] flex-1 flex-col">
         <PageBar>
-          <PageTabs ariaLabel="Sort by" lead="Ranked by" value={sort} onChange={setSort} options={SORTS} />
+          <PageTabs ariaLabel="Sort by" lead="Ranked by" value={clans ? "clans" : sort} onChange={setSort} options={VIEWS} />
           <PageBarEnd>
             {loading && players.length > 0 && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
-            <span key={sort} className="lx-swap-in text-[13px] text-[var(--text-dim)] max-xl:hidden">{SUBTITLE[sort]}</span>
+            <span key={clans ? "clans" : sort} className="lx-swap-in text-[13px] text-[var(--text-dim)] max-xl:hidden">{clans ? "Ranked by the total EXP of a clan's members." : SUBTITLE[sort]}</span>
             <label className={pageSearchClass}>
               <Search className="size-4 shrink-0 text-[var(--text-dim)]" />
               <input
                 type="search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                aria-label="Search player"
-                placeholder="Search player"
+                aria-label={clans ? "Search clan" : "Search player"}
+                placeholder={clans ? "Search clan" : "Search player"}
                 className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text)] outline-none placeholder:text-[var(--text-dim)]"
               />
             </label>
           </PageBarEnd>
         </PageBar>
 
+        {clans ? <ClanLadder search={search} /> : (
+          <>
         <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
           {/* pt-3 leaves room above the podium: cards lift 5px on hover and the scroll area clips anything above its top.
               The podium is its own layer, so the cards' lift and shadow never re-layer the table rows they overlap. */}
@@ -370,6 +377,8 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
         </div>
 
         {you && <PlayerRow player={you} sort={sort} you onOpen={() => open(you)} />}
+          </>
+        )}
       </div>
     </div>
   )
