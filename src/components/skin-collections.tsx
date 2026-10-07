@@ -19,6 +19,14 @@ const SORTS: Array<{ value: SkinCollectionSort; label: string }> = [
   { value: "mine", label: "Mine" },
 ]
 
+/** Says what went wrong, so a server that has not been updated yet is not mistaken for a broken page. */
+function loadFailure(error: ApiError) {
+  if (error.status === 404) return "Could not load collections: the server does not have them yet (404). Update the backend, then retry."
+  if (error.status === 0) return "Could not load collections: the server could not be reached. Check the connection and retry."
+  const detail = error.message && error.message.length < 140 ? `: ${error.message}` : ""
+  return `Could not load collections (${error.status})${detail}`
+}
+
 function daysAgo(iso: string) {
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000)
   return days < 1 ? "today" : days === 1 ? "yesterday" : `${days} days ago`
@@ -116,7 +124,7 @@ export function SkinCollections({ onApplied }: { onApplied: () => void }) {
       </div>
 
       {error ? (
-        <QueryState loading={false} error={{ ...error, message: "Could not load collections. Please try again." }} empty={false} onRetry={refetch} />
+        <QueryState loading={false} error={{ ...error, message: loadFailure(error) }} empty={false} onRetry={refetch} />
       ) : loading ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3" aria-hidden="true">
           {Array.from({ length: 6 }, (_, index) => <Skeleton key={index} className="h-[218px] rounded-[10px] bg-[var(--glass-fill)]" />)}
