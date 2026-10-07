@@ -5,6 +5,8 @@ import {
   ImageOff,
   Loader2,
   RotateCcw,
+  Check,
+  ChevronDown,
   Search,
   SlidersHorizontal,
   Sticker,
@@ -42,7 +44,7 @@ import defaultAgentT from "@/assets/skinchanger/default-agent-t.webp"
 import defaultAgentCt from "@/assets/skinchanger/default-agent-ct.webp"
 import defaultMusicKit from "@/assets/skinchanger/default-music-kit.webp"
 import { VerifiedBadge } from "@/components/verified-badge"
-import { Segmented } from "@/components/segmented"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { SkinCollections } from "@/components/skin-collections"
 import { isFeatureEnabled } from "@/lib/features"
 import teamTIcon from "@/assets/skinchanger/team-t.webp"
@@ -236,6 +238,7 @@ function cascadeTiles(root: HTMLElement | null, selector: string) {
 export function SkinchangerPage() {
   const [collection, setCollection] = useState<CollectionId>("skins")
   const [view, setView] = useState<"loadout" | "collections">("loadout")
+  const [viewMenuOpen, setViewMenuOpen] = useState(false)
   const [skinGroup, setSkinGroup] = useState<SkinchangerFirearmGroup | "agents">("Rifles")
   const [query, setQuery] = useState("")
   const [weaponClass, setWeaponClass] = useState("")
@@ -1189,7 +1192,20 @@ export function SkinchangerPage() {
           {renderTeamSwitch()}
           <div className="ml-auto flex items-center gap-4">
             {isFeatureEnabled("skinCollections") && (
-              <Segmented size="sm" value={view} onChange={setView} ariaLabel="Skinchanger view" options={[{ value: "loadout", label: "Loadout" }, { value: "collections", label: "Collections" }]} />
+              <Popover open={viewMenuOpen} onOpenChange={setViewMenuOpen}>
+                <PopoverTrigger aria-label="Skinchanger view" className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] pl-3 pr-2.5 text-[13px] font-medium text-[var(--text)] transition-colors hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
+                  {view === "loadout" ? "Loadout" : "Collections"}
+                  <ChevronDown className={cn("size-4 text-[var(--text-dim)] transition-transform duration-200", viewMenuOpen && "rotate-180")} />
+                </PopoverTrigger>
+                <PopoverContent align="end" sideOffset={6} className="w-44 rounded-xl border-[var(--line)] bg-[var(--panel)] p-1">
+                  {([["loadout", "Loadout"], ["collections", "Collections"]] as const).map(([id, label]) => (
+                    <button key={id} type="button" onClick={() => { setView(id); setViewMenuOpen(false) }} className="flex h-9 w-full items-center justify-between rounded-lg px-2.5 text-[13px] text-[var(--text)] transition-colors hover:bg-[var(--raised)]">
+                      {label}
+                      {view === id && <Check className="size-4 text-[var(--text-muted)]" />}
+                    </button>
+                  ))}
+                </PopoverContent>
+              </Popover>
             )}
             <span className="flex items-center gap-1.5 text-[13px] text-[var(--text-dim)] max-md:hidden">
               Pick skins, then type
