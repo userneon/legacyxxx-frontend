@@ -1,5 +1,7 @@
 import { BackgroundBeams } from "@/components/background-beams"
 import { ProfileBackdrop } from "@/components/profile-backdrop"
+import { ProfileScene } from "@/components/profile-scene"
+import { useProfileScene } from "@/lib/profile-scene"
 import { Component, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react"
 import { Navigate, Routes, Route, useNavigate, useLocation } from "react-router-dom"
 
@@ -88,13 +90,16 @@ export function App() {
     panelRef.current?.scrollTo({ top: 0 })
   }, [shownSection])
 
-  const profileGrid = currentPage === "profile" && isFeatureEnabled("profileGrid")
+  const profileScene = useProfileScene()
+  // A profile with a Steam background gets it behind the whole window; one without keeps the Grid Scan (dev) or the beams.
+  const profileGrid = currentPage === "profile" && isFeatureEnabled("profileGrid") && !profileScene
 
   // A narrow window, or the "Start with sidebar collapsed" setting, starts on the icon rail.
   return (
     <SidebarProvider defaultOpen={typeof window === "undefined" || (!getWebsitePreferences().sidebarCollapsed && window.innerWidth >= 1280)} style={{ "--sidebar-width": "264px", "--sidebar-width-icon": "62px" } as CSSProperties}>
       {/* On a profile the whole backdrop is the Grid Scan; the beams come back when the visitor leaves. */}
-      {!profileGrid && <BackgroundBeams />}
+      {!profileGrid && !profileScene && <BackgroundBeams />}
+      <ProfileScene scene={currentPage === "profile" ? profileScene : null} />
       <ProfileBackdrop active={profileGrid} />
       <AppSidebar currentPage={currentPage} onNavigate={handleNavigate} />
       {/* Floating shell: sidebar, top bar and content panel are separate cards with an 8px gutter. */}

@@ -20,6 +20,7 @@ import { PAGE_ROUTES, PAGE_TITLES, documentTitle } from "@/lib/routes"
 import { CompetitiveRankBadge, RankLabel, RankPill } from "@/components/competitive-rank-badge"
 import { FaceitLevelBadge } from "@/components/faceit-level-badge"
 import { MatchDetailsDialog } from "@/components/match-details-dialog"
+import { setProfileScene } from "@/lib/profile-scene"
 import { OwnerPanel } from "@/components/owner-panel"
 import { OwnerSections } from "@/components/owner-sections"
 import { PenaltyDetailSheet, StatusPill, TypeIcon, TYPE_META, formatPenaltyDate } from "@/components/penalty-detail-dialog"
@@ -56,41 +57,7 @@ function yearsSince(value: string) {
   return `${months} month${months === 1 ? "" : "s"}`
 }
 
-/** Motion always runs in full on Legacy-X (no reduced-motion mode). */
-const prefersReducedMotion = () => false
-
 /* ------------------------------------------------------------------ header */
-
-/** The player's own Steam profile background, when they have one. Without it the header starts with the avatar: no stock art. */
-function hasBanner(user: ProfileOverview["user"]) {
-  return Boolean(user.steamMedia?.backgroundVideo || user.steamBackground)
-}
-
-/**
- * The player's Steam profile background fills the whole profile, behind everything. It stays put while the page scrolls
- * and sits under a dark overlay so the text on top is always readable. No background: nothing is drawn.
- */
-function Scene({ user }: { user: ProfileOverview["user"] }) {
-  const video = user.steamMedia?.backgroundVideo
-  const [videoFailed, setVideoFailed] = useState(false)
-  const still = user.steamBackground
-  if (!hasBanner(user)) return null
-  return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-      <div className="sticky top-0 h-[calc(100vh-72px)] min-h-[480px] overflow-hidden bg-[var(--bg)]">
-        {video && !videoFailed && !prefersReducedMotion() ? (
-          <video className="absolute inset-0 size-full object-cover opacity-45" autoPlay muted loop playsInline poster={still ?? undefined} onError={() => setVideoFailed(true)}>
-            {video.webm && <source src={video.webm} type="video/webm" />}
-            {video.mp4 && <source src={video.mp4} type="video/mp4" />}
-          </video>
-        ) : still ? (
-          <div className="absolute inset-0 bg-cover bg-center opacity-45" style={{ backgroundImage: `url("${still}")` }} />
-        ) : null}
-        <div className="absolute inset-0 bg-gradient-to-b from-[var(--bg)]/55 via-[var(--bg)]/70 to-[var(--bg)]/92" />
-      </div>
-    </div>
-  )
-}
 
 function Avatar({ user }: { user: ProfileOverview["user"] }) {
   const animated = user.steamMedia?.animatedAvatar
@@ -634,6 +601,15 @@ export function ProfilePage({ userId }: { userId?: string }) {
   const { data, loading, error, refetch } = useApiQuery<ProfileOverview>((signal) => profileOverviewService.get(identity, { signal }), { queryKey: `profile:${identity}`, keepPreviousData: true })
   const faceitHidden = data?.hidden.includes("faceit") ?? true
   const { data: faceit } = useApiQuery<FaceitProfileData>((signal) => profileService.getFaceitProfile(data!.user.id, { signal }), { enabled: Boolean(data) && !faceitHidden, queryKey: `profile-faceit:${data?.user.id ?? ""}` })
+  // The player's Steam background is drawn by the app shell behind the whole window; it goes away with the page.
+  const sceneStill = data?.user.steamBackground ?? null
+  const sceneWebm = data?.user.steamMedia?.backgroundVideo?.webm ?? null
+  const sceneMp4 = data?.user.steamMedia?.backgroundVideo?.mp4 ?? null
+  useEffect(() => {
+    if (!sceneStill && !sceneWebm && !sceneMp4) { setProfileScene(null); return }
+    setProfileScene({ still: sceneStill, video: sceneWebm || sceneMp4 ? { webm: sceneWebm, mp4: sceneMp4 } : null })
+    return () => setProfileScene(null)
+  }, [sceneStill, sceneWebm, sceneMp4])
   const [openMatch, setOpenMatch] = useState<ProfileMatchRow | null>(null)
   const [openPenalty, setOpenPenalty] = useState<PenaltyEntry | null>(null)
   const topRef = useRef<HTMLDivElement>(null)
@@ -662,9 +638,8 @@ export function ProfilePage({ userId }: { userId?: string }) {
   const isOwnPenalty = Boolean(me && me.id === data.user.id)
 
   return (
-    <div ref={topRef} className="relative isolate min-h-full">
-      <Scene user={data.user} />
-      <div className="relative px-6 pt-6 max-md:px-4 max-md:pt-4">
+    <div ref={topRef}>
+      <div className="px-6 pt-6 max-md:px-4 max-md:pt-4">
         <section aria-label="Profile" className="overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
           <div className="px-5 pb-5 pt-5 max-md:px-4">
             <Header overview={data} onVisibilityChange={refetch} />
