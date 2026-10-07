@@ -1,10 +1,10 @@
 import { PageBar, PageBarEnd, PageTabs } from "@/components/page-tabs"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
-import { Clock, LoaderCircle, PenLine, RotateCcw, ShieldCheck, Star, X } from "lucide-react"
+import { Clock, Heart, Laugh, LoaderCircle, PenLine, RotateCcw, ShieldCheck, Star, ThumbsUp, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { feedbackService } from "@/api"
-import type { ApiError, FeedbackEntry } from "@/api/types"
+import type { ApiError, FeedbackEntry, FeedbackReaction } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useViewParams } from "@/hooks/use-view-params"
 import { useAuth } from "@/hooks/use-auth"
@@ -54,6 +54,62 @@ function Stars({ value, size = 14 }: { value: number; size?: number }) {
         />
       ))}
     </span>
+  )
+}
+
+const REACTION_ICONS: { key: FeedbackReaction; label: string; Icon: typeof ThumbsUp }[] = [
+  { key: "like", label: "Like", Icon: ThumbsUp },
+  { key: "love", label: "Love", Icon: Heart },
+  { key: "funny", label: "Funny", Icon: Laugh },
+]
+
+/** Like, Love or Funny under a review: one pick per player, tap again to take it back. */
+function ReactionBar({ entry }: { entry: FeedbackEntry }) {
+  const { isAuthenticated, loginWithSteam } = useAuth()
+  const [reactions, setReactions] = useState(entry.reactions ?? { like: 0, love: 0, funny: 0 })
+  const [mine, setMine] = useState<FeedbackReaction | null>(entry.myReaction ?? null)
+  const [busy, setBusy] = useState(false)
+  useEffect(() => { setReactions(entry.reactions ?? { like: 0, love: 0, funny: 0 }); setMine(entry.myReaction ?? null) }, [entry.reactions, entry.myReaction])
+  const pick = async (key: FeedbackReaction) => {
+    if (!isAuthenticated) { loginWithSteam(); return }
+    if (busy) return
+    const before = { reactions, mine }
+    const next = mine === key ? null : key
+    // Show it at once; the server's counts replace this when they arrive.
+    setReactions((current) => ({ ...current, ...(mine ? { [mine]: Math.max(0, current[mine] - 1) } : {}), ...(next ? { [next]: (mine === next ? current[next] : current[next] + 1) } : {}) }))
+    setMine(next)
+    setBusy(true)
+    try {
+      const result = await feedbackService.react(entry.id, next)
+      if (result.reactions) setReactions(result.reactions)
+      setMine(result.myReaction ?? null)
+    } catch {
+      setReactions(before.reactions)
+      setMine(before.mine)
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <div className="relative flex items-center gap-1.5" role="group" aria-label="Reactions">
+      {REACTION_ICONS.map(({ key, label, Icon }) => (
+        <button
+          key={key}
+          type="button"
+          aria-pressed={mine === key}
+          aria-label={`${label}${reactions[key] ? `, ${reactions[key]}` : ""}`}
+          title={isAuthenticated ? label : "Sign in with Steam to react"}
+          onClick={() => void pick(key)}
+          className={cn(
+            "inline-flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
+            mine === key ? "border-[var(--accent-solid)] bg-[var(--raised)] text-[var(--text)]" : "border-[var(--line)] text-[var(--text-dim)] hover:border-[var(--line-strong)] hover:text-[var(--text)]",
+          )}
+        >
+          <Icon className="size-3.5" aria-hidden="true" />
+          {reactions[key] > 0 && <span className="font-medium">{reactions[key]}</span>}
+        </button>
+      ))}
+    </div>
   )
 }
 
@@ -117,6 +173,7 @@ function ReviewCard({ entry, own, fresh, index, onOpenProfile }: { entry: Feedba
           </button>
         )}
       </div>
+      <ReactionBar entry={entry} />
     </article>
   )
 }

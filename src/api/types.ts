@@ -622,7 +622,12 @@ export interface FeedbackEntry {
   rating: number
   message: string
   date: string
+  /** How many players picked each reaction, and the signed-in viewer's own pick. Absent from an older API. */
+  reactions?: Record<FeedbackReaction, number>
+  myReaction?: FeedbackReaction | null
 }
+
+export type FeedbackReaction = "like" | "love" | "funny"
 
 export interface CreateFeedbackRequest {
   rating: number

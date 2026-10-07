@@ -115,6 +115,8 @@ function feedback() {
     rating: review.rating,
     message: review.message,
     date: new Date(Date.now() - index * 86_400_000 * 2).toISOString(),
+    reactions: { like: (index * 3) % 7, love: index % 3, funny: index % 2 },
+    myReaction: index === 1 ? "like" : null,
   }))
 }
 
@@ -515,6 +517,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
   }
   if (path === "/api/v1/moderation/access") return { canManage: true, role: "OWNER", canApprove: true, requestedPenaltyIds: [], can: { ban: true, unban: true, edit: true } }
   if (path === "/api/v1/moderation/lift-requests") return [{ id: "r1", penaltyId: "p1", type: "ban", player: "Enkh.", avatar: "", penaltyReason: "Aimbot", reason: null, requestedBy: "Admin", at: new Date(Date.now() - 2 * HOUR).toISOString() }]
+  if (path.startsWith("/api/v1/feedback/") && path.endsWith("/reaction")) return { reactions: { like: 3, love: 1, funny: 0 }, myReaction: (body as { reaction: string | null } | undefined)?.reaction ?? null }
   if (path === "/api/v1/moderation/notify") return undefined
   if (path.startsWith("/api/v1/moderation/lift-requests/")) return undefined
   if (path.startsWith("/api/v1/moderation/penalties") && method !== "GET") return path === "/api/v1/moderation/penalties" ? { penaltyId: "new" } : undefined
