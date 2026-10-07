@@ -1,7 +1,8 @@
 import { useState } from "react"
-import { Coins, Gavel, MinusCircle, PlusCircle, ShieldCheck } from "lucide-react"
+import { Bell, Coins, Gavel, MinusCircle, PlusCircle, ShieldCheck } from "lucide-react"
 import { toast } from "sonner"
 
+import { penaltyAdminService } from "@/api/moderation-access"
 import { walletService } from "@/api/wallet"
 import type { ApiError } from "@/api/types"
 import { IssuePenaltyDialog, useModerationAccess } from "@/components/penalty-staff"
@@ -69,6 +70,55 @@ function CoinsDialog({ open, onOpenChange, steamId, name, mode }: { open: boolea
   )
 }
 
+/** A message to one player: it lands in their notification bell. */
+function NotifyDialog({ open, onOpenChange, steamId, name }: { open: boolean; onOpenChange: (open: boolean) => void; steamId: string; name: string }) {
+  const [title, setTitle] = useState("")
+  const [body, setBody] = useState("")
+  const [busy, setBusy] = useState(false)
+  const valid = title.trim().length > 0 && body.trim().length > 0
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!valid || busy) return
+    setBusy(true)
+    try {
+      await penaltyAdminService.notify({ steamId, title: title.trim(), body: body.trim() })
+      toast.success(`Sent to ${name}`)
+      setTitle(""); setBody("")
+      onOpenChange(false)
+    } catch (error) {
+      const status = (error as Partial<ApiError> | null)?.status
+      toast.error("That did not work", { description: status === 404 ? "That player has not signed in to LEGACY-X yet." : status === 403 ? "You are not allowed to do that." : "Try again in a moment." })
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="rounded-2xl">
+        <DialogHeader>
+          <DialogTitle>Notify {name}</DialogTitle>
+          <DialogDescription>Only {name} sees this, in their notification bell. It is written to the audit log.</DialogDescription>
+        </DialogHeader>
+        <form className="mt-2 flex flex-col gap-4" onSubmit={(event) => void submit(event)}>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="notify-title">Title</Label>
+            <Input id="notify-title" maxLength={120} value={title} onChange={(event) => setTitle(event.target.value)} />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="notify-body">Message</Label>
+            <textarea id="notify-body" rows={4} maxLength={500} value={body} onChange={(event) => setBody(event.target.value)} className="w-full resize-none rounded-lg border border-[var(--line)] bg-transparent px-3 py-2 text-[13px] text-[var(--text)] outline-none transition-[border-color] focus:border-[var(--text-faint)]" />
+            <span className="text-right text-[11px] text-[var(--text-dim)]">{body.length}/500</span>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>Cancel</Button>
+            <button type="submit" disabled={!valid || busy} className="lx-primary-button inline-flex h-9 items-center gap-2 rounded-lg px-3.5 text-[13px] font-semibold disabled:opacity-50"><Bell className="size-4" aria-hidden="true" />Send</button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 /**
  * Staff-only "Staff" button in a player's profile header: give that player a penalty (their Steam ID is filled in) and,
  * for Owners, give or take coins. Players never see it.
@@ -78,6 +128,7 @@ export function ProfileStaffMenu({ steamId, name, onChanged }: { steamId: string
   const [open, setOpen] = useState(false)
   const [issuing, setIssuing] = useState(false)
   const [coins, setCoins] = useState<"grant" | "take" | null>(null)
+  const [notifying, setNotifying] = useState(false)
   if (!access || !steamId) return null
   const canIssue = access.can.ban || access.can.edit || access.can.unban
   const isOwner = access.role === "OWNER"
@@ -91,11 +142,13 @@ export function ProfileStaffMenu({ steamId, name, onChanged }: { steamId: string
         </PopoverTrigger>
         <PopoverContent align="center" sideOffset={8} className="w-52 rounded-xl border-[var(--line)] bg-[var(--panel)] p-1">
           {canIssue && <button type="button" className={item} onClick={() => { setOpen(false); setIssuing(true) }}><Gavel className="size-4 text-[var(--text-muted)]" aria-hidden="true" /> New penalty</button>}
+          <button type="button" className={item} onClick={() => { setOpen(false); setNotifying(true) }}><Bell className="size-4 text-[var(--text-muted)]" aria-hidden="true" /> Send notification</button>
           {isOwner && <button type="button" className={item} onClick={() => { setOpen(false); setCoins("grant") }}><PlusCircle className="size-4 text-[var(--text-muted)]" aria-hidden="true" /> Give coins</button>}
           {isOwner && <button type="button" className={item} onClick={() => { setOpen(false); setCoins("take") }}><MinusCircle className="size-4 text-[var(--text-muted)]" aria-hidden="true" /> Take coins</button>}
         </PopoverContent>
       </Popover>
       {canIssue && <IssuePenaltyDialog open={issuing} onOpenChange={setIssuing} access={access} initialSteamId={steamId} onIssued={onChanged} />}
+      <NotifyDialog open={notifying} onOpenChange={setNotifying} steamId={steamId} name={name} />
       {isOwner && <CoinsDialog open={coins !== null} onOpenChange={(next) => { if (!next) setCoins(null) }} steamId={steamId} name={name} mode={coins ?? "grant"} />}
     </>
   )

@@ -49,6 +49,11 @@ export const penaltyAdminService = {
     await put<void>(`/api/v1/moderation/penalties/${penaltyId}`, payload, options)
   },
 
+  /** A message from staff to one player, shown in their notification bell. */
+  async notify(payload: { steamId: string; title: string; body: string }, options?: CallOptions): Promise<void> {
+    await post<void>("/api/v1/moderation/notify", payload, options)
+  },
+
   async issue(payload: { steamId: string; type: PenaltyKind; durationMinutes: number; reason: string }, options?: CallOptions): Promise<{ penaltyId: string }> {
     return post<{ penaltyId: string }>("/api/v1/moderation/penalties", payload, options)
   },
