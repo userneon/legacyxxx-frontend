@@ -31,12 +31,30 @@ function mockNameStyle() {
 }
 function mockFrames() {
   const list: Array<[string, string, "free" | "coin" | "achievement", number, string]> = [
-    ["red-dragon", "Red Dragon", "free", 0, ""], ["crimson-thorns", "Crimson Thorns", "free", 0, ""], ["shattered-glass", "Shattered Glass", "free", 0, ""],
-    ["frost-ring", "Frost Ring", "coin", 200, ""], ["white-lily", "White Lily", "coin", 200, ""], ["inferno", "Inferno", "coin", 250, ""],
-    ["blood-moon", "Blood Moon", "coin", 300, ""], ["violet-moon", "Violet Moon", "coin", 300, ""], ["sakura-silk", "Sakura Silk", "coin", 300, ""],
-    ["cyber-violet", "Cyber Violet", "coin", 350, ""], ["oni-samurai", "Oni Samurai", "coin", 450, ""], ["emerald-dragon", "Emerald Dragon", "coin", 450, ""],
-    ["golden-crown", "Golden Crown", "achievement", 0, "Reach the Legacy rank"], ["raven-wing", "Raven Wing", "achievement", 0, "Reach the Apex rank"],
-    ["ghost-skull", "Ghost Skull", "achievement", 0, "Season 1 winner"], ["eclipse", "Eclipse", "achievement", 0, "Clan tournament winner"],
+    ["starlight-corners", "Starlight Corners", "free", 0, ""],
+    ["torn-tape", "Torn Tape", "free", 0, ""],
+    ["red-circuit", "Red Circuit", "free", 0, ""],
+    ["shattered-crystal", "Shattered Crystal", "free", 0, ""],
+    ["charcoal-ring", "Charcoal Ring", "coin", 200, ""],
+    ["barbed-wire", "Barbed Wire", "coin", 200, ""],
+    ["silent-waves", "Silent Waves", "coin", 200, ""],
+    ["neon-violet", "Neon Violet", "coin", 250, ""],
+    ["graffiti", "Graffiti", "coin", 250, ""],
+    ["liquid-metal", "Liquid Metal", "coin", 300, ""],
+    ["chain-and-tag", "Chain and Tag", "coin", 300, ""],
+    ["sakura-blossom", "Sakura Blossom", "coin", 350, ""],
+    ["blue-lightning", "Blue Lightning", "coin", 350, ""],
+    ["crimson-lightning", "Crimson Lightning", "coin", 350, ""],
+    ["toxic-lightning", "Toxic Lightning", "coin", 350, ""],
+    ["prism-glass", "Prism Glass", "coin", 400, ""],
+    ["blood-vine", "Blood Vine", "coin", 400, ""],
+    ["film-and-butterflies", "Film and Butterflies", "coin", 400, ""],
+    ["planet-orbit", "Planet Orbit", "coin", 450, ""],
+    ["ice-crystals", "Ice Crystals", "coin", 450, ""],
+    ["golden-moon", "Golden Moon", "achievement", 0, "Reach the Legacy rank"],
+    ["angel-wings", "Angel Wings", "achievement", 0, "Reach the Apex rank"],
+    ["eclipse-clouds", "Eclipse Clouds", "achievement", 0, "Clan tournament winner"],
+    ["glitch", "Glitch", "achievement", 0, "Season 1 winner"],
   ]
   return list.map(([id, name, unlock, price, requirement]) => ({ id, name, nameMn: name, unlock, price, requirement, owned: unlock === "free" || mockFrameState.owned.has(id) }))
 }
@@ -48,7 +66,7 @@ function leaderboard(sort: string) {
     discord_linked: index % 3 !== 1,
     clan_tag: index % 4 === 0 ? "WOLF" : index % 4 === 1 ? "SKY" : null,
     avatar: null,
-    frame: ["frost-ring", "red-dragon", null, "golden-crown", "sakura-silk", "inferno"][index % 6] ?? null,
+    frame: ["blue-lightning", "red-circuit", null, "golden-moon", "sakura-blossom", "planet-orbit"][index % 6] ?? null,
     name_style: [{ color: "#cbd5e1", colorFx: "chrome", glow: null, glowFx: null }, { color: "#f5c542", colorFx: "gold", glow: "#fbbf24", glowFx: "aura" }, { color: null, colorFx: null, glow: "#38bdf8", glowFx: "neon" }, { color: "#22d3ee", colorFx: "aurora", glow: null, glowFx: null }, { color: "#a5f3fc", colorFx: "holo", glow: null, glowFx: null }, { color: "#ff9100", colorFx: "fire", glow: "#fb923c", glowFx: "flame" }, { color: null, colorFx: null, glow: "#f43f5e", glowFx: "pulse" }, { color: "#ff9cbc", colorFx: "sakura", glow: null, glowFx: null }][index] ?? null, // palette-exempt: cosmetic data
     rank_id: RANKS[index][0],
     rank_name: RANKS[index][1],
