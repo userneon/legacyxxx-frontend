@@ -108,8 +108,8 @@ export function App() {
           {/* On a phone the sidebar is a sheet, so the top bar carries its only trigger. */}
           <SidebarTrigger className="size-9 shrink-0 rounded-[10px] text-[var(--text-muted)] hover:bg-[var(--raised)] hover:text-[var(--text)] min-[560px]:hidden" />
           <div className="flex min-w-0 flex-1 items-center gap-2 text-[13px]">
-            <span className="shrink-0 text-[var(--text-dim)]">LEGACY-X</span>
-            <span aria-hidden="true" className="text-[var(--text-faint)]">/</span>
+            <span className="shrink-0 text-[var(--text-dim)] max-sm:hidden">LEGACY-X</span>
+            <span aria-hidden="true" className="text-[var(--text-faint)] max-sm:hidden">/</span>
             <span className="truncate font-semibold text-[var(--text)]">{PAGE_TITLES[currentPage]}</span>
           </div>
           <span aria-hidden="true" className="h-6 w-px shrink-0 bg-[var(--line)]" />

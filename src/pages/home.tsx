@@ -84,7 +84,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
         </div>
         <div className="relative z-10 flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between @3xl:gap-10">
         <div className="flex shrink-0 flex-col gap-4">
-        <h1 className="whitespace-nowrap text-4xl font-bold leading-[1.05] tracking-normal text-[var(--text)] md:text-6xl">
+        <h1 className="whitespace-nowrap text-[30px] font-bold leading-[1.05] tracking-normal text-[var(--text)] min-[420px]:text-4xl md:text-5xl min-[1440px]:text-6xl">
           Play ranked.<br />
           Climb to <span className="lx-brand-text">Legacy.</span>
         </h1>
@@ -92,13 +92,13 @@ export function HomePage({ onNavigate }: HomePageProps) {
           Every match on our servers counts toward your rank.
         </p>
         </div>
-        <dl className="mt-3 flex @3xl:mt-0">
+        <dl className="mt-3 grid grid-cols-3 @3xl:mt-0 @3xl:flex">
           {heroStats.map((stat, index) => (
             <div
               key={stat.label}
-              className={cn("flex min-w-0 flex-col-reverse justify-end gap-1.5 pr-5 @3xl:pr-8", index > 0 && "border-l border-[var(--line)] pl-5 @3xl:pl-8")}
+              className={cn("flex min-w-0 flex-col-reverse justify-end gap-1.5 pr-2 @sm:pr-5 @3xl:pr-8", index > 0 && "border-l border-[var(--line)] pl-3 @sm:pl-5 @3xl:pl-8")}
             >
-              <dt className="flex items-center gap-1.5 whitespace-nowrap text-[11px] font-medium uppercase leading-tight tracking-wide text-[var(--text-muted)] @2xl:text-xs">
+              <dt className="flex items-center gap-1.5 text-[10px] @sm:whitespace-nowrap @sm:text-[11px] font-medium uppercase leading-tight tracking-wide text-[var(--text-muted)] @2xl:text-xs">
                 {stat.flagship && Boolean(stat.value) && <span className="lx-live-dot size-1.5 shrink-0 rounded-full bg-[var(--status-green)]" />}
                 {stat.label}
               </dt>

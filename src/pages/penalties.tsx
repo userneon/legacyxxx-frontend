@@ -29,7 +29,7 @@ type TypeFilter = "all" | PenaltyType
 type StatusFilter = "all" | "active"
 
 /** One grid for the header row and every penalty row. */
-const GRID = "grid grid-cols-[minmax(200px,1.1fr)_84px_100px_minmax(200px,1.5fr)_120px_100px_20px] items-center gap-4 px-6"
+const GRID = "grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 px-4 md:grid-cols-[minmax(200px,1.1fr)_84px_100px_minmax(200px,1.5fr)_120px_100px_20px] md:gap-4 md:px-6"
 const SEARCH_DEBOUNCE_MS = 250
 
 const readType = (value: string | null): TypeFilter => (value === "ban" || value === "comm" || value === "gag" ? value : "all")
@@ -123,10 +123,10 @@ function PenaltyRow({ penalty, onOpen, index }: { penalty: PenaltyEntry; onOpen:
       </span>
       <span><TypePill type={penalty.type} /></span>
       <span><StatusPill penalty={penalty} /></span>
-      <span className="min-w-0 truncate text-[13px] text-[var(--text-2)]" title={reason}>{reason}</span>
-      <TermLabel penalty={penalty} className="text-[13px] font-medium" />
-      <span className="text-[13px] text-[var(--text-muted)]" title={formatPenaltyDate(penalty.date, true)}>{formatPenaltyDate(penalty.date)}</span>
-      <ChevronRight className="size-4 text-[var(--text-faint)] transition-[translate,color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:translate-x-1 group-hover:text-[var(--text)] group-hover:duration-300" />
+      <span className="min-w-0 truncate text-[13px] text-[var(--text-2)] max-md:hidden" title={reason}>{reason}</span>
+      <TermLabel penalty={penalty} className="text-[13px] font-medium max-md:hidden" />
+      <span className="text-[13px] text-[var(--text-muted)] max-md:hidden" title={formatPenaltyDate(penalty.date, true)}>{formatPenaltyDate(penalty.date)}</span>
+      <ChevronRight className="size-4 max-md:hidden text-[var(--text-faint)] transition-[translate,color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:translate-x-1 group-hover:text-[var(--text)] group-hover:duration-300" />
     </button>
   )
 }
@@ -179,10 +179,10 @@ function RowSkeleton() {
         <Skeleton className="h-2.5 w-[55%] rounded-full bg-[var(--line)]" />
       </span>
       <Skeleton className="h-5 w-12 rounded-full bg-[var(--raised)]" />
-      <Skeleton className="h-2.5 w-3/4 rounded-full bg-[var(--line-soft)]" />
-      <Skeleton className="h-2.5 w-16 rounded-full bg-[var(--line-soft)]" />
-      <Skeleton className="h-2.5 w-14 rounded-full bg-[var(--line-soft)]" />
-      <span />
+      <Skeleton className="h-2.5 w-3/4 rounded-full bg-[var(--line-soft)] max-md:hidden" />
+      <Skeleton className="h-2.5 w-16 rounded-full bg-[var(--line-soft)] max-md:hidden" />
+      <Skeleton className="h-2.5 w-14 rounded-full bg-[var(--line-soft)] max-md:hidden" />
+      <span className="max-md:hidden" />
     </div>
   )
 }
@@ -245,7 +245,7 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
 
   return (
     <div className="scrollbar-hidden flex min-h-0 flex-1 overflow-x-auto">
-      <div className="flex min-w-[900px] flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col md:min-w-[900px]">
         <PageBar>
           <PageTabs
             ariaLabel="Type"
@@ -315,10 +315,10 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
             <span>Player</span>
             <span>Type</span>
             <span>Status</span>
-            <span>Reason</span>
-            <span>Term</span>
-            <span>Date</span>
-            <span />
+            <span className="max-md:hidden">Reason</span>
+            <span className="max-md:hidden">Term</span>
+            <span className="max-md:hidden">Date</span>
+            <span className="max-md:hidden" />
           </div>
 
           {/* Rows that stay glide to their new place when a filter changes; new ones cascade in. */}

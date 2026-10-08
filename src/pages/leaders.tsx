@@ -120,7 +120,7 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
 }
 
 function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: CompetitiveLeaderboardEntry; sort: LeaderboardSort; onOpen: () => void; you?: boolean; index?: number }) {
-  const cell = (column: LeaderboardSort | "matches") => cn("text-right text-[13px] transition-colors duration-300", column === sort ? "font-semibold text-[var(--text)]" : "text-[var(--text-muted)]")
+  const cell = (column: LeaderboardSort | "matches") => cn("text-right text-[13px] transition-colors duration-300", column === sort ? "font-semibold text-[var(--text)]" : "text-[var(--text-muted)] max-md:hidden")
   return (
     <button
       type="button"
@@ -157,7 +157,7 @@ function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: Competiti
         {player.clan_tag && <span className="shrink-0 text-[11px] font-semibold text-[var(--text-dim)]">[{player.clan_tag}]</span>}
         <DiscordLinkedMark linked={player.discord_linked} />
       </span>
-      <RankLabel rankId={player.rank_id} rankName={player.rank_name} imageKey={player.rank_image_key} currentExp={player.current_exp} size={22} nameClassName="font-medium" />
+      <span className="max-md:hidden"><RankLabel rankId={player.rank_id} rankName={player.rank_name} imageKey={player.rank_image_key} currentExp={player.current_exp} size={22} nameClassName="font-medium" /></span>
       <span className={cell("exp")}>{formatExp(player)}</span>
       <span className={cell("matches")}>{player.matches_completed.toLocaleString()}</span>
       <span className={cell("win")}>{formatWinRate(player)}</span>
@@ -200,9 +200,9 @@ function TableHeader({ sort }: { sort: LeaderboardSort }) {
     <div ref={row} className={cn(GRID, "sticky top-0 z-[2] h-10 border-y border-[var(--line-soft)] bg-[var(--panel)] text-xs")}>
       <span className="font-medium text-[var(--text-dim)]">#</span>
       <span className="font-medium text-[var(--text-dim)]">Player</span>
-      <span className="font-medium text-[var(--text-dim)]">Rank</span>
+      <span className="font-medium text-[var(--text-dim)] max-md:hidden">Rank</span>
       {COLUMNS.map((column) => (
-        <span key={column.key} className="text-right">
+        <span key={column.key} className={cn("text-right", column.key !== sort && "max-md:hidden")}>
           <span
             ref={(node) => {
               if (node) labels.current.set(column.key, node)
@@ -258,14 +258,14 @@ function RowSkeleton() {
         <Skeleton className="size-8 rounded-[9px] bg-[var(--line-soft)]" />
         <Skeleton className="h-2.5 w-[45%] rounded-full bg-[var(--line)]" />
       </span>
-      <span className="flex items-center gap-2">
+      <span className="flex items-center gap-2 max-md:hidden">
         <Skeleton className="size-[22px] rounded-full bg-[var(--line-soft)]" />
         <Skeleton className="h-2.5 w-16 rounded-full bg-[var(--line-soft)]" />
       </span>
       <Skeleton className="ml-auto h-2.5 w-14 rounded-full bg-[var(--line)]" />
-      <Skeleton className="ml-auto h-2.5 w-8 rounded-full bg-[var(--line-soft)]" />
-      <Skeleton className="ml-auto h-2.5 w-10 rounded-full bg-[var(--line-soft)]" />
-      <Skeleton className="ml-auto h-2.5 w-8 rounded-full bg-[var(--line-soft)]" />
+      <Skeleton className="ml-auto h-2.5 w-8 rounded-full bg-[var(--line-soft)] max-md:hidden" />
+      <Skeleton className="ml-auto h-2.5 w-10 rounded-full bg-[var(--line-soft)] max-md:hidden" />
+      <Skeleton className="ml-auto h-2.5 w-8 rounded-full bg-[var(--line-soft)] max-md:hidden" />
     </div>
   )
 }
@@ -317,7 +317,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
 
   return (
     <div className="scrollbar-hidden flex min-h-0 flex-1 overflow-x-auto">
-      <div className="flex min-w-[900px] flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col md:min-w-[900px]">
         <PageBar>
           <PageTabs ariaLabel="Sort by" lead="Ranked by" value={clans ? "clans" : sort} onChange={setSort} options={VIEWS} />
           <PageBarEnd>
@@ -343,7 +343,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
           {/* pt-3 leaves room above the podium: cards lift 5px on hover and the scroll area clips anything above its top.
               The podium is its own layer, so the cards' lift and shadow never re-layer the table rows they overlap. */}
           {(firstLoad || topThree.length > 0) && (
-            <section aria-label="Top 3" className="lx-layer isolate grid grid-cols-3 items-start gap-3 px-6 pb-5 pt-3">
+            <section aria-label="Top 3" className="lx-layer isolate flex snap-x gap-3 overflow-x-auto px-4 pb-5 pt-3 [&>*]:min-w-[78%] [&>*]:snap-center md:grid md:grid-cols-3 md:items-start md:overflow-visible md:px-6 md:[&>*]:min-w-0">
               {firstLoad
                 ? [0, 1, 2].map((index) => <TopCardSkeleton key={index} />)
                 : topThree.map((player) => <TopCard key={player.user_id} player={player} sort={sort} onOpen={() => open(player)} />)}

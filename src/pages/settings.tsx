@@ -331,8 +331,8 @@ export function SettingsPage() {
           </div>
         </section>
       </div>
-      <div className="grid gap-10 px-8 pb-12 pt-6 md:grid-cols-[200px_minmax(0,720px)] max-md:gap-4 max-md:px-4">
-        <nav aria-label="Settings sections" className="relative flex flex-col gap-0.5 self-start md:sticky md:top-6 max-md:flex-row max-md:flex-wrap">
+      <div className="grid gap-10 px-8 pb-12 pt-6 md:grid-cols-[200px_minmax(0,720px)] max-md:grid-cols-[minmax(0,1fr)] max-md:gap-4 max-md:px-4">
+        <nav aria-label="Settings sections" className="relative flex flex-col gap-0.5 self-start md:sticky md:top-6 max-md:w-full max-md:flex-row max-md:flex-nowrap max-md:overflow-x-auto scrollbar-hidden">
           {indicator && (
             <span
               aria-hidden="true"
