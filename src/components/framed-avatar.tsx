@@ -8,7 +8,7 @@ export function FramedAvatar({ avatar, name, frame, size }: { avatar?: string; n
   const inner = Math.round(size * (art?.opening ?? 0.7))
   return (
     <span className="relative inline-flex shrink-0 items-center justify-center" style={{ width: size, height: size }}>
-      <PlayerAvatar avatar={avatar} name={name} className="relative z-0 text-xl" style={{ width: inner, height: inner, borderRadius: Math.round(inner * 0.16), translate: art ? `${art.dx * size}px ${art.dy * size}px` : undefined }} />
+      <PlayerAvatar avatar={avatar} name={name} className="relative z-0" style={{ width: inner, height: inner, fontSize: Math.round(inner * 0.4), background: avatar ? undefined : "linear-gradient(135deg, var(--line-strong), var(--raised))", color: "var(--text-2)", borderRadius: Math.round(inner * 0.16), translate: art ? `${art.dx * size}px ${art.dy * size}px` : undefined }} />
       {art && <img src={art.src} alt="" aria-hidden="true" width={size} height={size} className="pointer-events-none absolute inset-0 z-10 size-full max-w-none select-none" draggable={false} />}
     </span>
   )
