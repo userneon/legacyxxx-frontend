@@ -1,0 +1,47 @@
+<!doctype html><meta charset=utf-8><style>html,body{margin:0;background:#0a0a0a}</style><body>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three'
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+const W=1400,H=420
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true})
+renderer.setSize(W,H); renderer.setPixelRatio(2)
+renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=0.95
+document.body.appendChild(renderer.domElement)
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x0a0a0a)
+const pm=new THREE.PMREMGenerator(renderer); scene.environment=pm.fromScene(new RoomEnvironment(),0.03).texture
+const cam=new THREE.PerspectiveCamera(28,W/H,0.1,100); cam.position.set(0,0,15.5)
+const key=new THREE.DirectionalLight(0xffffff,2.2); key.position.set(-4,6,8); scene.add(key)
+const rim=new THREE.DirectionalLight(0x99aaff,1.0); rim.position.set(6,-3,4); scene.add(rim)
+function rr(w,h,r){const s=new THREE.Shape();const x=-w/2,y=-h/2,k=r*0.12
+ s.moveTo(x+r,y);s.lineTo(x+w-r,y);s.bezierCurveTo(x+w-k,y,x+w,y+k,x+w,y+r)
+ s.lineTo(x+w,y+h-r);s.bezierCurveTo(x+w,y+h-k,x+w-k,y+h,x+w-r,y+h)
+ s.lineTo(x+r,y+h);s.bezierCurveTo(x+k,y+h,x,y+h-k,x,y+h-r)
+ s.lineTo(x,y+r);s.bezierCurveTo(x,y+k,x+k,y,x+r,y);return s}
+function plateTex(){const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');const gr=g.createRadialGradient(90,70,10,128,128,190);gr.addColorStop(0,'#363636');gr.addColorStop(1,'#101010');g.fillStyle=gr;g.fillRect(0,0,256,256);g.fillStyle='#fafafa';g.font='700 92px Onest, sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('TE',128,134);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t}
+function frame(mat,x,opts={}){
+  const g=new THREE.Group()
+  const outer=rr(3.4,3.4,0.95); outer.holes.push(rr(2.35,2.35,0.62))
+  const geo=new THREE.ExtrudeGeometry(outer,{depth:0.28,bevelEnabled:true,bevelThickness:0.14,bevelSize:0.16,bevelSegments:10,curveSegments:14})
+  geo.center(); const ring=new THREE.Mesh(geo,mat); g.add(ring)
+  // inner lip: thin darker bevel ring
+  const lipShape=rr(2.5,2.5,0.68); lipShape.holes.push(rr(2.3,2.3,0.6))
+  const lip=new THREE.Mesh(new THREE.ExtrudeGeometry(lipShape,{depth:0.04,bevelEnabled:true,bevelThickness:0.04,bevelSize:0.03,bevelSegments:4,curveSegments:14}),new THREE.MeshPhysicalMaterial({color:0x151515,metalness:0.9,roughness:0.35}))
+  lip.position.z=0.12; g.add(lip)
+  const plate=new THREE.Mesh(new THREE.ShapeGeometry(rr(2.3,2.3,0.6),40),new THREE.MeshBasicMaterial({map:plateTex(),toneMapped:false}))
+  plate.position.z=-0.02; // slightly recessed
+  const uv=plate.geometry.attributes.uv,pos=plate.geometry.attributes.position;for(let i=0;i<uv.count;i++)uv.setXY(i,pos.getX(i)/2.3+0.5,pos.getY(i)/2.3+0.5)
+  g.add(plate)
+  if(opts.studs){for(const sx of[-1,1])for(const sy of[-1,1]){const s=new THREE.Mesh(new THREE.SphereGeometry(0.12,24,16),mat);s.position.set(sx*1.46,sy*1.46,0.3);g.add(s)}}
+  g.position.x=x; g.rotation.x=-0.16; g.rotation.y=0.24; scene.add(g); return g}
+const M=(o)=>new THREE.MeshPhysicalMaterial(Object.assign({metalness:1,roughness:0.22,clearcoat:0.6,clearcoatRoughness:0.15,envMapIntensity:1.25},o))
+const defs=[
+ [M({color:0x8f8f97,roughness:0.36,envMapIntensity:0.75}),'Steel'],
+ [M({color:0x3f86d8,roughness:0.2}),'Operator'],
+ [M({color:0x7a3dff,roughness:0.2}),'Ace'],
+ [M({color:0xd93636,roughness:0.2,emissive:0x330000,emissiveIntensity:0.6}),'Apex'],
+ [M({color:0xe8b13a,roughness:0.16,clearcoat:0.2}),'Legacy']]
+defs.forEach(([m],i)=>frame(m,(i-2)*4.6,{studs:true}))
+renderer.render(scene,cam)
+window.ready=true
+</script>
