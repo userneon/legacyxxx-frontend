@@ -29,6 +29,31 @@ const SILENT_REFRESH_INTERVAL_MS = 10 * 60 * 1000
 /** Waits before asking again when the server is busy or unreachable (not when it said "signed out"). */
 const BUSY_RETRY_DELAYS_MS = [1500, 4000, 10000]
 
+/**
+ * The session itself lives in HttpOnly cookies the page cannot read, so the site cannot know it is signed in until the API answers.
+ * To avoid a sign-in button flashing on every reload, the last confirmed profile (public data only: name, avatar, role; no token)
+ * is kept here and shown straight away, then checked with the API. The API still decides: a "signed out" answer clears it.
+ */
+const USER_HINT_KEY = "legacyx_user_hint"
+
+function readUserHint(): UserProfile | null {
+  try {
+    const value = JSON.parse(localStorage.getItem(USER_HINT_KEY) ?? "null") as Partial<UserProfile> | null
+    return value && typeof value.id === "string" && typeof value.username === "string" ? (value as UserProfile) : null
+  } catch {
+    return null
+  }
+}
+
+function writeUserHint(user: UserProfile | null) {
+  try {
+    if (user) localStorage.setItem(USER_HINT_KEY, JSON.stringify(user))
+    else localStorage.removeItem(USER_HINT_KEY)
+  } catch {
+    // Private mode or blocked storage: the site just waits for the API as before.
+  }
+}
+
 const sleep = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms))
 
 /** Only these mean "this browser has no session". A busy server (429), an outage (5xx) or a dropped connection must never sign anyone out. */
@@ -84,7 +109,7 @@ function consumeLoginResult() {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<UserProfile | null>(null)
+  const [user, setUser] = useState<UserProfile | null>(readUserHint)
   const [loading, setLoading] = useState(true)
 
   const rotateSession = useCallback(async () => {
@@ -132,6 +157,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false)
     }
   }, [rotateSession])
+
+  // Remember the confirmed profile for the next reload; forget it once the API says nobody is signed in.
+  useEffect(() => {
+    if (!loading) writeUserHint(user)
+  }, [user, loading])
 
   useEffect(() => {
     consumeLoginResult()
