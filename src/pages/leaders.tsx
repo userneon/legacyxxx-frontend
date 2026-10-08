@@ -88,7 +88,7 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
             avatar={player.avatar}
             name={player.username}
             className={cn(
-              "lx-layer shrink-0 text-base transition-[scale] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-105 group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
+              "lx-layer relative z-10 shrink-0 text-base transition-[scale] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-105 group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
               first ? "size-[60px] rounded-[15px]" : "size-[52px] rounded-[13px]",
               first && !player.frame && "ring-2 ring-[var(--brand)]/70 ring-offset-2 ring-offset-[var(--card-surface)]",
             )}
@@ -157,7 +157,7 @@ function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: Competiti
           <PlayerAvatar
             avatar={player.avatar}
             name={player.username}
-            className={cn("size-8 shrink-0 rounded-[9px] text-xs", you && !player.frame && "ring-2 ring-[var(--brand)]/80")}
+            className={cn("relative z-10 size-8 shrink-0 rounded-[9px] text-xs", you && !player.frame && "ring-2 ring-[var(--brand)]/80")}
           />
           <FrameOverlay frame={player.frame} />
         </span>

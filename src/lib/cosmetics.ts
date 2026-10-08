@@ -1,24 +1,24 @@
 /**
  * Avatar frame art (public/frames/<id>.webp, 256px, transparent middle). `opening` is the share of the frame's width
- * the picture may fill: the picture is a rounded square a little larger than the clear middle and sits behind the art, so only the ornaments' edges overlap it.
+ * the picture may fill: the picture is a rounded square drawn in front of the art, sized to the frame's inner border so none of it is covered.
  */
 const OPENING: Record<string, number> = {
-  "red-dragon": 0.5,
-  "crimson-thorns": 0.76,
-  "blood-moon": 0.68,
-  "oni-samurai": 0.6,
-  "frost-ring": 0.77,
-  "violet-moon": 0.71,
-  "golden-crown": 0.68,
-  "emerald-dragon": 0.73,
-  "shattered-glass": 0.71,
-  "inferno": 0.63,
-  "ghost-skull": 0.61,
-  "raven-wing": 0.5,
-  "sakura-silk": 0.6,
-  "cyber-violet": 0.74,
-  "white-lily": 0.57,
-  "eclipse": 0.61,
+  "red-dragon": 0.41,
+  "crimson-thorns": 0.62,
+  "blood-moon": 0.56,
+  "oni-samurai": 0.49,
+  "frost-ring": 0.63,
+  "violet-moon": 0.58,
+  "golden-crown": 0.56,
+  "emerald-dragon": 0.6,
+  "shattered-glass": 0.58,
+  "inferno": 0.52,
+  "ghost-skull": 0.5,
+  "raven-wing": 0.41,
+  "sakura-silk": 0.49,
+  "cyber-violet": 0.61,
+  "white-lily": 0.47,
+  "eclipse": 0.5,
 }
 
 export function frameArt(id: string | null | undefined): { src: string; opening: number } | null {
