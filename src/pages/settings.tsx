@@ -241,7 +241,7 @@ function Notifications() {
 function Website() {
   const prefs = useWebsitePreferences()
   const saved = useSavedFlash()
-  const set = <K extends "sidebarCollapsed" | "timeFormat" | "sounds">(key: K, value: Parameters<typeof setWebsitePreference<K>>[1]) => {
+  const set = <K extends "sidebarCollapsed" | "timeFormat">(key: K, value: Parameters<typeof setWebsitePreference<K>>[1]) => {
     setWebsitePreference(key, value)
     saved.flash()
   }
@@ -249,9 +249,6 @@ function Website() {
     <Section id="website" index={2} title="Website" description="How Legacy-X looks and behaves on this device. Changes apply right away." aside={saved.node}>
       <Row title="Start with sidebar collapsed" description="Open the site with the icon-only sidebar.">
         <Switch label="Start with sidebar collapsed" checked={prefs.sidebarCollapsed} onChange={(next) => set("sidebarCollapsed", next)} />
-      </Row>
-      <Row title="Sounds" description="A short chime when the Owner's profile opens.">
-        <Switch label="Sounds" checked={prefs.sounds} onChange={(next) => set("sounds", next)} />
       </Row>
       <Row title="Time format" description="Used for match times, countdowns and dates.">
         <Segmented<TimeFormat>

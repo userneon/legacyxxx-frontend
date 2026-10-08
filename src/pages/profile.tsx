@@ -21,7 +21,7 @@ import { CompetitiveRankBadge, RankLabel, RankPill } from "@/components/competit
 import { FaceitLevelBadge } from "@/components/faceit-level-badge"
 import { MatchDetailsDialog } from "@/components/match-details-dialog"
 import { setProfileScene } from "@/lib/profile-scene"
-import { playOwnerEntrance } from "@/lib/sounds"
+import { OwnerThemeButton } from "@/components/owner-theme-button"
 import { ProfileStaffMenu } from "@/components/profile-staff"
 import { OwnerPanel } from "@/components/owner-panel"
 import { OwnerSections } from "@/components/owner-sections"
@@ -613,11 +613,6 @@ export function ProfilePage({ userId }: { userId?: string }) {
     setProfileScene({ still: sceneStill, video: sceneWebm || sceneMp4 ? { webm: sceneWebm, mp4: sceneMp4 } : null })
     return () => setProfileScene(null)
   }, [sceneStill, sceneWebm, sceneMp4])
-  // Opening the Owner's profile rings a short chime (once per visit; Settings → Website can turn sounds off).
-  const ownerId = data?.user.role === "Owner" ? data.user.id : null
-  useEffect(() => {
-    if (ownerId) playOwnerEntrance()
-  }, [ownerId])
   const [openMatch, setOpenMatch] = useState<ProfileMatchRow | null>(null)
   const [openPenalty, setOpenPenalty] = useState<PenaltyEntry | null>(null)
   const topRef = useRef<HTMLDivElement>(null)
@@ -655,6 +650,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
         </section>
       </div>
       {/* The Owner's Respect and links come first; the rank, stats, matches and FACEIT below are the same as everyone's. */}
+      {data.user.role === "Owner" && <OwnerThemeButton key={data.user.id} />}
       {data.user.role === "Owner" && <div className="px-6 pt-4 max-md:px-4"><div className="mx-auto flex w-full max-w-3xl flex-col gap-4"><OwnerPanel overview={data} /><OwnerSections overview={data} /></div></div>}
       {(
       <div className="flex flex-col gap-4 px-6 pb-8 pt-4 max-md:px-4">

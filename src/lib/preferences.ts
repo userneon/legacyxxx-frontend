@@ -8,12 +8,10 @@ export type TimeFormat = "24h" | "12h"
 export interface WebsitePreferences {
   sidebarCollapsed: boolean
   timeFormat: TimeFormat
-  /** Short interface sounds, such as the one when the Owner's profile opens. */
-  sounds: boolean
 }
 
 export const WEBSITE_PREFS_KEY = "legacyx.website-prefs"
-const DEFAULTS: WebsitePreferences = { sidebarCollapsed: false, timeFormat: "24h", sounds: true }
+const DEFAULTS: WebsitePreferences = { sidebarCollapsed: false, timeFormat: "24h" }
 
 function read(): WebsitePreferences {
   try {
@@ -23,7 +21,6 @@ function read(): WebsitePreferences {
     return {
       sidebarCollapsed: typeof parsed.sidebarCollapsed === "boolean" ? parsed.sidebarCollapsed : DEFAULTS.sidebarCollapsed,
       timeFormat: parsed.timeFormat === "12h" ? "12h" : "24h",
-      sounds: typeof parsed.sounds === "boolean" ? parsed.sounds : DEFAULTS.sounds,
     }
   } catch {
     return DEFAULTS
