@@ -315,7 +315,7 @@ function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () =
 }
 
 export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamId: string) => void }) {
-  const { user, isAuthenticated, loginWithSteam } = useAuth()
+  const { user, isAuthenticated, loading: authLoading, loginWithSteam } = useAuth()
   const [params, setParams] = useViewParams()
   const sort = readSort(params.get("sort"))
   const rating = readRating(params.get("rating"))
@@ -478,7 +478,9 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
         </div>
 
         <div className="flex flex-col gap-2.5 border-t border-[var(--line-soft)] pt-[18px]">
-          {!isAuthenticated ? (
+          {!isAuthenticated && authLoading ? (
+            <span aria-hidden="true" className="h-9 w-[150px] animate-pulse rounded-lg bg-[var(--raised)]" />
+          ) : !isAuthenticated ? (
             <>
               <span className="text-[13px] leading-[1.5] text-[var(--text-muted)]">Sign in with Steam to write a review.</span>
               <SteamLoginButton onClick={loginWithSteam} label="Sign in with Steam" />

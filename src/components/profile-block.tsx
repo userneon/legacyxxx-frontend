@@ -19,13 +19,16 @@ interface ProfileBlockProps {
 const menuItemClass = "flex h-10 w-full items-center gap-2.5 rounded-lg px-2.5 text-sm font-medium transition-colors duration-150 hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/60"
 
 export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
-  const { user, loginWithSteam, logout } = useAuth()
+  const { user, loading, loginWithSteam, logout } = useAuth()
   const [open, setOpen] = useState(false)
 
   const { data: competitive } = useApiQuery<CompetitiveProfile>(
     (signal) => competitiveService.getPlayer(user!.id, { signal }),
     { enabled: Boolean(user?.id), queryKey: `profile-menu:${user?.id ?? "guest"}` },
   )
+
+  // While the site is still asking whether you are signed in, do not offer a sign-in: on a reload it would flash up (and stay up while the server is busy).
+  if (!user && loading) return <span aria-hidden="true" className="h-9 w-[150px] animate-pulse rounded-lg bg-[var(--raised)]" />
 
   if (!user) {
     return (
