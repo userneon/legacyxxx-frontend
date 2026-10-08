@@ -9,6 +9,7 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { useViewParams } from "@/hooks/use-view-params"
 import { useAuth } from "@/hooks/use-auth"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { nameProps } from "@/lib/cosmetics"
 import { formatRelativeTime } from "@/components/relative-time"
 import { SteamLoginButton } from "@/components/steam-login-gate"
 import { Segmented } from "@/components/segmented"
@@ -124,10 +125,10 @@ function ReviewCard({ entry, own, fresh, index, onOpenProfile }: { entry: Feedba
 
   const author = (
     <>
-      <PlayerAvatar avatar={entry.avatar} name={entry.name} className="size-9 shrink-0 rounded-[10px] text-xs" />
+      <PlayerAvatar avatar={entry.avatar} name={entry.name} frame={entry.frame} className="size-9 shrink-0 rounded-[10px] text-xs" />
       <span className="flex min-w-0 flex-1 flex-col gap-1.5 text-left">
         <span className="flex min-w-0 items-center gap-2">
-          <span className="truncate text-[13px] font-medium text-[var(--text)]">{entry.name}</span>
+          <span {...nameProps(entry.nameStyle, "truncate text-[13px] font-medium text-[var(--text)]")}>{entry.name}</span>
           {entry.steamId && (
             <span className="flex shrink-0 items-center gap-1 text-[11px] text-[var(--status-green)]">
               <ShieldCheck className="size-3" />

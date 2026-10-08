@@ -247,6 +247,9 @@ export type MatchRoundOutcome = "elimination" | "bomb_exploded" | "bomb_defused"
 /** One player's line on the match scoreboard. Detail stats are null for matches recorded before they were kept. */
 export interface MatchDetailPlayer {
   userId: string | null
+  /** Avatar frame (id) and name look the player wears. Absent from an older API. */
+  frame?: string | null
+  nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   steamId: string
   username: string
   avatar: string
@@ -392,6 +395,9 @@ export interface CommunityPlayer {
   lastPlayed: string
   avatar: string
   moderationStatus: ModerationStatus
+  /** Avatar frame (id) and name look the player wears. Absent from an older API. */
+  frame?: string | null
+  nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
 }
 
 export type ModerationStatus = "Banned" | "Muted" | "Gag" | "Clear"
@@ -449,6 +455,9 @@ export interface ClanMember {
   role: string
   avatar: string
   description: string
+  /** Avatar frame (id) and name look the player wears. Absent from an older API. */
+  frame?: string | null
+  nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
 }
 
 export interface CreateClanRequest {
@@ -627,6 +636,9 @@ export interface FeedbackEntry {
   rating: number
   message: string
   date: string
+  /** Avatar frame (id) and name look the player wears. Absent from an older API. */
+  frame?: string | null
+  nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   /** How many players picked each reaction, and the signed-in viewer's own pick. Absent from an older API. */
   reactions?: Record<FeedbackReaction, number>
   myReaction?: FeedbackReaction | null

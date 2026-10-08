@@ -7,6 +7,7 @@ import type { CompetitiveLeaderboardEntry } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { CompetitiveRankBadge, rankTierColor } from "@/components/competitive-rank-badge"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { nameProps } from "@/lib/cosmetics"
 import { Skeleton } from "@/components/ui/skeleton"
 
 function SectionHeader({ title, subtitle, action, onAction }: { title: string; subtitle?: string; action?: string; onAction?: () => void }) {
@@ -100,9 +101,9 @@ export function TopPlayers({ onOpenProfile, onViewAll }: { onOpenProfile: (steam
                     />
                     <Position position={player.position} />
                     <span className="flex min-w-0 items-center gap-3 transition-[translate] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:translate-x-1 group-hover:duration-300 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]">
-                      <PlayerAvatar avatar={player.avatar} name={player.username} className={cn("size-9 shrink-0 rounded-[10px] text-[11px]", player.position === 1 && "ring-2 ring-[var(--line-strong)]")} />
+                      <PlayerAvatar avatar={player.avatar} name={player.username} frame={player.frame} className={cn("size-9 shrink-0 rounded-[10px] text-[11px]", player.position === 1 && !player.frame && "ring-2 ring-[var(--line-strong)]")} />
                       <span className="flex min-w-0 flex-col gap-0.5">
-                        <span className="truncate text-sm font-semibold text-[var(--text)]">{player.username}</span>
+                        <span {...nameProps(player.name_style, "truncate text-sm font-semibold text-[var(--text)]")}>{player.username}</span>
                         <span className="truncate text-[11px] font-medium" style={{ color: rankTierColor(player.rank_id) }}>
                           {player.rank_name}
                           <span className="font-normal text-[var(--text-dim)] @4xl:hidden"> · {player.kd_ratio.toFixed(2)} K/D · {player.wins} wins</span>

@@ -11,6 +11,7 @@ import type { MatchDetail, MatchDetailPlayer, MatchDetailRound, MatchDetailTeam,
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { nameProps } from "@/lib/cosmetics"
 import { TeamIcon } from "@/components/team-icon"
 import { RelativeTime } from "@/components/relative-time"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -81,8 +82,8 @@ function Scoreboard({ team, highlightSteamId, onPlayer }: { team: MatchDetailTea
                       onClick={() => onPlayer(player.steamId)}
                       className="group flex min-w-0 items-center gap-2.5 text-left disabled:cursor-default"
                     >
-                      <PlayerAvatar avatar={player.avatar} name={player.username} className={cn("size-7 rounded-md text-[10px]", highlighted && "ring-2 ring-white/60")} />
-                      <span className="truncate font-medium group-enabled:group-hover:underline">{player.username}</span>
+                      <PlayerAvatar avatar={player.avatar} name={player.username} frame={player.frame} className={cn("size-7 rounded-md text-[10px]", highlighted && !player.frame && "ring-2 ring-white/60")} />
+                      <span {...nameProps(player.nameStyle, "truncate font-medium group-enabled:group-hover:underline")}>{player.username}</span>
                     </button>
                   </td>
                   <td className="px-2 py-2 text-right font-semibold">{player.kills}</td>
@@ -246,10 +247,10 @@ function TeamComparison({ detail, onPlayer }: { detail: MatchDetail; onPlayer: (
             onClick={() => onPlayer(entry!.player.steamId)}
             className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.03] p-2.5 text-left transition-colors enabled:hover:bg-white/[0.06]"
           >
-            <PlayerAvatar avatar={entry!.player.avatar} name={entry!.player.username} className="size-9 rounded-lg text-xs" />
+            <PlayerAvatar avatar={entry!.player.avatar} name={entry!.player.username} frame={entry!.player.frame} className="size-9 rounded-lg text-xs" />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground"><Icon className="size-3" />{label}</div>
-              <div className={cn("truncate text-sm font-semibold", TEAM_TONE[entry!.team].text)}>{entry!.player.username}</div>
+              <div {...nameProps(entry!.player.nameStyle, cn("truncate text-sm font-semibold", TEAM_TONE[entry!.team].text))}>{entry!.player.username}</div>
             </div>
             <span className="shrink-0 text-xs font-semibold">{value(entry!.player)}</span>
           </button>

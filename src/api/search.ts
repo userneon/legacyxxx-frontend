@@ -34,6 +34,8 @@ function normalizePlayer(raw: Record<string, unknown>): CommunityPlayer {
     lastPlayed: text(raw.lastPlayed) ?? text(raw.last_played) ?? "",
     avatar: text(raw.avatar) ?? "",
     moderationStatus: MODERATION_STATUSES.includes(status) ? status : "Clear",
+    frame: text(raw.frame) ?? null,
+    nameStyle: (raw.nameStyle as CommunityPlayer["nameStyle"]) ?? null,
   }
 }
 

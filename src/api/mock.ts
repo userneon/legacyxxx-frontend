@@ -154,6 +154,13 @@ const REVIEWS = [
   { rating: 5, message: "Played here for a year. Friendly community and the staff actually answer on Discord." },
 ]
 
+/** A few players wearing frames and name looks, so every page that shows players can be seen with them. */
+function mockLook(index: number) {
+  const frames = ["blue-lightning", null, "sakura-blossom", "golden-moon", null, "planet-orbit"]
+  const names = [{ color: "#cbd5e1", colorFx: "chrome", glow: null, glowFx: null }, null, { color: null, colorFx: null, glow: "#38bdf8", glowFx: "neon" }, { color: "#f5c542", colorFx: "gold", glow: "#fbbf24", glowFx: "aura" }, null, { color: "#ff9100", colorFx: "fire", glow: "#fb923c", glowFx: "flame" }] // palette-exempt: cosmetic data
+  return { frame: frames[index % frames.length] ?? null, nameStyle: names[index % names.length] ?? null } // palette-exempt: cosmetic data
+}
+
 function feedback() {
   return REVIEWS.map((review, index) => ({
     id: `mock-review-${index}`,
@@ -163,6 +170,7 @@ function feedback() {
     date: new Date(Date.now() - index * 86_400_000 * 2).toISOString(),
     reactions: { like: (index * 3) % 7, love: index % 3, funny: index % 2 },
     myReaction: index === 1 ? "like" : null,
+    ...mockLook(index),
   }))
 }
 
@@ -218,6 +226,7 @@ function searchPlayers(query: string) {
     lastPlayed: new Date(Date.now() - index * 5 * HOUR).toISOString(),
     avatar: "",
     moderationStatus: statuses[index % statuses.length],
+    ...mockLook(index),
   }))
   return { players: players.filter((player) => player.name.toLowerCase().includes(needle) || player.steamId.includes(needle)) }
 }
@@ -598,7 +607,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path.startsWith("/api/v1/clans/")) {
     const clan = MOCK_CLANS.find((entry) => path === `/api/v1/clans/${entry.id}` || path === `/api/v1/clans/${entry.number}`)
     if (!clan) throw notFound()
-    return { ...clan, description: "Ranked five-stack. Evenings, Ulaanbaatar time.", members: Array.from({ length: clan.currentPlayers }, (_, index) => ({ id: `m${index}`, name: index === 0 ? "Leader" : `Member ${index}`, role: index === 0 ? "leader" : index === 1 ? "co-leader" : "member", avatar: "", description: "" })), viewer: { role: "leader", canModerate: true } }
+    return { ...clan, description: "Ranked five-stack. Evenings, Ulaanbaatar time.", members: Array.from({ length: clan.currentPlayers }, (_, index) => ({ id: `m${index}`, name: index === 0 ? "Leader" : `Member ${index}`, role: index === 0 ? "leader" : index === 1 ? "co-leader" : "member", avatar: "", description: "", ...mockLook(index) })), viewer: { role: "leader", canModerate: true } }
   }
   if (path === "/api/v1/moderation/access") return { canManage: true, role: "OWNER", canApprove: true, requestedPenaltyIds: [], can: { ban: true, unban: true, edit: true } }
   if (path === "/api/v1/moderation/lift-requests") return [{ id: "r1", penaltyId: "p1", type: "ban", player: "Enkh.", avatar: "", penaltyReason: "Aimbot", reason: null, requestedBy: "Admin", at: new Date(Date.now() - 2 * HOUR).toISOString() }]

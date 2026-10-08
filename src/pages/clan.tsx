@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { QueryState } from "@/components/query-state"
 import { AnimatedNumber } from "@/components/animated-number"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { nameProps } from "@/lib/cosmetics"
 import {
   Dialog,
   DialogContent,
@@ -388,9 +389,9 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                     {members.map((member) => (
                       <div key={member.id} className="flex items-center gap-1 rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] transition-[border-color] duration-200 hover:border-[var(--line-strong)]">
                         <button type="button" onClick={() => onProfileNavigate(member.id)} className="flex min-w-0 flex-1 items-center gap-3 rounded-[10px] p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-                          <PlayerAvatar avatar={member.avatar} name={member.name} className="size-10 rounded-[10px] text-sm" />
+                          <PlayerAvatar avatar={member.avatar} name={member.name} frame={member.frame} className="size-10 rounded-[10px] text-sm" />
                           <span className="min-w-0">
-                            <span className="block truncate text-[13px] font-medium">{member.name}{member.id === user?.id ? " (you)" : ""}</span>
+                            <span {...nameProps(member.nameStyle, "block truncate text-[13px] font-medium")}>{member.name}{member.id === user?.id ? " (you)" : ""}</span>
                             <span className="block text-[11px] text-[var(--text-dim)]">{roleLabel(member.role)}</span>
                           </span>
                         </button>
