@@ -1,9 +1,8 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Bell, Check, CircleCheck, Frame, Link2, Lock, RotateCcw, MonitorSmartphone, type LucideIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
-import { PAGE_TITLES } from "@/lib/routes"
 import { cosmeticsService, type Cosmetics, type FrameItem } from "@/api/cosmetics"
 import { walletService, type Wallet } from "@/api"
 import { FramedAvatar } from "@/components/framed-avatar"
@@ -17,14 +16,8 @@ import { Segmented } from "@/components/segmented"
 import { SteamIcon } from "@/components/steam-login-gate"
 import { Skeleton } from "@/components/ui/skeleton"
 
-const SECTIONS = [
-  { id: "connections", label: "Connections", icon: Link2 },
-  { id: "notifications", label: "Notifications", icon: Bell },
-  { id: "appearance", label: "Appearance", icon: Frame },
-  { id: "website", label: "Website", icon: MonitorSmartphone },
-] as const
-const SECTION_ICON: Record<(typeof SECTIONS)[number]["id"], LucideIcon> = { connections: Link2, notifications: Bell, appearance: Frame, website: MonitorSmartphone }
-type SectionId = (typeof SECTIONS)[number]["id"]
+type SectionId = "connections" | "notifications" | "appearance" | "website"
+const SECTION_ICON: Record<SectionId, LucideIcon> = { connections: Link2, notifications: Bell, appearance: Frame, website: MonitorSmartphone }
 
 function Switch({ checked, onChange, label, disabled }: { checked: boolean; onChange?: (next: boolean) => void; label: string; disabled?: boolean }) {
   return (
@@ -309,7 +302,7 @@ function Appearance() {
   }
 
   return (
-    <Section id="appearance" index={2} title="Appearance" description="Avatar frames. They are only for show and never change your matches or EXP." aside={saved.node}>
+    <Section id="appearance" index={0} title="Appearance" description="Avatar frames. They are only for show and never change your matches or EXP." aside={saved.node}>
       {loading ? (
         <div className="grid gap-4 md:grid-cols-[210px_minmax(0,1fr)]"><Skeleton className="h-[300px] rounded-[10px]" /><Skeleton className="h-[300px] rounded-[10px]" /></div>
       ) : error || !data ? (
@@ -372,7 +365,7 @@ function Website() {
     saved.flash()
   }
   return (
-    <Section id="website" index={3} title="Website" description="How Legacy-X looks and behaves on this device. Changes apply right away." aside={saved.node}>
+    <Section id="website" index={2} title="Website" description="How Legacy-X looks and behaves on this device. Changes apply right away." aside={saved.node}>
       <Row title="Start with sidebar collapsed" description="Open the site with the icon-only sidebar.">
         <Switch label="Start with sidebar collapsed" checked={prefs.sidebarCollapsed} onChange={(next) => set("sidebarCollapsed", next)} />
       </Row>
@@ -389,137 +382,35 @@ function Website() {
   )
 }
 
-export function SettingsPage() {
+/** Profile → Settings: connections, notifications and how the site behaves on this device. */
+export function AccountSettings() {
   const { user } = useAuth()
-  const scroller = useRef<HTMLDivElement>(null)
-  const [active, setActive] = useState<SectionId>("connections")
-
-  // Scroll-spy: the section nearest the top of the panel is the active nav item. The app's content
-  // panel is what actually scrolls (this page grows with its content), so listen there.
-  useEffect(() => {
-    const root = scrollParent(scroller.current)
-    if (!root) return
-    const onScroll = () => {
-      const top = root.getBoundingClientRect().top
-      let current: SectionId = "connections"
-      for (const section of SECTIONS) {
-        const node = document.getElementById(section.id)
-        if (node && node.getBoundingClientRect().top - top <= 120) current = section.id
-      }
-      if (root.scrollTop + root.clientHeight >= root.scrollHeight - 4) current = "website"
-      setActive(current)
-    }
-    onScroll()
-    root.addEventListener("scroll", onScroll, { passive: true })
-    return () => root.removeEventListener("scroll", onScroll)
-  }, [])
-
-  const jump = (id: SectionId) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })
-    setActive(id)
-  }
-
-  // The nav's crimson indicator glides to the active section instead of jumping.
-  const navItems = useRef(new Map<SectionId, HTMLButtonElement>())
-  const [indicator, setIndicator] = useState<{ top: number; left: number; height: number; width: number } | null>(null)
-  useLayoutEffect(() => {
-    const measure = () => {
-      const node = navItems.current.get(active)
-      if (node) setIndicator({ top: node.offsetTop, left: node.offsetLeft, height: node.offsetHeight, width: node.offsetWidth })
-    }
-    measure()
-    window.addEventListener("resize", measure)
-    return () => window.removeEventListener("resize", measure)
-  }, [active])
-
   return (
-    <div ref={scroller} className="min-h-0 flex-1">
-      <div className="px-8 pt-6 max-md:px-4">
-        <section aria-label="Settings" className="lx-swap-in relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
-          <div className="relative z-10 flex flex-wrap items-end justify-between gap-5 p-7">
-            <div className="flex min-w-0 flex-col gap-2.5">
-              <h1 className="flex items-center gap-2.5 text-[34px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]">
-                <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--text-faint)]" />
-                {PAGE_TITLES["settings"]}
-              </h1>
-              <span className="text-[14px] text-[var(--text-2)]">Your connections, notifications and how the site behaves on this device.</span>
-            </div>
-            {user && (
-              <span className="flex items-center gap-2.5 rounded-full border border-[var(--line)] bg-[var(--panel)]/75 py-1 pl-1 pr-3.5 backdrop-blur">
-                <PlayerAvatar avatar={user.avatar} name={user.username} className="size-8 rounded-full text-[10px] ring-2 ring-[var(--line-strong)]" />
-                <span className="flex flex-col">
-                  <span className="text-[13px] font-semibold text-[var(--text)]">{user.username}</span>
-                  <span className="text-[11px] text-[var(--text-dim)]">Signed in with Steam</span>
-                </span>
-              </span>
-            )}
-          </div>
-        </section>
-      </div>
-      <div className="grid gap-10 px-8 pb-12 pt-6 md:grid-cols-[200px_minmax(0,720px)] max-md:grid-cols-[minmax(0,1fr)] max-md:gap-4 max-md:px-4">
-        <nav aria-label="Settings sections" className="relative flex flex-col gap-0.5 self-start md:sticky md:top-6 max-md:w-full max-md:flex-row max-md:flex-nowrap max-md:overflow-x-auto scrollbar-hidden">
-          {indicator && (
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute rounded-lg bg-[linear-gradient(90deg,color-mix(in_oklab,var(--brand)_18%,transparent),transparent)] transition-[top,left,height,width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
-              style={indicator}
-            >
-              <span className="absolute bottom-2 left-0 top-2 w-[3px] rounded-full bg-[var(--text-faint)]" />
-            </span>
-          )}
-          {SECTIONS.map((section) => (
-            <button
-              key={section.id}
-              ref={(node) => {
-                if (node) navItems.current.set(section.id, node)
-                else navItems.current.delete(section.id)
-              }}
-              type="button"
-              aria-current={active === section.id}
-              onClick={() => jump(section.id)}
-              className={cn(
-                "relative flex h-10 items-center gap-2.5 rounded-lg px-3 text-left text-sm font-medium transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
-                active === section.id ? "text-[var(--text)] [&>svg]:text-[var(--text-2)]" : "text-[var(--text-muted)] hover:text-[var(--text)]",
-              )}
-            >
-              <section.icon className="size-4 transition-colors duration-300" />
-              {section.label}
-            </button>
-          ))}
-        </nav>
-        <div className="flex flex-col gap-4">
-          <Section id="connections" title="Connections" description="Accounts linked to your profile.">
-            <ConnectionRow
-              icon={user?.avatar ? <PlayerAvatar avatar={user.avatar} name={user.username} className="size-9 rounded-[9px] text-xs" /> : <SteamIcon className="size-[18px]" />}
-              title="Steam"
-              description={user ? `${user.username} · ${user.steamId}` : "—"}
-              action={<span className="inline-flex shrink-0 items-center gap-[5px] text-xs font-medium text-[var(--status-green)]"><CircleCheck className="size-3.5" />Connected</span>}
-            />
-            <DiscordConnection />
-            <ConnectionRow
-              icon={<span className="text-[11px] font-bold tracking-tight">F</span>}
-              title="FACEIT"
-              description="Found through your Steam account — nothing to link."
-              action={<span className="shrink-0 text-xs text-[var(--text-dim)]">Auto-detected</span>}
-            />
-          </Section>
-          <Notifications />
-          <Appearance />
-          <Website />
-        </div>
-      </div>
+    <div className="flex flex-col gap-4">
+      <Section id="connections" title="Connections" description="Accounts linked to your profile.">
+        <ConnectionRow
+          icon={user?.avatar ? <PlayerAvatar avatar={user.avatar} name={user.username} className="size-9 rounded-[9px] text-xs" /> : <SteamIcon className="size-[18px]" />}
+          title="Steam"
+          description={user ? `${user.username} · ${user.steamId}` : "—"}
+          action={<span className="inline-flex shrink-0 items-center gap-[5px] text-xs font-medium text-[var(--status-green)]"><CircleCheck className="size-3.5" />Connected</span>}
+        />
+        <DiscordConnection />
+        <ConnectionRow
+          icon={<span className="text-[11px] font-bold tracking-tight">F</span>}
+          title="FACEIT"
+          description="Found through your Steam account — nothing to link."
+          action={<span className="shrink-0 text-xs text-[var(--text-dim)]">Auto-detected</span>}
+        />
+      </Section>
+      <Notifications />
+      <Website />
     </div>
   )
 }
 
-/** The nearest ancestor that scrolls vertically (the app's content panel). */
-function scrollParent(node: HTMLElement | null): HTMLElement | null {
-  for (let current = node?.parentElement ?? null; current; current = current.parentElement) {
-    const overflow = getComputedStyle(current).overflowY
-    if (overflow === "auto" || overflow === "scroll") return current
-  }
-  return null
+/** Profile → Appearance: avatar frames. */
+export function AppearanceSettings() {
+  return <div className="flex flex-col gap-4"><Appearance /></div>
 }
 
 function DiscordGlyph() {

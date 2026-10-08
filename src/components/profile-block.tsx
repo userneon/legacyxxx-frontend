@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { LogOut, Settings, User, UserRound } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -20,6 +21,7 @@ const menuItemClass = "flex h-10 w-full items-center gap-2.5 rounded-lg px-2.5 t
 
 export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
   const { user, loading, loginWithSteam, logout } = useAuth()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
 
   const { data: competitive } = useApiQuery<CompetitiveProfile>(
@@ -89,7 +91,7 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
               <User className="size-4" />
               Profile
             </button>
-            <button type="button" role="menuitem" className={cn(menuItemClass, "text-[var(--text)]")} onClick={() => { setOpen(false); onNavigate("settings") }}>
+            <button type="button" role="menuitem" className={cn(menuItemClass, "text-[var(--text)]")} onClick={() => { setOpen(false); navigate("/profile?tab=settings") }}>
               <Settings className="size-4" />
               Settings
             </button>

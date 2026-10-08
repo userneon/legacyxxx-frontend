@@ -15,7 +15,6 @@ export const PAGE_ROUTES: Record<PageId, string> = {
   explore: "/explore",
   feedback: "/reviews",
   profile: "/profile",
-  settings: "/settings",
 }
 
 export const ROUTE_PAGES: Record<string, PageId> = Object.fromEntries(
@@ -37,7 +36,6 @@ export const PAGE_TITLES: Record<PageId, string> = {
   explore: "Explore",
   feedback: "Reviews",
   profile: "Profile",
-  settings: "Settings",
 }
 
 function matchPage(pathname: string): PageId {

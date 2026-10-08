@@ -1,7 +1,7 @@
 import { DiscordIcon } from "@/components/discord-strip"
 import { DiscordLinkedMark } from "@/components/discord-linked-mark"
 import { useEffect, useRef, useState } from "react"
-import { Link, useNavigate, useParams } from "react-router-dom"
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { ArrowLeftRight, ChevronRight, Copy, Crown, ExternalLink, Eye, EyeOff, Info, MessageCircle, MoreHorizontal, Play, RotateCcw, ShieldAlert, ShieldCheck, Shield } from "lucide-react"
 import { toast } from "sonner"
 
@@ -29,6 +29,8 @@ import { PenaltyDetailSheet, StatusPill, TypeIcon, TYPE_META, formatPenaltyDate 
 import { PlayerAvatar } from "@/components/player-avatar"
 import { FrameOverlay } from "@/components/framed-avatar"
 import { frameArt } from "@/lib/cosmetics"
+import { PageBar, PageTabs } from "@/components/page-tabs"
+import { AccountSettings, AppearanceSettings } from "@/pages/settings"
 import { copyText, steamProfileUrl } from "@/components/profile-ids"
 import { RelativeTime } from "@/components/relative-time"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -602,11 +604,14 @@ function ProfileSkeleton() {
 
 /* ------------------------------------------------------------------ page */
 
+type ProfileTab = "profile" | "appearance" | "settings"
+
 export function ProfilePage({ userId }: { userId?: string }) {
   const params = useParams()
   const navigate = useNavigate()
   const { user: me } = useAuth()
   const identity = userId ?? params.steamId ?? "me"
+  const [searchParams, setSearchParams] = useSearchParams()
   const { data, loading, error, refetch } = useApiQuery<ProfileOverview>((signal) => profileOverviewService.get(identity, { signal }), { queryKey: `profile:${identity}`, keepPreviousData: true })
   const faceitHidden = data?.hidden.includes("faceit") ?? true
   const { data: faceit } = useApiQuery<FaceitProfileData>((signal) => profileService.getFaceitProfile(data!.user.id, { signal }), { enabled: Boolean(data) && !faceitHidden, queryKey: `profile-faceit:${data?.user.id ?? ""}` })
@@ -646,8 +651,20 @@ export function ProfilePage({ userId }: { userId?: string }) {
   const penaltyById = (id: string) => data.penalties.find((penalty) => penalty.id === id) ?? null
   const isOwnPenalty = Boolean(me && me.id === data.user.id)
 
+  // Your own profile has three tabs; everyone else's is just the profile.
+  const own = data.viewer.isOwner
+  const requested = searchParams.get("tab")
+  const tab: ProfileTab = own && (requested === "appearance" || requested === "settings") ? requested : "profile"
+  const setTab = (next: ProfileTab) => setSearchParams(next === "profile" ? {} : { tab: next }, { replace: true })
+
   return (
     <div ref={topRef}>
+      {own && (
+        <PageBar className="max-md:px-4">
+          <PageTabs<ProfileTab> ariaLabel="Profile sections" value={tab} onChange={setTab} options={[{ value: "profile", label: "Profile" }, { value: "appearance", label: "Appearance" }, { value: "settings", label: "Settings" }]} />
+        </PageBar>
+      )}
+      {tab === "profile" && (
       <div className="px-6 pt-6 max-md:px-4 max-md:pt-4">
         <section aria-label="Profile" className="overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
           <div className="px-5 pb-6 pt-7 max-md:px-4">
@@ -655,7 +672,11 @@ export function ProfilePage({ userId }: { userId?: string }) {
           </div>
         </section>
       </div>
+      )}
       {/* The Owner's Respect and links come first; the rank, stats, matches and FACEIT below are the same as everyone's. */}
+      {tab !== "profile" ? (
+        <div className="px-6 pb-8 pt-6 max-md:px-4 max-md:pt-4"><div className="mx-auto w-full max-w-4xl">{tab === "appearance" ? <AppearanceSettings /> : <AccountSettings />}</div></div>
+      ) : (<>
       {data.user.role === "Owner" && <OwnerThemeButton key={data.user.id} />}
       {data.user.role === "Owner" && <div className="px-6 pt-4 max-md:px-4"><div className="mx-auto flex w-full max-w-3xl flex-col gap-4"><OwnerPanel overview={data} /><OwnerSections overview={data} /></div></div>}
       {(
@@ -686,6 +707,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
         </div>
       </div>
       )}
+      </>)}
 
       {openMatch?.matchId && (
         <MatchDetailsDialog matchId={openMatch.matchId} mapNumber={openMatch.mapNumber ?? 1} highlightSteamId={data.user.steamId} onOpenChange={(open) => { if (!open) setOpenMatch(null) }} />

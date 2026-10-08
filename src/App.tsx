@@ -10,7 +10,6 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { ProfileBlock } from "@/components/profile-block"
 import { HomePage } from "@/pages/home"
 import { PlayPage } from "@/pages/play"
-import { SettingsPage } from "@/pages/settings"
 import { getWebsitePreferences } from "@/lib/preferences"
 import { TournamentsPage } from "@/pages/tournaments"
 import { LeadersPage } from "@/pages/leaders"
@@ -136,7 +135,8 @@ export function App() {
               <Route path="/skinchanger" element={<ProtectedPage pageName="Skinchanger"><SkinchangerPage /></ProtectedPage>} />
               {isFeatureEnabled("compare") && <Route path="/compare" element={<ComparePage />} />}
               <Route path="/penalties" element={<PenaltiesPage onProfileNavigate={handleProfileNavigate} />} />
-              <Route path="/settings" element={<ProtectedPage pageName="Settings"><SettingsPage /></ProtectedPage>} />
+              {/* Settings now live in Profile. */}
+              <Route path="/settings" element={<Navigate to="/profile?tab=settings" replace />} />
               <Route path="/explore" element={<ExplorePage onProfileNavigate={handleProfileNavigate} />} />
               <Route path="/search" element={<ExplorePage onProfileNavigate={handleProfileNavigate} />} />
               <Route path="/reviews" element={<FeedbackPage onProfileNavigate={handleProfileNavigate} />} />

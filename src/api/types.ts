@@ -59,7 +59,6 @@ export type PageId =
   | "explore"
   | "feedback"
   | "profile"
-  | "settings"
 
 /* ----------------------------------------------------------------------------
  * Auth
