@@ -1,6 +1,6 @@
 import { get, post, put, type CallOptions } from "./client"
 
-/** Avatar frames (backend GET /cosmetics). Purely visual: nothing here changes gameplay or EXP. */
+/** Avatar frames, name colours and name glows (backend GET /cosmetics). Purely visual: nothing here changes gameplay or EXP. */
 export interface FrameItem {
   id: string
   name: string
@@ -11,11 +11,27 @@ export interface FrameItem {
   /** How an achievement frame is earned. */
   requirement: string
   owned: boolean
+  /** Name colour items: the #rrggbb the name is painted with. */
+  color?: string
+  /** Name glow items: the #rrggbb of the glow around the name. */
+  glow?: string
+}
+
+export type CosmeticKind = "frame" | "name_color" | "name_glow"
+
+/** How a player's name is painted: plain colours from the API, never a style string. */
+export interface NameStyle {
+  color: string | null
+  glow: string | null
 }
 
 export interface Cosmetics {
   equippedFrame: string | null
+  equippedNameColor?: string | null
+  equippedNameGlow?: string | null
   frames: FrameItem[]
+  nameColors?: FrameItem[]
+  nameGlows?: FrameItem[]
 }
 
 export const cosmeticsService = {
@@ -25,8 +41,8 @@ export const cosmeticsService = {
   async buy(id: string, options?: CallOptions): Promise<{ owned: boolean }> {
     return post<{ owned: boolean }>(`/api/v1/cosmetics/${encodeURIComponent(id)}/buy`, undefined, options)
   },
-  /** Wear a frame, or take it off with null. */
-  async equip(frame: string | null, options?: CallOptions): Promise<{ equippedFrame: string | null }> {
-    return put<{ equippedFrame: string | null }>("/api/v1/cosmetics/equip", { frame }, options)
+  /** Wear one, or take it off with null. */
+  async equip(kind: CosmeticKind, item: string | null, options?: CallOptions): Promise<{ kind: CosmeticKind; item: string | null }> {
+    return put<{ kind: CosmeticKind; item: string | null }>("/api/v1/cosmetics/equip", { kind, item }, options)
   },
 }

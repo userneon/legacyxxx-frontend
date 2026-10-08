@@ -3,7 +3,8 @@ import { Bell, Check, CircleCheck, Frame, Link2, Lock, RotateCcw, MonitorSmartph
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
-import { cosmeticsService, type Cosmetics, type FrameItem } from "@/api/cosmetics"
+import { cosmeticsService, type CosmeticKind, type Cosmetics, type FrameItem } from "@/api/cosmetics"
+import { nameStyle } from "@/lib/cosmetics"
 import { walletService, type Wallet } from "@/api"
 import { FramedAvatar } from "@/components/framed-avatar"
 import { discordService, type DiscordLinkState } from "@/api/discord"
@@ -237,21 +238,35 @@ function Notifications() {
 
 type FrameFilter = "all" | "mine" | "shop" | "earned"
 
+const KINDS: Array<{ value: CosmeticKind; label: string; noun: string }> = [
+  { value: "frame", label: "Frames", noun: "frame" },
+  { value: "name_color", label: "Name colour", noun: "colour" },
+  { value: "name_glow", label: "Name glow", noun: "glow" },
+]
+
 function Appearance() {
   const { user } = useAuth()
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const [busy, setBusy] = useState(false)
+  const [kind, setKind] = useState<CosmeticKind>("frame")
   const [filter, setFilter] = useState<FrameFilter>("all")
-  const [picked, setPicked] = useState<string | null>(null)
+  const [picked, setPicked] = useState<Partial<Record<CosmeticKind, string>>>({})
   const saved = useSavedFlash()
 
-  const frames = data?.frames ?? []
-  const worn = data?.equippedFrame ?? null
-  const selectedId = picked ?? worn ?? frames[0]?.id ?? null
+  const lists: Record<CosmeticKind, FrameItem[]> = { frame: data?.frames ?? [], name_color: data?.nameColors ?? [], name_glow: data?.nameGlows ?? [] }
+  const worn: Record<CosmeticKind, string | null> = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null }
+  const noun = KINDS.find((entry) => entry.value === kind)?.noun ?? "item"
+  const frames = lists[kind]
+  const selectedId = picked[kind] ?? worn[kind] ?? frames[0]?.id ?? null
   const selected = frames.find((item) => item.id === selectedId) ?? null
   const shown = frames.filter((item) => filter === "all" || (filter === "mine" ? item.owned : filter === "shop" ? item.unlock === "coin" : item.unlock === "achievement"))
   const balance = wallet?.balance ?? null
+
+  // The preview shows what you would look like: the item you are looking at, plus whatever you already wear of the other kinds.
+  const previewOf = (of: CosmeticKind) => (of === kind ? selected : lists[of].find((item) => item.id === worn[of])) ?? null
+  const previewFrame = previewOf("frame")
+  const previewName = nameStyle({ color: previewOf("name_color")?.color ?? null, glow: previewOf("name_glow")?.glow ?? null })
 
   const run = async (work: () => Promise<unknown>, failure: string) => {
     setBusy(true)
@@ -265,19 +280,19 @@ function Appearance() {
       setBusy(false)
     }
   }
-  const wear = (id: string | null) => run(() => cosmeticsService.equip(id), "Could not change the frame")
+  const wear = (item: string | null) => run(() => cosmeticsService.equip(kind, item), "Could not change it")
   const buy = (item: FrameItem) => run(async () => {
     await cosmeticsService.buy(item.id)
     window.dispatchEvent(new Event("legacyx:wallet-changed"))
-    await cosmeticsService.equip(item.id)
+    await cosmeticsService.equip(kind, item.id)
     toast.success(`${item.name} is yours and now worn`)
-  }, "Could not buy the frame")
+  }, "Could not buy it")
 
   const button = "inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] px-3.5 text-[13px] font-semibold transition-colors disabled:cursor-default disabled:opacity-60"
   const secondary = cn(button, "text-[var(--text-2)] hover:border-[var(--line-strong)] hover:bg-[var(--raised)]")
   const primary = cn(button, "lx-primary-button border-transparent")
   const action = (item: FrameItem) => {
-    if (worn === item.id) return <button type="button" disabled={busy} onClick={() => void wear(null)} className={secondary}>Take off</button>
+    if (worn[kind] === item.id) return <button type="button" disabled={busy} onClick={() => void wear(null)} className={secondary}>Take off</button>
     if (item.owned) return <button type="button" disabled={busy} onClick={() => void wear(item.id)} className={primary}>Wear</button>
     if (item.unlock === "coin") {
       const short = balance !== null && balance < item.price
@@ -286,8 +301,8 @@ function Appearance() {
     return <button type="button" disabled className={secondary}>Locked</button>
   }
   const note = (item: FrameItem) => {
-    if (worn === item.id) return "You are wearing this frame."
-    if (item.owned) return item.unlock === "free" ? "Free for everyone." : "You own this frame."
+    if (worn[kind] === item.id) return `You are wearing this ${noun}.`
+    if (item.owned) return item.unlock === "free" ? "Free for everyone." : `You own this ${noun}.`
     if (item.unlock === "coin") {
       if (balance !== null && balance < item.price) return `You need ${(item.price - balance).toLocaleString()} more coins.`
       return "Buying wears it right away."
@@ -295,54 +310,63 @@ function Appearance() {
     return item.requirement || "Earned in game, not for sale."
   }
   const badge = (item: FrameItem) => {
-    if (worn === item.id) return <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[var(--status-green)]"><Check className="size-3" />Worn</span>
+    if (worn[kind] === item.id) return <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[var(--status-green)]"><Check className="size-3" />Worn</span>
     if (item.owned) return <span className="text-[10px] text-[var(--text-dim)]">{item.unlock === "free" ? "Free" : "Owned"}</span>
     if (item.unlock === "coin") return <span className="text-[10px] font-medium text-[var(--text-2)]">{item.price.toLocaleString()} coins</span>
     return <span className="inline-flex items-center gap-1 text-[10px] text-[var(--text-dim)]"><Lock className="size-3" />Earned</span>
   }
+  const sampleName = user?.username ?? "Player"
 
   return (
-    <Section id="appearance" index={0} title="Appearance" description="Avatar frames. They are only for show and never change your matches or EXP." aside={saved.node}>
+    <Section id="appearance" index={0} title="Appearance" description="Frames, name colours and glows. They are only for show and never change your matches or EXP." aside={saved.node}>
       {loading ? (
         <div className="grid gap-4 md:grid-cols-[210px_minmax(0,1fr)]"><Skeleton className="h-[300px] rounded-[10px]" /><Skeleton className="h-[300px] rounded-[10px]" /></div>
       ) : error || !data ? (
-        <p className="flex items-center gap-3 text-[13px] text-[var(--text-dim)]">Could not load your frames.<button type="button" onClick={refetch} className="inline-flex h-[34px] items-center gap-1.5 rounded-lg border border-[var(--line)] px-3.5 text-[13px] font-medium text-[var(--text-2)] hover:bg-[var(--raised)]"><RotateCcw className="size-3.5" />Retry</button></p>
+        <p className="flex items-center gap-3 text-[13px] text-[var(--text-dim)]">Could not load your appearance.<button type="button" onClick={refetch} className="inline-flex h-[34px] items-center gap-1.5 rounded-lg border border-[var(--line)] px-3.5 text-[13px] font-medium text-[var(--text-2)] hover:bg-[var(--raised)]"><RotateCcw className="size-3.5" />Retry</button></p>
       ) : (
         <div className="grid gap-4 md:grid-cols-[210px_minmax(0,1fr)]">
           <div className="flex flex-col items-center gap-3 self-start rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] p-4 md:sticky md:top-6">
-            <FramedAvatar avatar={user?.avatar} name={user?.username} frame={selected?.id ?? null} size={150} />
+            <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={150} />
+            <span className="max-w-full truncate text-[17px] font-bold text-[var(--text)]" style={previewName}>{sampleName}</span>
             <div className="flex w-full flex-col items-center gap-1 text-center">
               <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--text-dim)]">Preview</span>
-              <span className="text-[15px] font-semibold text-[var(--text)]">{selected?.name ?? "No frame"}</span>
+              <span className="text-[15px] font-semibold text-[var(--text)]">{selected?.name ?? `No ${noun}`}</span>
               {selected && <span className="text-xs text-[var(--text-dim)]">{note(selected)}</span>}
             </div>
             {selected && <div className="w-full">{action(selected)}</div>}
             {balance !== null && <span className="text-[11px] text-[var(--text-dim)]">Your coins: <span className="font-semibold text-[var(--text-2)]">{balance.toLocaleString()}</span></span>}
           </div>
           <div className="flex min-w-0 flex-col gap-3">
-            <Segmented<FrameFilter>
-              ariaLabel="Frame filter"
-              size="sm"
-              value={filter}
-              onChange={setFilter}
-              options={[{ value: "all", label: "All" }, { value: "mine", label: "Mine" }, { value: "shop", label: "Shop" }, { value: "earned", label: "Earned" }]}
-            />
+            <div className="flex flex-wrap items-center gap-3">
+              <Segmented<CosmeticKind> ariaLabel="What to change" size="sm" value={kind} onChange={(next) => { setKind(next); setFilter("all") }} options={KINDS.map(({ value, label }) => ({ value, label }))} />
+              <Segmented<FrameFilter>
+                ariaLabel="Filter"
+                size="sm"
+                value={filter}
+                onChange={setFilter}
+                options={[{ value: "all", label: "All" }, { value: "mine", label: "Mine" }, { value: "shop", label: "Shop" }, { value: "earned", label: "Earned" }]}
+              />
+            </div>
             {shown.length === 0 ? (
-              <p className="py-6 text-[13px] text-[var(--text-dim)]">{filter === "mine" ? "You do not own a frame yet." : "Nothing here."}</p>
+              <p className="py-6 text-[13px] text-[var(--text-dim)]">{filter === "mine" ? `You do not own a ${noun} yet.` : "Nothing here."}</p>
             ) : (
               <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                 {shown.map((item) => (
                   <li key={item.id}>
                     <button
                       type="button"
-                      onClick={() => setPicked(item.id)}
+                      onClick={() => setPicked((current) => ({ ...current, [kind]: item.id }))}
                       aria-pressed={selectedId === item.id}
                       className={cn(
                         "flex w-full flex-col items-center gap-1 rounded-[10px] border bg-[var(--panel)] px-2 pb-2.5 pt-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
                         selectedId === item.id ? "border-[var(--text-2)] bg-[var(--raised)]" : "border-[var(--line-soft)] hover:border-[var(--line-strong)]",
                       )}
                     >
-                      <FramedAvatar avatar={user?.avatar} name={user?.username} frame={item.id} size={76} />
+                      {kind === "frame" ? (
+                        <FramedAvatar avatar={user?.avatar} name={user?.username} frame={item.id} size={76} />
+                      ) : (
+                        <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1 text-[15px] font-bold text-[var(--text)]" style={nameStyle(kind === "name_color" ? { color: item.color ?? null } : { glow: item.glow ?? null })}><span className="truncate">{sampleName}</span></span>
+                      )}
                       <span className="w-full truncate text-center text-xs font-medium text-[var(--text)]">{item.name}</span>
                       {badge(item)}
                     </button>

@@ -35,6 +35,8 @@ export interface ProfileOverview {
     steamMedia: UserProfile["steamMedia"]
     /** The avatar frame the player wears (id), if any. */
     frame?: string | null
+    /** The name colour and glow the player wears. */
+    nameStyle?: { color: string | null; glow: string | null } | null
   }
   viewer: { isOwner: boolean; isStaff: boolean }
   visibility: Record<ProfileSection, boolean> | null

@@ -33,3 +33,15 @@ export function frameArt(id: string | null | undefined): ({ src: string } & Fram
   if (!id || !(id in FRAMES)) return null
   return { src: `/frames/${id}.webp`, ...FRAMES[id] }
 }
+
+/** Paints a name with the player's colour and glow. Only #rrggbb values from the API reach a style, and anything else is ignored. */
+export function nameStyle(style: { color?: string | null; glow?: string | null } | null | undefined): React.CSSProperties | undefined {
+  const hex = /^#[0-9a-f]{6}$/i
+  const color = style?.color && hex.test(style.color) ? style.color : null
+  const glow = style?.glow && hex.test(style.glow) ? style.glow : null
+  if (!color && !glow) return undefined
+  return {
+    ...(color ? { color } : {}),
+    ...(glow ? { textShadow: `0 0 6px ${glow}cc, 0 0 16px ${glow}80, 0 0 28px ${glow}40` } : {}),
+  }
+}

@@ -14,7 +14,18 @@ const RANKS: [number, string][] = [
   [4, "Recruit III"], [3, "Recruit II"], [2, "Recruit I"], [2, "Recruit I"], [1, "Recruit I"], [1, "Recruit I"],
 ]
 
-const mockFrameState = { equipped: null as string | null, owned: new Set<string>() }
+const mockFrameState = { equipped: null as string | null, nameColor: null as string | null, nameGlow: null as string | null, owned: new Set<string>() }
+function mockNameItems(kind: "color" | "glow") {
+  const rows: Array<[string, string, "free" | "coin" | "achievement", number, string, string]> = kind === "color"
+    ? [["silver", "Silver", "free", 0, "", "#cbd5e1"], ["ice", "Ice", "coin", 150, "", "#7dd3fc"], ["mint", "Mint", "coin", 150, "", "#86efac"], ["rose", "Rose", "coin", 150, "", "#fda4af"], ["violet", "Violet", "coin", 200, "", "#c4b5fd"], ["sunset", "Sunset", "coin", 200, "", "#fdba74"], ["gold", "Gold", "coin", 300, "", "#fcd34d"], ["ember", "Ember", "achievement", 0, "Season 1 winner", "#ff6b4a"]]  // palette-exempt: name colours are cosmetic data a player picks
+    : [["white", "Soft White", "coin", 250, "", "#ffffff"], ["ice", "Ice", "coin", 250, "", "#38bdf8"], ["mint", "Mint", "coin", 250, "", "#4ade80"], ["crimson", "Crimson", "coin", 300, "", "#f43f5e"], ["violet", "Violet", "coin", 300, "", "#a78bfa"], ["gold", "Gold", "coin", 350, "", "#fbbf24"], ["aurora", "Aurora", "achievement", 0, "Clan tournament winner", "#2dd4bf"]]  // palette-exempt: name colours are cosmetic data a player picks
+  return rows.map(([key, name, unlock, price, requirement, value]) => ({ id: `${kind}-${key}`, name, nameMn: name, unlock, price, requirement, owned: unlock === "free" || mockFrameState.owned.has(`${kind}-${key}`), [kind]: value }))
+}
+function mockNameStyle() {
+  const color = mockNameItems("color").find((item) => item.id === mockFrameState.nameColor)?.color ?? null
+  const glow = mockNameItems("glow").find((item) => item.id === mockFrameState.nameGlow)?.glow ?? null
+  return color || glow ? { color, glow } : null
+}
 function mockFrames() {
   const list: Array<[string, string, "free" | "coin" | "achievement", number, string]> = [
     ["red-dragon", "Red Dragon", "free", 0, ""], ["crimson-thorns", "Crimson Thorns", "free", 0, ""], ["shattered-glass", "Shattered Glass", "free", 0, ""],
@@ -35,6 +46,7 @@ function leaderboard(sort: string) {
     clan_tag: index % 4 === 0 ? "WOLF" : index % 4 === 1 ? "SKY" : null,
     avatar: null,
     frame: ["frost-ring", "red-dragon", null, "golden-crown", "sakura-silk", "inferno"][index % 6] ?? null,
+    name_style: index % 3 === 0 ? { color: "#7dd3fc", glow: "#38bdf8" } : index % 3 === 1 ? { color: "#fcd34d", glow: null } : null,  // palette-exempt: name colours are cosmetic data a player picks
     rank_id: RANKS[index][0],
     rank_name: RANKS[index][1],
     rank_image_key: null,
@@ -432,7 +444,7 @@ function profileOverview(identity: string) {
   const maps = ["de_mirage", "de_inferno", "de_dust2", "de_ancient", "de_nuke", "de_anubis"]
   const results = ["Win", "Win", "Loss", "Win", "Win", "Loss", "Win", "Loss", "Win", "Win"]
   return {
-    user: { id: own ? MOCK_USER.id : `mock-${index}`, steamId: own ? MOCK_USER.steamId : byName >= 0 ? `7656119800000${String(index).padStart(4, "0")}` : identity, username: name, avatar: "", role: own ? "Player" : index === 0 ? "Owner" : "Player", memberSince: new Date(Date.now() - 400 * 24 * HOUR).toISOString(), steamBackground: null, steamMedia: null, frame: own ? mockFrameState.equipped : null },
+    user: { id: own ? MOCK_USER.id : `mock-${index}`, steamId: own ? MOCK_USER.steamId : byName >= 0 ? `7656119800000${String(index).padStart(4, "0")}` : identity, username: name, avatar: "", role: own ? "Player" : index === 0 ? "Owner" : "Player", memberSince: new Date(Date.now() - 400 * 24 * HOUR).toISOString(), steamBackground: null, steamMedia: null, frame: own ? mockFrameState.equipped : null, nameStyle: own ? mockNameStyle() : null },
     viewer: { isOwner: own, isStaff: false },
     // Only the sample Owner has Respect and links, like the real Owner profile will.
     ...(index === 0 ? {
@@ -579,14 +591,17 @@ export async function mockResponse(method: string, path: string, query: Query, b
     if (!signedIn()) throw unauthorized()
     const frames = mockFrames()
     if (method === "PUT") {
-      mockFrameState.equipped = (body as { frame: string | null }).frame
-      return { equippedFrame: mockFrameState.equipped }
+      const { kind, item } = body as { kind: "frame" | "name_color" | "name_glow"; item: string | null }
+      if (kind === "frame") mockFrameState.equipped = item
+      else if (kind === "name_color") mockFrameState.nameColor = item
+      else mockFrameState.nameGlow = item
+      return { kind, item }
     }
     if (method === "POST") {
       mockFrameState.owned.add(decodeURIComponent(path.split("/")[4]))
       return { owned: true }
     }
-    return { equippedFrame: mockFrameState.equipped, frames }
+    return { equippedFrame: mockFrameState.equipped, equippedNameColor: mockFrameState.nameColor, equippedNameGlow: mockFrameState.nameGlow, frames, nameColors: mockNameItems("color"), nameGlows: mockNameItems("glow") }
   }
   if (path === "/api/v1/wallet/me") {
     if (!signedIn()) throw unauthorized()
