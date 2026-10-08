@@ -99,7 +99,7 @@ export function ClanLadder({ search }: { search: string }) {
   const rows = search ? clans.filter((clan) => clan.name.toLowerCase().includes(search) || clan.tag.toLowerCase().includes(search)) : clans.slice(3)
   const yours = mine?.membership ? clans.find((clan) => clan.id === mine.membership?.clan.id) : undefined
   const firstLoad = loading && clans.length === 0
-  const open = (clan: ClanRankEntry) => navigate(`/clans/${clan.id}`)
+  const open = (clan: ClanRankEntry) => navigate(`/clans/${clan.number ?? clan.id}`)
 
   return (
     <>

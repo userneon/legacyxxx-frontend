@@ -400,6 +400,8 @@ export type ModerationStatus = "Banned" | "Muted" | "Gag" | "Clear"
 
 export interface ClanCard {
   id: string
+  /** Short address number in the order clans were opened: /clans/1. Absent from an older API. */
+  number?: number
   name: string
   tag: string
   logo: string

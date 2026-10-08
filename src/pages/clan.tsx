@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { ArrowLeft, Check, Coins, Globe, Lock, Pencil, Plus, Search, Upload, UserPlus, Users, X } from "lucide-react"
 import { toast } from "sonner"
@@ -182,7 +182,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
               {CLAN_FEE} coins are taken from your wallet when the clan is created. You choose who can join and how many players it holds.
             </DialogDescription>
           </DialogHeader>
-          <CreateClanForm onClose={() => setCreating(false)} onCreated={(clan) => { setCreating(false); changed(); onClanNavigate(clan.id) }} />
+          <CreateClanForm onClose={() => setCreating(false)} onCreated={(clan) => { setCreating(false); changed(); onClanNavigate(String(clan.number ?? clan.id)) }} />
         </DialogContent>
       </Dialog>
     </div>
@@ -263,7 +263,7 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
       {banner && <img src={banner} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />}
       <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[var(--card-surface)] via-[var(--card-surface)]/85 to-[var(--card-surface)]/35" />
       <div className="relative flex flex-1 flex-col gap-4 p-4">
-        <button type="button" onClick={() => onClanNavigate(clan.id)} className="flex items-center gap-3 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
+        <button type="button" onClick={() => onClanNavigate(String(clan.number ?? clan.id))} className="flex items-center gap-3 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
           <ClanMark logo={clan.logo} tag={clan.tag} className="size-12" />
           <span className="flex min-w-0 flex-col gap-0.5">
             <span className="truncate text-[15px] font-semibold">{clan.name}</span>
@@ -304,6 +304,10 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
   const [busy, setBusy] = useState(false)
   const [editing, setEditing] = useState(false)
   const { data: clan, loading, error, refetch } = useApiQuery<ClanDetail>((signal) => clansService.getClan(clanId, { signal }))
+  // An address with the long id moves to the short one (/clans/1).
+  useEffect(() => {
+    if (clan?.number !== undefined && clanId !== String(clan.number)) navigate(`/clans/${clan.number}`, { replace: true })
+  }, [clan?.number, clanId, navigate])
   const members = clan?.members ?? []
   const role = (clan?.viewer?.role ?? null) as ClanRole | null
   const isLeader = role === "leader"
