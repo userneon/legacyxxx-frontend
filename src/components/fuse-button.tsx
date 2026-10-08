@@ -1,6 +1,6 @@
 /**
  * A button with a lit fuse: pressing it starts a short countdown shown as a line burning down the button's outline, and the
- * same button turns into "Undo" until the fuse runs out. Used where a mistaken press is easy and costly (Sign out).
+ * whole button turns into "Undo" until the fuse runs out. Used where a mistaken press is easy and costly (Sign out).
  *
  * commitOn "press": onCommit runs at once and the fuse is only the time left to undo it.
  * commitOn "fuseEnd": nothing happens until the fuse is gone; Undo cancels it. onFuseEnd runs when the fuse ends either way.
@@ -16,9 +16,12 @@ const HEIGHTS = { sm: 32, md: 40, lg: 48 } as const
 
 export interface FuseButtonProps {
   label: ReactNode
-  /** Shown beside Undo while the fuse burns, and alone once it has gone out. */
+  /** Shown once the fuse has gone out. */
   doneLabel: ReactNode
+  /** What the whole button says while the fuse burns; pressing it cancels. */
   undoLabel?: ReactNode
+  /** Small leading icon while the fuse burns. */
+  undoIcon?: ReactNode
   /** Small leading icon in the resting state. */
   icon?: ReactNode
   color?: string
@@ -45,6 +48,7 @@ export function FuseButton({
   label,
   doneLabel,
   undoLabel = "Undo",
+  undoIcon,
   icon,
   color = "var(--text-muted)",
   background = "transparent",
@@ -112,10 +116,7 @@ export function FuseButton({
       style={{ height, color, background, borderRadius: radius }}
     >
       <span className="col-start-1 row-start-1 flex items-center gap-2.5 justify-self-start" style={fade(phase === "idle")}>{icon}{label}</span>
-      <span className="col-start-1 row-start-1 flex w-full items-center justify-between gap-2" style={fade(phase === "armed")}>
-        <span className="truncate">{doneLabel}</span>
-        <span className="shrink-0 rounded-md border border-[var(--line-strong)] px-2 py-0.5 text-xs font-semibold text-[var(--text)]">{undoLabel}</span>
-      </span>
+      <span className="col-start-1 row-start-1 flex items-center gap-2.5 justify-self-start font-semibold text-[var(--text)]" style={fade(phase === "armed")}>{undoIcon}{undoLabel}</span>
       <span className="col-start-1 row-start-1 flex items-center gap-2.5 justify-self-start" style={fade(phase === "done")}>{doneLabel}</span>
       {fuse === "outline" && phase === "armed" && (
         <svg aria-hidden="true" className="pointer-events-none absolute inset-0 size-full overflow-visible" width="100%" height="100%">

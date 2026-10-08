@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { LogOut, Settings, User, UserRound } from "lucide-react"
+import { LogOut, Undo2, Settings, User, UserRound } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { competitiveService } from "@/api"
@@ -103,6 +103,7 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
               doneLabel="Signing out"
               undoLabel="Undo"
               icon={<LogOut className="size-4" />}
+              undoIcon={<Undo2 className="size-4" />}
               fuseColor="var(--text)"
               radius={8}
               undoWindow={3500}
