@@ -11,7 +11,7 @@ import {
 import { toast } from "sonner"
 
 import { authService, getAccessToken, setAccessToken } from "@/api"
-import type { UserProfile } from "@/api/types"
+import type { ApiError, UserProfile } from "@/api/types"
 
 interface AuthContextValue {
   user: UserProfile | null
@@ -26,6 +26,16 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 
 const CALLBACK_TOKEN_KEYS = ["access_token", "accessToken", "token", "jwt"]
 const SILENT_REFRESH_INTERVAL_MS = 10 * 60 * 1000
+/** Waits before asking again when the server is busy or unreachable (not when it said "signed out"). */
+const BUSY_RETRY_DELAYS_MS = [1500, 4000, 10000]
+
+const sleep = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms))
+
+/** Only these mean "this browser has no session". A busy server (429), an outage (5xx) or a dropped connection must never sign anyone out. */
+function saysSignedOut(error: unknown) {
+  const status = (error as Partial<ApiError> | null)?.status
+  return status === 401 || status === 403
+}
 
 function consumeSteamCallbackToken(): string | null {
   const url = new URL(window.location.href)
@@ -89,18 +99,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const callbackToken = consumeSteamCallbackToken()
     const token = callbackToken ?? getAccessToken()
     try {
-      // A successful Steam callback can provide either a token or an HttpOnly cookie session.
-      // In both cases /auth/me is the authority for whether the user is signed in.
-      const profile = await authService.me({ skipAuth: !token })
-      setUser(profile)
-    } catch {
-      try {
-        // Access JWTs deliberately expire quickly. Do not send the expired
-        // bearer token here: the API must rotate the HttpOnly refresh cookie.
-        await rotateSession()
-      } catch {
-        if (token) setAccessToken(null)
-        setUser(null)
+      for (let attempt = 0; ; attempt++) {
+        try {
+          // A successful Steam callback can provide either a token or an HttpOnly cookie session.
+          // In both cases /auth/me is the authority for whether the user is signed in.
+          setUser(await authService.me({ skipAuth: !token }))
+          return
+        } catch (meError) {
+          if (saysSignedOut(meError)) {
+            try {
+              // Access JWTs deliberately expire quickly. Do not send the expired
+              // bearer token here: the API must rotate the HttpOnly refresh cookie.
+              await rotateSession()
+              return
+            } catch (refreshError) {
+              if (saysSignedOut(refreshError)) {
+                if (token) setAccessToken(null)
+                setUser(null)
+                return
+              }
+            }
+          }
+          // The server is busy or unreachable (for example after many quick reloads): keep the session and ask again shortly.
+          if (attempt >= BUSY_RETRY_DELAYS_MS.length) {
+            toast.error("Could not reach the server", { description: "You are still signed in. Reload in a moment." })
+            return
+          }
+          await sleep(BUSY_RETRY_DELAYS_MS[attempt])
+        }
       }
     } finally {
       setLoading(false)

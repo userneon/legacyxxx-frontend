@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import { Database, Power, ShieldAlert, UserRoundCog, UsersRound, Map, Megaphone, MonitorUp, Loader2, LockKeyhole, ServerCog } from "lucide-react"
 import { steamLoginUrl } from "@/api/auth"
-import { setAccessToken } from "@/api/client"
 import { staffPanelService } from "@/api/staffpanel"
 import type { ApiError, StaffPanelAccess, StaffPanelActionRequest, StaffPanelDatabaseOverview, StaffPanelOverview } from "@/api/types"
 
@@ -46,13 +45,6 @@ export function StaffPanelPage() {
   const [notice, setNotice] = useState("")
   const [busy, setBusy] = useState(false)
 
-  useEffect(() => {
-    if (params.get("reauth") !== "done") {
-      setAccessToken(null)
-      window.location.replace(steamLoginUrl("?staffpanel=1"))
-    }
-  }, [params])
-
   const load = async () => {
     try {
       const [nextAccess, nextOverview] = await Promise.all([staffPanelService.access(), staffPanelService.overview()])
@@ -65,17 +57,19 @@ export function StaffPanelPage() {
     } catch (error) {
       const api = error as ApiError
       if (api?.status === 401) {
-        setAccessToken(null)
-        window.location.replace(steamLoginUrl("?staffpanel=1"))
+        // No staff session yet (or it ran out): sign in with Steam again, once. The player session on the rest of the site is left alone.
+        if (params.get("reauth") === "done") setNotice("The staff session could not be started. Try again from the player menu.")
+        else window.location.replace(steamLoginUrl("?staffpanel=1"))
         return
       }
       setNotice(toUiError(error))
     }
   }
 
+  // A staff session that is still valid opens straight away, so going to the player view and back needs no new sign-in.
   useEffect(() => {
-    if (params.get("reauth") === "done") void load()
-  }, [params])
+    void load()
+  }, [])
 
   const visibleActions = useMemo(() => access?.role === "OWNER" ? [...managerActions, ...ownerActions] : managerActions, [access?.role])
   const queue = async (type: StaffPanelActionRequest["type"]) => {
