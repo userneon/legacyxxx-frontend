@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { RankLabel } from "@/components/competitive-rank-badge"
 import { NotificationsMenu } from "@/components/notifications-menu"
 import { WalletMenu } from "@/components/wallet-menu"
+import { FuseButton } from "@/components/fuse-button"
 import { SteamIcon } from "@/components/steam-login-gate"
 
 interface ProfileBlockProps {
@@ -97,10 +98,19 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
             </button>
           </div>
           <div className="border-t border-[var(--line-soft)] p-1.5">
-            <button type="button" role="menuitem" className={cn(menuItemClass, "text-[var(--text-muted)] hover:text-[var(--text)]")} onClick={() => { setOpen(false); void logout() }}>
-              <LogOut className="size-4" />
-              Sign out
-            </button>
+            <FuseButton
+              label="Sign out"
+              doneLabel="Signing out"
+              undoLabel="Undo"
+              icon={<LogOut className="size-4" />}
+              fuseColor="var(--text)"
+              radius={8}
+              undoWindow={3500}
+              fuseThickness={1.5}
+              commitOn="fuseEnd"
+              settle="stay"
+              onCommit={() => { setOpen(false); void logout() }}
+            />
           </div>
         </PopoverContent>
       </Popover>

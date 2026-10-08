@@ -1566,3 +1566,6 @@ body::before {
 .lx-sheet-rise > :nth-child(4) { animation-delay: 240ms; }
 .lx-sheet-rise > :nth-child(5) { animation-delay: 290ms; }
 .lx-sheet-rise > :nth-child(n + 6) { animation-delay: 340ms; }
+
+/* FuseButton: the fuse is the button's outline, drawn in full and burning down to nothing. */
+@keyframes lx-fuse-burn { from { stroke-dashoffset: 0; } to { stroke-dashoffset: 1; } }
