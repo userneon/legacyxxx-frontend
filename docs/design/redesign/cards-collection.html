@@ -1,0 +1,72 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#0a0a0a;--panel:#0f0f0f;--card:#141414;--raised:#1a1a1a;--line-soft:#1f1f1f;--line:#262626;--line-strong:#333;--text:#fafafa;--text-2:#d4d4d4;--muted:#a3a3a3;--dim:#737373;--faint:#525252;--brand:#e11d48;--brand-b:#ff3d6e;--green:#22c55e;--red:#ef4444;--legacy:#e4ae39;--apex:#eb4b4b;--ace:#8847ff;--vanguard:#4b69ff;--operator:#5e98d9;--recruit:#b0c3d9}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:'Onest',system-ui,sans-serif}
+.d{font-family:'Black Ops One',system-ui,sans-serif;font-weight:400;letter-spacing:.5px}
+.app{width:1440px;height:900px;display:flex;overflow:hidden}
+aside{width:248px;margin:8px 0 8px 8px;border:1px solid var(--line-soft);border-radius:14px;padding:0 12px;flex-shrink:0}
+.logo{height:60px;display:flex;align-items:center;padding-left:12px;font-weight:700;font-size:16px}.logo b{color:var(--brand-b)}
+.nav{height:40px;display:flex;align-items:center;gap:10px;padding:0 12px;font-size:14px;font-weight:500;color:var(--muted);border-radius:8px;position:relative}
+.nav.on{color:var(--text);font-weight:600}.nav.on:before{content:"";position:absolute;left:-12px;top:10px;bottom:10px;width:2px;background:var(--brand-b);border-radius:2px}
+.nav i{width:18px;height:18px;border:1.5px solid currentColor;border-radius:5px;opacity:.7}
+main{flex:1;min-width:0;padding:8px;display:flex;flex-direction:column;gap:8px}
+.top{height:56px;border:1px solid var(--line-soft);border-radius:14px;display:flex;align-items:center;padding:0 16px;font-size:13px;color:var(--dim);gap:8px}.top b{color:var(--text)}
+.page{flex:1;border:1px solid var(--line-soft);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.bar{height:48px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;padding:0 24px;gap:24px;font-size:13px;color:var(--dim);flex-shrink:0}
+.bar .t{height:48px;display:flex;align-items:center;font-weight:600}.bar .t.on{color:var(--text);box-shadow:inset 0 -2px 0 var(--text)}
+.card{position:relative;width:176px;height:246px;border-radius:14px;overflow:hidden;background:#141414;flex-shrink:0;box-shadow:0 14px 26px rgba(0,0,0,.6)}
+.card .art{position:absolute;inset:0;background-size:cover;background-position:center}
+.card .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,10,.1) 25%,rgba(10,10,10,.92) 78%)}
+.card .rim{position:absolute;inset:0;border-radius:14px;pointer-events:none}
+.card .num{position:absolute;left:12px;top:10px;font-size:10px;letter-spacing:1px;color:rgba(255,255,255,.75);font-weight:600}
+.card .name{position:absolute;left:12px;right:12px;bottom:34px;font-size:17px;font-weight:700;line-height:1.1}
+.card .sub{position:absolute;left:12px;right:12px;bottom:14px;font-size:11px;color:#c9c9c9}
+.chip{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border:1px solid #262626;border-radius:999px;font-size:12px;color:#a3a3a3}.holo{background:linear-gradient(115deg,transparent 22%,rgba(255,255,255,.38) 40%,rgba(150,200,255,.4) 48%,rgba(255,160,220,.36) 56%,transparent 74%);mix-blend-mode:screen}
+.body{padding:20px 24px;overflow:hidden;flex:1;position:relative}
+</style></head><body><div class="app">
+<aside><div class="logo">LEGACY-<b>X</b></div>
+<div class="nav"><i></i>Home</div><div class="nav"><i></i>Play</div><div class="nav"><i></i>Skinchanger</div><div class="nav"><i></i>Compare</div>
+<div class="nav "><i></i>Leaders</div><div class="nav"><i></i>Clans</div><div class="nav "><i></i>Penalties</div><div class="nav"><i></i>Reviews</div><div class="nav"><i></i>Explore</div></aside>
+<main><div class="top">LEGACY-X / <b>Profile</b></div><div class="page">
+<div class="bar"><span class="t">Overview</span><span class="t">Matches</span><span class="t on">Cards</span><span class="t">Penalties</span><span style="margin-left:auto;font-size:12px">12 / 48 цуглуулсан</span></div>
+<div class="body" style="padding:18px 26px;overflow:hidden">
+ <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px"><span style="font-size:11px;letter-spacing:1.2px;color:#737373;font-weight:600">SHOWCASE</span><span style="font-size:12px;color:#525252">Профайл дээр харагдах 4 карт (чирж солино)</span></div>
+ <div style="display:flex;gap:20px;margin-bottom:26px"><div class="card"><div class="art" style="background-image:url(../../../src/assets/maps/de_mirage.webp);"></div><div class="shade"></div><img src="../ranks/rank-18.svg" width="84" height="84" style="position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);filter:drop-shadow(0 0 18px #e4ae39)">
+<div class="num">#001</div><div style="position:absolute;right:12px;top:10px;font-size:9px;letter-spacing:1.2px;color:#e4ae39;font-weight:700;text-shadow:0 1px 4px #000">LEGACY</div>
+<div class="name">Temuulen</div><div class="sub">Legacy · 4,200 EXP</div>
+<div class="rim" style="box-shadow:inset 0 0 0 2px #e4ae39,inset 0 0 22px #e4ae3955"></div><div class="rim holo"></div></div><div class="card"><div class="art" style="background-image:url(../../../src/assets/maps/de_dust2.webp);"></div><div class="shade"></div>
+<div class="num">#014</div><div style="position:absolute;right:12px;top:10px;font-size:9px;letter-spacing:1.2px;color:#8847ff;font-weight:700;text-shadow:0 1px 4px #000">RARE</div>
+<div class="name">Clutch King</div><div class="sub">1v4 clutch · 3 удаа</div>
+<div class="rim" style="box-shadow:inset 0 0 0 2px #8847ff,inset 0 0 22px #8847ff55"></div><div class="rim holo"></div></div><div class="card"><div class="art" style="background-image:url(../../../src/assets/maps/de_inferno.webp);"></div><div class="shade"></div>
+<div class="num">#027</div><div style="position:absolute;right:12px;top:10px;font-size:9px;letter-spacing:1.2px;color:#4b69ff;font-weight:700;text-shadow:0 1px 4px #000">EPIC</div>
+<div class="name">Inferno Master</div><div class="sub">50 win · Inferno</div>
+<div class="rim" style="box-shadow:inset 0 0 0 2px #4b69ff,inset 0 0 22px #4b69ff55"></div></div><div class="card"><div class="art" style="background-image:url(../../../src/assets/maps/de_nuke.webp);"></div><div class="shade"></div>
+<div class="num">#031</div><div style="position:absolute;right:12px;top:10px;font-size:9px;letter-spacing:1.2px;color:#a3a3a3;font-weight:700;text-shadow:0 1px 4px #000">SEASON</div>
+<div class="name">Season 1</div><div class="sub">Тэмцээний оролцогч</div>
+<div class="rim" style="box-shadow:inset 0 0 0 2px #a3a3a3,inset 0 0 22px #a3a3a355"></div></div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:12px;padding-left:12px">
+   <div style="font-size:11px;letter-spacing:1.2px;color:#737373;font-weight:600">ЦУГЛУУЛГА</div>
+   <div class="d" style="font-size:44px;line-height:1">12<span style="color:#525252;font-size:24px"> / 48</span></div>
+   <div style="height:6px;border-radius:99px;background:#1f1f1f;max-width:260px"><div style="width:25%;height:100%;border-radius:99px;background:#fafafa"></div></div>
+   <div style="font-size:12px;color:#a3a3a3;max-width:300px;line-height:1.5">Карт ололтоор, тэмцээнээр, улирлаар нээгдэнэ. Санамсаргүй сав (pack) байхгүй: ямар карт яаж нээгдэхийг урьдчилан харна.</div>
+   <div style="display:flex;gap:8px;margin-top:4px"><span class="chip">Ололт 6</span><span class="chip">Map 4</span><span class="chip">Улирал 2</span></div>
+  </div></div>
+ <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px"><span style="font-size:11px;letter-spacing:1.2px;color:#737373;font-weight:600">БҮХ КАРТ</span><span class="chip" style="height:26px">Бүгд</span><span class="chip" style="height:26px;color:#525252">Ололт</span><span class="chip" style="height:26px;color:#525252">Map</span><span class="chip" style="height:26px;color:#525252">Улирал</span><span class="chip" style="height:26px;color:#525252">Clan</span></div>
+ <div style="display:flex;gap:20px"><div class="card"><div class="art" style="background-image:url(../../../src/assets/maps/de_ancient.webp);filter:grayscale(1) brightness(.5)"></div><div class="shade"></div>
+<div class="num">#040</div><div style="position:absolute;right:12px;top:10px;font-size:9px;letter-spacing:1.2px;color:#262626;font-weight:700;text-shadow:0 1px 4px #000"></div>
+<div class="name">—</div><div class="sub"></div>
+<div class="rim" style="box-shadow:inset 0 0 0 1px #262626"></div><div style="position:absolute;inset:0;background:rgba(10,10,10,.72)"></div><div style="position:absolute;left:0;right:0;top:46%;text-align:center;font-size:11px;color:#737373;letter-spacing:1px">???</div></div><div class="card"><div class="art" style="background-image:url(../../../src/assets/maps/de_overpass.webp);filter:grayscale(1) brightness(.5)"></div><div class="shade"></div>
+<div class="num">#041</div><div style="position:absolute;right:12px;top:10px;font-size:9px;letter-spacing:1.2px;color:#262626;font-weight:700;text-shadow:0 1px 4px #000"></div>
+<div class="name">—</div><div class="sub"></div>
+<div class="rim" style="box-shadow:inset 0 0 0 1px #262626"></div><div style="position:absolute;inset:0;background:rgba(10,10,10,.72)"></div><div style="position:absolute;left:0;right:0;top:46%;text-align:center;font-size:11px;color:#737373;letter-spacing:1px">???</div></div><div class="card"><div class="art" style="background-image:url(../../../src/assets/maps/de_vertigo.webp);filter:grayscale(1) brightness(.5)"></div><div class="shade"></div>
+<div class="num">#042</div><div style="position:absolute;right:12px;top:10px;font-size:9px;letter-spacing:1.2px;color:#262626;font-weight:700;text-shadow:0 1px 4px #000"></div>
+<div class="name">—</div><div class="sub"></div>
+<div class="rim" style="box-shadow:inset 0 0 0 1px #262626"></div><div style="position:absolute;inset:0;background:rgba(10,10,10,.72)"></div><div style="position:absolute;left:0;right:0;top:46%;text-align:center;font-size:11px;color:#737373;letter-spacing:1px">???</div></div><div class="card"><div class="art" style="background-image:url(../../../src/assets/maps/de_anubis.webp);filter:grayscale(1) brightness(.5)"></div><div class="shade"></div>
+<div class="num">#043</div><div style="position:absolute;right:12px;top:10px;font-size:9px;letter-spacing:1.2px;color:#262626;font-weight:700;text-shadow:0 1px 4px #000"></div>
+<div class="name">—</div><div class="sub"></div>
+<div class="rim" style="box-shadow:inset 0 0 0 1px #262626"></div><div style="position:absolute;inset:0;background:rgba(10,10,10,.72)"></div><div style="position:absolute;left:0;right:0;top:46%;text-align:center;font-size:11px;color:#737373;letter-spacing:1px">???</div></div><div class="card"><div class="art" style="background-image:url(../../../src/assets/maps/de_train.webp);filter:grayscale(1) brightness(.5)"></div><div class="shade"></div>
+<div class="num">#044</div><div style="position:absolute;right:12px;top:10px;font-size:9px;letter-spacing:1.2px;color:#262626;font-weight:700;text-shadow:0 1px 4px #000"></div>
+<div class="name">—</div><div class="sub"></div>
+<div class="rim" style="box-shadow:inset 0 0 0 1px #262626"></div><div style="position:absolute;inset:0;background:rgba(10,10,10,.72)"></div><div style="position:absolute;left:0;right:0;top:46%;text-align:center;font-size:11px;color:#737373;letter-spacing:1px">???</div></div></div>
+</div></div></main></div></body></html>
