@@ -13,6 +13,7 @@ import { useFlip } from "@/hooks/use-flip"
 import { useViewParams } from "@/hooks/use-view-params"
 import { useAuth } from "@/hooks/use-auth"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { FrameOverlay } from "@/components/framed-avatar"
 import { CompetitiveRankBadge, RankLabel, rankTierColor } from "@/components/competitive-rank-badge"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -82,14 +83,18 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
         <CompetitiveRankBadge rankId={player.rank_id} rankName={player.rank_name} imageKey={player.rank_image_key} currentExp={player.current_exp} size={first ? 48 : 40} />
       </span>
       <span className="flex min-w-0 items-center gap-3">
-        <PlayerAvatar
-          avatar={player.avatar}
-          name={player.username}
-          className={cn(
-            "lx-layer shrink-0 text-base transition-[scale] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-105 group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
-            first ? "size-[60px] rounded-[15px] ring-2 ring-[var(--brand)]/70 ring-offset-2 ring-offset-[var(--card-surface)]" : "size-[52px] rounded-[13px]",
-          )}
-        />
+        <span className={cn("relative shrink-0", player.frame && "mx-3")}>
+          <PlayerAvatar
+            avatar={player.avatar}
+            name={player.username}
+            className={cn(
+              "lx-layer shrink-0 text-base transition-[scale] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-105 group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
+              first ? "size-[60px] rounded-[15px]" : "size-[52px] rounded-[13px]",
+              first && !player.frame && "ring-2 ring-[var(--brand)]/70 ring-offset-2 ring-offset-[var(--card-surface)]",
+            )}
+          />
+          <FrameOverlay frame={player.frame} />
+        </span>
         <span className="flex min-w-0 flex-col gap-1.5">
           <span className="flex min-w-0 items-center gap-1.5">
             <span className={cn("truncate font-semibold text-[var(--text)]", first ? "text-base" : "text-sm")} title={player.username}>{player.username}</span>
@@ -148,11 +153,14 @@ function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: Competiti
       />
       <span className={cn("text-sm font-semibold", you ? "text-[var(--brand-bright)]" : "text-[var(--text-muted)] transition-colors duration-300 group-hover:text-[var(--text)]")}>{player.position}</span>
       <span className="flex min-w-0 items-center gap-3 transition-[translate] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:translate-x-1 group-hover:duration-300 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]">
-        <PlayerAvatar
-          avatar={player.avatar}
-          name={player.username}
-          className={cn("size-8 shrink-0 rounded-[9px] text-xs", you && "ring-2 ring-[var(--brand)]/80")}
-        />
+        <span className={cn("relative shrink-0", player.frame && "mx-2")}>
+          <PlayerAvatar
+            avatar={player.avatar}
+            name={player.username}
+            className={cn("size-8 shrink-0 rounded-[9px] text-xs", you && !player.frame && "ring-2 ring-[var(--brand)]/80")}
+          />
+          <FrameOverlay frame={player.frame} />
+        </span>
         <span className="min-w-0 truncate text-[13px] font-medium text-[var(--text)]" title={player.username}>{you ? "You" : player.username}</span>
         {player.clan_tag && <span className="shrink-0 text-[11px] font-semibold text-[var(--text-dim)]">[{player.clan_tag}]</span>}
         <DiscordLinkedMark linked={player.discord_linked} />

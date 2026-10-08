@@ -33,7 +33,8 @@ function leaderboard(sort: string) {
     username,
     discord_linked: index % 3 !== 1,
     clan_tag: index % 4 === 0 ? "WOLF" : index % 4 === 1 ? "SKY" : null,
-    avatar: null,
+    avatar: index < 12 ? `${typeof location === "undefined" ? "" : location.origin}/og-image.webp` : null,
+    frame: ["frost-ring", "red-dragon", null, "golden-crown", "sakura-silk", "inferno"][index % 6] ?? null,
     rank_id: RANKS[index][0],
     rank_name: RANKS[index][1],
     rank_image_key: null,
@@ -431,7 +432,7 @@ function profileOverview(identity: string) {
   const maps = ["de_mirage", "de_inferno", "de_dust2", "de_ancient", "de_nuke", "de_anubis"]
   const results = ["Win", "Win", "Loss", "Win", "Win", "Loss", "Win", "Loss", "Win", "Win"]
   return {
-    user: { id: own ? MOCK_USER.id : `mock-${index}`, steamId: own ? MOCK_USER.steamId : byName >= 0 ? `7656119800000${String(index).padStart(4, "0")}` : identity, username: name, avatar: "", role: own ? "Player" : index === 0 ? "Owner" : "Player", memberSince: new Date(Date.now() - 400 * 24 * HOUR).toISOString(), steamBackground: null, steamMedia: null, frame: own ? mockFrameState.equipped : null },
+    user: { id: own ? MOCK_USER.id : `mock-${index}`, steamId: own ? MOCK_USER.steamId : byName >= 0 ? `7656119800000${String(index).padStart(4, "0")}` : identity, username: name, avatar: `${location.origin}/og-image.webp`, role: own ? "Player" : index === 0 ? "Owner" : "Player", memberSince: new Date(Date.now() - 400 * 24 * HOUR).toISOString(), steamBackground: null, steamMedia: null, frame: own ? mockFrameState.equipped : null },
     viewer: { isOwner: own, isStaff: false },
     // Only the sample Owner has Respect and links, like the real Owner profile will.
     ...(index === 0 ? {

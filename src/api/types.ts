@@ -182,6 +182,8 @@ export interface CompetitiveLeaderboardEntry extends CompetitiveProfile {
   discord_linked?: boolean
   /** Tag of the clan the player is in. Absent when the clan feature is off or they have none. */
   clan_tag?: string | null
+  /** Avatar frame the player wears (id). Absent from an older API. */
+  frame?: string | null
   deaths: number
   kd_ratio: number
   /** wins / matches_completed, 0–1. */
