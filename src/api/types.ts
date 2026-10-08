@@ -184,7 +184,7 @@ export interface CompetitiveLeaderboardEntry extends CompetitiveProfile {
   /** Avatar frame the player wears (id). Absent from an older API. */
   frame?: string | null
   /** Name colour and glow the player wears. Absent from an older API. */
-  name_style?: { color: string | null; glow: string | null } | null
+  name_style?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   deaths: number
   kd_ratio: number
   /** wins / matches_completed, 0–1. */

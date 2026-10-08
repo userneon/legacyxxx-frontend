@@ -34,14 +34,30 @@ export function frameArt(id: string | null | undefined): ({ src: string } & Fram
   return { src: `/frames/${id}.webp`, ...FRAMES[id] }
 }
 
-/** Paints a name with the player's colour and glow. Only #rrggbb values from the API reach a style, and anything else is ignored. */
-export function nameStyle(style: { color?: string | null; glow?: string | null } | null | undefined): React.CSSProperties | undefined {
-  const hex = /^#[0-9a-f]{6}$/i
-  const color = style?.color && hex.test(style.color) ? style.color : null
-  const glow = style?.glow && hex.test(style.glow) ? style.glow : null
-  if (!color && !glow) return undefined
+const COLOR_FX = new Set(["chrome", "gold", "ice", "sakura", "emerald", "aurora", "holo", "fire", "void"])
+const GLOW_FX = new Set(["neon", "pulse", "flame", "electric", "aura"])
+const HEX = /^#[0-9a-f]{6}$/i
+
+/** What a name is painted with: plain colours and short effect keys from the API, never a style string. */
+export interface NameLook {
+  color?: string | null
+  glow?: string | null
+  colorFx?: string | null
+  glowFx?: string | null
+}
+
+/**
+ * Props for the element that shows a player's name (className, after `base`, plus style). Only #rrggbb values and effect keys this
+ * site knows are used; anything else is ignored, so a bad value can never inject CSS.
+ */
+export function nameProps(look: NameLook | null | undefined, base = ""): { className: string; style?: React.CSSProperties } {
+  const colorFx = look?.colorFx && COLOR_FX.has(look.colorFx) ? look.colorFx : null
+  const color = look?.color && HEX.test(look.color) ? look.color : null
+  const glow = look?.glow && HEX.test(look.glow) ? look.glow : null
+  const glowFx = glow ? (look?.glowFx && GLOW_FX.has(look.glowFx) ? look.glowFx : "neon") : null
+  if (!colorFx && !color && !glow) return { className: base }
   return {
-    ...(color ? { color } : {}),
-    ...(glow ? { textShadow: `0 0 6px ${glow}cc, 0 0 16px ${glow}80, 0 0 28px ${glow}40` } : {}),
+    className: [base, "lx-name", colorFx && `lx-fx-${colorFx}`, glowFx && `lx-glow-${glowFx}`].filter(Boolean).join(" "),
+    style: { ...(color && !colorFx ? { color } : {}), ...(glow ? ({ "--name-glow": glow } as React.CSSProperties) : {}) },
   }
 }

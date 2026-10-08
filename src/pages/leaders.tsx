@@ -14,7 +14,7 @@ import { useViewParams } from "@/hooks/use-view-params"
 import { useAuth } from "@/hooks/use-auth"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { FrameOverlay } from "@/components/framed-avatar"
-import { nameStyle } from "@/lib/cosmetics"
+import { nameProps } from "@/lib/cosmetics"
 import { CompetitiveRankBadge, RankLabel, rankTierColor } from "@/components/competitive-rank-badge"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -98,7 +98,7 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
         </span>
         <span className="flex min-w-0 flex-col gap-1.5">
           <span className="flex min-w-0 items-center gap-1.5">
-            <span className={cn("truncate font-semibold text-[var(--text)]", first ? "text-base" : "text-sm")} style={nameStyle(player.name_style)} title={player.username}>{player.username}</span>
+            <span {...nameProps(player.name_style, cn("truncate font-semibold text-[var(--text)]", first ? "text-base" : "text-sm"))} title={player.username}>{player.username}</span>
             {player.clan_tag && <span className="shrink-0 text-[11px] font-semibold text-[var(--text-dim)]">[{player.clan_tag}]</span>}
             <DiscordLinkedMark linked={player.discord_linked} />
           </span>
@@ -162,7 +162,7 @@ function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: Competiti
           />
           <FrameOverlay frame={player.frame} />
         </span>
-        <span className="min-w-0 truncate text-[13px] font-medium text-[var(--text)]" style={you ? undefined : nameStyle(player.name_style)} title={player.username}>{you ? "You" : player.username}</span>
+        <span {...nameProps(you ? null : player.name_style, "min-w-0 truncate text-[13px] font-medium text-[var(--text)]")} title={player.username}>{you ? "You" : player.username}</span>
         {player.clan_tag && <span className="shrink-0 text-[11px] font-semibold text-[var(--text-dim)]">[{player.clan_tag}]</span>}
         <DiscordLinkedMark linked={player.discord_linked} />
       </span>

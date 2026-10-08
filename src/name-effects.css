@@ -1,0 +1,74 @@
+/*
+ * Premium player names (Profile → Appearance). A name wears one colour effect (.lx-fx-*) and one glow (.lx-glow-*); the API
+ * sends only short keys and #rrggbb values, never CSS. The colours below are cosmetic art a player buys, not site chrome,
+ * so each line carries palette-exempt.
+ */
+.lx-name {
+  /* Room for the glow inside truncating boxes without moving the text. */
+  padding: 1.6em 0.7em;
+  margin: -1.6em -0.7em;
+}
+
+/* ---- colour effects: metal, ice, foil, light. Gradient text, so glows use drop-shadow (a text-shadow would show through). ---- */
+.lx-fx-chrome, .lx-fx-gold, .lx-fx-ice, .lx-fx-sakura, .lx-fx-emerald, .lx-fx-aurora, .lx-fx-holo, .lx-fx-fire, .lx-fx-void {
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+/* Chrome: bright sky, dark horizon line, warm ground reflection. */
+.lx-fx-chrome { background-image: linear-gradient(180deg, #ffffff 0%, #e6ecf5 26%, #4b5563 49%, #f8fafc 53%, #8895ab 80%, #dfe6f0 100%); } /* palette-exempt */
+/* Gold foil: deep gold with a moving highlight. */
+.lx-fx-gold {
+  background-image:
+    linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.9) 50%, transparent 62%), /* palette-exempt */
+    linear-gradient(180deg, #fff3c4 0%, #f7c948 30%, #a8730a 55%, #ffe28a 75%, #c58d12 100%); /* palette-exempt */
+  background-size: 260% 100%, 100% 100%;
+  background-position: 160% 0, 0 0;
+  background-repeat: no-repeat;
+  animation: lx-name-sweep 4.5s ease-in-out infinite;
+}
+.lx-fx-ice { background-image: linear-gradient(180deg, #ffffff 0%, #b9efff 32%, #29a0ee 70%, #0b6fb8 100%); } /* palette-exempt */
+.lx-fx-sakura { background-image: linear-gradient(180deg, #ffffff 0%, #ffc2d6 38%, #ff5c92 80%, #d92a6a 100%); } /* palette-exempt */
+.lx-fx-emerald { background-image: linear-gradient(180deg, #f4fff9 0%, #6ff0ae 36%, #0f9d58 78%, #08623a 100%); } /* palette-exempt */
+.lx-fx-aurora {
+  background-image: linear-gradient(90deg, #34d399, #22d3ee, #818cf8, #e879f9, #34d399); /* palette-exempt */
+  background-size: 300% 100%;
+  animation: lx-name-drift 7s linear infinite;
+}
+.lx-fx-holo {
+  background-image: linear-gradient(100deg, #ff9ad5, #9ad1ff, #a5ffd6, #fff29a, #ff9ad5); /* palette-exempt */
+  background-size: 300% 100%;
+  animation: lx-name-drift 5s linear infinite;
+}
+.lx-fx-fire { background-image: linear-gradient(0deg, #e02500 0%, #ff6a00 38%, #ffb300 68%, #fff1a8 100%); } /* palette-exempt */
+.lx-fx-void { background-image: linear-gradient(180deg, #fbf5ff 0%, #b86bff 45%, #5b21b6 100%); } /* palette-exempt */
+
+/* ---- glows: layered drop-shadows, a bright core and a soft far halo, tinted with --name-glow. ---- */
+.lx-glow-neon, .lx-glow-pulse, .lx-glow-flame, .lx-glow-electric, .lx-glow-aura {
+  /* A name with only a glow is near-white, like a lit neon tube, unless a colour is set. */
+  color: color-mix(in srgb, #ffffff 82%, var(--name-glow)); /* palette-exempt */
+}
+.lx-glow-neon { filter: drop-shadow(0 0 1px var(--name-glow)) drop-shadow(0 0 5px var(--name-glow)) drop-shadow(0 0 14px color-mix(in srgb, var(--name-glow) 70%, transparent)); }
+.lx-glow-aura { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--name-glow) 85%, transparent)) drop-shadow(0 0 20px color-mix(in srgb, var(--name-glow) 60%, transparent)) drop-shadow(0 0 38px color-mix(in srgb, var(--name-glow) 40%, transparent)); }
+.lx-glow-pulse { animation: lx-glow-pulse 2.4s ease-in-out infinite; }
+.lx-glow-flame { animation: lx-glow-flame 1.6s ease-in-out infinite; }
+.lx-glow-electric { animation: lx-glow-electric 3s steps(1, end) infinite; }
+
+@keyframes lx-name-sweep { 0%, 35% { background-position: 160% 0, 0 0; } 70%, 100% { background-position: -60% 0, 0 0; } }
+@keyframes lx-name-drift { to { background-position: 300% 0; } }
+@keyframes lx-glow-pulse {
+  0%, 100% { filter: drop-shadow(0 0 1px var(--name-glow)) drop-shadow(0 0 4px var(--name-glow)) drop-shadow(0 0 8px color-mix(in srgb, var(--name-glow) 50%, transparent)); }
+  50% { filter: drop-shadow(0 0 2px var(--name-glow)) drop-shadow(0 0 9px var(--name-glow)) drop-shadow(0 0 22px color-mix(in srgb, var(--name-glow) 80%, transparent)); }
+}
+@keyframes lx-glow-flame {
+  0%, 100% { filter: drop-shadow(0 -1px 2px var(--name-glow)) drop-shadow(0 -3px 8px color-mix(in srgb, var(--name-glow) 75%, transparent)) drop-shadow(0 -6px 16px color-mix(in srgb, var(--name-glow) 45%, transparent)); }
+  30% { filter: drop-shadow(0 -2px 3px var(--name-glow)) drop-shadow(0 -5px 11px color-mix(in srgb, var(--name-glow) 85%, transparent)) drop-shadow(0 -9px 20px color-mix(in srgb, var(--name-glow) 50%, transparent)); }
+  65% { filter: drop-shadow(0 -1px 2px var(--name-glow)) drop-shadow(0 -4px 9px color-mix(in srgb, var(--name-glow) 70%, transparent)) drop-shadow(0 -7px 17px color-mix(in srgb, var(--name-glow) 40%, transparent)); }
+}
+@keyframes lx-glow-electric {
+  0%, 100% { filter: drop-shadow(0 0 1px var(--name-glow)) drop-shadow(0 0 6px var(--name-glow)) drop-shadow(0 0 16px color-mix(in srgb, var(--name-glow) 70%, transparent)); }
+  92% { filter: drop-shadow(0 0 1px var(--name-glow)) drop-shadow(0 0 2px color-mix(in srgb, var(--name-glow) 60%, transparent)); }
+  94% { filter: drop-shadow(0 0 2px var(--name-glow)) drop-shadow(0 0 12px var(--name-glow)) drop-shadow(0 0 28px color-mix(in srgb, var(--name-glow) 90%, transparent)); }
+  96% { filter: drop-shadow(0 0 1px var(--name-glow)) drop-shadow(0 0 3px color-mix(in srgb, var(--name-glow) 60%, transparent)); }
+}

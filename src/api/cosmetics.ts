@@ -15,6 +15,8 @@ export interface FrameItem {
   color?: string
   /** Name glow items: the #rrggbb of the glow around the name. */
   glow?: string
+  /** The finished effect (chrome, gold, neon, flame ...) the website draws for this item. */
+  fx?: string
 }
 
 export type CosmeticKind = "frame" | "name_color" | "name_glow"
@@ -23,6 +25,8 @@ export type CosmeticKind = "frame" | "name_color" | "name_glow"
 export interface NameStyle {
   color: string | null
   glow: string | null
+  colorFx?: string | null
+  glowFx?: string | null
 }
 
 export interface Cosmetics {

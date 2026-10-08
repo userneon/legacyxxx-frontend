@@ -4,7 +4,7 @@ import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
 import { cosmeticsService, type CosmeticKind, type Cosmetics, type FrameItem } from "@/api/cosmetics"
-import { nameStyle } from "@/lib/cosmetics"
+import { nameProps } from "@/lib/cosmetics"
 import { walletService, type Wallet } from "@/api"
 import { FramedAvatar } from "@/components/framed-avatar"
 import { discordService, type DiscordLinkState } from "@/api/discord"
@@ -266,7 +266,9 @@ function Appearance() {
   // The preview shows what you would look like: the item you are looking at, plus whatever you already wear of the other kinds.
   const previewOf = (of: CosmeticKind) => (of === kind ? selected : lists[of].find((item) => item.id === worn[of])) ?? null
   const previewFrame = previewOf("frame")
-  const previewName = nameStyle({ color: previewOf("name_color")?.color ?? null, glow: previewOf("name_glow")?.glow ?? null })
+  const previewColor = previewOf("name_color")
+  const previewGlow = previewOf("name_glow")
+  const previewLook = { color: previewColor?.color ?? null, colorFx: previewColor?.fx ?? null, glow: previewGlow?.glow ?? null, glowFx: previewGlow?.fx ?? null }
 
   const run = async (work: () => Promise<unknown>, failure: string) => {
     setBusy(true)
@@ -327,7 +329,7 @@ function Appearance() {
         <div className="grid gap-4 md:grid-cols-[210px_minmax(0,1fr)]">
           <div className="flex flex-col items-center gap-3 self-start rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] p-4 md:sticky md:top-6">
             <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={150} />
-            <span className="max-w-full truncate text-[17px] font-bold text-[var(--text)]" style={previewName}>{sampleName}</span>
+            <span {...nameProps(previewLook, "max-w-full truncate text-[15px] font-bold text-[var(--text)]")}>{sampleName}</span>
             <div className="flex w-full flex-col items-center gap-1 text-center">
               <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--text-dim)]">Preview</span>
               <span className="text-[15px] font-semibold text-[var(--text)]">{selected?.name ?? `No ${noun}`}</span>
@@ -365,7 +367,7 @@ function Appearance() {
                       {kind === "frame" ? (
                         <FramedAvatar avatar={user?.avatar} name={user?.username} frame={item.id} size={76} />
                       ) : (
-                        <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1 text-[15px] font-bold text-[var(--text)]" style={nameStyle(kind === "name_color" ? { color: item.color ?? null } : { glow: item.glow ?? null })}><span className="truncate">{sampleName}</span></span>
+                        <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><span {...nameProps(kind === "name_color" ? { color: item.color ?? null, colorFx: item.fx ?? null } : { glow: item.glow ?? null, glowFx: item.fx ?? null }, "truncate text-[15px] font-bold text-[var(--text)]")}>{sampleName}</span></span>
                       )}
                       <span className="w-full truncate text-center text-xs font-medium text-[var(--text)]">{item.name}</span>
                       {badge(item)}

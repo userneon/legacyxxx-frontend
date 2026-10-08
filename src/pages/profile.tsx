@@ -28,7 +28,7 @@ import { OwnerSections } from "@/components/owner-sections"
 import { PenaltyDetailSheet, StatusPill, TypeIcon, TYPE_META, formatPenaltyDate } from "@/components/penalty-detail-dialog"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { FrameOverlay } from "@/components/framed-avatar"
-import { frameArt, nameStyle } from "@/lib/cosmetics"
+import { frameArt, nameProps } from "@/lib/cosmetics"
 import { PageBar, PageTabs } from "@/components/page-tabs"
 import { AccountSettings, AppearanceSettings } from "@/pages/settings"
 import { copyText, steamProfileUrl } from "@/components/profile-ids"
@@ -168,7 +168,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
       <Avatar user={user} />
       <div className="flex min-w-0 max-w-full flex-col items-center gap-2.5">
         <div className="flex flex-wrap items-center justify-center gap-2.5">
-          <h1 className="truncate text-[30px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]" style={nameStyle(user.nameStyle)} title={user.username}>{user.username}</h1>
+          <h1 {...nameProps(user.nameStyle, "truncate text-[30px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]")} title={user.username}>{user.username}</h1>
           <RoleBadge role={user.role} />
           <DiscordLinkedMark linked={overview.discordLinked} className="[&_svg]:size-4" />
           {overview.clan && (
