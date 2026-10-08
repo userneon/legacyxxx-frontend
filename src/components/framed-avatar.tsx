@@ -9,7 +9,7 @@ export function FramedAvatar({ avatar, name, frame, size }: { avatar?: string; n
   return (
     <span className="relative inline-flex shrink-0 items-center justify-center" style={{ width: size, height: size }}>
       {art && <img src={art.src} alt="" aria-hidden="true" width={size} height={size} className="pointer-events-none absolute inset-0 size-full max-w-none select-none" draggable={false} />}
-      <PlayerAvatar avatar={avatar} name={name} className="relative z-10 text-xl" style={{ width: inner, height: inner, borderRadius: Math.round(inner * 0.26) }} />
+      <PlayerAvatar avatar={avatar} name={name} className="relative z-10 text-xl" style={{ width: inner, height: inner, borderRadius: Math.round(inner * 0.26), translate: art ? `${art.dx * size}px ${art.dy * size}px` : undefined }} />
     </span>
   )
 }
@@ -21,5 +21,5 @@ export function FramedAvatar({ avatar, name, frame, size }: { avatar?: string; n
 export function FrameOverlay({ frame }: { frame: string | null | undefined }) {
   const art = frameArt(frame)
   if (!art) return null
-  return <img src={art.src} alt="" aria-hidden="true" draggable={false} className="pointer-events-none absolute left-1/2 top-1/2 z-0 max-w-none -translate-x-1/2 -translate-y-1/2 select-none" style={{ width: `${100 / (art.opening / 0.82)}%`, height: `${100 / (art.opening / 0.82)}%` }} />
+  return <img src={art.src} alt="" aria-hidden="true" draggable={false} className="pointer-events-none absolute left-1/2 top-1/2 z-0 max-w-none select-none" style={{ width: `${100 / (art.opening / 0.82)}%`, height: `${100 / (art.opening / 0.82)}%`, translate: `${(-0.5 - art.dx) * 100}% ${(-0.5 - art.dy) * 100}%` }} />
 }
