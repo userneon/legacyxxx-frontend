@@ -27,6 +27,8 @@ import { OwnerPanel } from "@/components/owner-panel"
 import { OwnerSections } from "@/components/owner-sections"
 import { PenaltyDetailSheet, StatusPill, TypeIcon, TYPE_META, formatPenaltyDate } from "@/components/penalty-detail-dialog"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { FramedAvatar } from "@/components/framed-avatar"
+import { frameArt } from "@/lib/cosmetics"
 import { copyText, steamProfileUrl } from "@/components/profile-ids"
 import { RelativeTime } from "@/components/relative-time"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -64,6 +66,7 @@ function yearsSince(value: string) {
 function Avatar({ user }: { user: ProfileOverview["user"] }) {
   const animated = user.steamMedia?.animatedAvatar
   const [ready, setReady] = useState(false)
+  if (frameArt(user.frame)) return <FramedAvatar avatar={user.avatar} name={user.username} frame={user.frame} size={150} />
   return (
     <span className="relative flex size-[116px] shrink-0 items-center justify-center">
       <span className="relative size-[108px] overflow-hidden rounded-[27px] border-4 border-[var(--card-surface)] bg-[var(--line)]">

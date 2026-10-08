@@ -19,18 +19,20 @@ export function PlayerAvatar({
   name,
   className,
   imageClassName,
+  style,
 }: {
   avatar?: string
   name?: string
   className?: string
   imageClassName?: string
+  style?: React.CSSProperties
 }) {
   const [failed, setFailed] = useState(false)
   const initials = (name?.trim() || "?").slice(0, 2).toUpperCase()
   const showImage = !failed && validAvatarUrl(avatar)
 
   return (
-    <div className={cn("relative flex shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br from-secondary to-muted font-bold", className)}>
+    <div style={style} className={cn("relative flex shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br from-secondary to-muted font-bold", className)}>
       {showImage ? <OptimizedImage src={avatar!} width={96} height={96} alt="" className={cn("absolute inset-0 h-full w-full max-w-none object-cover object-center", imageClassName)} onError={() => setFailed(true)} /> : initials}
     </div>
   )

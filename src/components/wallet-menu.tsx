@@ -3,7 +3,7 @@
  * activity in a panel under it. It belongs to the signed-in player only and is left out while the balance is
  * unknown (loading, or an API without a wallet), never shown as a made-up zero.
  */
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Wallet as WalletIcon } from "lucide-react"
 
 import { walletService } from "@/api"
@@ -22,6 +22,11 @@ export function WalletMenu() {
     (signal) => walletService.getMine({ signal }),
     { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" },
   )
+  // A purchase elsewhere (avatar frames) announces itself so the header balance follows.
+  useEffect(() => {
+    window.addEventListener("legacyx:wallet-changed", refetch)
+    return () => window.removeEventListener("legacyx:wallet-changed", refetch)
+  }, [refetch])
   if (!user || !wallet) return null
 
   return (

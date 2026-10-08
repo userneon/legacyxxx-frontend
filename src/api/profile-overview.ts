@@ -33,6 +33,8 @@ export interface ProfileOverview {
     memberSince: string | null
     steamBackground: string | null
     steamMedia: UserProfile["steamMedia"]
+    /** The avatar frame the player wears (id), if any. */
+    frame?: string | null
   }
   viewer: { isOwner: boolean; isStaff: boolean }
   visibility: Record<ProfileSection, boolean> | null

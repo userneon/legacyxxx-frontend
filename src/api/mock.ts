@@ -14,6 +14,18 @@ const RANKS: [number, string][] = [
   [4, "Recruit III"], [3, "Recruit II"], [2, "Recruit I"], [2, "Recruit I"], [1, "Recruit I"], [1, "Recruit I"],
 ]
 
+const mockFrameState = { equipped: null as string | null, owned: new Set<string>() }
+function mockFrames() {
+  const list: Array<[string, string, "free" | "coin" | "achievement", number, string]> = [
+    ["red-dragon", "Red Dragon", "free", 0, ""], ["crimson-thorns", "Crimson Thorns", "free", 0, ""], ["shattered-glass", "Shattered Glass", "free", 0, ""],
+    ["frost-ring", "Frost Ring", "coin", 200, ""], ["white-lily", "White Lily", "coin", 200, ""], ["inferno", "Inferno", "coin", 250, ""],
+    ["blood-moon", "Blood Moon", "coin", 300, ""], ["violet-moon", "Violet Moon", "coin", 300, ""], ["sakura-silk", "Sakura Silk", "coin", 300, ""],
+    ["cyber-violet", "Cyber Violet", "coin", 350, ""], ["oni-samurai", "Oni Samurai", "coin", 450, ""], ["emerald-dragon", "Emerald Dragon", "coin", 450, ""],
+    ["golden-crown", "Golden Crown", "achievement", 0, "Reach the Legacy rank"], ["raven-wing", "Raven Wing", "achievement", 0, "Reach the Apex rank"],
+    ["ghost-skull", "Ghost Skull", "achievement", 0, "Season 1 winner"], ["eclipse", "Eclipse", "achievement", 0, "Clan tournament winner"],
+  ]
+  return list.map(([id, name, unlock, price, requirement]) => ({ id, name, nameMn: name, unlock, price, requirement, owned: unlock === "free" || mockFrameState.owned.has(id) }))
+}
 function leaderboard(sort: string) {
   const entries = NAMES.map((username, index) => ({
     user_id: `mock-${index}`,
@@ -419,7 +431,7 @@ function profileOverview(identity: string) {
   const maps = ["de_mirage", "de_inferno", "de_dust2", "de_ancient", "de_nuke", "de_anubis"]
   const results = ["Win", "Win", "Loss", "Win", "Win", "Loss", "Win", "Loss", "Win", "Win"]
   return {
-    user: { id: own ? MOCK_USER.id : `mock-${index}`, steamId: own ? MOCK_USER.steamId : byName >= 0 ? `7656119800000${String(index).padStart(4, "0")}` : identity, username: name, avatar: "", role: own ? "Player" : index === 0 ? "Owner" : "Player", memberSince: new Date(Date.now() - 400 * 24 * HOUR).toISOString(), steamBackground: null, steamMedia: null },
+    user: { id: own ? MOCK_USER.id : `mock-${index}`, steamId: own ? MOCK_USER.steamId : byName >= 0 ? `7656119800000${String(index).padStart(4, "0")}` : identity, username: name, avatar: "", role: own ? "Player" : index === 0 ? "Owner" : "Player", memberSince: new Date(Date.now() - 400 * 24 * HOUR).toISOString(), steamBackground: null, steamMedia: null, frame: own ? mockFrameState.equipped : null },
     viewer: { isOwner: own, isStaff: false },
     // Only the sample Owner has Respect and links, like the real Owner profile will.
     ...(index === 0 ? {
@@ -562,6 +574,19 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path === "/api/v1/moderation/notify") return undefined
   if (path.startsWith("/api/v1/moderation/lift-requests/")) return undefined
   if (path.startsWith("/api/v1/moderation/penalties") && method !== "GET") return path === "/api/v1/moderation/penalties" ? { penaltyId: "new" } : undefined
+  if (path.startsWith("/api/v1/cosmetics")) {
+    if (!signedIn()) throw unauthorized()
+    const frames = mockFrames()
+    if (method === "PUT") {
+      mockFrameState.equipped = (body as { frame: string | null }).frame
+      return { equippedFrame: mockFrameState.equipped }
+    }
+    if (method === "POST") {
+      mockFrameState.owned.add(decodeURIComponent(path.split("/")[4]))
+      return { owned: true }
+    }
+    return { equippedFrame: mockFrameState.equipped, frames }
+  }
   if (path === "/api/v1/wallet/me") {
     if (!signedIn()) throw unauthorized()
     return {

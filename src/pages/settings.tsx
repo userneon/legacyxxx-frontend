@@ -1,9 +1,11 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
-import { Bell, Check, CircleCheck, Link2, MonitorSmartphone, type LucideIcon } from "lucide-react"
+import { Bell, Check, CircleCheck, Frame, Link2, RotateCcw, MonitorSmartphone, type LucideIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
 import { PAGE_TITLES } from "@/lib/routes"
+import { cosmeticsService, type Cosmetics, type FrameItem } from "@/api/cosmetics"
+import { FramedAvatar } from "@/components/framed-avatar"
 import { discordService, type DiscordLinkState } from "@/api/discord"
 import { settingsService, type NotificationSettings } from "@/api/settings"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -17,9 +19,10 @@ import { Skeleton } from "@/components/ui/skeleton"
 const SECTIONS = [
   { id: "connections", label: "Connections", icon: Link2 },
   { id: "notifications", label: "Notifications", icon: Bell },
+  { id: "appearance", label: "Appearance", icon: Frame },
   { id: "website", label: "Website", icon: MonitorSmartphone },
 ] as const
-const SECTION_ICON: Record<(typeof SECTIONS)[number]["id"], LucideIcon> = { connections: Link2, notifications: Bell, website: MonitorSmartphone }
+const SECTION_ICON: Record<(typeof SECTIONS)[number]["id"], LucideIcon> = { connections: Link2, notifications: Bell, appearance: Frame, website: MonitorSmartphone }
 type SectionId = (typeof SECTIONS)[number]["id"]
 
 function Switch({ checked, onChange, label, disabled }: { checked: boolean; onChange?: (next: boolean) => void; label: string; disabled?: boolean }) {
@@ -238,6 +241,77 @@ function Notifications() {
   )
 }
 
+function Appearance() {
+  const { user } = useAuth()
+  const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
+  const [busy, setBusy] = useState<string | null>(null)
+  const [preview, setPreview] = useState<string | null | undefined>(undefined)
+  const saved = useSavedFlash()
+  const worn = preview === undefined ? data?.equippedFrame ?? null : preview
+
+  const run = async (id: string, work: () => Promise<unknown>, failure: string) => {
+    setBusy(id)
+    try {
+      await work()
+      setPreview(undefined)
+      saved.flash()
+      await refetch()
+    } catch (caught) {
+      toast.error(failure, { description: caught instanceof Error ? caught.message : "Try again in a moment." })
+    } finally {
+      setBusy(null)
+    }
+  }
+  const buy = (item: FrameItem) => run(item.id, async () => {
+    await cosmeticsService.buy(item.id)
+    window.dispatchEvent(new Event("legacyx:wallet-changed"))
+    toast.success(`${item.name} is yours`)
+  }, "Could not buy the frame")
+  const wear = (id: string | null) => run(id ?? "off", () => cosmeticsService.equip(id), "Could not change the frame")
+
+  const action = (item: FrameItem) => {
+    const button = "inline-flex h-[34px] shrink-0 items-center rounded-lg border border-[var(--line)] px-3.5 text-[13px] font-medium transition-colors disabled:opacity-60"
+    if (data?.equippedFrame === item.id) return <button type="button" disabled={busy !== null} onClick={() => void wear(null)} className={cn(button, "gap-1.5 text-[var(--text-2)] hover:border-[var(--line-strong)] hover:bg-[var(--raised)]")}><Check className="size-3.5" />Worn · Take off</button>
+    if (item.owned) return <button type="button" disabled={busy !== null} onClick={() => void wear(item.id)} className={cn(button, "lx-primary-button border-transparent font-semibold")}>Wear</button>
+    if (item.unlock === "coin") return <button type="button" disabled={busy !== null} onClick={() => void buy(item)} className={cn(button, "text-[var(--text-2)] hover:border-[var(--line-strong)] hover:bg-[var(--raised)]")}>Buy · {item.price.toLocaleString()} coins</button>
+    return <span className="shrink-0 text-xs text-[var(--text-dim)]">Locked</span>
+  }
+  const detail = (item: FrameItem) => item.unlock === "free" ? "Free" : item.unlock === "coin" ? `${item.price.toLocaleString()} coins` : item.requirement || "Earned in game"
+
+  return (
+    <Section id="appearance" index={2} title="Appearance" description="Avatar frames. They are only for show and never change your matches or EXP." aside={saved.node}>
+      {loading ? (
+        <div className="flex flex-col gap-2">{Array.from({ length: 4 }, (_, index) => <Skeleton key={index} className="h-[84px] rounded-[10px]" />)}</div>
+      ) : error || !data ? (
+        <p className="flex items-center gap-3 text-[13px] text-[var(--text-dim)]">Could not load your frames.<button type="button" onClick={refetch} className="inline-flex h-[34px] items-center gap-1.5 rounded-lg border border-[var(--line)] px-3.5 text-[13px] font-medium text-[var(--text-2)] hover:bg-[var(--raised)]"><RotateCcw className="size-3.5" />Retry</button></p>
+      ) : (
+        <>
+          <div className="flex items-center gap-4 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] px-4 py-3">
+            <FramedAvatar avatar={user?.avatar} name={user?.username} frame={worn} size={96} />
+            <span className="flex min-w-0 flex-col gap-1">
+              <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--text-dim)]">Preview</span>
+              <span className="truncate text-sm font-medium text-[var(--text)]">{user?.username}</span>
+              <span className="text-xs text-[var(--text-dim)]">{data.frames.find((item) => item.id === worn)?.name ?? "No frame"}</span>
+            </span>
+          </div>
+          <ul className="flex flex-col gap-2">
+            {data.frames.map((item) => (
+              <li key={item.id} onMouseEnter={() => setPreview(item.id)} onMouseLeave={() => setPreview(undefined)} className="flex items-center gap-4 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] px-3.5 py-2.5 transition-colors hover:border-[var(--line-strong)]">
+                <FramedAvatar avatar={user?.avatar} name={user?.username} frame={item.id} size={64} />
+                <span className="flex min-w-0 flex-1 flex-col gap-[3px]">
+                  <span className="truncate text-sm font-medium text-[var(--text)]">{item.name}</span>
+                  <span className="text-xs text-[var(--text-dim)]">{detail(item)}</span>
+                </span>
+                {action(item)}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </Section>
+  )
+}
+
 function Website() {
   const prefs = useWebsitePreferences()
   const saved = useSavedFlash()
@@ -246,7 +320,7 @@ function Website() {
     saved.flash()
   }
   return (
-    <Section id="website" index={2} title="Website" description="How Legacy-X looks and behaves on this device. Changes apply right away." aside={saved.node}>
+    <Section id="website" index={3} title="Website" description="How Legacy-X looks and behaves on this device. Changes apply right away." aside={saved.node}>
       <Row title="Start with sidebar collapsed" description="Open the site with the icon-only sidebar.">
         <Switch label="Start with sidebar collapsed" checked={prefs.sidebarCollapsed} onChange={(next) => set("sidebarCollapsed", next)} />
       </Row>
@@ -379,6 +453,7 @@ export function SettingsPage() {
             />
           </Section>
           <Notifications />
+          <Appearance />
           <Website />
         </div>
       </div>
