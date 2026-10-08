@@ -1,10 +1,11 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
-import { Bell, Check, CircleCheck, Frame, Link2, RotateCcw, MonitorSmartphone, type LucideIcon } from "lucide-react"
+import { Bell, Check, CircleCheck, Frame, Link2, Lock, RotateCcw, MonitorSmartphone, type LucideIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
 import { PAGE_TITLES } from "@/lib/routes"
 import { cosmeticsService, type Cosmetics, type FrameItem } from "@/api/cosmetics"
+import { walletService, type Wallet } from "@/api"
 import { FramedAvatar } from "@/components/framed-avatar"
 import { discordService, type DiscordLinkState } from "@/api/discord"
 import { settingsService, type NotificationSettings } from "@/api/settings"
@@ -241,72 +242,123 @@ function Notifications() {
   )
 }
 
+type FrameFilter = "all" | "mine" | "shop" | "earned"
+
 function Appearance() {
   const { user } = useAuth()
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
-  const [busy, setBusy] = useState<string | null>(null)
-  const [preview, setPreview] = useState<string | null | undefined>(undefined)
+  const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
+  const [busy, setBusy] = useState(false)
+  const [filter, setFilter] = useState<FrameFilter>("all")
+  const [picked, setPicked] = useState<string | null>(null)
   const saved = useSavedFlash()
-  const worn = preview === undefined ? data?.equippedFrame ?? null : preview
 
-  const run = async (id: string, work: () => Promise<unknown>, failure: string) => {
-    setBusy(id)
+  const frames = data?.frames ?? []
+  const worn = data?.equippedFrame ?? null
+  const selectedId = picked ?? worn ?? frames[0]?.id ?? null
+  const selected = frames.find((item) => item.id === selectedId) ?? null
+  const shown = frames.filter((item) => filter === "all" || (filter === "mine" ? item.owned : filter === "shop" ? item.unlock === "coin" : item.unlock === "achievement"))
+  const balance = wallet?.balance ?? null
+
+  const run = async (work: () => Promise<unknown>, failure: string) => {
+    setBusy(true)
     try {
       await work()
-      setPreview(undefined)
       saved.flash()
-      await refetch()
+      await Promise.all([refetch(), refetchWallet()])
     } catch (caught) {
       toast.error(failure, { description: caught instanceof Error ? caught.message : "Try again in a moment." })
     } finally {
-      setBusy(null)
+      setBusy(false)
     }
   }
-  const buy = (item: FrameItem) => run(item.id, async () => {
+  const wear = (id: string | null) => run(() => cosmeticsService.equip(id), "Could not change the frame")
+  const buy = (item: FrameItem) => run(async () => {
     await cosmeticsService.buy(item.id)
     window.dispatchEvent(new Event("legacyx:wallet-changed"))
-    toast.success(`${item.name} is yours`)
+    await cosmeticsService.equip(item.id)
+    toast.success(`${item.name} is yours and now worn`)
   }, "Could not buy the frame")
-  const wear = (id: string | null) => run(id ?? "off", () => cosmeticsService.equip(id), "Could not change the frame")
 
+  const button = "inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] px-3.5 text-[13px] font-semibold transition-colors disabled:cursor-default disabled:opacity-60"
+  const secondary = cn(button, "text-[var(--text-2)] hover:border-[var(--line-strong)] hover:bg-[var(--raised)]")
+  const primary = cn(button, "lx-primary-button border-transparent")
   const action = (item: FrameItem) => {
-    const button = "inline-flex h-[34px] shrink-0 items-center rounded-lg border border-[var(--line)] px-3.5 text-[13px] font-medium transition-colors disabled:opacity-60"
-    if (data?.equippedFrame === item.id) return <button type="button" disabled={busy !== null} onClick={() => void wear(null)} className={cn(button, "gap-1.5 text-[var(--text-2)] hover:border-[var(--line-strong)] hover:bg-[var(--raised)]")}><Check className="size-3.5" />Worn · Take off</button>
-    if (item.owned) return <button type="button" disabled={busy !== null} onClick={() => void wear(item.id)} className={cn(button, "lx-primary-button border-transparent font-semibold")}>Wear</button>
-    if (item.unlock === "coin") return <button type="button" disabled={busy !== null} onClick={() => void buy(item)} className={cn(button, "text-[var(--text-2)] hover:border-[var(--line-strong)] hover:bg-[var(--raised)]")}>Buy · {item.price.toLocaleString()} coins</button>
-    return <span className="shrink-0 text-xs text-[var(--text-dim)]">Locked</span>
+    if (worn === item.id) return <button type="button" disabled={busy} onClick={() => void wear(null)} className={secondary}>Take off</button>
+    if (item.owned) return <button type="button" disabled={busy} onClick={() => void wear(item.id)} className={primary}>Wear</button>
+    if (item.unlock === "coin") {
+      const short = balance !== null && balance < item.price
+      return <button type="button" disabled={busy || short} onClick={() => void buy(item)} className={primary}>Buy for {item.price.toLocaleString()} coins</button>
+    }
+    return <button type="button" disabled className={secondary}>Locked</button>
   }
-  const detail = (item: FrameItem) => item.unlock === "free" ? "Free" : item.unlock === "coin" ? `${item.price.toLocaleString()} coins` : item.requirement || "Earned in game"
+  const note = (item: FrameItem) => {
+    if (worn === item.id) return "You are wearing this frame."
+    if (item.owned) return item.unlock === "free" ? "Free for everyone." : "You own this frame."
+    if (item.unlock === "coin") {
+      if (balance !== null && balance < item.price) return `You need ${(item.price - balance).toLocaleString()} more coins.`
+      return "Buying wears it right away."
+    }
+    return item.requirement || "Earned in game, not for sale."
+  }
+  const badge = (item: FrameItem) => {
+    if (worn === item.id) return <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[var(--status-green)]"><Check className="size-3" />Worn</span>
+    if (item.owned) return <span className="text-[10px] text-[var(--text-dim)]">{item.unlock === "free" ? "Free" : "Owned"}</span>
+    if (item.unlock === "coin") return <span className="text-[10px] font-medium text-[var(--text-2)]">{item.price.toLocaleString()} coins</span>
+    return <span className="inline-flex items-center gap-1 text-[10px] text-[var(--text-dim)]"><Lock className="size-3" />Earned</span>
+  }
 
   return (
     <Section id="appearance" index={2} title="Appearance" description="Avatar frames. They are only for show and never change your matches or EXP." aside={saved.node}>
       {loading ? (
-        <div className="flex flex-col gap-2">{Array.from({ length: 4 }, (_, index) => <Skeleton key={index} className="h-[84px] rounded-[10px]" />)}</div>
+        <div className="grid gap-4 md:grid-cols-[210px_minmax(0,1fr)]"><Skeleton className="h-[300px] rounded-[10px]" /><Skeleton className="h-[300px] rounded-[10px]" /></div>
       ) : error || !data ? (
         <p className="flex items-center gap-3 text-[13px] text-[var(--text-dim)]">Could not load your frames.<button type="button" onClick={refetch} className="inline-flex h-[34px] items-center gap-1.5 rounded-lg border border-[var(--line)] px-3.5 text-[13px] font-medium text-[var(--text-2)] hover:bg-[var(--raised)]"><RotateCcw className="size-3.5" />Retry</button></p>
       ) : (
-        <>
-          <div className="flex items-center gap-4 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] px-4 py-3">
-            <FramedAvatar avatar={user?.avatar} name={user?.username} frame={worn} size={96} />
-            <span className="flex min-w-0 flex-col gap-1">
+        <div className="grid gap-4 md:grid-cols-[210px_minmax(0,1fr)]">
+          <div className="flex flex-col items-center gap-3 self-start rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] p-4 md:sticky md:top-6">
+            <FramedAvatar avatar={user?.avatar} name={user?.username} frame={selected?.id ?? null} size={150} />
+            <div className="flex w-full flex-col items-center gap-1 text-center">
               <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--text-dim)]">Preview</span>
-              <span className="truncate text-sm font-medium text-[var(--text)]">{user?.username}</span>
-              <span className="text-xs text-[var(--text-dim)]">{data.frames.find((item) => item.id === worn)?.name ?? "No frame"}</span>
-            </span>
+              <span className="text-[15px] font-semibold text-[var(--text)]">{selected?.name ?? "No frame"}</span>
+              {selected && <span className="text-xs text-[var(--text-dim)]">{note(selected)}</span>}
+            </div>
+            {selected && <div className="w-full">{action(selected)}</div>}
+            {balance !== null && <span className="text-[11px] text-[var(--text-dim)]">Your coins: <span className="font-semibold text-[var(--text-2)]">{balance.toLocaleString()}</span></span>}
           </div>
-          <ul className="flex flex-col gap-2">
-            {data.frames.map((item) => (
-              <li key={item.id} onMouseEnter={() => setPreview(item.id)} onMouseLeave={() => setPreview(undefined)} className="flex items-center gap-4 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] px-3.5 py-2.5 transition-colors hover:border-[var(--line-strong)]">
-                <FramedAvatar avatar={user?.avatar} name={user?.username} frame={item.id} size={64} />
-                <span className="flex min-w-0 flex-1 flex-col gap-[3px]">
-                  <span className="truncate text-sm font-medium text-[var(--text)]">{item.name}</span>
-                  <span className="text-xs text-[var(--text-dim)]">{detail(item)}</span>
-                </span>
-                {action(item)}
-              </li>
-            ))}
-          </ul>
-        </>
+          <div className="flex min-w-0 flex-col gap-3">
+            <Segmented<FrameFilter>
+              ariaLabel="Frame filter"
+              size="sm"
+              value={filter}
+              onChange={setFilter}
+              options={[{ value: "all", label: "All" }, { value: "mine", label: "Mine" }, { value: "shop", label: "Shop" }, { value: "earned", label: "Earned" }]}
+            />
+            {shown.length === 0 ? (
+              <p className="py-6 text-[13px] text-[var(--text-dim)]">{filter === "mine" ? "You do not own a frame yet." : "Nothing here."}</p>
+            ) : (
+              <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+                {shown.map((item) => (
+                  <li key={item.id}>
+                    <button
+                      type="button"
+                      onClick={() => setPicked(item.id)}
+                      aria-pressed={selectedId === item.id}
+                      className={cn(
+                        "flex w-full flex-col items-center gap-1 rounded-[10px] border bg-[var(--panel)] px-2 pb-2.5 pt-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
+                        selectedId === item.id ? "border-[var(--text-2)] bg-[var(--raised)]" : "border-[var(--line-soft)] hover:border-[var(--line-strong)]",
+                      )}
+                    >
+                      <FramedAvatar avatar={user?.avatar} name={user?.username} frame={item.id} size={76} />
+                      <span className="w-full truncate text-center text-xs font-medium text-[var(--text)]">{item.name}</span>
+                      {badge(item)}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
       )}
     </Section>
   )
