@@ -16,7 +16,11 @@ export function OwnerThemeButton() {
 
   useEffect(() => {
     alive.current = true
-    if (!ownerThemeMuted()) void playOwnerTheme(() => alive.current && setPlaying(false)).then((started) => alive.current && setPlaying(started))
+    if (!ownerThemeMuted()) void playOwnerTheme().then((started) => {
+      // Left the profile while the song was still loading: do not let it start behind another page.
+      if (!alive.current) { if (started) stopOwnerTheme(); return }
+      setPlaying(started)
+    })
     return () => {
       alive.current = false
       stopOwnerTheme()
@@ -31,7 +35,7 @@ export function OwnerThemeButton() {
       return
     }
     setOwnerThemeMuted(false)
-    setPlaying(await playOwnerTheme(() => alive.current && setPlaying(false)))
+    setPlaying(await playOwnerTheme())
   }
 
   // In the page body: inside the animated page it would be placed against that, not against the window.
