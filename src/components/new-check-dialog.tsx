@@ -86,14 +86,14 @@ export function NewCheckDialog({ open, onOpenChange, initialSteamId = "", name, 
           </DialogDescription>
         </DialogHeader>
         {created ? (
-          <div className="flex flex-col gap-4">
+          <div className="flex min-w-0 flex-col gap-4">
             <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--line)] bg-[var(--raised)] px-4 py-3">
               <span className="select-all font-mono text-[28px] font-semibold tracking-[4px] text-[var(--chk-accent)] [text-shadow:0_0_18px_color-mix(in_oklab,var(--chk-accent)_55%,transparent)]">{created.code}</span>
               <button type="button" onClick={() => void copy()} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] hover:border-[var(--line-strong)]">{copied ? <Check className="size-4" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}{copied ? "Copied" : "Copy"}</button>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex min-w-0 flex-col gap-2">
               <span className="font-mono text-[10px] font-semibold uppercase tracking-[1.6px] text-[var(--text-faint)]">// message for the player</span>
-              <pre className="chk-log whitespace-pre-wrap break-words p-3 font-mono text-[11px] leading-[17px] text-[var(--text-2)]">{message}</pre>
+              <pre className="chk-log min-w-0 max-w-full whitespace-pre-wrap [overflow-wrap:anywhere] p-3 font-mono text-[11px] leading-[17px] text-[var(--text-2)]">{message}</pre>
               <div className="flex flex-wrap items-center gap-3">
                 <button type="button" onClick={() => void copyMessage()} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] hover:border-[var(--line-strong)]">{copiedMessage ? <Check className="size-4" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}{copiedMessage ? "Copied" : "Copy the message"}</button>
                 {checkerLink ? (
