@@ -27,6 +27,21 @@ export interface ClanPrices {
   slotCap: number
 }
 
+/** The wallet page's numbers (backend `summary`). Null when the server could not work them out. */
+export interface WalletSummary {
+  todayEarned: number
+  weekEarned: number
+  todayMatches: number
+  weekMatches: number
+  spentTotal: number
+  spentCount: number
+  /** The last 14 days, oldest first. Days are Ulaanbaatar days as YYYY-MM-DD. */
+  daily: Array<{ day: string; earned: number }>
+  /** The last 7 days ending today, oldest first. */
+  week: Array<{ day: string; played: boolean }>
+  streakDays: number
+}
+
 export interface Wallet {
   balance: number
   transactions: WalletTransaction[]
@@ -34,6 +49,8 @@ export interface Wallet {
   earn?: EarnRule[]
   /** Clan prices for the Shop. Absent from an older API. */
   clanPrices?: ClanPrices
+  /** Numbers for the wallet page. Absent from an older API. */
+  summary?: WalletSummary | null
 }
 
 export const walletService = {

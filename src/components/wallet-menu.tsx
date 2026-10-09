@@ -4,9 +4,11 @@
  * unknown (loading, or an API without a wallet), never shown as a made-up zero.
  */
 import { useEffect, useState } from "react"
-import { Wallet as WalletIcon } from "lucide-react"
+import { ChevronRight } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 
 import { walletService } from "@/api"
+import { LxMark } from "@/components/lx-mark"
 import { AnimatedNumber } from "@/components/animated-number"
 import { RelativeTime } from "@/components/relative-time"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -18,6 +20,7 @@ import type { Wallet } from "@/api"
 export function WalletMenu() {
   const { user } = useAuth()
   const [open, setOpen] = useState(false)
+  const navigate = useNavigate()
   const { data: wallet, refetch } = useApiQuery<Wallet>(
     (signal) => walletService.getMine({ signal }),
     { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" },
@@ -35,7 +38,7 @@ export function WalletMenu() {
         aria-label={`Wallet: ${wallet.balance.toLocaleString()} LX`}
         className="flex h-9 shrink-0 items-center gap-2 rounded-[10px] border border-[var(--line-strong)] px-3 text-[13px] font-semibold text-[var(--text)] transition-colors hover:border-[var(--text-dim)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
       >
-        <WalletIcon className="size-4 text-[var(--text-muted)]" aria-hidden="true" />
+        <LxMark size={18} />
         <AnimatedNumber value={wallet.balance} durationMs={600} />
       </PopoverTrigger>
       <PopoverContent align="end" sideOffset={8} className="w-[300px] overflow-hidden rounded-[14px] border-[var(--line-soft)] bg-[var(--panel)] p-0 shadow-[0_16px_40px_rgba(0,0,0,0.5)]">
@@ -60,6 +63,9 @@ export function WalletMenu() {
             ))}
           </ul>
         )}
+        <button type="button" onClick={() => { setOpen(false); navigate("/wallet") }} className="flex w-full items-center justify-between border-t border-[var(--line-soft)] px-4 py-3 text-[13px] font-medium text-[var(--text-2)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)]">
+          Open my wallet <ChevronRight className="size-4" aria-hidden="true" />
+        </button>
         {wallet.earn && wallet.earn.length > 0 && (
           <div className="flex flex-col gap-2 border-t border-[var(--line-soft)] p-4">
             <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--text-dim)]">How to earn</span>
