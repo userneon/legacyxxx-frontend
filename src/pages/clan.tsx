@@ -8,6 +8,7 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { clansService, type ClanLook } from "@/api"
 import { ClanBackground } from "@/components/clan-background"
+import { ClanAppearancePanel } from "@/components/shop-clan"
 import { CLAN_ART_RULES, clanArtProblem, clanArtSrc, type ClanArtKind } from "@/api/clans"
 import type { ClanCard, ClanDetail, ClanJoinRequest, ClanRole, MyClanState } from "@/api/types"
 import { ClanMark } from "@/components/clan-mark"
@@ -105,6 +106,7 @@ const PAGE_SIZE = 24
 function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void }) {
   const { isAuthenticated, loginWithSteam } = useAuth()
   const [creating, setCreating] = useState(() => new URLSearchParams(window.location.search).get("create") === "1")
+  const [tab, setTab] = useState<"all" | "appearance">(() => (new URLSearchParams(window.location.search).get("tab") === "appearance" ? "appearance" : "all"))
   const [search, setSearch] = useState("")
   const [sort, setSort] = useState<"new" | "name">("new")
   const [limit, setLimit] = useState(PAGE_SIZE)
@@ -130,9 +132,17 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
   return (
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
-        <PageTabs ariaLabel="Clans" value="all" onChange={() => undefined} options={[{ value: "all", label: "All clans" }]} />
+        <PageTabs<"all" | "appearance" | "mine">
+          ariaLabel="Clans"
+          value={mine && tab === "appearance" ? "appearance" : "all"}
+          onChange={(next) => {
+            if (next === "mine" && mine) { onClanNavigate(String(mine.clan.number ?? mine.clan.id)); return }
+            setTab(next === "appearance" ? "appearance" : "all")
+          }}
+          options={mine ? [{ value: "all", label: "Clans" }, { value: "appearance", label: "Appearance" }, { value: "mine", label: "My clan" }] : [{ value: "all", label: "All clans" }]}
+        />
         <PageBarEnd>
-          {(
+          {!(mine && tab === "appearance") && (
             <>
               <div className="flex items-center gap-1 text-[13px]" role="group" aria-label="Sort">
                 {(["new", "name"] as const).map((value) => (
@@ -158,7 +168,9 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
         <div className="flex flex-col gap-4 px-6 pb-4 pt-4">
           {invites.length > 0 && !mine && <Invitations invites={invites} onChanged={changed} />}
 
-          {(
+          {mine && tab === "appearance" ? (
+            <ClanAppearancePanel clanId={String(mine.clan.id)} tag={mine.clan.tag} leader={mine.role === "leader"} />
+          ) : (
             <>
               {!loading && !error && !q && (
                 <div className="lx-stat-grid grid-cols-3">
