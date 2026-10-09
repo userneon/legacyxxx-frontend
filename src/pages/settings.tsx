@@ -169,7 +169,7 @@ function DiscordConnection() {
     <ConnectionRow
       icon={<DiscordGlyph />}
       title="Discord"
-      description={data?.link ? `${data.link.discordName} · rank role and /stats in Discord` : "Link Discord for your rank role and /stats."}
+      description={data?.link ? `${data.link.discordName} · rank role and /stats in Discord` : "Link Discord for your rank role and /stats, and get 50 coins once."}
       action={
         loading ? <Skeleton className="h-[34px] w-24 rounded-lg" />
         : error ? <button type="button" onClick={refetch} className={cn(button, "text-[var(--text-2)] hover:border-[var(--line-strong)]")}>Retry</button>

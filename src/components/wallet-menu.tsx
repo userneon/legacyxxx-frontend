@@ -60,6 +60,19 @@ export function WalletMenu() {
             ))}
           </ul>
         )}
+        {wallet.earn && wallet.earn.length > 0 && (
+          <div className="flex flex-col gap-2 border-t border-[var(--line-soft)] p-4">
+            <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--text-dim)]">How to earn</span>
+            <ul className="flex flex-col gap-1.5">
+              {wallet.earn.map((rule) => (
+                <li key={rule.id} className="flex items-center justify-between text-xs text-[var(--text-muted)]">
+                  <span>{rule.label}</span>
+                  <span className="font-semibold text-[var(--text-2)]">+{rule.coins}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   )

@@ -11,9 +11,18 @@ export interface WalletTransaction {
   at: string
 }
 
+/** One way to earn coins, as the API lists it (the numbers live in one place, the backend). */
+export interface EarnRule {
+  id: string
+  label: string
+  coins: number
+}
+
 export interface Wallet {
   balance: number
   transactions: WalletTransaction[]
+  /** How coins are earned. Absent from an older API. */
+  earn?: EarnRule[]
 }
 
 export const walletService = {
