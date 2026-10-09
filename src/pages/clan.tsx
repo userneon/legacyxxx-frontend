@@ -43,15 +43,15 @@ function PageWash({ page }: { page: ClanLook["page"] | undefined }) {
   return createPortal(<div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-[1]"><ClanBackground page={page} calm={calm} /></div>, document.body)
 }
 
-/** The banner a clan uploaded, shown whole inside its box (never cropped or faded); a plain strip when it has none. */
-function ClanBanner({ banner, className }: { banner?: string | null; className?: string }) {
+/** The clan's banner (a picture or a GIF) fills the whole header box behind its logo, name and description, under a fade so the text stays readable. */
+function ClanBannerBackdrop({ banner }: { banner?: string | null }) {
   const src = clanArtSrc(banner)
-  return src ? (
-    <div className="overflow-hidden bg-[var(--raised)]">
-      <img src={src} alt="" loading="lazy" className="mx-auto block max-h-[340px] w-full object-contain" />
-    </div>
-  ) : (
-    <div className={cn("bg-[var(--raised)]", className)} />
+  if (!src) return null
+  return (
+    <>
+      <img src={src} alt="" className="absolute inset-0 size-full object-cover" />
+      <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-[var(--card-surface)]/90 via-[var(--card-surface)]/60 to-[var(--card-surface)]/15" />
+    </>
   )
 }
 
@@ -399,8 +399,8 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
             <>
               <section className="relative overflow-hidden rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)]">
               {backdropStyle(clan.look?.backdrop) && <div aria-hidden="true" className="absolute inset-0 opacity-70" style={{ backgroundImage: backdropStyle(clan.look?.backdrop) }} />}
-              <ClanBanner banner={clan.thumbnail} className="h-28" />
-              <div className="relative flex flex-wrap items-center gap-4 p-5">
+              <ClanBannerBackdrop banner={clan.thumbnail} />
+              <div className="relative flex flex-wrap items-center gap-4 p-6">
                 <ClanMark logo={clan.logo} tag={clan.tag} className="size-16 text-[15px]" />
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <h1 className="truncate text-[22px] font-semibold leading-tight">{clan.name} <span {...clanTagProps(clan.look, "text-[13px] font-medium text-[var(--text-dim)]")}>[{clan.tag}]</span></h1>
