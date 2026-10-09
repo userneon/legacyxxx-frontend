@@ -357,9 +357,18 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
   return (
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
-        <button type="button" onClick={() => navigate("/clans")} className="inline-flex h-11 items-center gap-2 text-[13px] text-[var(--text-dim)] transition-colors hover:text-[var(--text)]">
-          <ArrowLeft className="size-4" aria-hidden="true" /> All clans
-        </button>
+        {role ? (
+          <PageTabs<"all" | "appearance" | "mine">
+            ariaLabel="Clans"
+            value="mine"
+            onChange={(next) => { if (next === "all") navigate("/clans"); else if (next === "appearance") navigate("/clans?tab=appearance") }}
+            options={[{ value: "all", label: "Clans" }, { value: "appearance", label: "Appearance" }, { value: "mine", label: "My clan" }]}
+          />
+        ) : (
+          <button type="button" onClick={() => navigate("/clans")} className="inline-flex h-11 items-center gap-2 text-[13px] text-[var(--text-dim)] transition-colors hover:text-[var(--text)]">
+            <ArrowLeft className="size-4" aria-hidden="true" /> All clans
+          </button>
+        )}
         <PageBarEnd>
           {canModerate && clan && <ModerateClan key={`${clan.name}:${clan.tag}:${clan.description ?? ""}`} clan={clan} onChanged={() => void refetch()} onDeleted={() => navigate("/clans")} />}
           {role && !isLeader && (
