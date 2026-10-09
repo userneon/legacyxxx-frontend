@@ -6,6 +6,8 @@ export type CheckStatus = "pending" | "completed" | "expired"
 export interface CheckSummary {
   detections: number
   suspicions: number
+  /** Accounts on the PC (or the asked player's) that Steam says carry a VAC or game ban. */
+  bannedAccounts?: number
   /** The Steam accounts found on the PC include the player who was asked. */
   matchesTarget: boolean
 }
@@ -32,10 +34,38 @@ export interface CheckFinding {
   note?: string
 }
 
+/** One Steam account that signed in on the PC, from Steam's own files. */
+export interface CheckSteamAccount {
+  steamId: string
+  accountName?: string
+  personaName?: string
+  lastLogin?: string
+  mostRecent?: boolean
+  cs2LastPlayed?: string
+  cs2Hours?: number
+  launchOptions?: string
+}
+
+/** What Steam itself says about an account (added by the server). */
+export interface CheckSteamBan {
+  steamId: string
+  personaName: string | null
+  createdAt: string | null
+  profilePublic: boolean | null
+  vacBanned: boolean
+  gameBans: number
+  communityBanned: boolean
+  economyBan: string
+  daysSinceLastBan: number | null
+}
+
 export interface CheckReport extends CheckSummary {
   consent: true
   checkerVersion: string
   steamIds: string[]
+  steamAccounts?: CheckSteamAccount[]
+  steamBans?: CheckSteamBan[]
+  cs2?: { installed: boolean; lastUpdated?: string }
   filesScanned: number
   durationSeconds: number
   findings: CheckFinding[]

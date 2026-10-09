@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Check, Plus, RotateCcw, ScanSearch, Trash2, TriangleAlert } from "lucide-react"
 import { toast } from "sonner"
 
-import { checksService, type CheckFinding, type PlayerCheck, type PlayerCheckDetail } from "@/api/checks"
+import { checksService, type CheckFinding, type CheckReport, type PlayerCheck, type PlayerCheckDetail } from "@/api/checks"
 import type { ApiError } from "@/api/types"
 import { NewCheckDialog } from "@/components/new-check-dialog"
 import { PageBar } from "@/components/page-tabs"
@@ -18,6 +18,59 @@ const KIND: Record<CheckFinding["kind"], string> = { file: "File", process: "Pro
 
 function StatusDot({ status }: { status: PlayerCheck["status"] }) {
   return <span aria-hidden="true" className={cn("size-1.5 shrink-0 rounded-full", status === "completed" ? "bg-[var(--status-green)]" : status === "pending" ? "bg-[var(--text-2)]" : "bg-[var(--text-faint)]")} />
+}
+
+
+function formatDay(iso?: string | null) {
+  if (!iso) return "unknown"
+  const date = new Date(iso)
+  return Number.isNaN(date.getTime()) ? "unknown" : date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
+}
+
+/** The Steam accounts on the PC: who they are, when they last signed in and played CS2, and what Steam says about their bans. */
+function SteamAccounts({ report, targetSteamId }: { report: CheckReport; targetSteamId: string }) {
+  const accounts = report.steamAccounts ?? []
+  const bans = new Map((report.steamBans ?? []).map((ban) => [ban.steamId, ban]))
+  // The asked player's own account is shown even when it was not found on the PC.
+  const ids = Array.from(new Set([...accounts.map((account) => account.steamId), targetSteamId]))
+  if (ids.length === 0) return null
+  return (
+    <section className="flex flex-col gap-1.5" aria-label="Steam accounts">
+      <h3 className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">Steam accounts on this PC <span className="text-[var(--text-faint)]">{accounts.length}</span></h3>
+      <ul className="flex flex-col gap-1.5">
+        {ids.map((steamId) => {
+          const account = accounts.find((entry) => entry.steamId === steamId)
+          const ban = bans.get(steamId)
+          const banned = Boolean(ban && (ban.vacBanned || ban.gameBans > 0))
+          const asked = steamId === targetSteamId
+          return (
+            <li key={steamId} className="rounded-lg border border-[var(--line-soft)] bg-[var(--card-surface)] px-3 py-2">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="min-w-0 truncate text-[13px] font-semibold text-[var(--text)]">{account?.personaName || ban?.personaName || steamId}</span>
+                {asked && <span className="rounded-md border border-[var(--line)] px-1.5 py-px text-[10px] text-[var(--text-muted)]">Asked player</span>}
+                {account?.mostRecent && <span className="rounded-md border border-[var(--line)] px-1.5 py-px text-[10px] text-[var(--text-muted)]">Last used</span>}
+                {!account && <span className="rounded-md border border-[var(--line)] px-1.5 py-px text-[10px] text-[var(--text-dim)]">Not found on this PC</span>}
+                {ban?.vacBanned && <span className="rounded-md border border-[var(--status-red)]/50 px-1.5 py-px text-[10px] font-semibold text-[var(--status-red)]">VAC ban</span>}
+                {ban && ban.gameBans > 0 && <span className="rounded-md border border-[var(--status-red)]/50 px-1.5 py-px text-[10px] font-semibold text-[var(--status-red)]">{ban.gameBans} game {ban.gameBans === 1 ? "ban" : "bans"}</span>}
+                {ban?.communityBanned && <span className="rounded-md border border-[var(--line)] px-1.5 py-px text-[10px] text-[var(--text-2)]">Community ban</span>}
+                {ban && !banned && <span className="rounded-md border border-[var(--line)] px-1.5 py-px text-[10px] text-[var(--text-dim)]">No VAC or game ban</span>}
+              </div>
+              <p className="mt-0.5 truncate text-[11px] text-[var(--text-dim)]">{steamId}{account?.accountName ? ` · login ${account.accountName}` : ""}</p>
+              {account && (
+                <p className="mt-0.5 text-[11px] text-[var(--text-muted)]">
+                  Signed in {formatDay(account.lastLogin)} · CS2 last played {formatDay(account.cs2LastPlayed)}{account.cs2Hours != null ? ` · ${account.cs2Hours.toLocaleString()} h` : ""}
+                </p>
+              )}
+              {ban?.daysSinceLastBan != null && <p className="mt-0.5 text-[11px] text-[var(--text-muted)]">Last ban {ban.daysSinceLastBan.toLocaleString()} days ago.</p>}
+              {ban?.createdAt && <p className="mt-0.5 text-[11px] text-[var(--text-dim)]">Account made {formatDay(ban.createdAt)}{ban.profilePublic === false ? " · profile is private" : ""}</p>}
+              {account?.launchOptions && <p className="mt-0.5 truncate text-[11px] text-[var(--text-dim)]" title={account.launchOptions}>CS2 launch options: {account.launchOptions}</p>}
+            </li>
+          )
+        })}
+      </ul>
+      {report.cs2 && <p className="text-[11px] text-[var(--text-dim)]">CS2 {report.cs2.installed ? `is installed${report.cs2.lastUpdated ? `, last updated ${formatDay(report.cs2.lastUpdated)}` : ""}.` : "is not installed on this PC."}</p>}
+    </section>
+  )
 }
 
 function Detail({ id, onClose, onRemoved }: { id: string; onClose: () => void; onRemoved: () => void }) {
@@ -66,6 +119,7 @@ function Detail({ id, onClose, onRemoved }: { id: string; onClose: () => void; o
             {!report.matchesTarget && (
               <p className="flex items-start gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 py-2 text-xs text-[var(--text-2)]"><TriangleAlert className="mt-px size-4 shrink-0" aria-hidden="true" />The player's Steam account was not among the accounts found on this PC. It may have been run on another computer.</p>
             )}
+            <SteamAccounts report={report} targetSteamId={data.targetSteamId} />
             {report.findings.length === 0 ? <p className="flex items-center gap-2 text-[13px] text-[var(--text-muted)]"><Check className="size-4 text-[var(--status-green)]" aria-hidden="true" />Nothing was found.</p> : <>{group("Detections", detections)}{group("Suspicions", suspicions)}</>}
             <p className="text-[11px] leading-relaxed text-[var(--text-dim)]">A result is not a verdict. Read it, look at the player's history, and decide. Checker {report.checkerVersion}.</p>
           </div>
@@ -117,6 +171,7 @@ export function ChecksPage() {
                     <span className="flex shrink-0 items-center gap-3 text-xs">
                       <span className={cn("font-semibold", check.summary.detections > 0 ? "text-[var(--status-red)]" : "text-[var(--text-muted)]")}>{check.summary.detections} detections</span>
                       <span className="text-[var(--text-muted)]">{check.summary.suspicions} suspicions</span>
+                      {(check.summary.bannedAccounts ?? 0) > 0 && <span className="font-semibold text-[var(--status-red)]">{check.summary.bannedAccounts} banned {check.summary.bannedAccounts === 1 ? "account" : "accounts"}</span>}
                     </span>
                   )}
                 </button>
