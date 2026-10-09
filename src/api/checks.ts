@@ -17,6 +17,7 @@ export interface PlayerCheck {
   codeHint: string
   targetSteamId: string
   targetName: string | null
+  targetAvatar?: string | null
   requestedBy: string
   status: CheckStatus
   expiresAt: string
