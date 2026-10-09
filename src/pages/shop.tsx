@@ -177,13 +177,13 @@ export function ShopPage() {
           <>
             {balance !== null && (
               <div className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">
-                <span className="flex justify-between"><span>Your coins</span><span>{balance.toLocaleString()}</span></span>
+                <span className="flex justify-between"><span>Your LX</span><span>{balance.toLocaleString()}</span></span>
                 <span className="flex justify-between"><span>Price</span><span>− {item.price.toLocaleString()}</span></span>
                 <span className="flex justify-between border-t border-[var(--line-soft)] pt-2 text-[13px] font-semibold text-[var(--text)]"><span>After buying</span><span>{afford ? (balance - item.price).toLocaleString() : `${(item.price - balance).toLocaleString()} short`}</span></span>
               </div>
             )}
             <button type="button" disabled={busy || !afford} onClick={() => void buy(item)} className="lx-primary-button inline-flex h-10 w-full items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-60">
-              {afford ? `Buy for ${item.price.toLocaleString()} coins` : `Need ${(item.price - (balance ?? 0)).toLocaleString()} more coins`}
+              {afford ? `Buy for ${item.price.toLocaleString()} LX` : `Need ${(item.price - (balance ?? 0)).toLocaleString()} more LX`}
             </button>
             <p className="text-center text-[11px] text-[var(--text-faint)]">Buying wears it right away. Change it any time in Profile → Appearance.</p>
           </>

@@ -22,7 +22,7 @@ const REASONS: Record<string, string> = {
   clan_full: "The clan is full.",
   clan_cooldown: "Wait a day after leaving a clan before joining another.",
   clan_requests_limit: "You can have 3 open requests at a time. Withdraw one first.",
-  clan_no_coins: "Your wallet is short on coins.",
+  clan_no_coins: "Your wallet is short on LX.",
   clan_forbidden: "You are not allowed to do that.",
   clan_rename_cooldown: "A clan can change its name or tag once a week.",
   clan_player_not_found: "No player has that name.",
@@ -188,7 +188,7 @@ export function ActivityPanel({ clanId }: { clanId: string }) {
   )
 }
 
-/** A new name or tag, for coins, once a week (the leader only). */
+/** A new name or tag, for LX, once a week (the leader only). */
 export function RenameForm({ clan, onChanged }: { clan: ClanDetail; onChanged: () => void }) {
   const [name, setName] = useState(clan.name)
   const [tag, setTag] = useState(clan.tag)

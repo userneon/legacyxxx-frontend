@@ -1,9 +1,9 @@
 import { get, post, type CallOptions } from "./client"
 
-/** The signed-in player's coin wallet (backend GET /wallet/me): the balance and the latest ledger lines. */
+/** The signed-in player's LX wallet (backend GET /wallet/me): the balance and the latest ledger lines. */
 export interface WalletTransaction {
   id: string
-  /** Positive when coins came in, negative when they were spent. */
+  /** Positive when LX came in, negative when they were spent. */
   amount: number
   kind: string
   reason: string
@@ -11,7 +11,7 @@ export interface WalletTransaction {
   at: string
 }
 
-/** One way to earn coins, as the API lists it (the numbers live in one place, the backend). */
+/** One way to earn LX, as the API lists it (the numbers live in one place, the backend). */
 export interface EarnRule {
   id: string
   label: string
@@ -30,7 +30,7 @@ export interface ClanPrices {
 export interface Wallet {
   balance: number
   transactions: WalletTransaction[]
-  /** How coins are earned. Absent from an older API. */
+  /** How LX is earned. Absent from an older API. */
   earn?: EarnRule[]
   /** Clan prices for the Shop. Absent from an older API. */
   clanPrices?: ClanPrices
@@ -41,12 +41,12 @@ export const walletService = {
     return get<Wallet>("/api/v1/wallet/me", undefined, options)
   },
 
-  /** Owner only: give a player coins (backend POST /wallet/grant). */
+  /** Owner only: give a player LX (backend POST /wallet/grant). */
   async grant(payload: { steamId: string; amount: number; reason: string }, options?: CallOptions): Promise<{ balance: number }> {
     return post<{ balance: number }>("/api/v1/wallet/grant", payload, options)
   },
 
-  /** Owner only: take coins away as a penalty. A wallet never goes below zero, so `taken` can be less than asked. */
+  /** Owner only: take LX away as a penalty. A wallet never goes below zero, so `taken` can be less than asked. */
   async penalize(payload: { steamId: string; amount: number; reason: string }, options?: CallOptions): Promise<{ balance: number; taken: number }> {
     return post<{ balance: number; taken: number }>("/api/v1/wallet/penalty", payload, options)
   },

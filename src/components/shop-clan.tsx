@@ -45,7 +45,7 @@ export function ShopClan({ prices, balance, mine, loading, onChanged }: ShopClan
   const membership = mine?.membership ?? null
   const clan = membership?.clan ?? null
   const leader = membership?.role === "leader"
-  const short = (price: number) => (balance != null && balance < price ? `Need ${(price - balance).toLocaleString()} more coins` : null)
+  const short = (price: number) => (balance != null && balance < price ? `Need ${(price - balance).toLocaleString()} more LX` : null)
 
   const nextSize = clan ? Math.min(prices.slotCap, clan.maxPlayers + prices.slotStep) : null
   const atCap = clan ? clan.maxPlayers >= prices.slotCap : false

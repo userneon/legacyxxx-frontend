@@ -5,7 +5,7 @@ export interface FrameItem {
   id: string
   name: string
   nameMn: string
-  /** free: everyone; coin: bought once with coins; achievement: earned, never sold. */
+  /** free: everyone; coin: bought once with LX; achievement: earned, never sold. */
   unlock: "free" | "coin" | "achievement"
   price: number
   /** How an achievement frame is earned. */

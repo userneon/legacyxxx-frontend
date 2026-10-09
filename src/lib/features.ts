@@ -24,7 +24,7 @@ export const FEATURES = {
   skinCollections: true,
   /** Two players side by side. */
   compare: true,
-  /** The Shop: frames, name colours and glows bought with coins. The server needs the cosmetics migrations. */
+  /** The Shop: frames, name colours and glows bought with LX. The server needs the cosmetics migrations. */
   shop: true,
 } as const
 

@@ -28,16 +28,16 @@ function CoinsDialog({ open, onOpenChange, steamId, name, mode }: { open: boolea
     try {
       if (mode === "grant") {
         const result = await walletService.grant({ steamId, amount: value, reason: reason.trim() })
-        toast.success(`${name} has ${result.balance.toLocaleString()} coins now`)
+        toast.success(`${name} has ${result.balance.toLocaleString()} LX now`)
       } else {
         const result = await walletService.penalize({ steamId, amount: value, reason: reason.trim() })
-        toast.success(`${result.taken.toLocaleString()} coins taken from ${name}`, { description: `${result.balance.toLocaleString()} left` })
+        toast.success(`${result.taken.toLocaleString()} LX taken from ${name}`, { description: `${result.balance.toLocaleString()} left` })
       }
       setAmount(""); setReason("")
       onOpenChange(false)
     } catch (error) {
       const status = (error as Partial<ApiError> | null)?.status
-      toast.error("That did not work", { description: status === 403 ? "Only an Owner can change coins." : "Try again in a moment." })
+      toast.error("That did not work", { description: status === 403 ? "Only an Owner can change LX." : "Try again in a moment." })
     } finally {
       setBusy(false)
     }
@@ -46,12 +46,12 @@ function CoinsDialog({ open, onOpenChange, steamId, name, mode }: { open: boolea
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="rounded-2xl">
         <DialogHeader>
-          <DialogTitle>{mode === "grant" ? "Give coins" : "Take coins"} · {name}</DialogTitle>
-          <DialogDescription>{mode === "grant" ? "Adds coins to their wallet." : "Takes up to this many coins; a wallet never goes below zero."} It is written to the audit log.</DialogDescription>
+          <DialogTitle>{mode === "grant" ? "Give LX" : "Take LX"} · {name}</DialogTitle>
+          <DialogDescription>{mode === "grant" ? "Adds LX to their wallet." : "Takes up to this many LX; a wallet never goes below zero."} It is written to the audit log.</DialogDescription>
         </DialogHeader>
         <form className="mt-2 flex flex-col gap-4" onSubmit={(event) => void submit(event)}>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="coins-amount">Coins</Label>
+            <Label htmlFor="coins-amount">LX</Label>
             <Input id="coins-amount" type="number" min={1} max={1_000_000} className="w-40" value={amount} onChange={(event) => setAmount(event.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
@@ -121,7 +121,7 @@ function NotifyDialog({ open, onOpenChange, steamId, name }: { open: boolean; on
 
 /**
  * Staff-only "Staff" button in a player's profile header: give that player a penalty (their Steam ID is filled in) and,
- * for Owners, give or take coins. Players never see it.
+ * for Owners, give or take LX. Players never see it.
  */
 export function ProfileStaffMenu({ steamId, name, onChanged }: { steamId: string; name: string; onChanged: () => void }) {
   const access = useModerationAccess()

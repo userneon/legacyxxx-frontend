@@ -1,5 +1,5 @@
 /**
- * Coin wallet next to the profile menu in the top bar: a wallet icon with the balance, and the latest coin
+ * LX wallet next to the profile menu in the top bar: a wallet icon with the balance, and the latest LX
  * activity in a panel under it. It belongs to the signed-in player only and is left out while the balance is
  * unknown (loading, or an API without a wallet), never shown as a made-up zero.
  */
@@ -32,7 +32,7 @@ export function WalletMenu() {
   return (
     <Popover open={open} onOpenChange={(next) => { setOpen(next); if (next) refetch() }}>
       <PopoverTrigger
-        aria-label={`Wallet: ${wallet.balance.toLocaleString()} coins`}
+        aria-label={`Wallet: ${wallet.balance.toLocaleString()} LX`}
         className="flex h-9 shrink-0 items-center gap-2 rounded-[10px] border border-[var(--line-strong)] px-3 text-[13px] font-semibold text-[var(--text)] transition-colors hover:border-[var(--text-dim)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
       >
         <WalletIcon className="size-4 text-[var(--text-muted)]" aria-hidden="true" />
@@ -40,11 +40,11 @@ export function WalletMenu() {
       </PopoverTrigger>
       <PopoverContent align="end" sideOffset={8} className="w-[300px] overflow-hidden rounded-[14px] border-[var(--line-soft)] bg-[var(--panel)] p-0 shadow-[0_16px_40px_rgba(0,0,0,0.5)]">
         <div className="flex flex-col gap-1 border-b border-[var(--line-soft)] p-4">
-          <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--text-dim)]">Your coins</span>
+          <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--text-dim)]">Your LX</span>
           <span className="text-[26px] font-bold leading-none text-[var(--text)]">{wallet.balance.toLocaleString()}</span>
         </div>
         {wallet.transactions.length === 0 ? (
-          <p className="p-4 text-[13px] text-[var(--text-dim)]">No coin activity yet. Finish a ranked match to earn your first coins.</p>
+          <p className="p-4 text-[13px] text-[var(--text-dim)]">No LX activity yet. Finish a ranked match to earn your first LX.</p>
         ) : (
           <ul className="flex max-h-[280px] flex-col overflow-y-auto p-1.5">
             {wallet.transactions.map((entry) => (

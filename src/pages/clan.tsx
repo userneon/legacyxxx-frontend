@@ -206,7 +206,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
           <DialogHeader>
             <DialogTitle>Create a clan</DialogTitle>
             <DialogDescription>
-              {CLAN_FEE} coins are taken from your wallet when the clan is created. You choose who can join and how many players it holds.
+              {CLAN_FEE} LX are taken from your wallet when the clan is created. You choose who can join and how many players it holds.
             </DialogDescription>
           </DialogHeader>
           <CreateClanForm onClose={() => setCreating(false)} onCreated={(clan) => { setCreating(false); changed(); onClanNavigate(String(clan.number ?? clan.id)) }} />
@@ -417,7 +417,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                   <DialogHeader>
                     <DialogTitle>Delete {clan.name}?</DialogTitle>
                     <DialogDescription>
-                      The clan, its members list and any extra places are removed for good, and the coins spent on the clan and its places are not given back. The appearance you bought (tag colour, glow, backgrounds) stays yours and can be worn by your next clan. This cannot be undone.
+                      The clan, its members list and any extra places are removed for good, and the LX spent on the clan and its places are not given back. The appearance you bought (tag colour, glow, backgrounds) stays yours and can be worn by your next clan. This cannot be undone.
                     </DialogDescription>
                   </DialogHeader>
                   <form
@@ -525,7 +525,7 @@ function CreateClanForm({ onClose, onCreated }: { onClose: () => void; onCreated
         <Button type="button" variant="outline" onClick={onClose} disabled={submitting}><X className="size-4" /> Cancel</Button>
         <button type="submit" disabled={!valid || submitting} className="lx-primary-button inline-flex h-9 items-center gap-2 rounded-lg px-3.5 text-[13px] font-semibold disabled:opacity-50">
           <Coins className="size-4" aria-hidden="true" />
-          {submitting ? "Creating…" : `Create · ${CLAN_FEE} coins`}
+          {submitting ? "Creating…" : `Create · ${CLAN_FEE} LX`}
         </button>
       </div>
     </form>

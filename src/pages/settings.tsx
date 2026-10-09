@@ -170,7 +170,7 @@ function DiscordConnection() {
     <ConnectionRow
       icon={<DiscordGlyph />}
       title="Discord"
-      description={data?.link ? `${data.link.discordName} · rank role and /stats in Discord` : "Link Discord for your rank role and /stats, and get 50 coins once."}
+      description={data?.link ? `${data.link.discordName} · rank role and /stats in Discord` : "Link Discord for your rank role and /stats, and get 50 LX once."}
       action={
         loading ? <Skeleton className="h-[34px] w-24 rounded-lg" />
         : error ? <button type="button" onClick={refetch} className={cn(button, "text-[var(--text-2)] hover:border-[var(--line-strong)]")}>Retry</button>
@@ -299,14 +299,14 @@ function Appearance() {
     if (worn[kind] === item.id) return `You are wearing this ${noun}.`
     if (item.owned) return item.unlock === "free" ? "Free for everyone." : `You own this ${noun}.`
     if (item.unlock === "coin") {
-      return `${item.price.toLocaleString()} coins in the Shop.`
+      return `${item.price.toLocaleString()} LX in the Shop.`
     }
     return item.requirement || "Earned in game, not for sale."
   }
   const badge = (item: FrameItem) => {
     if (worn[kind] === item.id) return <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[var(--status-green)]"><Check className="size-3" />Worn</span>
     if (item.owned) return <span className="text-[10px] text-[var(--text-dim)]">{item.unlock === "free" ? "Free" : "Owned"}</span>
-    if (item.unlock === "coin") return <span className="text-[10px] font-medium text-[var(--text-2)]">{item.price.toLocaleString()} coins</span>
+    if (item.unlock === "coin") return <span className="text-[10px] font-medium text-[var(--text-2)]">{item.price.toLocaleString()} LX</span>
     return <span className="inline-flex items-center gap-1 text-[10px] text-[var(--text-dim)]"><Lock className="size-3" />Earned</span>
   }
   const sampleName = user?.username ?? "Player"
@@ -328,7 +328,7 @@ function Appearance() {
               {selected && <span className="text-xs text-[var(--text-dim)]">{note(selected)}</span>}
             </div>
             {selected && <div className="w-full">{action(selected)}</div>}
-            {balance !== null && <span className="text-[11px] text-[var(--text-dim)]">Your coins: <span className="font-semibold text-[var(--text-2)]">{balance.toLocaleString()}</span></span>}
+            {balance !== null && <span className="text-[11px] text-[var(--text-dim)]">Your LX: <span className="font-semibold text-[var(--text-2)]">{balance.toLocaleString()}</span></span>}
           </div>
           <div className="flex min-w-0 flex-col gap-3">
             <div className="flex flex-wrap items-center gap-3">
