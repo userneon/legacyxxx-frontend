@@ -331,6 +331,8 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
   const { user } = useAuth()
   const [busy, setBusy] = useState(false)
   const [editing, setEditing] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [confirmName, setConfirmName] = useState("")
   const { data: clan, loading, error, refetch } = useApiQuery<ClanDetail>((signal) => clansService.getClan(clanId, { signal }))
   // An address with the long id moves to the short one (/clans/1).
   useEffect(() => {
@@ -381,7 +383,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
             <button
               type="button"
               disabled={busy}
-              onClick={() => { if (window.confirm("Delete this clan? Your coins are not given back.")) void run(() => clansService.deleteClan(clanId), "Clan deleted", () => navigate("/clans")) }}
+              onClick={() => { setConfirmName(""); setDeleting(true) }}
               className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--status-red)] hover:border-[var(--line-strong)] disabled:opacity-50"
             >
               Delete clan
@@ -410,6 +412,27 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                 {isManager && <button type="button" onClick={() => setEditing(true)} className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] hover:border-[var(--line-strong)]"><Pencil className="size-4" aria-hidden="true" /> Edit clan</button>}
               </div>
               </section>
+              <Dialog open={deleting} onOpenChange={setDeleting}>
+                <DialogContent className="rounded-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Delete {clan.name}?</DialogTitle>
+                    <DialogDescription>
+                      The clan, its members list, its appearance (tag colour, glow, backgrounds) and any extra places are removed for good. The coins spent on the clan, its appearance and its places are not given back. This cannot be undone.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form
+                    className="flex flex-col gap-3"
+                    onSubmit={(event) => { event.preventDefault(); if (confirmName.trim() === clan.name) { setDeleting(false); void run(() => clansService.deleteClan(clanId), "Clan deleted", () => navigate("/clans")) } }}
+                  >
+                    <Label htmlFor="clan-delete-name">Type the clan name <b className="text-[var(--text)]">{clan.name}</b> to confirm</Label>
+                    <Input id="clan-delete-name" autoComplete="off" value={confirmName} onChange={(event) => setConfirmName(event.target.value)} placeholder={clan.name} />
+                    <div className="flex justify-end gap-2">
+                      <button type="button" onClick={() => setDeleting(false)} className="inline-flex h-9 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] hover:border-[var(--line-strong)]">Cancel</button>
+                      <button type="submit" disabled={busy || confirmName.trim() !== clan.name} className="inline-flex h-9 items-center rounded-lg border border-[var(--status-red)]/60 bg-[var(--raised)] px-3 text-[13px] font-semibold text-[var(--status-red)] hover:border-[var(--status-red)] disabled:cursor-not-allowed disabled:opacity-40">Delete clan</button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
               <Dialog open={editing} onOpenChange={setEditing}>
                 <DialogContent className="rounded-2xl">
                   <DialogHeader><DialogTitle>Edit clan</DialogTitle><DialogDescription>Description, who may join, how many players and the pictures of {clan.name}.</DialogDescription></DialogHeader>
