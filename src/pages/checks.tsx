@@ -73,6 +73,19 @@ function SteamAccounts({ report, targetSteamId }: { report: CheckReport; targetS
 }
 
 
+/** Asks first, then removes the check and its result for good. Returns true when it is gone. */
+async function removeCheck(id: string, waiting: boolean): Promise<boolean> {
+  if (!window.confirm(waiting ? "Cancel this check? The code stops working." : "Remove this check and its result for good?")) return false
+  try {
+    await checksService.remove(id)
+    toast.success(waiting ? "Check cancelled" : "Check removed")
+    return true
+  } catch (caught) {
+    toast.error("Could not remove it", { description: (caught as Partial<ApiError>)?.status === 403 ? "An Admin can only remove their own checks." : "Try again in a moment." })
+    return false
+  }
+}
+
 function minutesLeft(check: PlayerCheck) {
   return Math.max(0, Math.ceil((Date.parse(check.expiresAt) - Date.now()) / 60_000))
 }
@@ -82,9 +95,10 @@ function Detail({ id, onClose, onRemoved }: { id: string; onClose: () => void; o
   const { data, loading, error, refetch } = useApiQuery<PlayerCheckDetail>((signal) => checksService.get(id, { signal }), { queryKey: `check:${id}` })
   const [busy, setBusy] = useState(false)
   const remove = async () => {
-    if (!window.confirm("Remove this check and its result for good?")) return
     setBusy(true)
-    try { await checksService.remove(id); onRemoved(); onClose() } catch (caught) { toast.error("Could not remove it", { description: (caught as Partial<ApiError>)?.status === 403 ? "An Admin can only remove their own checks." : "Try again in a moment." }) } finally { setBusy(false) }
+    const gone = await removeCheck(id, data?.status === "pending")
+    setBusy(false)
+    if (gone) { onRemoved(); onClose() }
   }
   const report = data?.report ?? null
   const bannedAccounts = (report?.steamBans ?? []).filter((ban) => ban.vacBanned || ban.gameBans > 0).length
@@ -132,8 +146,8 @@ function Detail({ id, onClose, onRemoved }: { id: string; onClose: () => void; o
             <p className="font-mono text-[11px] leading-relaxed text-[var(--text-dim)]">// a result is not a verdict. read it, look at the player's history, decide. checker {report.checkerVersion}.</p>
           </div>
         )}
-        <div className="flex justify-between gap-2">
-          <Button type="button" variant="outline" onClick={() => void remove()} disabled={busy}><Trash2 className="size-4" aria-hidden="true" /> Remove</Button>
+        <div className="sticky -bottom-6 -mx-6 -mb-6 flex justify-between gap-2 border-t border-[var(--line-soft)] bg-background px-6 py-4">
+          <Button type="button" variant="outline" onClick={() => void remove()} disabled={busy}><Trash2 className="size-4" aria-hidden="true" /> {data?.status === "pending" ? "Cancel check" : "Remove"}</Button>
           <Button type="button" onClick={onClose}>Close</Button>
         </div>
       </DialogContent>
@@ -244,8 +258,8 @@ export function ChecksPage() {
                   const threat = threatOf(check)
                   const summary = check.summary
                   return (
-                    <li key={check.id}>
-                      <button type="button" data-level={threat === "flagged" ? "flagged" : threat === "clear" ? "clear" : "review"} onClick={() => setOpen(check.id)} className="chk-row chk-panel group flex w-full items-center gap-4 py-3 pl-5 pr-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
+                    <li key={check.id} className="group/row relative">
+                      <button type="button" data-level={threat === "flagged" ? "flagged" : threat === "clear" ? "clear" : "review"} onClick={() => setOpen(check.id)} className="chk-row chk-panel group flex w-full items-center gap-4 py-3 pl-5 pr-[4.5rem] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
                         <PlayerAvatar avatar={check.targetAvatar ?? undefined} name={check.targetName ?? check.targetSteamId} className="size-10 rounded-[10px] text-sm" />
                         <span className="flex min-w-0 flex-1 flex-col gap-1.5">
                           <span className="flex items-center gap-2"><span className="truncate font-mono text-[13px] font-semibold text-[var(--text)]">{check.targetName ?? "not on legacy-x"}</span><ThreatBadge threat={threat} /></span>
@@ -256,6 +270,15 @@ export function ChecksPage() {
                           <span className="font-mono text-[10px] tracking-[1px] text-[var(--text-dim)]">{summary ? `${summary.detections} DET · ${summary.suspicions} SUS${(summary.bannedAccounts ?? 0) > 0 ? ` · ${summary.bannedAccounts} BAN` : ""}` : check.status === "pending" ? "AWAITING PLAYER" : "NO RESULT"}</span>
                         </span>
                         <ChevronRight className="size-4 shrink-0 text-[var(--text-faint)] transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={check.status === "pending" ? "Cancel this check" : "Remove this check"}
+                        title={check.status === "pending" ? "Cancel" : "Remove"}
+                        onClick={async () => { if (await removeCheck(check.id, check.status === "pending")) void refetch() }}
+                        className="absolute right-11 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg border border-transparent text-[var(--text-faint)] opacity-0 transition-[opacity,color,border-color] hover:border-[var(--line)] hover:text-[var(--status-red)] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 group-hover/row:opacity-100 max-sm:opacity-100"
+                      >
+                        <Trash2 className="size-4" aria-hidden="true" />
                       </button>
                     </li>
                   )
