@@ -620,6 +620,15 @@ export async function mockResponse(method: string, path: string, query: Query, b
     if (method === "PUT" && parts[5] === "equip") { const { kind, item } = body as { kind: "tag_color" | "tag_glow" | "backdrop" | "page"; item: string | null }; mockClanLooks.worn[kind] = item }
     return { items: MOCK_CLAN_LOOK_ITEMS.map((item) => ({ ...item, owned: mockClanLooks.owned.has(item.id) })), equipped: { ...mockClanLooks.worn } }
   }
+  if (path.startsWith("/api/v1/checks")) {
+    if (!signedIn()) throw unauthorized()
+    const base = { codeHint: "9QX4", targetSteamId: "76561198000000001", requestedBy: "Owner", expiresAt: new Date(Date.now() + HOUR).toISOString(), checkerVersion: "1.0.0" }
+    const done = { ...base, id: "k1", targetName: "xBataa", status: "completed", createdAt: new Date(Date.now() - 3 * HOUR).toISOString(), completedAt: new Date(Date.now() - 2 * HOUR).toISOString(), summary: { detections: 2, suspicions: 1, matchesTarget: true } }
+    if (method === "POST") return { id: "k9", code: "K7F2-9QX4", expiresAt: new Date(Date.now() + HOUR).toISOString(), steamId: "76561198000000001" }
+    if (method === "DELETE") return undefined
+    if (path === "/api/v1/checks/k1") return { ...done, report: { consent: true, checkerVersion: "1.0.0", steamIds: ["76561198000000001"], filesScanned: 373454, durationSeconds: 412, detections: 2, suspicions: 1, matchesTarget: true, findings: [{ name: "loader.exe", kind: "file", confidence: "detection", path: "C:\\Users\\***\\Downloads\\loader.exe" }, { name: "Injected module", kind: "process", confidence: "detection", note: "Loaded into cs2.exe" }, { name: "Prefetch cleared", kind: "tamper", confidence: "suspicion", note: "No Prefetch entries in the last 7 days" }] } }
+    return [done, { ...base, id: "k2", targetName: null, targetSteamId: "76561198000000002", status: "pending", createdAt: new Date(Date.now() - 600_000).toISOString(), completedAt: null, summary: undefined }, { ...base, id: "k3", targetName: "Gansukh", status: "completed", createdAt: new Date(Date.now() - 30 * HOUR).toISOString(), completedAt: new Date(Date.now() - 29 * HOUR).toISOString(), summary: { detections: 0, suspicions: 0, matchesTarget: true } }]
+  }
   if (path === "/api/v1/clans/me") {
     if (!signedIn()) throw unauthorized()
     return { membership: null, pendingClanIds: ["c3"], invites: [{ clan: { ...MOCK_CLANS[2], joinMode: "request" }, at: new Date(Date.now() - HOUR).toISOString() }] }

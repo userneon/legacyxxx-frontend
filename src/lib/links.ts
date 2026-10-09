@@ -9,6 +9,8 @@ const read = (key: string) => env[key]?.trim() || null
 const DISCORD_INVITE = read("VITE_DISCORD_INVITE_URL") ?? "https://discord.gg/legacyx"
 
 export const LINKS = {
+  /** Where a player downloads the checker program. No link, no button. */
+  checkerDownload: read("VITE_CHECKER_DOWNLOAD_URL"),
   discordInvite: DISCORD_INVITE,
   /** Where a player appeals a penalty (a ticket channel or the server). */
   discordAppeals: read("VITE_DISCORD_APPEALS_URL") ?? DISCORD_INVITE,

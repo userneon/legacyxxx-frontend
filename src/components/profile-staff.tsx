@@ -1,11 +1,12 @@
 import { useState } from "react"
-import { Bell, Coins, Gavel, MinusCircle, PlusCircle, ShieldCheck } from "lucide-react"
+import { Bell, Coins, ScanSearch, Gavel, MinusCircle, PlusCircle, ShieldCheck } from "lucide-react"
 import { toast } from "sonner"
 
 import { penaltyAdminService } from "@/api/moderation-access"
 import { walletService } from "@/api/wallet"
 import type { ApiError } from "@/api/types"
 import { IssuePenaltyDialog, useModerationAccess } from "@/components/penalty-staff"
+import { NewCheckDialog } from "@/components/new-check-dialog"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -129,9 +130,11 @@ export function ProfileStaffMenu({ steamId, name, onChanged }: { steamId: string
   const [issuing, setIssuing] = useState(false)
   const [coins, setCoins] = useState<"grant" | "take" | null>(null)
   const [notifying, setNotifying] = useState(false)
+  const [checking, setChecking] = useState(false)
   if (!access || !steamId) return null
   const canIssue = access.can.ban || access.can.edit || access.can.unban
   const isOwner = access.role === "OWNER"
+  const mayCheck = access.role === "OWNER" || access.role === "MANAGER" || access.role === "ADMIN"
   return (
     <>
       <Popover open={open} onOpenChange={setOpen}>
@@ -143,11 +146,13 @@ export function ProfileStaffMenu({ steamId, name, onChanged }: { steamId: string
         <PopoverContent align="center" sideOffset={8} className="w-52 rounded-xl border-[var(--line)] bg-[var(--panel)] p-1">
           {canIssue && <button type="button" className={item} onClick={() => { setOpen(false); setIssuing(true) }}><Gavel className="size-4 text-[var(--text-muted)]" aria-hidden="true" /> New penalty</button>}
           <button type="button" className={item} onClick={() => { setOpen(false); setNotifying(true) }}><Bell className="size-4 text-[var(--text-muted)]" aria-hidden="true" /> Send notification</button>
-          {isOwner && <button type="button" className={item} onClick={() => { setOpen(false); setCoins("grant") }}><PlusCircle className="size-4 text-[var(--text-muted)]" aria-hidden="true" /> Give coins</button>}
-          {isOwner && <button type="button" className={item} onClick={() => { setOpen(false); setCoins("take") }}><MinusCircle className="size-4 text-[var(--text-muted)]" aria-hidden="true" /> Take coins</button>}
+          {mayCheck && <button type="button" className={item} onClick={() => { setOpen(false); setChecking(true) }}><ScanSearch className="size-4 text-[var(--text-muted)]" aria-hidden="true" /> Ask for a check</button>}
+          {isOwner && <button type="button" className={item} onClick={() => { setOpen(false); setCoins("grant") }}><PlusCircle className="size-4 text-[var(--text-muted)]" aria-hidden="true" /> Give LX</button>}
+          {isOwner && <button type="button" className={item} onClick={() => { setOpen(false); setCoins("take") }}><MinusCircle className="size-4 text-[var(--text-muted)]" aria-hidden="true" /> Take LX</button>}
         </PopoverContent>
       </Popover>
       {canIssue && <IssuePenaltyDialog open={issuing} onOpenChange={setIssuing} access={access} initialSteamId={steamId} onIssued={onChanged} />}
+      {mayCheck && <NewCheckDialog open={checking} onOpenChange={setChecking} initialSteamId={steamId} name={name} />}
       <NotifyDialog open={notifying} onOpenChange={setNotifying} steamId={steamId} name={name} />
       {isOwner && <CoinsDialog open={coins !== null} onOpenChange={(next) => { if (!next) setCoins(null) }} steamId={steamId} name={name} mode={coins ?? "grant"} />}
     </>
