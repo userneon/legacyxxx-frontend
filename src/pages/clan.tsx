@@ -25,15 +25,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { backdropStyle, clanTagProps } from "@/lib/cosmetics"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 
 /** The banner a clan uploaded, under a solid fade so text stays readable; plain when it has none. */
-function ClanBanner({ banner, className }: { banner?: string | null; className?: string }) {
+function ClanBanner({ banner, backdrop, className }: { banner?: string | null; backdrop?: string; className?: string }) {
   const src = clanArtSrc(banner)
   return (
-    <div className={cn("relative overflow-hidden bg-[var(--raised)]", className)}>
+    <div className={cn("relative overflow-hidden bg-[var(--raised)]", className)} style={!src && backdrop ? { backgroundImage: backdrop } : undefined}>
       {src && <img src={src} alt="" loading="lazy" className="size-full object-cover" />}
       <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[var(--card-surface)] to-transparent" />
     </div>
@@ -360,11 +361,11 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
           {!loading && !error && clan && (
             <>
               <section className="overflow-hidden rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-              <ClanBanner banner={clan.thumbnail} className="h-28" />
+              <ClanBanner banner={clan.thumbnail} backdrop={backdropStyle(clan.look?.backdrop)} className="h-28" />
               <div className="flex flex-wrap items-center gap-4 p-5">
                 <ClanMark logo={clan.logo} tag={clan.tag} className="size-16 text-[15px]" />
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <h1 className="truncate text-[22px] font-semibold leading-tight">{clan.name} <span className="text-[13px] font-medium text-[var(--text-dim)]">[{clan.tag}]</span></h1>
+                  <h1 className="truncate text-[22px] font-semibold leading-tight">{clan.name} <span {...clanTagProps(clan.look, "text-[13px] font-medium text-[var(--text-dim)]")}>[{clan.tag}]</span></h1>
                   <p className="flex flex-wrap items-center gap-x-3 text-[13px] text-[var(--text-dim)]"><span>{clan.region} · {clan.currentPlayers}/{clan.maxPlayers} members</span><JoinModeLabel mode={clan.joinMode} /></p>
                   {clan.description && <p className="max-w-2xl text-[13px] text-[var(--text-dim)]">{clan.description}</p>}
                 </div>

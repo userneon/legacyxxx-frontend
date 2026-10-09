@@ -1,4 +1,5 @@
 import { useMemo } from "react"
+import { clanTagProps } from "@/lib/cosmetics"
 import { useNavigate } from "react-router-dom"
 import { Crown, RotateCcw } from "lucide-react"
 
@@ -39,7 +40,7 @@ function ClanTopCard({ clan, onOpen }: { clan: ClanRankEntry; onOpen: () => void
         <ClanMark logo={clan.logo} tag={clan.tag} className={first ? "size-[60px] text-[15px]" : "size-[52px]"} />
         <span className="flex min-w-0 flex-col gap-1.5">
           <span className={cn("truncate font-semibold text-[var(--text)]", first ? "text-base" : "text-sm")} title={clan.name}>{clan.name}</span>
-          <span className="text-xs text-[var(--text-dim)]">[{clan.tag}] · {clan.currentPlayers} members</span>
+          <span className="text-xs text-[var(--text-dim)]"><span {...clanTagProps(clan.look)}>[{clan.tag}]</span> · {clan.currentPlayers} members</span>
         </span>
       </span>
       <span className="flex items-end justify-between border-t border-[var(--line-soft)] pt-3.5">
@@ -77,7 +78,7 @@ function ClanRow({ clan, onOpen, you, index = 0 }: { clan: ClanRankEntry; onOpen
       <span className="flex min-w-0 items-center gap-3 transition-[translate] duration-500 group-hover:translate-x-1 group-hover:duration-300">
         <ClanMark logo={clan.logo} tag={clan.tag} className={cn("size-8 rounded-[9px] text-[10px]", you && "ring-2 ring-[var(--brand)]/80")} />
         <span className="min-w-0 truncate text-[13px] font-medium text-[var(--text)]" title={clan.name}>{you ? "Your clan" : clan.name}</span>
-        <span className="shrink-0 text-[11px] font-semibold text-[var(--text-dim)]">[{clan.tag}]</span>
+        <span {...clanTagProps(clan.look, "shrink-0 text-[11px] font-semibold text-[var(--text-dim)]")}>[{clan.tag}]</span>
       </span>
       <span className={cell()}>{clan.currentPlayers}/{clan.maxPlayers}</span>
       <span className={cell(true)}>{clan.totalExp.toLocaleString()}</span>

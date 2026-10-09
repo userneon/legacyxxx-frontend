@@ -101,3 +101,13 @@ const ACCENTS: Record<string, string> = {
 export function frameAccent(id: string): string {
   return ACCENTS[id] ?? "#d4d4d4" // palette-exempt: neutral light
 }
+
+/** Props for a clan's [TAG]: the colour and glow the clan bought. Same safe handling as a player's name. */
+export function clanTagProps(look: { tagColor: string | null; tagColorFx: string | null; tagGlow: string | null; tagGlowFx: string | null } | null | undefined, base = ""): { className: string; style?: React.CSSProperties } {
+  return nameProps(look ? { color: look.tagColor, colorFx: look.tagColorFx, glow: look.tagGlow, glowFx: look.tagGlowFx } : null, base)
+}
+
+/** The clan page backdrop as a CSS gradient, or undefined when the clan has none (only #rrggbb is ever used). */
+export function backdropStyle(backdrop: { from: string; to: string } | null | undefined): string | undefined {
+  return backdrop && HEX.test(backdrop.from) && HEX.test(backdrop.to) ? `linear-gradient(135deg, ${backdrop.from}, ${backdrop.to})` : undefined
+}

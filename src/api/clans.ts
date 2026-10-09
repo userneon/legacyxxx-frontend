@@ -1,6 +1,8 @@
 import { API_BASE_URL, MOCK_API, del, get, post, put, type CallOptions } from "./client"
 import type {
   ClanCard,
+  ClanLookKind,
+  ClanLooks,
   ClanDetail,
   ClanMember,
   CreateClanRequest,
@@ -64,6 +66,20 @@ export const clansService = {
   /** Leader only: buy more member places with coins (backend POST /clans/:id/slots). */
   async buySlots(clanId: string, options?: CallOptions): Promise<ClanDetail> {
     return post<ClanDetail>(`/api/v1/clans/${clanId}/slots`, {}, options)
+  },
+
+  /** Leader only: the clan's look items (owned or not) and what it wears. */
+  async getLooks(clanId: string, options?: CallOptions): Promise<ClanLooks> {
+    return get<ClanLooks>(`/api/v1/clans/${clanId}/looks`, undefined, options)
+  },
+
+  async buyLook(clanId: string, itemId: string, options?: CallOptions): Promise<ClanLooks> {
+    return post<ClanLooks>(`/api/v1/clans/${clanId}/looks/${encodeURIComponent(itemId)}/buy`, {}, options)
+  },
+
+  /** Wear an owned item, or take the kind off with item: null. */
+  async equipLook(clanId: string, kind: ClanLookKind, item: string | null, options?: CallOptions): Promise<ClanLooks> {
+    return put<ClanLooks>(`/api/v1/clans/${clanId}/looks/equip`, { kind, item }, options)
   },
 
   /** Staff only: delete a clan, take a picture down, or fix a name. */

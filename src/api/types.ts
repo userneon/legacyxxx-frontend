@@ -407,6 +407,36 @@ export type ModerationStatus = "Banned" | "Muted" | "Gag" | "Clear"
  * Clans
  * ------------------------------------------------------------------------- */
 
+/** What a clan wears: tag colour and glow, and a page backdrop (all from the shop). */
+export interface ClanLook {
+  tagColor: string | null
+  tagColorFx: string | null
+  tagGlow: string | null
+  tagGlowFx: string | null
+  backdrop: { from: string; to: string } | null
+}
+
+export type ClanLookKind = "tag_color" | "tag_glow" | "backdrop"
+
+export interface ClanLookItem {
+  id: string
+  kind: ClanLookKind
+  name: string
+  price: number
+  rarity: 1 | 2 | 3 | 4
+  owned: boolean
+  color?: string
+  glow?: string
+  fx?: string
+  from?: string
+  to?: string
+}
+
+export interface ClanLooks {
+  items: ClanLookItem[]
+  equipped: Record<ClanLookKind, string | null>
+}
+
 export interface ClanCard {
   id: string
   /** Short address number in the order clans were opened: /clans/1. Absent from an older API. */
@@ -420,6 +450,8 @@ export interface ClanCard {
   region: string
   /** open: anyone joins at once. request: the leader accepts or declines. */
   joinMode: "open" | "request"
+  /** What the clan wears. Absent from an older API. */
+  look?: ClanLook | null
 }
 
 export interface ClanDetail extends ClanCard {
