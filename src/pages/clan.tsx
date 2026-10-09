@@ -410,7 +410,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
           <PageTabs<"all" | "appearance" | "mine">
             ariaLabel="Clans"
             value="mine"
-            onChange={(next) => { if (next === "all") navigate("/clans"); else if (next === "appearance") navigate("/clans/appearance") }}
+            onChange={(next) => { if (next === "all") navigate("/clans"); else if (next === "appearance") navigate("/clans", { state: { tab: "appearance" } }) }}
             options={[{ value: "all", label: "Clans" }, { value: "mine", label: "My clan" }, { value: "appearance", label: "Appearance" }]}
           />
         ) : (

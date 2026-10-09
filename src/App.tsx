@@ -146,7 +146,7 @@ export function App() {
               {isFeatureEnabled("shop") && <Route path="/shop/:tab" element={<ProtectedPage pageName="Shop"><ShopPage /></ProtectedPage>} />}
               <Route path="/penalties" element={<PenaltiesPage onProfileNavigate={handleProfileNavigate} />} />
               {/* Settings now live in Profile. */}
-              <Route path="/settings" element={<Navigate to="/profile/settings" replace />} />
+              <Route path="/settings" element={<Navigate to="/profile" state={{ tab: "settings" }} replace />} />
               <Route path="/explore" element={<ExplorePage onProfileNavigate={handleProfileNavigate} />} />
               <Route path="/search" element={<ExplorePage onProfileNavigate={handleProfileNavigate} />} />
               <Route path="/reviews" element={<FeedbackPage onProfileNavigate={handleProfileNavigate} />} />
