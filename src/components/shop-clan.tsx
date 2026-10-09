@@ -101,7 +101,7 @@ const KINDS: Array<{ kind: ClanLookKind; label: string; hint: string }> = [
 ]
 const RARITY = ["", "Common", "Rare", "Epic", "Legendary"]
 
-function Preview({ item, tag }: { item: ClanLookItem; tag: string }) {
+function Preview({ item, tag, big }: { item: ClanLookItem; tag: string; big?: boolean }) {
   const look = {
     tagColor: item.kind === "tag_color" ? item.color ?? null : null,
     tagColorFx: item.kind === "tag_color" ? item.fx ?? null : null,
@@ -111,8 +111,8 @@ function Preview({ item, tag }: { item: ClanLookItem; tag: string }) {
   const colors = item.from && item.to ? { from: item.from, to: item.to } : null
   const back = item.kind === "backdrop" ? backdropStyle(colors) : item.kind === "page" ? pageBackground(colors) : undefined
   return (
-    <div className="relative grid h-[72px] place-items-center rounded-lg border border-[var(--line-soft)] bg-[var(--panel)]" style={back ? { backgroundImage: back } : undefined}>
-      <span {...clanTagProps(look, "text-[22px] font-semibold text-[var(--text)]")}>[{tag}]</span>
+    <div className={cn("relative grid place-items-center rounded-lg border border-[var(--line-soft)] bg-[var(--panel)]", big ? "h-[150px]" : "h-[72px]")} style={back ? { backgroundImage: back } : undefined}>
+      <span {...clanTagProps(look, big ? "text-[30px] font-semibold text-[var(--text)]" : "text-[22px] font-semibold text-[var(--text)]")}>[{tag}]</span>
       {item.effect && <span className="pointer-events-none absolute right-2 top-1.5 rounded-full border border-[var(--line)] bg-[var(--panel)] px-1.5 text-[10px] text-[var(--text-dim)]">Animated</span>}
     </div>
   )
@@ -151,13 +151,13 @@ function ClanLooksShop({ clanId, tag, balance, onChanged }: { clanId: string; ta
               <span className="flex-1" />
               {wearing && <button type="button" disabled={busy !== null} onClick={() => run(kind, () => clansService.equipLook(clanId, kind, null), "Taken off")} className="text-xs text-[var(--text-dim)] hover:text-[var(--text)]">Take off</button>}
             </div>
-            <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+            <ul className={cn("grid gap-3", kind === "backdrop" || kind === "page" ? "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3" : "grid-cols-2 md:grid-cols-3 xl:grid-cols-4")}>
               {items.map((item) => {
                 const worn = wearing === item.id
                 const short = !item.owned && balance != null && balance < item.price
                 return (
                   <li key={item.id} className={cn("flex flex-col gap-2.5 rounded-xl border bg-[var(--glass-fill)] p-3", worn ? "border-[var(--line-strong)]" : "border-[var(--glass-line)]")}>
-                    <Preview item={item} tag={tag} />
+                    <Preview item={item} tag={tag} big={kind === "backdrop" || kind === "page"} />
                     <div className="flex items-baseline justify-between gap-2">
                       <span className="truncate text-[13px] font-medium text-[var(--text)]">{item.name}</span>
                       <span className="shrink-0 text-[11px] text-[var(--text-dim)]">{RARITY[item.rarity]}</span>
