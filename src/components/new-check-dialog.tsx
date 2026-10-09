@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { LINKS } from "@/lib/links"
+import "@/components/checks/checks.css"
 
 function failure(error: unknown) {
   const status = (error as Partial<ApiError> | null)?.status
@@ -55,7 +56,7 @@ export function NewCheckDialog({ open, onOpenChange, initialSteamId = "", name, 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="rounded-2xl sm:max-w-md">
+      <DialogContent className="chk-theme rounded-2xl border-[var(--chk-line)] sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{created ? "Send this code to the player" : name ? `Check ${name}` : "Ask for a check"}</DialogTitle>
           <DialogDescription>
@@ -67,7 +68,7 @@ export function NewCheckDialog({ open, onOpenChange, initialSteamId = "", name, 
         {created ? (
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--line)] bg-[var(--raised)] px-4 py-3">
-              <span className="select-all font-mono text-[26px] font-semibold tracking-[3px] text-[var(--text)]">{created.code}</span>
+              <span className="select-all font-mono text-[28px] font-semibold tracking-[4px] text-[var(--chk-accent)] [text-shadow:0_0_18px_color-mix(in_oklab,var(--chk-accent)_55%,transparent)]">{created.code}</span>
               <button type="button" onClick={() => void copy()} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] hover:border-[var(--line-strong)]">{copied ? <Check className="size-4" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}{copied ? "Copied" : "Copy"}</button>
             </div>
             {LINKS.checkerDownload && (

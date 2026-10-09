@@ -1,0 +1,101 @@
+/*
+ * The Checks page has a look of its own (owner request): a dark console with a faint grid, one slow scan line, monospace labels
+ * and the status green for "alive". It is staff-only and lives only inside .chk-theme. No backdrop-filter: the panels are
+ * translucent fills, so the page stays flat like the rest of the site.
+ */
+.chk-theme {
+  --chk-accent: var(--status-green);
+  --chk-danger: var(--status-red);
+  --chk-line: color-mix(in oklab, var(--chk-accent) 24%, transparent);
+  font-feature-settings: "zero" 1;
+}
+
+.chk-stage {
+  position: relative;
+  isolation: isolate;
+  overflow-x: hidden;
+}
+.chk-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(120% 95% at 15% 0%, #000 0%, transparent 82%);
+}
+.chk-stage::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 96px;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, color-mix(in oklab, var(--chk-accent) 9%, transparent) 85%, transparent);
+  animation: chk-scan 8s linear infinite;
+}
+@keyframes chk-scan {
+  from { transform: translateY(-96px); }
+  to { transform: translateY(110vh); }
+}
+
+.chk-caret { animation: chk-blink 1.05s steps(1) infinite; }
+@keyframes chk-blink { 50% { opacity: 0; } }
+
+/* Glass-like panel: a thin white veil and a light edge */
+.chk-panel {
+  position: relative;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 12px;
+  background: linear-gradient(160deg, rgb(255 255 255 / 0.055), rgb(255 255 255 / 0.015));
+}
+
+/* Corner brackets on the stat tiles, like a HUD */
+.chk-tile { position: relative; padding: 14px 16px 14px 18px; }
+.chk-tile::before,
+.chk-tile::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: var(--chk-line);
+  border-style: solid;
+  pointer-events: none;
+}
+.chk-tile::before { top: -1px; left: -1px; border-width: 1px 0 0 1px; border-top-left-radius: 12px; }
+.chk-tile::after { bottom: -1px; right: -1px; border-width: 0 1px 1px 0; border-bottom-right-radius: 12px; }
+
+/* A case row: a coloured bar on the left says how it went */
+.chk-row { position: relative; overflow: hidden; transition: background-color 0.2s, border-color 0.2s, transform 0.2s; }
+.chk-row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--chk-bar, var(--line-strong));
+  box-shadow: 0 0 14px var(--chk-bar, transparent);
+}
+.chk-row[data-level="flagged"] { --chk-bar: var(--chk-danger); border-color: color-mix(in oklab, var(--chk-danger) 40%, transparent); }
+.chk-row[data-level="clear"] { --chk-bar: var(--chk-accent); }
+.chk-row[data-level="review"] { --chk-bar: var(--text-2); }
+.chk-row:hover { background-color: rgb(255 255 255 / 0.05); transform: translateX(2px); }
+
+/* Segments of the risk meter */
+.chk-seg { width: 7px; height: 16px; border-radius: 2px; background: rgb(255 255 255 / 0.09); }
+.chk-seg[data-on="danger"] { background: var(--chk-danger); box-shadow: 0 0 8px color-mix(in oklab, var(--chk-danger) 70%, transparent); }
+.chk-seg[data-on="warn"] { background: var(--text-2); }
+.chk-seg[data-on="ok"] { background: var(--chk-accent); box-shadow: 0 0 8px color-mix(in oklab, var(--chk-accent) 60%, transparent); }
+
+.chk-log { background: rgb(0 0 0 / 0.38); border: 1px solid rgb(255 255 255 / 0.09); border-radius: 10px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .chk-stage::after, .chk-caret { animation: none; }
+  .chk-row:hover { transform: none; }
+}

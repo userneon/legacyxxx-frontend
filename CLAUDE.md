@@ -77,6 +77,12 @@ The one other place is the Compare page (owner request 2026-10-04): the player w
 (`--result-win`), the one behind is red (`--result-loss`) and a draw is grey (`--result-draw`). Win/loss/draw outcomes only;
 it is still not a general accent.
 
+### Checks page (owner request 2026-10-09)
+
+The staff-only Checks page (`src/pages/checks.tsx`, `src/components/checks/`) has a look of its own: a dark console with a faint grid, one slow
+scan line, monospace labels, typed prompts and the status green for "alive", red for serious findings. It lives only inside `.chk-theme`
+(`checks.css`), uses translucent fills rather than `backdrop-filter`, and stops moving for `prefers-reduced-motion`. No other page borrows it.
+
 ### Flat outline (owner pick 2026-10-05, replaces the glass look of 2026-09-28)
 
 The whole app sits on a near-black backdrop (`body::before`) with white `<BackgroundBeams />` (owner request 2026-09-30, replaces the Dust II art). The shell — sidebar, top bar and
