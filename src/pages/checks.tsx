@@ -61,7 +61,7 @@ function Detail({ id, onClose, onRemoved }: { id: string; onClose: () => void; o
             <div className="grid grid-cols-3 gap-2 text-center">
               <div className="rounded-lg border border-[var(--line-soft)] px-2 py-2"><b className={cn("block text-xl", report.detections > 0 && "text-[var(--status-red)]")}>{report.detections}</b><span className="text-[11px] text-[var(--text-dim)]">detections</span></div>
               <div className="rounded-lg border border-[var(--line-soft)] px-2 py-2"><b className="block text-xl">{report.suspicions}</b><span className="text-[11px] text-[var(--text-dim)]">suspicions</span></div>
-              <div className="rounded-lg border border-[var(--line-soft)] px-2 py-2"><b className="block text-xl">{report.filesScanned.toLocaleString()}</b><span className="text-[11px] text-[var(--text-dim)]">files · {Math.round(report.durationSeconds / 60)} min</span></div>
+              <div className="rounded-lg border border-[var(--line-soft)] px-2 py-2"><b className="block text-xl">{report.filesScanned.toLocaleString()}</b><span className="text-[11px] text-[var(--text-dim)]">files · {report.durationSeconds < 90 ? `${report.durationSeconds} s` : `${Math.round(report.durationSeconds / 60)} min`}</span></div>
             </div>
             {!report.matchesTarget && (
               <p className="flex items-start gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 py-2 text-xs text-[var(--text-2)]"><TriangleAlert className="mt-px size-4 shrink-0" aria-hidden="true" />The player's Steam account was not among the accounts found on this PC. It may have been run on another computer.</p>
