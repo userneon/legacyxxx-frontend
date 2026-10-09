@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom"
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { ArrowLeft, Check, Coins, Globe, Lock, Pencil, Plus, Search, Upload, UserPlus, Users, X } from "lucide-react"
@@ -29,6 +30,13 @@ import { backdropStyle, clanTagProps, pageBackground } from "@/lib/cosmetics"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
+
+/** The clan's page background paints the whole window, sidebar and top bar included: a fixed layer behind the (transparent) shell. */
+function PageWash({ page }: { page: { from: string; to: string } | null | undefined }) {
+  const image = pageBackground(page)
+  if (!image) return null
+  return createPortal(<div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-[1]" style={{ backgroundImage: image, opacity: 0.45 }} />, document.body)
+}
 
 /** The banner a clan uploaded, under a solid fade so text stays readable; plain when it has none. */
 function ClanBanner({ banner, className }: { banner?: string | null; className?: string }) {
@@ -357,7 +365,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
       </PageBar>
 
       <div className="relative min-h-0 flex-1">
-      {pageBackground(clan?.look?.page) && <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ backgroundImage: pageBackground(clan?.look?.page), opacity: 0.32 }} />}
+      <PageWash page={clan?.look?.page} />
       <div className="scrollbar-hidden relative size-full overflow-y-auto">
         <div className="flex flex-col gap-4 px-6 pb-4 pt-4">
           <QueryState loading={loading} error={error} empty={!loading && !error && !clan} emptyMessage="Clan not found." onRetry={refetch} />
