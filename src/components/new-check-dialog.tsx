@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { LINKS } from "@/lib/links"
+import { useCheckerLink } from "@/hooks/use-checker-link"
 import "@/components/checks/checks.css"
 
 function failure(error: unknown) {
@@ -28,8 +28,10 @@ export function NewCheckDialog({ open, onOpenChange, initialSteamId = "", name, 
   const [busy, setBusy] = useState(false)
   const [created, setCreated] = useState<NewCheck | null>(null)
   const [copied, setCopied] = useState(false)
+  const [copiedMessage, setCopiedMessage] = useState(false)
+  const checkerLink = useCheckerLink(open)
   useEffect(() => {
-    if (open) { setSteamId(initialSteamId); setCreated(null); setCopied(false) }
+    if (open) { setSteamId(initialSteamId); setCreated(null); setCopied(false); setCopiedMessage(false) }
   }, [open, initialSteamId])
 
   const valid = /^\d{17}$/.test(steamId.trim())
@@ -54,6 +56,19 @@ export function NewCheckDialog({ open, onOpenChange, initialSteamId = "", name, 
     }
   }
 
+  // A message the staff member can paste straight to the player.
+  const message = created
+    ? ["LEGACY-X check", checkerLink ? `1. Download the checker: ${checkerLink}` : "1. Get the checker program from me", "2. Run it (Run as administrator gives the best result)", `3. Enter this code: ${created.code} (works once, for one hour)`, "It shows who asked and what it looks at, and asks you to agree before it scans."].join("\n")
+    : ""
+  const copyMessage = async () => {
+    try {
+      await navigator.clipboard.writeText(message)
+      setCopiedMessage(true)
+    } catch {
+      toast.error("Could not copy. Select the message and copy it by hand.")
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="chk-theme rounded-2xl border-[var(--chk-line)] sm:max-w-md">
@@ -71,9 +86,18 @@ export function NewCheckDialog({ open, onOpenChange, initialSteamId = "", name, 
               <span className="select-all font-mono text-[28px] font-semibold tracking-[4px] text-[var(--chk-accent)] [text-shadow:0_0_18px_color-mix(in_oklab,var(--chk-accent)_55%,transparent)]">{created.code}</span>
               <button type="button" onClick={() => void copy()} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] hover:border-[var(--line-strong)]">{copied ? <Check className="size-4" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}{copied ? "Copied" : "Copy"}</button>
             </div>
-            {LINKS.checkerDownload && (
-              <a href={LINKS.checkerDownload} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[13px] text-[var(--text-2)] hover:text-[var(--text)]"><Download className="size-4" aria-hidden="true" /> Download the checker program (anyone can)</a>
-            )}
+            <div className="flex flex-col gap-2">
+              <span className="font-mono text-[10px] font-semibold uppercase tracking-[1.6px] text-[var(--text-faint)]">// message for the player</span>
+              <pre className="chk-log whitespace-pre-wrap break-words p-3 font-mono text-[11px] leading-[17px] text-[var(--text-2)]">{message}</pre>
+              <div className="flex flex-wrap items-center gap-3">
+                <button type="button" onClick={() => void copyMessage()} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] hover:border-[var(--line-strong)]">{copiedMessage ? <Check className="size-4" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}{copiedMessage ? "Copied" : "Copy the message"}</button>
+                {checkerLink ? (
+                  <a href={checkerLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[13px] text-[var(--text-2)] hover:text-[var(--text)]"><Download className="size-4" aria-hidden="true" /> Checker download</a>
+                ) : (
+                  <span className="text-xs text-[var(--text-dim)]">No download link yet: send the file yourself.</span>
+                )}
+              </div>
+            </div>
             <div className="flex justify-end"><Button type="button" onClick={() => onOpenChange(false)}>Done</Button></div>
           </div>
         ) : (

@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
-import { LINKS } from "@/lib/links"
+import { useCheckerLink } from "@/hooks/use-checker-link"
 import { cn } from "@/lib/utils"
 
 type Filter = "all" | "waiting" | "done" | "flagged"
@@ -157,6 +157,7 @@ function Detail({ id, onClose, onRemoved }: { id: string; onClose: () => void; o
 
 /** The three steps, shown when there are no checks yet. */
 function Protocol({ onAsk }: { onAsk: () => void }) {
+  const checkerLink = useCheckerLink()
   const steps = [
     { n: "01", title: "ask", text: "Enter the player's Steam ID. You get a one-time code that works for an hour." },
     { n: "02", title: "send the code", text: "Give the player the code (Discord). They run the checker, see who asked, and agree." },
@@ -179,7 +180,7 @@ function Protocol({ onAsk }: { onAsk: () => void }) {
       </ol>
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" onClick={onAsk} className="lx-primary-button inline-flex h-9 items-center gap-2 rounded-lg px-3.5 text-[13px] font-semibold"><Plus className="size-4" aria-hidden="true" /> Ask for a check</button>
-        {LINKS.checkerDownload && <a href={LINKS.checkerDownload} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] hover:border-[var(--line-strong)]"><Download className="size-4" aria-hidden="true" /> Checker program</a>}
+        {checkerLink && <a href={checkerLink} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] hover:border-[var(--line-strong)]"><Download className="size-4" aria-hidden="true" /> Checker program</a>}
       </div>
     </section>
   )
