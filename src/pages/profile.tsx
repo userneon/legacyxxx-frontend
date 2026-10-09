@@ -578,39 +578,74 @@ function LoadoutCard({ loadout }: { loadout: NonNullable<ProfileOverview["loadou
 }
 
 function ProfileSkeleton({ own }: { own: boolean }) {
-  const block = "rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]"
+  const bar = "rounded-full bg-[var(--line-soft)]"
   return (
     <div aria-hidden="true">
       {/* Your own profile has the tab row on top; it is held in place so nothing moves when the page arrives. */}
       {own && (
         <PageBar className="max-md:px-4">
-          <div className="flex h-11 items-center gap-6">
-            {[48, 84, 64].map((width) => <Skeleton key={width} className="h-3 rounded-full bg-[var(--line-soft)]" style={{ width }} />)}
+          <div className="flex h-12 items-center gap-6">
+            {[44, 84, 56].map((width) => <Skeleton key={width} className={cn("h-3", bar)} style={{ width }} />)}
           </div>
         </PageBar>
       )}
       <div className="px-6 pt-6 max-md:px-4 max-md:pt-4">
-        <div className="overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-          <div className="flex items-end gap-5 px-5 pb-6 pt-7 max-md:px-4">
-            <Skeleton className="size-[104px] shrink-0 rounded-[26px] bg-[var(--line)]" />
-            <div className="flex flex-1 flex-col gap-2.5 pb-2">
-              <Skeleton className="h-6 w-56 max-w-full rounded-full bg-[var(--line-strong)]" />
-              <Skeleton className="h-3 w-80 max-w-full rounded-full bg-[var(--line-soft)]" />
-            </div>
+        {/* The header: avatar, name, a line of facts and the buttons, all centred. */}
+        <section className={cn(card, "flex h-[299px] flex-col items-center px-5 pt-7 max-md:px-4")}>
+          <Skeleton className="size-[104px] rounded-[26px] bg-[var(--line)]" />
+          <Skeleton className="mt-5 h-7 w-56 max-w-full rounded-full bg-[var(--line-strong)]" />
+          <Skeleton className={cn("mt-3 h-3 w-64 max-w-full", bar)} />
+          <div className="mt-5 flex gap-2">
+            {[116, 76, 100, 36].map((width) => <Skeleton key={width} className="h-9 rounded-lg bg-[var(--line-soft)]" style={{ width }} />)}
           </div>
-        </div>
+        </section>
       </div>
       <div className="flex flex-col gap-4 px-6 pb-8 pt-4 max-md:px-4">
         <div className="grid gap-4 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-          <Skeleton className={cn("h-[132px]", block)} />
-          <Skeleton className={cn("h-[132px]", block)} />
+          <div className={cn(card, "flex h-[205px] items-center gap-6 p-[18px]")}>
+            <Skeleton className="size-[72px] shrink-0 rounded-xl bg-[var(--line)]" />
+            <div className="flex flex-1 flex-col gap-3">
+              <Skeleton className={cn("h-3 w-16", bar)} />
+              <Skeleton className="h-5 w-32 rounded-full bg-[var(--line-strong)]" />
+              <Skeleton className="h-1.5 w-full rounded-full bg-[var(--line)]" />
+              <Skeleton className={cn("h-3 w-3/4", bar)} />
+              <Skeleton className="h-1 w-full rounded-full bg-[var(--line)]" />
+            </div>
+          </div>
+          <div className={cn(card, "flex h-[205px] flex-col gap-4 p-[18px]")}>
+            <Skeleton className="h-4 w-16 rounded-full bg-[var(--line-strong)]" />
+            {[0, 1, 2].map((row) => (
+              <div key={row} className="flex items-center justify-between">
+                <Skeleton className={cn("h-3 w-28", bar)} />
+                <Skeleton className={cn("h-3 w-14", bar)} />
+              </div>
+            ))}
+          </div>
         </div>
-        <Skeleton className={cn("h-[84px]", block)} />
+        <div className="lx-stat-grid grid-cols-2 sm:grid-flow-col sm:grid-cols-none sm:auto-cols-fr">
+          {[0, 1, 2, 3, 4].map((cell) => (
+            <div key={cell} className="lx-stat-cell shadow-none!">
+              <Skeleton className="h-2.5 w-16 bg-white/[0.06]" />
+              <Skeleton className="h-6 w-14 bg-white/[0.06]" />
+            </div>
+          ))}
+        </div>
         <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <Skeleton className={cn("h-[360px]", block)} />
+          <div className={cn(card, "p-[18px]")}>
+            <Skeleton className="h-4 w-32 rounded-full bg-[var(--line-strong)]" />
+            <div className="mt-5 flex flex-col gap-3">
+              {[0, 1, 2, 3, 4, 5].map((row) => (
+                <div key={row} className="flex items-center gap-3">
+                  <Skeleton className="h-8 w-14 shrink-0 rounded-md bg-[var(--line)]" />
+                  <Skeleton className={cn("h-3 flex-1", bar)} />
+                  <Skeleton className={cn("h-3 w-16", bar)} />
+                </div>
+              ))}
+            </div>
+          </div>
           <div className="flex min-w-0 flex-col gap-4">
-            <Skeleton className={cn("h-[140px]", block)} />
-            <Skeleton className={cn("h-[180px]", block)} />
+            <div className={cn(card, "h-[200px] p-[18px]")}><Skeleton className="h-4 w-20 rounded-full bg-[var(--line-strong)]" /></div>
+            <div className={cn(card, "h-[160px] p-[18px]")}><Skeleton className="h-4 w-28 rounded-full bg-[var(--line-strong)]" /></div>
           </div>
         </div>
       </div>

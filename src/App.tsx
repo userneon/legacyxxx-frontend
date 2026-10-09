@@ -131,9 +131,10 @@ export function App() {
               <Route path="/play/proleague" element={<Navigate to="/play/pro" replace />} />
               <Route path="/tournaments" element={<TournamentsPage onProfileNavigate={handleProfileNavigate} />} />
               <Route path="/leaders" element={<LeadersPage onProfileNavigate={handleProfileNavigate} />} />
-              {isFeatureEnabled("clan") && <Route path="/clan" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
+              {/* The address is /clans (and /clans/1); the older /clan keeps working and moves there, with its ?tab= kept. */}
+              {isFeatureEnabled("clan") && <Route path="/clan" element={<Navigate to={{ pathname: "/clans", search: location.search }} replace />} />}
               {isFeatureEnabled("clan") && <Route path="/clans" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
-              {isFeatureEnabled("clan") && <Route path="/clan/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
+              {isFeatureEnabled("clan") && <Route path="/clan/:clanId" element={<Navigate to={{ pathname: location.pathname.replace(/^\/clan\//, "/clans/"), search: location.search }} replace />} />}
               {isFeatureEnabled("clan") && <Route path="/clans/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
               <Route path="/skinchanger" element={<ProtectedPage pageName="Skinchanger"><SkinchangerPage /></ProtectedPage>} />
               {isFeatureEnabled("compare") && <Route path="/compare" element={<ComparePage />} />}

@@ -8,7 +8,7 @@ export const PAGE_ROUTES: Record<PageId, string> = {
   "play-proleague": "/play/pro",
   "play-tournaments": "/tournaments",
   leaders: "/leaders",
-  clan: "/clan",
+  clan: "/clans",
   skinchanger: "/skinchanger",
   compare: "/compare",
   shop: "/shop",
