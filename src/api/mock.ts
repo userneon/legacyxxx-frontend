@@ -582,6 +582,9 @@ const MOCK_CLAN_LOOK_ITEMS = [
   { id: "page-slats-rose", kind: "page", name: "Micro Slats Rose", price: 1200, rarity: 4, from: "#fb7185", to: "#0a0a0a", effect: "slats" },
   { id: "page-waves-ember", kind: "page", name: "Pattern Waves Ember", price: 1200, rarity: 4, from: "#fb923c", to: "#0a0a0a", effect: "waves" },
   { id: "page-dots-gold", kind: "page", name: "Dot Field Gold", price: 1000, rarity: 4, from: "#fcd34d", to: "#0a0a0a", effect: "dots" },
+  { id: "page-aurora-rose", kind: "page", name: "Aurora Veil Rose", price: 1400, rarity: 4, from: "#fb7185", to: "#0a0a0a", effect: "aurora" },
+  { id: "page-lightning-ember", kind: "page", name: "Lightning Ember", price: 1500, rarity: 4, from: "#fb923c", to: "#0a0a0a", effect: "lightning" },
+  { id: "page-plasma-rose", kind: "page", name: "Plasma Rose", price: 1500, rarity: 4, from: "#fb7185", to: "#0a0a0a", effect: "plasma" },
   { id: "back-northern", kind: "backdrop", name: "Northern Lights", price: 800, rarity: 4, from: "#0f766e", to: "#4338ca" },
 ] // palette-exempt: clan look colours chosen by the clan
 const mockClanLooks = { owned: new Set<string>(), worn: { tag_color: null as string | null, tag_glow: null as string | null, backdrop: null as string | null, page: null as string | null } }
