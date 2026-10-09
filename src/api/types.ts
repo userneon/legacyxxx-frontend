@@ -414,9 +414,11 @@ export interface ClanLook {
   tagGlow: string | null
   tagGlowFx: string | null
   backdrop: { from: string; to: string } | null
+  /** The whole clan page background. */
+  page: { from: string; to: string } | null
 }
 
-export type ClanLookKind = "tag_color" | "tag_glow" | "backdrop"
+export type ClanLookKind = "tag_color" | "tag_glow" | "backdrop" | "page"
 
 export interface ClanLookItem {
   id: string

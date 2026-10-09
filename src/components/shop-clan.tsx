@@ -5,7 +5,7 @@ import { useState } from "react"
 
 import { clansService, type ClanLookItem, type ClanLookKind, type ClanLooks, type ClanPrices, type MyClanState } from "@/api"
 import { useApiQuery } from "@/hooks/use-api-query"
-import { backdropStyle, clanTagProps } from "@/lib/cosmetics"
+import { backdropStyle, clanTagProps, pageBackground } from "@/lib/cosmetics"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -96,7 +96,8 @@ export function ShopClan({ prices, balance, mine, loading, onChanged }: ShopClan
 const KINDS: Array<{ kind: ClanLookKind; label: string; hint: string }> = [
   { kind: "tag_color", label: "Tag colour", hint: "The colour of [TAG] everywhere the clan shows." },
   { kind: "tag_glow", label: "Tag glow", hint: "A light around [TAG]." },
-  { kind: "backdrop", label: "Backdrop", hint: "The clan's background: its page header, its card in Clans and its row in Leaders." },
+  { kind: "backdrop", label: "Card backdrop", hint: "Behind the clan's header, its card in Clans and its row in Leaders." },
+  { kind: "page", label: "Page background", hint: "The background of the whole clan page." },
 ]
 const RARITY = ["", "Common", "Rare", "Epic", "Legendary"]
 
@@ -107,7 +108,8 @@ function Preview({ item, tag }: { item: ClanLookItem; tag: string }) {
     tagGlow: item.kind === "tag_glow" ? item.glow ?? null : null,
     tagGlowFx: item.kind === "tag_glow" ? item.fx ?? null : null,
   }
-  const back = item.kind === "backdrop" ? backdropStyle(item.from && item.to ? { from: item.from, to: item.to } : null) : undefined
+  const colors = item.from && item.to ? { from: item.from, to: item.to } : null
+  const back = item.kind === "backdrop" ? backdropStyle(colors) : item.kind === "page" ? pageBackground(colors) : undefined
   return (
     <div className="grid h-[72px] place-items-center rounded-lg border border-[var(--line-soft)] bg-[var(--panel)]" style={back ? { backgroundImage: back } : undefined}>
       <span {...clanTagProps(look, "text-[22px] font-semibold text-[var(--text)]")}>[{tag}]</span>

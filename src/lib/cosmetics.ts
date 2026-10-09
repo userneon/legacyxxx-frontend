@@ -111,3 +111,8 @@ export function clanTagProps(look: { tagColor: string | null; tagColorFx: string
 export function backdropStyle(backdrop: { from: string; to: string } | null | undefined): string | undefined {
   return backdrop && HEX.test(backdrop.from) && HEX.test(backdrop.to) ? `linear-gradient(135deg, ${backdrop.from}, ${backdrop.to})` : undefined
 }
+
+/** The whole clan page background: a soft light from the top in the clan's two colours. */
+export function pageBackground(page: { from: string; to: string } | null | undefined): string | undefined {
+  return page && HEX.test(page.from) && HEX.test(page.to) ? `radial-gradient(130% 80% at 50% 0%, ${page.from}, ${page.to} 78%)` : undefined
+}

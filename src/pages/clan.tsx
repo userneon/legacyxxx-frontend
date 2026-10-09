@@ -25,7 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { backdropStyle, clanTagProps } from "@/lib/cosmetics"
+import { backdropStyle, clanTagProps, pageBackground } from "@/lib/cosmetics"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
@@ -356,7 +356,9 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
         </PageBarEnd>
       </PageBar>
 
-      <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
+      <div className="relative min-h-0 flex-1">
+      {pageBackground(clan?.look?.page) && <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ backgroundImage: pageBackground(clan?.look?.page), opacity: 0.32 }} />}
+      <div className="scrollbar-hidden relative size-full overflow-y-auto">
         <div className="flex flex-col gap-4 px-6 pb-4 pt-4">
           <QueryState loading={loading} error={error} empty={!loading && !error && !clan} emptyMessage="Clan not found." onRetry={refetch} />
           {!loading && !error && clan && (
@@ -410,6 +412,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                     </>
           )}
         </div>
+      </div>
       </div>
     </div>
   )
