@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import { clanTagProps } from "@/lib/cosmetics"
+import { backdropStyle, clanTagProps } from "@/lib/cosmetics"
 import { useNavigate } from "react-router-dom"
 import { Crown, RotateCcw } from "lucide-react"
 
@@ -31,6 +31,12 @@ function ClanTopCard({ clan, onOpen }: { clan: ClanRankEntry; onOpen: () => void
         first ? "border-[var(--brand)]/45" : "mt-6 border-[var(--line-soft)]",
       )}
     >
+      {backdropStyle(clan.look?.backdrop) && (
+        <>
+          <span aria-hidden="true" className="absolute inset-0 -z-10" style={{ backgroundImage: backdropStyle(clan.look?.backdrop) }} />
+          <span aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-[var(--card-surface)] via-[var(--card-surface)]/80 to-[var(--card-surface)]/30" />
+        </>
+      )}
       {first && <span aria-hidden="true" className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-transparent via-[var(--brand-bright)] to-transparent" />}
       <span className="flex items-center gap-2">
         {first && <Crown aria-hidden="true" className="size-6 fill-[var(--brand)]/30 text-[var(--brand-bright)]" />}

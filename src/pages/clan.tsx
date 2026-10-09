@@ -238,6 +238,7 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
   const isMine = mine?.clan.id === clan.id
   const fill = Math.round((clan.currentPlayers / Math.max(1, clan.maxPlayers)) * 100)
   const banner = clanArtSrc(clan.thumbnail)
+  const backdrop = backdropStyle(clan.look?.backdrop)
   const [busy, setBusy] = useState(false)
 
   const act = async (action: () => Promise<void>, failure: string) => {
@@ -262,7 +263,7 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
   const buttonClass = "relative inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-medium transition-colors hover:border-[var(--line-strong)] disabled:cursor-not-allowed disabled:opacity-50"
   return (
     <div className="relative flex min-h-[210px] flex-col overflow-hidden rounded-[10px] border border-[var(--glass-line)] bg-[var(--card-surface)] transition-[border-color] duration-200 hover:border-[var(--line-strong)]">
-      {banner && <img src={banner} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />}
+      {banner ? <img src={banner} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" /> : backdrop && <div aria-hidden="true" className="absolute inset-0" style={{ backgroundImage: backdrop }} />}
       <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[var(--card-surface)] via-[var(--card-surface)]/85 to-[var(--card-surface)]/35" />
       <div className="relative flex flex-1 flex-col gap-4 p-4">
         <button type="button" onClick={() => onClanNavigate(String(clan.number ?? clan.id))} className="flex items-center gap-3 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
