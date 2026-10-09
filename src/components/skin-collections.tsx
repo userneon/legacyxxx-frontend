@@ -62,6 +62,29 @@ function DetailRow({ item }: { item: SkinCollectionDetailItem }) {
   )
 }
 
+const TEAM_SECTIONS: Array<{ scope: string; label: string }> = [
+  { scope: "t", label: "T side" },
+  { scope: "ct", label: "CT side" },
+  { scope: "all", label: "Both teams" },
+]
+
+/** A collection's items split by the side they are worn on: T, CT, then whatever both sides share. */
+function TeamSections({ items }: { items: SkinCollectionDetailItem[] }) {
+  const sections = TEAM_SECTIONS.map((section) => ({ ...section, items: items.filter((item) => (item.teamScope === "t" || item.teamScope === "ct" ? item.teamScope : "all") === section.scope) })).filter((section) => section.items.length > 0)
+  // One side only: no headings needed.
+  if (sections.length === 1) return <ul className="flex flex-col gap-2">{sections[0].items.map((item, index) => <DetailRow key={`${item.name}:${item.teamScope}:${index}`} item={item} />)}</ul>
+  return (
+    <div className="flex flex-col gap-4">
+      {sections.map((section) => (
+        <section key={section.scope} aria-label={section.label} className="flex flex-col gap-2">
+          <h3 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{section.label}<span className="font-medium text-[var(--text-faint)]">{section.items.length}</span></h3>
+          <ul className="flex flex-col gap-2">{section.items.map((item, index) => <DetailRow key={`${item.name}:${item.teamScope}:${index}`} item={item} />)}</ul>
+        </section>
+      ))}
+    </div>
+  )
+}
+
 function daysAgo(iso: string) {
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000)
   return days < 1 ? "today" : days === 1 ? "yesterday" : `${days} days ago`
@@ -246,7 +269,7 @@ export function SkinCollections({ onApplied }: { onApplied: () => void }) {
                 ) : detailLoading || !detail ? (
                   Array.from({ length: Math.min(viewing.itemCount, 8) }, (_, index) => <Skeleton key={index} className="h-[64px] rounded-[10px] bg-[var(--glass-fill)]" />)
                 ) : (
-                  <ul className="flex flex-col gap-2">{detail.collection.items.map((item, index) => <DetailRow key={`${item.name}:${item.teamScope}:${index}`} item={item} />)}</ul>
+                  <TeamSections items={detail.collection.items} />
                 )}
               </div>
               <div className="border-t border-[var(--line-soft)] p-[18px]">
