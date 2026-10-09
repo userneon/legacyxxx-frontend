@@ -85,6 +85,8 @@ export interface NewCheck {
   /** The server can make a personal download of the checker for this check (the code is inside it). */
   downloadAvailable?: boolean
   downloadPath?: string | null
+  /** The SHA-256 of the checker program, so the player can check the file they got (Get-FileHash). */
+  checkerSha256?: string | null
 }
 
 export const checksService = {
