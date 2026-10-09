@@ -139,7 +139,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
             if (next === "mine" && mine) { onClanNavigate(String(mine.clan.number ?? mine.clan.id)); return }
             setTab(next === "appearance" ? "appearance" : "all")
           }}
-          options={mine ? [{ value: "all", label: "Clans" }, { value: "appearance", label: "Appearance" }, { value: "mine", label: "My clan" }] : [{ value: "all", label: "All clans" }]}
+          options={mine ? [{ value: "all", label: "Clans" }, { value: "mine", label: "My clan" }, { value: "appearance", label: "Appearance" }] : [{ value: "all", label: "All clans" }]}
         />
         <PageBarEnd>
           {!(mine && tab === "appearance") && (
@@ -362,7 +362,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
             ariaLabel="Clans"
             value="mine"
             onChange={(next) => { if (next === "all") navigate("/clans"); else if (next === "appearance") navigate("/clans?tab=appearance") }}
-            options={[{ value: "all", label: "Clans" }, { value: "appearance", label: "Appearance" }, { value: "mine", label: "My clan" }]}
+            options={[{ value: "all", label: "Clans" }, { value: "mine", label: "My clan" }, { value: "appearance", label: "Appearance" }]}
           />
         ) : (
           <button type="button" onClick={() => navigate("/clans")} className="inline-flex h-11 items-center gap-2 text-[13px] text-[var(--text-dim)] transition-colors hover:text-[var(--text)]">
