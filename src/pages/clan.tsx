@@ -104,6 +104,10 @@ export function ClanPage({ onProfileNavigate, onClanNavigate }: { onProfileNavig
 
 const PAGE_SIZE = 24
 
+// The viewer's own clan, kept while moving between "Clans", "My clan" and "Appearance": each of those remounts a page, and without it
+// the page first draws the tabs of a player without a clan and then redraws them once the answer arrives.
+let lastMine: MyClanState | null = null
+
 function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void }) {
   const { isAuthenticated, loginWithSteam } = useAuth()
   const [creating, setCreating] = useState(() => new URLSearchParams(window.location.search).get("create") === "1")
@@ -116,10 +120,17 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
     (signal) => clansService.getClans({ q: q || undefined, sort, limit }, { signal }),
     { queryKey: `${q}|${sort}|${limit}`, keepPreviousData: true },
   )
-  const { data: mineState, refetch: refetchMine } = useApiQuery<MyClanState>(
+  const { data: mineData, loading: mineLoading, refetch: refetchMine } = useApiQuery<MyClanState>(
     (signal) => clansService.getMine({ signal }),
     { enabled: isAuthenticated, queryKey: String(isAuthenticated) },
   )
+  useEffect(() => {
+    if (!isAuthenticated) lastMine = null
+    else if (mineData) lastMine = mineData
+  }, [isAuthenticated, mineData])
+  const mineState = mineData ?? (isAuthenticated ? lastMine : null)
+  // Until we know whether the player has a clan, the tabs and the Create button wait instead of showing the wrong ones.
+  const mineKnown = !isAuthenticated || mineState !== null || !mineLoading
 
   const mine = mineState?.membership ?? null
   const pending = mineState?.pendingClanIds ?? []
@@ -133,7 +144,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
   return (
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
-        <PageTabs<"all" | "appearance" | "mine">
+        {mineKnown ? <PageTabs<"all" | "appearance" | "mine">
           ariaLabel="Clans"
           value={mine && tab === "appearance" ? "appearance" : "all"}
           onChange={(next) => {
@@ -141,9 +152,9 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
             setTab(next === "appearance" ? "appearance" : "all")
           }}
           options={mine ? [{ value: "all", label: "Clans" }, { value: "mine", label: "My clan" }, { value: "appearance", label: "Appearance" }] : [{ value: "all", label: "All clans" }]}
-        />
+        /> : <span />}
         <PageBarEnd>
-          {!(mine && tab === "appearance") && (
+          {mineKnown && !(mine && tab === "appearance") && (
             <>
               <div className="flex items-center gap-1 text-[13px]" role="group" aria-label="Sort">
                 {(["new", "name"] as const).map((value) => (
@@ -156,7 +167,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
               </label>
             </>
           )}
-          {!mine && (
+          {mineKnown && !mine && (
             <button type="button" onClick={() => (isAuthenticated ? setCreating(true) : loginWithSteam())} className="lx-primary-button inline-flex h-9 items-center gap-2 rounded-lg px-3.5 text-[13px] font-semibold">
               <Plus className="size-4" aria-hidden="true" />
               Create clan · {CLAN_FEE}
@@ -169,7 +180,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
         <div className="flex flex-col gap-4 px-6 pb-4 pt-4">
           {invites.length > 0 && !mine && <Invitations invites={invites} onChanged={changed} />}
 
-          {mine && tab === "appearance" ? (
+          {!mineKnown && tab === "appearance" ? null : mine && tab === "appearance" ? (
             <ClanAppearancePanel clanId={String(mine.clan.id)} tag={mine.clan.tag} leader={mine.role === "leader"} />
           ) : (
             <>
@@ -339,7 +350,9 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
     if (clan?.number !== undefined && clanId !== String(clan.number)) navigate(`/clans/${clan.number}`, { replace: true })
   }, [clan?.number, clanId, navigate])
   const members = clan?.members ?? []
-  const role = (clan?.viewer?.role ?? null) as ClanRole | null
+  // The role is known from the viewer's own clan before this clan has loaded, so the tabs do not change when it arrives.
+  const knownRole = lastMine && [String(lastMine.membership?.clan.number ?? ""), String(lastMine.membership?.clan.id ?? "")].includes(clanId) ? lastMine.membership?.role : null
+  const role = (clan?.viewer?.role ?? knownRole ?? null) as ClanRole | null
   const isLeader = role === "leader"
   const isManager = role === "leader" || role === "co-leader"
   const canModerate = Boolean(clan?.viewer?.canModerate)
