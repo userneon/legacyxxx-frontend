@@ -18,11 +18,22 @@ export interface EarnRule {
   coins: number
 }
 
+/** What the clan services cost (one source: the backend). */
+export interface ClanPrices {
+  create: number
+  rename: number
+  slots: number
+  slotStep: number
+  slotCap: number
+}
+
 export interface Wallet {
   balance: number
   transactions: WalletTransaction[]
   /** How coins are earned. Absent from an older API. */
   earn?: EarnRule[]
+  /** Clan prices for the Shop. Absent from an older API. */
+  clanPrices?: ClanPrices
 }
 
 export const walletService = {

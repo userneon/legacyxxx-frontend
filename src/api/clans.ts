@@ -61,6 +61,11 @@ export const clansService = {
     return put<ClanDetail>(`/api/v1/clans/${clanId}/name`, payload, options)
   },
 
+  /** Leader only: buy more member places with coins (backend POST /clans/:id/slots). */
+  async buySlots(clanId: string, options?: CallOptions): Promise<ClanDetail> {
+    return post<ClanDetail>(`/api/v1/clans/${clanId}/slots`, {}, options)
+  },
+
   /** Staff only: delete a clan, take a picture down, or fix a name. */
   async moderateDelete(clanId: string, options?: CallOptions): Promise<void> {
     await del<void>(`/api/v1/staff/clans/${clanId}`, options)

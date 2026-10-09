@@ -5,15 +5,16 @@ import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
 import { cosmeticsService, type CosmeticKind, type Cosmetics, type FrameItem } from "@/api/cosmetics"
-import { walletService, type Wallet } from "@/api"
+import { clansService, walletService, type MyClanState, type Wallet } from "@/api"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { frameAccent, nameProps } from "@/lib/cosmetics"
+import { ShopClan } from "@/components/shop-clan"
 import { FramedAvatar } from "@/components/framed-avatar"
 import { PageBar, PageTabs } from "@/components/page-tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 
-type ShopTab = "featured" | CosmeticKind
+type ShopTab = "featured" | CosmeticKind | "clan"
 type Rarity = 0 | 1 | 2 | 3 | 4
 
 const RARITY_NAMES = ["", "Common", "Rare", "Epic", "Legendary"]
@@ -22,6 +23,7 @@ const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "frame", label: "Frames" },
   { value: "name_color", label: "Name colour" },
   { value: "name_glow", label: "Name glow" },
+  { value: "clan", label: "Clan" },
 ]
 
 type ShopItem = FrameItem & { kind: CosmeticKind }
@@ -70,7 +72,8 @@ export function ShopPage() {
   const [params, setParams] = useSearchParams()
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
-  const [tab, setTab] = useState<ShopTab>("featured")
+  const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
+  const [tab, setTab] = useState<ShopTab>(params.get("tab") === "clan" ? "clan" : "featured")
   const [rarity, setRarity] = useState<Rarity>(0)
   const [hideOwned, setHideOwned] = useState(false)
   const [sort, setSort] = useState<"price-up" | "price-down" | "rarity">("price-up")
@@ -225,6 +228,9 @@ export function ShopPage() {
         ) : error || !data ? (
           <p className="flex items-center justify-center gap-3 py-24 text-[13px] text-[var(--text-dim)]">Could not load the shop.<button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>
         ) : (
+          tab === "clan" ? (
+            <ShopClan prices={wallet?.clanPrices} balance={balance} mine={user ? myClan : null} loading={Boolean(user) && (clanLoading || !wallet)} onChanged={() => Promise.all([refetchClan(), refetchWallet()])} />
+          ) : (
           <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
             <div className="flex min-w-0 flex-col gap-5">
               {tab === "featured" && featured.length > 0 && (
@@ -263,6 +269,7 @@ export function ShopPage() {
             </div>
             {rail}
           </div>
+          )
         )}
       </div>
     </div>

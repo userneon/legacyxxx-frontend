@@ -91,7 +91,7 @@ const PAGE_SIZE = 24
 
 function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void }) {
   const { isAuthenticated, loginWithSteam } = useAuth()
-  const [creating, setCreating] = useState(false)
+  const [creating, setCreating] = useState(() => new URLSearchParams(window.location.search).get("create") === "1")
   const [search, setSearch] = useState("")
   const [sort, setSort] = useState<"new" | "name">("new")
   const [limit, setLimit] = useState(PAGE_SIZE)
