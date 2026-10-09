@@ -90,7 +90,7 @@ export function ShopClan({ prices, balance, mine, loading, onChanged }: ShopClan
       </Card>
     </ul>
     {clan && leader && <ClanLooksShop clanId={String(clan.id)} tag={clan.tag} balance={balance} onChanged={onChanged} />}
-    {clan && !leader && <p className="text-[13px] text-[var(--text-dim)]">Only the clan leader can buy a tag colour, a tag glow or a backdrop for the clan.</p>}
+    {clan && !leader && <p className="text-[13px] text-[var(--text-dim)]">Only the clan leader can buy and wear appearance. What a leader buys stays theirs, even if the clan is deleted.</p>}
     </div>
   )
 }
@@ -200,7 +200,7 @@ export function ClanLooksShop({ clanId, tag, balance, onChanged }: { clanId: str
                     ) : item.owned ? (
                       <button type="button" disabled={busy !== null} onClick={() => run(item.id, () => clansService.equipLook(clanId, kind, item.id), `${item.name} is now worn`)} className="inline-flex h-8 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-xs hover:border-[var(--line-strong)] disabled:opacity-50">Wear</button>
                     ) : (
-                      <button type="button" disabled={busy !== null || short} onClick={() => run(item.id, async () => { await clansService.buyLook(clanId, item.id); await clansService.equipLook(clanId, kind, item.id) }, `${item.name} is the clan's now`)} className="lx-primary-button inline-flex h-8 items-center justify-center gap-1.5 rounded-lg text-xs font-semibold disabled:opacity-50"><Coins className="size-3.5" />{item.price}</button>
+                      <button type="button" disabled={busy !== null || short} onClick={() => run(item.id, async () => { await clansService.buyLook(clanId, item.id); await clansService.equipLook(clanId, kind, item.id) }, `${item.name} is yours and now worn by the clan`)} className="lx-primary-button inline-flex h-8 items-center justify-center gap-1.5 rounded-lg text-xs font-semibold disabled:opacity-50"><Coins className="size-3.5" />{item.price}</button>
                     )}
                   </li>
                 )

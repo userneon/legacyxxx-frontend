@@ -417,7 +417,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                   <DialogHeader>
                     <DialogTitle>Delete {clan.name}?</DialogTitle>
                     <DialogDescription>
-                      The clan, its members list, its appearance (tag colour, glow, backgrounds) and any extra places are removed for good. The coins spent on the clan, its appearance and its places are not given back. This cannot be undone.
+                      The clan, its members list and any extra places are removed for good, and the coins spent on the clan and its places are not given back. The appearance you bought (tag colour, glow, backgrounds) stays yours and can be worn by your next clan. This cannot be undone.
                     </DialogDescription>
                   </DialogHeader>
                   <form
