@@ -1,5 +1,6 @@
 import { createPortal } from "react-dom"
 import { useEffect, useState } from "react"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useUrlTab } from "@/hooks/use-url-tab"
 import { useNavigate, useParams } from "react-router-dom"
 import { ArrowLeft, Check, Coins, Globe, Lock, Pencil, Plus, Search, Upload, UserPlus, Users, X } from "lucide-react"
@@ -105,6 +106,37 @@ export function ClanPage({ onProfileNavigate, onClanNavigate }: { onProfileNavig
 
 const PAGE_SIZE = 24
 
+/** The stat row and the card grid of the clan list, in the places the real ones appear. */
+function ClanListSkeleton() {
+  return (
+    <div className="flex flex-col gap-4" aria-hidden="true">
+      <div className="lx-stat-grid grid-cols-3">
+        {[0, 1, 2].map((index) => (
+          <div key={index} className="lx-stat-cell shadow-none!">
+            <Skeleton className="h-2.5 w-14 bg-white/[0.06]" />
+            <Skeleton className="h-5 w-10 bg-white/[0.06]" />
+          </div>
+        ))}
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {[0, 1, 2, 3, 4, 5].map((index) => (
+          <div key={index} className="h-[150px] rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4">
+            <div className="flex items-center gap-3">
+              <Skeleton className="size-10 rounded-[10px] bg-white/[0.06]" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-3.5 w-2/5 bg-white/[0.06]" />
+                <Skeleton className="h-3 w-1/4 bg-white/[0.06]" />
+              </div>
+            </div>
+            <Skeleton className="mt-5 h-3 w-4/5 bg-white/[0.06]" />
+            <Skeleton className="mt-6 h-1.5 w-full rounded-full bg-white/[0.06]" />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // The viewer's own clan, kept while moving between "Clans", "My clan" and "Appearance": each of those remounts a page, and without it
 // the page first draws the tabs of a player without a clan and then redraws them once the answer arrives.
 let lastMine: MyClanState | null = null
@@ -196,7 +228,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
                 </div>
               )}
 
-              <QueryState loading={loading && list.length === 0} error={error} empty={!loading && !error && list.length === 0} emptyMessage={q ? "No clan has that name." : "No clans yet."} onRetry={refetch} />
+              <QueryState loading={loading && list.length === 0} skeleton={<ClanListSkeleton />} error={error} empty={!loading && !error && list.length === 0} emptyMessage={q ? "No clan has that name." : "No clans yet."} onRetry={refetch} />
 
               {!error && list.length > 0 && (
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
