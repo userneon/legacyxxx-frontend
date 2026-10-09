@@ -233,7 +233,7 @@ export function SkinCollections({ onApplied }: { onApplied: () => void }) {
                     <Trash2 className="size-4" />
                   </button>
                 )}
-                <button type="button" onClick={() => setTarget(collection)} className={cn("lx-primary-button inline-flex h-8 items-center rounded-lg px-4 text-[13px] font-semibold", !collection.mine && "ml-auto")}>
+                <button type="button" onClick={() => setTarget(collection)} className={cn("inline-flex h-8 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] font-medium text-[var(--text)] transition-colors hover:border-[var(--line-strong)]", !collection.mine && "ml-auto")}>
                   Apply
                 </button>
               </div>
@@ -273,7 +273,7 @@ export function SkinCollections({ onApplied }: { onApplied: () => void }) {
                 )}
               </div>
               <div className="border-t border-[var(--line-soft)] p-[18px]">
-                <button type="button" onClick={() => { setTarget(viewing); setViewing(null) }} className="lx-primary-button inline-flex h-10 w-full items-center justify-center rounded-lg text-[13px] font-semibold">Apply to my loadout</button>
+                <button type="button" onClick={() => { setTarget(viewing); setViewing(null) }} className="inline-flex h-9 w-full items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-medium text-[var(--text)] transition-colors hover:border-[var(--line-strong)]">Apply to my loadout</button>
               </div>
             </div>
           )}
