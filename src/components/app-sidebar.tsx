@@ -79,8 +79,9 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
   const { state, toggleSidebar, isMobile } = useSidebar()
   const collapsed = state === "collapsed" && !isMobile
   const { isAuthenticated } = useAuth()
-  const [playOpen, setPlayOpen] = useState(true)
-  const [skinOpen, setSkinOpen] = useState(true)
+  // The groups start closed; the one you are inside starts open so the current page is visible.
+  const [playOpen, setPlayOpen] = useState(currentPage.startsWith("play-"))
+  const [skinOpen, setSkinOpen] = useState(currentPage === "skinchanger")
   const skinView = useSkinchangerView()
 
   // Live player counts next to the Play rows, refreshed every 30s while the tab is visible.
