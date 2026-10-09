@@ -31,10 +31,10 @@ import { Label } from "@/components/ui/label"
 
 
 /** The banner a clan uploaded, under a solid fade so text stays readable; plain when it has none. */
-function ClanBanner({ banner, backdrop, className }: { banner?: string | null; backdrop?: string; className?: string }) {
+function ClanBanner({ banner, className }: { banner?: string | null; className?: string }) {
   const src = clanArtSrc(banner)
   return (
-    <div className={cn("relative overflow-hidden bg-[var(--raised)]", className)} style={!src && backdrop ? { backgroundImage: backdrop } : undefined}>
+    <div className={cn("relative overflow-hidden bg-[var(--raised)]", className)}>
       {src && <img src={src} alt="" loading="lazy" className="size-full object-cover" />}
       <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[var(--card-surface)] to-transparent" />
     </div>
@@ -263,7 +263,7 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
   const buttonClass = "relative inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-medium transition-colors hover:border-[var(--line-strong)] disabled:cursor-not-allowed disabled:opacity-50"
   return (
     <div className="relative flex min-h-[210px] flex-col overflow-hidden rounded-[10px] border border-[var(--glass-line)] bg-[var(--card-surface)] transition-[border-color] duration-200 hover:border-[var(--line-strong)]">
-      {banner ? <img src={banner} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" /> : backdrop && <div aria-hidden="true" className="absolute inset-0" style={{ backgroundImage: backdrop }} />}
+      {backdrop ? <div aria-hidden="true" className="absolute inset-0" style={{ backgroundImage: backdrop }} /> : banner && <img src={banner} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />}
       <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[var(--card-surface)] via-[var(--card-surface)]/85 to-[var(--card-surface)]/35" />
       <div className="relative flex flex-1 flex-col gap-4 p-4">
         <button type="button" onClick={() => onClanNavigate(String(clan.number ?? clan.id))} className="flex items-center gap-3 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
@@ -361,9 +361,10 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
           <QueryState loading={loading} error={error} empty={!loading && !error && !clan} emptyMessage="Clan not found." onRetry={refetch} />
           {!loading && !error && clan && (
             <>
-              <section className="overflow-hidden rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-              <ClanBanner banner={clan.thumbnail} backdrop={backdropStyle(clan.look?.backdrop)} className="h-28" />
-              <div className="flex flex-wrap items-center gap-4 p-5">
+              <section className="relative overflow-hidden rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)]">
+              {backdropStyle(clan.look?.backdrop) && <div aria-hidden="true" className="absolute inset-0 opacity-70" style={{ backgroundImage: backdropStyle(clan.look?.backdrop) }} />}
+              <ClanBanner banner={clan.thumbnail} className="h-28" />
+              <div className="relative flex flex-wrap items-center gap-4 p-5">
                 <ClanMark logo={clan.logo} tag={clan.tag} className="size-16 text-[15px]" />
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <h1 className="truncate text-[22px] font-semibold leading-tight">{clan.name} <span {...clanTagProps(clan.look, "text-[13px] font-medium text-[var(--text-dim)]")}>[{clan.tag}]</span></h1>

@@ -96,7 +96,7 @@ export function ShopClan({ prices, balance, mine, loading, onChanged }: ShopClan
 const KINDS: Array<{ kind: ClanLookKind; label: string; hint: string }> = [
   { kind: "tag_color", label: "Tag colour", hint: "The colour of [TAG] everywhere the clan shows." },
   { kind: "tag_glow", label: "Tag glow", hint: "A light around [TAG]." },
-  { kind: "backdrop", label: "Backdrop", hint: "Behind the clan page header and the clan cards, when the clan has no banner picture." },
+  { kind: "backdrop", label: "Backdrop", hint: "The clan's background: its page header, its card in Clans and its row in Leaders." },
 ]
 const RARITY = ["", "Common", "Rare", "Epic", "Legendary"]
 
