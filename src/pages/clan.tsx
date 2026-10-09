@@ -1,5 +1,6 @@
 import { createPortal } from "react-dom"
 import { useEffect, useState } from "react"
+import { useUrlTab } from "@/hooks/use-url-tab"
 import { useNavigate, useParams } from "react-router-dom"
 import { ArrowLeft, Check, Coins, Globe, Lock, Pencil, Plus, Search, Upload, UserPlus, Users, X } from "lucide-react"
 import { toast } from "sonner"
@@ -111,7 +112,7 @@ let lastMine: MyClanState | null = null
 function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void }) {
   const { isAuthenticated, loginWithSteam } = useAuth()
   const [creating, setCreating] = useState(() => new URLSearchParams(window.location.search).get("create") === "1")
-  const [tab, setTab] = useState<"all" | "appearance">(() => (new URLSearchParams(window.location.search).get("tab") === "appearance" ? "appearance" : "all"))
+  const [tab, setTab] = useUrlTab(["all", "appearance"] as const, "all")
   const [search, setSearch] = useState("")
   const [sort, setSort] = useState<"new" | "name">("new")
   const [limit, setLimit] = useState(PAGE_SIZE)

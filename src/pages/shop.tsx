@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
+import { useUrlTab } from "@/hooks/use-url-tab"
 import { Check, Coins, Lock, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
 
@@ -73,7 +74,7 @@ export function ShopPage() {
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
-  const [tab, setTab] = useState<ShopTab>(params.get("tab") === "clan" ? "clan" : "featured")
+  const [tab, setTab] = useUrlTab(["featured", "frame", "name_color", "name_glow", "clan"] as const, "featured")
   const [rarity, setRarity] = useState<Rarity>(0)
   const [hideOwned, setHideOwned] = useState(false)
   const [sort, setSort] = useState<"price-up" | "price-down" | "rarity">("price-up")
@@ -99,7 +100,12 @@ export function ShopPage() {
   const selected = all.find((item) => item.id === picked) ?? featured[0] ?? shown[0] ?? null
   const choose = (item: ShopItem) => {
     setPicked(item.id)
-    setParams(item.id ? { item: item.id } : {}, { replace: true })
+    setParams((current) => {
+      const updated = new URLSearchParams(current)
+      if (item.id) updated.set("item", item.id)
+      else updated.delete("item")
+      return updated
+    }, { replace: true })
   }
 
   // The preview wears the item you look at, and whatever you already wear of the other kinds.

@@ -8,6 +8,7 @@ import { LxMark } from "@/components/lx-mark"
 import { PageBar, PageTabs } from "@/components/page-tabs"
 import { RelativeTime } from "@/components/relative-time"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useUrlTab } from "@/hooks/use-url-tab"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
@@ -103,7 +104,7 @@ function EarningsChart({ daily }: { daily: Array<{ day: string; earned: number }
 export function WalletPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [tab, setTab] = useState<Tab>("overview")
+  const [tab, setTab] = useUrlTab(["overview", "history", "earn"] as const, "overview")
   const [filter, setFilter] = useState<Filter>("all")
   const { data: wallet, loading, error, refetch } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
 
