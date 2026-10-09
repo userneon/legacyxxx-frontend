@@ -84,6 +84,8 @@ export interface NewCheck {
   steamId: string
   /** The server can make a personal download of the checker for this check (the code is inside it). */
   downloadAvailable?: boolean
+  /** "installer": an .msi the player installs and types the code into; "zip": the program with the code already inside. */
+  downloadKind?: "installer" | "zip"
   downloadPath?: string | null
   /** The SHA-256 of the checker program, so the player can check the file they got (Get-FileHash). */
   checkerSha256?: string | null

@@ -60,10 +60,13 @@ export function NewCheckDialog({ open, onOpenChange, initialSteamId = "", name, 
   // The personal download has this check's code inside, so it comes first; the shared link is the fallback.
   const personalLink = created?.downloadPath ? new URL(created.downloadPath, API_BASE_URL || window.location.origin).toString() : null
   const checkerLink = personalLink ?? sharedLink
+  // An installer has no code inside: the player types it.
+  const codeInside = Boolean(personalLink) && created?.downloadKind !== "installer"
+  const installer = created?.downloadKind === "installer"
 
   // A message the staff member can paste straight to the player.
   const message = created
-    ? ["LEGACY-X check", personalLink ? `1. Download your checker (it already has your code, works once): ${personalLink}` : checkerLink ? `1. Download the checker: ${checkerLink}` : "1. Get the checker program from me", personalLink ? "2. Unzip it, then run LegacyX-Checker.exe (Run as administrator gives the best result)" : "2. Run it (Run as administrator gives the best result)", personalLink ? `3. Your code is filled in. If it is not, type: ${created.code} (works once, for one hour)` : `3. Enter this code: ${created.code} (works once, for one hour)`, "It shows who asked and what it looks at, and asks you to agree before it scans.", "Windows may say \"Windows protected your PC\" because the program is new: click More info, then Run anyway.", ...(created.checkerSha256 ? [`To check the file: Get-FileHash .\\LegacyX-Checker.exe  (SHA-256 should be ${created.checkerSha256})`] : [])].join("\n")
+    ? ["LEGACY-X check", personalLink ? `1. Download the checker${codeInside ? " (it already has your code, works once)" : ""}: ${personalLink}` : checkerLink ? `1. Download the checker: ${checkerLink}` : "1. Get the checker program from me", installer ? "2. Open LegacyX-Checker.msi. It installs for you only (no administrator needed) and starts the checker" : codeInside ? "2. Unzip it, then run LegacyX-Checker.exe (Run as administrator gives the best result)" : "2. Run it (Run as administrator gives the best result)", codeInside ? `3. Your code is filled in. If it is not, type: ${created.code} (works once, for one hour)` : `3. Enter this code: ${created.code} (works once, for one hour)`, "It shows who asked and what it looks at, and asks you to agree before it scans.", installer ? "When it is done it removes itself from your PC." : "", "Windows may say \"Windows protected your PC\" because the program is new: click More info, then Run anyway.", ...(created.checkerSha256 ? [installer ? `To check the file: Get-FileHash .\\LegacyX-Checker.msi  (SHA-256 should be ${created.checkerSha256})` : `To check the file: Get-FileHash .\\LegacyX-Checker.exe  (SHA-256 should be ${created.checkerSha256})`] : [])].filter(Boolean).join("\n")
     : ""
   const copyMessage = async () => {
     try {
@@ -81,7 +84,7 @@ export function NewCheckDialog({ open, onOpenChange, initialSteamId = "", name, 
           <DialogTitle>{created ? "Send this code to the player" : name ? `Check ${name}` : "Ask for a check"}</DialogTitle>
           <DialogDescription>
             {created
-              ? "The player runs the checker program. The personal download already has this code inside; otherwise they type it. It works once, for one hour, and is not shown again."
+              ? "The player runs the checker program. The installer asks for this code; a personal zip already has it inside. It works once, for one hour, and is not shown again."
               : "The player runs the checker program with a one-time code. They see who asked and must agree before it scans. A result is not a verdict: you read it and decide."}
           </DialogDescription>
         </DialogHeader>
@@ -97,7 +100,7 @@ export function NewCheckDialog({ open, onOpenChange, initialSteamId = "", name, 
               <div className="flex flex-wrap items-center gap-3">
                 <button type="button" onClick={() => void copyMessage()} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] hover:border-[var(--line-strong)]">{copiedMessage ? <Check className="size-4" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}{copiedMessage ? "Copied" : "Copy the message"}</button>
                 {checkerLink ? (
-                  <a href={checkerLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[13px] text-[var(--text-2)] hover:text-[var(--text)]"><Download className="size-4" aria-hidden="true" /> {personalLink ? "Personal download (code inside)" : "Checker download"}</a>
+                  <a href={checkerLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[13px] text-[var(--text-2)] hover:text-[var(--text)]"><Download className="size-4" aria-hidden="true" /> {installer ? "Checker installer (.msi)" : personalLink ? "Personal download (code inside)" : "Checker download"}</a>
                 ) : (
                   <span className="text-xs text-[var(--text-dim)]">No download link yet: send the file yourself.</span>
                 )}
