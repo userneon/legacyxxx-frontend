@@ -1,12 +1,12 @@
 import { createPortal } from "react-dom"
-import { useEffect, useState } from "react"
+import { Suspense, lazy, useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { ArrowLeft, Check, Coins, Globe, Lock, Pencil, Plus, Search, Upload, UserPlus, Users, X } from "lucide-react"
 import { toast } from "sonner"
 
 
 import { cn } from "@/lib/utils"
-import { clansService } from "@/api"
+import { clansService, type ClanLook } from "@/api"
 import { CLAN_ART_RULES, clanArtProblem, clanArtSrc, type ClanArtKind } from "@/api/clans"
 import type { ClanCard, ClanDetail, ClanJoinRequest, ClanRole, MyClanState } from "@/api/types"
 import { ClanMark } from "@/components/clan-mark"
@@ -31,11 +31,37 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 
-/** The clan's page background paints the whole window, sidebar and top bar included: a fixed layer behind the (transparent) shell. */
-function PageWash({ page }: { page: { from: string; to: string } | null | undefined }) {
+const SlatsBackground = lazy(() => import("@/components/reactbits/micro-slats"))
+const WavesBackground = lazy(() => import("@/components/reactbits/pattern-waves"))
+const DotsBackground = lazy(() => import("@/components/reactbits/dot-field"))
+
+/** Hex to rgba, for the dot field's colours. Only called with values that already passed the #rrggbb check. */
+function rgba(hex: string, alpha: number) {
+  const n = parseInt(hex.slice(1), 16)
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`
+}
+
+/**
+ * The clan's page background paints the whole window, sidebar and top bar included: a fixed layer behind the (transparent)
+ * shell. A plain one is a gradient; an animated one (Micro Slats, Pattern Waves, Dot Field) is loaded only when a clan wears it.
+ */
+function PageWash({ page }: { page: ClanLook["page"] | undefined }) {
   const image = pageBackground(page)
-  if (!image) return null
-  return createPortal(<div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-[1]" style={{ backgroundImage: image, opacity: 0.45 }} />, document.body)
+  if (!image || !page) return null
+  const calm = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+  const effect = calm ? null : page.effect ?? null
+  return createPortal(
+    <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-[1]" style={effect ? { opacity: effect === "slats" ? 0.45 : 0.8 } : { backgroundImage: image, opacity: 0.45 }}>
+      {effect && (
+        <Suspense fallback={null}>
+          {effect === "slats" && <SlatsBackground color={page.from} glintColor={page.from} backgroundColor={page.to} interactive={false} />}
+          {effect === "waves" && <WavesBackground color={page.from} backgroundColor={page.to} interactive={false} />}
+          {effect === "dots" && <div className="size-full" style={{ background: page.to }}><DotsBackground dotSpacing={18} gradientFrom={rgba(page.from, 0.95)} gradientTo={rgba(page.from, 0.6)} glowColor={page.to} /></div>}
+        </Suspense>
+      )}
+    </div>,
+    document.body,
+  )
 }
 
 /** The banner a clan uploaded, under a solid fade so text stays readable; plain when it has none. */

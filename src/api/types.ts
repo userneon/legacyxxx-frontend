@@ -408,6 +408,8 @@ export type ModerationStatus = "Banned" | "Muted" | "Gag" | "Clear"
  * ------------------------------------------------------------------------- */
 
 /** What a clan wears: tag colour and glow, and a page backdrop (all from the shop). */
+export type ClanPageEffect = "slats" | "waves" | "dots"
+
 export interface ClanLook {
   tagColor: string | null
   tagColorFx: string | null
@@ -415,7 +417,7 @@ export interface ClanLook {
   tagGlowFx: string | null
   backdrop: { from: string; to: string } | null
   /** The whole clan page background. */
-  page: { from: string; to: string } | null
+  page: { from: string; to: string; effect?: ClanPageEffect | null } | null
 }
 
 export type ClanLookKind = "tag_color" | "tag_glow" | "backdrop" | "page"
@@ -432,6 +434,7 @@ export interface ClanLookItem {
   fx?: string
   from?: string
   to?: string
+  effect?: ClanPageEffect
 }
 
 export interface ClanLooks {

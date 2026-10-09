@@ -111,8 +111,9 @@ function Preview({ item, tag }: { item: ClanLookItem; tag: string }) {
   const colors = item.from && item.to ? { from: item.from, to: item.to } : null
   const back = item.kind === "backdrop" ? backdropStyle(colors) : item.kind === "page" ? pageBackground(colors) : undefined
   return (
-    <div className="grid h-[72px] place-items-center rounded-lg border border-[var(--line-soft)] bg-[var(--panel)]" style={back ? { backgroundImage: back } : undefined}>
+    <div className="relative grid h-[72px] place-items-center rounded-lg border border-[var(--line-soft)] bg-[var(--panel)]" style={back ? { backgroundImage: back } : undefined}>
       <span {...clanTagProps(look, "text-[22px] font-semibold text-[var(--text)]")}>[{tag}]</span>
+      {item.effect && <span className="pointer-events-none absolute right-2 top-1.5 rounded-full border border-[var(--line)] bg-[var(--panel)] px-1.5 text-[10px] text-[var(--text-dim)]">Animated</span>}
     </div>
   )
 }
