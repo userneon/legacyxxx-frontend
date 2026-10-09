@@ -610,6 +610,10 @@ export async function mockResponse(method: string, path: string, query: Query, b
     return MOCK_USER
   }
   if (path === "/api/v1/auth/refresh") throw unauthorized()
+  if (path === "/api/v1/clan-looks" || /^\/api\/v1\/clan-looks\/[^/]+\/buy$/.test(path)) {
+    if (method === "POST") mockClanLooks.owned.add(decodeURIComponent(path.split("/")[4]))
+    return { items: MOCK_CLAN_LOOK_ITEMS.map((item) => ({ ...item, owned: mockClanLooks.owned.has(item.id) })), equipped: { tag_color: null, tag_glow: null, backdrop: null, page: null } }
+  }
   if (/^\/api\/v1\/clans\/[^/]+\/looks/.test(path)) {
     const parts = path.split("/")
     if (method === "POST" && parts[6] === "buy") mockClanLooks.owned.add(decodeURIComponent(parts[5]))

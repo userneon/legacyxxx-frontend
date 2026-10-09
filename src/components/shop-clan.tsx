@@ -89,8 +89,8 @@ export function ShopClan({ prices, balance, mine, loading, onChanged }: ShopClan
         )}
       </Card>
     </ul>
-    {clan && leader && <ClanLooksShop clanId={String(clan.id)} tag={clan.tag} balance={balance} onChanged={onChanged} />}
-    {clan && !leader && <p className="text-[13px] text-[var(--text-dim)]">Only the clan leader can buy and wear appearance. What a leader buys stays theirs, even if the clan is deleted.</p>}
+    <p className="text-[13px] text-[var(--text-dim)]">{leader ? "What you buy stays yours, even if the clan is deleted." : "Anyone can buy clan appearance. It stays yours and can be worn once you lead a clan."}</p>
+    <ClanLooksShop clanId={clan ? String(clan.id) : null} canWear={leader} tag={clan?.tag ?? "TAG"} balance={balance} onChanged={onChanged} />
     </div>
   )
 }
@@ -151,8 +151,10 @@ function Preview({ item, tag, big }: { item: ClanLookItem; tag: string; big?: bo
   )
 }
 
-export function ClanLooksShop({ clanId, tag, balance, onChanged }: { clanId: string; tag: string; balance: number | null; onChanged: () => void | Promise<unknown> }) {
-  const { data, loading, error, refetch } = useApiQuery<ClanLooks>((signal) => clansService.getLooks(clanId, { signal }), { queryKey: `clan-looks:${clanId}` })
+/** Buying is for everyone; wearing is for the leader of a clan (`clanId` is null, or `canWear` false, when it is not). */
+export function ClanLooksShop({ clanId, canWear = true, tag, balance, onChanged }: { clanId: string | null; canWear?: boolean; tag: string; balance: number | null; onChanged: () => void | Promise<unknown> }) {
+  const wear = Boolean(clanId) && canWear
+  const { data, loading, error, refetch } = useApiQuery<ClanLooks>((signal) => (wear && clanId ? clansService.getLooks(clanId, { signal }) : clansService.getMyLooks({ signal })), { queryKey: `clan-looks:${wear ? clanId : "mine"}` })
   const [busy, setBusy] = useState<string | null>(null)
   if (loading) return <Skeleton className="h-64 rounded-xl" />
   if (error || !data) return <p className="flex items-center gap-3 text-[13px] text-[var(--text-dim)]">Could not load the clan looks.<button type="button" onClick={refetch} className="text-[var(--text-2)] hover:text-[var(--text)]">Retry</button></p>
@@ -182,7 +184,7 @@ export function ClanLooksShop({ clanId, tag, balance, onChanged }: { clanId: str
               <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{label}</span>
               <span className="text-xs text-[var(--text-faint)]">{hint}</span>
               <span className="flex-1" />
-              {wearing && <button type="button" disabled={busy !== null} onClick={() => run(kind, () => clansService.equipLook(clanId, kind, null), "Taken off")} className="text-xs text-[var(--text-dim)] hover:text-[var(--text)]">Take off</button>}
+              {wear && clanId && wearing && <button type="button" disabled={busy !== null} onClick={() => run(kind, () => clansService.equipLook(clanId, kind, null), "Taken off")} className="text-xs text-[var(--text-dim)] hover:text-[var(--text)]">Take off</button>}
             </div>
             <ul className={cn("grid gap-3", kind === "backdrop" || kind === "page" ? "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3" : "grid-cols-2 md:grid-cols-3 xl:grid-cols-4")}>
               {items.map((item) => {
@@ -197,10 +199,12 @@ export function ClanLooksShop({ clanId, tag, balance, onChanged }: { clanId: str
                     </div>
                     {worn ? (
                       <span className="inline-flex h-8 items-center justify-center rounded-lg border border-[var(--line)] text-xs text-[var(--text-dim)]">Worn</span>
-                    ) : item.owned ? (
+                    ) : item.owned && !(wear && clanId) ? (
+                      <span className="inline-flex h-8 items-center justify-center rounded-lg border border-[var(--line)] text-xs text-[var(--text-dim)]">Owned</span>
+                    ) : item.owned && clanId ? (
                       <button type="button" disabled={busy !== null} onClick={() => run(item.id, () => clansService.equipLook(clanId, kind, item.id), `${item.name} is now worn`)} className="inline-flex h-8 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-xs hover:border-[var(--line-strong)] disabled:opacity-50">Wear</button>
                     ) : (
-                      <button type="button" disabled={busy !== null || short} onClick={() => run(item.id, async () => { await clansService.buyLook(clanId, item.id); await clansService.equipLook(clanId, kind, item.id) }, `${item.name} is yours and now worn by the clan`)} className="lx-primary-button inline-flex h-8 items-center justify-center gap-1.5 rounded-lg text-xs font-semibold disabled:opacity-50"><Coins className="size-3.5" />{item.price}</button>
+                      <button type="button" disabled={busy !== null || short} onClick={() => run(item.id, async () => { if (wear && clanId) { await clansService.buyLook(clanId, item.id); await clansService.equipLook(clanId, kind, item.id) } else await clansService.buyMyLook(item.id) }, wear ? `${item.name} is yours and now worn by the clan` : `${item.name} is yours. Wear it once you lead a clan`)} className="lx-primary-button inline-flex h-8 items-center justify-center gap-1.5 rounded-lg text-xs font-semibold disabled:opacity-50"><Coins className="size-3.5" />{item.price}</button>
                     )}
                   </li>
                 )
@@ -217,6 +221,5 @@ export function ClanLooksShop({ clanId, tag, balance, onChanged }: { clanId: str
 export function ClanAppearancePanel({ clanId, tag, leader }: { clanId: string; tag: string; leader: boolean }) {
   const { user } = useAuth()
   const { data: wallet, refetch } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
-  if (!leader) return <p className="py-6 text-[13px] text-[var(--text-dim)]">Only the clan leader can buy or wear the clan's appearance.</p>
-  return <ClanLooksShop clanId={clanId} tag={tag} balance={wallet?.balance ?? null} onChanged={() => refetch()} />
+  return <ClanLooksShop clanId={clanId} canWear={leader} tag={tag} balance={wallet?.balance ?? null} onChanged={() => refetch()} />
 }

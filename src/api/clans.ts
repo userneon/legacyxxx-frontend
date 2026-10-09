@@ -68,6 +68,15 @@ export const clansService = {
     return post<ClanDetail>(`/api/v1/clans/${clanId}/slots`, {}, options)
   },
 
+  /** Any player: the look items and which ones they own (buying needs no clan; wearing needs a clan you lead). */
+  async getMyLooks(options?: CallOptions): Promise<ClanLooks> {
+    return get<ClanLooks>("/api/v1/clan-looks", undefined, options)
+  },
+
+  async buyMyLook(itemId: string, options?: CallOptions): Promise<ClanLooks> {
+    return post<ClanLooks>(`/api/v1/clan-looks/${encodeURIComponent(itemId)}/buy`, {}, options)
+  },
+
   /** Leader only: the clan's look items (owned or not) and what it wears. */
   async getLooks(clanId: string, options?: CallOptions): Promise<ClanLooks> {
     return get<ClanLooks>(`/api/v1/clans/${clanId}/looks`, undefined, options)
