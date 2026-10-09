@@ -577,26 +577,42 @@ function LoadoutCard({ loadout }: { loadout: NonNullable<ProfileOverview["loadou
   )
 }
 
-function ProfileSkeleton() {
+function ProfileSkeleton({ own }: { own: boolean }) {
+  const block = "rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]"
   return (
     <div aria-hidden="true">
+      {/* Your own profile has the tab row on top; it is held in place so nothing moves when the page arrives. */}
+      {own && (
+        <PageBar className="max-md:px-4">
+          <div className="flex h-11 items-center gap-6">
+            {[48, 84, 64].map((width) => <Skeleton key={width} className="h-3 rounded-full bg-[var(--line-soft)]" style={{ width }} />)}
+          </div>
+        </PageBar>
+      )}
       <div className="px-6 pt-6 max-md:px-4 max-md:pt-4">
         <div className="overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-          <div className="flex items-end gap-5 px-5 py-5 max-md:px-4">
-            <Skeleton className="size-[104px] rounded-[26px] border-4 border-[var(--panel)] bg-[var(--line)]" />
+          <div className="flex items-end gap-5 px-5 pb-6 pt-7 max-md:px-4">
+            <Skeleton className="size-[104px] shrink-0 rounded-[26px] bg-[var(--line)]" />
             <div className="flex flex-1 flex-col gap-2.5 pb-2">
-              <Skeleton className="h-6 w-56 rounded-full bg-[var(--line-strong)]" />
-              <Skeleton className="h-3 w-80 rounded-full bg-[var(--line-soft)]" />
+              <Skeleton className="h-6 w-56 max-w-full rounded-full bg-[var(--line-strong)]" />
+              <Skeleton className="h-3 w-80 max-w-full rounded-full bg-[var(--line-soft)]" />
             </div>
           </div>
         </div>
       </div>
-      <div className="flex flex-col gap-4 px-6 pb-8 pt-4">
-        <div className="grid gap-4 md:grid-cols-[1.3fr_1fr]">
-          <Skeleton className="h-[108px] rounded-xl bg-[var(--glass-fill)]" />
-          <Skeleton className="h-[108px] rounded-xl bg-[var(--glass-fill)]" />
+      <div className="flex flex-col gap-4 px-6 pb-8 pt-4 max-md:px-4">
+        <div className="grid gap-4 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+          <Skeleton className={cn("h-[132px]", block)} />
+          <Skeleton className={cn("h-[132px]", block)} />
         </div>
-        <Skeleton className="h-20 rounded-xl bg-[var(--glass-fill)]" />
+        <Skeleton className={cn("h-[84px]", block)} />
+        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <Skeleton className={cn("h-[360px]", block)} />
+          <div className="flex min-w-0 flex-col gap-4">
+            <Skeleton className={cn("h-[140px]", block)} />
+            <Skeleton className={cn("h-[180px]", block)} />
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -643,7 +659,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
         </p>
       )
     }
-    return <ProfileSkeleton />
+    return <ProfileSkeleton own={identity === "me" || Boolean(me && (identity === me.id || identity === me.steamId))} />
   }
 
   const hidden = new Set(data.hidden)
