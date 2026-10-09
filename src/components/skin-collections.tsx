@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { useApiQuery } from "@/hooks/use-api-query"
+import { TeamIcon } from "@/components/team-icon"
 import { rarityStyles } from "@/lib/cs2-rarity"
 import { cn } from "@/lib/utils"
 
@@ -29,7 +30,6 @@ function loadFailure(error: ApiError) {
 }
 
 const SLOT_LABEL: Record<string, string> = { weapon: "Weapon", knife: "Knife", glove: "Gloves", agent: "Agent", music_kit: "Music kit", pin: "Pin" }
-const SCOPE_LABEL: Record<string, string> = { t: "T", ct: "CT" }
 
 function wearLabel(wear: number) {
   return wear < 0.07 ? "Factory New" : wear < 0.15 ? "Minimal Wear" : wear < 0.38 ? "Field-Tested" : wear < 0.45 ? "Well-Worn" : "Battle-Scarred"
@@ -56,7 +56,7 @@ function DetailRow({ item }: { item: SkinCollectionDetailItem }) {
       </div>
       <div className="flex shrink-0 flex-col items-end gap-1 text-[11px] text-[var(--text-faint)]">
         <span>{SLOT_LABEL[item.slot] ?? item.slot}</span>
-        {SCOPE_LABEL[item.teamScope] && <span className="rounded-md border border-[var(--line)] px-1.5 py-px font-semibold text-[var(--text-muted)]">{SCOPE_LABEL[item.teamScope]}</span>}
+        {(item.teamScope === "t" || item.teamScope === "ct") && <span className="rounded-md border border-[var(--line)] px-1.5 py-0.5"><TeamIcon side={item.teamScope} className="size-4" /></span>}
       </div>
     </li>
   )
@@ -77,7 +77,7 @@ function TeamSections({ items }: { items: SkinCollectionDetailItem[] }) {
     <div className="flex flex-col gap-4">
       {sections.map((section) => (
         <section key={section.scope} aria-label={section.label} className="flex flex-col gap-2">
-          <h3 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{section.label}<span className="font-medium text-[var(--text-faint)]">{section.items.length}</span></h3>
+          <h3 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{section.scope === "all" ? <span className="inline-flex gap-0.5"><TeamIcon side="t" className="size-5" /><TeamIcon side="ct" className="size-5" /></span> : <TeamIcon side={section.scope as "t" | "ct"} className="size-5" />}{section.label}<span className="font-medium text-[var(--text-faint)]">{section.items.length}</span></h3>
           <ul className="flex flex-col gap-2">{section.items.map((item, index) => <DetailRow key={`${item.name}:${item.teamScope}:${index}`} item={item} />)}</ul>
         </section>
       ))}
