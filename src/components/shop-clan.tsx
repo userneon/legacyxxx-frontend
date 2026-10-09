@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom"
-import { Coins, PenLine, Shield, UserPlus, Users } from "lucide-react"
+import { Coins, UserPlus, Users } from "lucide-react"
 import { toast } from "sonner"
 import { useState } from "react"
 
@@ -35,12 +35,11 @@ export function ShopClan({ prices, balance, mine, loading, onChanged }: ShopClan
   const navigate = useNavigate()
   const [busy, setBusy] = useState(false)
 
-  if (loading || !prices) return <div className="grid gap-3 md:grid-cols-3"><Skeleton className="h-40 rounded-xl" /><Skeleton className="h-40 rounded-xl" /><Skeleton className="h-40 rounded-xl" /></div>
+  if (loading || !prices) return <Skeleton className="h-40 max-w-md rounded-xl" />
 
   const membership = mine?.membership ?? null
   const clan = membership?.clan ?? null
   const leader = membership?.role === "leader"
-  const clanPath = clan ? `/clans/${clan.number ?? clan.id}` : "/clans"
   const short = (price: number) => (balance != null && balance < price ? `Need ${(price - balance).toLocaleString()} more coins` : null)
 
   const nextSize = clan ? Math.min(prices.slotCap, clan.maxPlayers + prices.slotStep) : null
@@ -62,37 +61,11 @@ export function ShopClan({ prices, balance, mine, loading, onChanged }: ShopClan
   }
 
   return (
-    <ul className="grid gap-3 md:grid-cols-3" aria-label="Clan services">
-      <Card icon={<Shield className="size-4" />} title="Create a clan" price={prices.create}>
-        <p className={note}>Start your own clan with a name, a tag and a picture. You choose who can join.</p>
-        {clan ? (
-          <button type="button" onClick={() => navigate(clanPath)} className={secondary}>You are in {clan.name}</button>
-        ) : (
-          <>
-            {short(prices.create) && <p className="text-xs text-[var(--text-dim)]">{short(prices.create)}</p>}
-            <button type="button" disabled={balance != null && balance < prices.create} onClick={() => navigate("/clans?create=1")} className={action}>Create a clan</button>
-          </>
-        )}
-      </Card>
-
-      <Card icon={<PenLine className="size-4" />} title="Change name or tag" price={prices.rename}>
-        <p className={note}>The leader can give the clan a new name or tag. It can change once a week.</p>
-        {!clan ? (
-          <p className="text-xs text-[var(--text-dim)]">Join or create a clan first.</p>
-        ) : !leader ? (
-          <p className="text-xs text-[var(--text-dim)]">Only the leader can do this.</p>
-        ) : (
-          <>
-            {short(prices.rename) && <p className="text-xs text-[var(--text-dim)]">{short(prices.rename)}</p>}
-            <button type="button" onClick={() => navigate(clanPath)} className={secondary}>Open clan settings</button>
-          </>
-        )}
-      </Card>
-
+    <ul className="grid max-w-md gap-3" aria-label="Clan services">
       <Card icon={<UserPlus className="size-4" />} title={`+${prices.slotStep} member places`} price={prices.slots}>
         <p className={note}>Make room for more players. Buy it again whenever the clan is full, up to {prices.slotCap} players.</p>
         {!clan ? (
-          <p className="text-xs text-[var(--text-dim)]">Join or create a clan first.</p>
+          <button type="button" onClick={() => navigate("/clans")} className={secondary}>Find or create a clan in Clans</button>
         ) : (
           <>
             <p className="inline-flex items-center gap-1.5 text-xs text-[var(--text-2)]"><Users className="size-3.5" />{clan.currentPlayers} of {clan.maxPlayers} places used{!atCap && nextSize ? ` · next ${nextSize}` : ""}</p>
