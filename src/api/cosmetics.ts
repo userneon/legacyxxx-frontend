@@ -17,6 +17,11 @@ export interface FrameItem {
   glow?: string
   /** The finished effect (chrome, gold, neon, flame ...) the website draws for this item. */
   fx?: string
+  /** 1 common, 2 rare, 3 epic, 4 legendary (the ones that are earned). Absent from an older API. */
+  rarity?: number
+  featured?: boolean
+  /** How many players own it; null for free items. */
+  owners?: number | null
 }
 
 export type CosmeticKind = "frame" | "name_color" | "name_glow"
@@ -30,6 +35,8 @@ export interface NameStyle {
 }
 
 export interface Cosmetics {
+  /** How many players there are (for "owned by" shares). */
+  players?: number | null
   equippedFrame: string | null
   equippedNameColor?: string | null
   equippedNameGlow?: string | null

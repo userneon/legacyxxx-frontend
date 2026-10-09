@@ -69,3 +69,35 @@ export function nameProps(look: NameLook | null | undefined, base = ""): { class
     style: { ...(color && !colorFx ? { color } : {}), ...(glow ? ({ "--name-glow": glow } as React.CSSProperties) : {}) },
   }
 }
+
+/** The main colour of each frame's art, used for the soft light behind it in the Shop. */
+const ACCENTS: Record<string, string> = {
+  "starlight-corners": "#e5e7eb", // palette-exempt: the frame's own light
+  "torn-tape": "#d4d4d4", // palette-exempt: the frame's own light
+  "red-circuit": "#ef4444", // palette-exempt: the frame's own light
+  "shattered-crystal": "#cbd5e1", // palette-exempt: the frame's own light
+  "charcoal-ring": "#a3a3a3", // palette-exempt: the frame's own light
+  "barbed-wire": "#a3a3a3", // palette-exempt: the frame's own light
+  "silent-waves": "#a3a3a3", // palette-exempt: the frame's own light
+  "neon-violet": "#a855f7", // palette-exempt: the frame's own light
+  "graffiti": "#e5e5e5", // palette-exempt: the frame's own light
+  "liquid-metal": "#cbd5e1", // palette-exempt: the frame's own light
+  "chain-and-tag": "#a3a3a3", // palette-exempt: the frame's own light
+  "sakura-blossom": "#f9a8d4", // palette-exempt: the frame's own light
+  "blue-lightning": "#38bdf8", // palette-exempt: the frame's own light
+  "crimson-lightning": "#ef4444", // palette-exempt: the frame's own light
+  "toxic-lightning": "#84cc16", // palette-exempt: the frame's own light
+  "prism-glass": "#67e8f9", // palette-exempt: the frame's own light
+  "blood-vine": "#dc2626", // palette-exempt: the frame's own light
+  "film-and-butterflies": "#d4d4d4", // palette-exempt: the frame's own light
+  "planet-orbit": "#a855f7", // palette-exempt: the frame's own light
+  "ice-crystals": "#38bdf8", // palette-exempt: the frame's own light
+  "golden-moon": "#f5c542", // palette-exempt: the frame's own light
+  "angel-wings": "#e5e7eb", // palette-exempt: the frame's own light
+  "eclipse-clouds": "#9ca3af", // palette-exempt: the frame's own light
+  "glitch": "#22d3ee", // palette-exempt: the frame's own light
+}
+
+export function frameAccent(id: string): string {
+  return ACCENTS[id] ?? "#d4d4d4" // palette-exempt: neutral light
+}

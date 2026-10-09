@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { Bell, Check, CircleCheck, Frame, Link2, Lock, RotateCcw, MonitorSmartphone, type LucideIcon } from "lucide-react"
 import { toast } from "sonner"
 
@@ -236,7 +237,7 @@ function Notifications() {
   )
 }
 
-type FrameFilter = "all" | "mine" | "shop" | "earned"
+type FrameFilter = "all" | "mine" | "earned"
 
 const KINDS: Array<{ value: CosmeticKind; label: string; noun: string }> = [
   { value: "frame", label: "Frames", noun: "frame" },
@@ -250,7 +251,8 @@ function Appearance() {
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const [busy, setBusy] = useState(false)
   const [kind, setKind] = useState<CosmeticKind>("frame")
-  const [filter, setFilter] = useState<FrameFilter>("all")
+  const [filter, setFilter] = useState<FrameFilter>("mine")
+  const navigate = useNavigate()
   const [picked, setPicked] = useState<Partial<Record<CosmeticKind, string>>>({})
   const saved = useSavedFlash()
 
@@ -260,7 +262,7 @@ function Appearance() {
   const frames = lists[kind]
   const selectedId = picked[kind] ?? worn[kind] ?? frames[0]?.id ?? null
   const selected = frames.find((item) => item.id === selectedId) ?? null
-  const shown = frames.filter((item) => filter === "all" || (filter === "mine" ? item.owned : filter === "shop" ? item.unlock === "coin" : item.unlock === "achievement"))
+  const shown = frames.filter((item) => filter === "all" || (filter === "mine" ? item.owned : item.unlock === "achievement"))
   const balance = wallet?.balance ?? null
 
   // The preview shows what you would look like: the item you are looking at, plus whatever you already wear of the other kinds.
@@ -283,12 +285,6 @@ function Appearance() {
     }
   }
   const wear = (item: string | null) => run(() => cosmeticsService.equip(kind, item), "Could not change it")
-  const buy = (item: FrameItem) => run(async () => {
-    await cosmeticsService.buy(item.id)
-    window.dispatchEvent(new Event("legacyx:wallet-changed"))
-    await cosmeticsService.equip(kind, item.id)
-    toast.success(`${item.name} is yours and now worn`)
-  }, "Could not buy it")
 
   const button = "inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] px-3.5 text-[13px] font-semibold transition-colors disabled:cursor-default disabled:opacity-60"
   const secondary = cn(button, "text-[var(--text-2)] hover:border-[var(--line-strong)] hover:bg-[var(--raised)]")
@@ -296,18 +292,14 @@ function Appearance() {
   const action = (item: FrameItem) => {
     if (worn[kind] === item.id) return <button type="button" disabled={busy} onClick={() => void wear(null)} className={secondary}>Take off</button>
     if (item.owned) return <button type="button" disabled={busy} onClick={() => void wear(item.id)} className={primary}>Wear</button>
-    if (item.unlock === "coin") {
-      const short = balance !== null && balance < item.price
-      return <button type="button" disabled={busy || short} onClick={() => void buy(item)} className={primary}>Buy for {item.price.toLocaleString()} coins</button>
-    }
+    if (item.unlock === "coin") return <button type="button" onClick={() => navigate(`/shop?item=${encodeURIComponent(item.id)}`)} className={primary}>Get it in the Shop</button>
     return <button type="button" disabled className={secondary}>Locked</button>
   }
   const note = (item: FrameItem) => {
     if (worn[kind] === item.id) return `You are wearing this ${noun}.`
     if (item.owned) return item.unlock === "free" ? "Free for everyone." : `You own this ${noun}.`
     if (item.unlock === "coin") {
-      if (balance !== null && balance < item.price) return `You need ${(item.price - balance).toLocaleString()} more coins.`
-      return "Buying wears it right away."
+      return `${item.price.toLocaleString()} coins in the Shop.`
     }
     return item.requirement || "Earned in game, not for sale."
   }
@@ -346,9 +338,10 @@ function Appearance() {
                 size="sm"
                 value={filter}
                 onChange={setFilter}
-                options={[{ value: "all", label: "All" }, { value: "mine", label: "Mine" }, { value: "shop", label: "Shop" }, { value: "earned", label: "Earned" }]}
+                options={[{ value: "mine", label: "Mine" }, { value: "all", label: "All" }, { value: "earned", label: "Earned" }]}
               />
             </div>
+            <p className="text-xs text-[var(--text-dim)]">You can wear what you own here. <button type="button" onClick={() => navigate("/shop")} className="font-medium text-[var(--text-2)] underline-offset-2 hover:text-[var(--text)] hover:underline">Browse the Shop</button> for more.</p>
             {shown.length === 0 ? (
               <p className="py-6 text-[13px] text-[var(--text-dim)]">{filter === "mine" ? `You do not own a ${noun} yet.` : "Nothing here."}</p>
             ) : (

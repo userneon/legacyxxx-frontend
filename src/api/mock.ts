@@ -15,14 +15,14 @@ const RANKS: [number, string][] = [
 ]
 
 const mockFrameState = { equipped: null as string | null, nameColor: null as string | null, nameGlow: null as string | null, owned: new Set<string>() }
-function mockNameItems(kind: "color" | "glow"): Array<{ id: string; name: string; nameMn: string; unlock: "free" | "coin" | "achievement"; price: number; requirement: string; owned: boolean; color?: string; glow?: string; fx?: string }> {
+function mockNameItems(kind: "color" | "glow"): Array<{ id: string; name: string; nameMn: string; unlock: "free" | "coin" | "achievement"; price: number; requirement: string; owned: boolean; rarity: number; featured: boolean; owners: number | null; color?: string; glow?: string; fx?: string }> {
   // [key, name, unlock, price, requirement, value, effect]
   const rows: Array<[string, string, "free" | "coin" | "achievement", number, string, string, string?]> = kind === "color"
     ? [["silver", "Silver", "free", 0, "", "#cbd5e1"], ["ice", "Ice", "coin", 150, "", "#7dd3fc"], ["mint", "Mint", "coin", 150, "", "#86efac"], ["rose", "Rose", "coin", 150, "", "#fda4af"], ["violet", "Violet", "coin", 200, "", "#c4b5fd"], ["sunset", "Sunset", "coin", 200, "", "#fdba74"], ["gold", "Gold", "coin", 300, "", "#fcd34d"], ["ember", "Ember", "achievement", 0, "Season 1 winner", "#ff6b4a"], // palette-exempt: cosmetic data
        ["chrome", "Chrome", "coin", 400, "", "#cbd5e1", "chrome"], ["goldfoil", "Gold Foil", "coin", 500, "", "#f5c542", "gold"], ["glacier", "Glacier", "coin", 450, "", "#7dd3fc", "ice"], ["sakura", "Sakura", "coin", 400, "", "#ff9cbc", "sakura"], ["emerald", "Emerald", "coin", 400, "", "#34d399", "emerald"], ["aurora", "Aurora", "coin", 450, "", "#22d3ee", "aurora"], ["holo", "Hologram", "coin", 600, "", "#a5f3fc", "holo"], ["inferno", "Inferno", "coin", 500, "", "#ff9100", "fire"], ["void", "Void", "achievement", 0, "Reach the Apex rank", "#a855f7", "void"]] // palette-exempt: cosmetic data
     : [["white", "Soft White", "coin", 250, "", "#ffffff", "neon"], ["ice", "Ice", "coin", 250, "", "#38bdf8", "neon"], ["mint", "Mint", "coin", 250, "", "#4ade80", "neon"], ["crimson", "Crimson", "coin", 300, "", "#f43f5e", "neon"], ["violet", "Violet", "coin", 300, "", "#a78bfa", "neon"], ["gold", "Gold", "coin", 350, "", "#fbbf24", "neon"], ["aurora", "Aurora", "achievement", 0, "Clan tournament winner", "#2dd4bf", "neon"], // palette-exempt: cosmetic data
        ["pulse", "Crimson Pulse", "coin", 400, "", "#f43f5e", "pulse"], ["flame", "Flame", "coin", 450, "", "#fb923c", "flame"], ["electric", "Electric", "coin", 450, "", "#60a5fa", "electric"], ["royal", "Royal Aura", "coin", 500, "", "#fbbf24", "aura"]] // palette-exempt: cosmetic data
-  return rows.map(([key, name, unlock, price, requirement, value, fx]) => ({ id: `${kind}-${key}`, name, nameMn: name, unlock, price, requirement, owned: unlock === "free" || mockFrameState.owned.has(`${kind}-${key}`), ...(kind === "color" ? { color: value } : { glow: value }), ...(fx ? { fx } : {}) })) // palette-exempt: name colours are cosmetic data a player picks
+  return rows.map(([key, name, unlock, price, requirement, value, fx]) => ({ id: `${kind}-${key}`, name, nameMn: name, unlock, price, requirement, owned: unlock === "free" || mockFrameState.owned.has(`${kind}-${key}`), rarity: unlock === "achievement" ? 4 : unlock === "free" || price <= 250 ? 1 : price <= 500 ? 2 : 3, featured: key === "holo" || key === "royal", owners: unlock === "free" ? null : (key.length * 2) % 5, ...(kind === "color" ? { color: value } : { glow: value }), ...(fx ? { fx } : {}) })) // palette-exempt: name colours are cosmetic data a player picks
 }
 function mockNameStyle() {
   const colorItem = mockNameItems("color").find((item) => item.id === mockFrameState.nameColor)
@@ -49,14 +49,15 @@ function mockFrames() {
     ["prism-glass", "Prism Glass", "coin", 400, ""],
     ["blood-vine", "Blood Vine", "coin", 400, ""],
     ["film-and-butterflies", "Film and Butterflies", "coin", 400, ""],
-    ["planet-orbit", "Planet Orbit", "coin", 450, ""],
-    ["ice-crystals", "Ice Crystals", "coin", 450, ""],
+    ["planet-orbit", "Planet Orbit", "coin", 700, ""],
+    ["ice-crystals", "Ice Crystals", "coin", 700, ""],
     ["golden-moon", "Golden Moon", "achievement", 0, "Reach the Legacy rank"],
     ["angel-wings", "Angel Wings", "achievement", 0, "Reach the Apex rank"],
     ["eclipse-clouds", "Eclipse Clouds", "achievement", 0, "Clan tournament winner"],
     ["glitch", "Glitch", "achievement", 0, "Season 1 winner"],
   ]
-  return list.map(([id, name, unlock, price, requirement]) => ({ id, name, nameMn: name, unlock, price, requirement, owned: unlock === "free" || mockFrameState.owned.has(id) }))
+  const featured = new Set(["planet-orbit", "ice-crystals"])
+  return list.map(([id, name, unlock, price, requirement]) => ({ id, name, nameMn: name, unlock, price, requirement, owned: unlock === "free" || mockFrameState.owned.has(id), rarity: unlock === "achievement" ? 4 : unlock === "free" || price <= 250 ? 1 : price <= 500 ? 2 : 3, featured: featured.has(id), owners: unlock === "free" ? null : (id.length * 3) % 7 }))
 }
 function leaderboard(sort: string) {
   const entries = NAMES.map((username, index) => ({
@@ -631,7 +632,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
       mockFrameState.owned.add(decodeURIComponent(path.split("/")[4]))
       return { owned: true }
     }
-    return { equippedFrame: mockFrameState.equipped, equippedNameColor: mockFrameState.nameColor, equippedNameGlow: mockFrameState.nameGlow, frames, nameColors: mockNameItems("color"), nameGlows: mockNameItems("glow") }
+    return { players: 8, equippedFrame: mockFrameState.equipped, equippedNameColor: mockFrameState.nameColor, equippedNameGlow: mockFrameState.nameGlow, frames, nameColors: mockNameItems("color"), nameGlows: mockNameItems("glow") }
   }
   if (path === "/api/v1/wallet/me") {
     if (!signedIn()) throw unauthorized()

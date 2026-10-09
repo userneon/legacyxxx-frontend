@@ -24,6 +24,8 @@ export const FEATURES = {
   skinCollections: true,
   /** Two players side by side. */
   compare: true,
+  /** The Shop: frames, name colours and glows bought with coins. The server needs the cosmetics migrations. */
+  shop: true,
 } as const
 
 export type FeatureName = keyof typeof FEATURES
@@ -37,6 +39,7 @@ const PAGE_FEATURES: Partial<Record<PageId, FeatureName>> = {
   clan: "clan",
   skinchanger: "skinchanger",
   compare: "compare",
+  shop: "shop",
   penalties: "penalties",
   leaders: "leaders",
   explore: "explore",
