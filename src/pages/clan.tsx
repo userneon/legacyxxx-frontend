@@ -1,7 +1,7 @@
 import { createPortal } from "react-dom"
 import { useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useUrlTab } from "@/hooks/use-url-tab"
+import { usePathTab } from "@/hooks/use-url-tab"
 import { useNavigate, useParams } from "react-router-dom"
 import { ArrowLeft, Check, Coins, Globe, Lock, Pencil, Plus, Search, Upload, UserPlus, Users, X } from "lucide-react"
 import { toast } from "sonner"
@@ -144,7 +144,7 @@ let lastMine: MyClanState | null = null
 function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void }) {
   const { isAuthenticated, loginWithSteam } = useAuth()
   const [creating, setCreating] = useState(() => new URLSearchParams(window.location.search).get("create") === "1")
-  const [tab, setTab] = useUrlTab(["all", "appearance"] as const, "all")
+  const [tab, setTab] = usePathTab<"all" | "appearance">("/clans", { all: "", appearance: "appearance" }, "all")
   const [search, setSearch] = useState("")
   const [sort, setSort] = useState<"new" | "name">("new")
   const [limit, setLimit] = useState(PAGE_SIZE)
@@ -410,7 +410,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
           <PageTabs<"all" | "appearance" | "mine">
             ariaLabel="Clans"
             value="mine"
-            onChange={(next) => { if (next === "all") navigate("/clans"); else if (next === "appearance") navigate("/clans?tab=appearance") }}
+            onChange={(next) => { if (next === "all") navigate("/clans"); else if (next === "appearance") navigate("/clans/appearance") }}
             options={[{ value: "all", label: "Clans" }, { value: "mine", label: "My clan" }, { value: "appearance", label: "Appearance" }]}
           />
         ) : (

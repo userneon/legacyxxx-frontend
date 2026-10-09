@@ -92,7 +92,7 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
               <User className="size-4" />
               Profile
             </button>
-            <button type="button" role="menuitem" className={cn(menuItemClass, "text-[var(--text)]")} onClick={() => { setOpen(false); navigate("/profile?tab=settings") }}>
+            <button type="button" role="menuitem" className={cn(menuItemClass, "text-[var(--text)]")} onClick={() => { setOpen(false); navigate("/profile/settings") }}>
               <Settings className="size-4" />
               Settings
             </button>

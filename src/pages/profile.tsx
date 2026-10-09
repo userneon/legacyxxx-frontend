@@ -1,7 +1,8 @@
 import { DiscordIcon } from "@/components/discord-strip"
 import { DiscordLinkedMark } from "@/components/discord-linked-mark"
 import { useEffect, useRef, useState } from "react"
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
+import { Link, useNavigate, useParams } from "react-router-dom"
+import { usePathTab } from "@/hooks/use-url-tab"
 import { ArrowLeftRight, ChevronRight, Copy, Crown, ExternalLink, Eye, EyeOff, Info, MessageCircle, MoreHorizontal, Play, RotateCcw, ShieldAlert, ShieldCheck, Shield } from "lucide-react"
 import { toast } from "sonner"
 
@@ -662,7 +663,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
   const navigate = useNavigate()
   const { user: me } = useAuth()
   const identity = userId ?? params.steamId ?? "me"
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [pathTab, setPathTab] = usePathTab<ProfileTab>("/profile", { profile: "", appearance: "appearance", settings: "settings" }, "profile")
   const { data, loading, error, refetch } = useApiQuery<ProfileOverview>((signal) => profileOverviewService.get(identity, { signal }), { queryKey: `profile:${identity}`, keepPreviousData: true })
   const faceitHidden = data?.hidden.includes("faceit") ?? true
   const { data: faceit } = useApiQuery<FaceitProfileData>((signal) => profileService.getFaceitProfile(data!.user.id, { signal }), { enabled: Boolean(data) && !faceitHidden, queryKey: `profile-faceit:${data?.user.id ?? ""}` })
@@ -704,9 +705,8 @@ export function ProfilePage({ userId }: { userId?: string }) {
 
   // Your own profile has three tabs; everyone else's is just the profile.
   const own = data.viewer.isOwner
-  const requested = searchParams.get("tab")
-  const tab: ProfileTab = own && (requested === "appearance" || requested === "settings") ? requested : "profile"
-  const setTab = (next: ProfileTab) => setSearchParams(next === "profile" ? {} : { tab: next }, { replace: true })
+  const tab: ProfileTab = own ? pathTab : "profile"
+  const setTab = setPathTab
 
   return (
     <div ref={topRef}>

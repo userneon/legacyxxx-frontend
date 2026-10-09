@@ -133,6 +133,7 @@ export function App() {
               <Route path="/leaders" element={<LeadersPage onProfileNavigate={handleProfileNavigate} />} />
               {/* The address is /clans (and /clans/1); the older /clan keeps working and moves there, with its ?tab= kept. */}
               {isFeatureEnabled("clan") && <Route path="/clan" element={<Navigate to={{ pathname: "/clans", search: location.search }} replace />} />}
+              {isFeatureEnabled("clan") && <Route path="/clans/appearance" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
               {isFeatureEnabled("clan") && <Route path="/clans" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
               {isFeatureEnabled("clan") && <Route path="/clan/:clanId" element={<Navigate to={{ pathname: location.pathname.replace(/^\/clan\//, "/clans/"), search: location.search }} replace />} />}
               {isFeatureEnabled("clan") && <Route path="/clans/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
@@ -140,10 +141,12 @@ export function App() {
               {isFeatureEnabled("compare") && <Route path="/compare" element={<ComparePage />} />}
               <Route path="/checks" element={<ProtectedPage pageName="Checks"><ChecksPage /></ProtectedPage>} />
               <Route path="/wallet" element={<ProtectedPage pageName="Wallet"><WalletPage /></ProtectedPage>} />
+              <Route path="/wallet/:tab" element={<ProtectedPage pageName="Wallet"><WalletPage /></ProtectedPage>} />
               {isFeatureEnabled("shop") && <Route path="/shop" element={<ProtectedPage pageName="Shop"><ShopPage /></ProtectedPage>} />}
+              {isFeatureEnabled("shop") && <Route path="/shop/:tab" element={<ProtectedPage pageName="Shop"><ShopPage /></ProtectedPage>} />}
               <Route path="/penalties" element={<PenaltiesPage onProfileNavigate={handleProfileNavigate} />} />
               {/* Settings now live in Profile. */}
-              <Route path="/settings" element={<Navigate to="/profile?tab=settings" replace />} />
+              <Route path="/settings" element={<Navigate to="/profile/settings" replace />} />
               <Route path="/explore" element={<ExplorePage onProfileNavigate={handleProfileNavigate} />} />
               <Route path="/search" element={<ExplorePage onProfileNavigate={handleProfileNavigate} />} />
               <Route path="/reviews" element={<FeedbackPage onProfileNavigate={handleProfileNavigate} />} />
@@ -153,6 +156,8 @@ export function App() {
                   <ProfilePage />
                 </ProtectedPage>
               } />
+              <Route path="/profile/appearance" element={<ProtectedPage pageName="Profile"><ProfilePage /></ProtectedPage>} />
+              <Route path="/profile/settings" element={<ProtectedPage pageName="Profile"><ProfilePage /></ProtectedPage>} />
               <Route path="/profile/:steamId" element={
                 <ProtectedPage pageName="Profile">
                   <ProfilePage />

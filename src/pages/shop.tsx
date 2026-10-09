@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { useUrlTab } from "@/hooks/use-url-tab"
+import { usePathTab } from "@/hooks/use-url-tab"
 import { Check, Coins, Lock, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
 
@@ -74,7 +74,7 @@ export function ShopPage() {
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
-  const [tab, setTab] = useUrlTab(["featured", "frame", "name_color", "name_glow", "clan"] as const, "featured")
+  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name_color: "name-colors", name_glow: "name-glows", clan: "clan" }, "featured")
   const [rarity, setRarity] = useState<Rarity>(0)
   const [hideOwned, setHideOwned] = useState(false)
   const [sort, setSort] = useState<"price-up" | "price-down" | "rarity">("price-up")
@@ -177,7 +177,7 @@ export function ShopPage() {
         {item.owned ? (
           <>
             <p className="text-xs text-[var(--text-dim)]">{isWorn ? "You are wearing this." : "You own this. Wear it in Profile → Appearance."}</p>
-            <button type="button" onClick={() => navigate("/profile?tab=appearance")} className="inline-flex h-10 w-full items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-semibold text-[var(--text-2)] hover:border-[var(--line-strong)]">Open Appearance</button>
+            <button type="button" onClick={() => navigate("/profile/appearance")} className="inline-flex h-10 w-full items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-semibold text-[var(--text-2)] hover:border-[var(--line-strong)]">Open Appearance</button>
           </>
         ) : item.unlock === "coin" ? (
           <>

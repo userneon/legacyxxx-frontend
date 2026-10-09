@@ -55,7 +55,8 @@ function matchPage(pathname: string): PageId {
   if (pathname === "/play/5vs5") return "play-5vs5"
   if (pathname === "/play/proleague") return "play-proleague"
   if (pathname.startsWith("/servers/")) return "play-5vs5"
-  return ROUTE_PAGES[pathname] ?? "home"
+  // /wallet/history, /shop/frames: a page's own tabs.
+  return ROUTE_PAGES[pathname] ?? ROUTE_PAGES[`/${pathname.split("/")[1]}`] ?? "home"
 }
 
 export function routeToPage(pathname: string): PageId {
