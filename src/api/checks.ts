@@ -82,6 +82,9 @@ export interface NewCheck {
   code: string
   expiresAt: string
   steamId: string
+  /** The server can make a personal download of the checker for this check (the code is inside it). */
+  downloadAvailable?: boolean
+  downloadPath?: string | null
 }
 
 export const checksService = {
