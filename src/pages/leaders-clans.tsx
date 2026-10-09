@@ -79,6 +79,7 @@ function ClanRow({ clan, onOpen, you, index = 0 }: { clan: ClanRankEntry; onOpen
           : "lx-row-in h-14 border-b border-[var(--raised)] hover:bg-[var(--raised)]",
       )}
     >
+      {!you && backdropStyle(clan.look?.backdrop) && <span aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-45" style={{ backgroundImage: backdropStyle(clan.look?.backdrop), maskImage: "linear-gradient(90deg, #000, transparent 70%)", WebkitMaskImage: "linear-gradient(90deg, #000, transparent 70%)" }} />}
       <span aria-hidden="true" className={cn("absolute bottom-2 left-0 top-2 w-[3px] origin-center rounded-r-full bg-[var(--brand-bright)] transition-[scale,opacity] duration-500", you ? "opacity-100" : "scale-y-0 opacity-0 group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300")} />
       <span className={cn("text-sm font-semibold", you ? "text-[var(--brand-bright)]" : "text-[var(--text-muted)] transition-colors duration-300 group-hover:text-[var(--text)]")}>{clan.rank}</span>
       <span className="flex min-w-0 items-center gap-3 transition-[translate] duration-500 group-hover:translate-x-1 group-hover:duration-300">
