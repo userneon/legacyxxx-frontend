@@ -43,14 +43,15 @@ function PageWash({ page }: { page: ClanLook["page"] | undefined }) {
   return createPortal(<div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-[1]"><ClanBackground page={page} calm={calm} /></div>, document.body)
 }
 
-/** The banner a clan uploaded, under a solid fade so text stays readable; plain when it has none. */
+/** The banner a clan uploaded, shown whole inside its box (never cropped or faded); a plain strip when it has none. */
 function ClanBanner({ banner, className }: { banner?: string | null; className?: string }) {
   const src = clanArtSrc(banner)
-  return (
-    <div className={cn("relative overflow-hidden bg-[var(--raised)]", className)}>
-      {src && <img src={src} alt="" loading="lazy" className="size-full object-cover" />}
-      <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[var(--card-surface)] to-transparent" />
+  return src ? (
+    <div className="overflow-hidden bg-[var(--raised)]">
+      <img src={src} alt="" loading="lazy" className="mx-auto block max-h-[340px] w-full object-contain" />
     </div>
+  ) : (
+    <div className={cn("bg-[var(--raised)]", className)} />
   )
 }
 
