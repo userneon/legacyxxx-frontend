@@ -226,8 +226,9 @@ export function RenameForm({ clan, onChanged }: { clan: ClanDetail; onChanged: (
  * Staff only: a "Moderate" button in the clan's top bar. It opens the same kind of box as penalties do: take a picture
  * down, clear a description, fix a name, or delete a clan that breaks the rules. Everything is written to the clan's log.
  */
-export function ModerateClan({ clan, onChanged, onDeleted }: { clan: ClanDetail; onChanged: () => void; onDeleted: () => void }) {
-  const [open, setOpen] = useState(false)
+export function ModerateClan({ clan, onChanged, onDeleted, defaultOpen = false, hideTrigger = false, onClose }: { clan: ClanDetail; onChanged: () => void; onDeleted: () => void; defaultOpen?: boolean; hideTrigger?: boolean; onClose?: () => void }) {
+  const [open, setOpenState] = useState(defaultOpen)
+  const setOpen = (next: boolean) => { setOpenState(next); if (!next) onClose?.() }
   const [busy, setBusy] = useState(false)
   const [name, setName] = useState(clan.name)
   const [tag, setTag] = useState(clan.tag)
@@ -246,9 +247,11 @@ export function ModerateClan({ clan, onChanged, onDeleted }: { clan: ClanDetail;
   const renameOk = name.trim().length >= 3 && /^[A-Za-z0-9]{2,5}$/.test(tag) && (name.trim() !== clan.name || tag !== clan.tag)
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] hover:border-[var(--line-strong)]">
-        <ShieldAlert className="size-4" aria-hidden="true" /> Moderate
-      </button>
+      {!hideTrigger && (
+        <button type="button" onClick={() => setOpen(true)} className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] hover:border-[var(--line-strong)]">
+          <ShieldAlert className="size-4" aria-hidden="true" /> Moderate
+        </button>
+      )}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="rounded-2xl">
           <DialogHeader>
