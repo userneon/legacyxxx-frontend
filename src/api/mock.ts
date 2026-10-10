@@ -654,6 +654,9 @@ export async function mockResponse(method: string, path: string, query: Query, b
     return { ...clan, description: "Ranked five-stack. Evenings, Ulaanbaatar time.", members: Array.from({ length: clan.currentPlayers }, (_, index) => ({ id: `m${index}`, name: index === 0 ? "Leader" : `Member ${index}`, role: index === 0 ? "leader" : index === 1 ? "co-leader" : "member", avatar: "", description: "", ...mockLook(index) })), viewer: { role: "leader", canModerate: true } }
   }
   if (path === "/api/v1/moderation/access") return { canManage: true, role: "OWNER", canApprove: true, requestedPenaltyIds: [], can: { ban: true, unban: true, edit: true } }
+  if (path === "/api/v1/staffpanel/access") return { role: "OWNER", username: "LegacyTester", capabilities: [] }
+  if (path === "/api/v1/staffpanel/overview") return { role: "OWNER", servers: [{ server_id: "s1", name: "5x5 #1", map_name: "de_mirage", mode: "5vs5", player_count: 7, last_heartbeat_at: new Date().toISOString() }, { server_id: "s2", name: "Fun #1", map_name: "de_dust2", mode: "fun", player_count: 0, last_heartbeat_at: null }], pendingActions: [{ id: "a1", status: "pending", action_type: "ban", server_id: "s1", created_at: new Date().toISOString() }] }
+  if (path === "/api/v1/staffpanel/database") return { tables: [{ name: "users", count: 8 }, { name: "penalties", count: 3 }, { name: "clans", count: 3 }, { name: "player_checks", count: 4 }] }
   if (path === "/api/v1/moderation/lift-requests") return [{ id: "r1", penaltyId: "p1", type: "ban", player: "Enkh.", avatar: "", penaltyReason: "Aimbot", reason: null, requestedBy: "Admin", at: new Date(Date.now() - 2 * HOUR).toISOString() }]
   if (path.startsWith("/api/v1/feedback/") && path.endsWith("/reaction")) return { reactions: { like: 3, love: 1, funny: 0 }, myReaction: (body as { reaction: string | null } | undefined)?.reaction ?? null }
   if (path === "/api/v1/discord/link/start") return { url: "https://discord.com/oauth2/authorize" }

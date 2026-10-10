@@ -1,11 +1,12 @@
 import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { Gavel, RotateCcw, ScanSearch, Scale, Search, Server, UserSearch, Users } from "lucide-react"
 
 import { checksService } from "@/api/checks"
 import { clansService } from "@/api/clans"
 import type { ClanCard, ClanDetail } from "@/api/types"
 import { ModerateClan } from "@/components/clan-manage"
+import { ServersPanel } from "@/components/staff-servers"
 import { penaltyAdminService, type LiftRequest, type ModerationAccess } from "@/api/moderation-access"
 import type { PlayerCheck } from "@/api/checks"
 import { ChecksPage } from "@/pages/checks"
@@ -34,8 +35,11 @@ const STEAM_ID = /^\d{17}$/
 /** Everything staff do on the site in one place: what is waiting, checks, penalties, a player by Steam ID, and the server console. */
 export function StaffPage({ initialTab = "overview" }: { initialTab?: StaffTab } = {}) {
   const { isAuthenticated } = useAuth()
+  // Coming back from the Steam staff sign-in (or a failed one) lands on the Servers tab.
+  const [query] = useSearchParams()
+  const startTab: StaffTab = query.has("reauth") || query.has("staff_error") ? "servers" : initialTab
   const { data: access, loading } = useApiQuery<ModerationAccess>((signal) => penaltyAdminService.getAccess({ signal }), { enabled: isAuthenticated, queryKey: `staff-access:${isAuthenticated}` })
-  const [tab, setTab] = usePathTab<StaffTab>("/staff", { overview: "", checks: "checks", penalties: "penalties", players: "players", clans: "clans", servers: "servers" }, initialTab)
+  const [tab, setTab] = usePathTab<StaffTab>("/staff", { overview: "", checks: "checks", penalties: "penalties", players: "players", clans: "clans", servers: "servers" }, startTab)
 
   if (loading || !access) {
     return <p className="px-6 py-10 text-[13px] text-[var(--text-dim)]">{loading ? "Loading…" : "This page is for staff."}</p>
@@ -53,7 +57,7 @@ export function StaffPage({ initialTab = "overview" }: { initialTab?: StaffTab }
         {tab === "penalties" && <PenaltiesTab access={access} />}
         {tab === "players" && <PlayersTab access={access} />}
         {tab === "clans" && <ClansTab />}
-        {tab === "servers" && <ServersTab />}
+        {tab === "servers" && <ServersPanel />}
       </div>
     </div>
   )
@@ -89,7 +93,7 @@ function Overview({ access, onGo }: { access: ModerationAccess; onGo: (tab: Staf
           { tab: "penalties", icon: Scale, title: "Penalties", text: "Issue a ban, mute or gag, and decide on unban requests." },
           { tab: "players", icon: UserSearch, title: "Find a player", text: "Open a player by Steam ID, or penalise them." },
           { tab: "clans", icon: Users, title: "Clans", text: "Remove a logo or banner, rename a clan or delete it." },
-          { tab: "servers", icon: Server, title: "Servers", text: "The console for the game servers." },
+          { tab: "servers", icon: Server, title: "Servers", text: "Ban, kick, change the map, announce, restart." },
         ] as const).map((card) => (
           <button key={card.tab} type="button" onClick={() => onGo(card.tab)} className="flex flex-col gap-2 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4 text-left transition-colors hover:border-[var(--line-strong)]">
             <card.icon className="size-[18px] text-[var(--text-2)]" aria-hidden="true" />
@@ -181,15 +185,6 @@ function ClansTab() {
       {picked && detail && (
         <ModerateClan key={detail.id} clan={detail} defaultOpen hideTrigger onClose={() => setPicked(null)} onChanged={() => { void refetchDetail(); void refetch() }} onDeleted={() => { setPicked(null); void refetch() }} />
       )}
-    </div>
-  )
-}
-
-function ServersTab() {
-  return (
-    <div className="flex max-w-xl flex-col gap-3 px-6 pb-8 pt-4">
-      <p className="text-[13px] text-[var(--text-2)]">The server console restarts servers, changes maps, sends announcements and bans from the game. It opens in its own session and asks you to sign in with Steam again.</p>
-      <div><Button asChild><Link to="/staffpanel"><Server className="size-4" aria-hidden="true" /> Open the server console</Link></Button></div>
     </div>
   )
 }
