@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Link, useNavigate, useSearchParams } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { Gavel, RotateCcw, ScanSearch, Scale, Search, Server, UserSearch, Users } from "lucide-react"
 
 import { checksService } from "@/api/checks"
@@ -35,11 +35,8 @@ const STEAM_ID = /^\d{17}$/
 /** Everything staff do on the site in one place: what is waiting, checks, penalties, a player by Steam ID, and the server console. */
 export function StaffPage({ initialTab = "overview" }: { initialTab?: StaffTab } = {}) {
   const { isAuthenticated } = useAuth()
-  // Coming back from the Steam staff sign-in (or a failed one) lands on the Servers tab.
-  const [query] = useSearchParams()
-  const startTab: StaffTab = query.has("reauth") || query.has("staff_error") ? "servers" : initialTab
   const { data: access, loading } = useApiQuery<ModerationAccess>((signal) => penaltyAdminService.getAccess({ signal }), { enabled: isAuthenticated, queryKey: `staff-access:${isAuthenticated}` })
-  const [tab, setTab] = usePathTab<StaffTab>("/staff", { overview: "", checks: "checks", penalties: "penalties", players: "players", clans: "clans", servers: "servers" }, startTab)
+  const [tab, setTab] = usePathTab<StaffTab>("/staff", { overview: "", checks: "checks", penalties: "penalties", players: "players", clans: "clans", servers: "servers" }, initialTab)
 
   if (loading || !access) {
     return <p className="px-6 py-10 text-[13px] text-[var(--text-dim)]">{loading ? "Loading…" : "This page is for staff."}</p>

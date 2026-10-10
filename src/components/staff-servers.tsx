@@ -1,11 +1,8 @@
 import { useEffect, useMemo, useState } from "react"
-import { useSearchParams } from "react-router-dom"
 import { Database, Loader2, LockKeyhole, Map, Megaphone, MonitorUp, Power, RotateCcw, ServerCog, ShieldAlert, UserRoundCog, UsersRound } from "lucide-react"
 
-import { steamLoginUrl } from "@/api/auth"
 import { staffPanelService } from "@/api/staffpanel"
 import type { ApiError, StaffPanelAccess, StaffPanelActionRequest, StaffPanelDatabaseOverview, StaffPanelOverview } from "@/api/types"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 
@@ -32,11 +29,6 @@ const OWNER_ACTIONS: ActionDef[] = [
   { type: "player_ip_lookup", label: "Player IP lookup", icon: Database, needsPlayer: true },
 ]
 
-const STAFF_ERRORS: Record<string, string> = {
-  staff_setup_required: "The staff session is not set up on the server yet. Tell the Owner.",
-  staff_auth_failed: "That Steam account is not allowed to open the server console.",
-}
-
 function messageOf(error: unknown) {
   return (error as ApiError | null)?.message || "Could not complete that."
 }
@@ -47,19 +39,17 @@ function isOnline(lastHeartbeat: string | null) {
 
 /**
  * The game servers: pick one, queue an action (ban, kick, map, announcements, restarts for the Owner). Nothing runs from the browser: every action is queued, audited
- * and carried out only when a game server plugin claims it. This part opens in its own short Steam staff session, so it asks to sign in again when there is none.
+ * and carried out only when a game server plugin claims it. Only an active Owner or Manager may use it.
  */
 export function ServersPanel() {
-  const [params] = useSearchParams()
   const [access, setAccess] = useState<StaffPanelAccess | null>(null)
-  const [signedOut, setSignedOut] = useState(false)
   const [overview, setOverview] = useState<StaffPanelOverview | null>(null)
   const [database, setDatabase] = useState<StaffPanelDatabaseOverview | null>(null)
   const [server, setServer] = useState("")
   const [steamId, setSteamId] = useState("")
   const [message, setMessage] = useState("")
   const [map, setMap] = useState("de_mirage")
-  const [notice, setNotice] = useState(STAFF_ERRORS[params.get("staff_error") ?? ""] ?? "")
+  const [notice, setNotice] = useState("")
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
 
@@ -71,8 +61,7 @@ export function ServersPanel() {
       setServer((current) => current || nextOverview.servers[0]?.server_id || "")
       if (nextAccess.role === "OWNER") setDatabase(await staffPanelService.database())
     } catch (error) {
-      if ((error as ApiError | null)?.status === 401) setSignedOut(true)
-      else {
+      {
         // The server answers 404 for the whole console until STAFF_PANEL_ENABLED=true is set there.
         setNotice((error as ApiError | null)?.status === 404 ? "The server console is switched off on the server. Set STAFF_PANEL_ENABLED=true in the backend settings and restart it." : messageOf(error))
         setFailed(true)
@@ -101,16 +90,6 @@ export function ServersPanel() {
     }
   }
 
-  if (signedOut) {
-    return (
-      <div className="flex max-w-xl flex-col gap-3 px-6 pb-8 pt-4">
-        {notice && <p className="rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 py-2 text-[13px] text-[var(--text-2)]">{notice}</p>}
-        <p className="text-[13px] text-[var(--text-2)]">The server console opens in its own short session. Sign in with Steam to continue; you come back to this page.</p>
-        {params.get("reauth") === "done" && <p className="text-[13px] text-[var(--text-dim)]">The session could not be started. Try again.</p>}
-        <div><Button type="button" onClick={() => window.location.assign(steamLoginUrl("?staffpanel=1"))}>Sign in with Steam</Button></div>
-      </div>
-    )
-  }
   if (!access) {
     return failed ? (
       <p className="flex items-center gap-3 px-6 py-10 text-[13px] text-[var(--text-dim)]">{notice} <button type="button" onClick={() => { setFailed(false); setNotice(""); void load() }} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" aria-hidden="true" />Retry</button></p>
