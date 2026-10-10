@@ -48,6 +48,15 @@ import { isFeatureEnabled } from "@/lib/features"
 import teamTIcon from "@/assets/skinchanger/team-t.webp"
 import teamCtIcon from "@/assets/skinchanger/team-ct.webp"
 
+/** The grey knife pictures (one per knife model, in src/assets/skinchanger/knives), found by the model's weapon class: "Butterfly Knife" -> butterfly.webp. */
+const KNIFE_ICONS = import.meta.glob("/src/assets/skinchanger/knives/*.webp", { eager: true, import: "default" }) as Record<string, string>
+function knifeIcon(weaponClass: string | null | undefined): string | null {
+  if (!weaponClass) return null
+  const key = weaponClass.replace(/\s+Knife$/i, "").trim().toLowerCase().replace(/\s+/g, "-")
+  return KNIFE_ICONS[`/src/assets/skinchanger/knives/${key}.webp`] ?? null
+}
+
+
 /** LEGACY-X neutral visual system: filename-matched collection icons, ordered Skins sub-groups, and lower-left rarity glow. */
 type CollectionId = "skins" | Exclude<SkinchangerCategory, "weapon" | "agent">
 type CollectionMeta = { id: CollectionId; category: SkinchangerCategory; label: string; slot: SkinchangerSlot; firearmGroup?: SkinchangerFirearmGroup }
@@ -1281,6 +1290,8 @@ export function SkinchangerPage() {
                   {modelsForSlot(category).map((model) => {
                     const isActive = activeWeapon?.id === model.id
                     const isSaved = modelForEntry(category, slotEntryFor(category, slotTeam))?.id === model.id
+                    // Knives: the grey picture of that knife; gloves: the catalogue picture; nothing to show: the name.
+                    const icon = category === "knife" ? knifeIcon(model.weapon_class) ?? model.image_url : model.image_url
                     return (
                       <button
                         key={model.id}
@@ -1292,12 +1303,12 @@ export function SkinchangerPage() {
                         aria-label={model.display_name.replace(/^★\s*/, "")}
                         className={cn(
                           "group relative shrink-0 rounded-lg border text-xs font-medium transition-colors",
-                          model.image_url ? "flex h-11 w-[68px] items-center justify-center px-1.5" : "h-8 px-3",
+                          icon ? "flex h-11 w-[84px] items-center justify-center px-2" : "h-8 px-3",
                           isActive ? "border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text)]" : "border-border text-muted-foreground hover:border-[var(--line-strong)] hover:text-foreground",
                         )}
                       >
                         {/* The knife or glove itself; the name is the tooltip and the accessible label. Without a picture, the name. */}
-                        {model.image_url ? <img src={model.image_url} alt="" draggable={false} className={cn("h-8 w-full object-contain transition-opacity", isActive ? "opacity-100" : "opacity-70 group-hover:opacity-100")} /> : model.display_name.replace(/\s+(Gloves|Knife)$/i, "")}
+                        {icon ? <img src={icon} alt="" draggable={false} className={cn("w-full object-contain transition-opacity", category === "knife" ? "h-6" : "h-8", isActive ? "opacity-100" : "opacity-60 group-hover:opacity-100")} /> : model.display_name.replace(/\s+(Gloves|Knife)$/i, "")}
                         {isSaved && <span aria-label="saved" className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-[var(--status-green)]" />}
                       </button>
                     )
