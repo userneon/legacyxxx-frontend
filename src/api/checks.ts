@@ -72,8 +72,16 @@ export interface CheckReport extends CheckSummary {
   findings: CheckFinding[]
 }
 
+/** What is known about the PC's hardware fingerprint (hashes only): kept for the player, and who else has run on the same hardware. */
+export interface CheckHwid {
+  /** Kept with the player: their Steam account was on the PC. Otherwise it is kept apart. */
+  saved: boolean
+  shared: Array<{ steamId: string; name: string | null; avatar: string | null; kinds: string[] }>
+}
+
 export interface PlayerCheckDetail extends PlayerCheck {
   report: CheckReport | null
+  hwid?: CheckHwid
 }
 
 export interface NewCheck {

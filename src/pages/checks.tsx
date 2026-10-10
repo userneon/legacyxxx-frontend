@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { ChevronRight, Download, RotateCcw, Search, ShieldAlert, Trash2, TriangleAlert, Plus } from "lucide-react"
 import { toast } from "sonner"
 
-import { checksService, type CheckFinding, type CheckReport, type PlayerCheck, type PlayerCheckDetail } from "@/api/checks"
+import { checksService, type CheckFinding, type CheckHwid, type CheckReport, type PlayerCheck, type PlayerCheckDetail } from "@/api/checks"
 import type { ApiError } from "@/api/types"
 import { HudTile, LogLines, PromptLine, RiskMeter, ThreatBadge, threatOf } from "@/components/checks/console"
 import { NewCheckDialog } from "@/components/new-check-dialog"
@@ -27,6 +27,35 @@ function formatDay(iso?: string | null) {
 }
 
 /** The Steam accounts on the PC: who they are, when they last signed in and played CS2, and what Steam says about their bans. */
+const HWID_PARTS: Record<string, string> = { id: "whole PC", uuid: "system id", board: "motherboard", bios: "BIOS", cpu: "processor", disk: "disk" }
+
+function Hardware({ hwid }: { hwid: CheckHwid }) {
+  return (
+    <section className="flex flex-col gap-2" aria-label="Hardware">
+      <h3 className="font-mono text-[10px] font-semibold uppercase tracking-[1.6px] text-[var(--text-faint)]">// hardware</h3>
+      <div className="chk-panel flex flex-col gap-2 px-3 py-2.5">
+        <p className="font-mono text-[12px] text-[var(--text-2)]">{hwid.saved ? "fingerprint saved for this player" : "fingerprint kept apart: the player's steam account was not on this pc"}</p>
+        {hwid.shared.length === 0 ? (
+          <p className="font-mono text-[12px] text-[var(--text-dim)]">no other player has run on this hardware</p>
+        ) : (
+          <>
+            <p className="flex items-center gap-2 font-mono text-[12px] text-[var(--text)]"><TriangleAlert className="size-4 shrink-0" aria-hidden="true" />same hardware as {hwid.shared.length} other {hwid.shared.length === 1 ? "player" : "players"}</p>
+            <ul className="flex flex-col gap-1">
+              {hwid.shared.map((player) => (
+                <li key={player.steamId} className="flex flex-wrap items-center gap-1.5 text-[13px]">
+                  <span className="font-semibold text-[var(--text)]">{player.name ?? player.steamId}</span>
+                  <span className="font-mono text-[11px] text-[var(--text-dim)]">{player.steamId}</span>
+                  {player.kinds.map((kind) => <span key={kind} className="rounded-md border border-[var(--line)] px-1.5 py-px text-[10px] text-[var(--text-muted)]">{HWID_PARTS[kind] ?? kind}</span>)}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
+    </section>
+  )
+}
+
 function SteamAccounts({ report, targetSteamId }: { report: CheckReport; targetSteamId: string }) {
   const accounts = report.steamAccounts ?? []
   const bans = new Map((report.steamBans ?? []).map((ban) => [ban.steamId, ban]))
@@ -142,6 +171,7 @@ function Detail({ id, onClose, onRemoved }: { id: string; onClose: () => void; o
               <p className="flex items-start gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 py-2 text-xs text-[var(--text-2)]"><TriangleAlert className="mt-px size-4 shrink-0" aria-hidden="true" />The player's Steam ID was not among the accounts found on this PC. The check may have been run on another computer, or by someone else.</p>
             )}
             <SteamAccounts report={report} targetSteamId={data.targetSteamId} />
+            {data.hwid && <Hardware hwid={data.hwid} />}
             <section className="flex flex-col gap-2" aria-label="Findings">
               <h3 className="font-mono text-[10px] font-semibold uppercase tracking-[1.6px] text-[var(--text-faint)]">// findings <span className="text-[var(--chk-accent)]">{sorted.length}</span></h3>
               {sorted.length === 0 ? <LogLines lines={[{ level: "info", name: "nothing was found" }]} /> : <LogLines lines={sorted} />}
