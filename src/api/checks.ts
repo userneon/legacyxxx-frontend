@@ -76,7 +76,7 @@ export interface CheckReport extends CheckSummary {
 export interface CheckHwid {
   /** Kept with the player: their Steam account was on the PC. Otherwise it is kept apart. */
   saved: boolean
-  shared: Array<{ steamId: string; name: string | null; avatar: string | null; kinds: string[] }>
+  shared: Array<{ steamId: string; name: string | null; avatar: string | null; kinds: string[]; banned?: boolean }>
 }
 
 export interface PlayerCheckDetail extends PlayerCheck {

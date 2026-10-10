@@ -45,6 +45,7 @@ function Hardware({ hwid }: { hwid: CheckHwid }) {
                 <li key={player.steamId} className="flex flex-wrap items-center gap-1.5 text-[13px]">
                   <span className="font-semibold text-[var(--text)]">{player.name ?? player.steamId}</span>
                   <span className="font-mono text-[11px] text-[var(--text-dim)]">{player.steamId}</span>
+                  {player.banned && <span className="rounded-md border border-[var(--status-red)]/50 px-1.5 py-px text-[10px] font-semibold text-[var(--status-red)]">Banned</span>}
                   {player.kinds.map((kind) => <span key={kind} className="rounded-md border border-[var(--line)] px-1.5 py-px text-[10px] text-[var(--text-muted)]">{HWID_PARTS[kind] ?? kind}</span>)}
                 </li>
               ))}
