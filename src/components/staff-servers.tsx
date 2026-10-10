@@ -72,7 +72,11 @@ export function ServersPanel() {
       if (nextAccess.role === "OWNER") setDatabase(await staffPanelService.database())
     } catch (error) {
       if ((error as ApiError | null)?.status === 401) setSignedOut(true)
-      else { setNotice(messageOf(error)); setFailed(true) }
+      else {
+        // The server answers 404 for the whole console until STAFF_PANEL_ENABLED=true is set there.
+        setNotice((error as ApiError | null)?.status === 404 ? "The server console is switched off on the server. Set STAFF_PANEL_ENABLED=true in the backend settings and restart it." : messageOf(error))
+        setFailed(true)
+      }
     }
   }
   useEffect(() => { void load() }, [])
