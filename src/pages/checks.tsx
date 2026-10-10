@@ -135,8 +135,11 @@ function Detail({ id, onClose, onRemoved }: { id: string; onClose: () => void; o
                 <div><b className="block text-2xl">{report.filesScanned.toLocaleString()}</b><span className="text-[10px] uppercase tracking-[1.2px] text-[var(--text-dim)]">files · {report.durationSeconds < 90 ? `${report.durationSeconds} s` : `${Math.round(report.durationSeconds / 60)} min`}</span></div>
               </div>
             </div>
+            {report.matchesTarget && data.targetSteamId && (
+              <p className="flex items-start gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 py-2 font-mono text-[12px] text-[var(--text-2)]"><span className="mt-1 size-2 shrink-0 rounded-full bg-[var(--status-green)]" aria-hidden="true" />steam id {data.targetSteamId} is on this pc</p>
+            )}
             {!report.matchesTarget && (
-              <p className="flex items-start gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 py-2 text-xs text-[var(--text-2)]"><TriangleAlert className="mt-px size-4 shrink-0" aria-hidden="true" />The player's Steam account was not among the accounts found on this PC. It may have been run on another computer.</p>
+              <p className="flex items-start gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 py-2 text-xs text-[var(--text-2)]"><TriangleAlert className="mt-px size-4 shrink-0" aria-hidden="true" />The player's Steam ID was not among the accounts found on this PC. The check may have been run on another computer, or by someone else.</p>
             )}
             <SteamAccounts report={report} targetSteamId={data.targetSteamId} />
             <section className="flex flex-col gap-2" aria-label="Findings">
@@ -268,7 +271,7 @@ export function ChecksPage() {
                         </span>
                         <span className="hidden shrink-0 flex-col items-end gap-1.5 sm:flex">
                           <RiskMeter detections={summary?.detections ?? 0} suspicions={summary?.suspicions ?? 0} banned={summary?.bannedAccounts ?? 0} className={cn(!summary && "opacity-30")} />
-                          <span className="font-mono text-[10px] tracking-[1px] text-[var(--text-dim)]">{summary ? `${summary.detections} DET · ${summary.suspicions} SUS${(summary.bannedAccounts ?? 0) > 0 ? ` · ${summary.bannedAccounts} BAN` : ""}` : check.status === "pending" ? "AWAITING PLAYER" : "NO RESULT"}</span>
+                          <span className="font-mono text-[10px] tracking-[1px] text-[var(--text-dim)]">{summary ? `${summary.detections} DET · ${summary.suspicions} SUS${(summary.bannedAccounts ?? 0) > 0 ? ` · ${summary.bannedAccounts} BAN` : ""}` : check.status === "pending" ? "AWAITING PLAYER" : "NO RESULT"}{summary && !summary.matchesTarget && <span className="text-[var(--status-red)]"> · ID NOT ON PC</span>}</span>
                         </span>
                         <ChevronRight className="size-4 shrink-0 text-[var(--text-faint)] transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
                       </button>
