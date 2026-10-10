@@ -1,3 +1,4 @@
+import { ScrollRow } from "@/components/scroll-row"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import {
   ArrowLeft,
@@ -1286,7 +1287,7 @@ export function SkinchangerPage() {
             <div className={cn("flex min-h-0 flex-col", selected && pickerHasOptions && !accessoryOpen && "hidden lg:flex")}>
               {accessoryOpen ? renderAccessoryBrowser() : (<>
               {slotTeam && (category === "knife" || category === "glove") && (
-                <div role="tablist" aria-label={category === "knife" ? "Knife type" : "Glove type"} className="scrollbar-hidden flex gap-1.5 overflow-x-auto border-b border-border px-3 py-2.5" onWheel={(event) => { if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) event.currentTarget.scrollLeft += event.deltaY }}>
+                <ScrollRow role="tablist" aria-label={category === "knife" ? "Knife type" : "Glove type"} className="gap-1.5 border-b border-border px-3 py-2.5">
                   {modelsForSlot(category).map((model) => {
                     const isActive = activeWeapon?.id === model.id
                     const isSaved = modelForEntry(category, slotEntryFor(category, slotTeam))?.id === model.id
@@ -1313,7 +1314,7 @@ export function SkinchangerPage() {
                       </button>
                     )
                   })}
-                </div>
+                </ScrollRow>
               )}
               <div className="flex flex-wrap items-center gap-1.5 border-b border-[var(--line-soft)] p-3 sm:hidden">
                 <label className="relative block w-full">
