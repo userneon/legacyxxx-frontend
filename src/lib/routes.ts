@@ -14,6 +14,7 @@ export const PAGE_ROUTES: Record<PageId, string> = {
   shop: "/shop",
   wallet: "/wallet",
   checks: "/checks",
+  staff: "/staff",
   penalties: "/penalties",
   explore: "/explore",
   feedback: "/reviews",
@@ -38,6 +39,7 @@ export const PAGE_TITLES: Record<PageId, string> = {
   shop: "Shop",
   wallet: "Wallet",
   checks: "Checks",
+  staff: "Staff",
   penalties: "Penalties",
   explore: "Explore",
   feedback: "Reviews",
@@ -49,6 +51,7 @@ function matchPage(pathname: string): PageId {
   if (pathname.startsWith("/profile/")) return "profile"
   if (pathname.startsWith("/clan/")) return "clan"
   if (pathname === "/clans" || pathname.startsWith("/clans/")) return "clan"
+  if (pathname === "/checks") return "staff"
   if (pathname === "/search") return "explore"
   if (pathname === "/feedback") return "feedback"
   // Older addresses of the Play pages keep working.

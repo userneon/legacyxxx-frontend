@@ -58,6 +58,7 @@ export type PageId =
   | "shop"
   | "wallet"
   | "checks"
+  | "staff"
   | "penalties"
   | "explore"
   | "feedback"

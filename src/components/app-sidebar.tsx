@@ -1,5 +1,5 @@
 import { useEffect, useState, type ComponentType } from "react"
-import { ArrowLeftRight, ShoppingBag, DoorOpen, Swords, MountainSnow, Scale, ScrollText, Telescope, Users, Lock, PanelLeft, ChevronDown, ScanSearch } from "lucide-react"
+import { ArrowLeftRight, ShoppingBag, DoorOpen, Swords, MountainSnow, Scale, ScrollText, Telescope, Users, Lock, PanelLeft, ChevronDown, ShieldCheck } from "lucide-react"
 
 import { isFeatureEnabled, isPageEnabled } from "@/lib/features"
 import { competitiveService } from "@/api"
@@ -87,7 +87,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
   // Admins, Managers and Owners can ask players for a check; nobody else gets the entry.
   const staffAccess = useModerationAccess()
   const mayCheck = Boolean(staffAccess && staffAccess.role && ["ADMIN", "MANAGER", "OWNER"].includes(staffAccess.role))
-  const navItems: NavItem[] = mayCheck ? [...NAV_ITEMS, { id: "checks", label: "Checks", icon: ScanSearch }] : NAV_ITEMS
+  const navItems: NavItem[] = mayCheck ? [...NAV_ITEMS, { id: "staff", label: "Staff", icon: ShieldCheck }] : NAV_ITEMS
 
   // Live player counts next to the Play rows, refreshed every 30s while the tab is visible.
   const { data: competitive, refetch: refetchCompetitive } = useApiQuery<PlayServerList>((signal) => playService.getServers("5x5", { signal }), { queryKey: "sidebar-play-5x5", keepPreviousData: true })

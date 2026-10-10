@@ -18,7 +18,7 @@ import { SkinchangerPage } from "@/pages/skinchanger"
 import { ComparePage } from "@/pages/compare"
 import { ShopPage } from "@/pages/shop"
 import { WalletPage } from "@/pages/wallet"
-import { ChecksPage } from "@/pages/checks"
+import { StaffPage } from "@/pages/staff"
 import { PenaltiesPage } from "@/pages/penalties"
 import { ExplorePage } from "@/pages/explore"
 import { FeedbackPage } from "@/pages/feedback"
@@ -139,7 +139,9 @@ export function App() {
               {isFeatureEnabled("clan") && <Route path="/clans/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
               <Route path="/skinchanger" element={<ProtectedPage pageName="Skinchanger"><SkinchangerPage /></ProtectedPage>} />
               {isFeatureEnabled("compare") && <Route path="/compare" element={<ComparePage />} />}
-              <Route path="/checks" element={<ProtectedPage pageName="Checks"><ChecksPage /></ProtectedPage>} />
+              <Route path="/staff" element={<ProtectedPage pageName="Staff"><StaffPage /></ProtectedPage>} />
+              {/* Checks live in the Staff page now; the older address opens it on that tab. */}
+              <Route path="/checks" element={<ProtectedPage pageName="Staff"><StaffPage initialTab="checks" /></ProtectedPage>} />
               <Route path="/wallet" element={<ProtectedPage pageName="Wallet"><WalletPage /></ProtectedPage>} />
               <Route path="/wallet/:tab" element={<ProtectedPage pageName="Wallet"><WalletPage /></ProtectedPage>} />
               {isFeatureEnabled("shop") && <Route path="/shop" element={<ProtectedPage pageName="Shop"><ShopPage /></ProtectedPage>} />}

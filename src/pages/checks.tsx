@@ -221,7 +221,7 @@ function Protocol({ onAsk }: { onAsk: () => void }) {
 }
 
 /** Staff page: ask a player to run the checker, and read what came back. Results are deleted after 30 days. */
-export function ChecksPage() {
+export function ChecksPage({ embedded = false }: { embedded?: boolean } = {}) {
   const { data, loading, error, refetch } = useApiQuery<PlayerCheck[]>((signal) => checksService.list({ signal }), { queryKey: "checks" })
   const [creating, setCreating] = useState(false)
   const [open, setOpen] = useState<string | null>(null)
@@ -244,7 +244,7 @@ export function ChecksPage() {
 
   return (
     <div className="chk-theme flex h-full min-h-0 flex-col">
-      <PageBar>
+      <PageBar className={embedded ? "border-b-0" : undefined}>
         {!forbidden && (
           <PageTabs<Filter>
             ariaLabel="Checks"
