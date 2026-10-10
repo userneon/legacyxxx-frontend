@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { Gavel, RotateCcw, ScanSearch, Scale, Search, UserSearch, Users } from "lucide-react"
+import { Gavel, RotateCcw, ScanSearch, Scale, Search, Server, UserSearch, Users } from "lucide-react"
 
 import { checksService } from "@/api/checks"
 import { clansService } from "@/api/clans"
@@ -18,7 +18,7 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { usePathTab } from "@/hooks/use-url-tab"
 
-type StaffTab = "overview" | "checks" | "penalties" | "players" | "clans"
+type StaffTab = "overview" | "checks" | "penalties" | "players" | "clans" | "servers"
 
 const TABS: Array<{ value: StaffTab; label: string }> = [
   { value: "overview", label: "Overview" },
@@ -26,6 +26,7 @@ const TABS: Array<{ value: StaffTab; label: string }> = [
   { value: "penalties", label: "Penalties" },
   { value: "players", label: "Players" },
   { value: "clans", label: "Clans" },
+  { value: "servers", label: "Servers" },
 ]
 
 const STEAM_ID = /^\d{17}$/
@@ -34,7 +35,7 @@ const STEAM_ID = /^\d{17}$/
 export function StaffPage({ initialTab = "overview" }: { initialTab?: StaffTab } = {}) {
   const { isAuthenticated } = useAuth()
   const { data: access, loading } = useApiQuery<ModerationAccess>((signal) => penaltyAdminService.getAccess({ signal }), { enabled: isAuthenticated, queryKey: `staff-access:${isAuthenticated}` })
-  const [tab, setTab] = usePathTab<StaffTab>("/staff", { overview: "", checks: "checks", penalties: "penalties", players: "players", clans: "clans" }, initialTab)
+  const [tab, setTab] = usePathTab<StaffTab>("/staff", { overview: "", checks: "checks", penalties: "penalties", players: "players", clans: "clans", servers: "servers" }, initialTab)
 
   if (loading || !access) {
     return <p className="px-6 py-10 text-[13px] text-[var(--text-dim)]">{loading ? "Loading…" : "This page is for staff."}</p>
@@ -52,6 +53,7 @@ export function StaffPage({ initialTab = "overview" }: { initialTab?: StaffTab }
         {tab === "penalties" && <PenaltiesTab access={access} />}
         {tab === "players" && <PlayersTab access={access} />}
         {tab === "clans" && <ClansTab />}
+        {tab === "servers" && <ServersTab />}
       </div>
     </div>
   )
@@ -81,12 +83,13 @@ function Overview({ access, onGo }: { access: ModerationAccess; onGo: (tab: Staf
         <Cell label="Unban requests" value={access.canApprove ? (requests ? requests.length : "–") : "–"} onClick={() => onGo("penalties")} />
         <Cell label="Your role" value={access.role ?? "Staff"} />
       </div>
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Where to go">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5" aria-label="Where to go">
         {([
           { tab: "checks", icon: ScanSearch, title: "Ask for a check", text: "Give a player a one-time code, read what the checker found." },
           { tab: "penalties", icon: Scale, title: "Penalties", text: "Issue a ban, mute or gag, and decide on unban requests." },
           { tab: "players", icon: UserSearch, title: "Find a player", text: "Open a player by Steam ID, or penalise them." },
           { tab: "clans", icon: Users, title: "Clans", text: "Remove a logo or banner, rename a clan or delete it." },
+          { tab: "servers", icon: Server, title: "Servers", text: "The console for the game servers." },
         ] as const).map((card) => (
           <button key={card.tab} type="button" onClick={() => onGo(card.tab)} className="flex flex-col gap-2 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4 text-left transition-colors hover:border-[var(--line-strong)]">
             <card.icon className="size-[18px] text-[var(--text-2)]" aria-hidden="true" />
@@ -178,6 +181,15 @@ function ClansTab() {
       {picked && detail && (
         <ModerateClan key={detail.id} clan={detail} defaultOpen hideTrigger onClose={() => setPicked(null)} onChanged={() => { void refetchDetail(); void refetch() }} onDeleted={() => { setPicked(null); void refetch() }} />
       )}
+    </div>
+  )
+}
+
+function ServersTab() {
+  return (
+    <div className="flex max-w-xl flex-col gap-3 px-6 pb-8 pt-4">
+      <p className="text-[13px] text-[var(--text-2)]">The server console restarts servers, changes maps, sends announcements and bans from the game. It opens in its own session and asks you to sign in with Steam again.</p>
+      <div><Button asChild><Link to="/staffpanel"><Server className="size-4" aria-hidden="true" /> Open the server console</Link></Button></div>
     </div>
   )
 }
