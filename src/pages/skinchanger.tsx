@@ -1288,12 +1288,16 @@ export function SkinchangerPage() {
                         role="tab"
                         aria-selected={isActive}
                         onClick={() => switchSlotModel(model)}
+                        title={model.display_name.replace(/^★\s*/, "")}
+                        aria-label={model.display_name.replace(/^★\s*/, "")}
                         className={cn(
-                          "relative h-8 shrink-0 rounded-md border px-3 text-xs font-medium transition-colors",
-                          isActive ? "border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text)]" : "border-border text-muted-foreground hover:text-foreground",
+                          "group relative shrink-0 rounded-lg border text-xs font-medium transition-colors",
+                          model.image_url ? "flex h-11 w-[68px] items-center justify-center px-1.5" : "h-8 px-3",
+                          isActive ? "border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text)]" : "border-border text-muted-foreground hover:border-[var(--line-strong)] hover:text-foreground",
                         )}
                       >
-                        {model.display_name.replace(/\s+(Gloves|Knife)$/i, "")}
+                        {/* The knife or glove itself; the name is the tooltip and the accessible label. Without a picture, the name. */}
+                        {model.image_url ? <img src={model.image_url} alt="" draggable={false} className={cn("h-8 w-full object-contain transition-opacity", isActive ? "opacity-100" : "opacity-70 group-hover:opacity-100")} /> : model.display_name.replace(/\s+(Gloves|Knife)$/i, "")}
                         {isSaved && <span aria-label="saved" className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-[var(--status-green)]" />}
                       </button>
                     )
