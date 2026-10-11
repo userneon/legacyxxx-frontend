@@ -137,10 +137,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   alt=""
                   aria-hidden="true"
                   loading="lazy"
-                  className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30 transition-[opacity,scale] duration-500 ease-out group-hover:scale-[1.03] group-hover:opacity-45"
+                  className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-70 transition-[opacity,scale] duration-500 ease-out group-hover:scale-[1.03] group-hover:opacity-100"
                 />
               )}
-              <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--card-surface)]/85 via-[var(--card-surface)]/55 to-transparent" />
+              <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--card-surface)]/80 via-[var(--card-surface)]/35 to-transparent" />
               <div className="relative">
                 <h3 className={cn("font-semibold tracking-[-0.2px] text-[var(--text)]", wide(mode.key) ? "lg:text-2xl" : "text-lg")}>{mode.label}</h3>
                 <p className="mt-1 text-[13px] leading-snug text-[var(--text-muted)]">{mode.desc}</p>
