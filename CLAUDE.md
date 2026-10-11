@@ -99,6 +99,11 @@ follows from `src/index.css`. Nothing may use `backdrop-filter` on the page itse
 content (dialogs, `.lx-sheet`) stays solid (`--panel`) so text never sits on moving lines; image overlays (`from-[var(--card-surface)]` gradients) stay solid too.
 Home adds a soft crimson light (`.lx-glass-page`). Stats and timers use `.lx-stat-grid` cells, not a box each.
 
+**Glass on cards and dialogs (owner request 2026-10-11).** The shell stays flat, but cards use dark glass: `--glass-fill` is a translucent
+near-black and every card that uses it (or `.glass` / `.lx-glass`) gets `--glass-sheen`, a 1px light top edge plus a faint diagonal shine,
+as a background image. Cards never blur (the moving beams under them would repaint a blur every frame). Only what floats over the page,
+dialogs, alert dialogs, popovers and `.lx-sheet`, uses `backdrop-filter` (`--glass-float`). Keep the shine white and faint; no colour.
+
 ## Icons and assets
 
 lucide-react only, stroke 2, no emoji, no placeholder icons. Sizes: 18px nav/top bar,

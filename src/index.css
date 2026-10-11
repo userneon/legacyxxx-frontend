@@ -249,13 +249,19 @@
    (sticky toolbars) or floats over content (dialogs, sheets) stays solid so text never sits on moving lines.
    ======================================== */
 :root {
-  --glass-fill: transparent;
+  /* Cards and dialogs are dark glass with a faint shine (owner request 2026-10-11); the shell stays flat. */
+  --glass-fill: rgba(20, 20, 23, 0.52);
   --glass-shell: transparent;
   --glass-shell-line: #2e2e2e;
   --glass-shell-highlight: none;
   --glass-shell-filter: none;
-  --glass-line: #2e2e2e;
-  --glass-highlight: none;
+  --glass-line: #323235;
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  /* A 1px light edge along the top, and a soft diagonal sheen that fades out before the middle of the card. */
+  --glass-sheen:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0, rgba(255, 255, 255, 0) 1px),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.014) 36%, rgba(255, 255, 255, 0) 62%);
+  --glass-float: color-mix(in oklab, var(--panel) 78%, transparent);
 }
 body::before {
   content: "";
@@ -328,6 +334,34 @@ body::before {
   background: var(--glass-fill);
   border: 1px solid var(--glass-line);
   box-shadow: var(--glass-highlight);
+}
+/* The sheen sits on every glass card (the ones that use the glass fill) as a background image, so it never touches the
+   element's own colour, border or shadow. Cards do not blur what is behind them: with the beams moving under them that
+   would repaint the blur every frame. Only what floats over the page (below) blurs. */
+.glass,
+.lx-glass,
+[class*="glass-fill"] {
+  background-image: var(--glass-sheen);
+}
+/* Dialogs, popovers and side sheets float over the page: dark glass with a real blur and the same shine. */
+[data-slot="dialog-content"],
+[data-slot="alert-dialog-content"],
+[data-slot="popover-content"] {
+  background-color: var(--glass-float);
+  background-image: var(--glass-sheen);
+  border-color: color-mix(in oklab, #fff 14%, transparent);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+}
+[data-slot="sheet-content"].lx-sheet,
+.lx-sheet {
+  background-color: color-mix(in oklab, var(--panel) 88%, transparent);
+  background-image: var(--glass-sheen);
+}
+@media (prefers-reduced-transparency: reduce) {
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="popover-content"] { background-color: var(--panel); backdrop-filter: none; -webkit-backdrop-filter: none; }
 }
 /* Home: a soft crimson light on top of the backdrop. */
 .lx-glass-page {
