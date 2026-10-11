@@ -87,6 +87,8 @@ The staff-only Checks page (`src/pages/checks.tsx`, `src/components/checks/`) ha
 scan line, monospace labels, typed prompts and the status green for "alive", red for serious findings. It lives only inside `.chk-theme`
 (`checks.css`), uses translucent fills rather than `backdrop-filter`, and stops moving for `prefers-reduced-motion`. No other page borrows it.
 
+Skin picker tiles (owner request 2026-10-11): on hover the tile lifts 4px with a soft shadow and the weapon picture inside it leans 7° and floats up a little (`rotate` and `translate` only, no scale, so the picture stays sharp); the tile, its name and its text stay straight. Off for reduced motion.
+
 ### Staff page (owner request 2026-10-11)
 
 The Staff page (`src/pages/staff.tsx`, `src/components/staff-*.tsx`) is built around what staff do all day, not around the data. **Ctrl K** (or the box in the page bar) finds a
