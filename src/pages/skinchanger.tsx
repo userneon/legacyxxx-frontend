@@ -963,7 +963,7 @@ export function SkinchangerPage() {
         data-slot-card={id}
         className={cn(
           "lx-layer group relative overflow-hidden rounded-[10px] border bg-[var(--glass-fill)]",
-          // Lift and a crimson edge on hover; leaving eases back slower than entering, like the other cards.
+          // Lift and a violet edge on hover; leaving eases back slower than entering, like the other cards.
           "transition-[border-color,box-shadow,translate] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:duration-300 hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
           savedItem ? "border-[var(--line-strong)]" : "border-[var(--glass-line)]",
           tall ? "h-44" : "h-24",

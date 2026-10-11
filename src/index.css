@@ -47,7 +47,7 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* LEGACY-X design tokens (docs/design references): neutral surfaces, crimson brand accent, status green. */
+/* LEGACY-X design tokens (docs/design references): neutral surfaces, violet brand accent, status green. */
 :root, .dark {
   --radius: 0.625rem;
 
@@ -63,14 +63,14 @@
   --text-muted: #a3a3a3;
   --text-dim: #737373;
   --text-faint: #525252;
-  /* White stays the neutral emphasis; crimson is the brand accent (owner request 2026-09-27). */
+  /* White stays the neutral emphasis; violet is the brand accent (owner request 2026-09-27). */
   --accent-solid: #fafafa;
   --accent-on: #0a0a0a;
-  /* Brand crimson, taken from the LEGACY-X key art: primary actions, the active nav item and glows. */
-  --brand: #e11d48;
-  --brand-bright: #ff3d6e;
-  --brand-deep: #4c0717;
-  --brand-on: #fff5f7;
+  /* Brand violet, taken from the LEGACY-X key art: primary actions, the active nav item and glows. */
+  --brand: #8b5cf6;
+  --brand-bright: #a78bfa;
+  --brand-deep: #2e1065;
+  --brand-on: #f5f3ff;
   --status-green: #22c55e;
   /* Meaning colours (owner request 2026-09-24): used as text, dots, thin borders and faint tints — never as big fills. */
   --status-red: #ef4444;
@@ -371,7 +371,7 @@ body::before {
   :is(:is([class*="glass-fill"], .glass, .lx-glass):is(article, a, button, li, [role="button"], [class*="hover:"]), .lx-sweep):not(textarea, input)::after,
   :is(:is([class*="glass-fill"], .glass, .lx-glass):is(article, a, button, li, [role="button"], [class*="hover:"]), .lx-sweep):not(textarea, input):hover::after { transition: none; opacity: 0; }
 }
-/* Home: a soft crimson light on top of the backdrop. */
+/* Home: a soft violet light on top of the backdrop. */
 .lx-glass-page {
   position: relative;
   isolation: isolate;
@@ -1303,9 +1303,9 @@ body::before {
 }
 
 /* ========================================
-   Brand crimson: glows, buttons and the hero
+   Brand violet: glows, buttons and the hero
    ======================================== */
-/* Primary action: flat crimson. No gradient, no glow: the colour alone carries it. */
+/* Primary action: flat violet. No gradient, no glow: the colour alone carries it. */
 /* Primary action: the neutral white accent, like every other button (no hue). Owner request 2026-09-30. */
 .lx-primary-button {
   background: var(--accent-solid);
@@ -1342,7 +1342,7 @@ body::before {
   color: var(--brand-bright);
 }
 
-/* Hero backdrop: two slow-drifting crimson glows over the key art. */
+/* Hero backdrop: two slow-drifting violet glows over the key art. */
 .lx-hero-glow {
   background:
     radial-gradient(60% 90% at 85% 10%, color-mix(in oklch, var(--brand) 38%, transparent), transparent 70%),
@@ -1454,7 +1454,7 @@ body::before {
   to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
-/* A crimson light runs around the edge while hovered (no glow around the card). */
+/* A violet light runs around the edge while hovered (no glow around the card). */
 @property --lx-edge-angle {
   syntax: "<angle>";
   initial-value: 0deg;
@@ -1504,7 +1504,7 @@ body::before {
   to { transform: scale(1.1) translate3d(1.5%, -2%, 0); }
 }
 
-/* Play: filled player slot lights up crimson. */
+/* Play: filled player slot lights up violet. */
 .lx-slot-on {
   background: var(--text-2);
 }
@@ -1575,7 +1575,7 @@ body::before {
 /* ========================================
    Side detail panels (server details, penalty details)
    ======================================== */
-/* Solid panel with a crimson top line; slides in on a soft ease-out. */
+/* Solid panel with a violet top line; slides in on a soft ease-out. */
 .lx-sheet {
   /* Nearly opaque: the page behind only tints the edges, it never shows through the text. */
   background: color-mix(in oklab, var(--panel) 97%, transparent);

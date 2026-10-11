@@ -1,6 +1,6 @@
 /**
- * The LEGACY-X palette is neutral with a crimson brand accent (design spec §2, ~345°): no blue,
- * purple, yellow or orange UI chrome. Fails on any hex or hsl colour in src/** whose hue lands in
+ * The LEGACY-X palette is neutral with a violet brand accent (owner decision 2026-10-11, ~255-262°): no blue,
+ * pink, yellow or orange UI chrome. Fails on any hex or hsl colour in src/** whose hue lands in
  * those ranges, and on Tailwind colour families that are those hues by definition.
  *
  * Official CS2 rarity and team colours and third-party brand colours (Steam, Discord)
@@ -39,8 +39,8 @@ function* files(dir) {
   }
 }
 
-/** Blue/purple (180-340 deg) and yellow/orange (25-70 deg); status green and neutrals pass. */
-const forbiddenHue = (hue) => (hue >= 180 && hue <= 340) || (hue >= 25 && hue <= 70)
+/** Blue and pink/purple (180-340 deg) and yellow/orange (25-70 deg); the brand violet band (248-275 deg), status green and neutrals pass. */
+const forbiddenHue = (hue) => ((hue >= 180 && hue <= 340) && !(hue >= 248 && hue <= 275)) || (hue >= 25 && hue <= 70)
 
 /** Lines carrying a game or brand colour, exempt by design. */
 const EXEMPT = /palette-exempt|rarity/i
@@ -72,4 +72,4 @@ if (problems.length > 0) {
   for (const problem of problems) console.error(`  ${problem}`)
   process.exit(1)
 }
-console.log("check:colors passed — no blue, purple, yellow or orange in src")
+console.log("check:colors passed — no blue, pink, yellow or orange in src")

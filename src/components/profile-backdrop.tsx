@@ -37,7 +37,7 @@ export function ProfileBackdrop({ active }: { active: boolean }) {
           maxPixelRatio={1}
           maxFps={30}
           linesColor="#2a2a2a"
-          scanColor="#ff3d6e"
+          scanColor="#a78bfa"
           scanOpacity={0.26}
           gridScale={0.1}
           lineJitter={0.06}

@@ -42,7 +42,7 @@ const outline = "inline-flex h-[34px] items-center gap-1.5 rounded-lg border bor
 
 const SECTION_LABEL: Record<ProfileSection, string> = { stats: "Stats", matches: "Recent matches", faceit: "FACEIT stats", loadout: "Loadout" }
 
-/** Card title with the crimson marker used across the site. */
+/** Card title with the violet marker used across the site. */
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]">

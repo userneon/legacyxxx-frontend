@@ -30,22 +30,22 @@ get wrong (like the accent-color exception below).
 
 ## Design tokens (`src/index.css`)
 
-Neutral surfaces, white as the workhorse accent, and **crimson as the brand accent** (owner decision
-2026-09-27, see `docs/design/PROMPT.md`). This is what the site does today; the earlier orange `#ff5a1f`
-exception was dropped and no longer exists in `src/`.
+Neutral surfaces, white as the workhorse accent, and **violet as the brand accent** (owner decision
+2026-10-11; it replaced the crimson of 2026-09-27, `docs/design/PROMPT.md` still describes the crimson).
+The earlier orange `#ff5a1f` exception was dropped and no longer exists in `src/`.
 - Surfaces: `--bg` `#0a0a0a`, `--panel` `#0f0f0f`, `--card-surface` `#141414`, `--raised` `#1a1a1a`
 - Lines: `--line-soft` `#1f1f1f`, `--line` `#262626`, `--line-strong` `#333333`
 - Text: `--text` `#fafafa` → `--text-faint` `#525252`
 - `--accent-solid` `#fafafa` (on `#0a0a0a`): primary buttons (`.lx-primary-button`), progress fills, unread dots
-- `--brand` `#e11d48` (fills, borders, glows), `--brand-bright` `#ff3d6e` (text, icons), `--brand-deep`
-  `#4c0717`, `--brand-on` `#fff5f7`. Crimson is used sparingly (owner request 2026-10-01: too much of it).
+- `--brand` `#8b5cf6` (fills, borders, glows), `--brand-bright` `#a78bfa` (text, icons), `--brand-deep`
+  `#2e1065`, `--brand-on` `#f5f3ff`. Violet is used sparingly (owner request 2026-10-01: too much of it).
   It belongs to: the wordmark's "-X", the active sidebar item, the Home hero's accent word and the soft glow behind its art, the flagship "Players Online" figure, the #1 leader
   and the viewer's own row, the active sort column, the Pro League card, the rank/EXP progress fill, the "equipped" verified seal
   on Skinchanger cards and the Owner badge. No other page has a glow or a hero banner (owner request 2026-10-06; Home keeps its hero): a page starts with
   `PageBar` (`components/page-tabs.tsx`: underlined tabs on the left, hint and controls on the right, one hairline) and the page
   name lives in the top bar. Everything else is neutral: section-heading bars
   (`--text-faint`), hover borders (`--line-strong`), hover fills (`--raised`), focus rings (`--accent-solid`),
-  icon tiles, slot dots (`--text-2`). A primary button stays white. Before adding crimson somewhere new,
+  icon tiles, slot dots (`--text-2`). A primary button stays white. Before adding violet somewhere new,
   ask whether it is one of the spots above; if not, leave it neutral.
 - `--status-green` `#22c55e` (online/live/verified) and `--status-red` `#ef4444` (limits, bans) are the status colors
 - Rank emblems use the CS2 rarity ladder (`--rank-<tier>`) **only** inside emblem
@@ -62,7 +62,7 @@ exception was dropped and no longer exists in `src/`.
 - **Text:** 10–11px meta and labels, 13px body and controls, 15px emphasis, 22px+ headings, `font-display`
   only for the wordmark and page titles. Don't add a new pixel size.
 - **Buttons:** the primary action is `.lx-primary-button` (white); a secondary action is a bordered
-  `--raised` button; hover on neutral controls is `hover:bg-[var(--raised)]`. Brand crimson appears on a
+  `--raised` button; hover on neutral controls is `hover:bg-[var(--raised)]`. Brand violet appears on a
   button only as a selected/active state, never as the default look.
 - **Surfaces:** shell and cards use the flat-outline tokens below; a plain `--panel`/`--raised` fill is for nested
   or solid-over-art cases. Overlays that must stay readable over images use a solid `--card-surface` gradient.
@@ -97,7 +97,7 @@ page panel — is `.lx-glass-shell`: transparent with a 1px `--glass-shell-line`
 (`bg-[var(--glass-fill)]`, `.glass`, `.lx-glass`) with a `--glass-line` hairline. The token and class names keep their old "glass" prefix so everything
 follows from `src/index.css`. Nothing may use `backdrop-filter` on the page itself. What scrolls under something (`.glass-strong` sticky toolbars) or floats over
 content (dialogs, `.lx-sheet`) stays solid (`--panel`) so text never sits on moving lines; image overlays (`from-[var(--card-surface)]` gradients) stay solid too.
-Home adds a soft crimson light (`.lx-glass-page`). Stats and timers use `.lx-stat-grid` cells, not a box each.
+Home adds a soft violet light (`.lx-glass-page`). Stats and timers use `.lx-stat-grid` cells, not a box each.
 
 **Light sweep on cards (owner request 2026-10-11).** The glass and shine look tried the same day was taken back (owner, 2026-10-11): cards stay
 flat outline. A card that is an article, link, button or list item (or already has a `hover:` class) catches one soft band of white light

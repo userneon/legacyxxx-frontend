@@ -144,7 +144,7 @@ function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: Competiti
           : "lx-row-in h-14 border-b border-[var(--raised)] hover:bg-[var(--raised)]",
       )}
     >
-      {/* Crimson marker: always on your pinned row, slides in on hover for the others. */}
+      {/* Violet marker: always on your pinned row, slides in on hover for the others. */}
       <span
         aria-hidden="true"
         className={cn(
@@ -183,7 +183,7 @@ const COLUMNS = [
 ] as const
 
 /**
- * Sticky column header. One crimson underline glides to the sorted column (like the Segmented
+ * Sticky column header. One violet underline glides to the sorted column (like the Segmented
  * thumb) instead of jumping; every label keeps the same weight so nothing shifts when it changes.
  */
 function TableHeader({ sort }: { sort: LeaderboardSort }) {

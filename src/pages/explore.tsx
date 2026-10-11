@@ -38,7 +38,7 @@ function StatusPill({ status }: { status: ModerationStatus }) {
 
 /** Feeds the pointer position to a card's spotlight (--mx / --my). */
 
-/** The player's name with the searched part in crimson. */
+/** The player's name with the searched part in violet. */
 function Highlight({ text, match }: { text: string; match: string }) {
   const at = text && match ? text.toLowerCase().indexOf(match.toLowerCase()) : -1
   if (at < 0) return <>{text}</>

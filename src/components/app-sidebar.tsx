@@ -56,7 +56,7 @@ const EASE = "ease-[cubic-bezier(0.2,0,0,1)]"
  * Every row keeps its icon at the same x in both states: the rail narrows around it, so collapsing
  * never makes an icon jump. The row is 40px tall and, collapsed, a 40px square.
  * Hover has no fill (it would sit flat on the glass): a thin white tick at the left edge and the label
- * nudged 2px. The active row uses the same tick in crimson (the one brand mark in the nav), a crimson
+ * nudged 2px. The active row uses the same tick in violet (the one brand mark in the nav), a violet
  * icon and a semibold label; no fill or glow either.
  */
 const rowClass = cn(
