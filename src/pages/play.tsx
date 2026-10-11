@@ -426,22 +426,21 @@ function ServerListItem({ server, selected, favourite, onFavourite, onSelect }: 
   const art = cs2MapArtwork(server.map)
   const unavailable = server.status === "offline"
   return (
-    <div className={cn("group relative flex items-center gap-3 rounded-[10px] border px-2.5 py-2 transition-[background-color,border-color] duration-150", selected ? "border-[var(--line-strong)] bg-[var(--raised)]" : "border-transparent hover:bg-[var(--raised)]/60", unavailable && !selected && "opacity-60")}>
-      <button type="button" onClick={onSelect} aria-current={selected ? "true" : undefined} className="flex min-w-0 flex-1 items-center gap-3 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-        <span className="relative h-[38px] w-16 shrink-0 overflow-hidden rounded-md bg-[var(--raised)]">
-          {art && <img src={art} alt="" className="lx-map-img size-full object-cover opacity-85" />}
-        </span>
+    <div className={cn("group relative flex items-center gap-3 overflow-hidden rounded-[10px] border px-3 py-2.5 transition-[border-color] duration-150", selected ? "border-[var(--line-strong)]" : "border-transparent hover:border-[var(--line)]", unavailable && !selected && "opacity-60")}>
+      {/* The map fills the row and fades out from left to right. */}
+      {art && <img src={art} alt="" aria-hidden="true" className={cn("lx-map-img lx-list-art pointer-events-none absolute inset-0 size-full object-cover transition-opacity duration-300", selected ? "opacity-70" : "opacity-45 group-hover:opacity-60")} />}
+      <button type="button" onClick={onSelect} aria-current={selected ? "true" : undefined} className="relative flex min-w-0 flex-1 items-center gap-3 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="truncate text-[13px] font-semibold text-[var(--text)]" title={server.name}>{server.name}</span>
-          <span className="flex min-w-0 items-center gap-1.5 text-[11px] text-[var(--text-muted)]">
+          <span className="truncate text-[13px] font-semibold text-[var(--text)] [text-shadow:0_1px_2px_rgba(0,0,0,0.6)]" title={server.name}>{server.name}</span>
+          <span className="flex min-w-0 items-center gap-1.5 text-[11px] text-[var(--text-2)] [text-shadow:0_1px_2px_rgba(0,0,0,0.6)]">
             <StatusText server={server} />
             <span aria-hidden="true" className="text-[var(--text-faint)]">·</span>
             <span className="truncate">{cs2MapLabel(server.map)}{server.mode === "fun" ? ` · ${funModeLabel(server.modeLabel)}` : ""}</span>
           </span>
         </span>
-        <span className="shrink-0 text-xs text-[var(--text-muted)]">{server.players}/{server.maxPlayers}</span>
+        <span className="shrink-0 text-xs text-[var(--text-2)]">{server.players}/{server.maxPlayers}</span>
       </button>
-      <FavouriteButton inline favourite={favourite} name={server.name} onToggle={onFavourite} />
+      <span className="relative"><FavouriteButton inline favourite={favourite} name={server.name} onToggle={onFavourite} /></span>
     </div>
   )
 }
@@ -450,8 +449,7 @@ function ListSkeleton() {
   return (
     <div className="flex flex-col gap-1" aria-hidden="true">
       {Array.from({ length: 6 }, (_, index) => (
-        <div key={index} className="flex items-center gap-3 px-2.5 py-2">
-          <Skeleton className="h-[38px] w-16 rounded-md bg-[var(--raised)]" />
+        <div key={index} className="flex items-center gap-3 px-3 py-3">
           <div className="flex flex-1 flex-col gap-2">
             <Skeleton className="h-3 w-2/3 rounded-full bg-[var(--line)]" />
             <Skeleton className="h-2.5 w-1/3 rounded-full bg-[var(--line-soft)]" />
@@ -658,7 +656,7 @@ function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode;
         </header>
 
         <div className={cn("grid gap-4", wide ? "min-h-0 flex-1 grid-cols-[400px_minmax(0,1fr)]" : "grid-cols-1")}>
-          <div className={cn("flex flex-col gap-2 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-2", wide && "min-h-0")}>
+          <div className={cn("flex flex-col gap-2 rounded-xl border border-[var(--line)] bg-[var(--card-surface)] p-2", wide && "min-h-0")}>
             <div className="flex items-center gap-2 p-1">
               <Popover>
                 <PopoverTrigger asChild>

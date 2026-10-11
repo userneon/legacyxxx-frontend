@@ -373,6 +373,11 @@ body::before {
   :is(:is([class*="glass-fill"], .glass, .lx-glass):is(article, a, button, li, [role="button"], [class*="hover:"]), .lx-sweep):not(textarea, input)::after,
   :is(:is([class*="glass-fill"], .glass, .lx-glass):is(article, a, button, li, [role="button"], [class*="hover:"]), .lx-sweep):not(textarea, input):hover::after { transition: none; opacity: 0; }
 }
+/* Play list rows: the map fills the row and fades out from left to right. */
+.lx-list-art {
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, rgba(0, 0, 0, 0.55) 45%, transparent 100%);
+  mask-image: linear-gradient(90deg, #000 0%, rgba(0, 0, 0, 0.55) 45%, transparent 100%);
+}
 /* Home: a soft violet light on top of the backdrop. */
 .lx-glass-page {
   position: relative;

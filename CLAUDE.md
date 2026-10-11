@@ -119,8 +119,8 @@ Four cards (5x5, Fun, Pro League, Tournaments), each with a pill, title, one lin
 Play is a list with the open server beside it (`src/pages/play.tsx`). The header holds the mode's name, one line, the live count and
 **Quick play** (white). The mode is chosen only in the sidebar: no mode tabs on the page. The left column (400px) has the map dropdown
 (mode on Fun) and a Filter dropdown (state, order, hide full, favourites; all in the URL: `filter`, `status`, `sort`, `full`, `fav`),
-then the servers grouped as Live now, Waiting for players and Full or offline, each a small row (map thumbnail, name, state, map,
-players, star). The right side shows the open server (`?server=`, else the first joinable one): its map with the name, state and
+then the servers grouped as Live now, Waiting for players and Full or offline, each a small row whose map fills it and fades out from left to right (`.lx-list-art`), with name, state, map,
+players and star, inside a solid grey (`--card-surface`) box. The right side shows the open server (`?server=`, else the first joinable one): its map with the name, state and
 score, both teams with K/D/A (live, every 5 s), and Copy IP / Connect. Below 1180px the list fills the page and a server opens in
 the sheet. Pro League needs a sign-in; a player below the rank sees the rank lock instead of the servers.
 
