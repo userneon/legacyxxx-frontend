@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
-import { ChevronDown, Copy, Gamepad2, LayoutGrid, List, LoaderCircle, Lock, Play, Map as MapIcon, RotateCcw, SlidersHorizontal, Star, X, Zap } from "lucide-react"
+import { ChevronDown, Copy, Crown, Gamepad2, LayoutGrid, List, LoaderCircle, Lock, Play, Map as MapIcon, RotateCcw, SlidersHorizontal, Star, Swords, Trophy, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
 import { competitiveService, serversService } from "@/api"
 import { playService, type PlayMode, type PlayServer, type PlayServerList } from "@/api/play"
-import type { CompetitiveAccess, PlaySubMode, ServerLiveMatch, ServerLiveMatchPlayer } from "@/api/types"
+import type { CompetitiveAccess, HomeStats, PlaySubMode, ServerLiveMatch, ServerLiveMatchPlayer } from "@/api/types"
+import { tournamentsService } from "@/api/tournaments"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useViewParams } from "@/hooks/use-view-params"
 import { useAuth } from "@/hooks/use-auth"
@@ -15,7 +16,7 @@ import { PAGE_ROUTES } from "@/lib/routes"
 import { CompetitiveRankBadge, RankLabel } from "@/components/competitive-rank-badge"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { TeamIcon, teamTextClass, type TeamSide } from "@/components/team-icon"
-import { SteamLoginGate } from "@/components/steam-login-gate"
+import { SteamLoginButton } from "@/components/steam-login-gate"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -535,8 +536,80 @@ function ServerSheet({ server, onClose }: { server: PlayServer | null; onClose: 
 
 /* ------------------------------------------------------------------ page */
 
-/** Play hero: the mode's map art behind the title, live counts and Quick join. */
-function PlayHero({ title, description, heroMap, list, loading, mode, pickRule, favouriteMaps, anyJoinable }: {
+type ModeTab = { key: PlaySubMode; label: string; tag: string; route: string; Icon: typeof Swords }
+const MODE_TABS: ModeTab[] = [
+  { key: "5vs5", label: "5x5", tag: "Ranked", route: PAGE_ROUTES["play-5vs5"], Icon: Swords },
+  { key: "fun", label: "Fun", tag: "Casual", route: PAGE_ROUTES["play-fun"], Icon: Gamepad2 },
+  { key: "proleague", label: "Pro League", tag: "High rank", route: PAGE_ROUTES["play-proleague"], Icon: Crown },
+  { key: "tournaments", label: "Tournaments", tag: "Events", route: PAGE_ROUTES["play-tournaments"], Icon: Trophy },
+]
+const TOURNAMENT_PHASE = { registration: "Registration open", upcoming: "Starting soon", live: "Live now", finished: "Finished" } as const
+
+/** The lobby's mode switch: one tile per way to play, each with its real player count (or the tournament's state). */
+function ModeTabs({ active }: { active: PlaySubMode }) {
+  const { data: stats } = useApiQuery<HomeStats>((signal) => serversService.getHomeStats({ signal }), { queryKey: "play-mode-counts" })
+  const { data: tournaments } = useApiQuery((signal) => tournamentsService.list({ signal }), { queryKey: "play-tournament-state" })
+  const status = (key: PlaySubMode): { text: string; live: boolean } | null => {
+    if (key === "tournaments") {
+      if (!tournaments) return null
+      const current = tournaments.current
+      return current ? { text: TOURNAMENT_PHASE[current.phase], live: current.phase === "live" } : { text: "None scheduled", live: false }
+    }
+    const players = stats?.modes?.[key === "5vs5" ? "5x5" : key === "proleague" ? "pro" : "fun"]
+    if (players === undefined) return null
+    return { text: players > 0 ? `${players} playing` : "No one playing", live: players > 0 }
+  }
+  return (
+    <nav aria-label="Ways to play" className="grid grid-cols-2 gap-2 @3xl:grid-cols-4">
+      {MODE_TABS.map(({ key, label, tag, route, Icon }) => {
+        const on = key === active
+        const state = status(key)
+        return (
+          <Link
+            key={key}
+            to={route}
+            aria-current={on ? "page" : undefined}
+            className={cn(
+              "play-tab group relative flex min-w-0 items-center gap-3 overflow-hidden rounded-xl border px-3.5 py-3 transition-[border-color,background-color] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60",
+              on ? "play-tab-on border-[var(--line-strong)] bg-[var(--raised)]" : "border-[var(--glass-line)] bg-[var(--glass-fill)] hover:border-[var(--line-strong)] hover:bg-[var(--raised)]",
+            )}
+          >
+            <span className={cn("hidden size-9 shrink-0 items-center justify-center rounded-[9px] border transition-colors @md:flex", on ? "border-[var(--line-strong)] bg-[var(--bg)] text-[var(--text)]" : "border-[var(--line)] text-[var(--text-muted)] group-hover:text-[var(--text)]")}>
+              <Icon className="size-4" />
+            </span>
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <span className="play-label">{tag}</span>
+              <span className={cn("truncate text-[15px] font-semibold leading-tight", on ? "text-[var(--text)]" : "text-[var(--text-2)]")}>{label}</span>
+              <span className={cn("flex h-4 items-center gap-1.5 text-[11px] text-[var(--text-dim)] transition-opacity", state ? "opacity-100" : "opacity-0")}>
+                <span className={cn("size-1.5 shrink-0 rounded-full", state?.live ? "lx-live-dot bg-[var(--status-green)]" : "bg-[var(--text-faint)]")} />
+                <span className="truncate">{state?.text ?? " "}</span>
+              </span>
+            </span>
+          </Link>
+        )
+      })}
+    </nav>
+  )
+}
+
+/** Live figures of the mode, all counted from the server list itself. */
+function lobbyStats(list: PlayServerList | null) {
+  const servers = list?.servers ?? []
+  const open = servers.filter((server) => server.status !== "offline")
+  return [
+    { label: "Playing", value: list ? list.players : null, live: Boolean(list && list.players > 0) },
+    { label: "Live matches", value: list ? servers.filter((server) => server.status === "live").length : null },
+    { label: "Open servers", value: list ? servers.filter((server) => server.joinable).length : null },
+    { label: "Free slots", value: list ? open.reduce((sum, server) => sum + Math.max(0, server.maxPlayers - server.players), 0) : null },
+  ]
+}
+
+/**
+ * Play's lobby: the mode's map behind it, its name and live figures on the left, and the launch pad on the right with one
+ * big Play button that asks the API for the best open server and connects. A locked or signed-out Pro League shows its
+ * reason in the launch pad's place.
+ */
+function PlayLobby({ title, description, heroMap, list, loading, mode, pickRule, favouriteMaps, anyJoinable, launch }: {
   title: string
   description: string
   heroMap: string
@@ -546,6 +619,7 @@ function PlayHero({ title, description, heroMap, list, loading, mode, pickRule, 
   pickRule: string
   favouriteMaps: string[]
   anyJoinable: boolean
+  launch?: React.ReactNode
 }) {
   const art = cs2MapArtwork(heroMap)
   const [busy, setBusy] = useState(false)
@@ -561,78 +635,74 @@ function PlayHero({ title, description, heroMap, list, loading, mode, pickRule, 
       setBusy(false)
     }
   }
-  const live = Boolean(list && list.onlineServers > 0)
   return (
-    <section aria-label={title} className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
+    <section aria-label={title} className="play-panel relative overflow-hidden rounded-2xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
       {art && (
         <div aria-hidden="true" className="lx-map-drift pointer-events-none absolute inset-0">
-          <img key={heroMap} src={art} alt="" className="lx-map-img lx-swap-fade size-full object-cover opacity-30" />
+          <img key={heroMap} src={art} alt="" className="lx-map-img lx-swap-fade size-full object-cover opacity-35" />
         </div>
       )}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--card-surface)] via-[var(--card-surface)]/85 to-[var(--card-surface)]/30" />
-      <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
-      <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--card-surface)] via-[var(--card-surface)]/80 to-[var(--card-surface)]/25" />
+      <div aria-hidden="true" className="play-scan pointer-events-none absolute inset-0" />
 
-      <div className="relative z-10 flex flex-col gap-5 p-6 @3xl:min-h-[212px] @3xl:flex-row @3xl:items-end @3xl:justify-between @3xl:p-7">
-        <div key={title} className="lx-swap-in flex min-w-0 flex-col gap-3">
-          <h1 className="flex items-center gap-2.5 text-[28px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)] @2xl:text-[34px]">
-            <span aria-hidden="true" className="h-7 w-1 rounded-full bg-[var(--text-faint)]" />
-            {title}
-            {loading && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
-          </h1>
-          <span className="min-h-[46px] max-w-xl text-[14px] leading-relaxed text-[var(--text-2)] @3xl:min-h-0">{description}</span>
-          <div className="lx-stat-grid w-fit grid-flow-col">
-            <span className="lx-stat-cell min-w-[112px] gap-1.5 px-4 py-2.5">
-              <span className="lx-stat-label flex items-center gap-1.5">
-                <span className={cn("size-1.5 rounded-full", live ? "lx-live-dot bg-[var(--status-green)]" : "bg-[var(--text-faint)]")} />
-                Playing
-              </span>
-              <span className="text-lg font-semibold leading-none text-[var(--text)]">{list ? list.players : "—"}</span>
+      <div className="relative z-10 grid gap-6 p-5 @3xl:grid-cols-[minmax(0,1fr)_300px] @3xl:items-center @3xl:p-7">
+        <div key={title} className="lx-swap-in flex min-w-0 flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <span className="play-label flex items-center gap-2">
+              <span className={cn("size-1.5 rounded-full", list && list.onlineServers > 0 ? "lx-live-dot bg-[var(--status-green)]" : "bg-[var(--text-faint)]")} />
+              Lobby
+              {loading && <LoaderCircle aria-label="Updating" className="size-3 animate-spin" />}
             </span>
-            <span className="lx-stat-cell min-w-[112px] gap-1.5 px-4 py-2.5">
-              <span className="lx-stat-label">Servers online</span>
-              <span className="text-lg font-semibold leading-none text-[var(--text)]">{list ? list.onlineServers : "—"}</span>
-            </span>
+            <h1 className="text-[30px] font-bold leading-[1.05] tracking-[-0.8px] text-[var(--text)] @2xl:text-[40px]">{title}</h1>
+            <p className="max-w-lg text-[13px] leading-relaxed text-[var(--text-2)] @2xl:text-[15px]">{description}</p>
           </div>
+          <dl className="lx-stat-grid w-full grid-cols-2 @xl:w-fit @xl:grid-cols-4">
+            {lobbyStats(list).map((stat) => (
+              <div key={stat.label} className="lx-stat-cell min-w-[104px] gap-1.5 px-4 py-2.5">
+                <dt className="lx-stat-label flex items-center gap-1.5">
+                  {stat.live && <span className="lx-live-dot size-1.5 rounded-full bg-[var(--status-green)]" />}
+                  {stat.label}
+                </dt>
+                <dd className="text-lg font-semibold leading-none text-[var(--text)]">{stat.value ?? "—"}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
 
-        <div aria-label="Quick join" className="flex shrink-0 flex-col gap-2 rounded-xl border border-[var(--line-strong)] bg-[var(--panel)]/75 p-4 backdrop-blur-md @3xl:w-[320px]">
-          <span className="flex items-center gap-2 text-[13px] font-semibold text-[var(--text)]">
-            <Zap className="size-4 fill-[var(--text-2)] text-[var(--text-2)]" />
-            Quick join
-          </span>
-          {/* Always two lines tall, so every mode's hero is the same height. */}
-          <span key={pickRule} className="lx-swap-in line-clamp-2 min-h-[36px] text-xs leading-[1.5] text-[var(--text-muted)]">
-            {anyJoinable ? pickRule : mode === "fun" ? "Every Fun server is full or offline right now." : <>No open server right now. <Link to={PAGE_ROUTES["play-fun"]} className="text-[var(--text)] underline-offset-4 hover:underline">Fun Mode</Link> usually has room.</>}
-          </span>
-          <button type="button" disabled={!anyJoinable || busy} onClick={() => void playNow()} className={cn(primary, "group mt-1 h-11 gap-2 rounded-[10px] px-[22px] text-[15px]")}>
-            {busy ? <LoaderCircle className="size-4 animate-spin" /> : <Play className="size-4 fill-current transition-[scale] duration-300 group-hover:scale-110" />}
-            {anyJoinable ? "Play now" : "No open servers"}
-          </button>
-        </div>
+        {launch ?? (
+          <div aria-label="Quick play" className="play-launchpad relative flex flex-col items-center gap-3 rounded-2xl border border-[var(--line-strong)] bg-[var(--panel)] p-5 text-center">
+            <button
+              type="button"
+              disabled={!anyJoinable || busy}
+              onClick={() => void playNow()}
+              aria-label={anyJoinable ? `Play ${title} now` : "No open servers"}
+              className="play-launch group relative flex size-[112px] flex-col items-center justify-center gap-1 rounded-full bg-[var(--accent-solid)] text-[var(--bg)] transition-[transform,opacity] duration-200 hover:scale-[1.04] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--accent-solid)]/40 disabled:pointer-events-none disabled:opacity-35"
+            >
+              {busy ? <LoaderCircle className="size-7 animate-spin" /> : <Play className="size-7 translate-x-0.5 fill-current" />}
+              <span className="text-[13px] font-bold uppercase tracking-[0.18em]">Play</span>
+            </button>
+            <span key={pickRule} className="lx-swap-in line-clamp-2 min-h-[36px] max-w-[240px] text-xs leading-[1.5] text-[var(--text-muted)]">
+              {anyJoinable ? pickRule : mode === "fun" ? "Every Fun server is full or offline right now." : <>No open server right now. <Link to={PAGE_ROUTES["play-fun"]} className="text-[var(--text)] underline-offset-4 hover:underline">Fun Mode</Link> usually has room.</>}
+            </span>
+            <span className="play-label">or pick a server below</span>
+          </div>
+        )}
       </div>
     </section>
   )
 }
 
-function Header({ title, description, list, loading }: { title: string; description: string; list: PlayServerList | null; loading?: boolean }) {
+/** A group of servers under one heading (Live now, Waiting for players …) with its count. */
+function ServerGroup({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-4">
-      <div className="flex flex-col gap-1">
-        <h1 className="flex items-center gap-2 text-[22px] font-semibold leading-[1.2] tracking-[-0.3px] text-[var(--text)]">
-          {title}
-          {loading && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
-        </h1>
-        <span className="text-[13px] leading-[1.2] text-[var(--text-muted)]">{description}</span>
-      </div>
-      {list && list.onlineServers > 0 && (
-        <span className="flex items-center gap-2 text-[13px] text-[var(--text-muted)]">
-          <span className="size-1.5 rounded-full bg-[var(--status-green)]" />
-          {list.players} player{list.players === 1 ? "" : "s"} · {list.onlineServers} server{list.onlineServers === 1 ? "" : "s"}
-        </span>
-      )}
-    </div>
+    <section aria-label={title} className="flex flex-col gap-2.5">
+      <h2 className="flex items-center gap-2.5">
+        <span className="play-label text-[var(--text-muted)]">{title}</span>
+        <span className="text-[11px] text-[var(--text-dim)]">{count}</span>
+        <span aria-hidden="true" className="h-px flex-1 bg-[var(--line-soft)]" />
+      </h2>
+      {children}
+    </section>
   )
 }
 
@@ -690,7 +760,21 @@ function OptionList<T extends string>({ label, value, options, onChange }: { lab
   )
 }
 
-function ServerBrowser({ mode, title, description, pickRule, heroMap }: { mode: PlayMode; title: string; description: string; pickRule: string; heroMap: string }) {
+/**
+ * Servers in the order a player decides: live matches first, then servers waiting for players, then full or offline ones.
+ * With a status filter or another sort order the list stays one block in that order.
+ */
+function groupServers(servers: PlayServer[], grouped: boolean): { title: string | null; servers: PlayServer[] }[] {
+  if (!grouped) return [{ title: null, servers }]
+  const groups = [
+    { title: "Live now", servers: servers.filter((server) => server.status === "live") },
+    { title: "Waiting for players", servers: servers.filter((server) => server.status === "waiting" || server.status === "warmup") },
+    { title: "Full or offline", servers: servers.filter((server) => server.status === "full" || server.status === "offline") },
+  ]
+  return groups.filter((group) => group.servers.length > 0)
+}
+
+function ServerBrowser({ tab, mode, title, description, pickRule, heroMap, launch }: { tab: PlaySubMode; mode: PlayMode; title: string; description: string; pickRule: string; heroMap: string; launch?: React.ReactNode }) {
   const [params, setParams] = useViewParams()
   const filter = params.get("filter") ?? "all"
   const hideFull = params.get("full") === "hide"
@@ -742,7 +826,9 @@ function ServerBrowser({ mode, title, description, pickRule, heroMap }: { mode: 
     <TooltipProvider delayDuration={200}>
       <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
         <div className="@container flex flex-col gap-[18px] p-4 @2xl:p-6">
-          <PlayHero
+          <ModeTabs active={tab} />
+          <PlayLobby
+            launch={launch}
             title={title}
             description={description}
             heroMap={heroMap}
@@ -828,19 +914,24 @@ function ServerBrowser({ mode, title, description, pickRule, heroMap }: { mode: 
           ) : visible.length === 0 ? (
             <p className="py-16 text-center text-[13px] text-[var(--text-dim)]">{servers.length === 0 ? "No servers online right now." : "No server matches these filters."}</p>
           ) : (
-            view === "list" ? (
-              <div className="grid grid-cols-1 gap-2.5 @4xl:grid-cols-2">
-                {visible.map((server, index) => (
-                  <ServerRow key={server.id} index={index} server={server} favourite={favourites.includes(server.id)} onFavourite={() => toggle(server.id)} onDetails={() => update({ server: server.id })} />
-                ))}
-              </div>
-            ) : (
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3.5">
-                {visible.map((server, index) => (
-                  <ServerCard key={server.id} index={index} server={server} favourite={favourites.includes(server.id)} onFavourite={() => toggle(server.id)} onDetails={() => update({ server: server.id })} />
-                ))}
-              </div>
-            )
+            <div className="flex flex-col gap-5">
+              {groupServers(visible, statusFilter === "all" && sortOrder === "default").map((group) => {
+                const items = view === "list" ? (
+                  <div className="grid grid-cols-1 gap-2.5 @4xl:grid-cols-2">
+                    {group.servers.map((server, index) => (
+                      <ServerRow key={server.id} index={index} server={server} favourite={favourites.includes(server.id)} onFavourite={() => toggle(server.id)} onDetails={() => update({ server: server.id })} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3.5">
+                    {group.servers.map((server, index) => (
+                      <ServerCard key={server.id} index={index} server={server} favourite={favourites.includes(server.id)} onFavourite={() => toggle(server.id)} onDetails={() => update({ server: server.id })} />
+                    ))}
+                  </div>
+                )
+                return group.title ? <ServerGroup key={group.title} title={group.title} count={group.servers.length}>{items}</ServerGroup> : <div key="all">{items}</div>
+              })}
+            </div>
           )}
         </div>
         <ServerSheet server={selected} onClose={() => update({ server: null })} />
@@ -849,47 +940,47 @@ function ServerBrowser({ mode, title, description, pickRule, heroMap }: { mode: 
   )
 }
 
-function ProLocked({ access }: { access: CompetitiveAccess }) {
+/** Pro League's launch pad when the player may not join yet: their rank against the one it opens at, and how far to go. */
+function ProLockPad({ access }: { access: CompetitiveAccess }) {
   const exp = access.competitive?.current_exp ?? 1000
   const toGo = Math.max(0, PRO_LEAGUE_MIN_EXP - exp)
   const share = Math.min(100, (exp / PRO_LEAGUE_MIN_EXP) * 100)
   return (
-    <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
-      <div className="flex flex-col gap-[18px] p-6">
-        <Header title={MODES.proleague.title} description={MODES.proleague.description} list={null} />
-        <section className="relative flex flex-col items-center gap-4 overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-9 text-center">
-          <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10 opacity-60" />
-          <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
-          <span className="relative flex size-[52px] items-center justify-center rounded-[14px] border border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text-2)]"><Lock className="size-[22px]" /></span>
-          <span className="relative flex flex-wrap items-center justify-center gap-2 text-[17px] font-semibold text-[var(--text)]">
-            Pro League unlocks at
-            <RankLabel rankId={access.requiredRankId} rankName={access.requiredRankName} size={24} nameClassName="text-[17px] font-semibold" />
+    <div aria-label="Pro League is locked" className="play-launchpad relative flex flex-col items-center gap-3 rounded-2xl border border-[var(--line-strong)] bg-[var(--panel)] p-5 text-center">
+      <span className="flex size-12 items-center justify-center rounded-[12px] border border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text-2)]"><Lock className="size-5" /></span>
+      <span className="flex flex-wrap items-center justify-center gap-1.5 text-[13px] font-semibold text-[var(--text)]">
+        Opens at
+        <RankLabel rankId={access.requiredRankId} rankName={access.requiredRankName} size={20} nameClassName="text-[13px] font-semibold" />
+      </span>
+      <div className="flex w-full flex-col gap-1.5">
+        <div className="flex items-center justify-between text-[11px] text-[var(--text-muted)]">
+          <span className="flex items-center gap-1.5">
+            <CompetitiveRankBadge rankId={access.competitive?.rank_id ?? 7} rankName={access.competitive?.rank_name ?? "Your rank"} imageKey={access.competitive?.rank_image_key} size={18} />
+            You
           </span>
-          <span className="relative max-w-[440px] text-[13px] leading-[1.55] text-[var(--text-muted)]">
-            Pro League servers only let in players at that rank or above, so every match is even. Keep playing 5x5 to get there.
-          </span>
-          <div className="relative mt-1.5 flex w-full max-w-[460px] flex-col gap-2">
-            <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
-              <span className="flex items-center gap-2">
-                <CompetitiveRankBadge rankId={access.competitive?.rank_id ?? 7} rankName={access.competitive?.rank_name ?? "Your rank"} imageKey={access.competitive?.rank_image_key} size={24} />
-                You
-              </span>
-              <span className="flex items-center gap-2">
-                Required
-                <CompetitiveRankBadge rankId={access.requiredRankId} rankName={access.requiredRankName} size={24} />
-              </span>
-            </div>
-            <span className="h-2 overflow-hidden rounded-full bg-[var(--line-soft)]">
-              <span className="lx-progress-fill block h-full rounded-full transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]" style={{ width: `${share}%` }} />
-            </span>
-            <span className="text-center text-xs text-[var(--text-dim)]">{toGo.toLocaleString()} EXP to go</span>
-          </div>
-          <Link to={PAGE_ROUTES["play-5vs5"]} className={cn(primary, "relative mt-1 h-10 px-[18px] text-[13px]")}>
-            <Play className="size-3.5 fill-current" />
-            Play 5x5 to rank up
-          </Link>
-        </section>
+          <span>{toGo.toLocaleString()} EXP to go</span>
+        </div>
+        <span className="h-1.5 overflow-hidden rounded-full bg-[var(--line-soft)]">
+          <span className="lx-progress-fill block h-full rounded-full transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]" style={{ width: `${share}%` }} />
+        </span>
       </div>
+      <Link to={PAGE_ROUTES["play-5vs5"]} className={cn(primary, "h-9 w-full px-4 text-[13px]")}>
+        <Play className="size-3.5 fill-current" />
+        Play 5x5 to rank up
+      </Link>
+    </div>
+  )
+}
+
+/** Pro League's launch pad for a visitor: the servers below stay visible, signing in tells them whether they can join. */
+function ProSignInPad() {
+  const { loginWithSteam } = useAuth()
+  return (
+    <div aria-label="Sign in to play Pro League" className="play-launchpad relative flex flex-col items-center gap-3 rounded-2xl border border-[var(--line-strong)] bg-[var(--panel)] p-5 text-center">
+      <span className="flex size-12 items-center justify-center rounded-[12px] border border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text-2)]"><Lock className="size-5" /></span>
+      <span className="text-[13px] font-semibold text-[var(--text)]">For high-rank players</span>
+      <span className="max-w-[240px] text-xs leading-[1.5] text-[var(--text-muted)]">Sign in to see your rank and whether Pro League is open to you.</span>
+      <SteamLoginButton onClick={loginWithSteam} className="w-full" />
     </div>
   )
 }
@@ -903,23 +994,19 @@ export function PlayPage({ mode }: { mode: PlayPageMode }) {
     queryKey: isPro && isAuthenticated ? "competitive-proleague-access" : "competitive-proleague-access-disabled",
   })
 
-  if (isPro && !authLoading && !isAuthenticated) return <SteamLoginGate pageName="Pro League" />
-  if (isPro && (authLoading || (accessLoading && !access))) {
-    return (
-      <div className="flex flex-col gap-[18px] p-6" aria-hidden="true">
-        <Skeleton className="h-10 w-72 rounded-lg bg-[var(--raised)]" />
-        <Skeleton className="h-64 rounded-xl bg-[var(--glass-fill)]" />
-      </div>
-    )
+  // Pro League's servers are visible to everyone; only the launch pad changes with who is looking.
+  let launch: React.ReactNode = undefined
+  if (isPro) {
+    if (!authLoading && !isAuthenticated) launch = <ProSignInPad />
+    else if (authLoading || (accessLoading && !access)) launch = <Skeleton aria-hidden="true" className="h-[236px] rounded-2xl bg-[var(--raised)]" />
+    else if (!access && accessError) {
+      launch = (
+        <p className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-[var(--line-strong)] bg-[var(--panel)] p-5 text-center text-[13px] text-[var(--text-dim)]">
+          Could not check your Pro League access.
+          <button type="button" onClick={refetchAccess} className="inline-flex items-center gap-1.5 text-[var(--text-2)] transition-colors hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button>
+        </p>
+      )
+    } else if (access && !access.proLeagueUnlocked) launch = <ProLockPad access={access} />
   }
-  if (isPro && !access && accessError) {
-    return (
-      <p className="flex items-center justify-center gap-3 py-16 text-[13px] text-[var(--text-dim)]">
-        Could not check your Pro League access.
-        <button type="button" onClick={refetchAccess} className="inline-flex items-center gap-1.5 text-[var(--text-2)] transition-colors hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button>
-      </p>
-    )
-  }
-  if (isPro && access && !access.proLeagueUnlocked) return <ProLocked access={access} />
-  return <ServerBrowser mode={config.mode} title={config.title} description={config.description} pickRule={config.pickRule} heroMap={config.heroMap} />
+  return <ServerBrowser tab={mode} mode={config.mode} title={config.title} description={config.description} pickRule={config.pickRule} heroMap={config.heroMap} launch={launch} />
 }
