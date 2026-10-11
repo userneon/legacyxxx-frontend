@@ -136,7 +136,7 @@ export function App() {
               {isFeatureEnabled("clan") && <Route path="/clans" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
               {isFeatureEnabled("clan") && <Route path="/clan/:clanId" element={<Navigate to={{ pathname: location.pathname.replace(/^\/clan\//, "/clans/"), search: location.search }} replace />} />}
               {isFeatureEnabled("clan") && <Route path="/clans/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
-              <Route path="/skinchanger" element={<ProtectedPage pageName="Skinchanger"><SkinchangerPage /></ProtectedPage>} />
+              <Route path="/skinchanger" element={<SkinchangerPage />} />
               {isFeatureEnabled("compare") && <Route path="/compare" element={<ComparePage />} />}
               <Route path="/staff" element={<ProtectedPage pageName="Staff"><StaffPage /></ProtectedPage>} />
               {/* Checks live in the Staff page now; the older address opens it on that tab. */}
