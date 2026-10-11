@@ -642,6 +642,9 @@ export interface PenaltyEntry {
   term: string
   isPermanent: boolean
   isUnbanned: boolean
+  /** Who lifted it and when, when the records say: a lift from the website, Discord or a game server. */
+  liftedBy?: string | null
+  liftedAt?: string | null
   admin: string
   adminSteamId?: string
   adminAvatar?: string

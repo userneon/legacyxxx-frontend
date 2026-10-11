@@ -196,6 +196,12 @@ export function PenaltyDetailSheet({
                 <Tile label="Term"><TermLabel penalty={penalty} /></Tile>
                 <Tile label="Issued by">{penalty.admin || "System"}</Tile>
                 <Tile label="Date" wide>{formatPenaltyDate(penalty.date, true)}</Tile>
+                {penalty.isUnbanned && (
+                  <>
+                    <Tile label={penalty.type === "ban" ? "Unbanned by" : "Lifted by"}>{penalty.liftedBy || "Not recorded"}</Tile>
+                    <Tile label={penalty.type === "ban" ? "Unbanned on" : "Lifted on"}>{penalty.liftedAt ? formatPenaltyDate(penalty.liftedAt, true) : "Not recorded"}</Tile>
+                  </>
+                )}
               </div>
               {timed && (
                 <div className="flex flex-col gap-2 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3.5">
