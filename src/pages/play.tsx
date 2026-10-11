@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
-import { Copy, LayoutGrid, List, LoaderCircle, Lock, Play, RotateCcw, Star, X, Zap } from "lucide-react"
+import { ChevronDown, Copy, LayoutGrid, List, LoaderCircle, Lock, Play, RotateCcw, SlidersHorizontal, Star, X, Zap } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -17,6 +17,7 @@ import { PlayerAvatar } from "@/components/player-avatar"
 import { TeamIcon, teamTextClass, type TeamSide } from "@/components/team-icon"
 import { SteamLoginGate } from "@/components/steam-login-gate"
 import { Segmented } from "@/components/segmented"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -636,11 +637,65 @@ function Header({ title, description, list, loading }: { title: string; descript
   )
 }
 
+/** The Filter dropdown: which servers (by state) and in what order. Both live in the URL, so a link keeps them. */
+const STATUS_OPTIONS = [
+  { value: "all", label: "All servers" },
+  { value: "live", label: "Live now" },
+  { value: "waiting", label: "Not started yet" },
+  { value: "free", label: "Has a free slot" },
+] as const
+const SORT_OPTIONS = [
+  { value: "default", label: "Default order" },
+  { value: "most", label: "Most players" },
+  { value: "fewest", label: "Fewest players" },
+  { value: "name", label: "Name A–Z" },
+] as const
+type StatusFilter = (typeof STATUS_OPTIONS)[number]["value"]
+type SortOrder = (typeof SORT_OPTIONS)[number]["value"]
+
+const matchesStatus = (server: PlayServer, status: StatusFilter) => {
+  if (status === "live") return server.status === "live"
+  if (status === "waiting") return server.status === "waiting" || server.status === "warmup"
+  if (status === "free") return server.status !== "offline" && server.players < server.maxPlayers
+  return true
+}
+
+function sortServers(servers: PlayServer[], order: SortOrder) {
+  if (order === "most") return [...servers].sort((a, b) => b.players - a.players)
+  if (order === "fewest") return [...servers].sort((a, b) => a.players - b.players)
+  if (order === "name") return [...servers].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
+  return servers
+}
+
+function OptionList<T extends string>({ label, value, options, onChange }: { label: string; value: T; options: readonly { value: T; label: string }[]; onChange: (value: T) => void }) {
+  return (
+    <div role="radiogroup" aria-label={label} className="flex flex-col gap-0.5">
+      <span className="px-2 pb-1 text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--text-dim)]">{label}</span>
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          role="radio"
+          aria-checked={value === option.value}
+          onClick={() => onChange(option.value)}
+          className={cn("flex h-8 items-center justify-between gap-2 rounded-lg px-2 text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60", value === option.value ? "bg-[var(--line)] text-[var(--text)]" : "text-[var(--text-muted)] hover:bg-[var(--raised)] hover:text-[var(--text)]")}
+        >
+          {option.label}
+          {value === option.value && <span aria-hidden="true" className="size-1.5 rounded-full bg-[var(--text)]" />}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 function ServerBrowser({ mode, title, description, pickRule, heroMap }: { mode: PlayMode; title: string; description: string; pickRule: string; heroMap: string }) {
   const [params, setParams] = useViewParams()
   const filter = params.get("filter") ?? "all"
   const hideFull = params.get("full") === "hide"
   const onlyFavourites = params.get("fav") === "1"
+  const statusFilter: StatusFilter = STATUS_OPTIONS.find((option) => option.value === params.get("status"))?.value ?? "all"
+  const sortOrder: SortOrder = SORT_OPTIONS.find((option) => option.value === params.get("sort"))?.value ?? "default"
+  const activeFilters = (statusFilter !== "all" ? 1 : 0) + (sortOrder !== "default" ? 1 : 0)
   const selectedId = params.get("server")
   const { favourites, toggle } = useFavourites()
   const { view, choose } = useView()
@@ -671,8 +726,9 @@ function ServerBrowser({ mode, title, description, pickRule, heroMap }: { mode: 
     }
     return Array.from(values.entries()).sort((a, b) => a[1].localeCompare(b[1]))
   }, [servers, mode])
-  const visible = servers.filter((server) => {
+  const visible = sortServers(servers, sortOrder).filter((server) => {
     if (filter !== "all" && (mode === "fun" ? server.modeLabel.toLowerCase() : server.map.toLowerCase()) !== filter) return false
+    if (!matchesStatus(server, statusFilter)) return false
     if (hideFull && (server.status === "full" || server.status === "offline")) return false
     if (onlyFavourites && !favourites.includes(server.id)) return false
     return true
@@ -704,6 +760,31 @@ function ServerBrowser({ mode, title, description, pickRule, heroMap }: { mode: 
               className="scrollbar-hidden max-w-full overflow-x-auto"
             />
             <div className="flex flex-wrap items-center gap-2">
+            <Popover>
+              <div className={toggleTray}>
+                <PopoverTrigger asChild>
+                  <button type="button" aria-label="Filter servers" className={cn(toggleItem, "group", activeFilters > 0 ? toggleOn : toggleOff)}>
+                    <SlidersHorizontal className="size-3.5" />
+                    Filter
+                    {activeFilters > 0 && <span className="flex size-4 items-center justify-center rounded-full bg-[var(--text)] text-[10px] font-semibold text-[var(--bg)]">{activeFilters}</span>}
+                    <ChevronDown className="size-3.5 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                  </button>
+                </PopoverTrigger>
+              </div>
+              <PopoverContent align="end" sideOffset={8} className="w-[232px] rounded-xl border-[var(--line)] bg-[var(--panel)] p-2 shadow-[0_18px_44px_rgba(0,0,0,0.55)]">
+                <div className="flex flex-col gap-2.5">
+                  <OptionList label="Show" value={statusFilter} options={STATUS_OPTIONS} onChange={(value) => update({ status: value === "all" ? null : value })} />
+                  <span aria-hidden="true" className="h-px bg-[var(--line-soft)]" />
+                  <OptionList label="Sort by" value={sortOrder} options={SORT_OPTIONS} onChange={(value) => update({ sort: value === "default" ? null : value })} />
+                  {activeFilters > 0 && (
+                    <button type="button" onClick={() => update({ status: null, sort: null })} className="mt-0.5 flex h-8 items-center justify-center gap-1.5 rounded-lg text-[13px] text-[var(--text-muted)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)]">
+                      <RotateCcw className="size-3.5" />
+                      Reset
+                    </button>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
             <div role="group" aria-label="View" className={toggleTray}>
               <button type="button" aria-label="List view" aria-pressed={view === "list"} onClick={() => choose("list")} className={cn(toggleItem, "px-2.5", view === "list" ? toggleOn : toggleOff)}><List className="size-4" /></button>
               <button type="button" aria-label="Card view" aria-pressed={view === "cards"} onClick={() => choose("cards")} className={cn(toggleItem, "px-2.5", view === "cards" ? toggleOn : toggleOff)}><LayoutGrid className="size-4" /></button>
