@@ -124,7 +124,7 @@ function PrivacyPopover({ visibility, onSaved }: { visibility: Record<ProfileSec
     }
   }
   const rows: { key: ProfileSection; label: string }[] = [
-    { key: "stats", label: "Legacy-X stats" },
+    { key: "stats", label: "LEGACY-X stats" },
     { key: "matches", label: "Recent matches & maps" },
     { key: "faceit", label: "FACEIT stats" },
     { key: "loadout", label: "Loadout" },
@@ -229,10 +229,10 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
 
 function StaffCard({ staff, username }: { staff: NonNullable<ProfileOverview["staff"]>; username: string }) {
   return (
-    <section aria-label="Legacy-X team" className={cn(card, "flex flex-wrap items-center gap-4 border-[var(--line-strong)] bg-[var(--glass-fill)] px-[18px] py-3.5")}>
+    <section aria-label="LEGACY-X team" className={cn(card, "flex flex-wrap items-center gap-4 border-[var(--line-strong)] bg-[var(--glass-fill)] px-[18px] py-3.5")}>
       <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-[var(--raised)] text-[var(--text-2)] ring-1 ring-inset ring-[var(--line-strong)]">{staff.role === "Owner" ? <Crown className="size-4" /> : <Shield className="size-4" />}</span>
       <span className="flex min-w-[220px] flex-1 flex-col gap-[3px]">
-        <span className="text-sm font-semibold text-[var(--text)]">Legacy-X team · {staff.role}</span>
+        <span className="text-sm font-semibold text-[var(--text)]">LEGACY-X team · {staff.role}</span>
         <span className="text-[13px] text-[var(--text-muted)]">{staff.description} Staff never ask for your password or items.</span>
       </span>
       <Link to={`${PAGE_ROUTES.penalties}?admin=${encodeURIComponent(username)}`} className="flex items-center gap-1.5 border-r border-[var(--line)] pr-3.5 text-[13px] text-[var(--text-2)] transition-colors hover:text-[var(--text)]">
@@ -381,7 +381,7 @@ const EMPTY_STATS = [{ key: "matches", label: "Matches" }, { key: "winRate", lab
 /** Before a first match there is nothing to count: the same frame with dashes, never made-up zeros. */
 function EmptyStatsRow() {
   return (
-    <section aria-label="Legacy-X stats" className="lx-stat-grid grid-cols-2 sm:grid-flow-col sm:grid-cols-none sm:auto-cols-fr">
+    <section aria-label="LEGACY-X stats" className="lx-stat-grid grid-cols-2 sm:grid-flow-col sm:grid-cols-none sm:auto-cols-fr">
       {EMPTY_STATS.map((tile) => (
         <div key={tile.key} className="lx-stat-cell px-4 py-3.5">
           <span className="lx-stat-label">{tile.label}</span>
@@ -395,7 +395,7 @@ function EmptyStatsRow() {
 function StatsRow({ stats }: { stats: NonNullable<ProfileOverview["stats"]> }) {
   const format = (key: string, value: number) => (key === "winRate" || key === "hs" ? `${value}%` : key === "kd" ? value.toFixed(2) : value.toLocaleString())
   return (
-    <section aria-label="Legacy-X stats" className="lx-stat-grid grid-cols-2 sm:grid-flow-col sm:grid-cols-none sm:auto-cols-fr">
+    <section aria-label="LEGACY-X stats" className="lx-stat-grid grid-cols-2 sm:grid-flow-col sm:grid-cols-none sm:auto-cols-fr">
       {stats.map((tile) => (
         <div key={tile.key} title={format(tile.key, tile.value)} className="lx-stat-cell px-4 py-3.5">
           <span className="lx-stat-label">{tile.label}</span>

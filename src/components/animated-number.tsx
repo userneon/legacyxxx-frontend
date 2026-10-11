@@ -10,7 +10,7 @@ interface AnimatedNumberProps {
   suffix?: string
 }
 
-/** Motion always runs in full on Legacy-X (no reduced-motion mode). */
+/** Motion always runs in full on LEGACY-X (no reduced-motion mode). */
 const prefersReducedMotion = () => false
 
 // Counts from the previously shown value to the new one so live refreshes glide instead of jumping.

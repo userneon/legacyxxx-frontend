@@ -249,7 +249,7 @@ function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () =
             <X className="size-4" />
           </button>
         </div>
-        <DialogDescription className="sr-only">Rate Legacy-X and describe your experience.</DialogDescription>
+        <DialogDescription className="sr-only">Rate LEGACY-X and describe your experience.</DialogDescription>
         <div className="flex flex-col gap-[18px] p-5">
           <div className="flex flex-col gap-2">
             <span className="text-xs text-[var(--text-muted)]">Your rating</span>
@@ -396,7 +396,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
           />
           <PageBarEnd>
             {loading && reviews.length > 0 && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
-            <span className="text-[13px] text-[var(--text-dim)] max-xl:hidden">What players say about Legacy-X.</span>
+            <span className="text-[13px] text-[var(--text-dim)] max-xl:hidden">What players say about LEGACY-X.</span>
             <Segmented
               ariaLabel="Sort"
               size="sm"

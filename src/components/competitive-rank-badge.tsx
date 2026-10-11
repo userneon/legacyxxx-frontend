@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils"
 
 /**
- * Legacy-X rank emblems (RANK-SYSTEM.md section 4): 18 ranks in six tiers, drawn by the
+ * LEGACY-X rank emblems (RANK-SYSTEM.md section 4): 18 ranks in six tiers, drawn by the
  * supplied SVGs in public/ranks/rank-01.svg … rank-18.svg. The API names the emblem with
  * `rank_image_key`; the tier colour is only ever used on the emblem and the rank name next to it.
  */

@@ -205,7 +205,7 @@ function penalties() {
     term,
     isPermanent,
     isUnbanned,
-    admin: "Legacy-X Admin",
+    admin: "LEGACY-X Admin",
     expiresAt: lengthHours === null ? null : new Date(now - ageHours * HOUR + lengthHours * HOUR).toISOString(),
     date: new Date(now - ageHours * HOUR).toISOString(),
   }))
@@ -274,8 +274,8 @@ function tournament() {
   const final = [match("f1", "Final", 7, null, null, null, null, "upcoming", 4, null)]
   return {
     id: "mock-cup",
-    name: "Legacy-X Autumn Cup 2026",
-    description: "Eight teams, single elimination, best of one until the final. Played on Legacy-X servers with GOTV on every match.",
+    name: "LEGACY-X Autumn Cup 2026",
+    description: "Eight teams, single elimination, best of one until the final. Played on LEGACY-X servers with GOTV on every match.",
     phase: "live" as const,
     format: "5v5 · BO1 · Final BO3",
     prizePool: "1,500,000₮",
@@ -306,7 +306,7 @@ function tournamentList() {
   return {
     current: summary,
     past: [
-      { id: "mock-summer", name: "Legacy-X Summer Cup 2026", startsAt: new Date(Date.now() - 70 * 24 * HOUR).toISOString(), winner: "Khan Esports" },
+      { id: "mock-summer", name: "LEGACY-X Summer Cup 2026", startsAt: new Date(Date.now() - 70 * 24 * HOUR).toISOString(), winner: "Khan Esports" },
       { id: "mock-spring", name: "Spring Clash 2026", startsAt: new Date(Date.now() - 160 * 24 * HOUR).toISOString(), winner: "Steppe Wolves" },
       { id: "mock-winter", name: "Winter Showdown 2025", startsAt: new Date(Date.now() - 280 * 24 * HOUR).toISOString(), winner: "Gobi Snipers" },
     ],
@@ -423,7 +423,7 @@ function catalog(query: Record<string, string | number | boolean | undefined | n
   else if (category === "agent") items = ["Sir Bloody Darryl", "Cmdr. Mae", "Number K", "Lt. Commander Ricksaw"].map((name, index) => item(`agent-${index}`, "agent", null, name, null, { rarity: index % 2 ? "Classified" : "Covert", team: query?.team === "ct" ? "Counter-Terrorist" : "Terrorist" }))
   else if (category === "music_kit") items = ["Neck Deep", "Amon Tobin", "Knock2", "The Verkkars"].map((name, index) => item(`music-${index}`, "music_kit", null, `Music Kit | ${name}`, null))
   else if (category === "pin") items = ["Dust II Pin", "Mirage Pin", "Guardian Pin", "Howl Pin"].map((name, index) => item(`pin-${index}`, "pin", null, name, null))
-  else if (category === "sticker" || category === "charm") items = ["Legacy-X", "Mongolia", "Headshot", "Clutch King"].map((name, index) => item(`${category}-${index}`, category, null, `${category === "sticker" ? "Sticker" : "Charm"} | ${name}`, null))
+  else if (category === "sticker" || category === "charm") items = ["LEGACY-X", "Mongolia", "Headshot", "Clutch King"].map((name, index) => item(`${category}-${index}`, category, null, `${category === "sticker" ? "Sticker" : "Charm"} | ${name}`, null))
   const matching = search ? items.filter((entry) => entry.display_name.toLowerCase().includes(search)) : items
   return { data: matching.slice(offset, offset + limit), pagination: { limit, offset, total: matching.length } }
 }
@@ -481,7 +481,7 @@ function profileOverview(identity: string) {
     // Only the sample Owner has Respect and links, like the real Owner profile will.
     ...(index === 0 ? {
       respect: ownerRespect,
-      message: "Legacy-X will always be on top.",
+      message: "LEGACY-X will always be on top.",
       team: [
         { steamId: "7656119800000001", username: NAMES[1], avatar: "", role: "Manager" },
         { steamId: "7656119800000002", username: NAMES[2], avatar: "", role: "Admin" },

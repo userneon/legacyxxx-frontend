@@ -1,5 +1,5 @@
 /**
- * External Legacy-X links in one place. Each can be overridden per deployment through a
+ * External LEGACY-X links in one place. Each can be overridden per deployment through a
  * VITE_* variable; the Discord invite is the community server the Home page already links to.
  * A link that resolves to null renders no button at all (never a dead one).
  */

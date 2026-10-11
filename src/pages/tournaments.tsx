@@ -79,7 +79,7 @@ function PageHeader({ loading }: { loading?: boolean }) {
           {PAGE_TITLES["play-tournaments"]}
           {loading && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
         </h1>
-        <span className="text-[14px] leading-[1.3] text-[var(--text-2)]">5v5 events on Legacy-X servers.</span>
+        <span className="text-[14px] leading-[1.3] text-[var(--text-2)]">5v5 events on LEGACY-X servers.</span>
       </div>
     </div>
   )
@@ -247,7 +247,7 @@ function Overview({ tournament, now }: { tournament: TournamentDetail; now: numb
           {[
             <>Join solo and we balance teams by EXP when registration closes, or register a team of {tournament.teamSize}.</>,
             <>Check in before the start — players who don't check in lose their spot.</>,
-            <>Matches are played on Legacy-X servers; connect from this page when your match is called.</>,
+            <>Matches are played on LEGACY-X servers; connect from this page when your match is called.</>,
             <>Single elimination{tournament.format ? ` · ${tournament.format}` : ""}.</>,
           ].map((text: ReactNode, index) => (
             <li key={index} className="flex gap-3">

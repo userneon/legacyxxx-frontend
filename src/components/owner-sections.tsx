@@ -40,14 +40,14 @@ function CommunityNow({ memberSince }: { memberSince: string | null }) {
     cells.push({ label: "Live servers", value: <AnimatedNumber value={stats.liveServers} /> })
     cells.push({ label: "Matches today", value: <AnimatedNumber value={stats.matchesToday} /> })
   }
-  if (memberSince) cells.push({ label: "On Legacy-X since", value: <span className="text-[20px]">{formatDate(memberSince)}</span> })
+  if (memberSince) cells.push({ label: "On LEGACY-X since", value: <span className="text-[20px]">{formatDate(memberSince)}</span> })
   return (
-    <section aria-label="Legacy-X right now" className="lx-stat-grid grid-cols-2 sm:grid-cols-4">
+    <section aria-label="LEGACY-X right now" className="lx-stat-grid grid-cols-2 sm:grid-cols-4">
       {cells.map((cell) => (
         <div key={cell.label} className="lx-stat-cell">
           <span className="lx-stat-label">{cell.label}</span>
           <span className={cn("text-[26px] font-bold leading-none", cell.flagship ? "text-[var(--brand-bright)]" : "text-[var(--text)]")}>{cell.value}</span>
-          {cell.label === "On Legacy-X since" && memberSince && <span className="text-xs text-[var(--text-dim)]">{daysSince(memberSince).toLocaleString()} days</span>}
+          {cell.label === "On LEGACY-X since" && memberSince && <span className="text-xs text-[var(--text-dim)]">{daysSince(memberSince).toLocaleString()} days</span>}
         </div>
       ))}
     </section>

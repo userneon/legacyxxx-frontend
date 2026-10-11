@@ -382,7 +382,7 @@ function Website() {
     saved.flash()
   }
   return (
-    <Section id="website" index={2} title="Website" description="How Legacy-X looks and behaves on this device. Changes apply right away." aside={saved.node}>
+    <Section id="website" index={2} title="Website" description="How LEGACY-X looks and behaves on this device. Changes apply right away." aside={saved.node}>
       <Row title="Start with sidebar collapsed" description="Open the site with the icon-only sidebar.">
         <Switch label="Start with sidebar collapsed" checked={prefs.sidebarCollapsed} onChange={(next) => set("sidebarCollapsed", next)} />
       </Row>

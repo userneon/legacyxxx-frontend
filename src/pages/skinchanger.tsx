@@ -210,7 +210,7 @@ function savedSkinLabel(item: SkinchangerCatalogItem) {
   return skin.trim().replace(wearSuffix, "")
 }
 
-/** Motion always runs in full on Legacy-X (no reduced-motion mode). */
+/** Motion always runs in full on LEGACY-X (no reduced-motion mode). */
 function motionReduced() {
   return false
 }
