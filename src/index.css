@@ -343,6 +343,31 @@ body::before {
 [class*="glass-fill"] {
   background-image: var(--glass-sheen);
 }
+/* Light sweep: a soft band of light crosses a glass card once, left to right, when the pointer enters it. It is a
+   pseudo-element with its own transition, so the card's own transitions and shadows are untouched. Cards get it when they
+   are an article, link, button or list item, or already react to hover (a class with "hover:"); big panels (plain
+   sections and divs) do not, so a whole page does not flash. Any element can opt in with .lx-sweep. */
+:is(:is([class*="glass-fill"], .glass, .lx-glass):is(article, a, button, li, [role="button"], [class*="hover:"]), .lx-sweep):not(textarea, input, [class~="absolute"], [class~="fixed"], [class~="sticky"]) {
+  position: relative;
+}
+:is(:is([class*="glass-fill"], .glass, .lx-glass):is(article, a, button, li, [role="button"], [class*="hover:"]), .lx-sweep):not(textarea, input)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.085) 50%, transparent 62%) no-repeat;
+  background-size: 260% 100%;
+  background-position: 130% 0;
+}
+:is(:is([class*="glass-fill"], .glass, .lx-glass):is(article, a, button, li, [role="button"], [class*="hover:"]), .lx-sweep):not(textarea, input):hover::after {
+  background-position: -30% 0;
+  transition: background-position 1100ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(:is([class*="glass-fill"], .glass, .lx-glass):is(article, a, button, li, [role="button"], [class*="hover:"]), .lx-sweep):not(textarea, input):hover::after { transition: none; background-position: 130% 0; }
+}
 /* Dialogs, popovers and side sheets float over the page: dark glass with a real blur and the same shine. */
 [data-slot="dialog-content"],
 [data-slot="alert-dialog-content"],

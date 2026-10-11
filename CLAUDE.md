@@ -103,6 +103,8 @@ Home adds a soft crimson light (`.lx-glass-page`). Stats and timers use `.lx-sta
 near-black and every card that uses it (or `.glass` / `.lx-glass`) gets `--glass-sheen`, a 1px light top edge plus a faint diagonal shine,
 as a background image. Cards never blur (the moving beams under them would repaint a blur every frame). Only what floats over the page,
 dialogs, alert dialogs, popovers and `.lx-sheet`, uses `backdrop-filter` (`--glass-float`). Keep the shine white and faint; no colour.
+A glass card that is an article, link, button or list item (or already has a `hover:` class) also gets a one-time light sweep across it when the pointer
+enters (a pseudo-element, so the card's own transitions are untouched; off for reduced motion). `.lx-sweep` opts any other element in.
 
 ## Icons and assets
 
