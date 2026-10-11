@@ -265,8 +265,9 @@ function ServerCard({ server, favourite, onFavourite, onDetails, index }: { serv
 }
 
 /**
- * One server as a row: the map is the row's background, fading out from the left so the text on it stays clean. Wide
- * rows hold everything on one line; narrow ones stack name, slots and buttons.
+ * One server as a row: the map is the row's background, fading out from the left so the text on it stays clean. Rows sit
+ * two to a line on wide pages, so a row lays itself out by its own width (a container query): wide, everything on one line;
+ * narrower, the name and the small buttons on top, the slots and Connect underneath.
  */
 function ServerRow({ server, favourite, onFavourite, onDetails, index }: { server: PlayServer; favourite: boolean; onFavourite: () => void; onDetails: () => void; index: number }) {
   const connectable = server.joinable && validAddress(server.connectAddress)
@@ -282,7 +283,7 @@ function ServerRow({ server, favourite, onFavourite, onDetails, index }: { serve
   return (
     <article
       style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}
-      className={cn("lx-fx-card group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3.5 @2xl:min-h-[84px] @2xl:flex-row @2xl:items-center @2xl:gap-5 @2xl:py-3 @2xl:pl-[168px] @2xl:pr-3.5", unavailable && "opacity-70 hover:opacity-100")}
+      className={cn("lx-fx-card @container/row group relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]", unavailable && "opacity-70 hover:opacity-100")}
     >
       {art && (
         <img
@@ -292,28 +293,35 @@ function ServerRow({ server, favourite, onFavourite, onDetails, index }: { serve
           className={cn("lx-row-art", loaded && "lx-row-art-on")}
         />
       )}
-      <div className="relative z-[2] flex min-w-0 flex-1 flex-col gap-1.5">
-        <span className="truncate text-sm font-semibold text-[var(--text)] transition-colors duration-500 group-hover:text-white" title={server.name}>{server.name}</span>
-        <span className="flex min-w-0 items-center gap-2.5">
-          <StatusPill server={server} />
-          <span className="truncate text-xs text-[var(--text-muted)]">{cs2MapLabel(server.map)}{server.mode === "fun" ? ` · ${funModeLabel(server.modeLabel)}` : ""}</span>
-        </span>
-      </div>
-      <div className="relative z-[2] flex items-center @2xl:w-[260px] @2xl:shrink-0"><Slots server={server} /></div>
-      <div className="relative z-[2] flex shrink-0 items-center gap-2">
-        <FavouriteButton inline favourite={favourite} name={server.name} onToggle={onFavourite} />
-        <button type="button" aria-label={`Copy ${server.name} IP`} disabled={!server.connectAddress} onClick={() => void copyAddress(server.connectAddress)} className={cn(secondary, "size-[34px] px-0")}>
-          <Copy className="size-3.5" />
-        </button>
-        <button type="button" aria-label={`${server.name} details`} onClick={onDetails} className={cn(secondary, "size-[34px] px-0")}>
-          <Info className="size-3.5" />
-        </button>
-        {connectable ? <span className="flex w-[118px] @2xl:w-[124px]">{connectButton}</span> : (
-          <Tooltip>
-            <TooltipTrigger asChild><span className="flex w-[118px] @2xl:w-[124px]" tabIndex={0}>{connectButton}</span></TooltipTrigger>
-            <TooltipContent>{server.status === "offline" ? "Server is offline" : server.status === "full" ? "Server is full" : "No connection address"}</TooltipContent>
-          </Tooltip>
-        )}
+      <div className="relative z-[2] flex flex-col gap-3 p-3.5 @3xl/row:min-h-[84px] @3xl/row:flex-row @3xl/row:items-center @3xl/row:gap-5 @3xl/row:py-3 @3xl/row:pl-[168px] @3xl/row:pr-3.5">
+        {/* "contents" on wide rows: the two halves dissolve and the four parts line up in one row by their order. */}
+        <div className="flex items-start justify-between gap-3 @3xl/row:contents">
+          <div className="order-1 flex min-w-0 flex-1 flex-col gap-1.5">
+            <span className="truncate text-sm font-semibold text-[var(--text)] transition-colors duration-500 group-hover:text-white" title={server.name}>{server.name}</span>
+            <span className="flex min-w-0 items-center gap-2.5">
+              <StatusPill server={server} />
+              <span className="truncate text-xs text-[var(--text-muted)]">{cs2MapLabel(server.map)}{server.mode === "fun" ? ` · ${funModeLabel(server.modeLabel)}` : ""}</span>
+            </span>
+          </div>
+          <div className="order-3 flex shrink-0 items-center gap-2">
+            <FavouriteButton inline favourite={favourite} name={server.name} onToggle={onFavourite} />
+            <button type="button" aria-label={`Copy ${server.name} IP`} disabled={!server.connectAddress} onClick={() => void copyAddress(server.connectAddress)} className={cn(secondary, "size-[34px] px-0")}>
+              <Copy className="size-3.5" />
+            </button>
+            <button type="button" aria-label={`${server.name} details`} onClick={onDetails} className={cn(secondary, "size-[34px] px-0")}>
+              <Info className="size-3.5" />
+            </button>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 @3xl/row:contents">
+          <div className="order-2 flex min-w-0 flex-1 items-center @3xl/row:w-[250px] @3xl/row:flex-none"><Slots server={server} /></div>
+          {connectable ? <span className="order-4 flex w-[124px] shrink-0">{connectButton}</span> : (
+            <Tooltip>
+              <TooltipTrigger asChild><span className="order-4 flex w-[124px] shrink-0" tabIndex={0}>{connectButton}</span></TooltipTrigger>
+              <TooltipContent>{server.status === "offline" ? "Server is offline" : server.status === "full" ? "Server is full" : "No connection address"}</TooltipContent>
+            </Tooltip>
+          )}
+        </div>
       </div>
     </article>
   )
@@ -321,13 +329,12 @@ function ServerRow({ server, favourite, onFavourite, onDetails, index }: { serve
 
 function RowSkeleton() {
   return (
-    <div className="flex h-[84px] items-center gap-5 overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3.5" aria-hidden="true">
-      <div className="flex flex-1 flex-col gap-2.5">
-        <Skeleton className="h-3 w-1/3 rounded-full bg-[var(--line)]" />
-        <Skeleton className="h-2.5 w-1/5 rounded-full bg-[var(--line-soft)]" />
+    <div className="flex h-[96px] flex-col justify-between gap-3 overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3.5" aria-hidden="true">
+      <div className="flex flex-col gap-2.5">
+        <Skeleton className="h-3 w-1/2 rounded-full bg-[var(--line)]" />
+        <Skeleton className="h-2.5 w-1/4 rounded-full bg-[var(--line-soft)]" />
       </div>
-      <Skeleton className="hidden h-3.5 w-[260px] rounded bg-[var(--line-soft)] @2xl:block" />
-      <Skeleton className="h-[34px] w-[200px] rounded-lg bg-[var(--raised)]" />
+      <Skeleton className="h-[34px] w-full rounded-lg bg-[var(--raised)]" />
     </div>
   )
 }
@@ -671,7 +678,7 @@ function ServerBrowser({ mode, title, description, pickRule, heroMap }: { mode: 
           </div>
           {!data && loading ? (
             view === "list"
-              ? <div className="flex flex-col gap-2.5">{Array.from({ length: 5 }, (_, index) => <RowSkeleton key={index} />)}</div>
+              ? <div className="grid grid-cols-1 gap-2.5 @4xl:grid-cols-2">{Array.from({ length: 6 }, (_, index) => <RowSkeleton key={index} />)}</div>
               : <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3.5">{Array.from({ length: 6 }, (_, index) => <CardSkeleton key={index} />)}</div>
           ) : error && !data ? (
             <p className="flex items-center justify-center gap-3 py-16 text-[13px] text-[var(--text-dim)]">
@@ -682,7 +689,7 @@ function ServerBrowser({ mode, title, description, pickRule, heroMap }: { mode: 
             <p className="py-16 text-center text-[13px] text-[var(--text-dim)]">{servers.length === 0 ? "No servers online right now." : "No server matches these filters."}</p>
           ) : (
             view === "list" ? (
-              <div className="flex flex-col gap-2.5">
+              <div className="grid grid-cols-1 gap-2.5 @4xl:grid-cols-2">
                 {visible.map((server, index) => (
                   <ServerRow key={server.id} index={index} server={server} favourite={favourites.includes(server.id)} onFavourite={() => toggle(server.id)} onDetails={() => update({ server: server.id })} />
                 ))}
