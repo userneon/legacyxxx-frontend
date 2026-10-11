@@ -121,7 +121,7 @@ four mode tiles on top (5x5, Fun, Pro League, Tournaments, each with its real pl
 has a white bar under it), then the lobby panel with the mode's map behind faint scan lines, corner ticks, spaced-capital labels,
 four live figures counted from the server list (playing, live matches, open servers, free slots) and a round white Play button with
 a slow violet ring. Servers below are grouped as Live now, Waiting for players and Full or offline (one block when a status filter or
-another sort is picked). Pro League shows its servers to everyone; only the launch pad turns into "sign in" or the rank lock.
+another sort is picked). Pro League is closed to visitors (sign-in page); a signed-in player below the required rank sees the servers with the rank lock in the launch pad.
 Play is exempt from the "no hero on other pages" rule; nothing else borrows its look.
 
 ### Server rows (owner pick 2026-10-11)

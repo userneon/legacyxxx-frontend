@@ -45,8 +45,6 @@ import defaultMusicKit from "@/assets/skinchanger/default-music-kit.webp"
 import { VerifiedBadge } from "@/components/verified-badge"
 import { setSkinchangerView, useSkinchangerView } from "@/lib/skinchanger-view"
 import { SkinCollections } from "@/components/skin-collections"
-import { useAuth } from "@/hooks/use-auth"
-import { SteamLoginButton } from "@/components/steam-login-gate"
 import { isFeatureEnabled } from "@/lib/features"
 import teamTIcon from "@/assets/skinchanger/team-t.webp"
 import teamCtIcon from "@/assets/skinchanger/team-ct.webp"
@@ -245,13 +243,7 @@ function cascadeTiles(root: HTMLElement | null, selector: string) {
   return () => animations.forEach((animation) => animation.cancel())
 }
 
-/** A visitor's loadout: nothing saved yet, so the grid shows the default look of every weapon. */
-const GUEST_LOADOUT = { loadout: { version: 0, skinchanger_loadout_entries: [] as SkinchangerLoadoutEntry[] } }
-
 export function SkinchangerPage() {
-  // Visitors browse every skin; saving one (and collections) asks them to sign in with Steam.
-  const { isAuthenticated, loading: authLoading, loginWithSteam } = useAuth()
-  const guest = !authLoading && !isAuthenticated
   const [collection, setCollection] = useState<CollectionId>("skins")
   const view = useSkinchangerView()
   const [skinGroup, setSkinGroup] = useState<SkinchangerFirearmGroup | "agents">("Rifles")
@@ -302,9 +294,8 @@ export function SkinchangerPage() {
     useApiQuery((signal) => skinchangerService.getCatalog({ category: "knife", limit: 100, offset: 0 }, { signal }), { queryKey: "grid:knives" })
   const { data: gloveModels, loading: glovesLoading, error: glovesError, refetch: refetchGloves } =
     useApiQuery((signal) => skinchangerService.getCatalog({ category: "glove", limit: 100, offset: 0 }, { signal }), { queryKey: "grid:gloves" })
-  const { data: savedLoadout, loading: loadoutLoading, error: loadoutError, refetch: refetchLoadout } =
-    useApiQuery((signal) => skinchangerService.getLoadout({ signal }), { enabled: isAuthenticated, queryKey: isAuthenticated ? "skinchanger-loadout" : "skinchanger-loadout-guest" })
-  const loadoutResponse = guest ? GUEST_LOADOUT : savedLoadout
+  const { data: loadoutResponse, loading: loadoutLoading, error: loadoutError, refetch: refetchLoadout } =
+    useApiQuery((signal) => skinchangerService.getLoadout({ signal }))
   const { data: stickerCatalog, loading: stickersLoading, error: stickerCatalogError, refetch: refetchStickers } = useApiQuery(
     (signal) => skinchangerService.getCatalog({ category: "sticker", query: accessoryQuery || undefined, limit: 60, offset: 0 }, { signal }),
     { enabled: Boolean(selected && accessoryPicker === "sticker"), queryKey: `sticker:${accessoryQuery.trim()}` },
@@ -738,11 +729,6 @@ export function SkinchangerPage() {
 
   /** Closes at once; the card already shows the new look while the save runs. */
   const saveAndClose = () => {
-    if (guest) {
-      toast("Sign in to save this look", { description: "Your skins are kept on your LEGACY-X account and show on every server." })
-      loginWithSteam()
-      return
-    }
     void equipSelected()
     closePicker()
   }
@@ -1228,12 +1214,7 @@ export function SkinchangerPage() {
 
       {/* pt-5 leaves room for the cards' hover lift: the scroll area clips anything above its top. */}
       <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 pb-7 pt-5">
-        {view === "collections" && isFeatureEnabled("skinCollections") && guest ? (
-          <div className="mx-auto flex max-w-md flex-col items-center gap-3 py-16 text-center">
-            <p className="text-[13px] leading-relaxed text-[var(--text-muted)]">Collections are loadouts other players shared. Sign in to browse them and put one on in a click.</p>
-            <SteamLoginButton onClick={loginWithSteam} />
-          </div>
-        ) : view === "collections" && isFeatureEnabled("skinCollections") ? (
+        {view === "collections" && isFeatureEnabled("skinCollections") ? (
           <SkinCollections onApplied={() => { refetchLoadout(); setSkinchangerView("loadout") }} />
         ) : gridError ? (
           <QueryState loading={false} error={{ ...gridError, message: "Could not load the collection. Please try again." }} empty={false} onRetry={() => { refetchFirearms(); refetchKnives(); refetchGloves(); refetchLoadout() }} />

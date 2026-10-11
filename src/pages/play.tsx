@@ -16,7 +16,7 @@ import { PAGE_ROUTES } from "@/lib/routes"
 import { CompetitiveRankBadge, RankLabel } from "@/components/competitive-rank-badge"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { TeamIcon, teamTextClass, type TeamSide } from "@/components/team-icon"
-import { SteamLoginButton } from "@/components/steam-login-gate"
+import { SteamLoginGate } from "@/components/steam-login-gate"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -972,19 +972,6 @@ function ProLockPad({ access }: { access: CompetitiveAccess }) {
   )
 }
 
-/** Pro League's launch pad for a visitor: the servers below stay visible, signing in tells them whether they can join. */
-function ProSignInPad() {
-  const { loginWithSteam } = useAuth()
-  return (
-    <div aria-label="Sign in to play Pro League" className="play-launchpad relative flex flex-col items-center gap-3 rounded-2xl border border-[var(--line-strong)] bg-[var(--panel)] p-5 text-center">
-      <span className="flex size-12 items-center justify-center rounded-[12px] border border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text-2)]"><Lock className="size-5" /></span>
-      <span className="text-[13px] font-semibold text-[var(--text)]">For high-rank players</span>
-      <span className="max-w-[240px] text-xs leading-[1.5] text-[var(--text-muted)]">Sign in to see your rank and whether Pro League is open to you.</span>
-      <SteamLoginButton onClick={loginWithSteam} className="w-full" />
-    </div>
-  )
-}
-
 export function PlayPage({ mode }: { mode: PlayPageMode }) {
   const config = MODES[mode]
   const { isAuthenticated, loading: authLoading } = useAuth()
@@ -994,11 +981,11 @@ export function PlayPage({ mode }: { mode: PlayPageMode }) {
     queryKey: isPro && isAuthenticated ? "competitive-proleague-access" : "competitive-proleague-access-disabled",
   })
 
-  // Pro League's servers are visible to everyone; only the launch pad changes with who is looking.
+  // Pro League is for signed-in players only: a visitor sees the sign-in page, not the servers.
+  if (isPro && !authLoading && !isAuthenticated) return <SteamLoginGate pageName="Pro League" />
   let launch: React.ReactNode = undefined
   if (isPro) {
-    if (!authLoading && !isAuthenticated) launch = <ProSignInPad />
-    else if (authLoading || (accessLoading && !access)) launch = <Skeleton aria-hidden="true" className="h-[236px] rounded-2xl bg-[var(--raised)]" />
+    if (authLoading || (accessLoading && !access)) launch = <Skeleton aria-hidden="true" className="h-[236px] rounded-2xl bg-[var(--raised)]" />
     else if (!access && accessError) {
       launch = (
         <p className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-[var(--line-strong)] bg-[var(--panel)] p-5 text-center text-[13px] text-[var(--text-dim)]">
