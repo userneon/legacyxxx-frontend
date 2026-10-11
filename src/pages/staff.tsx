@@ -1,6 +1,9 @@
-import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { Link, useSearchParams } from "react-router-dom"
 import { Gavel, RotateCcw, ScanSearch, Scale, Search, Server, UserSearch, Users } from "lucide-react"
+
+import { PlayerCase } from "@/components/staff-case"
+import { StaffCommand } from "@/components/staff-command"
 
 import { checksService } from "@/api/checks"
 import { clansService } from "@/api/clans"
@@ -11,9 +14,9 @@ import { penaltyAdminService, type LiftRequest, type ModerationAccess } from "@/
 import type { PlayerCheck } from "@/api/checks"
 import { ChecksPage } from "@/pages/checks"
 import { IssuePenaltyDialog, LiftRequests } from "@/components/penalty-staff"
-import { PageBar, PageTabs } from "@/components/page-tabs"
+import { PageBar, PageBarEnd, PageTabs } from "@/components/page-tabs"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { formatRelativeTime } from "@/components/relative-time"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
@@ -30,13 +33,28 @@ const TABS: Array<{ value: StaffTab; label: string }> = [
   { value: "servers", label: "Servers" },
 ]
 
-const STEAM_ID = /^\d{17}$/
+const STEAM_ID = /^7656119\d{10}$/
 
 /** Everything staff do on the site in one place: what is waiting, checks, penalties, a player by Steam ID, and the server console. */
 export function StaffPage({ initialTab = "overview" }: { initialTab?: StaffTab } = {}) {
   const { isAuthenticated } = useAuth()
   const { data: access, loading } = useApiQuery<ModerationAccess>((signal) => penaltyAdminService.getAccess({ signal }), { enabled: isAuthenticated, queryKey: `staff-access:${isAuthenticated}` })
   const [tab, setTab] = usePathTab<StaffTab>("/staff", { overview: "", checks: "checks", penalties: "penalties", players: "players", clans: "clans", servers: "servers" }, initialTab)
+  const [params, setParams] = useSearchParams()
+  const [finding, setFinding] = useState(false)
+  const openCase = (steamId: string) => {
+    setTab("players")
+    setParams((current) => { const next = new URLSearchParams(current); next.set("case", steamId); return next }, { replace: false })
+  }
+
+  // Ctrl K (or Cmd K) finds a player from anywhere on the page.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); setFinding((open) => !open) }
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [])
 
   if (loading || !access) {
     return <p className="px-6 py-10 text-[13px] text-[var(--text-dim)]">{loading ? "Loading…" : "This page is for staff."}</p>
@@ -47,15 +65,23 @@ export function StaffPage({ initialTab = "overview" }: { initialTab?: StaffTab }
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
         <PageTabs<StaffTab> ariaLabel="Staff" value={tab} onChange={setTab} options={TABS} />
+        <PageBarEnd>
+          <button type="button" onClick={() => setFinding(true)} className="flex h-9 w-[240px] items-center gap-2 rounded-lg border border-[var(--glass-line)] px-3 text-[13px] text-[var(--text-dim)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]">
+            <Search className="size-4 shrink-0" aria-hidden="true" />
+            <span className="flex-1 text-left">Find a player</span>
+            <kbd className="rounded border border-[var(--line)] px-1.5 text-[10px]">Ctrl K</kbd>
+          </button>
+        </PageBarEnd>
       </PageBar>
       <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
-        {tab === "overview" && <Overview access={access} onGo={setTab} />}
+        {tab === "overview" && <Overview access={access} onGo={setTab} onCase={openCase} />}
         {tab === "checks" && <ChecksPage embedded />}
         {tab === "penalties" && <PenaltiesTab access={access} />}
-        {tab === "players" && <PlayersTab access={access} />}
+        {tab === "players" && <PlayersTab access={access} caseId={params.get("case")} onFind={() => setFinding(true)} onBack={() => setParams((current) => { const next = new URLSearchParams(current); next.delete("case"); return next })} onChecks={() => setTab("checks")} />}
         {tab === "clans" && <ClansTab />}
         {tab === "servers" && <ServersPanel />}
       </div>
+      <StaffCommand open={finding} onOpenChange={setFinding} onPick={openCase} />
     </div>
   )
 }
@@ -70,14 +96,55 @@ function Cell({ label, value, onClick }: { label: string; value: string | number
   return onClick ? <button type="button" onClick={onClick} className="lx-stat-cell text-left shadow-none! transition-colors hover:bg-[var(--raised)]">{body}</button> : <div className="lx-stat-cell shadow-none!">{body}</div>
 }
 
-function Overview({ access, onGo }: { access: ModerationAccess; onGo: (tab: StaffTab) => void }) {
+function Overview({ access, onGo, onCase }: { access: ModerationAccess; onGo: (tab: StaffTab) => void; onCase: (steamId: string) => void }) {
   const { data: checks } = useApiQuery<PlayerCheck[]>((signal) => checksService.list({ signal }), { queryKey: "staff-checks" })
   const { data: requests } = useApiQuery<LiftRequest[]>((signal) => penaltyAdminService.getLiftRequests({ signal }), { enabled: Boolean(access.canApprove), queryKey: `staff-lift:${access.role}` })
   const list = checks ?? []
   const waiting = list.filter((check) => check.status === "pending").length
   const toRead = list.filter((check) => check.status === "completed" && ((check.summary?.detections ?? 0) > 0 || (check.summary?.bannedAccounts ?? 0) > 0 || check.summary?.matchesTarget === false)).length
+  // What is waiting for a decision, oldest first: finished checks to read, checks still waiting for the player, unban requests.
+  type Item = { key: string; title: string; sub: string; at: number; action: string; go: () => void }
+  const queue: Item[] = [
+    ...list.filter((check) => check.status === "completed" && ((check.summary?.detections ?? 0) > 0 || (check.summary?.bannedAccounts ?? 0) > 0 || check.summary?.matchesTarget === false)).map((check): Item => ({
+      key: `c:${check.id}`, title: `${check.targetName ?? check.targetSteamId} · check finished`,
+      sub: [`${check.summary?.detections ?? 0} detections`, (check.summary?.bannedAccounts ?? 0) > 0 ? `${check.summary?.bannedAccounts} banned account(s)` : null].filter(Boolean).join(" · "),
+      at: Date.parse(check.completedAt ?? check.createdAt), action: "Open", go: () => onCase(check.targetSteamId),
+    })),
+    ...list.filter((check) => check.status === "pending").map((check): Item => ({
+      key: `p:${check.id}`, title: `${check.targetName ?? check.targetSteamId} · check waiting`, sub: "Waiting for the player to run it",
+      at: Date.parse(check.createdAt), action: "Open", go: () => onCase(check.targetSteamId),
+    })),
+    ...(requests ?? []).map((request): Item => ({
+      key: `l:${request.id}`, title: `${request.player} · unban request`, sub: `by ${request.requestedBy}${request.reason ? ` · "${request.reason}"` : ""}`,
+      at: Date.parse(request.at), action: "Review", go: () => onGo("penalties"),
+    })),
+  ].sort((a, b) => a.at - b.at)
   return (
     <div className="flex flex-col gap-4 px-6 pb-8 pt-4">
+      <section className="flex flex-col rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]" aria-label="Needs you">
+        <header className="flex items-baseline gap-2 border-b border-[var(--line-soft)] px-4 py-3">
+          <span aria-hidden="true" className="h-3 w-[3px] shrink-0 self-center rounded-full bg-[var(--text-faint)]" />
+          <h2 className="text-[13px] font-semibold text-[var(--text)]">Needs you</h2>
+          <span className="text-[12px] text-[var(--text-dim)]">{checks ? "oldest first" : "loading"}</span>
+        </header>
+        {!checks ? (
+          <p className="px-4 py-4 text-[13px] text-[var(--text-dim)]">Loading…</p>
+        ) : queue.length === 0 ? (
+          <p className="px-4 py-4 text-[13px] text-[var(--text-dim)]">Nothing is waiting for you.</p>
+        ) : (
+          <ul>
+            {queue.map((item) => (
+              <li key={item.key} className="flex items-center gap-3 border-b border-[var(--line-soft)] px-4 py-3 last:border-0">
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[13px] font-semibold text-[var(--text)]">{item.title}</span>
+                  <span className="block truncate text-[12px] text-[var(--text-dim)]">{item.sub} · {formatRelativeTime(new Date(item.at))}</span>
+                </span>
+                <Button type="button" variant="outline" size="sm" onClick={item.go}>{item.action}</Button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
       <div className="lx-stat-grid grid-cols-2 sm:grid-flow-col sm:grid-cols-none sm:auto-cols-fr">
         <Cell label="Checks waiting for a player" value={checks ? waiting : "–"} onClick={() => onGo("checks")} />
         <Cell label="Results to read" value={checks ? toRead : "–"} onClick={() => onGo("checks")} />
@@ -125,23 +192,15 @@ function PenaltiesTab({ access }: { access: ModerationAccess }) {
   )
 }
 
-function PlayersTab({ access }: { access: ModerationAccess }) {
-  const navigate = useNavigate()
-  const [steamId, setSteamId] = useState("")
-  const [issuing, setIssuing] = useState(false)
-  const valid = STEAM_ID.test(steamId.trim())
+function PlayersTab({ access, caseId, onFind, onBack, onChecks }: { access: ModerationAccess; caseId: string | null; onFind: () => void; onBack: () => void; onChecks: () => void }) {
+  if (caseId && STEAM_ID.test(caseId)) return <PlayerCase key={caseId} steamId={caseId} access={access} onBack={onBack} onFind={onFind} onChecks={onChecks} />
   return (
-    <div className="flex max-w-xl flex-col gap-3 px-6 pb-8 pt-4">
-      <label className="flex flex-col gap-1.5 text-[13px] text-[var(--text-2)]">
-        Steam ID (17 digits)
-        <Input value={steamId} onChange={(event) => setSteamId(event.target.value)} inputMode="numeric" placeholder="76561198000000000" className="font-mono" />
-      </label>
-      <div className="flex flex-wrap gap-2">
-        <Button type="button" disabled={!valid} onClick={() => navigate(`/profile/${steamId.trim()}`)}>Open profile</Button>
-        <Button type="button" variant="outline" disabled={!valid} onClick={() => setIssuing(true)}>Issue a penalty</Button>
+    <div className="flex max-w-xl flex-col gap-3 px-6 pb-8 pt-6">
+      <p className="text-[15px] font-semibold text-[var(--text)]">Find a player</p>
+      <p className="text-[13px] text-[var(--text-dim)]">Type a name or a Steam ID. Their penalties, what the checker found and the buttons to act are on one screen.</p>
+      <div>
+        <Button type="button" onClick={onFind}><Search className="size-4" aria-hidden="true" />Find a player<kbd className="ml-1 rounded border border-[var(--line)] px-1 text-[10px]">Ctrl K</kbd></Button>
       </div>
-      <p className="text-[13px] text-[var(--text-dim)]">To find someone by name, use <Link to="/explore" className="text-[var(--text-2)] underline underline-offset-2 hover:text-[var(--text)]">Explore</Link>.</p>
-      <IssuePenaltyDialog open={issuing} onOpenChange={setIssuing} access={access} onIssued={() => undefined} initialSteamId={steamId.trim()} />
     </div>
   )
 }

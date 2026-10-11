@@ -172,13 +172,13 @@ export function PenaltyStaffControls({ penalty, access, onChanged }: { penalty: 
 }
 
 /** Staff-only: issue a ban, mute or gag by Steam ID from the Penalties page. */
-export function IssuePenaltyDialog({ open, onOpenChange, access, onIssued, initialSteamId = "" }: { open: boolean; onOpenChange: (open: boolean) => void; access: ModerationAccess; onIssued: () => void; initialSteamId?: string }) {
+export function IssuePenaltyDialog({ open, onOpenChange, access, onIssued, initialSteamId = "", initialType = "ban" }: { open: boolean; onOpenChange: (open: boolean) => void; access: ModerationAccess; onIssued: () => void; initialSteamId?: string; initialType?: PenaltyKind }) {
   const [steamId, setSteamId] = useState(initialSteamId)
   const [type, setType] = useState<PenaltyKind>("ban")
   const [minutes, setMinutes] = useState<number>(1440)
   const [reason, setReason] = useState("")
   const [busy, setBusy] = useState(false)
-  useEffect(() => { if (open) setSteamId(initialSteamId) }, [open, initialSteamId])
+  useEffect(() => { if (open) { setSteamId(initialSteamId); setType(initialType) } }, [open, initialSteamId, initialType])
   const kinds = ([["ban", "Ban", access.can.ban], ["comm", "Mute", access.can.ban || access.can.edit || access.can.unban], ["gag", "Gag", access.can.ban || access.can.edit || access.can.unban]] as const).filter((entry) => entry[2])
   const valid = /^7656119\d{10}$/.test(steamId.trim()) && reason.trim().length > 0
   const submit = async (event: React.FormEvent) => {
@@ -199,7 +199,7 @@ export function IssuePenaltyDialog({ open, onOpenChange, access, onIssued, initi
   }
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="rounded-2xl">
+      <DialogContent className="rounded-2xl" onOpenAutoFocus={(event) => { if (/^7656119\d{10}$/.test(initialSteamId)) { event.preventDefault(); document.getElementById("penalty-new-reason")?.focus() } }}>
         <DialogHeader>
           <DialogTitle>New penalty</DialogTitle>
           <DialogDescription>Issues a penalty to the player by Steam ID. It shows on the Penalties page and their profile.</DialogDescription>
