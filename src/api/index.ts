@@ -38,7 +38,6 @@ export { matchesService } from "./matches"
 export { killFeedService } from "./killfeed"
 export { skinchangerService } from "./skinchanger"
 export type {
-  SkinchangerActiveServerSession,
   SkinchangerAppearanceOptions,
   SkinchangerCatalogFacets,
   SkinchangerCatalogItem,
@@ -46,7 +45,6 @@ export type {
   SkinchangerCategory,
   SkinchangerCharmOption,
   SkinchangerFirearmGroup,
-  SkinchangerJob,
   SkinchangerLoadout,
   SkinchangerLoadoutEntry,
   SkinchangerLoadoutInput,

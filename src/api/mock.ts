@@ -761,8 +761,6 @@ export async function mockResponse(method: string, path: string, query: Query, b
       return loadout()
     case "/api/v1/skinchanger/collections":
       return skinCollections(query)
-    case "/api/v1/skinchanger/active-server":
-      return { session: null }
     case "/api/v1/search/players":
       return searchPlayers(String(query?.query ?? ""))
     case "/api/v1/moderation/penalties":
