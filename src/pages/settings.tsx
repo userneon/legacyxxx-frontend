@@ -220,9 +220,7 @@ function Notifications() {
         )
       ) : (
         <>
-          <Row title="Tournaments" description="Registration opens, check-in, your next match.">
-            <Switch label="Tournaments" checked={prefs.tournaments} onChange={(next) => void change("tournaments", next)} />
-          </Row>
+          {/* No tournament notices are sent yet, so there is no switch for them (audit 2026-10-11); it comes back with the feature. */}
           <Row title="Rank changes" description="When you rank up or down.">
             <Switch label="Rank changes" checked={prefs.rankChanges} onChange={(next) => void change("rankChanges", next)} />
           </Row>
