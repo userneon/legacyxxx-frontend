@@ -329,6 +329,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
   }, [])
 
   const { data, loading, error, refetch } = useApiQuery<FeedbackEntry[]>((signal) => feedbackService.getFeedback({ signal }))
+  const { data: cooldownsActive } = useApiQuery<boolean>((signal) => feedbackService.getCooldownsActive({ signal }))
   const [posted, setPosted] = useState<FeedbackEntry[]>([])
   // A just-posted review shows immediately, before the refetch lands.
   const reviews = useMemo(() => {
@@ -359,7 +360,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
   const isMine = (entry: FeedbackEntry) => Boolean(user?.steamId && entry.steamId === user.steamId)
   const mine = reviews.filter(isMine).sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
   const nextAllowed = mine[0] ? Date.parse(mine[0].date) + WEEK : null
-  const onCooldown = nextAllowed !== null && nextAllowed > now
+  const onCooldown = cooldownsActive !== false && nextAllowed !== null && nextAllowed > now
 
   const visible = useMemo(() => {
     const list = reviews.filter((entry) => rating === "all" || Math.round(entry.rating) === Number(rating))

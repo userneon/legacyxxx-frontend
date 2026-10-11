@@ -12,6 +12,16 @@ export const feedbackService = {
     return Array.isArray(response.feedback) ? response.feedback : []
   },
 
+  /** Whether the site's waiting times (one review a week, clan limits) are on yet; they start at the launch. Unknown counts as on. */
+  async getCooldownsActive(options?: CallOptions): Promise<boolean> {
+    try {
+      const response = await get<{ cooldowns?: boolean }>("/api/v1/public/features", undefined, options)
+      return response.cooldowns !== false
+    } catch {
+      return true
+    }
+  },
+
   /** Sets (or with null takes back) the signed-in player's one reaction on a review; answers with the new counts. */
   async react(feedbackId: string, reaction: FeedbackReaction | null, options?: CallOptions): Promise<Pick<FeedbackEntry, "reactions" | "myReaction">> {
     return put<Pick<FeedbackEntry, "reactions" | "myReaction">>(`/api/v1/feedback/${feedbackId}/reaction`, { reaction }, options)
