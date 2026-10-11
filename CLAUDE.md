@@ -114,21 +114,15 @@ reduced motion. `.lx-sweep` opts any other element in. No colour in the sweep.
 
 Four cards (5x5, Fun, Pro League, Tournaments), each with a pill, title, one line, a real status and a CS2 agent picture (`src/assets/home/mode-*.webp`, owner-supplied, transparent) at the right. The card under the pointer (5x5 by default) is the wide one: bright picture, a violet border and soft glow underneath, and a white "Play now"; the others keep their picture dim. No server counts or rank gates are shown, since the API has no per-mode figure for them.
 
-### Play lobby (owner request 2026-10-11)
+### Play (owner pick 2026-10-11, design "D")
 
-Play is the one page that looks like a game client rather than the rest of the site (`src/pages/play.tsx`, `.play-*` in `src/index.css`):
-four mode tiles on top (5x5, Fun, Pro League, Tournaments, each with its real player count or the tournament's state; the open one
-has a white bar under it), then the lobby panel with the mode's map behind faint scan lines, corner ticks, spaced-capital labels,
-four live figures counted from the server list (playing, live matches, open servers, free slots) and a round white Play button with
-a slow violet ring. Servers below are grouped as Live now, Waiting for players and Full or offline (one block when a status filter or
-another sort is picked). Pro League is closed to visitors (sign-in page); a signed-in player below the required rank sees the servers with the rank lock in the launch pad.
-Play is exempt from the "no hero on other pages" rule; nothing else borrows its look.
-
-### Server rows (owner pick 2026-10-11)
-
-Play lists servers as rows by default, two to a line on wide pages (one on narrow ones; a row lays itself out by its own width, `@container/row`) (`ServerRow` in `src/pages/play.tsx`); a List / Cards switch next to the filters keeps the choice on the device. The map is the row's
-background and fades out from the left (`.lx-row-art`, a `mask-image`), so the text on the row stays clean; narrow rows stack and dim the map. Rows are kept small (one line of name and state, slots, star, Copy IP, Connect). There is no Details button: clicking a card or a row anywhere except its own buttons opens the details (the name is also a real button, for the keyboard). Same flat outline, white
-Connect button and slot pips as the card. The map (mode on Fun) is a dropdown too, with a server count per option. A Filter dropdown (Radix popover) next to the view switch picks the state to show (all, live, not started, free slot) and the order (default, most or fewest players, name); both live in the URL (`status`, `sort`).
+Play is a list with the open server beside it (`src/pages/play.tsx`). The header holds the mode's name, one line, the live count and
+**Quick play** (white). The mode is chosen only in the sidebar: no mode tabs on the page. The left column (400px) has the map dropdown
+(mode on Fun) and a Filter dropdown (state, order, hide full, favourites; all in the URL: `filter`, `status`, `sort`, `full`, `fav`),
+then the servers grouped as Live now, Waiting for players and Full or offline, each a small row (map thumbnail, name, state, map,
+players, star). The right side shows the open server (`?server=`, else the first joinable one): its map with the name, state and
+score, both teams with K/D/A (live, every 5 s), and Copy IP / Connect. Below 1180px the list fills the page and a server opens in
+the sheet. Pro League needs a sign-in; a player below the rank sees the rank lock instead of the servers.
 
 ## Icons and assets
 
