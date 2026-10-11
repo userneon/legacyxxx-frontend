@@ -73,6 +73,7 @@ function leaderboard(sort: string) {
     rank_name: RANKS[index][1],
     rank_image_key: null,
     current_exp: 4200 - index * 190,
+    exp_change: [18, -12, 9, null, -7, 14][index % 6] ?? null,
     matches_completed: 180 - index * 9,
     wins: 110 - index * 6,
     deaths: 900 - index * 30,

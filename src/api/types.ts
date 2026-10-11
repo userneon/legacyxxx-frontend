@@ -181,6 +181,8 @@ export type LeaderboardSort = "exp" | "kd" | "win"
 
 export interface CompetitiveLeaderboardEntry extends CompetitiveProfile {
   position: number
+  /** EXP change of the player's latest ranked match (within two days): up if positive, down if negative. Null/absent when there is none. */
+  exp_change?: number | null
   /** The player linked Discord (only the fact is public). Absent from an older API. */
   discord_linked?: boolean
   /** Tag of the clan the player is in. Absent when the clan feature is off or they have none. */

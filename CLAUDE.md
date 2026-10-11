@@ -77,6 +77,10 @@ The one other place is the Compare page (owner request 2026-10-04): the player w
 (`--result-win`), the one behind is red (`--result-loss`) and a draw is grey (`--result-draw`). Win/loss/draw outcomes only;
 it is still not a general accent.
 
+Home's Top players (owner request 2026-10-11): a player's EXP figure and bar are green (`--status-green`) with a small "+N" when their latest ranked match
+(within two days) added EXP, red (`--status-red`) with "−N" when it took some away, and neutral otherwise. The number is the real `exp_change` from the API,
+never made up. Status colours only, not a general accent.
+
 ### Checks page (owner request 2026-10-09)
 
 The staff-only Checks page (`src/pages/checks.tsx`, `src/components/checks/`) has a look of its own: a dark console with a faint grid, one slow

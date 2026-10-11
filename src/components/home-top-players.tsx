@@ -84,6 +84,9 @@ export function TopPlayers({ onOpenProfile, onViewAll }: { onOpenProfile: (steam
           <ol className="flex flex-col gap-1">
             {top.map((player, index) => {
               const share = Math.max(4, (player.current_exp / topExp) * 100)
+              // Green when the latest ranked match added EXP, red when it took some away; neutral otherwise.
+              const change = player.exp_change ?? 0
+              const trend = change > 0 ? "up" : change < 0 ? "down" : null
               return (
                 <li key={player.user_id} className="lx-row-in" style={{ animationDelay: `${index * 60}ms` }}>
                   <button
@@ -111,10 +114,20 @@ export function TopPlayers({ onOpenProfile, onViewAll }: { onOpenProfile: (steam
                       </span>
                     </span>
                     <span className="hidden min-w-0 flex-col gap-1.5 @xl:flex">
-                      <span className="text-[13px] font-semibold text-[var(--text)]">{player.current_exp.toLocaleString()}</span>
+                      <span className="flex items-baseline gap-2">
+                        <span className={cn("text-[13px] font-semibold", trend === "up" ? "text-[var(--status-green)]" : trend === "down" ? "text-[var(--status-red)]" : "text-[var(--text)]")}>{player.current_exp.toLocaleString()}</span>
+                        {trend && (
+                          <span className={cn("text-[11px] font-medium", trend === "up" ? "text-[var(--status-green)]" : "text-[var(--status-red)]")} title="EXP change in the latest ranked match">
+                            {change > 0 ? "+" : "−"}{Math.abs(change)}
+                          </span>
+                        )}
+                      </span>
                       <span className="h-1.5 overflow-hidden rounded-full bg-[var(--line-soft)]">
                         <span
-                          className={cn("lx-bar-grow block h-full rounded-full", player.position === 1 ? "lx-progress-fill" : "bg-[linear-gradient(90deg,color-mix(in_oklab,var(--brand)_55%,transparent),var(--brand))]")}
+                          className={cn(
+                            "lx-bar-grow block h-full rounded-full",
+                            trend === "up" ? "bg-[var(--status-green)]" : trend === "down" ? "bg-[var(--status-red)]" : player.position === 1 ? "lx-progress-fill" : "bg-[linear-gradient(90deg,color-mix(in_oklab,var(--brand)_55%,transparent),var(--brand))]",
+                          )}
                           style={{ width: `${share}%`, animationDelay: `${150 + index * 60}ms` }}
                         />
                       </span>
