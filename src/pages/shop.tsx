@@ -9,6 +9,7 @@ import { cosmeticsService, type CosmeticKind, type Cosmetics, type FrameItem } f
 import { clansService, walletService, type MyClanState, type Wallet } from "@/api"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
+import { SteamLoginButton } from "@/components/steam-login-gate"
 import { frameAccent, nameProps } from "@/lib/cosmetics"
 import { ShopClan } from "@/components/shop-clan"
 import { FramedAvatar } from "@/components/framed-avatar"
@@ -68,7 +69,7 @@ function ownersLine(item: ShopItem, players: number | null | undefined) {
 }
 
 export function ShopPage() {
-  const { user } = useAuth()
+  const { user, loginWithSteam } = useAuth()
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
@@ -188,9 +189,15 @@ export function ShopPage() {
                 <span className="flex justify-between border-t border-[var(--line-soft)] pt-2 text-[13px] font-semibold text-[var(--text)]"><span>After buying</span><span>{afford ? (balance - item.price).toLocaleString() : `${(item.price - balance).toLocaleString()} short`}</span></span>
               </div>
             )}
-            <button type="button" disabled={busy || !afford} onClick={() => void buy(item)} className="lx-primary-button inline-flex h-10 w-full items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-60">
-              {afford ? `Buy for ${item.price.toLocaleString()} LX` : `Need ${(item.price - (balance ?? 0)).toLocaleString()} more LX`}
-            </button>
+            {user ? (
+              <button type="button" disabled={busy || !afford} onClick={() => void buy(item)} className="lx-primary-button inline-flex h-10 w-full items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-60">
+                {afford ? `Buy for ${item.price.toLocaleString()} LX` : `Need ${(item.price - (balance ?? 0)).toLocaleString()} more LX`}
+              </button>
+            ) : (
+              <button type="button" onClick={loginWithSteam} className="lx-primary-button inline-flex h-10 w-full items-center justify-center rounded-lg text-[13px] font-semibold">
+                Sign in to buy · {item.price.toLocaleString()} LX
+              </button>
+            )}
             <p className="text-center text-[11px] text-[var(--text-faint)]">Buying wears it right away. Change it any time in Profile → Appearance.</p>
           </>
         ) : (
@@ -235,7 +242,12 @@ export function ShopPage() {
           <p className="flex items-center justify-center gap-3 py-24 text-[13px] text-[var(--text-dim)]">Could not load the shop.<button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>
         ) : (
           tab === "clan" ? (
-            <ShopClan prices={wallet?.clanPrices} balance={balance} mine={user ? myClan : null} loading={Boolean(user) && (clanLoading || !wallet)} onChanged={() => Promise.all([refetchClan(), refetchWallet()])} />
+            !user ? (
+              <div className="flex max-w-md flex-col items-start gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-5">
+                <p className="text-[13px] leading-relaxed text-[var(--text-muted)]">Clan slots and clan looks are bought with your LX. Sign in to see your clan and balance.</p>
+                <SteamLoginButton onClick={loginWithSteam} />
+              </div>
+            ) : <ShopClan prices={wallet?.clanPrices} balance={balance} mine={user ? myClan : null} loading={Boolean(user) && (clanLoading || !wallet)} onChanged={() => Promise.all([refetchClan(), refetchWallet()])} />
           ) : (
           <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
             <div className="flex min-w-0 flex-col gap-5">

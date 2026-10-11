@@ -666,7 +666,8 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path.startsWith("/api/v1/moderation/lift-requests/")) return undefined
   if (path.startsWith("/api/v1/moderation/penalties") && method !== "GET") return path === "/api/v1/moderation/penalties" ? { penaltyId: "new" } : undefined
   if (path.startsWith("/api/v1/cosmetics")) {
-    if (!signedIn()) throw unauthorized()
+    // The catalogue is public (the API serves visitors too); buying and wearing need an account.
+    if (!signedIn() && method !== "GET") throw unauthorized()
     const frames = mockFrames()
     if (method === "PUT") {
       const { kind, item } = body as { kind: "frame" | "name_color" | "name_glow"; item: string | null }
