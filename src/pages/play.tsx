@@ -137,9 +137,9 @@ function MapArt({ map, className, children, zoomOnHover }: { map: string; classN
           alt=""
           onLoad={() => setLoaded(true)}
           className={cn(
-            "lx-map-img absolute inset-0 size-full object-cover transition-[opacity,scale] duration-[1000ms] ease-[cubic-bezier(0.37,0,0.18,1)]",
+            "lx-map-img absolute inset-0 size-full object-cover transition-[opacity] duration-[1000ms] ease-[cubic-bezier(0.37,0,0.18,1)]",
             loaded ? "opacity-70" : "opacity-0",
-            zoomOnHover && "group-hover:scale-[1.07] group-hover:opacity-90 group-hover:duration-700 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
+            zoomOnHover && "group-hover:opacity-90 group-hover:duration-700 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
           )}
         />
       )}
