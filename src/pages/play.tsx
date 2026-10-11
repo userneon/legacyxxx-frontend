@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
-import { Copy, Info, LoaderCircle, Lock, Play, RotateCcw, Star, X, Zap } from "lucide-react"
+import { Copy, Info, LayoutGrid, List, LoaderCircle, Lock, Play, RotateCcw, Star, X, Zap } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -26,6 +26,7 @@ const PRO_LEAGUE_MIN_EXP = 1400
 const REFRESH_MS = 15_000
 const LIVE_REFRESH_MS = 5_000
 const FAVOURITES_KEY = "legacyx.favourite-servers"
+const VIEW_KEY = "legacyx.play-view"
 
 type PlayPageMode = Exclude<PlaySubMode, "tournaments">
 
@@ -85,6 +86,20 @@ function useFavourites() {
     return next
   })
   return { favourites, toggle }
+}
+
+/** Servers as rows (default) or as cards; the choice is kept on this device. */
+type PlayView = "list" | "cards"
+
+function useView() {
+  const [view, setView] = useState<PlayView>(() => {
+    try { return window.localStorage.getItem(VIEW_KEY) === "cards" ? "cards" : "list" } catch { return "list" }
+  })
+  const choose = (next: PlayView) => {
+    setView(next)
+    try { window.localStorage.setItem(VIEW_KEY, next) } catch { /* storage blocked: keep for this visit */ }
+  }
+  return { view, choose }
 }
 
 /* ------------------------------------------------------------------ pieces */
@@ -167,7 +182,7 @@ function Slots({ server }: { server: PlayServer }) {
  * Favourite star: the fill and colour ease in, and turning it on gives the star a small pop plus a
  * soft yellow ring, so the change is felt rather than snapped.
  */
-function FavouriteButton({ favourite, name, onToggle }: { favourite: boolean; name: string; onToggle: () => void }) {
+function FavouriteButton({ favourite, name, onToggle, inline }: { favourite: boolean; name: string; onToggle: () => void; inline?: boolean }) {
   const starRef = useRef<SVGSVGElement>(null)
   const ringRef = useRef<HTMLSpanElement>(null)
   const toggle = () => {
@@ -193,7 +208,8 @@ function FavouriteButton({ favourite, name, onToggle }: { favourite: boolean; na
       aria-pressed={favourite}
       onClick={toggle}
       className={cn(
-        "absolute right-2.5 top-2.5 flex size-[30px] items-center justify-center rounded-lg border bg-[rgba(15,15,15,0.7)] transition-[color,border-color,background-color] duration-300 ease-[var(--ease-out)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60",
+        inline ? "relative size-[34px] shrink-0" : "absolute right-2.5 top-2.5 size-[30px]",
+        "flex items-center justify-center rounded-lg border bg-[rgba(15,15,15,0.7)] transition-[color,border-color,background-color] duration-300 ease-[var(--ease-out)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60",
         favourite ? "border-[var(--star)]/45 text-[var(--star)]" : "border-[var(--line)] text-[var(--text-muted)] hover:text-[var(--star)]",
       )}
     >
@@ -245,6 +261,74 @@ function ServerCard({ server, favourite, onFavourite, onDetails, index }: { serv
         </div>
       </div>
     </article>
+  )
+}
+
+/**
+ * One server as a row: the map is the row's background, fading out from the left so the text on it stays clean. Wide
+ * rows hold everything on one line; narrow ones stack name, slots and buttons.
+ */
+function ServerRow({ server, favourite, onFavourite, onDetails, index }: { server: PlayServer; favourite: boolean; onFavourite: () => void; onDetails: () => void; index: number }) {
+  const connectable = server.joinable && validAddress(server.connectAddress)
+  const unavailable = server.status === "full" || server.status === "offline"
+  const art = cs2MapArtwork(server.map)
+  const [loaded, setLoaded] = useState(false)
+  const connectButton = (
+    <button type="button" disabled={!connectable} onClick={() => connect(server.connectAddress, server.name)} className={cn(connectable ? cn(primary, "h-[34px] text-[13px]") : secondary, "w-full px-4")}>
+      <Play className="size-3.5" />
+      Connect
+    </button>
+  )
+  return (
+    <article
+      style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}
+      className={cn("lx-fx-card group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3.5 @2xl:min-h-[84px] @2xl:flex-row @2xl:items-center @2xl:gap-5 @2xl:py-3 @2xl:pl-[168px] @2xl:pr-3.5", unavailable && "opacity-70 hover:opacity-100")}
+    >
+      {art && (
+        <img
+          src={art}
+          alt=""
+          onLoad={() => setLoaded(true)}
+          className={cn("lx-row-art", loaded && "lx-row-art-on")}
+        />
+      )}
+      <div className="relative z-[2] flex min-w-0 flex-1 flex-col gap-1.5">
+        <span className="truncate text-sm font-semibold text-[var(--text)] transition-colors duration-500 group-hover:text-white" title={server.name}>{server.name}</span>
+        <span className="flex min-w-0 items-center gap-2.5">
+          <StatusPill server={server} />
+          <span className="truncate text-xs text-[var(--text-muted)]">{cs2MapLabel(server.map)}{server.mode === "fun" ? ` · ${funModeLabel(server.modeLabel)}` : ""}</span>
+        </span>
+      </div>
+      <div className="relative z-[2] flex items-center @2xl:w-[260px] @2xl:shrink-0"><Slots server={server} /></div>
+      <div className="relative z-[2] flex shrink-0 items-center gap-2">
+        <FavouriteButton inline favourite={favourite} name={server.name} onToggle={onFavourite} />
+        <button type="button" aria-label={`Copy ${server.name} IP`} disabled={!server.connectAddress} onClick={() => void copyAddress(server.connectAddress)} className={cn(secondary, "size-[34px] px-0")}>
+          <Copy className="size-3.5" />
+        </button>
+        <button type="button" aria-label={`${server.name} details`} onClick={onDetails} className={cn(secondary, "size-[34px] px-0")}>
+          <Info className="size-3.5" />
+        </button>
+        {connectable ? <span className="flex w-[118px] @2xl:w-[124px]">{connectButton}</span> : (
+          <Tooltip>
+            <TooltipTrigger asChild><span className="flex w-[118px] @2xl:w-[124px]" tabIndex={0}>{connectButton}</span></TooltipTrigger>
+            <TooltipContent>{server.status === "offline" ? "Server is offline" : server.status === "full" ? "Server is full" : "No connection address"}</TooltipContent>
+          </Tooltip>
+        )}
+      </div>
+    </article>
+  )
+}
+
+function RowSkeleton() {
+  return (
+    <div className="flex h-[84px] items-center gap-5 overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3.5" aria-hidden="true">
+      <div className="flex flex-1 flex-col gap-2.5">
+        <Skeleton className="h-3 w-1/3 rounded-full bg-[var(--line)]" />
+        <Skeleton className="h-2.5 w-1/5 rounded-full bg-[var(--line-soft)]" />
+      </div>
+      <Skeleton className="hidden h-3.5 w-[260px] rounded bg-[var(--line-soft)] @2xl:block" />
+      <Skeleton className="h-[34px] w-[200px] rounded-lg bg-[var(--raised)]" />
+    </div>
   )
 }
 
@@ -511,6 +595,7 @@ function ServerBrowser({ mode, title, description, pickRule, heroMap }: { mode: 
   const onlyFavourites = params.get("fav") === "1"
   const selectedId = params.get("server")
   const { favourites, toggle } = useFavourites()
+  const { view, choose } = useView()
   const { data: result, loading, error, refetch } = useApiQuery<PlayServerList>((signal) => playService.getServers(mode, { signal }), { queryKey: `play:${mode}`, keepPreviousData: true })
   // The page stays mounted across Play modes; never show the previous mode's servers while this one loads.
   const data = result && result.mode === mode ? result : null
@@ -570,6 +655,11 @@ function ServerBrowser({ mode, title, description, pickRule, heroMap }: { mode: 
               options={[{ value: "all", label: mode === "fun" ? "All modes" : "All maps" }, ...chips.map(([value, label]) => ({ value, label }))]}
               className="scrollbar-hidden max-w-full overflow-x-auto"
             />
+            <div className="flex flex-wrap items-center gap-2">
+            <div role="group" aria-label="View" className={toggleTray}>
+              <button type="button" aria-label="List view" aria-pressed={view === "list"} onClick={() => choose("list")} className={cn(toggleItem, "px-2.5", view === "list" ? toggleOn : toggleOff)}><List className="size-4" /></button>
+              <button type="button" aria-label="Card view" aria-pressed={view === "cards"} onClick={() => choose("cards")} className={cn(toggleItem, "px-2.5", view === "cards" ? toggleOn : toggleOff)}><LayoutGrid className="size-4" /></button>
+            </div>
             <div role="group" aria-label="Show" className={toggleTray}>
               <button type="button" aria-pressed={hideFull} onClick={() => update({ full: hideFull ? null : "hide" })} className={cn(toggleItem, hideFull ? toggleOn : toggleOff)}>Hide full</button>
               <button type="button" aria-pressed={onlyFavourites} onClick={() => update({ fav: onlyFavourites ? null : "1" })} className={cn(toggleItem, onlyFavourites ? toggleOn : toggleOff)}>
@@ -577,9 +667,12 @@ function ServerBrowser({ mode, title, description, pickRule, heroMap }: { mode: 
                 Favourites
               </button>
             </div>
+            </div>
           </div>
           {!data && loading ? (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3.5">{Array.from({ length: 6 }, (_, index) => <CardSkeleton key={index} />)}</div>
+            view === "list"
+              ? <div className="flex flex-col gap-2.5">{Array.from({ length: 5 }, (_, index) => <RowSkeleton key={index} />)}</div>
+              : <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3.5">{Array.from({ length: 6 }, (_, index) => <CardSkeleton key={index} />)}</div>
           ) : error && !data ? (
             <p className="flex items-center justify-center gap-3 py-16 text-[13px] text-[var(--text-dim)]">
               Could not load servers.
@@ -588,11 +681,19 @@ function ServerBrowser({ mode, title, description, pickRule, heroMap }: { mode: 
           ) : visible.length === 0 ? (
             <p className="py-16 text-center text-[13px] text-[var(--text-dim)]">{servers.length === 0 ? "No servers online right now." : "No server matches these filters."}</p>
           ) : (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3.5">
-              {visible.map((server, index) => (
-                <ServerCard key={server.id} index={index} server={server} favourite={favourites.includes(server.id)} onFavourite={() => toggle(server.id)} onDetails={() => update({ server: server.id })} />
-              ))}
-            </div>
+            view === "list" ? (
+              <div className="flex flex-col gap-2.5">
+                {visible.map((server, index) => (
+                  <ServerRow key={server.id} index={index} server={server} favourite={favourites.includes(server.id)} onFavourite={() => toggle(server.id)} onDetails={() => update({ server: server.id })} />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3.5">
+                {visible.map((server, index) => (
+                  <ServerCard key={server.id} index={index} server={server} favourite={favourites.includes(server.id)} onFavourite={() => toggle(server.id)} onDetails={() => update({ server: server.id })} />
+                ))}
+              </div>
+            )
           )}
         </div>
         <ServerSheet server={selected} onClose={() => update({ server: null })} />

@@ -371,6 +371,29 @@ body::before {
   :is(:is([class*="glass-fill"], .glass, .lx-glass):is(article, a, button, li, [role="button"], [class*="hover:"]), .lx-sweep):not(textarea, input)::after,
   :is(:is([class*="glass-fill"], .glass, .lx-glass):is(article, a, button, li, [role="button"], [class*="hover:"]), .lx-sweep):not(textarea, input):hover::after { transition: none; opacity: 0; }
 }
+/* Server rows (Play): the map is the row's background and fades out from the left, so the text on the row stays clean. */
+.lx-row-art {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: left center;
+  opacity: 0;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, rgba(0, 0, 0, 0.35) 38%, transparent 72%);
+  mask-image: linear-gradient(90deg, #000 0%, rgba(0, 0, 0, 0.35) 38%, transparent 72%);
+  transition: opacity 900ms cubic-bezier(0.37, 0, 0.18, 1), scale 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lx-row-art-on { opacity: 0.55; }
+article:hover > .lx-row-art-on { opacity: 0.8; scale: 1.04; transform-origin: left center; }
+@media (max-width: 40rem) {
+  /* Narrow rows put the text over the map, so it is dimmer there. */
+  .lx-row-art { -webkit-mask-image: linear-gradient(90deg, #000 0%, transparent 85%); mask-image: linear-gradient(90deg, #000 0%, transparent 85%); }
+  .lx-row-art-on { opacity: 0.32; }
+  article:hover > .lx-row-art-on { opacity: 0.45; }
+}
 /* Home: a soft violet light on top of the backdrop. */
 .lx-glass-page {
   position: relative;

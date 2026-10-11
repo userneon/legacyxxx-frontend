@@ -104,6 +104,12 @@ flat outline. A card that is an article, link, button or list item (or already h
 gliding across it when the pointer enters; it fades in and out, is a pseudo-element (the card's own transitions are untouched) and is off for
 reduced motion. `.lx-sweep` opts any other element in. No colour in the sweep.
 
+### Server rows (owner pick 2026-10-11)
+
+Play lists servers as rows by default (`ServerRow` in `src/pages/play.tsx`); a List / Cards switch next to the filters keeps the choice on the device. The map is the row's
+background and fades out from the left (`.lx-row-art`, a `mask-image`), so the text on the row stays clean; narrow rows stack and dim the map. Same flat outline, white
+Connect button and slot pips as the card.
+
 ## Icons and assets
 
 lucide-react only, stroke 2, no emoji, no placeholder icons. Sizes: 18px nav/top bar,
