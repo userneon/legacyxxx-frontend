@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
-import { Copy, Info, LayoutGrid, List, LoaderCircle, Lock, Play, RotateCcw, Star, X, Zap } from "lucide-react"
+import { Copy, LayoutGrid, List, LoaderCircle, Lock, Play, RotateCcw, Star, X, Zap } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -62,6 +62,14 @@ async function copyAddress(address: string | null | undefined) {
     toast.success("Server IP copied", { description: address })
   } catch {
     toast.error("Could not copy the address")
+  }
+}
+
+/** A card or row opens its details when you click it anywhere except on its own buttons and links. */
+function openOnClick(onDetails: () => void) {
+  return (event: React.MouseEvent<HTMLElement>) => {
+    if ((event.target as HTMLElement).closest("button, a")) return
+    onDetails()
   }
 }
 
@@ -268,8 +276,9 @@ function ServerCard({ server, favourite, onFavourite, onDetails, index }: { serv
   )
   return (
     <article
+      onClick={openOnClick(onDetails)}
       style={{ animationDelay: `${Math.min(index, 8) * 60}ms` }}
-      className={cn("lx-fx-card group relative flex flex-col overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]", unavailable && "opacity-70 hover:opacity-100")}
+      className={cn("lx-fx-card group relative flex cursor-pointer flex-col overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]", unavailable && "opacity-70 hover:opacity-100")}
     >
       <MapArt map={server.map} className="h-[120px]" zoomOnHover>
         {server.status === "live" && <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--brand-bright)] to-transparent" />}
@@ -278,17 +287,16 @@ function ServerCard({ server, favourite, onFavourite, onDetails, index }: { serv
       </MapArt>
       <div className="relative z-[2] flex flex-col gap-3 p-3.5">
         <div className="flex min-w-0 flex-col gap-1">
-          <span className="truncate text-sm font-semibold text-[var(--text)] transition-colors duration-500 group-hover:text-white" title={server.name}>{server.name}</span>
+          <button type="button" onClick={onDetails} aria-label={`${server.name} details`} className="min-w-0 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
+            <span className="block truncate text-sm font-semibold text-[var(--text)] transition-colors duration-500 group-hover:text-white" title={server.name}>{server.name}</span>
+          </button>
           <span className="truncate text-xs text-[var(--text-dim)]">{cs2MapLabel(server.map)}{server.mode === "fun" ? ` · ${funModeLabel(server.modeLabel)}` : ""}</span>
         </div>
         <div className="flex items-center"><Slots server={server} /></div>
         <div className="flex gap-2">
-          <button type="button" aria-label={`Copy ${server.name} IP`} disabled={!server.connectAddress} onClick={() => void copyAddress(server.connectAddress)} className={secondary}>
+          <button type="button" aria-label={`Copy ${server.name} IP`} disabled={!server.connectAddress} onClick={() => void copyAddress(server.connectAddress)} className={cn(secondary, "flex-1")}>
             <Copy className="size-3.5" />
-          </button>
-          <button type="button" onClick={onDetails} className={cn(secondary, "flex-1")}>
-            <Info className="size-3.5" />
-            Details
+            Copy IP
           </button>
           {connectable ? <span className="flex flex-1">{connectButton}</span> : (
             <Tooltip>
@@ -321,8 +329,9 @@ function ServerRow({ server, favourite, onFavourite, onDetails, index }: { serve
   )
   return (
     <article
+      onClick={openOnClick(onDetails)}
       style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}
-      className={cn("lx-fx-card @container/row group relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]", unavailable && "opacity-70 hover:opacity-100")}
+      className={cn("lx-fx-card @container/row group relative cursor-pointer overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]", unavailable && "opacity-70 hover:opacity-100")}
     >
       {art && (
         <img
@@ -344,11 +353,8 @@ function ServerRow({ server, favourite, onFavourite, onDetails, index }: { serve
         <div className="shrink-0"><SlotsCompact server={server} /></div>
         <div className="flex shrink-0 items-center gap-1.5">
           <FavouriteButton inline favourite={favourite} name={server.name} onToggle={onFavourite} />
-          <button type="button" aria-label={`Copy ${server.name} IP`} disabled={!server.connectAddress} onClick={() => void copyAddress(server.connectAddress)} className={cn(secondary, "hidden size-[30px] px-0 @xl/row:inline-flex")}>
+          <button type="button" aria-label={`Copy ${server.name} IP`} title="Copy IP" disabled={!server.connectAddress} onClick={() => void copyAddress(server.connectAddress)} className={cn(secondary, "size-[30px] px-0")}>
             <Copy className="size-3.5" />
-          </button>
-          <button type="button" aria-label={`${server.name} details`} onClick={onDetails} className={cn(secondary, "hidden size-[30px] px-0 @xl/row:inline-flex")}>
-            <Info className="size-3.5" />
           </button>
           {connectable ? <span className="flex w-[92px]">{connectButton}</span> : (
             <Tooltip>
