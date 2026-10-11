@@ -150,6 +150,46 @@ function MapArt({ map, className, children, zoomOnHover }: { map: string; classN
   )
 }
 
+/** Status as plain text for a compact row: a live score with its dot, or the state's name. */
+function StatusText({ server }: { server: PlayServer }) {
+  if (server.status === "live") {
+    return (
+      <span className="inline-flex shrink-0 items-center gap-1.5 font-semibold text-[var(--text)]">
+        <span className="lx-live-dot size-1.5 rounded-full bg-[var(--status-green)]" />
+        {server.score ? <><span className="text-[var(--team-t)]">{server.score.t}</span>:<span className="text-[var(--team-ct)]">{server.score.ct}</span></> : "Live"}
+        {server.round !== null && <span className="font-medium text-[var(--text-muted)]">R{server.round}</span>}
+      </span>
+    )
+  }
+  const label = { waiting: "Waiting", warmup: "Warmup", full: "Full", offline: "Offline" }[server.status]
+  return <span className={cn("shrink-0 font-medium", server.status === "full" || server.status === "offline" ? "text-[var(--text-dim)]" : "text-[var(--text-2)]")}>{label}</span>
+}
+
+/** Slots for a compact row: small pips (or a short bar on big servers) and the count, in a fixed width. */
+function SlotsCompact({ server }: { server: PlayServer }) {
+  const big = server.mode === "fun" || server.maxPlayers > 12
+  const share = Math.min(100, (server.players / Math.max(1, server.maxPlayers)) * 100)
+  const t = server.teams?.t ?? 0
+  const ct = server.teams?.ct ?? 0
+  return (
+    <span className="flex items-center gap-2.5">
+      {big ? (
+        <span aria-hidden="true" className="h-1.5 w-[84px] overflow-hidden rounded-full bg-[var(--line-soft)]">
+          <span className="lx-progress-fill block h-full rounded-full transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]" style={{ width: `${share}%` }} />
+        </span>
+      ) : (
+        <span aria-hidden="true" className="flex gap-[2px]">
+          {Array.from({ length: server.maxPlayers }, (_, index) => {
+            const tone = index >= server.players ? "bg-[var(--line-soft)]" : index < t ? "bg-[var(--team-t)]" : index < t + ct ? "bg-[var(--team-ct)]" : "lx-slot-on"
+            return <span key={index} className={cn("size-[9px] rounded-[3px] transition-[background-color,box-shadow] duration-500", tone)} />
+          })}
+        </span>
+      )}
+      <span className="w-[38px] text-right text-xs text-[var(--text-muted)]">{server.players}/{server.maxPlayers}</span>
+    </span>
+  )
+}
+
 function Slots({ server }: { server: PlayServer }) {
   if (server.mode === "fun" || server.maxPlayers > 12) {
     const share = Math.min(100, (server.players / server.maxPlayers) * 100)
@@ -208,7 +248,7 @@ function FavouriteButton({ favourite, name, onToggle, inline }: { favourite: boo
       aria-pressed={favourite}
       onClick={toggle}
       className={cn(
-        inline ? "relative size-[34px] shrink-0" : "absolute right-2.5 top-2.5 size-[30px]",
+        inline ? "relative size-[30px] shrink-0" : "absolute right-2.5 top-2.5 size-[30px]",
         "flex items-center justify-center rounded-lg border bg-[rgba(15,15,15,0.7)] transition-[color,border-color,background-color] duration-300 ease-[var(--ease-out)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60",
         favourite ? "border-[var(--star)]/45 text-[var(--star)]" : "border-[var(--line)] text-[var(--text-muted)] hover:text-[var(--star)]",
       )}
@@ -265,9 +305,10 @@ function ServerCard({ server, favourite, onFavourite, onDetails, index }: { serv
 }
 
 /**
- * One server as a row: the map is the row's background, fading out from the left so the text on it stays clean. Rows sit
- * two to a line on wide pages, so a row lays itself out by its own width (a container query): wide, everything on one line;
- * narrower, the name and the small buttons on top, the slots and Connect underneath.
+ * One server as a row, kept small: one line of name and state, the slots, a star and Connect. The map is the row's
+ * background, fading out from the left so the text on it stays clean. Rows sit two to a line on wide pages, so a row
+ * decides what to show by its own width (a container query): Copy and Details join in from ~576px, and a row wider
+ * than ~768px leaves room for the map on its left. Clicking the name opens the details.
  */
 function ServerRow({ server, favourite, onFavourite, onDetails, index }: { server: PlayServer; favourite: boolean; onFavourite: () => void; onDetails: () => void; index: number }) {
   const connectable = server.joinable && validAddress(server.connectAddress)
@@ -275,8 +316,8 @@ function ServerRow({ server, favourite, onFavourite, onDetails, index }: { serve
   const art = cs2MapArtwork(server.map)
   const [loaded, setLoaded] = useState(false)
   const connectButton = (
-    <button type="button" disabled={!connectable} onClick={() => connect(server.connectAddress, server.name)} className={cn(connectable ? cn(primary, "h-[34px] text-[13px]") : secondary, "w-full px-4")}>
-      <Play className="size-3.5" />
+    <button type="button" disabled={!connectable} onClick={() => connect(server.connectAddress, server.name)} className={cn(connectable ? cn(primary, "h-[30px] text-[12px]") : cn(secondary, "h-[30px] text-[12px]"), "w-full px-3")}>
+      <Play className="size-3" />
       Connect
     </button>
   )
@@ -293,31 +334,27 @@ function ServerRow({ server, favourite, onFavourite, onDetails, index }: { serve
           className={cn("lx-row-art", loaded && "lx-row-art-on")}
         />
       )}
-      <div className="relative z-[2] flex flex-col gap-3 p-3.5 @3xl/row:min-h-[84px] @3xl/row:flex-row @3xl/row:items-center @3xl/row:gap-5 @3xl/row:py-3 @3xl/row:pl-[168px] @3xl/row:pr-3.5">
-        {/* "contents" on wide rows: the two halves dissolve and the four parts line up in one row by their order. */}
-        <div className="flex items-start justify-between gap-3 @3xl/row:contents">
-          <div className="order-1 flex min-w-0 flex-1 flex-col gap-1.5">
-            <span className="truncate text-sm font-semibold text-[var(--text)] transition-colors duration-500 group-hover:text-white" title={server.name}>{server.name}</span>
-            <span className="flex min-w-0 items-center gap-2.5">
-              <StatusPill server={server} />
-              <span className="truncate text-xs text-[var(--text-muted)]">{cs2MapLabel(server.map)}{server.mode === "fun" ? ` · ${funModeLabel(server.modeLabel)}` : ""}</span>
-            </span>
-          </div>
-          <div className="order-3 flex shrink-0 items-center gap-2">
-            <FavouriteButton inline favourite={favourite} name={server.name} onToggle={onFavourite} />
-            <button type="button" aria-label={`Copy ${server.name} IP`} disabled={!server.connectAddress} onClick={() => void copyAddress(server.connectAddress)} className={cn(secondary, "size-[34px] px-0")}>
-              <Copy className="size-3.5" />
-            </button>
-            <button type="button" aria-label={`${server.name} details`} onClick={onDetails} className={cn(secondary, "size-[34px] px-0")}>
-              <Info className="size-3.5" />
-            </button>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 @3xl/row:contents">
-          <div className="order-2 flex min-w-0 flex-1 items-center @3xl/row:w-[250px] @3xl/row:flex-none"><Slots server={server} /></div>
-          {connectable ? <span className="order-4 flex w-[124px] shrink-0">{connectButton}</span> : (
+      <div className="relative z-[2] flex items-center gap-3 px-3 py-2.5 @3xl/row:gap-5 @3xl/row:py-3 @3xl/row:pl-[150px] @3xl/row:pr-3.5">
+        <button type="button" onClick={onDetails} className="flex min-w-0 flex-1 flex-col gap-0.5 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
+          <span className="truncate text-[13px] font-semibold text-[var(--text)] transition-colors duration-500 group-hover:text-white" title={server.name}>{server.name}</span>
+          <span className="flex min-w-0 items-center gap-1.5 text-[11px] text-[var(--text-muted)]">
+            <StatusText server={server} />
+            <span aria-hidden="true" className="text-[var(--text-faint)]">·</span>
+            <span className="truncate">{cs2MapLabel(server.map)}{server.mode === "fun" ? ` · ${funModeLabel(server.modeLabel)}` : ""}</span>
+          </span>
+        </button>
+        <div className="shrink-0"><SlotsCompact server={server} /></div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <FavouriteButton inline favourite={favourite} name={server.name} onToggle={onFavourite} />
+          <button type="button" aria-label={`Copy ${server.name} IP`} disabled={!server.connectAddress} onClick={() => void copyAddress(server.connectAddress)} className={cn(secondary, "hidden size-[30px] px-0 @xl/row:inline-flex")}>
+            <Copy className="size-3.5" />
+          </button>
+          <button type="button" aria-label={`${server.name} details`} onClick={onDetails} className={cn(secondary, "hidden size-[30px] px-0 @xl/row:inline-flex")}>
+            <Info className="size-3.5" />
+          </button>
+          {connectable ? <span className="flex w-[92px]">{connectButton}</span> : (
             <Tooltip>
-              <TooltipTrigger asChild><span className="order-4 flex w-[124px] shrink-0" tabIndex={0}>{connectButton}</span></TooltipTrigger>
+              <TooltipTrigger asChild><span className="flex w-[92px]" tabIndex={0}>{connectButton}</span></TooltipTrigger>
               <TooltipContent>{server.status === "offline" ? "Server is offline" : server.status === "full" ? "Server is full" : "No connection address"}</TooltipContent>
             </Tooltip>
           )}
@@ -329,12 +366,12 @@ function ServerRow({ server, favourite, onFavourite, onDetails, index }: { serve
 
 function RowSkeleton() {
   return (
-    <div className="flex h-[96px] flex-col justify-between gap-3 overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3.5" aria-hidden="true">
-      <div className="flex flex-col gap-2.5">
+    <div className="flex h-[56px] items-center gap-3 overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] px-3" aria-hidden="true">
+      <div className="flex flex-1 flex-col gap-2">
         <Skeleton className="h-3 w-1/2 rounded-full bg-[var(--line)]" />
-        <Skeleton className="h-2.5 w-1/4 rounded-full bg-[var(--line-soft)]" />
+        <Skeleton className="h-2.5 w-1/3 rounded-full bg-[var(--line-soft)]" />
       </div>
-      <Skeleton className="h-[34px] w-full rounded-lg bg-[var(--raised)]" />
+      <Skeleton className="h-[30px] w-[92px] rounded-lg bg-[var(--raised)]" />
     </div>
   )
 }

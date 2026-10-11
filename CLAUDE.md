@@ -107,7 +107,7 @@ reduced motion. `.lx-sweep` opts any other element in. No colour in the sweep.
 ### Server rows (owner pick 2026-10-11)
 
 Play lists servers as rows by default, two to a line on wide pages (one on narrow ones; a row lays itself out by its own width, `@container/row`) (`ServerRow` in `src/pages/play.tsx`); a List / Cards switch next to the filters keeps the choice on the device. The map is the row's
-background and fades out from the left (`.lx-row-art`, a `mask-image`), so the text on the row stays clean; narrow rows stack and dim the map. Same flat outline, white
+background and fades out from the left (`.lx-row-art`, a `mask-image`), so the text on the row stays clean; narrow rows stack and dim the map. Rows are kept small (one line of name and state, slots, star, Connect; Copy and Details join in on wider rows; the name opens the details). Same flat outline, white
 Connect button and slot pips as the card.
 
 ## Icons and assets
