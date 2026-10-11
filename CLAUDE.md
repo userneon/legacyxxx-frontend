@@ -110,6 +110,10 @@ flat outline. A card that is an article, link, button or list item (or already h
 gliding across it when the pointer enters; it fades in and out, is a pseudo-element (the card's own transitions are untouched) and is off for
 reduced motion. `.lx-sweep` opts any other element in. No colour in the sweep.
 
+### Home mode cards (owner request 2026-10-11)
+
+Four cards (5x5, Fun, Pro League, Tournaments), each with a pill, title, one line, a real status and a CS2 agent picture (`src/assets/home/mode-*.webp`, owner-supplied, transparent) at the right. The card under the pointer (5x5 by default) is the wide one: bright picture, a violet border and soft glow underneath, and a white "Play now"; the others keep their picture dim. No server counts or rank gates are shown, since the API has no per-mode figure for them.
+
 ### Server rows (owner pick 2026-10-11)
 
 Play lists servers as rows by default, two to a line on wide pages (one on narrow ones; a row lays itself out by its own width, `@container/row`) (`ServerRow` in `src/pages/play.tsx`); a List / Cards switch next to the filters keeps the choice on the device. The map is the row's

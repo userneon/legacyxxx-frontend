@@ -13,18 +13,23 @@ import { TopPlayers } from "@/components/home-top-players"
 import { useNavigate } from "react-router-dom"
 import { AnimatedNumber } from "@/components/animated-number"
 import { Skeleton } from "@/components/ui/skeleton"
-import { cs2MapArtwork } from "@/lib/cs2-map-art"
+import { Play } from "lucide-react"
+import { formatDate } from "@/lib/preferences"
+import rankedArt from "@/assets/home/mode-ranked.webp"
+import funArt from "@/assets/home/mode-fun.webp"
+import proArt from "@/assets/home/mode-pro.webp"
+import eventsArt from "@/assets/home/mode-events.webp"
 
 interface HomePageProps {
   onNavigate: (page: PageId) => void
 }
 
 type ModeKey = "5x5" | "fun" | "pro" | "tournaments"
-const MODE_CARDS: { id: PageId; key: ModeKey; label: string; desc: string; map: string }[] = [
-  { id: "play-5vs5", key: "5x5", label: "5x5 Matches", desc: "Competitive matches", map: "de_mirage" },
-  { id: "play-fun", key: "fun", label: "Fun Mode", desc: "Surf, aim, deathmatch and more", map: "de_vertigo" },
-  { id: "play-proleague", key: "pro", label: "Pro League", desc: "Ranked 5v5 for high-rank players", map: "de_inferno" },
-  { id: "play-tournaments", key: "tournaments", label: "Tournaments", desc: "5v5 events on Legacy-X servers", map: "de_ancient" },
+const MODE_CARDS: { id: PageId; key: ModeKey; label: string; tag: string; desc: string; art: string }[] = [
+  { id: "play-5vs5", key: "5x5", label: "5x5 Matches", tag: "Ranked", desc: "Competitive 5v5. Every match counts toward your rank.", art: rankedArt },
+  { id: "play-fun", key: "fun", label: "Fun Mode", tag: "Casual", desc: "Surf, aim, deathmatch and more.", art: funArt },
+  { id: "play-proleague", key: "pro", label: "Pro League", tag: "High rank", desc: "Ranked 5v5 for high-rank players.", art: proArt },
+  { id: "play-tournaments", key: "tournaments", label: "Tournaments", tag: "Events", desc: "5v5 events on LEGACY-X servers.", art: eventsArt },
 ]
 
 
@@ -50,7 +55,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
     if (key === "tournaments") {
       const current = tournaments?.current
       if (!tournaments) return null
-      return current ? { text: TOURNAMENT_STATE[current.phase], live: current.phase === "live" } : { text: "No tournament scheduled", live: false }
+      return current ? { text: current.startsAt && (current.phase === "registration" || current.phase === "upcoming") ? `Next: ${formatDate(current.startsAt)}` : TOURNAMENT_STATE[current.phase], live: current.phase === "live" } : { text: "No tournament scheduled", live: false }
     }
     const players = homeStats?.modes?.[key]
     if (players === undefined) return null
@@ -115,7 +120,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
       <div className="grid gap-4 sm:grid-cols-2 lg:flex" onMouseLeave={() => setActiveMode(null)}>
         {MODE_CARDS.map((mode, index) => {
           const status = modeStatus(mode.key)
-          const art = cs2MapArtwork(mode.map)
+          const isWide = wide(mode.key)
           return (
             <button
               key={mode.id}
@@ -124,30 +129,42 @@ export function HomePage({ onNavigate }: HomePageProps) {
               onMouseEnter={() => setActiveMode(mode.key)}
               onFocus={() => setActiveMode(mode.key)}
               onBlur={() => setActiveMode(null)}
-              style={{ animationDelay: `${120 + index * 80}ms`, flexGrow: wide(mode.key) ? 2 : 1 }}
+              style={{ animationDelay: `${120 + index * 80}ms`, flexGrow: isWide ? 2 : 1 }}
               className={cn(
-                "lx-fx-card lx-glass group relative flex min-h-[168px] min-w-0 basis-0 flex-col justify-end overflow-hidden rounded-xl p-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
-                // Pro League is the one marked as special.
-                mode.key === "pro" && "border-[var(--brand)]/50",
+                "lx-fx-card lx-glass group relative flex min-h-[200px] min-w-0 basis-0 flex-col justify-end overflow-hidden rounded-xl p-5 text-left transition-[border-color,box-shadow] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
+                isWide && "border-[var(--brand)]/60 shadow-[0_18px_40px_-20px_var(--brand)]",
               )}
             >
-              {art && (
-                <img
-                  src={art}
-                  alt=""
-                  aria-hidden="true"
-                  loading="lazy"
-                  className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-70 transition-[opacity,scale] duration-500 ease-out group-hover:scale-[1.03] group-hover:opacity-100"
-                />
-              )}
-              <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--card-surface)]/80 via-[var(--card-surface)]/35 to-transparent" />
+              <img
+                src={mode.art}
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+                className={cn(
+                  "pointer-events-none absolute bottom-0 right-0 h-[118%] w-auto max-w-[75%] object-contain object-bottom transition-opacity duration-500 ease-out",
+                  isWide ? "opacity-100" : "opacity-25",
+                )}
+              />
+              <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--card-surface)]/85 via-[var(--card-surface)]/30 to-transparent" />
+              <span className="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--card-surface)]/70 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                <span className="size-1.5 rounded-full bg-[var(--brand-bright)]" />
+                {mode.tag}
+              </span>
               <div className="relative">
-                <h3 className={cn("font-semibold tracking-[-0.2px] text-[var(--text)]", wide(mode.key) ? "lg:text-2xl" : "text-lg")}>{mode.label}</h3>
-                <p className="mt-1 text-[13px] leading-snug text-[var(--text-muted)]">{mode.desc}</p>
+                <h3 className={cn("font-semibold tracking-[-0.2px] text-[var(--text)]", isWide ? "text-2xl lg:text-[32px] lg:leading-tight" : "text-xl")}>{mode.label}</h3>
+                <p className={cn("mt-1 text-[13px] leading-snug text-[var(--text-muted)]", isWide ? "max-w-[55%]" : "max-w-[85%]")}>{mode.desc}</p>
               </div>
-              <div className={cn("relative mt-4 flex h-4 items-center gap-1.5 transition-opacity duration-150", status ? "opacity-100" : "opacity-0")}>
-                {status?.live && <span className="lx-live-dot size-1.5 rounded-full bg-[var(--status-green)]" />}
-                <span className="text-xs text-[var(--text-dim)]">{status?.text ?? " "}</span>
+              <div className={cn("relative mt-4 flex h-9 items-center justify-between gap-3 transition-opacity duration-150", status ? "opacity-100" : "opacity-0")}>
+                <span className="flex items-center gap-1.5">
+                  {status?.live && <span className="lx-live-dot size-1.5 rounded-full bg-[var(--status-green)]" />}
+                  <span className="text-xs text-[var(--text-dim)]">{status?.text ?? " "}</span>
+                </span>
+                {isWide && (
+                  <span className="lx-primary-button inline-flex h-9 items-center gap-2 rounded-lg px-4 text-[13px] font-semibold">
+                    <Play className="size-3.5 fill-current" />
+                    Play now
+                  </span>
+                )}
               </div>
             </button>
           )
