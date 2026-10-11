@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
-import { ChevronDown, Copy, LayoutGrid, List, LoaderCircle, Lock, Play, RotateCcw, SlidersHorizontal, Star, X, Zap } from "lucide-react"
+import { ChevronDown, Copy, Gamepad2, LayoutGrid, List, LoaderCircle, Lock, Play, Map as MapIcon, RotateCcw, SlidersHorizontal, Star, X, Zap } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -16,7 +16,6 @@ import { CompetitiveRankBadge, RankLabel } from "@/components/competitive-rank-b
 import { PlayerAvatar } from "@/components/player-avatar"
 import { TeamIcon, teamTextClass, type TeamSide } from "@/components/team-icon"
 import { SteamLoginGate } from "@/components/steam-login-gate"
-import { Segmented } from "@/components/segmented"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -667,7 +666,7 @@ function sortServers(servers: PlayServer[], order: SortOrder) {
   return servers
 }
 
-function OptionList<T extends string>({ label, value, options, onChange }: { label: string; value: T; options: readonly { value: T; label: string }[]; onChange: (value: T) => void }) {
+function OptionList<T extends string>({ label, value, options, onChange }: { label: string; value: T; options: readonly { value: T; label: string; hint?: string }[]; onChange: (value: T) => void }) {
   return (
     <div role="radiogroup" aria-label={label} className="flex flex-col gap-0.5">
       <span className="px-2 pb-1 text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--text-dim)]">{label}</span>
@@ -680,8 +679,11 @@ function OptionList<T extends string>({ label, value, options, onChange }: { lab
           onClick={() => onChange(option.value)}
           className={cn("flex h-8 items-center justify-between gap-2 rounded-lg px-2 text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60", value === option.value ? "bg-[var(--line)] text-[var(--text)]" : "text-[var(--text-muted)] hover:bg-[var(--raised)] hover:text-[var(--text)]")}
         >
-          {option.label}
-          {value === option.value && <span aria-hidden="true" className="size-1.5 rounded-full bg-[var(--text)]" />}
+          <span className="truncate">{option.label}</span>
+          <span className="flex shrink-0 items-center gap-2">
+            {option.hint && <span className="text-xs text-[var(--text-dim)]">{option.hint}</span>}
+            {value === option.value && <span aria-hidden="true" className="size-1.5 rounded-full bg-[var(--text)]" />}
+          </span>
         </button>
       ))}
     </div>
@@ -752,13 +754,29 @@ function ServerBrowser({ mode, title, description, pickRule, heroMap }: { mode: 
             anyJoinable={servers.some((server) => server.joinable)}
           />
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <Segmented
-              ariaLabel={mode === "fun" ? "Modes" : "Maps"}
-              value={filter}
-              onChange={(value) => update({ filter: value === "all" ? null : value })}
-              options={[{ value: "all", label: mode === "fun" ? "All modes" : "All maps" }, ...chips.map(([value, label]) => ({ value, label }))]}
-              className="scrollbar-hidden max-w-full overflow-x-auto"
-            />
+            {/* Maps (modes on Fun): a dropdown, so it stays one button however many there are. */}
+            <Popover>
+              <div className={toggleTray}>
+                <PopoverTrigger asChild>
+                  <button type="button" aria-label={mode === "fun" ? "Filter by mode" : "Filter by map"} className={cn(toggleItem, "group", filter !== "all" ? toggleOn : toggleOff)}>
+                    {mode === "fun" ? <Gamepad2 className="size-3.5" /> : <MapIcon className="size-3.5" />}
+                    {filter === "all" ? (mode === "fun" ? "All modes" : "All maps") : chips.find(([value]) => value === filter)?.[1] ?? filter}
+                    <ChevronDown className="size-3.5 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                  </button>
+                </PopoverTrigger>
+              </div>
+              <PopoverContent align="start" sideOffset={8} className="max-h-[340px] w-[232px] overflow-y-auto rounded-xl border-[var(--line)] bg-[var(--panel)] p-2 shadow-[0_18px_44px_rgba(0,0,0,0.55)]">
+                <OptionList
+                  label={mode === "fun" ? "Mode" : "Map"}
+                  value={filter}
+                  onChange={(value) => update({ filter: value === "all" ? null : value })}
+                  options={[
+                    { value: "all", label: mode === "fun" ? "All modes" : "All maps", hint: String(servers.length) },
+                    ...chips.map(([value, label]) => ({ value, label, hint: String(servers.filter((server) => (mode === "fun" ? server.modeLabel : server.map).toLowerCase() === value).length) })),
+                  ]}
+                />
+              </PopoverContent>
+            </Popover>
             <div className="flex flex-wrap items-center gap-2">
             <Popover>
               <div className={toggleTray}>

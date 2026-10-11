@@ -112,7 +112,7 @@ reduced motion. `.lx-sweep` opts any other element in. No colour in the sweep.
 
 Play lists servers as rows by default, two to a line on wide pages (one on narrow ones; a row lays itself out by its own width, `@container/row`) (`ServerRow` in `src/pages/play.tsx`); a List / Cards switch next to the filters keeps the choice on the device. The map is the row's
 background and fades out from the left (`.lx-row-art`, a `mask-image`), so the text on the row stays clean; narrow rows stack and dim the map. Rows are kept small (one line of name and state, slots, star, Copy IP, Connect). There is no Details button: clicking a card or a row anywhere except its own buttons opens the details (the name is also a real button, for the keyboard). Same flat outline, white
-Connect button and slot pips as the card. A Filter dropdown (Radix popover) next to the view switch picks the state to show (all, live, not started, free slot) and the order (default, most or fewest players, name); both live in the URL (`status`, `sort`).
+Connect button and slot pips as the card. The map (mode on Fun) is a dropdown too, with a server count per option. A Filter dropdown (Radix popover) next to the view switch picks the state to show (all, live, not started, free slot) and the order (default, most or fewest players, name); both live in the URL (`status`, `sort`).
 
 ## Icons and assets
 
