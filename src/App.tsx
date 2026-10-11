@@ -159,11 +159,8 @@ export function App() {
               } />
               <Route path="/profile/appearance" element={<ProtectedPage pageName="Profile"><ProfilePage /></ProtectedPage>} />
               <Route path="/profile/settings" element={<ProtectedPage pageName="Profile"><ProfilePage /></ProtectedPage>} />
-              <Route path="/profile/:steamId" element={
-                <ProtectedPage pageName="Profile">
-                  <ProfilePage />
-                </ProtectedPage>
-              } />
+              {/* Someone else's profile is public (the API serves it to visitors); your own pages above need an account. */}
+              <Route path="/profile/:steamId" element={<ProfilePage />} />
               <Route path="/connect" element={<ConnectPage />} />
               <Route path="*" element={<HomePage onNavigate={handleNavigate} />} />
             </Routes>
