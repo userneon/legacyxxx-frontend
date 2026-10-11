@@ -114,7 +114,7 @@ function StatusPill({ server }: { server: PlayServer }) {
     return (
       <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-[rgba(10,10,10,0.72)] px-2.5 text-xs font-semibold text-[var(--text)] backdrop-blur-sm">
         <span className="lx-live-dot size-1.5 rounded-full bg-[var(--status-green)]" />
-        {server.score ? <><span className="text-[var(--team-t)]">{server.score.t}</span>:<span className="text-[var(--team-ct)]">{server.score.ct}</span></> : "Live"}
+        Live
       </span>
     )
   }
@@ -155,7 +155,7 @@ function StatusText({ server }: { server: PlayServer }) {
     return (
       <span className="inline-flex shrink-0 items-center gap-1.5 font-semibold text-[var(--text)]">
         <span className="lx-live-dot size-1.5 rounded-full bg-[var(--status-green)]" />
-        {server.score ? <><span className="text-[var(--team-t)]">{server.score.t}</span>:<span className="text-[var(--team-ct)]">{server.score.ct}</span></> : "Live"}
+        Live
       </span>
     )
   }
