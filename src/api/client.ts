@@ -134,7 +134,8 @@ function defaultMessageForStatus(status: number): string {
 /**
  * Converts a fetch response (or network failure) into a standardized
  * `ApiError`. Structured response fields may be retained for form handling,
- * but backend-provided message strings are never exposed to the UI.
+ * Backend messages are shown only for 400/404/409/422 and only when they read as one short plain English sentence (the API's
+ * own wording, such as "Clan is full"); anything else keeps the generic message for its status. React renders it as text.
  */
 async function toApiError(response: Response): Promise<ApiError> {
   const status = response.status
@@ -152,6 +153,10 @@ async function toApiError(response: Response): Promise<ApiError> {
         const apiFields = (body as { fields?: unknown }).fields
         if (apiFields && typeof apiFields === "object") {
           fields = apiFields as Record<string, string[]>
+        }
+        const said = (body as { error?: unknown }).error
+        if ([400, 404, 409, 422].includes(status) && typeof said === "string" && /^[A-Z][A-Za-z0-9 ,.'’()/:-]{3,160}$/.test(said)) {
+          message = /[.!?]$/.test(said) ? said : `${said}.`
         }
         const code = (body as { code?: unknown }).code
         if (typeof code === "string" && /^clan_[a-z_]{2,40}$/.test(code)) reason = code
