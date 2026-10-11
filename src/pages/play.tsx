@@ -264,8 +264,13 @@ function CardSkeleton() {
 
 /* ------------------------------------------------------------------ details sheet */
 
+/** A name made only of spaces or invisible characters (e.g. the Hangul filler) shows as "Unknown player". */
+function visibleName(name: string) {
+  return name.replace(/[\p{C}\p{Z}ᅟᅠㅤﾠ⠀]/gu, "") ? name : "Unknown player"
+}
+
 function TeamTable({ title, players, side }: { title: string; players: ServerLiveMatchPlayer[]; side?: TeamSide }) {
-  const stat = (value: number | null | undefined) => (typeof value === "number" ? value : "—")
+  const stat =(value: number | null | undefined) => (typeof value === "number" ? value : "—")
   return (
     <div className="overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
       <div
@@ -279,8 +284,8 @@ function TeamTable({ title, players, side }: { title: string; players: ServerLiv
       ) : players.map((player) => (
         <div key={player.steamId} className="grid h-[38px] grid-cols-[minmax(0,1fr)_34px_34px_34px] items-center gap-2 border-t border-[var(--raised)] px-3 text-[13px] transition-colors duration-300 hover:bg-[var(--raised)]">
           <span className="flex min-w-0 items-center gap-2">
-            <PlayerAvatar avatar={player.avatar ?? undefined} name={player.name} className="size-[22px] shrink-0 rounded-md text-[9px]" />
-            <span className={cn("truncate", player.connected ? "text-[var(--text)]" : "text-[var(--text-dim)]")} title={player.name}>{player.name}</span>
+            <PlayerAvatar avatar={player.avatar ?? undefined} name={visibleName(player.name)} className="size-[22px] shrink-0 rounded-md text-[9px]" />
+            <span className={cn("truncate", player.connected ? "text-[var(--text)]" : "text-[var(--text-dim)]")} title={visibleName(player.name)}>{visibleName(player.name)}</span>
           </span>
           <span className="font-semibold text-[var(--text)]">{stat(player.kills)}</span>
           <span className="text-[var(--text-2)]">{stat(player.deaths)}</span>
