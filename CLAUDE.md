@@ -95,6 +95,9 @@ The Staff page (`src/pages/staff.tsx`, `src/components/staff-*.tsx`) is built ar
 player by name or Steam ID and opens their case: penalties with who lifted them, what the checker found, and the buttons to act (B ban, M mute, G gag, `/` find, Esc back).
 "Needs you" on Overview lists finished checks, checks still waiting and unban requests, oldest first. It stays inside the site's palette (neutral, white accent); it
 shows only counts of real records and never a made-up score.
+Staff → **Team** (`src/components/staff-team.tsx`, Owner only; others see why): add a player by SteamID64 with a role (Owner, Manager,
+Admin, Developer, Designer; immunity and stamina default from the role), edit role / immunity / stamina, Suspend, Remove, Reactivate.
+Developer and Designer carry the team badge only: in game they are players. Staff → **Creators** manages content creators.
 
 ### Flat outline (owner pick 2026-10-05, replaces the glass look of 2026-09-28)
 
