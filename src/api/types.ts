@@ -560,6 +560,9 @@ export interface StaffPanelAction {
   action_type: string
   server_id: string
   created_at: string
+  completed_at?: string | null
+  /** What the game server said when it ran the action (or why it was cancelled). */
+  result?: { ok?: boolean; message?: string } | null
 }
 
 export interface StaffPanelOverview {

@@ -69,6 +69,14 @@ export function ServersPanel() {
     }
   }
   useEffect(() => { void load() }, [])
+  // While an action waits for the game server (it checks every few seconds), refresh so its result shows up.
+  const waiting = (overview?.pendingActions ?? []).some((action) => action.status === "pending" || action.status === "claimed")
+  useEffect(() => {
+    if (!waiting) return
+    const timer = window.setInterval(() => { void load() }, 3000)
+    return () => window.clearInterval(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [waiting])
 
   const actions = useMemo(() => (access?.role === "OWNER" ? [...MANAGER_ACTIONS, ...OWNER_ACTIONS] : MANAGER_ACTIONS), [access?.role])
 
@@ -80,7 +88,7 @@ export function ServersPanel() {
     setBusy(true)
     try {
       const result = await staffPanelService.queueAction({ serverId: server, type: action.type, playerSteamId: action.needsPlayer ? steamId.trim() : undefined, message: action.needsMessage ? message.trim() : undefined, map: action.needsMap ? map : undefined })
-      setNotice(`${action.label} queued. It runs when a game server claims it.`)
+      setNotice(`${action.label} sent. The server runs it within a few seconds; the result shows under Recent actions.`)
       void result
       await load()
     } catch (error) {
@@ -147,15 +155,21 @@ export function ServersPanel() {
         </div>
 
         <section aria-label="Queue" className="flex flex-col gap-2 self-start">
-          <h3 className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-faint)]">Queue</h3>
+          <h3 className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-faint)]">Recent actions</h3>
           {(overview?.pendingActions ?? []).length === 0 ? (
-            <p className="text-[13px] text-[var(--text-dim)]">Nothing is waiting for a server.</p>
+            <p className="text-[13px] text-[var(--text-dim)]">No actions yet.</p>
           ) : (
             <ul className="flex flex-col gap-2">
               {overview?.pendingActions.map((action) => (
-                <li key={action.id} className="flex items-center justify-between gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] px-3 py-2 text-[13px]">
-                  <span className="min-w-0 truncate text-[var(--text)]">{action.action_type} <span className="text-[var(--text-dim)]">· {action.server_id}</span></span>
-                  <span className="shrink-0 font-mono text-[10px] uppercase tracking-[1px] text-[var(--text-dim)]">{action.status}</span>
+                <li key={action.id} className="flex flex-col gap-1 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] px-3 py-2 text-[13px]">
+                  <span className="flex items-center justify-between gap-3">
+                    <span className="min-w-0 truncate text-[var(--text)]">{action.action_type.replace(/_/g, " ")} <span className="text-[var(--text-dim)]">· {action.server_id}</span></span>
+                    <span className={cn("flex shrink-0 items-center gap-1.5 text-[11px] font-semibold", action.status === "completed" ? "text-[var(--status-green)]" : action.status === "failed" ? "text-[var(--status-red)]" : "text-[var(--text-dim)]")}>
+                      {(action.status === "pending" || action.status === "claimed") && <Loader2 className="size-3 animate-spin" aria-hidden="true" />}
+                      {{ pending: "Waiting", claimed: "Running", completed: "Done", failed: "Failed", cancelled: "Cancelled" }[action.status]}
+                    </span>
+                  </span>
+                  {action.result?.message && <span className="text-xs text-[var(--text-muted)]">{action.result.message}</span>}
                 </li>
               ))}
             </ul>
