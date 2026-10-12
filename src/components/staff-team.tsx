@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
 
 type StaffRole = "OWNER" | "MANAGER" | "ADMIN" | "DEVELOPER" | "DESIGNER"
 type StaffStatus = "active" | "suspended" | "revoked"
-interface StaffMember { id: string; userId: string; username: string; steamId: string; avatar: string; role: StaffRole; status: StaffStatus; stamina: number; immunity: number; createdAt: string }
+interface StaffMember { id: string; userId: string; username: string; steamId: string; avatar: string; role: StaffRole; status: StaffStatus; stamina: number; immunity: number; expiresAt: string | null; createdAt: string }
 
 const ROLES: Array<{ id: StaffRole; label: string; note: string; level: number }> = [
   { id: "OWNER", label: "Owner", note: "Everything, including this list", level: 1000 },
@@ -24,7 +24,36 @@ const STATUS_LABEL: Record<StaffStatus, string> = { active: "Active", suspended:
 const input = "h-9 w-full rounded-lg border border-[var(--line)] bg-[var(--bg)] px-3 text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] focus:border-[var(--text-faint)] focus:outline-none"
 const secondary = "inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] disabled:opacity-50"
 
-type Draft = { id: string | null; steamId: string; role: StaffRole; immunity: number; stamina: number }
+type Draft = { id: string | null; steamId: string; role: StaffRole; immunity: number; stamina: number; term: Term; until: string }
+
+/** How long a grant lasts: no end, a fixed number of days from now, or a chosen date. */
+type Term = "none" | "7" | "30" | "90" | "date"
+const TERMS: Array<{ id: Term; label: string }> = [
+  { id: "none", label: "No end" },
+  { id: "7", label: "7 days" },
+  { id: "30", label: "30 days" },
+  { id: "90", label: "90 days" },
+  { id: "date", label: "Until a date" },
+]
+const DAY = 86_400_000
+
+/** The end date the API gets: null for no end, else the end of the chosen day (local time). */
+function endOf(draft: Draft): string | null | "invalid" {
+  if (draft.term === "none") return null
+  if (draft.term === "date") {
+    const end = new Date(`${draft.until}T23:59:59`)
+    return Number.isFinite(end.getTime()) && end.getTime() > Date.now() ? end.toISOString() : "invalid"
+  }
+  return new Date(Date.now() + Number(draft.term) * DAY).toISOString()
+}
+
+function untilText(expiresAt: string | null) {
+  if (!expiresAt) return "No end"
+  const date = new Date(expiresAt)
+  const days = Math.ceil((date.getTime() - Date.now()) / DAY)
+  const day = date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+  return days <= 0 ? `Ended ${day}` : `Until ${day} · ${days} day${days === 1 ? "" : "s"} left`
+}
 
 function RolePicker({ value, onChange }: { value: StaffRole; onChange: (role: StaffRole) => void }) {
   return (
@@ -60,11 +89,13 @@ export function StaffTeam() {
   }
   const save = () => {
     if (!draft) return
-    if (draft.id) return run(() => patch(`/api/v1/staffpanel/staff/${draft.id}`, { role: draft.role, immunity: draft.immunity, stamina: draft.stamina }), "Staff member updated")
+    const expiresAt = endOf(draft)
+    if (expiresAt === "invalid") { toast.error("Pick a date after today"); return }
+    if (draft.id) return run(() => patch(`/api/v1/staffpanel/staff/${draft.id}`, { role: draft.role, immunity: draft.immunity, stamina: draft.stamina, expiresAt }), "Staff member updated")
     if (!/^7656119\d{10}$/.test(draft.steamId.trim())) { toast.error("Enter the player's SteamID64 (7656119…)"); return }
-    return run(() => post("/api/v1/staffpanel/staff", { steamId: draft.steamId.trim(), role: draft.role, immunity: draft.immunity, stamina: draft.stamina }), "Added to the staff")
+    return run(() => post("/api/v1/staffpanel/staff", { steamId: draft.steamId.trim(), role: draft.role, immunity: draft.immunity, stamina: draft.stamina, expiresAt }), "Added to the staff")
   }
-  const setStatus = (member: StaffMember, status: StaffStatus) => run(() => patch(`/api/v1/staffpanel/staff/${member.id}`, { status }), `${member.username}: ${STATUS_LABEL[status].toLowerCase()}`)
+  const setStatus = (member: StaffMember, status: StaffStatus) => run(() => patch(`/api/v1/staffpanel/staff/${member.id}`, status === "active" && member.expiresAt && Date.parse(member.expiresAt) <= Date.now() ? { status, expiresAt: null } : { status }), `${member.username}: ${STATUS_LABEL[status].toLowerCase()}`)
   const pickRole = (role: StaffRole) => draft && setDraft({ ...draft, role, immunity: ROLES.find((entry) => entry.id === role)!.level, stamina: ROLES.find((entry) => entry.id === role)!.level })
 
   if (error && !data) {
@@ -80,7 +111,7 @@ export function StaffTeam() {
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-6 py-5 max-md:px-4">
       <div className="flex items-center justify-between gap-3">
         <p className="text-[13px] text-[var(--text-muted)]">Who is on the LEGACY-X team and what they can do. The game servers pick up a change within a minute.</p>
-        {!draft && <button type="button" onClick={() => setDraft({ id: null, steamId: "", role: "ADMIN", immunity: 500, stamina: 500 })} className="lx-primary-button inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-3.5 text-[13px] font-semibold"><Plus className="size-4" />Add staff</button>}
+        {!draft && <button type="button" onClick={() => setDraft({ id: null, steamId: "", role: "ADMIN", immunity: 500, stamina: 500, term: "none", until: "" })} className="lx-primary-button inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-3.5 text-[13px] font-semibold"><Plus className="size-4" />Add staff</button>}
       </div>
 
       {draft && (
@@ -92,6 +123,15 @@ export function StaffTeam() {
             </label>
           )}
           <RolePicker value={draft.role} onChange={pickRole} />
+          <div className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">How long
+            <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="How long">
+              {TERMS.map((term) => (
+                <button key={term.id} type="button" aria-pressed={draft.term === term.id} onClick={() => setDraft({ ...draft, term: term.id })} className="h-8 rounded-lg border border-[var(--line)] px-3 text-[13px] text-[var(--text-muted)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]">{term.label}</button>
+              ))}
+              {draft.term === "date" && <input type="date" aria-label="End date" className={cn(input, "h-8 w-auto [color-scheme:dark]")} min={new Date(Date.now() + DAY).toISOString().slice(0, 10)} value={draft.until} onChange={(event) => setDraft({ ...draft, until: event.target.value })} />}
+            </div>
+            <span className="text-[11px] text-[var(--text-dim)]">{draft.term === "none" ? "Stays until you change it." : "Ends on its own: the role is suspended on that day."}</span>
+          </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Immunity (0–1000: who they can act on in game)
               <input className={input} type="number" min={0} max={1000} value={draft.immunity} onChange={(event) => setDraft({ ...draft, immunity: Math.max(0, Math.min(1000, Number(event.target.value) || 0)) })} />
@@ -129,9 +169,12 @@ export function StaffTeam() {
                 <span className="lx-stat-cell gap-1 px-3 py-2"><span className="lx-stat-label">Immunity</span><span className="text-[15px] font-semibold text-[var(--text)]">{member.immunity}</span></span>
                 <span className="lx-stat-cell gap-1 px-3 py-2"><span className="lx-stat-label">Stamina</span><span className="text-[15px] font-semibold text-[var(--text)]">{member.stamina}</span></span>
               </div>
-              <span className="truncate text-[11px] text-[var(--text-dim)]">{member.steamId}</span>
+              <span className="flex flex-col gap-0.5 text-[11px] text-[var(--text-dim)]">
+                <span className={cn(member.expiresAt && "text-[var(--brand-bright)]")}>{untilText(member.expiresAt)}</span>
+                <span className="truncate">{member.steamId}</span>
+              </span>
               <div className="mt-auto flex gap-2">
-                <button type="button" aria-label={`Edit ${member.username}`} onClick={() => setDraft({ id: member.id, steamId: member.steamId, role: member.role, immunity: member.immunity, stamina: member.stamina })} className={cn(secondary, "w-9 shrink-0 px-0")}><Pencil className="size-4" /></button>
+                <button type="button" aria-label={`Edit ${member.username}`} onClick={() => setDraft({ id: member.id, steamId: member.steamId, role: member.role, immunity: member.immunity, stamina: member.stamina, term: member.expiresAt ? "date" : "none", until: member.expiresAt ? member.expiresAt.slice(0, 10) : "" })} className={cn(secondary, "w-9 shrink-0 px-0")}><Pencil className="size-4" /></button>
                 {member.status === "active" ? (
                   <>
                     <button type="button" disabled={busy} onClick={() => void setStatus(member, "suspended")} className={cn(secondary, "flex-1")}>Suspend</button>

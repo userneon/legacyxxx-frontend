@@ -104,7 +104,7 @@ player by name or Steam ID and opens their case: penalties with who lifted them,
 shows only counts of real records and never a made-up score.
 Staff → **Team** (`src/components/staff-team.tsx`, Owner only; others see why): add a player by SteamID64 with a role (Owner, Manager,
 Admin, Developer, Designer; immunity and stamina default from the role), edit role / immunity / stamina, Suspend, Remove, Reactivate.
-Staff members are violet cards in a grid (`.lx-add-box`; avatar, name, violet role pill, immunity and stamina, SteamID, actions) (owner request 2026-10-12). Developer and Designer carry the team badge only: in game they are players. Staff → **Creators** manages content creators.
+Staff members are violet cards in a grid (`.lx-add-box`; avatar, name, violet role pill, immunity and stamina, SteamID, actions) (owner request 2026-10-12). A grant can have an end (No end, 7, 30, 90 days, or a date); the API suspends it on that day and the card shows "Until … · N days left". Developer and Designer carry the team badge only: in game they are players. Staff → **Creators** manages content creators.
 
 ### Flat outline (owner pick 2026-10-05, replaces the glass look of 2026-09-28)
 
