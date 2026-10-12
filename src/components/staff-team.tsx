@@ -77,7 +77,7 @@ export function StaffTeam() {
 
   const members = data ?? []
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-6 py-5 max-md:px-4">
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-6 py-5 max-md:px-4">
       <div className="flex items-center justify-between gap-3">
         <p className="text-[13px] text-[var(--text-muted)]">Who is on the LEGACY-X team and what they can do. The game servers pick up a change within a minute.</p>
         {!draft && <button type="button" onClick={() => setDraft({ id: null, steamId: "", role: "ADMIN", immunity: 500, stamina: 500 })} className="lx-primary-button inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-3.5 text-[13px] font-semibold"><Plus className="size-4" />Add staff</button>}
@@ -112,25 +112,35 @@ export function StaffTeam() {
       ) : members.length === 0 ? (
         <p className="py-10 text-center text-[13px] text-[var(--text-dim)]">No staff yet.</p>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {members.map((member) => (
-            <li key={member.id} className={cn("lx-add-box flex flex-wrap items-center gap-3 rounded-xl border px-4 py-3", member.status !== "active" && "opacity-60 saturate-50")}>
-              <PlayerAvatar avatar={member.avatar || undefined} name={member.username} className="size-9 shrink-0 rounded-lg text-[11px] ring-1 ring-[var(--brand)]/40" />
-              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="truncate text-[13px] font-semibold text-[var(--text)]">{member.username}</span>
-                <span className="truncate text-xs text-[var(--text-dim)]">{member.steamId} · immunity {member.immunity} · stamina {member.stamina}</span>
-              </span>
-              <span className="inline-flex h-6 items-center rounded-full border border-[var(--brand)]/45 bg-[var(--brand)]/12 px-2.5 text-xs font-semibold text-[var(--brand-bright)]">{ROLES.find((role) => role.id === member.role)?.label ?? member.role}</span>
-              {member.status !== "active" && <span className="text-xs text-[var(--text-dim)]">{STATUS_LABEL[member.status]}</span>}
-              <button type="button" aria-label={`Edit ${member.username}`} onClick={() => setDraft({ id: member.id, steamId: member.steamId, role: member.role, immunity: member.immunity, stamina: member.stamina })} className={cn(secondary, "w-9 px-0")}><Pencil className="size-4" /></button>
-              {member.status === "active" ? (
-                <>
-                  <button type="button" disabled={busy} onClick={() => void setStatus(member, "suspended")} className={secondary}>Suspend</button>
-                  <button type="button" disabled={busy} onClick={() => void setStatus(member, "revoked")} className={secondary}>Remove</button>
-                </>
-              ) : (
-                <button type="button" disabled={busy} onClick={() => void setStatus(member, "active")} className={secondary}>Reactivate</button>
-              )}
+            <li key={member.id} className={cn("lx-add-box flex flex-col gap-3.5 rounded-2xl border p-[18px]", member.status !== "active" && "opacity-60 saturate-50")}>
+              <div className="flex items-center gap-3">
+                <PlayerAvatar avatar={member.avatar || undefined} name={member.username} className="size-12 shrink-0 rounded-xl text-[13px] ring-1 ring-[var(--brand)]/40" />
+                <span className="flex min-w-0 flex-1 flex-col gap-1">
+                  <span className="truncate text-[15px] font-semibold text-[var(--text)]" title={member.username}>{member.username}</span>
+                  <span className="flex flex-wrap items-center gap-1.5">
+                    <span className="inline-flex h-6 items-center rounded-full border border-[var(--brand)]/45 bg-[var(--brand)]/12 px-2.5 text-xs font-semibold text-[var(--brand-bright)]">{ROLES.find((role) => role.id === member.role)?.label ?? member.role}</span>
+                    {member.status !== "active" && <span className="text-xs text-[var(--text-dim)]">{STATUS_LABEL[member.status]}</span>}
+                  </span>
+                </span>
+              </div>
+              <div className="lx-stat-grid grid-cols-2">
+                <span className="lx-stat-cell gap-1 px-3 py-2"><span className="lx-stat-label">Immunity</span><span className="text-[15px] font-semibold text-[var(--text)]">{member.immunity}</span></span>
+                <span className="lx-stat-cell gap-1 px-3 py-2"><span className="lx-stat-label">Stamina</span><span className="text-[15px] font-semibold text-[var(--text)]">{member.stamina}</span></span>
+              </div>
+              <span className="truncate text-[11px] text-[var(--text-dim)]">{member.steamId}</span>
+              <div className="mt-auto flex gap-2">
+                <button type="button" aria-label={`Edit ${member.username}`} onClick={() => setDraft({ id: member.id, steamId: member.steamId, role: member.role, immunity: member.immunity, stamina: member.stamina })} className={cn(secondary, "w-9 shrink-0 px-0")}><Pencil className="size-4" /></button>
+                {member.status === "active" ? (
+                  <>
+                    <button type="button" disabled={busy} onClick={() => void setStatus(member, "suspended")} className={cn(secondary, "flex-1")}>Suspend</button>
+                    <button type="button" disabled={busy} onClick={() => void setStatus(member, "revoked")} className={cn(secondary, "flex-1")}>Remove</button>
+                  </>
+                ) : (
+                  <button type="button" disabled={busy} onClick={() => void setStatus(member, "active")} className={cn(secondary, "flex-1")}>Reactivate</button>
+                )}
+              </div>
             </li>
           ))}
         </ul>
