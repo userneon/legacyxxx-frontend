@@ -24,13 +24,48 @@ export function CreatorBadge({ tier, label }: { tier: CreatorTier; label: string
   )
 }
 
-/** A creator's channels as small link buttons, in a fixed platform order. */
+const TIKTOK_PATH = "M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"
+
+/** The TikTok note drawn three times, cyan and red offset under white, like TikTok's own logo. */
+function TikTokMark() {
+  return (
+    <span aria-hidden="true" className="lx-tiktok-mark relative size-4 shrink-0">
+      <svg viewBox="0 0 24 24" className="lx-tiktok-cyan absolute inset-0 size-4"><path d={TIKTOK_PATH} fill="currentColor" /></svg>
+      <svg viewBox="0 0 24 24" className="lx-tiktok-red absolute inset-0 size-4"><path d={TIKTOK_PATH} fill="currentColor" /></svg>
+      <svg viewBox="0 0 24 24" className="absolute inset-0 size-4 text-white"><path d={TIKTOK_PATH} fill="currentColor" /></svg>
+    </span>
+  )
+}
+
+/** "@name" from a TikTok link (tiktok.com/@name), or nothing when the link has no handle. */
+function tiktokHandle(url: string) {
+  try {
+    const handle = new URL(url).pathname.split("/").find((part) => part.startsWith("@"))
+    return handle && handle.length > 1 ? handle.slice(0, 32) : null
+  } catch {
+    return null
+  }
+}
+
+/** TikTok gets a button of its own: black, its glitch logo, the handle, and a short glitch on hover. */
+function TikTokButton({ url }: { url: string }) {
+  const handle = tiktokHandle(url)
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer nofollow" aria-label={handle ? `TikTok ${handle}` : "TikTok"} className="lx-tiktok group inline-flex h-8 items-center gap-2 rounded-lg px-3 text-xs">
+      <TikTokMark />
+      <span className="lx-tiktok-word font-bold tracking-[0.01em] text-white">TikTok</span>
+      {handle && <span className="max-w-[120px] truncate font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--text-2)]">{handle}</span>}
+    </a>
+  )
+}
+
+/** A creator's channels as small link buttons, in a fixed platform order; TikTok has its own look. */
 export function CreatorLinks({ links, className }: { links: Creator["links"]; className?: string }) {
   const present = CREATOR_PLATFORMS.filter((platform) => links[platform.id])
   if (present.length === 0) return null
   return (
     <div className={cn("flex flex-wrap gap-1.5", className)}>
-      {present.map((platform) => (
+      {present.map((platform) => platform.id === "tiktok" ? <TikTokButton key="tiktok" url={links.tiktok!} /> : (
         <a key={platform.id} href={links[platform.id]} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[var(--line)] px-2.5 text-xs font-medium text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)] hover:text-[var(--text)]">
           {platform.label}
           <ExternalLink className="size-3" />

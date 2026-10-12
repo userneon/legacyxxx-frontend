@@ -131,7 +131,9 @@ Two creator roles, **Main Content Creator** and **Content Creator**, kept apart 
 permissions of any kind). They show as a badge next to the name on the profile (Main: white outline and a star; Content Creator:
 neutral, clapperboard), a card under the header with their line and channel links, and on the **Creators** page (`/creators`,
 sidebar; `src/pages/creators.tsx`): Main creators first in bigger cards, then the others. Links are text buttons with the platform's
-name (Twitch, YouTube, TikTok, Kick, Facebook, Instagram; lucide has no brand icons). Owners and Managers manage the list in
+name (Twitch, YouTube, Kick, Facebook, Instagram; lucide has no brand icons). TikTok has a button of its own (`.lx-tiktok`,
+owner request 2026-10-12): black, TikTok's note with its cyan and red offsets, the `@handle` from the link, and a short glitch on
+hover (off for reduced motion); its brand colours are palette-exempt. Owners and Managers manage the list in
 Staff → Creators (`src/components/staff-creators.tsx`).
 
 ## Icons and assets

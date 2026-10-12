@@ -378,6 +378,35 @@ body::before {
   -webkit-mask-image: linear-gradient(90deg, #000 0%, rgba(0, 0, 0, 0.55) 45%, transparent 100%);
   mask-image: linear-gradient(90deg, #000 0%, rgba(0, 0, 0, 0.55) 45%, transparent 100%);
 }
+/*
+ * TikTok link on creator cards and profiles (owner request 2026-10-12): TikTok's own black button, its note with the cyan and red
+ * offsets, and a short glitch on hover. Brand colours, so palette-exempt; off for reduced motion.
+ */
+.lx-tiktok {
+  background: #000; /* palette-exempt: TikTok brand */
+  border: 1px solid #2a2a2a; /* palette-exempt: TikTok brand */
+  transition: border-color 200ms ease-out, box-shadow 200ms ease-out;
+}
+.lx-tiktok:hover {
+  border-color: #3a3a3a; /* palette-exempt: TikTok brand */
+  box-shadow: -2px 0 0 rgba(37, 244, 238, 0.35), 2px 0 0 rgba(254, 44, 85, 0.35); /* palette-exempt: TikTok brand */
+}
+.lx-tiktok-cyan { color: #25f4ee; transform: translate(-1px, -1px); } /* palette-exempt: TikTok brand */
+.lx-tiktok-red { color: #fe2c55; transform: translate(1px, 1px); } /* palette-exempt: TikTok brand */
+.lx-tiktok:hover .lx-tiktok-word { animation: lx-tiktok-glitch 420ms steps(2, end) 1; }
+.lx-tiktok:hover .lx-tiktok-cyan { animation: lx-tiktok-shift 420ms steps(3, end) 1; }
+@keyframes lx-tiktok-glitch {
+  0%, 100% { text-shadow: none; }
+  30% { text-shadow: -1.5px 0 #25f4ee, 1.5px 0 #fe2c55; } /* palette-exempt: TikTok brand */
+  60% { text-shadow: 1.5px 0 #25f4ee, -1.5px 0 #fe2c55; } /* palette-exempt: TikTok brand */
+}
+@keyframes lx-tiktok-shift {
+  0%, 100% { transform: translate(-1px, -1px); }
+  50% { transform: translate(-2.5px, -0.5px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lx-tiktok:hover .lx-tiktok-word, .lx-tiktok:hover .lx-tiktok-cyan { animation: none; }
+}
 /* Home: a soft violet light on top of the backdrop. */
 .lx-glass-page {
   position: relative;
