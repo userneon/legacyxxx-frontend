@@ -412,8 +412,8 @@ body::before {
  * along the top, a soft violet light in the top right corner and under the box, a violet icon tile, and violet for the field being
  * typed in and for the picked option. The main button stays white.
  */
+/* A box needs a positioned parent for the top hairline: a dialog is already fixed, so it must not be set to relative here (that pushed it out of the middle of the screen); a plain section adds `relative` itself. */
 .lx-add-box {
-  position: relative;
   border-color: color-mix(in oklch, var(--brand) 28%, var(--line)) !important;
   background:
     radial-gradient(120% 80% at 100% 0%, color-mix(in oklch, var(--brand) 14%, transparent), transparent 55%),

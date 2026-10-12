@@ -115,7 +115,7 @@ export function StaffTeam() {
       </div>
 
       {draft && (
-        <section aria-label={draft.id ? "Edit staff member" : "Add staff member"} className="lx-add-box flex flex-col gap-3 rounded-2xl border p-[18px]">
+        <section aria-label={draft.id ? "Edit staff member" : "Add staff member"} className="relative lx-add-box flex flex-col gap-3 rounded-2xl border p-[18px]">
           <div className="flex items-center gap-2.5"><span className="lx-add-icon"><Shield className="size-4" /></span><span className="flex flex-col"><span className="text-[15px] font-semibold text-[var(--text)]">{draft.id ? "Edit staff member" : "Add staff"}</span><span className="text-xs text-[var(--text-dim)]">The game servers pick it up within a minute.</span></span></div>
           {!draft.id && (
             <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">SteamID64
@@ -154,7 +154,7 @@ export function StaffTeam() {
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {members.map((member) => (
-            <li key={member.id} className={cn("lx-add-box flex flex-col gap-3.5 rounded-2xl border p-[18px]", member.status !== "active" && "opacity-60 saturate-50")}>
+            <li key={member.id} className={cn("relative lx-add-box flex flex-col gap-3.5 rounded-2xl border p-[18px]", member.status !== "active" && "opacity-60 saturate-50")}>
               <div className="flex items-center gap-3">
                 <PlayerAvatar avatar={member.avatar || undefined} name={member.username} className="size-12 shrink-0 rounded-xl text-[13px] ring-1 ring-[var(--brand)]/40" />
                 <span className="flex min-w-0 flex-1 flex-col gap-1">

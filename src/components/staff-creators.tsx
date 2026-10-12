@@ -57,7 +57,7 @@ export function StaffCreators() {
       </div>
 
       {draft && (
-        <section aria-label="Creator" className="lx-add-box flex flex-col gap-3 rounded-2xl border p-[18px]">
+        <section aria-label="Creator" className="relative lx-add-box flex flex-col gap-3 rounded-2xl border p-[18px]">
           <div className="flex items-center gap-2.5"><span className="lx-add-icon"><Clapperboard className="size-4" /></span><span className="flex flex-col"><span className="text-[15px] font-semibold text-[var(--text)]">{data?.creators.some((creator) => creator.steamId === draft.steamId) ? "Edit creator" : "Add creator"}</span><span className="text-xs text-[var(--text-dim)]">Badge on the profile and a card on Creators.</span></span></div>
           <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
             <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">SteamID64
