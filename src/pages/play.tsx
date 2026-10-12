@@ -14,7 +14,7 @@ import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { PAGE_ROUTES } from "@/lib/routes"
 import { CompetitiveRankBadge, RankLabel } from "@/components/competitive-rank-badge"
 import { PlayerAvatar } from "@/components/player-avatar"
-import { TeamIcon, teamTextClass, type TeamSide } from "@/components/team-icon"
+import type { TeamSide } from "@/components/team-icon"
 import { SteamLoginGate } from "@/components/steam-login-gate"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
@@ -193,27 +193,27 @@ function visibleName(name: string) {
   return name.replace(/[\p{C}\p{Z}ᅟᅠㅤﾠ⠀]/gu, "") ? name : "Unknown player"
 }
 
-function TeamTable({ title, players, side }: { title: string; players: ServerLiveMatchPlayer[]; side?: TeamSide }) {
-  const stat =(value: number | null | undefined) => (typeof value === "number" ? value : "—")
+const SCORE_COLUMNS = "grid grid-cols-[minmax(0,1fr)_40px_40px_40px] items-center gap-2"
+
+/**
+ * One team as CS2-style rows: each row is tinted with its side's colour (T gold, CT blue) and fades out to the right;
+ * players not on a side (warmup, spectators) get neutral rows.
+ */
+function TeamRows({ players, side }: { players: ServerLiveMatchPlayer[]; side?: TeamSide }) {
+  const stat = (value: number | null | undefined) => (typeof value === "number" ? value : "—")
+  const tint = side ? { background: `linear-gradient(90deg, color-mix(in oklab, var(--team-${side}) 16%, transparent), color-mix(in oklab, var(--team-${side}) 3%, transparent))` } : undefined
+  if (players.length === 0) return <p className="px-3 py-2 text-xs text-[var(--text-dim)]">No players{side ? ` on ${side === "t" ? "T" : "CT"}` : ""}</p>
   return (
-    <div className="overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-      <div
-        className="grid h-[36px] grid-cols-[minmax(0,1fr)_34px_34px_34px] items-center gap-2 px-3 text-[11px] font-semibold text-[var(--text-muted)]"
-        style={side ? { background: `linear-gradient(90deg, color-mix(in oklab, var(--team-${side}) 14%, transparent), transparent 70%)` } : undefined}
-      >
-        <span className={cn("flex items-center gap-2", side && teamTextClass(side))}>{side && <TeamIcon side={side} />}{title}</span><span>K</span><span>D</span><span>A</span>
-      </div>
-      {players.length === 0 ? (
-        <div className="border-t border-[var(--raised)] px-3 py-3 text-xs text-[var(--text-dim)]">No players</div>
-      ) : players.map((player) => (
-        <div key={player.steamId} className="grid h-[38px] grid-cols-[minmax(0,1fr)_34px_34px_34px] items-center gap-2 border-t border-[var(--raised)] px-3 text-[13px] transition-colors duration-300 hover:bg-[var(--raised)]">
+    <div className="flex flex-col gap-[3px]">
+      {players.map((player) => (
+        <div key={player.steamId} style={tint} className={cn(SCORE_COLUMNS, "h-[38px] rounded-md px-3 text-[13px]", !side && "bg-[var(--raised)]")}>
           <span className="flex min-w-0 items-center gap-2">
             <PlayerAvatar avatar={player.avatar ?? undefined} name={visibleName(player.name)} className="size-[22px] shrink-0 rounded-md text-[9px]" />
-            <span className={cn("truncate", player.connected ? "text-[var(--text)]" : "text-[var(--text-dim)]")} title={visibleName(player.name)}>{visibleName(player.name)}</span>
+            <span className={cn("truncate font-medium", player.connected ? "text-[var(--text)]" : "text-[var(--text-dim)]")} title={visibleName(player.name)}>{visibleName(player.name)}</span>
           </span>
-          <span className="font-semibold text-[var(--text)]">{stat(player.kills)}</span>
-          <span className="text-[var(--text-2)]">{stat(player.deaths)}</span>
-          <span className="text-[var(--text-2)]">{stat(player.assists)}</span>
+          <span className="text-center font-bold text-[var(--text)]">{stat(player.kills)}</span>
+          <span className="text-center text-[var(--text-2)]">{stat(player.deaths)}</span>
+          <span className="text-center text-[var(--text-2)]">{stat(player.assists)}</span>
         </div>
       ))}
     </div>
@@ -237,37 +237,43 @@ function useLiveMatch(serverId: string) {
 
 /** Scoreboard of the open server: both teams in a live match, else who is connected, else a short note. */
 function Scoreboard({ live, loading, error, refetch }: ReturnType<typeof useLiveMatch>) {
-  return (
-    <>
-      <div className="flex items-center justify-between text-xs text-[var(--text-dim)]">
-        <span className="flex items-center gap-2 font-medium text-[var(--text-muted)]">
-          <span aria-hidden="true" className="h-3 w-[3px] rounded-full bg-[var(--text-faint)]" />
-          Scoreboard
-        </span>
-        <span className="flex items-center gap-1.5">
-          {loading && live && <LoaderCircle aria-label="Updating" className="size-3.5 animate-spin" />}
-          Updates every 5s
-        </span>
-      </div>
-      {live && live.availability === "live_snapshot" ? (
-        <div className="grid gap-3 @xl/detail:grid-cols-2">
-          <TeamTable title="Terrorists" side="t" players={live.teams.t} />
-          <TeamTable title="Counter-Terrorists" side="ct" players={live.teams.ct} />
-        </div>
-      ) : live && live.connectedPlayers.length > 0 ? (
-        <TeamTable title="Connected players" players={live.connectedPlayers} />
-      ) : error && !live ? (
-        <p className="flex items-center gap-3 text-[13px] text-[var(--text-dim)]">
-          Live data unavailable.
-          <button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button>
-        </p>
-      ) : !live ? (
-        <Skeleton className="h-40 rounded-xl bg-[var(--glass-fill)]" />
-      ) : (
-        <p className="text-[13px] text-[var(--text-dim)]">No one on this server right now.</p>
-      )}
-    </>
+  const header = (
+    <div className={cn(SCORE_COLUMNS, "px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--text-dim)]")}>
+      <span className="flex items-center gap-2">
+        Player
+        {loading && live && <LoaderCircle aria-label="Updating" className="size-3 animate-spin" />}
+      </span>
+      <span className="text-center">K</span><span className="text-center">D</span><span className="text-center">A</span>
+    </div>
   )
+  if (live && live.availability === "live_snapshot") {
+    return (
+      <div className="flex flex-col gap-2">
+        {header}
+        <TeamRows side="t" players={live.teams.t} />
+        {/* The score between the teams, as in the CS2 scoreboard. */}
+        <div className="flex items-center justify-center gap-4 py-1.5">
+          <span key={`t${live.score?.t}`} className="lx-swap-in min-w-8 text-right text-[28px] font-bold leading-none text-[var(--team-t)]">{live.score ? live.score.t : "—"}</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-faint)]">{live.round ? `Round ${live.round}` : "Score"}</span>
+          <span key={`ct${live.score?.ct}`} className="lx-swap-in min-w-8 text-[28px] font-bold leading-none text-[var(--team-ct)]">{live.score ? live.score.ct : "—"}</span>
+        </div>
+        <TeamRows side="ct" players={live.teams.ct} />
+      </div>
+    )
+  }
+  if (live && live.connectedPlayers.length > 0) {
+    return <div className="flex flex-col gap-2">{header}<TeamRows players={live.connectedPlayers} /></div>
+  }
+  if (error && !live) {
+    return (
+      <p className="flex items-center gap-3 text-[13px] text-[var(--text-dim)]">
+        Live data unavailable.
+        <button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button>
+      </p>
+    )
+  }
+  if (!live) return <Skeleton className="h-40 rounded-xl bg-[var(--glass-fill)]" />
+  return <p className="text-[13px] text-[var(--text-dim)]">No one on this server right now.</p>
 }
 
 function ServerSheet({ server, onClose }: { server: PlayServer | null; onClose: () => void }) {
@@ -305,17 +311,6 @@ function ServerSheet({ server, onClose }: { server: PlayServer | null; onClose: 
                   <SheetTitle className="truncate text-lg font-bold tracking-[-0.2px] text-[var(--text)]">{server.name}</SheetTitle>
                   <SheetDescription className="text-xs text-[var(--text-2)]">{cs2MapLabel(live?.map ?? server.map)} · {server.players}/{server.maxPlayers} players</SheetDescription>
                 </div>
-                {live?.score && (
-                  <span className="flex shrink-0 items-center gap-2 rounded-xl border border-[var(--line)] bg-[rgba(10,10,10,0.7)] px-3 py-1.5 backdrop-blur">
-                    <TeamIcon side="t" className="size-5" />
-                    <span className="flex items-center gap-1.5 text-2xl font-bold">
-                      <span key={`t${live.score.t}`} className="lx-swap-in text-[var(--team-t)]">{live.score.t}</span>
-                      <span className="text-[var(--text-faint)]">:</span>
-                      <span key={`ct${live.score.ct}`} className="lx-swap-in text-[var(--team-ct)]">{live.score.ct}</span>
-                    </span>
-                    <TeamIcon side="ct" className="size-5" />
-                  </span>
-                )}
               </div>
             </MapArt>
             <div className="scrollbar-hidden lx-sheet-rise flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-[18px] py-4">
@@ -468,7 +463,7 @@ function ServerDetail({ server }: { server: PlayServer }) {
   const connectable = Boolean(server.joinable && validAddress(address))
   const reason = server.status === "offline" ? "Server is offline" : server.status === "full" || server.players >= server.maxPlayers ? "Server is full" : "No connection address"
   return (
-    <section aria-label={server.name} className="@container/detail flex min-h-0 flex-col overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
+    <section aria-label={server.name} className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--card-surface)]">
       <MapArt key={server.id} map={live?.map ?? server.map} className="h-[210px] shrink-0">
         <span aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,10,10,0.05),rgba(10,10,10,0.35)_50%,var(--card-surface))]" />
         <div className="absolute inset-x-[22px] bottom-4 z-10 flex items-end justify-between gap-3">
@@ -484,17 +479,6 @@ function ServerDetail({ server }: { server: PlayServer }) {
             <h2 className="truncate text-[26px] font-bold leading-tight tracking-[-0.4px] text-[var(--text)]" title={server.name}>{server.name}</h2>
             <span className="text-[13px] text-[var(--text-2)]">{cs2MapLabel(live?.map ?? server.map)}{server.mode === "fun" ? ` · ${funModeLabel(server.modeLabel)}` : ""} · {server.players}/{server.maxPlayers} players</span>
           </div>
-          {live?.score && (
-            <span className="flex shrink-0 items-center gap-2 rounded-xl border border-[var(--line)] bg-[rgba(10,10,10,0.7)] px-3 py-1.5">
-              <TeamIcon side="t" className="size-5" />
-              <span className="flex items-center gap-1.5 text-2xl font-bold">
-                <span key={`t${live.score.t}`} className="lx-swap-in text-[var(--team-t)]">{live.score.t}</span>
-                <span className="text-[var(--text-faint)]">:</span>
-                <span key={`ct${live.score.ct}`} className="lx-swap-in text-[var(--team-ct)]">{live.score.ct}</span>
-              </span>
-              <TeamIcon side="ct" className="size-5" />
-            </span>
-          )}
         </div>
       </MapArt>
       <div className="scrollbar-hidden flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-[22px] py-4">
@@ -718,7 +702,7 @@ function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode;
             <div className={cn(wide && "scrollbar-hidden min-h-0 flex-1 overflow-y-auto")}>{list}</div>
           </div>
           {wide && (shown ? <ServerDetail server={shown} /> : (
-            <div className="flex items-center justify-center rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] text-[13px] text-[var(--text-dim)]">{data ? "Pick a server on the left." : ""}</div>
+            <div className="flex items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--card-surface)] text-[13px] text-[var(--text-dim)]">{data ? "Pick a server on the left." : ""}</div>
           ))}
         </div>
         {!wide && <ServerSheet server={picked} onClose={() => update({ server: null })} />}
