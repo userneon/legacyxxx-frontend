@@ -131,7 +131,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
               onBlur={() => setActiveMode(null)}
               style={{ animationDelay: `${120 + index * 80}ms`, flexGrow: isWide ? 2 : 1 }}
               className={cn(
-                "lx-fx-card lx-glass group relative flex min-h-[200px] min-w-0 basis-0 flex-col justify-end overflow-hidden rounded-xl p-5 text-left transition-[border-color,box-shadow] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
+                "lx-fx-card lx-glass group relative flex min-h-[200px] min-w-0 basis-0 flex-col justify-end overflow-hidden rounded-xl p-5 text-left transition-[flex-grow,border-color,box-shadow] duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
                 isWide && "border-[var(--brand)]/60 shadow-[0_18px_40px_-20px_var(--brand)]",
               )}
             >
@@ -141,8 +141,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 aria-hidden="true"
                 loading="lazy"
                 className={cn(
-                  "pointer-events-none absolute bottom-0 right-0 h-[118%] w-auto max-w-[75%] object-contain object-bottom transition-opacity duration-500 ease-out",
-                  isWide ? "opacity-100" : "opacity-25",
+                  "pointer-events-none absolute bottom-0 right-0 h-[118%] w-auto max-w-[75%] object-contain object-bottom transition-[opacity,translate] duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
+                  isWide ? "translate-x-0 opacity-100" : "translate-x-3 opacity-25",
                 )}
               />
               <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--card-surface)]/85 via-[var(--card-surface)]/30 to-transparent" />
@@ -151,20 +151,24 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 {mode.tag}
               </span>
               <div className="relative">
-                <h3 className={cn("font-semibold tracking-[-0.2px] text-[var(--text)]", isWide ? "text-2xl lg:text-[32px] lg:leading-tight" : "text-xl")}>{mode.label}</h3>
-                <p className={cn("mt-1 text-[13px] leading-snug text-[var(--text-muted)]", isWide ? "max-w-[55%]" : "max-w-[85%]")}>{mode.desc}</p>
+                <h3 className={cn("text-xl font-semibold leading-tight tracking-[-0.2px] text-[var(--text)] transition-[font-size] duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)]", isWide && "text-2xl lg:text-[32px]")}>{mode.label}</h3>
+                <p className={cn("mt-1 text-[13px] leading-snug text-[var(--text-muted)] transition-[max-width] duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)]", isWide ? "max-w-[55%]" : "max-w-[85%]")}>{mode.desc}</p>
               </div>
-              <div className={cn("relative mt-4 flex h-9 items-center justify-between gap-3 transition-opacity duration-150", status ? "opacity-100" : "opacity-0")}>
+              <div className={cn("relative mt-4 flex h-9 items-center justify-between gap-3 transition-opacity duration-300", status ? "opacity-100" : "opacity-0")}>
                 <span className="flex items-center gap-1.5">
                   {status?.live && <span className="lx-live-dot size-1.5 rounded-full bg-[var(--status-green)]" />}
                   <span className="text-xs text-[var(--text-dim)]">{status?.text ?? " "}</span>
                 </span>
-                {isWide && (
-                  <span className="lx-primary-button inline-flex h-9 items-center gap-2 rounded-lg px-4 text-[13px] font-semibold">
-                    <Play className="size-3.5 fill-current" />
-                    Play now
-                  </span>
-                )}
+                <span
+                  aria-hidden={!isWide}
+                  className={cn(
+                    "lx-primary-button inline-flex h-9 items-center gap-2 rounded-lg px-4 text-[13px] font-semibold transition-[opacity,translate] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                    isWide ? "translate-y-0 opacity-100 delay-150" : "pointer-events-none translate-y-1 opacity-0",
+                  )}
+                >
+                  <Play className="size-3.5 fill-current" />
+                  Play now
+                </span>
               </div>
             </button>
           )
