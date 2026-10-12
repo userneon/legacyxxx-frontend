@@ -21,8 +21,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { usePathTab } from "@/hooks/use-url-tab"
+import { StaffCreators } from "@/components/staff-creators"
 
-type StaffTab = "overview" | "checks" | "penalties" | "players" | "clans" | "servers"
+type StaffTab = "overview" | "checks" | "penalties" | "players" | "clans" | "creators" | "servers"
 
 const TABS: Array<{ value: StaffTab; label: string }> = [
   { value: "overview", label: "Overview" },
@@ -30,6 +31,7 @@ const TABS: Array<{ value: StaffTab; label: string }> = [
   { value: "penalties", label: "Penalties" },
   { value: "players", label: "Players" },
   { value: "clans", label: "Clans" },
+  { value: "creators", label: "Creators" },
   { value: "servers", label: "Servers" },
 ]
 
@@ -39,7 +41,7 @@ const STEAM_ID = /^7656119\d{10}$/
 export function StaffPage({ initialTab = "overview" }: { initialTab?: StaffTab } = {}) {
   const { isAuthenticated } = useAuth()
   const { data: access, loading } = useApiQuery<ModerationAccess>((signal) => penaltyAdminService.getAccess({ signal }), { enabled: isAuthenticated, queryKey: `staff-access:${isAuthenticated}` })
-  const [tab, setTab] = usePathTab<StaffTab>("/staff", { overview: "", checks: "checks", penalties: "penalties", players: "players", clans: "clans", servers: "servers" }, initialTab)
+  const [tab, setTab] = usePathTab<StaffTab>("/staff", { overview: "", checks: "checks", penalties: "penalties", players: "players", clans: "clans", creators: "creators", servers: "servers" }, initialTab)
   const [params, setParams] = useSearchParams()
   const [finding, setFinding] = useState(false)
   const openCase = (steamId: string) => {
@@ -79,6 +81,7 @@ export function StaffPage({ initialTab = "overview" }: { initialTab?: StaffTab }
         {tab === "penalties" && <PenaltiesTab access={access} />}
         {tab === "players" && <PlayersTab access={access} caseId={params.get("case")} onFind={() => setFinding(true)} onBack={() => setParams((current) => { const next = new URLSearchParams(current); next.delete("case"); return next })} onChecks={() => setTab("checks")} />}
         {tab === "clans" && <ClansTab />}
+        {tab === "creators" && <StaffCreators />}
         {tab === "servers" && <ServersPanel />}
       </div>
       <StaffCommand open={finding} onOpenChange={setFinding} onPick={openCase} />

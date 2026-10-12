@@ -125,6 +125,15 @@ state, then a CS2-style scoreboard (owner pick "D", 2026-10-12): T rows tinted g
 tinted blue, K/D/A live every 5 s; then Copy IP / Connect. The phone sheet uses the same scoreboard. Below 1180px the list fills the page and a server opens in
 the sheet. Pro League needs a sign-in; a player below the rank sees the rank lock instead of the servers.
 
+### Creators (owner request 2026-10-12)
+
+Two creator roles, **Main Content Creator** and **Content Creator**, kept apart from staff (`legacy_x.content_creators`; no
+permissions of any kind). They show as a badge next to the name on the profile (Main: white outline and a star; Content Creator:
+neutral, clapperboard), a card under the header with their line and channel links, and on the **Creators** page (`/creators`,
+sidebar; `src/pages/creators.tsx`): Main creators first in bigger cards, then the others. Links are text buttons with the platform's
+name (Twitch, YouTube, TikTok, Kick, Facebook, Instagram; lucide has no brand icons). Owners and Managers manage the list in
+Staff → Creators (`src/components/staff-creators.tsx`).
+
 ## Icons and assets
 
 lucide-react only, stroke 2, no emoji, no placeholder icons. Sizes: 18px nav/top bar,

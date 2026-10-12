@@ -61,6 +61,7 @@ export type PageId =
   | "staff"
   | "penalties"
   | "explore"
+  | "creators"
   | "feedback"
   | "profile"
 

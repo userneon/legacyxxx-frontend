@@ -21,6 +21,7 @@ import { WalletPage } from "@/pages/wallet"
 import { StaffPage } from "@/pages/staff"
 import { PenaltiesPage } from "@/pages/penalties"
 import { ExplorePage } from "@/pages/explore"
+import { CreatorsPage } from "@/pages/creators"
 import { FeedbackPage } from "@/pages/feedback"
 import { ProfilePage } from "@/pages/profile"
 import { ConnectPage } from "@/pages/connect"
@@ -149,6 +150,7 @@ export function App() {
               {/* Settings now live in Profile. */}
               <Route path="/settings" element={<Navigate to="/profile" state={{ tab: "settings" }} replace />} />
               <Route path="/explore" element={<ExplorePage onProfileNavigate={handleProfileNavigate} />} />
+              <Route path="/creators" element={<CreatorsPage />} />
               <Route path="/search" element={<ExplorePage onProfileNavigate={handleProfileNavigate} />} />
               <Route path="/reviews" element={<FeedbackPage onProfileNavigate={handleProfileNavigate} />} />
               <Route path="/feedback" element={<FeedbackPage onProfileNavigate={handleProfileNavigate} />} />

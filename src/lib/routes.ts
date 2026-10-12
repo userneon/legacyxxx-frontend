@@ -17,6 +17,7 @@ export const PAGE_ROUTES: Record<PageId, string> = {
   staff: "/staff",
   penalties: "/penalties",
   explore: "/explore",
+  creators: "/creators",
   feedback: "/reviews",
   profile: "/profile",
 }
@@ -42,6 +43,7 @@ export const PAGE_TITLES: Record<PageId, string> = {
   staff: "Staff",
   penalties: "Penalties",
   explore: "Explore",
+  creators: "Creators",
   feedback: "Reviews",
   profile: "Profile",
 }

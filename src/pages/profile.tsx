@@ -29,6 +29,7 @@ import { OwnerSections } from "@/components/owner-sections"
 import { PenaltyDetailSheet, StatusPill, TypeIcon, TYPE_META, formatPenaltyDate } from "@/components/penalty-detail-dialog"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { FrameOverlay } from "@/components/framed-avatar"
+import { CreatorBadge, CreatorLinks } from "@/pages/creators"
 import { frameArt, nameProps } from "@/lib/cosmetics"
 import { PageBar, PageTabs } from "@/components/page-tabs"
 import { AccountSettings, AppearanceSettings } from "@/pages/settings"
@@ -171,6 +172,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
         <div className="flex flex-wrap items-center justify-center gap-2.5">
           <h1 {...nameProps(user.nameStyle, "truncate text-[30px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]")} title={user.username}>{user.username}</h1>
           <RoleBadge role={user.role} />
+          {overview.creator && <CreatorBadge tier={overview.creator.tier} label={overview.creator.label} />}
           <DiscordLinkedMark linked={overview.discordLinked} className="[&_svg]:size-4" />
           {overview.clan && (
             <Link to={`/clans/${overview.clan.id}`} title={overview.clan.name} className="inline-flex h-6 items-center gap-1 rounded-full border border-[var(--line)] px-2 text-[11px] font-semibold text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]">
@@ -733,6 +735,17 @@ export function ProfilePage({ userId }: { userId?: string }) {
       {(
       <div className="flex flex-col gap-4 px-6 pb-8 pt-4 max-md:px-4">
         {data.staff && <div {...rise(0)}><StaffCard staff={data.staff} username={data.user.username} /></div>}
+        {data.creator && (
+          <div {...rise(0)}>
+            <section aria-label={data.creator.label} className={cn(card, "flex flex-wrap items-center gap-4 border-[var(--line-strong)] bg-[var(--glass-fill)] px-[18px] py-3.5")}>
+              <span className="flex min-w-[220px] flex-1 flex-col gap-[3px]">
+                <span className="text-sm font-semibold text-[var(--text)]">{data.creator.label}</span>
+                <span className="text-[13px] text-[var(--text-muted)]">{data.creator.bio || "Makes LEGACY-X videos and streams."}</span>
+              </span>
+              <CreatorLinks links={data.creator.links} />
+            </section>
+          </div>
+        )}
 
         <div {...rise(1)} className={cn(rise(1).className, "grid gap-4 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]")}>
           {data.competitive ? <RankCard competitive={data.competitive} /> : <section className={cn(card, "flex items-center p-[18px] text-[13px] text-[var(--text-dim)]")}>Unranked — no competitive matches yet</section>}

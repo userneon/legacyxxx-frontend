@@ -760,6 +760,13 @@ export async function mockResponse(method: string, path: string, query: Query, b
       return loadout()
     case "/api/v1/skinchanger/collections":
       return skinCollections(query)
+    case "/api/v1/public/creators":
+      return { creators: [
+        { userId: "u1", steamId: "76561198000000001", username: "Temuulen", avatar: null, tier: "main", label: "Main Content Creator", bio: "CS2 streams every evening on LEGACY-X servers.", links: { twitch: "https://twitch.tv/temuulen", youtube: "https://youtube.com/@temuulen" }, rank: { id: 16, name: "Apex III", imageKey: null }, frame: null, nameStyle: null },
+        { userId: "u2", steamId: "76561198000000002", username: "xBataa", avatar: null, tier: "main", label: "Main Content Creator", bio: "Highlights and AWP clips.", links: { youtube: "https://youtube.com/@xbataa", tiktok: "https://tiktok.com/@xbataa" }, rank: { id: 15, name: "Apex II", imageKey: null }, frame: null, nameStyle: null },
+        { userId: "u3", steamId: "76561198000000003", username: "Khuslen_AWP", avatar: null, tier: "creator", label: "Content Creator", bio: "", links: { kick: "https://kick.com/khuslen" }, rank: { id: 14, name: "Apex I", imageKey: null }, frame: null, nameStyle: null },
+        { userId: "u4", steamId: "76561198000000004", username: "Enkh.", avatar: null, tier: "creator", label: "Content Creator", bio: "Fun Mode surf videos.", links: { facebook: "https://facebook.com/enkh", instagram: "https://instagram.com/enkh" }, rank: null, frame: null, nameStyle: null },
+      ] }
     case "/api/v1/search/players":
       return searchPlayers(String(query?.query ?? ""))
     case "/api/v1/moderation/penalties":
