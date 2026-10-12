@@ -104,7 +104,7 @@ player by name or Steam ID and opens their case: penalties with who lifted them,
 shows only counts of real records and never a made-up score.
 Staff → **Team** (`src/components/staff-team.tsx`, Owner only; others see why): add a player by SteamID64 with a role (Owner, Manager,
 Admin, Developer, Designer; immunity and stamina default from the role), edit role / immunity / stamina, Suspend, Remove, Reactivate.
-Developer and Designer carry the team badge only: in game they are players. Staff → **Creators** manages content creators.
+Each staff member is a violet card (`.lx-add-box`) with a violet role pill (owner request 2026-10-12). Developer and Designer carry the team badge only: in game they are players. Staff → **Creators** manages content creators.
 
 ### Flat outline (owner pick 2026-10-05, replaces the glass look of 2026-09-28)
 

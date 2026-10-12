@@ -114,13 +114,13 @@ export function StaffTeam() {
       ) : (
         <ul className="flex flex-col gap-2">
           {members.map((member) => (
-            <li key={member.id} className={cn("flex flex-wrap items-center gap-3 rounded-xl border border-[var(--line)] bg-[var(--card-surface)] px-4 py-3", member.status !== "active" && "opacity-60")}>
-              <PlayerAvatar avatar={member.avatar || undefined} name={member.username} className="size-9 shrink-0 rounded-lg text-[11px]" />
+            <li key={member.id} className={cn("lx-add-box flex flex-wrap items-center gap-3 rounded-xl border px-4 py-3", member.status !== "active" && "opacity-60 saturate-50")}>
+              <PlayerAvatar avatar={member.avatar || undefined} name={member.username} className="size-9 shrink-0 rounded-lg text-[11px] ring-1 ring-[var(--brand)]/40" />
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="truncate text-[13px] font-semibold text-[var(--text)]">{member.username}</span>
                 <span className="truncate text-xs text-[var(--text-dim)]">{member.steamId} · immunity {member.immunity} · stamina {member.stamina}</span>
               </span>
-              <span className="inline-flex h-6 items-center rounded-full border border-[var(--line-strong)] bg-[var(--raised)] px-2.5 text-xs font-semibold text-[var(--text-2)]">{ROLES.find((role) => role.id === member.role)?.label ?? member.role}</span>
+              <span className="inline-flex h-6 items-center rounded-full border border-[var(--brand)]/45 bg-[var(--brand)]/12 px-2.5 text-xs font-semibold text-[var(--brand-bright)]">{ROLES.find((role) => role.id === member.role)?.label ?? member.role}</span>
               {member.status !== "active" && <span className="text-xs text-[var(--text-dim)]">{STATUS_LABEL[member.status]}</span>}
               <button type="button" aria-label={`Edit ${member.username}`} onClick={() => setDraft({ id: member.id, steamId: member.steamId, role: member.role, immunity: member.immunity, stamina: member.stamina })} className={cn(secondary, "w-9 px-0")}><Pencil className="size-4" /></button>
               {member.status === "active" ? (
