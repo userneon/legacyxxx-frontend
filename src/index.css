@@ -113,7 +113,7 @@
   --card-foreground: var(--text);
   --popover: var(--panel);
   --popover-foreground: var(--text);
-  --primary: var(--accent-solid);
+  --primary: #e5e5e5;
   --primary-foreground: var(--accent-on);
   --secondary: var(--raised);
   --secondary-foreground: var(--text);
@@ -1390,12 +1390,12 @@ body::before {
 /* Primary action: flat violet. No gradient, no glow: the colour alone carries it. */
 /* Primary action: the neutral white accent, like every other button (no hue). Owner request 2026-09-30. */
 .lx-primary-button {
-  background: var(--accent-solid);
+  background: #e5e5e5;
   color: #0a0a0a;
   transition: background-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
 }
 .lx-primary-button:hover {
-  background: #e5e5e5;
+  background: #d4d4d4;
 }
 .lx-primary-button:active {
   transform: translateY(1px);
