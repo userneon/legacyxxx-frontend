@@ -407,6 +407,52 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
   .lx-tiktok:hover .lx-tiktok-word, .lx-tiktok:hover .lx-tiktok-cyan { animation: none; }
 }
+/*
+ * "Add" boxes (owner pick "A", 2026-10-12): new penalty, add staff, add creator, create a clan, write a review. A violet hairline
+ * along the top, a soft violet light in the top right corner and under the box, a violet icon tile, and violet for the field being
+ * typed in and for the picked option. The main button stays white.
+ */
+.lx-add-box {
+  position: relative;
+  border-color: color-mix(in oklch, var(--brand) 28%, var(--line)) !important;
+  background:
+    radial-gradient(120% 80% at 100% 0%, color-mix(in oklch, var(--brand) 14%, transparent), transparent 55%),
+    var(--card-surface) !important;
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--brand) 6%, transparent), 0 18px 50px -24px color-mix(in oklch, var(--brand) 45%, transparent);
+}
+.lx-add-box::before {
+  content: "";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  top: -1px;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--brand-bright), transparent);
+}
+.lx-add-icon {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid color-mix(in oklch, var(--brand-bright) 35%, transparent);
+  background: color-mix(in oklch, var(--brand) 14%, transparent);
+  color: var(--brand-bright);
+}
+.lx-add-box :is(input, textarea, select):focus,
+.lx-add-box :is(input, textarea, select):focus-visible {
+  border-color: var(--brand) !important;
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--brand) 18%, transparent) !important;
+  outline: none;
+}
+.lx-add-box :is([aria-pressed="true"], [aria-checked="true"]):not([role="switch"]) {
+  border-color: var(--brand) !important;
+  background: color-mix(in oklch, var(--brand) 12%, transparent) !important;
+  color: var(--text) !important;
+}
 /* Home: a soft violet light on top of the backdrop. */
 .lx-glass-page {
   position: relative;

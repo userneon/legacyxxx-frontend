@@ -1,6 +1,6 @@
 import { PageBar, PageBarEnd, PageTabs } from "@/components/page-tabs"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
-import { Clock, Heart, Laugh, LoaderCircle, PenLine, RotateCcw, ShieldCheck, Star, ThumbsUp, X } from "lucide-react"
+import { Clock, Heart, Laugh, LoaderCircle, PenLine, RotateCcw, ShieldCheck, Star, ThumbsUp, X, MessageSquarePlus } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { feedbackService } from "@/api"
@@ -241,10 +241,10 @@ function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () =
       <DialogContent
         showCloseButton={false}
         overlayClassName="lx-blur-overlay bg-black/55 backdrop-blur-[10px]"
-        className="w-[520px] max-w-[calc(100%-2rem)] gap-0 rounded-2xl border-[var(--line)] bg-[var(--panel)] p-0 shadow-[0_24px_60px_rgba(0,0,0,0.6)] lx-blur-panel sm:max-w-[520px]"
+        className="lx-add-box w-[520px] max-w-[calc(100%-2rem)] gap-0 rounded-2xl border p-0 lx-blur-panel sm:max-w-[520px]"
       >
         <div className="flex h-14 items-center justify-between border-b border-[var(--line-soft)] pl-5 pr-3">
-          <DialogTitle className="text-base font-semibold text-[var(--text)]">Write a review</DialogTitle>
+          <DialogTitle className="flex items-center gap-2.5 text-base font-semibold text-[var(--text)]"><span className="lx-add-icon"><MessageSquarePlus className="size-4" /></span>Write a review</DialogTitle>
           <button type="button" onClick={onClose} aria-label="Close" className="flex size-8 items-center justify-center rounded-lg text-[var(--text-muted)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
             <X className="size-4" />
           </button>

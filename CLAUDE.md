@@ -67,6 +67,13 @@ The earlier orange `#ff5a1f` exception was dropped and no longer exists in `src/
 - **Surfaces:** shell and cards use the flat-outline tokens below; a plain `--panel`/`--raised` fill is for nested
   or solid-over-art cases. Overlays that must stay readable over images use a solid `--card-surface` gradient.
 
+### "Add" boxes (owner pick "A", 2026-10-12)
+
+The boxes that create something (New penalty, Add staff, Add creator, Create a clan, Write a review) use `.lx-add-box`: a violet
+hairline along the top, a soft violet light in the top-right corner and under the box, a violet icon tile (`.lx-add-icon`) next to
+the title, and violet for the field being typed in and the picked option (`aria-pressed` / `aria-checked`). The main button stays
+white. These are the only other places violet appears; the Checks dialog keeps its console look.
+
 ### Limit red (owner request 2026-09-30)
 
 When a player hits the daily or weekly EXP limit (gains count for ¼), the limit bar, the `×¼` label,

@@ -246,9 +246,9 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
       </div>
 
       <Dialog open={creating} onOpenChange={setCreating}>
-        <DialogContent className="rounded-2xl">
+        <DialogContent className="lx-add-box rounded-2xl">
           <DialogHeader>
-            <DialogTitle>Create a clan</DialogTitle>
+            <DialogTitle className="flex items-center gap-2.5"><span className="lx-add-icon"><Users className="size-4" /></span>Create a clan</DialogTitle>
             <DialogDescription>
               {CLAN_FEE} LX are taken from your wallet when the clan is created. You choose who can join and how many players it holds.
             </DialogDescription>

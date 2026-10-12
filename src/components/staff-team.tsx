@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Pencil, Plus, RotateCcw } from "lucide-react"
+import { Pencil, Plus, RotateCcw, Shield } from "lucide-react"
 import { toast } from "sonner"
 
 import { get, patch, post } from "@/api/client"
@@ -30,7 +30,7 @@ function RolePicker({ value, onChange }: { value: StaffRole; onChange: (role: St
   return (
     <div role="radiogroup" aria-label="Role" className="grid gap-1.5 sm:grid-cols-5">
       {ROLES.map((role) => (
-        <button key={role.id} type="button" role="radio" aria-checked={value === role.id} onClick={() => onChange(role.id)} className={cn("flex flex-col items-start gap-0.5 rounded-lg border px-3 py-2 text-left transition-colors", value === role.id ? "border-[var(--text-2)] bg-[var(--raised)]" : "border-[var(--line)] hover:border-[var(--line-strong)]")}>
+        <button key={role.id} type="button" role="radio" aria-checked={value === role.id} onClick={() => onChange(role.id)} className={cn("flex flex-col items-start gap-0.5 rounded-lg border px-3 py-2 text-left transition-colors", value === role.id ? "border-[var(--brand)] bg-[var(--raised)]" : "border-[var(--line)] hover:border-[var(--line-strong)]")}>
           <span className="text-[13px] font-semibold text-[var(--text)]">{role.label}</span>
           <span className="text-[11px] leading-snug text-[var(--text-dim)]">{role.note}</span>
         </button>
@@ -84,7 +84,8 @@ export function StaffTeam() {
       </div>
 
       {draft && (
-        <section aria-label={draft.id ? "Edit staff member" : "Add staff member"} className="flex flex-col gap-3 rounded-xl border border-[var(--line-strong)] bg-[var(--card-surface)] p-4">
+        <section aria-label={draft.id ? "Edit staff member" : "Add staff member"} className="lx-add-box flex flex-col gap-3 rounded-2xl border p-[18px]">
+          <div className="flex items-center gap-2.5"><span className="lx-add-icon"><Shield className="size-4" /></span><span className="flex flex-col"><span className="text-[15px] font-semibold text-[var(--text)]">{draft.id ? "Edit staff member" : "Add staff"}</span><span className="text-xs text-[var(--text-dim)]">The game servers pick it up within a minute.</span></span></div>
           {!draft.id && (
             <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">SteamID64
               <input className={input} value={draft.steamId} onChange={(event) => setDraft({ ...draft, steamId: event.target.value })} placeholder="7656119…" inputMode="numeric" />

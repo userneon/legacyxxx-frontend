@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Pencil, Plus, RotateCcw, Trash2 } from "lucide-react"
+import { Clapperboard, Pencil, Plus, RotateCcw, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
 import { creatorsService, CREATOR_PLATFORMS, type Creator, type CreatorInput, type CreatorLinks, type CreatorTier } from "@/api/creators"
@@ -57,7 +57,8 @@ export function StaffCreators() {
       </div>
 
       {draft && (
-        <section aria-label="Creator" className="flex flex-col gap-3 rounded-xl border border-[var(--line-strong)] bg-[var(--card-surface)] p-4">
+        <section aria-label="Creator" className="lx-add-box flex flex-col gap-3 rounded-2xl border p-[18px]">
+          <div className="flex items-center gap-2.5"><span className="lx-add-icon"><Clapperboard className="size-4" /></span><span className="flex flex-col"><span className="text-[15px] font-semibold text-[var(--text)]">{data?.creators.some((creator) => creator.steamId === draft.steamId) ? "Edit creator" : "Add creator"}</span><span className="text-xs text-[var(--text-dim)]">Badge on the profile and a card on Creators.</span></span></div>
           <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
             <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">SteamID64
               <input className={input} value={draft.steamId} onChange={(event) => setDraft({ ...draft, steamId: event.target.value })} placeholder="7656119…" inputMode="numeric" />

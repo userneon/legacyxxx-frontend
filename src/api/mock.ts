@@ -654,6 +654,11 @@ export async function mockResponse(method: string, path: string, query: Query, b
     if (!clan) throw notFound()
     return { ...clan, description: "Ranked five-stack. Evenings, Ulaanbaatar time.", members: Array.from({ length: clan.currentPlayers }, (_, index) => ({ id: `m${index}`, name: index === 0 ? "Leader" : `Member ${index}`, role: index === 0 ? "leader" : index === 1 ? "co-leader" : "member", avatar: "", description: "", ...mockLook(index) })), viewer: { role: "leader", canModerate: true } }
   }
+  if (path === "/api/v1/staffpanel/staff" && method === "GET") return [
+    { id: "s1", userId: "u0", username: "Owner", steamId: "76561198000000000", avatar: "", role: "OWNER", status: "active", stamina: 1000, immunity: 1000, createdAt: "2026-09-01T00:00:00Z" },
+    { id: "s2", userId: "u5", username: "Gansukh", steamId: "76561198000000005", avatar: "", role: "ADMIN", status: "active", stamina: 500, immunity: 500, createdAt: "2026-09-20T00:00:00Z" },
+  ]
+  if (path.startsWith("/api/v1/staffpanel/staff") || path.startsWith("/api/v1/staffpanel/creators")) return { ok: true, label: "Content Creator" }
   if (path === "/api/v1/moderation/access") return { canManage: true, role: "OWNER", canApprove: true, requestedPenaltyIds: [], can: { ban: true, unban: true, edit: true } }
   if (path === "/api/v1/staffpanel/access") return { role: "OWNER", username: "LegacyTester", capabilities: [] }
   if (path === "/api/v1/staffpanel/overview") return { role: "OWNER", servers: [{ server_id: "s1", name: "5x5 #1", map_name: "de_mirage", mode: "5vs5", player_count: 7, last_heartbeat_at: new Date().toISOString() }, { server_id: "s2", name: "Fun #1", map_name: "de_dust2", mode: "fun", player_count: 0, last_heartbeat_at: null }], pendingActions: [{ id: "a1", status: "pending", action_type: "ban", server_id: "s1", created_at: new Date().toISOString() }] }

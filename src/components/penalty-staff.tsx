@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { Plus, RotateCcw, ShieldCheck } from "lucide-react"
+import { Plus, RotateCcw, ShieldCheck, Gavel } from "lucide-react"
 
 import { penaltyAdminService, type LiftRequest, type ModerationAccess, type PenaltyKind } from "@/api/moderation-access"
 import type { ApiError, PenaltyEntry } from "@/api/types"
@@ -199,9 +199,9 @@ export function IssuePenaltyDialog({ open, onOpenChange, access, onIssued, initi
   }
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="rounded-2xl" onOpenAutoFocus={(event) => { if (/^7656119\d{10}$/.test(initialSteamId)) { event.preventDefault(); document.getElementById("penalty-new-reason")?.focus() } }}>
+      <DialogContent className="lx-add-box rounded-2xl" onOpenAutoFocus={(event) => { if (/^7656119\d{10}$/.test(initialSteamId)) { event.preventDefault(); document.getElementById("penalty-new-reason")?.focus() } }}>
         <DialogHeader>
-          <DialogTitle>New penalty</DialogTitle>
+          <DialogTitle className="flex items-center gap-2.5"><span className="lx-add-icon"><Gavel className="size-4" /></span>New penalty</DialogTitle>
           <DialogDescription>Issues a penalty to the player by Steam ID. It shows on the Penalties page and their profile.</DialogDescription>
         </DialogHeader>
         <form className="mt-2 flex flex-col gap-4" onSubmit={(event) => void submit(event)}>
