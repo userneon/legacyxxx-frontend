@@ -50,8 +50,8 @@ The earlier orange `#ff5a1f` exception was dropped and no longer exists in `src/
 - `--status-green` `#22c55e` (online/live/verified) and `--status-red` `#ef4444` (limits, bans) are the status colors
 - Rank emblems use the CS2 rarity ladder (`--rank-<tier>`) **only** inside emblem
   images and the rank name next to one — never on buttons, backgrounds, or chrome
-- Font: Onest (400/500/600/700) with its default proportional figures. Owner request
-  2026-09-28: no `tabular-nums` — Onest's tabular "1" made numbers like "11" read as "1 1"
+- Font: Exo 2 (400/500/600/700, Google Fonts, with Cyrillic) for the whole site (owner pick 2026-10-12, replaces Onest).
+  Keep its default proportional figures: no `tabular-nums` (owner request 2026-09-28, numbers like "11" must not spread out)
 
 ### One scale for everything (use these, not new values)
 

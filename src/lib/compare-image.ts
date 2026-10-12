@@ -34,7 +34,7 @@ export interface ComparePngInput {
 const WIDTH = 1200
 const SCALE = 2
 const PAD = 48
-const FONT = 'Onest, system-ui, "Segoe UI", sans-serif'
+const FONT = '"Exo 2", system-ui, "Segoe UI", sans-serif'
 
 function loadImage(src: string, cors: boolean) {
   return new Promise<HTMLImageElement | null>((resolve) => {
