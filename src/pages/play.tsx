@@ -142,7 +142,7 @@ function StatusText({ server }: { server: PlayServer }) {
     )
   }
   const label = { waiting: "Waiting", warmup: "Warmup", full: "Full", offline: "Offline" }[server.status]
-  return <span className={cn("shrink-0 font-medium", server.status === "full" || server.status === "offline" ? "text-[var(--text-dim)]" : "text-[var(--text-2)]")}>{label}</span>
+  return <span className={cn("shrink-0 font-medium", server.status === "full" || server.status === "offline" ? "text-[var(--text-dim)]" : "text-[var(--text)]/90")}>{label}</span>
 }
 
 /**
@@ -427,9 +427,9 @@ function ServerListItem({ server, selected, favourite, onFavourite, onSelect }: 
       <button type="button" onClick={onSelect} aria-current={selected ? "true" : undefined} className="relative flex min-w-0 flex-1 items-center gap-3 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="truncate text-[13px] font-semibold text-[var(--text)] [text-shadow:0_1px_2px_rgba(0,0,0,0.6)]" title={server.name}>{server.name}</span>
-          <span className="flex min-w-0 items-center gap-1.5 text-[11px] text-[var(--text-2)] [text-shadow:0_1px_2px_rgba(0,0,0,0.6)]">
+          <span className="flex min-w-0 items-center gap-1.5 text-[11px] text-[var(--text)]/80 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
             <StatusText server={server} />
-            <span aria-hidden="true" className="text-[var(--text-faint)]">·</span>
+            <span aria-hidden="true" className="text-[var(--text-dim)]">·</span>
             <span className="truncate">{cs2MapLabel(server.map)}{server.mode === "fun" ? ` · ${funModeLabel(server.modeLabel)}` : ""}</span>
           </span>
         </span>

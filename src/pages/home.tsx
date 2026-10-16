@@ -81,17 +81,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
 
         <div className="relative z-10 flex w-fit items-center gap-2">
-          {(homeStats?.playersOnline ?? 0) > 0 ? (
-            <>
-              <span className="lx-live-dot size-1.5 rounded-full bg-[var(--status-green)]" />
-              <span className="text-xs font-medium text-[var(--text-muted)]">Live now · {homeStats?.playersOnline} playing</span>
-            </>
-          ) : (
-            <>
-              <span className="size-1.5 rounded-full bg-[var(--brand-bright)]" />
-              <span className="text-xs font-medium text-[var(--text-muted)]">Mongolian CS2 community</span>
-            </>
-          )}
+          <span className="size-1.5 rounded-full bg-[var(--brand-bright)]" />
+          <span className="text-xs font-medium text-[var(--text-muted)]">Mongolian CS2 community</span>
         </div>
         <div className="relative z-10 flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between @3xl:gap-10">
         <div className="flex shrink-0 flex-col gap-4">
