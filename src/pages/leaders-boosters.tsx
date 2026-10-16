@@ -26,25 +26,17 @@ function Who({ entry, big }: { entry: CommunityEntry; big?: boolean }) {
   )
 }
 
-/** The Steam mark: bright, with a Profile button, when the member linked Steam; dim and plain when not. */
-function ProfileButton({ entry, onOpen, className }: { entry: CommunityEntry; onOpen?: () => void; className?: string }) {
-  if (!onOpen) {
-    return (
-      <span title="Steam not linked" className={cn("inline-flex h-8 w-8 shrink-0 items-center justify-center text-[var(--text-faint)]", className)}>
-        <SteamIcon className="size-4" />
-        <span className="sr-only">Steam not linked</span>
-      </span>
-    )
-  }
+/** Opens the player's LEGACY-X profile (every member listed here linked Steam). */
+function ProfileButton({ entry, onOpen, className }: { entry: CommunityEntry; onOpen: () => void; className?: string }) {
   return (
-    <button type="button" onClick={onOpen} aria-label={`Open ${entry.name} profile`} title="Steam linked · open profile" className={cn("inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-2.5 text-xs font-medium text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50", className)}>
+    <button type="button" onClick={onOpen} aria-label={`Open ${entry.name} profile`} className={cn("inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-2.5 text-xs font-medium text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50", className)}>
       <SteamIcon className="size-3.5" />
       Profile
     </button>
   )
 }
 
-function TopCard({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen?: () => void }) {
+function TopCard({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen: () => void }) {
   const first = entry.position === 1
   const slot = PODIUM_ORDER.indexOf(entry.position)
   return (
@@ -86,7 +78,7 @@ function TopCard({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen?
   )
 }
 
-function Row({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen?: () => void }) {
+function Row({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen: () => void }) {
   return (
     <div className={cn(GRID, "lx-boost-row lx-layer group relative h-14 w-full overflow-hidden border-b border-[var(--raised)] text-left transition-colors", entry.boosting && "lx-boost-row-on")}>
       {entry.boosting && <span aria-hidden="true" className="lx-boost-star left-[78px] top-[10px]" style={{ animationDelay: "0.4s", width: 8, height: 8 }} />}
@@ -121,7 +113,7 @@ export function BoosterLadder({ search, onProfileNavigate }: { search: string; o
   const topThree = search ? [] : all.slice(0, 3).filter((entry) => metricOf(entry) > 0)
   const rows = search ? all.filter((entry) => entry.name.toLowerCase().includes(search) || entry.username.toLowerCase().includes(search)) : all.slice(topThree.length)
   const firstLoad = loading && !data
-  const open = (entry: CommunityEntry) => (entry.steamId ? () => onProfileNavigate(entry.steamId!) : undefined)
+  const open = (entry: CommunityEntry) => () => onProfileNavigate(entry.steamId)
 
   return (
     <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">

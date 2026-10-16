@@ -7,14 +7,14 @@ export interface DiscordLinkState {
   link: { discordId: string; discordName: string; linkedAt: string } | null
 }
 
-/** A Discord member on Leaders → Boosters. `steamId` is set only when they linked Discord to a LEGACY-X profile. */
+/** A member on Leaders → Boosters: someone who linked Discord to their LEGACY-X profile. */
 export interface CommunityEntry {
   position: number
   discordId: string
   name: string
   username: string
   avatar: string
-  steamId: string | null
+  steamId: string
   /** True while the member boosts the Discord server. */
   boosting: boolean
   boosts: number
@@ -23,7 +23,7 @@ export interface CommunityEntry {
 }
 
 export const discordService = {
-  /** Discord members ranked by server boosts or by the people they invited (public). */
+  /** Members who linked Discord, ranked by server boosts or by the people they invited (public). */
   async getCommunity(sort: "boosts" | "invites", options?: CallOptions): Promise<CommunityEntry[]> {
     const response = await get<{ entries: CommunityEntry[] }>("/api/v1/public/discord/community", { sort }, options)
     return response.entries ?? []
