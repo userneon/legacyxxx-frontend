@@ -206,11 +206,10 @@ function buildUrl(path: string, query?: QueryParams): string {
 }
 
 /** Merges default JSON headers with caller-supplied overrides. */
-function buildHeaders(options: RequestOptions): Record<string, string> {
-  const headers: Record<string, string> = {
-    Accept: "application/json",
-    "Content-Type": "application/json",
-  }
+function buildHeaders(options: RequestOptions, hasBody = false): Record<string, string> {
+  // Content-Type only when something is sent: with it, even a plain GET makes the browser ask the API for permission first (a preflight).
+  const headers: Record<string, string> = { Accept: "application/json" }
+  if (hasBody) headers["Content-Type"] = "application/json"
 
   if (!options.skipAuth) {
     const token = getAccessToken()
@@ -340,6 +339,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
       ;(init.headers as Record<string, string>)["Content-Type"] = body.type
     } else {
       init.body = JSON.stringify(body)
+      ;(init.headers as Record<string, string>)["Content-Type"] = "application/json"
     }
   }
 

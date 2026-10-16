@@ -2,7 +2,7 @@ import { BackgroundBeams } from "@/components/background-beams"
 import { ProfileBackdrop } from "@/components/profile-backdrop"
 import { ProfileScene } from "@/components/profile-scene"
 import { useProfileScene } from "@/lib/profile-scene"
-import { Component, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react"
+import { Component, Suspense, lazy, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react"
 import { Navigate, Routes, Route, useNavigate, useLocation } from "react-router-dom"
 
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
@@ -11,26 +11,28 @@ import { ProfileBlock } from "@/components/profile-block"
 import { HomePage } from "@/pages/home"
 import { PlayPage } from "@/pages/play"
 import { getWebsitePreferences } from "@/lib/preferences"
-import { TournamentsPage } from "@/pages/tournaments"
 import { LeadersPage } from "@/pages/leaders"
-import { ClanPage } from "@/pages/clan"
-import { SkinchangerPage } from "@/pages/skinchanger"
-import { ComparePage } from "@/pages/compare"
-import { ShopPage } from "@/pages/shop"
-import { WalletPage } from "@/pages/wallet"
-import { StaffPage } from "@/pages/staff"
-import { PenaltiesPage } from "@/pages/penalties"
-import { ExplorePage } from "@/pages/explore"
-import { CreatorsPage } from "@/pages/creators"
-import { FeedbackPage } from "@/pages/feedback"
 import { ProfilePage } from "@/pages/profile"
-import { ConnectPage } from "@/pages/connect"
 import { ProtectedPage } from "@/components/protected-page"
 import { useAuth } from "@/hooks/use-auth"
 import type { PageId } from "@/api/types"
 import { routeToPage, pageToRoute, PAGE_TITLES, documentTitle } from "@/lib/routes"
 import { isFeatureEnabled } from "@/lib/features"
 import { cn } from "@/lib/utils"
+
+// Pages other than the first ones a visitor needs load when they are opened, so the first page does not wait for the Staff, Shop and Skinchanger code.
+const TournamentsPage = lazy(() => import("@/pages/tournaments").then((module) => ({ default: module.TournamentsPage })))
+const SkinchangerPage = lazy(() => import("@/pages/skinchanger").then((module) => ({ default: module.SkinchangerPage })))
+const ComparePage = lazy(() => import("@/pages/compare").then((module) => ({ default: module.ComparePage })))
+const ShopPage = lazy(() => import("@/pages/shop").then((module) => ({ default: module.ShopPage })))
+const WalletPage = lazy(() => import("@/pages/wallet").then((module) => ({ default: module.WalletPage })))
+const StaffPage = lazy(() => import("@/pages/staff").then((module) => ({ default: module.StaffPage })))
+const PenaltiesPage = lazy(() => import("@/pages/penalties").then((module) => ({ default: module.PenaltiesPage })))
+const ExplorePage = lazy(() => import("@/pages/explore").then((module) => ({ default: module.ExplorePage })))
+const CreatorsPage = lazy(() => import("@/pages/creators").then((module) => ({ default: module.CreatorsPage })))
+const FeedbackPage = lazy(() => import("@/pages/feedback").then((module) => ({ default: module.FeedbackPage })))
+const ConnectPage = lazy(() => import("@/pages/connect").then((module) => ({ default: module.ConnectPage })))
+const ClanPage = lazy(() => import("@/pages/clan").then((module) => ({ default: module.ClanPage })))
 
 // LEGACY-X visual system: preserve the existing compact glass sidebar shell and route-level page transitions.
 export function App() {
@@ -121,6 +123,7 @@ export function App() {
         <div ref={panelRef} className="lx-glass-shell scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-clip rounded-[14px]">
           <div key={shownSection} className={cn("page-enter flex min-h-full flex-col", leaving && "page-leave")}>
             <RouteErrorBoundary resetKey={shownLocation.pathname}>
+            <Suspense fallback={<div className="min-h-[40vh]" aria-hidden="true" />}>
             <Routes location={shownLocation}>
               <Route path="/" element={<HomePage onNavigate={handleNavigate} />} />
               <Route path="/play/5x5" element={<PlayPage mode="5vs5" />} />
@@ -169,6 +172,7 @@ export function App() {
               <Route path="/connect" element={<ConnectPage />} />
               <Route path="*" element={<HomePage onNavigate={handleNavigate} />} />
             </Routes>
+            </Suspense>
             </RouteErrorBoundary>
           </div>
         </div>
