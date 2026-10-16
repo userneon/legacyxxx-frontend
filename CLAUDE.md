@@ -145,6 +145,7 @@ name (Twitch, YouTube, Kick, Facebook, Instagram; lucide has no brand icons). Ti
 owner request 2026-10-12): black, TikTok's note with its cyan and red offsets, the `@handle` from the link, and a short glitch on
 hover (off for reduced motion); its brand colours are palette-exempt. Owners and Managers manage the list in
 Staff → Creators (`src/components/staff-creators.tsx`).
+Creator cards on the Creators page are violet `.lx-add-box` cards like the Staff team cards, with a violet tier pill (owner request 2026-10-16).
 
 ## Icons and assets
 

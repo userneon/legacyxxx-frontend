@@ -15,9 +15,9 @@ import { cn } from "@/lib/utils"
 type CreatorsTab = "all" | CreatorTier
 
 /** The badge a creator carries here and on their profile. Main is white-outlined, Content Creator neutral. */
-export function CreatorBadge({ tier, label }: { tier: CreatorTier; label: string }) {
+export function CreatorBadge({ tier, label, violet }: { tier: CreatorTier; label: string; violet?: boolean }) {
   return (
-    <span className={cn("inline-flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-xs font-semibold", tier === "main" ? "border-[var(--text-2)] text-[var(--text)]" : "border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text-2)]")}>
+    <span className={cn("inline-flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-xs font-semibold", violet ? "border-[var(--brand)]/45 bg-[var(--brand)]/12 text-[var(--brand-bright)]" : tier === "main" ? "border-[var(--text-2)] text-[var(--text)]" : "border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text-2)]")}>
       {tier === "main" ? <Star className="size-3.5 fill-current" /> : <Clapperboard className="size-3.5" />}
       {label}
     </span>
@@ -77,9 +77,9 @@ export function CreatorLinks({ links, className }: { links: Creator["links"]; cl
 
 function CreatorCard({ creator, big }: { creator: Creator; big?: boolean }) {
   return (
-    <article className={cn("flex flex-col gap-3 rounded-xl border bg-[var(--card-surface)] p-4", big ? "border-[var(--line-strong)] p-5" : "border-[var(--line)]")}>
+    <article className={cn("lx-add-box relative flex flex-col gap-3 rounded-2xl border p-[18px]", big && "p-6")}>
       <Link to={`/profile/${creator.steamId}`} className="group flex min-w-0 items-center gap-3">
-        <FramedAvatar avatar={creator.avatar ?? undefined} name={creator.username} frame={creator.frame} size={big ? 64 : 48} />
+        <FramedAvatar avatar={creator.avatar ?? undefined} name={creator.username} frame={creator.frame} size={big ? 72 : 52} />
         <span className="flex min-w-0 flex-col gap-1">
           <span {...nameProps(creator.nameStyle as NameLook | null, cn("truncate font-bold text-[var(--text)] group-hover:underline underline-offset-4", big ? "text-[22px] leading-tight" : "text-[15px]"))} title={creator.username}>{creator.username}</span>
           {creator.rank && (
@@ -90,7 +90,7 @@ function CreatorCard({ creator, big }: { creator: Creator; big?: boolean }) {
           )}
         </span>
       </Link>
-      <span><CreatorBadge tier={creator.tier} label={creator.label} /></span>
+      <span><CreatorBadge tier={creator.tier} label={creator.label} violet /></span>
       {creator.bio && <p className="text-[13px] leading-relaxed text-[var(--text-muted)]">{creator.bio}</p>}
       <CreatorLinks links={creator.links} className="mt-auto" />
     </article>
