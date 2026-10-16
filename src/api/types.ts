@@ -495,6 +495,8 @@ export interface ClanInvitation {
 
 export interface ClanMember {
   id: string
+  /** Steam ID, so a profile link reads like every other one; absent from an older API. */
+  steamId?: string
   name: string
   role: string
   avatar: string
