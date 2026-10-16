@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Crown, RotateCcw } from "lucide-react"
+import { Crown, RotateCcw, User } from "lucide-react"
 
 import { discordService, type CommunityEntry } from "@/api/discord"
 import { PlayerAvatar } from "@/components/player-avatar"
@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils"
 
 type By = "boosts" | "invites"
 
-const GRID = "grid grid-cols-[32px_minmax(0,1fr)_auto] items-center gap-3 px-4 md:grid-cols-[56px_minmax(220px,1fr)_110px_150px_110px] md:gap-4 md:px-6"
+const GRID = "grid grid-cols-[32px_minmax(0,1fr)_auto] items-center gap-3 px-4 md:grid-cols-[56px_minmax(220px,1fr)_110px_150px_110px_96px] md:gap-4 md:px-6"
 const PODIUM_ORDER = [2, 1, 3]
 const sinceText = (value: string | null) => (value ? new Date(value).toLocaleDateString(undefined, { month: "short", year: "numeric" }) : "—")
 
@@ -23,23 +23,35 @@ function Who({ entry, big }: { entry: CommunityEntry; big?: boolean }) {
   )
 }
 
+/** Opens the player's LEGACY-X profile; shown only for members who linked Discord to a Steam profile. */
+function ProfileButton({ entry, onOpen, className }: { entry: CommunityEntry; onOpen?: () => void; className?: string }) {
+  if (!onOpen) return null
+  return (
+    <button type="button" onClick={onOpen} aria-label={`Open ${entry.name} profile`} className={cn("inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-2.5 text-xs font-medium text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50", className)}>
+      <User className="size-3.5" aria-hidden="true" />
+      Profile
+    </button>
+  )
+}
+
 function TopCard({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen?: () => void }) {
   const first = entry.position === 1
   const slot = PODIUM_ORDER.indexOf(entry.position)
-  const Tag = onOpen ? "button" : "div"
   return (
-    <Tag
-      {...(onOpen ? { type: "button" as const, onClick: onOpen, "aria-label": `Open ${entry.name} profile` } : {})}
+    <div
       style={{ order: slot, animationDelay: `${first ? 60 : 160 + slot * 60}ms` }}
       className={cn(
-        "lx-fx-card group relative isolate flex min-w-0 flex-col gap-4 overflow-hidden rounded-xl border bg-[var(--glass-fill)] p-[18px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
+        "lx-fx-card group relative isolate flex min-w-0 flex-col gap-4 overflow-hidden rounded-xl border bg-[var(--glass-fill)] p-[18px] text-left",
         first ? "border-[var(--brand)]/45" : "mt-6 border-[var(--line-soft)]",
       )}
     >
       {first && <span aria-hidden="true" className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-transparent via-[var(--brand-bright)] to-transparent" />}
-      <span className="flex items-center gap-2">
+      <span className="flex items-center justify-between gap-2">
+       <span className="flex items-center gap-2">
         {first && <Crown aria-hidden="true" className="size-6 fill-[var(--brand)]/30 text-[var(--brand-bright)]" />}
         <span className={cn("font-bold leading-none tracking-[-1px]", first ? "text-[34px] text-[var(--text)]" : "text-[28px] text-[var(--text-2)]")}>#{entry.position}</span>
+       </span>
+        <ProfileButton entry={entry} onOpen={onOpen} />
       </span>
       <span className="flex min-w-0 items-center gap-3">
         <PlayerAvatar avatar={entry.avatar || undefined} name={entry.name} className={cn("shrink-0 text-base", first ? "size-[60px] rounded-[15px] ring-2 ring-[var(--brand)]/70 ring-offset-2 ring-offset-[var(--card-surface)]" : "size-[52px] rounded-[13px]")} />
@@ -55,17 +67,13 @@ function TopCard({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen?
           <span className="flex flex-col items-end gap-1.5"><span className="text-[11px] text-[var(--text-dim)]">Boosting since</span><span className="text-xs text-[var(--text-2)]">{sinceText(entry.boostingSince)}</span></span>
         </span>
       </span>
-    </Tag>
+    </div>
   )
 }
 
 function Row({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen?: () => void }) {
-  const Tag = onOpen ? "button" : "div"
   return (
-    <Tag
-      {...(onOpen ? { type: "button" as const, onClick: onOpen, "aria-label": `Open ${entry.name} profile` } : {})}
-      className={cn(GRID, "lx-layer group h-14 w-full border-b border-[var(--raised)] text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50", onOpen && "hover:bg-[var(--raised)]")}
-    >
+    <div className={cn(GRID, "lx-layer group h-14 w-full border-b border-[var(--raised)] text-left transition-colors hover:bg-[var(--raised)]")}>
       <span className="text-sm font-semibold text-[var(--text-muted)] group-hover:text-[var(--text)]">{entry.position}</span>
       <span className="flex min-w-0 items-center gap-3">
         <PlayerAvatar avatar={entry.avatar || undefined} name={entry.name} className="size-8 shrink-0 rounded-[9px] text-[10px]" />
@@ -77,8 +85,12 @@ function Row({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen?: ()
       <span className={cn("text-right text-[13px] max-md:hidden", by === "boosts" ? "font-semibold text-[var(--text)]" : "text-[var(--text-muted)]")}>{entry.boosts.toLocaleString()}</span>
       <span className="text-right text-[13px] text-[var(--text-muted)] max-md:hidden">{sinceText(entry.boostingSince)}</span>
       <span className={cn("text-right text-[13px] max-md:hidden", by === "invites" ? "font-semibold text-[var(--text)]" : "text-[var(--text-muted)]")}>{entry.invites.toLocaleString()}</span>
-      <span className="text-right text-[13px] font-semibold text-[var(--text)] md:hidden">{(by === "boosts" ? entry.boosts : entry.invites).toLocaleString()}</span>
-    </Tag>
+      <span className="flex justify-end max-md:hidden"><ProfileButton entry={entry} onOpen={onOpen} /></span>
+      <span className="flex items-center justify-end gap-3 md:hidden">
+        <span className="text-[13px] font-semibold text-[var(--text)]">{(by === "boosts" ? entry.boosts : entry.invites).toLocaleString()}</span>
+        <ProfileButton entry={entry} onOpen={onOpen} />
+      </span>
+    </div>
   )
 }
 
@@ -114,6 +126,7 @@ export function BoosterLadder({ search, onProfileNavigate }: { search: string; o
         <span className={cn("text-right max-md:hidden", by === "boosts" && "text-[var(--brand-bright)]")}>Boosts</span>
         <span className="text-right max-md:hidden">Boosting since</span>
         <span className={cn("text-right max-md:hidden", by === "invites" && "text-[var(--brand-bright)]")}>Invites</span>
+        <span className="max-md:hidden" aria-hidden="true" />
         <span className="text-right text-[var(--brand-bright)] md:hidden">{by === "boosts" ? "Boosts" : "Invites"}</span>
       </div>
 
