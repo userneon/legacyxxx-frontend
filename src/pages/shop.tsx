@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
-import { Check, Coins, Lock, RotateCcw } from "lucide-react"
+import { Check, ChevronDown, Coins, Lock, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -13,7 +13,14 @@ import { frameAccent, nameProps } from "@/lib/cosmetics"
 import { ShopClan } from "@/components/shop-clan"
 import { FramedAvatar } from "@/components/framed-avatar"
 import { PageBar, PageTabs } from "@/components/page-tabs"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Skeleton } from "@/components/ui/skeleton"
+
+const SORTS = [
+  { value: "price-up", label: "Price: low to high" },
+  { value: "price-down", label: "Price: high to low" },
+  { value: "rarity", label: "Rarity" },
+] as const
 
 type ShopTab = "featured" | CosmeticKind | "clan"
 type Rarity = 0 | 1 | 2 | 3 | 4
@@ -264,11 +271,24 @@ export function ShopPage() {
                   <span className="flex-1" />
                   {([0, 1, 2, 3, 4] as const).map((step) => <button key={step} type="button" aria-pressed={rarity === step} onClick={() => setRarity(step)} className={pill(rarity === step)}>{step === 0 ? "All" : RARITY_NAMES[step]}</button>)}
                   <button type="button" aria-pressed={hideOwned} onClick={() => setHideOwned((current) => !current)} className={pill(hideOwned)}>Hide owned</button>
-                  <select aria-label="Sort" value={sort} onChange={(event) => setSort(event.target.value as typeof sort)} className="h-[26px] rounded-full border border-[var(--line)] bg-transparent px-2.5 text-xs text-[var(--text-2)]">
-                    <option value="price-up">Price: low to high</option>
-                    <option value="price-down">Price: high to low</option>
-                    <option value="rarity">Rarity</option>
-                  </select>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button type="button" aria-label="Sort" className={cn(pill(false), "group gap-1.5 text-[var(--text-2)]")}>
+                        {SORTS.find((option) => option.value === sort)?.label}
+                        <ChevronDown className="size-3.5 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" sideOffset={8} className="w-[200px] rounded-xl border-[var(--line)] bg-[var(--panel)] p-1.5 shadow-[0_18px_44px_rgba(0,0,0,0.55)]">
+                      <div role="radiogroup" aria-label="Sort" className="flex flex-col">
+                        {SORTS.map((option) => (
+                          <button key={option.value} type="button" role="radio" aria-checked={sort === option.value} onClick={() => setSort(option.value)} className="flex h-8 items-center justify-between rounded-lg px-2.5 text-left text-[13px] text-[var(--text-2)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)] aria-checked:text-[var(--text)]">
+                            {option.label}
+                            {sort === option.value && <Check className="size-3.5" aria-hidden="true" />}
+                          </button>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 {shown.length === 0 ? <p className="py-8 text-[13px] text-[var(--text-dim)]">Nothing here.</p> : <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">{shown.map(card)}</ul>}
               </section>
