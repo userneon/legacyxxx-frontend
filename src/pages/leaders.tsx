@@ -340,8 +340,8 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
                 type="search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                aria-label={clans ? "Search clan" : "Search player"}
-                placeholder={clans ? "Search clan" : "Search player"}
+                aria-label={clans ? "Search clan" : boosters ? "Search member" : "Search player"}
+                placeholder={clans ? "Search clan" : boosters ? "Search member" : "Search player"}
                 className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text)] outline-none placeholder:text-[var(--text-dim)]"
               />
             </label>

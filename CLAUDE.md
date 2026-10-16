@@ -137,8 +137,8 @@ the sheet. Pro League needs a sign-in; a player below the rank sees the rank loc
 
 ### Leaders → Boosters (owner request 2026-10-16)
 
-A fifth Leaders tab, `Boosters` (`src/pages/leaders-boosters.tsx`): members who linked Discord, ranked by Discord server boosts or by the people they
-invited (a switch inside the tab). Real data from `/api/v1/public/discord/community`, which the Discord bot fills; only linked members are listed. Discord
+A fifth Leaders tab, `Boosters` (`src/pages/leaders-boosters.tsx`): Discord members ranked by server boosts or by the people they invited (a switch inside the tab),
+same top-three cards and rows as the other ladders, each with the Discord display name, @username and avatar. Real data from `/api/v1/public/discord/community`, which the Discord bot fills; a profile opens only for members who linked Discord. Discord
 does not give a boost count per member, so the bot counts the boost messages it sees from the day it starts.
 
 ### Creators (owner request 2026-10-12)

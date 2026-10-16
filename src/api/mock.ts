@@ -646,9 +646,9 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (method === "DELETE" && path.startsWith("/api/v1/skinchanger/collections/")) return { removed: true }
   if (path === "/api/v1/clans") return MOCK_CLANS
   if (path === "/api/v1/public/discord/community") {
-    const people = [["Temuulen", 6, 41], ["xBataa", 4, 18], ["Khuslen_AWP", 3, 27], ["Enkh.", 2, 9], ["Gansukh", 1, 3]] as const
+    const people = [["Temuulen", 6, 41], ["xBataa", 4, 18], ["Khuslen_AWP", 3, 27], ["Enkh.", 2, 9], ["Gansukh", 1, 3], ["Bold", 1, 2]] as const
     const by = query?.sort === "invites" ? 2 : 1
-    return { entries: [...people].sort((x, y) => y[by] - x[by]).map(([username, boosts, invites], index) => ({ position: index + 1, steamId: `7656119800000000${index}`, username, avatar: "", boosts, boostingSince: new Date(Date.now() - (index + 2) * 40 * 24 * HOUR).toISOString(), invites })) }
+    return { entries: [...people].sort((x, y) => y[by] - x[by]).map(([username, boosts, invites], index) => ({ position: index + 1, discordId: `10000000000000000${index}`, name: username, username: username.toLowerCase().replace(/[^a-z0-9]/g, ""), avatar: "", steamId: index % 2 === 0 ? `7656119800000000${index}` : null, boosts, boostingSince: new Date(Date.now() - (index + 2) * 40 * 24 * HOUR).toISOString(), invites })) }
   }
   if (path === "/api/v1/clans/leaderboard") return { clans: MOCK_CLANS.map((clan, index) => ({ ...clan, rank: index + 1, totalExp: 9400 - index * 2100, matches: 120 - index * 30, wins: 70 - index * 20 })) }
   if (path.endsWith("/activity")) return [{ id: "1", text: "Member 2 joined", at: new Date(Date.now() - 2 * HOUR).toISOString() }, { id: "2", text: "Member 4 asked to join", at: new Date(Date.now() - 5 * HOUR).toISOString() }, { id: "3", text: "Leader created the clan", at: new Date(Date.now() - 3 * 24 * HOUR).toISOString() }]
