@@ -1713,3 +1713,61 @@ body::before {
 }
 .lx-boost-num { color: var(--boost); }
 .lx-boost-row:hover { background: color-mix(in oklab, var(--boost) 7%, transparent); }
+
+/* Nitro-style motion on the Boosters cards: a slow light band, a floating gem with twinkling stars, a gliding shine on the name, and on
+   the #1 card a pink light that travels around the border. All of it stops for reduced motion. */
+@property --boost-angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+.lx-boost-orbit {
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: conic-gradient(from var(--boost-angle), transparent 0 70%, var(--boost) 88%, #ffffff 94%, transparent 100%); /* palette-exempt: Discord Boost brand */
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: lx-boost-orbit 6s linear infinite;
+}
+.lx-boost::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 38%, color-mix(in oklab, var(--boost) 22%, transparent) 50%, transparent 62%);
+  background-size: 260% 100%;
+  background-position: 160% 0;
+  background-repeat: no-repeat;
+  animation: lx-boost-sheen 7s ease-in-out infinite;
+}
+.lx-boost-name {
+  background-image: linear-gradient(100deg, var(--text) 0%, var(--text) 38%, var(--boost) 50%, var(--text) 62%, var(--text) 100%);
+  background-size: 260% 100%;
+  background-position: 160% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: lx-boost-sheen 5s ease-in-out infinite;
+}
+.lx-boost-gem { animation: lx-boost-float 5s ease-in-out infinite; }
+.lx-boost-star {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  background: var(--boost); /* palette-exempt: Discord Boost brand */
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  opacity: 0;
+  animation: lx-boost-twinkle 3.2s ease-in-out infinite;
+}
+.lx-boost-row .lx-boost-gem-sm { animation: lx-boost-twinkle-soft 3.6s ease-in-out infinite; }
+@keyframes lx-boost-orbit { to { --boost-angle: 360deg; } }
+@keyframes lx-boost-sheen { 0%, 40% { background-position: 160% 0; } 75%, 100% { background-position: -60% 0; } }
+@keyframes lx-boost-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
+@keyframes lx-boost-twinkle { 0%, 100% { opacity: 0; scale: 0.4; } 45%, 55% { opacity: 0.95; scale: 1; } }
+@keyframes lx-boost-twinkle-soft { 0%, 100% { opacity: 0.75; } 50% { opacity: 1; filter: drop-shadow(0 0 4px var(--boost)); } }
+@media (prefers-reduced-motion: reduce) {
+  .lx-boost-orbit, .lx-boost::after, .lx-boost-name, .lx-boost-gem, .lx-boost-star, .lx-boost-row .lx-boost-gem-sm { animation: none; }
+  .lx-boost-star { opacity: 0; }
+}

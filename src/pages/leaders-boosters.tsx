@@ -19,7 +19,7 @@ const sinceText = (value: string | null) => (value ? new Date(value).toLocaleDat
 function Who({ entry, big }: { entry: CommunityEntry; big?: boolean }) {
   return (
     <span className="flex min-w-0 flex-col gap-1">
-      <span className={cn("truncate font-semibold text-[var(--text)]", big ? "text-base" : "text-[13px]")} title={entry.name}>{entry.name}</span>
+      <span className={cn("truncate font-semibold text-[var(--text)]", big ? "text-base lx-boost-name" : "text-[13px]")} title={entry.name}>{entry.name}</span>
       {entry.username && <span className="truncate text-xs text-[var(--text-dim)]">@{entry.username}</span>}
     </span>
   )
@@ -47,8 +47,9 @@ function TopCard({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen?
         first ? "lx-boost-first" : "mt-6",
       )}
     >
+      {first && <span aria-hidden="true" className="lx-boost-orbit" />}
       {first && <span aria-hidden="true" className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-transparent via-[var(--boost)] to-transparent" />}
-      <img src={first ? boostGem : boostSquare} alt="" aria-hidden="true" className="lx-boost-gem pointer-events-none absolute right-4 top-[58px] -z-10 w-[76px] opacity-30 transition-[opacity,translate] duration-500 group-hover:-translate-y-1 group-hover:opacity-55" />
+      <img src={first ? boostGem : boostSquare} alt="" aria-hidden="true" className="lx-boost-gem pointer-events-none absolute right-4 top-[58px] -z-10 w-[76px] opacity-30 transition-[opacity,translate] duration-500 group-hover:opacity-55" />
       <span className="flex items-center justify-between gap-2">
        <span className="flex items-center gap-2">
         {first && <Crown aria-hidden="true" className="size-6 fill-[var(--boost)]/30 text-[var(--boost)]" />}
@@ -56,6 +57,9 @@ function TopCard({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen?
        </span>
         <ProfileButton entry={entry} onOpen={onOpen} />
       </span>
+      <span aria-hidden="true" className="lx-boost-star right-[92px] top-[54px]" style={{ animationDelay: "0s" }} />
+      <span aria-hidden="true" className="lx-boost-star right-6 top-[96px]" style={{ animationDelay: "1.1s", width: 7, height: 7 }} />
+      <span aria-hidden="true" className="lx-boost-star right-[60px] top-[50px]" style={{ animationDelay: "2.1s", width: 8, height: 8 }} />
       <span className="flex min-w-0 items-center gap-3">
         <PlayerAvatar avatar={entry.avatar || undefined} name={entry.name} className={cn("shrink-0 text-base", first ? "size-[60px] rounded-[15px] ring-2 ring-[var(--boost)]/70 ring-offset-2 ring-offset-[var(--card-surface)]" : "size-[52px] rounded-[13px]")} />
         <Who entry={entry} big={first} />
@@ -85,7 +89,7 @@ function Row({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen?: ()
           {entry.username && <span className="shrink-0 text-xs text-[var(--text-dim)] max-sm:hidden">@{entry.username}</span>}
         </span>
       </span>
-      <span className={cn("text-right text-[13px] max-md:hidden", by === "boosts" ? "font-semibold text-[var(--text)]" : "text-[var(--text-muted)]")}><span className="inline-flex items-center justify-end gap-1.5">{entry.boosts > 0 && <img src={boostSquare} alt="" aria-hidden="true" className="size-3.5" />}{entry.boosts.toLocaleString()}</span></span>
+      <span className={cn("text-right text-[13px] max-md:hidden", by === "boosts" ? "font-semibold text-[var(--text)]" : "text-[var(--text-muted)]")}><span className="inline-flex items-center justify-end gap-1.5">{entry.boosts > 0 && <img src={boostSquare} alt="" aria-hidden="true" className="lx-boost-gem-sm size-3.5" />}{entry.boosts.toLocaleString()}</span></span>
       <span className="text-right text-[13px] text-[var(--text-muted)] max-md:hidden">{sinceText(entry.boostingSince)}</span>
       <span className={cn("text-right text-[13px] max-md:hidden", by === "invites" ? "font-semibold text-[var(--text)]" : "text-[var(--text-muted)]")}>{entry.invites.toLocaleString()}</span>
       <span className="flex justify-end max-md:hidden"><ProfileButton entry={entry} onOpen={onOpen} /></span>
