@@ -1,4 +1,5 @@
 import { DiscordIcon } from "@/components/discord-strip"
+import { PlayerNameText } from "@/components/player-name-text"
 import { DiscordLinkedMark } from "@/components/discord-linked-mark"
 import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
@@ -170,7 +171,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
       <Avatar user={user} />
       <div className="flex min-w-0 max-w-full flex-col items-center gap-2.5">
         <div className="flex flex-wrap items-center justify-center gap-2.5">
-          <h1 {...nameProps(user.nameStyle, "truncate text-[30px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]")} title={user.username}>{user.username}</h1>
+          <h1 {...nameProps(user.nameStyle, "truncate text-[30px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]")} title={user.username}><PlayerNameText name={user.username} /></h1>
           <RoleBadge role={user.role} />
           {overview.creator && <CreatorBadge tier={overview.creator.tier} label={overview.creator.label} />}
           <DiscordLinkedMark linked={overview.discordLinked} className="[&_svg]:size-4" />
