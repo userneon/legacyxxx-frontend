@@ -35,15 +35,6 @@ const FACEIT_LEVELS = [
   { level: 10, min: 2001, color: "#e8002b", fill: 100 },
 ] as const
 
-export function faceitLevelProgress(level: number, elo: number) {
-  const current = FACEIT_LEVELS.find((entry) => entry.level === level) ?? FACEIT_LEVELS[0]
-  const next = FACEIT_LEVELS.find((entry) => entry.level === current.level + 1)
-  if (!next) return { color: current.color, percent: 100, toNext: 0, nextLevel: null as number | null }
-  const span = next.min - current.min
-  const percent = Math.max(0, Math.min(100, ((elo - current.min) / span) * 100))
-  return { color: current.color, percent, toNext: Math.max(0, next.min - elo), nextLevel: next.level }
-}
-
 /** 270° gauge with the gap at the bottom, drawn clockwise from bottom-left like FACEIT's level icons. */
 const FACEIT_GAUGE_RADIUS = 37
 /** Real arc length; used instead of pathLength, which some SVG renderers ignore for dash patterns. */

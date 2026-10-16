@@ -722,29 +722,6 @@ export interface SearchClansResult {
   clans: ClanCard[]
 }
 
-/* ----------------------------------------------------------------------------
- * Community / partners
- * ------------------------------------------------------------------------- */
-
-export interface CommunityCreator {
-  id: string
-  name: string
-  handle: string
-  url: string
-}
-
-export interface CommunityPartner {
-  id: string
-  name: string
-  description: string
-  type: "website"
-  url: string
-}
-
-export interface CommunityContent {
-  creators: CommunityCreator[]
-  partners: CommunityPartner[]
-}
 
 /* ----------------------------------------------------------------------------
  * Home stats
