@@ -1,8 +1,9 @@
 import { useState } from "react"
-import { Crown, RotateCcw, User } from "lucide-react"
+import { Crown, RotateCcw } from "lucide-react"
 
 import { discordService, type CommunityEntry } from "@/api/discord"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { SteamIcon } from "@/components/steam-login-gate"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cn } from "@/lib/utils"
@@ -25,12 +26,19 @@ function Who({ entry, big }: { entry: CommunityEntry; big?: boolean }) {
   )
 }
 
-/** Opens the player's LEGACY-X profile; shown only for members who linked Discord to a Steam profile. */
+/** The Steam mark: bright, with a Profile button, when the member linked Steam; dim and plain when not. */
 function ProfileButton({ entry, onOpen, className }: { entry: CommunityEntry; onOpen?: () => void; className?: string }) {
-  if (!onOpen) return null
+  if (!onOpen) {
+    return (
+      <span title="Steam not linked" className={cn("inline-flex h-8 w-8 shrink-0 items-center justify-center text-[var(--text-faint)]", className)}>
+        <SteamIcon className="size-4" />
+        <span className="sr-only">Steam not linked</span>
+      </span>
+    )
+  }
   return (
-    <button type="button" onClick={onOpen} aria-label={`Open ${entry.name} profile`} className={cn("inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-2.5 text-xs font-medium text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50", className)}>
-      <User className="size-3.5" aria-hidden="true" />
+    <button type="button" onClick={onOpen} aria-label={`Open ${entry.name} profile`} title="Steam linked · open profile" className={cn("inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-2.5 text-xs font-medium text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50", className)}>
+      <SteamIcon className="size-3.5" />
       Profile
     </button>
   )
@@ -108,8 +116,10 @@ export function BoosterLadder({ search, onProfileNavigate }: { search: string; o
   const [by, setBy] = useState<By>("boosts")
   const { data, loading, error, refetch } = useApiQuery<CommunityEntry[]>((signal) => discordService.getCommunity(by, { signal }), { queryKey: `community:${by}`, keepPreviousData: true })
   const all = data ?? []
-  const topThree = search ? [] : all.slice(0, 3)
-  const rows = search ? all.filter((entry) => entry.name.toLowerCase().includes(search) || entry.username.toLowerCase().includes(search)) : all.slice(3)
+  const metricOf = (entry: CommunityEntry) => (by === "boosts" ? entry.boosts : entry.invites)
+  // The podium is for members who have a count; everyone else follows in the list with 0.
+  const topThree = search ? [] : all.slice(0, 3).filter((entry) => metricOf(entry) > 0)
+  const rows = search ? all.filter((entry) => entry.name.toLowerCase().includes(search) || entry.username.toLowerCase().includes(search)) : all.slice(topThree.length)
   const firstLoad = loading && !data
   const open = (entry: CommunityEntry) => (entry.steamId ? () => onProfileNavigate(entry.steamId!) : undefined)
 

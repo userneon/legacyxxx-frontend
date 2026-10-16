@@ -138,7 +138,7 @@ the sheet. Pro League needs a sign-in; a player below the rank sees the rank loc
 ### Leaders → Boosters (owner request 2026-10-16)
 
 A fifth Leaders tab, `Boosters` (`src/pages/leaders-boosters.tsx`): Discord members ranked by server boosts or by the people they invited (a switch inside the tab),
-same top-three cards and rows as the other ladders, each with the Discord display name, @username and avatar. Real data from `/api/v1/public/discord/community`, which the Discord bot fills; members who linked Discord get a Profile button on their card and row. Discord
+same top-three cards and rows as the other ladders, each with the Discord display name, @username and avatar. Real data from `/api/v1/public/discord/community`, which the Discord bot fills; every Discord member is listed (0 when they did neither), with a Steam mark: a Profile button when Steam is linked, a dim mark when not. Discord
 does not give a boost count per member, so the bot counts the boost messages it sees from the day it starts. The cards wear Discord's server boost look
 (owner request 2026-10-16): its pink (`--boost`, palette-exempt, only inside `.lx-boost`) and the owner-supplied gem pictures (`src/assets/boosters/`).
 
