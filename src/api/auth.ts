@@ -1,4 +1,4 @@
-import { API_BASE_URL, MOCK_API, get, post, setAccessToken, type CallOptions } from "./client"
+import { API_BASE_URL, MOCK_API, get, post, refreshSession, setAccessToken, type CallOptions } from "./client"
 import type { AuthSession, UserProfile } from "./types"
 
 /**
@@ -29,12 +29,9 @@ export const authService = {
     setAccessToken(null)
   },
 
-  async refresh(options?: CallOptions): Promise<AuthSession> {
-    const session = await post<AuthSession>("/api/v1/auth/refresh", undefined, options)
-    if (session.accessToken) {
-      setAccessToken(session.accessToken)
-    }
-    return session
+  async refresh(_options?: CallOptions): Promise<AuthSession> {
+    // One shared request, which also stores the new access token (see refreshSession).
+    return refreshSession<AuthSession>()
   },
 
   async me(options?: CallOptions): Promise<UserProfile> {

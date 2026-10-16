@@ -40,6 +40,8 @@ export interface RequestOptions {
   skipAuth?: boolean
   /** Additional headers to merge into the request. */
   headers?: Record<string, string>
+  /** Set by `request` itself after it has already renewed the session once for this call. */
+  renewed?: boolean
 }
 
 /**
@@ -353,6 +355,17 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   }
   clear()
 
+  // An access token lives only minutes. A read that comes back "signed out" renews the session once (the HttpOnly refresh cookie
+  // does the work) and asks again, so a header item such as the wallet never stays missing until the player reloads.
+  if (response.status === 401 && method === "GET" && !options.skipAuth && !options.renewed && !canonicalApiPath(path).startsWith("/api/v1/auth/")) {
+    try {
+      await refreshSession()
+      return request<T>(path, { ...options, renewed: true })
+    } catch {
+      // Really signed out (or the server is busy): fall through to the original 401.
+    }
+  }
+
   if (!response.ok) {
     throw await toApiError(response)
   }
@@ -368,6 +381,25 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   }
 
   return (await response.json()) as T
+}
+
+/**
+ * Renews the session through the refresh cookie and stores the new access token. Everything that renews goes through here, so two
+ * callers at the same moment share one request (a second use of the same refresh cookie would be refused).
+ */
+let refreshInFlight: Promise<{ accessToken?: string; user?: unknown }> | null = null
+export function refreshSession<T extends { accessToken?: string } = { accessToken?: string; user?: unknown }>(): Promise<T> {
+  if (!refreshInFlight) {
+    refreshInFlight = request<{ accessToken?: string; user?: unknown }>("/api/v1/auth/refresh", { method: "POST", skipAuth: true })
+      .then((session) => {
+        if (session?.accessToken) setAccessToken(session.accessToken)
+        return session
+      })
+      .finally(() => {
+        refreshInFlight = null
+      })
+  }
+  return refreshInFlight as Promise<T>
 }
 
 /* ---------------------------------------------------------------------------

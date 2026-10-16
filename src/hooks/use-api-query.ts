@@ -89,21 +89,39 @@ export function useApiQuery<T>(
     setState((prev) => ({ data: didQueryChange && !keepPreviousData ? null : prev.data, loading: true, error: null }))
 
     const run = async () => {
-      try {
-        const data = await fetcherRef.current(controller.signal)
-        // Discard if superseded by a newer fetch or cancelled.
-        if (controller.signal.aborted || runId !== runIdRef.current) return
-        setState({ data, loading: false, error: null })
-      } catch (err) {
-        if (controller.signal.aborted || runId !== runIdRef.current) return
-        const error = normalizeError(err)
-        // An explicit cancellation is not surfaced as an error to the UI.
-        if (error.code === "aborted") {
-          setState((prev) => ({ data: prev.data, loading: false, error: null }))
+      for (let attempt = 0; ; attempt++) {
+        try {
+          const data = await fetcherRef.current(controller.signal)
+          // Discard if superseded by a newer fetch or cancelled.
+          if (controller.signal.aborted || runId !== runIdRef.current) return
+          setState({ data, loading: false, error: null })
+          return
+        } catch (err) {
+          if (controller.signal.aborted || runId !== runIdRef.current) return
+          // A busy server (429), an outage (5xx) or a dropped connection is asked again shortly, still showing the loading state,
+          // so a header item or a list that failed once while many requests ran together does not stay missing until a reload.
+          if (isTransient(err) && attempt < RETRY_DELAYS_MS.length) {
+            await new Promise<void>((resolve) => {
+              const timer = window.setTimeout(resolve, RETRY_DELAYS_MS[attempt])
+              controller.signal.addEventListener("abort", () => { window.clearTimeout(timer); resolve() }, { once: true })
+            })
+            if (controller.signal.aborted || runId !== runIdRef.current) return
+            continue
+          }
+          fail(err)
           return
         }
-        setState({ data: null, loading: false, error })
       }
+    }
+
+    const fail = (err: unknown) => {
+      const error = normalizeError(err)
+      // An explicit cancellation is not surfaced as an error to the UI.
+      if (error.code === "aborted") {
+        setState((prev) => ({ data: prev.data, loading: false, error: null }))
+        return
+      }
+      setState({ data: null, loading: false, error })
     }
 
     void run()
@@ -115,6 +133,16 @@ export function useApiQuery<T>(
   }, [enabled, fetchToken, queryKey])
 
   return { ...state, refetch }
+}
+
+/** Waits before asking again after a busy server or a dropped connection (three more tries). */
+const RETRY_DELAYS_MS = [1000, 3000, 7000]
+
+/** Only "try again later" answers are retried: a busy server, an outage, a timeout or a lost connection. Not 4xx, not a cancellation. */
+function isTransient(err: unknown) {
+  const { status, code } = normalizeError(err)
+  if (code === "aborted") return false
+  return status === 0 || status === 408 || status === 425 || status === 429 || status >= 500
 }
 
 /**
