@@ -33,3 +33,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Agent skills installed with `npx skills add` / `impeccable skills install` (23 MB each copy, with a native binary): reinstall from skills-lock.json instead of committing them.
+.agents/
+.codex/
+.claude/skills/
+.claude/agents/
+.claude/settings.local.json
