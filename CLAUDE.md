@@ -135,6 +135,12 @@ state, then a CS2-style scoreboard (owner pick "D", 2026-10-12): T rows tinted g
 tinted blue, K/D/A live every 5 s; then Copy IP / Connect. The phone sheet uses the same scoreboard. Below 1180px the list fills the page and a server opens in
 the sheet. Pro League needs a sign-in; a player below the rank sees the rank lock instead of the servers.
 
+### Leaders → Boosters (owner request 2026-10-16)
+
+A fifth Leaders tab, `Boosters` (`src/pages/leaders-boosters.tsx`): members who linked Discord, ranked by Discord server boosts or by the people they
+invited (a switch inside the tab). Real data from `/api/v1/public/discord/community`, which the Discord bot fills; only linked members are listed. Discord
+does not give a boost count per member, so the bot counts the boost messages it sees from the day it starts.
+
 ### Creators (owner request 2026-10-12)
 
 Two creator roles, **Main Content Creator** and **Content Creator**, kept apart from staff (`legacy_x.content_creators`; no

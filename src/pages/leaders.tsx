@@ -1,3 +1,4 @@
+import { BoosterLadder } from "@/pages/leaders-boosters"
 import { ClanLadder } from "@/pages/leaders-clans"
 import { GRID } from "@/pages/leaders-grid"
 import { DiscordLinkedMark } from "@/components/discord-linked-mark"
@@ -40,8 +41,8 @@ const METRIC: Record<LeaderboardSort, (player: CompetitiveLeaderboardEntry) => s
 const readSort = (value: string | null): LeaderboardSort => (value === "kd" || value === "win" ? value : "exp")
 
 /** The ladder switch next to the three player sorts: clans ranked by the EXP of their members. */
-type LadderView = LeaderboardSort | "clans"
-const VIEWS: { value: LadderView; label: string }[] = [...SORTS.map(({ value, label }) => ({ value, label })), { value: "clans", label: "Clans" }]
+type LadderView = LeaderboardSort | "clans" | "boosters"
+const VIEWS: { value: LadderView; label: string }[] = [...SORTS.map(({ value, label }) => ({ value, label })), { value: "clans", label: "Clans" }, { value: "boosters", label: "Boosters" }]
 
 /** Podium order on screen: silver, gold, bronze. */
 const PODIUM_ORDER = [2, 1, 3]
@@ -284,6 +285,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
   const [params, setParams] = useViewParams()
   const sort = readSort(params.get("sort"))
   const clans = params.get("sort") === "clans"
+  const boosters = params.get("sort") === "boosters"
   const [query, setQuery] = useState(params.get("q") ?? "")
   const search = (params.get("q") ?? "").trim().toLowerCase()
 
@@ -311,7 +313,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
 
   const { data, loading, error, refetch } = useApiQuery<CompetitiveLeaderboardEntry[]>(
     (signal) => competitiveService.getLeaderboard({ signal }, { sort }),
-    { queryKey: `leaders:${sort}`, keepPreviousData: true, enabled: !clans },
+    { queryKey: `leaders:${sort}`, keepPreviousData: true, enabled: !clans && !boosters },
   )
 
   const players = useMemo(() => [...(data ?? [])].sort((a, b) => a.position - b.position), [data])
@@ -328,10 +330,10 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
     <div className="scrollbar-hidden flex min-h-0 flex-1 overflow-x-auto">
       <div className="flex min-w-0 flex-1 flex-col md:min-w-[900px]">
         <PageBar>
-          <PageTabs ariaLabel="Sort by" lead="Ranked by" value={clans ? "clans" : sort} onChange={setSort} options={VIEWS} />
+          <PageTabs ariaLabel="Sort by" lead="Ranked by" value={clans ? "clans" : boosters ? "boosters" : sort} onChange={setSort} options={VIEWS} />
           <PageBarEnd>
             {loading && players.length > 0 && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
-            <span key={clans ? "clans" : sort} className="lx-swap-in text-[13px] text-[var(--text-dim)] max-xl:hidden">{clans ? "Ranked by the total EXP of a clan's members." : SUBTITLE[sort]}</span>
+            <span key={clans ? "clans" : boosters ? "boosters" : sort} className="lx-swap-in text-[13px] text-[var(--text-dim)] max-xl:hidden">{clans ? "Ranked by the total EXP of a clan's members." : boosters ? "Who boosts and grows the LEGACY-X Discord." : SUBTITLE[sort]}</span>
             <label className={pageSearchClass}>
               <Search className="size-4 shrink-0 text-[var(--text-dim)]" />
               <input
@@ -346,7 +348,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
           </PageBarEnd>
         </PageBar>
 
-        {clans ? <ClanLadder search={search} /> : (
+        {clans ? <ClanLadder search={search} /> : boosters ? <BoosterLadder search={search} onProfileNavigate={onProfileNavigate} /> : (
           <>
         <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
           {/* pt-3 leaves room above the podium: cards lift 5px on hover and the scroll area clips anything above its top.

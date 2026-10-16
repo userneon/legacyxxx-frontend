@@ -7,7 +7,24 @@ export interface DiscordLinkState {
   link: { discordId: string; discordName: string; linkedAt: string } | null
 }
 
+/** A linked Discord member on Leaders → Boosters. */
+export interface CommunityEntry {
+  position: number
+  steamId: string
+  username: string
+  avatar: string
+  boosts: number
+  boostingSince: string | null
+  invites: number
+}
+
 export const discordService = {
+  /** Linked members ranked by Discord boosts or by people they invited (public, only members who linked Discord). */
+  async getCommunity(sort: "boosts" | "invites", options?: CallOptions): Promise<CommunityEntry[]> {
+    const response = await get<{ entries: CommunityEntry[] }>("/api/v1/public/discord/community", { sort }, options)
+    return response.entries ?? []
+  },
+
   async getLink(options?: CallOptions): Promise<DiscordLinkState> {
     return get<DiscordLinkState>("/api/v1/discord/link", undefined, options)
   },
