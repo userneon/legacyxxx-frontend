@@ -326,15 +326,14 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
 
   const buttonClass = "relative inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-medium transition-colors hover:border-[var(--line-strong)] disabled:cursor-not-allowed disabled:opacity-50"
   return (
-    <div className="lx-sweep relative flex flex-col overflow-hidden rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)] transition-[border-color] duration-200 hover:border-[var(--line-strong)]">
-      <button type="button" tabIndex={-1} aria-hidden="true" onClick={() => onClanNavigate(String(clan.number ?? clan.id))} className="relative block aspect-[3/1] w-full overflow-hidden bg-[var(--raised)]">
-        {banner && <img src={banner} alt="" loading="lazy" decoding="async" className="size-full object-cover" />}
-      </button>
-      <div className="relative flex flex-1 flex-col gap-4 p-4">
+    <div className="lx-fx-card relative isolate flex min-h-[210px] flex-col overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]">
+      {banner && <img src={banner} alt="" loading="lazy" decoding="async" className="absolute inset-0 -z-10 size-full object-cover" />}
+      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-[var(--card-surface)] via-[var(--card-surface)]/80 to-[var(--card-surface)]/30" />
+      <div className="relative flex flex-1 flex-col gap-4 p-[18px]">
         <button type="button" onClick={() => onClanNavigate(String(clan.number ?? clan.id))} className="flex items-center gap-3 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-          <ClanMark logo={clan.logo} tag={clan.tag} className="size-14" />
-          <span className="flex min-w-0 flex-col gap-0.5">
-            <span className="truncate text-[17px] font-bold">{clan.name}</span>
+          <ClanMark logo={clan.logo} tag={clan.tag} className="size-[52px]" />
+          <span className="flex min-w-0 flex-col gap-1.5">
+            <span className="truncate text-sm font-semibold" title={clan.name}>{clan.name}</span>
             <JoinModeLabel mode={clan.joinMode} />
           </span>
         </button>
