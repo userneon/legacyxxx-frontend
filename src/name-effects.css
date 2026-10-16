@@ -72,3 +72,70 @@
   94% { filter: drop-shadow(0 0 2px var(--name-glow)) drop-shadow(0 0 12px var(--name-glow)) drop-shadow(0 0 28px color-mix(in srgb, var(--name-glow) 90%, transparent)); }
   96% { filter: drop-shadow(0 0 1px var(--name-glow)) drop-shadow(0 0 3px color-mix(in srgb, var(--name-glow) 60%, transparent)); }
 }
+
+/* ---- more colour effects (owner request 2026-10-16: 50 colours and 50 glows) ---- */
+.lx-fx-sunrise, .lx-fx-ocean, .lx-fx-lava, .lx-fx-candy, .lx-fx-toxic, .lx-fx-midnight, .lx-fx-rosegold, .lx-fx-platinum, .lx-fx-spectrum, .lx-fx-galaxy {
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.lx-fx-sunrise { background-image: linear-gradient(180deg, #fff3d6 0%, #ffb877 36%, #ff6b6b 72%, #c026d3 100%); } /* palette-exempt */
+.lx-fx-ocean { background-image: linear-gradient(180deg, #e0fbff 0%, #5ad2ff 38%, #1e6fe0 76%, #14378f 100%); } /* palette-exempt */
+.lx-fx-lava { background-image: linear-gradient(0deg, #7f1010 0%, #e11d1d 35%, #ff7a18 68%, #ffe08a 100%); } /* palette-exempt */
+.lx-fx-candy {
+  background-image: linear-gradient(90deg, #ff8ac4, #ffffff, #7dd3fc, #ffffff, #ff8ac4); /* palette-exempt */
+  background-size: 300% 100%;
+  animation: lx-name-drift 6s linear infinite;
+}
+.lx-fx-toxic { background-image: linear-gradient(180deg, #f7ffd6 0%, #b6f23a 38%, #4cae12 76%, #1f6b0a 100%); } /* palette-exempt */
+.lx-fx-midnight { background-image: linear-gradient(180deg, #ffffff 0%, #b4b9ff 36%, #5b5be0 74%, #231f7a 100%); } /* palette-exempt */
+.lx-fx-rosegold {
+  background-image:
+    linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.85) 50%, transparent 62%), /* palette-exempt */
+    linear-gradient(180deg, #ffe4dc 0%, #f4b6a6 34%, #b76e79 62%, #f7cfc4 100%); /* palette-exempt */
+  background-size: 260% 100%, 100% 100%;
+  background-position: 160% 0, 0 0;
+  background-repeat: no-repeat;
+  animation: lx-name-sweep 5s ease-in-out infinite;
+}
+.lx-fx-platinum {
+  background-image:
+    linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.95) 50%, transparent 62%), /* palette-exempt */
+    linear-gradient(180deg, #ffffff 0%, #d9dee7 34%, #8d97a8 58%, #f3f5f9 80%, #b6bdca 100%); /* palette-exempt */
+  background-size: 260% 100%, 100% 100%;
+  background-position: 160% 0, 0 0;
+  background-repeat: no-repeat;
+  animation: lx-name-sweep 4s ease-in-out infinite;
+}
+.lx-fx-spectrum {
+  background-image: linear-gradient(90deg, #ff5f6d, #ffc371, #7bed9f, #4facfe, #b67bff, #ff5f6d); /* palette-exempt */
+  background-size: 300% 100%;
+  animation: lx-name-drift 4s linear infinite;
+}
+.lx-fx-galaxy {
+  background-image: linear-gradient(100deg, #67e8f9, #a78bfa, #f0abfc, #6366f1, #67e8f9); /* palette-exempt */
+  background-size: 300% 100%;
+  animation: lx-name-drift 8s linear infinite;
+}
+
+/* ---- more glows: Halo (wide and still), Breath (slow swell), Spark (quick flicker) ---- */
+.lx-glow-halo, .lx-glow-breathe, .lx-glow-spark { color: color-mix(in srgb, #ffffff 82%, var(--name-glow)); } /* palette-exempt */
+.lx-glow-halo { filter: drop-shadow(0 0 3px color-mix(in srgb, var(--name-glow) 90%, transparent)) drop-shadow(0 0 12px color-mix(in srgb, var(--name-glow) 55%, transparent)); }
+.lx-glow-breathe { animation: lx-glow-breathe 4.2s ease-in-out infinite; }
+.lx-glow-spark { animation: lx-glow-spark 2.2s steps(1, end) infinite; }
+@keyframes lx-glow-breathe {
+  0%, 100% { filter: drop-shadow(0 0 2px color-mix(in srgb, var(--name-glow) 80%, transparent)) drop-shadow(0 0 6px color-mix(in srgb, var(--name-glow) 40%, transparent)); }
+  50% { filter: drop-shadow(0 0 3px var(--name-glow)) drop-shadow(0 0 14px var(--name-glow)) drop-shadow(0 0 30px color-mix(in srgb, var(--name-glow) 55%, transparent)); }
+}
+@keyframes lx-glow-spark {
+  0%, 100% { filter: drop-shadow(0 0 2px var(--name-glow)) drop-shadow(0 0 8px color-mix(in srgb, var(--name-glow) 65%, transparent)); }
+  18% { filter: drop-shadow(0 0 1px color-mix(in srgb, var(--name-glow) 70%, transparent)) drop-shadow(0 0 3px color-mix(in srgb, var(--name-glow) 40%, transparent)); }
+  24% { filter: drop-shadow(0 0 3px var(--name-glow)) drop-shadow(0 0 14px var(--name-glow)); }
+  52% { filter: drop-shadow(0 0 1px color-mix(in srgb, var(--name-glow) 60%, transparent)); }
+  58% { filter: drop-shadow(0 0 2px var(--name-glow)) drop-shadow(0 0 10px var(--name-glow)); }
+  80% { filter: drop-shadow(0 0 2px var(--name-glow)) drop-shadow(0 0 9px color-mix(in srgb, var(--name-glow) 70%, transparent)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lx-fx-candy, .lx-fx-rosegold, .lx-fx-platinum, .lx-fx-spectrum, .lx-fx-galaxy, .lx-glow-breathe, .lx-glow-spark { animation: none; }
+}

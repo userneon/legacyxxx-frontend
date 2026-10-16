@@ -42,8 +42,8 @@ export function frameArt(id: string | null | undefined): ({ src: string } & Fram
   return { src: `/frames/${id}.webp`, ...FRAMES[id] }
 }
 
-const COLOR_FX = new Set(["chrome", "gold", "ice", "sakura", "emerald", "aurora", "holo", "fire", "void"])
-const GLOW_FX = new Set(["neon", "pulse", "flame", "electric", "aura"])
+const COLOR_FX = new Set(["chrome", "gold", "ice", "sakura", "emerald", "aurora", "holo", "fire", "void", "sunrise", "ocean", "lava", "candy", "toxic", "midnight", "rosegold", "platinum", "spectrum", "galaxy"])
+const GLOW_FX = new Set(["neon", "pulse", "flame", "electric", "aura", "halo", "breathe", "spark"])
 const HEX = /^#[0-9a-f]{6}$/i
 
 /** What a name is painted with: plain colours and short effect keys from the API, never a style string. */
