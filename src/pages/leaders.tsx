@@ -328,7 +328,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
 
   return (
     <div className="scrollbar-hidden flex min-h-0 flex-1 overflow-x-auto">
-      <div className="flex min-w-0 flex-1 flex-col md:min-w-[900px]">
+      <div className={cn("flex min-w-0 flex-1 flex-col", !boosters && "md:min-w-[900px]")}>
         <PageBar>
           <PageTabs ariaLabel="Sort by" lead="Ranked by" value={clans ? "clans" : boosters ? "boosters" : sort} onChange={setSort} options={VIEWS} />
           <PageBarEnd>

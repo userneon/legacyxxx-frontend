@@ -12,7 +12,7 @@ import boostSquare from "@/assets/boosters/boost-square.webp"
 
 type By = "boosts" | "invites"
 
-const GRID = "grid grid-cols-[32px_minmax(0,1fr)_auto] items-center gap-3 px-4 md:grid-cols-[56px_minmax(220px,1fr)_110px_150px_110px_96px] md:gap-4 md:px-6"
+const GRID = "grid grid-cols-[32px_minmax(0,1fr)_auto] items-center gap-3 px-4 md:grid-cols-[48px_minmax(140px,1fr)_90px_90px_104px] md:gap-3 lg:grid-cols-[56px_minmax(220px,1fr)_110px_150px_110px_96px] lg:gap-4 md:px-6"
 const PODIUM_ORDER = [2, 1, 3]
 const sinceText = (value: string | null) => (value ? new Date(value).toLocaleDateString(undefined, { month: "short", year: "numeric" }) : "—")
 
@@ -92,7 +92,7 @@ function Row({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen: () 
         </span>
       </span>
       <span className={cn("text-right text-[13px] max-md:hidden", by === "boosts" ? "font-semibold text-[var(--text)]" : "text-[var(--text-muted)]")}><span className="inline-flex items-center justify-end gap-1.5">{entry.boosts > 0 && <img src={boostSquare} alt="" aria-hidden="true" className="lx-boost-gem-sm size-3.5" />}{entry.boosts.toLocaleString()}</span></span>
-      <span className="text-right text-[13px] text-[var(--text-muted)] max-md:hidden">{sinceText(entry.boostingSince)}</span>
+      <span className="text-right text-[13px] text-[var(--text-muted)] max-lg:hidden">{sinceText(entry.boostingSince)}</span>
       <span className={cn("text-right text-[13px] max-md:hidden", by === "invites" ? "font-semibold text-[var(--text)]" : "text-[var(--text-muted)]")}>{entry.invites.toLocaleString()}</span>
       <span className="flex justify-end max-md:hidden"><ProfileButton entry={entry} onOpen={onOpen} /></span>
       <span className="flex items-center justify-end gap-3 md:hidden">
@@ -126,7 +126,7 @@ export function BoosterLadder({ search, onProfileNavigate }: { search: string; o
       </div>
 
       {(firstLoad || topThree.length > 0) && (
-        <section aria-label="Top 3" className="lx-layer isolate flex snap-x gap-3 overflow-x-auto px-4 pb-5 pt-3 [&>*]:min-w-[78%] [&>*]:snap-center md:grid md:grid-cols-3 md:items-start md:overflow-visible md:px-6 md:[&>*]:min-w-0">
+        <section aria-label="Top 3" className="lx-layer isolate flex snap-x gap-3 overflow-x-auto px-4 pb-5 pt-3 [&>*]:min-w-[78%] [&>*]:snap-center lg:grid lg:grid-cols-3 lg:items-start lg:overflow-visible md:px-6 lg:[&>*]:min-w-0">
           {firstLoad ? [0, 1, 2].map((index) => <Skeleton key={index} className="h-[200px] rounded-xl" />) : topThree.map((entry) => <TopCard key={entry.discordId} entry={entry} by={by} onOpen={open(entry)} />)}
         </section>
       )}
@@ -135,7 +135,7 @@ export function BoosterLadder({ search, onProfileNavigate }: { search: string; o
         <span>#</span>
         <span>Member</span>
         <span className={cn("text-right max-md:hidden", by === "boosts" && "text-[var(--brand-bright)]")}>Boosts</span>
-        <span className="text-right max-md:hidden">Boosting since</span>
+        <span className="text-right max-lg:hidden">Boosting since</span>
         <span className={cn("text-right max-md:hidden", by === "invites" && "text-[var(--brand-bright)]")}>Invites</span>
         <span className="max-md:hidden" aria-hidden="true" />
         <span className="text-right text-[var(--brand-bright)] md:hidden">{by === "boosts" ? "Boosts" : "Invites"}</span>
