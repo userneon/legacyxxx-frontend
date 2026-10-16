@@ -59,7 +59,7 @@ function BannerArt({ src, alt = "", className, eager }: { src: string; alt?: str
 function ClanBannerStrip({ banner, name }: { banner?: string | null; name: string }) {
   const src = clanArtSrc(banner)
   if (!src) return null
-  return <BannerArt src={src} alt={`${name} banner`} eager className="aspect-[3/1] max-h-[340px] w-full border-b border-[var(--glass-line)]" />
+  return <BannerArt src={src} alt={`${name} banner`} eager className="aspect-[5/1] max-h-[200px] w-full border-b border-[var(--glass-line)]" />
 }
 
 /**
