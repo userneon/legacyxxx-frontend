@@ -100,7 +100,6 @@ export function BoosterLadder({ search, onProfileNavigate }: { search: string; o
             <button key={value} type="button" aria-pressed={by === value} onClick={() => setBy(value)} className={cn("h-8 rounded-md px-2.5 transition-colors", by === value ? "bg-[var(--raised)] text-[var(--text)]" : "text-[var(--text-dim)] hover:text-[var(--text)]")}>{label}</button>
           ))}
         </div>
-        <span className="text-xs text-[var(--text-dim)]">Boosts count from when the bot started watching. A profile opens for members who linked Discord.</span>
       </div>
 
       {(firstLoad || topThree.length > 0) && (
