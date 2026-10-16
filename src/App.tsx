@@ -133,7 +133,6 @@ export function App() {
               <Route path="/leaders" element={<LeadersPage onProfileNavigate={handleProfileNavigate} />} />
               {/* The address is /clans (and /clans/1); the older /clan keeps working and moves there, with its ?tab= kept. */}
               {isFeatureEnabled("clan") && <Route path="/clan" element={<Navigate to={{ pathname: "/clans", search: location.search }} replace />} />}
-              {isFeatureEnabled("clan") && <Route path="/clans/appearance" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
               {isFeatureEnabled("clan") && <Route path="/clans" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
               {isFeatureEnabled("clan") && <Route path="/clan/:clanId" element={<Navigate to={{ pathname: location.pathname.replace(/^\/clan\//, "/clans/"), search: location.search }} replace />} />}
               {isFeatureEnabled("clan") && <Route path="/clans/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}

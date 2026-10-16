@@ -3,8 +3,7 @@ import { Coins, UserPlus, Users } from "lucide-react"
 import { toast } from "sonner"
 import { useEffect, useRef, useState } from "react"
 
-import { walletService, clansService, type Wallet, type ClanLookItem, type ClanLookKind, type ClanLooks, type ClanPrices, type MyClanState } from "@/api"
-import { useAuth } from "@/hooks/use-auth"
+import { clansService, type ClanLookItem, type ClanLookKind, type ClanLooks, type ClanPrices, type MyClanState } from "@/api"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { ClanBackground } from "@/components/clan-background"
 import { backdropStyle, clanTagProps } from "@/lib/cosmetics"
@@ -215,11 +214,4 @@ export function ClanLooksShop({ clanId, canWear = true, tag, balance, onChanged 
       })}
     </div>
   )
-}
-
-/** The Appearance tab of Clans: what the clan wears and what it can still buy. Wearing and buying are the leader's. */
-export function ClanAppearancePanel({ clanId, tag, leader }: { clanId: string; tag: string; leader: boolean }) {
-  const { user } = useAuth()
-  const { data: wallet, refetch } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
-  return <ClanLooksShop clanId={clanId} canWear={leader} tag={tag} balance={wallet?.balance ?? null} onChanged={() => refetch()} />
 }

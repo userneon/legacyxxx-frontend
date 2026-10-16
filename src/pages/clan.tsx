@@ -1,16 +1,12 @@
-import { createPortal } from "react-dom"
 import { useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { usePathTab } from "@/hooks/use-url-tab"
 import { useNavigate, useParams } from "react-router-dom"
 import { ArrowLeft, Check, Coins, Globe, Lock, Pencil, Plus, Search, Upload, UserPlus, Users, X } from "lucide-react"
 import { toast } from "sonner"
 
 
 import { cn } from "@/lib/utils"
-import { clansService, type ClanLook } from "@/api"
-import { ClanBackground } from "@/components/clan-background"
-import { ClanAppearancePanel } from "@/components/shop-clan"
+import { clansService } from "@/api"
 import { CLAN_ART_RULES, clanArtProblem, clanArtSrc, type ClanArtKind } from "@/api/clans"
 import type { ClanCard, ClanDetail, ClanJoinRequest, ClanRole, MyClanState } from "@/api/types"
 import { ClanMark } from "@/components/clan-mark"
@@ -30,30 +26,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { backdropStyle, clanTagProps, pageBackground } from "@/lib/cosmetics"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 
-/**
- * The clan's page background paints the whole window, sidebar and top bar included: a fixed layer behind the (transparent)
- * shell. An animated one (from react-bits) is loaded only when a clan wears it.
- */
-function PageWash({ page }: { page: ClanLook["page"] | undefined }) {
-  if (!pageBackground(page) || !page) return null
-  const calm = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
-  return createPortal(<div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-[1]"><ClanBackground page={page} calm={calm} /></div>, document.body)
-}
-
-/** The clan's banner (a picture or a GIF) fills the whole header box behind its logo, name and description, under a fade so the text stays readable. */
-function ClanBannerBackdrop({ banner }: { banner?: string | null }) {
+/** The clan's banner (a picture or a GIF), shown whole and unfaded in a wide strip above the header. */
+function ClanBannerStrip({ banner, name }: { banner?: string | null; name: string }) {
   const src = clanArtSrc(banner)
   if (!src) return null
   return (
-    <>
-      <img src={src} alt="" className="absolute inset-0 size-full object-cover" />
-      <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-[var(--card-surface)]/90 via-[var(--card-surface)]/60 to-[var(--card-surface)]/15" />
-    </>
+    <div className="relative aspect-[3/1] max-h-[260px] w-full overflow-hidden border-b border-[var(--glass-line)] bg-[var(--raised)]">
+      <img src={src} alt={`${name} banner`} decoding="async" className="size-full object-cover" />
+    </div>
   )
 }
 
@@ -137,14 +121,13 @@ function ClanListSkeleton() {
   )
 }
 
-// The viewer's own clan, kept while moving between "Clans", "My clan" and "Appearance": each of those remounts a page, and without it
+// The viewer's own clan, kept while moving between "Clans" and "My clan": each of those remounts a page, and without it
 // the page first draws the tabs of a player without a clan and then redraws them once the answer arrives.
 let lastMine: MyClanState | null = null
 
 function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void }) {
   const { isAuthenticated, loginWithSteam } = useAuth()
   const [creating, setCreating] = useState(() => new URLSearchParams(window.location.search).get("create") === "1")
-  const [tab, setTab] = usePathTab<"all" | "appearance">("/clans", { all: "", appearance: "appearance" }, "all")
   const [search, setSearch] = useState("")
   const [sort, setSort] = useState<"new" | "name">("new")
   const [limit, setLimit] = useState(PAGE_SIZE)
@@ -177,17 +160,14 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
   return (
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
-        {mineKnown ? <PageTabs<"all" | "appearance" | "mine">
+        {mineKnown ? <PageTabs<"all" | "mine">
           ariaLabel="Clans"
-          value={mine && tab === "appearance" ? "appearance" : "all"}
-          onChange={(next) => {
-            if (next === "mine" && mine) { onClanNavigate(String(mine.clan.number ?? mine.clan.id)); return }
-            setTab(next === "appearance" ? "appearance" : "all")
-          }}
-          options={mine ? [{ value: "all", label: "Clans" }, { value: "mine", label: "My clan" }, { value: "appearance", label: "Appearance" }] : [{ value: "all", label: "All clans" }]}
+          value="all"
+          onChange={(next) => { if (next === "mine" && mine) onClanNavigate(String(mine.clan.number ?? mine.clan.id)) }}
+          options={mine ? [{ value: "all", label: "Clans" }, { value: "mine", label: "My clan" }] : [{ value: "all", label: "All clans" }]}
         /> : <span />}
         <PageBarEnd>
-          {mineKnown && !(mine && tab === "appearance") && (
+          {mineKnown && (
             <>
               <div className="flex items-center gap-1 text-[13px]" role="group" aria-label="Sort">
                 {(["new", "name"] as const).map((value) => (
@@ -213,9 +193,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
         <div className="flex flex-col gap-4 px-6 pb-4 pt-4">
           {invites.length > 0 && !mine && <Invitations invites={invites} onChanged={changed} />}
 
-          {!mineKnown && tab === "appearance" ? null : mine && tab === "appearance" ? (
-            <ClanAppearancePanel clanId={String(mine.clan.id)} tag={mine.clan.tag} leader={mine.role === "leader"} />
-          ) : (
+          {(
             <>
               {!loading && !error && !q && (
                 <div className="lx-stat-grid grid-cols-3">
@@ -307,7 +285,6 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
   const isMine = mine?.clan.id === clan.id
   const fill = Math.round((clan.currentPlayers / Math.max(1, clan.maxPlayers)) * 100)
   const banner = clanArtSrc(clan.thumbnail)
-  const backdrop = backdropStyle(clan.look?.backdrop)
   const [busy, setBusy] = useState(false)
 
   const act = async (action: () => Promise<void>, failure: string) => {
@@ -331,14 +308,15 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
 
   const buttonClass = "relative inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-medium transition-colors hover:border-[var(--line-strong)] disabled:cursor-not-allowed disabled:opacity-50"
   return (
-    <div className="relative flex min-h-[210px] flex-col overflow-hidden rounded-[10px] border border-[var(--glass-line)] bg-[var(--card-surface)] transition-[border-color] duration-200 hover:border-[var(--line-strong)]">
-      {backdrop ? <div aria-hidden="true" className="absolute inset-0" style={{ backgroundImage: backdrop }} /> : banner && <img src={banner} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />}
-      <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[var(--card-surface)] via-[var(--card-surface)]/85 to-[var(--card-surface)]/35" />
+    <div className="lx-sweep relative flex flex-col overflow-hidden rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)] transition-[border-color] duration-200 hover:border-[var(--line-strong)]">
+      <button type="button" tabIndex={-1} aria-hidden="true" onClick={() => onClanNavigate(String(clan.number ?? clan.id))} className="relative block aspect-[3/1] w-full overflow-hidden bg-[var(--raised)]">
+        {banner && <img src={banner} alt="" loading="lazy" decoding="async" className="size-full object-cover" />}
+      </button>
       <div className="relative flex flex-1 flex-col gap-4 p-4">
         <button type="button" onClick={() => onClanNavigate(String(clan.number ?? clan.id))} className="flex items-center gap-3 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-          <ClanMark logo={clan.logo} tag={clan.tag} className="size-12" />
+          <ClanMark logo={clan.logo} tag={clan.tag} className="size-14" />
           <span className="flex min-w-0 flex-col gap-0.5">
-            <span className="truncate text-[15px] font-semibold">{clan.name}</span>
+            <span className="truncate text-[17px] font-bold">{clan.name}</span>
             <JoinModeLabel mode={clan.joinMode} />
           </span>
         </button>
@@ -406,11 +384,11 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
         {role ? (
-          <PageTabs<"all" | "appearance" | "mine">
+          <PageTabs<"all" | "mine">
             ariaLabel="Clans"
             value="mine"
-            onChange={(next) => { if (next === "all") navigate("/clans"); else if (next === "appearance") navigate("/clans", { state: { tab: "appearance" } }) }}
-            options={[{ value: "all", label: "Clans" }, { value: "mine", label: "My clan" }, { value: "appearance", label: "Appearance" }]}
+            onChange={(next) => { if (next === "all") navigate("/clans") }}
+            options={[{ value: "all", label: "Clans" }, { value: "mine", label: "My clan" }]}
           />
         ) : (
           <button type="button" onClick={() => navigate("/clans")} className="inline-flex h-11 items-center gap-2 text-[13px] text-[var(--text-dim)] transition-colors hover:text-[var(--text)]">
@@ -437,19 +415,17 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
       </PageBar>
 
       <div className="relative min-h-0 flex-1">
-      <PageWash page={clan?.look?.page} />
       <div className="scrollbar-hidden relative size-full overflow-y-auto">
         <div className="flex flex-col gap-4 px-6 pb-4 pt-4">
           <QueryState loading={loading} error={error} empty={!loading && !error && !clan} emptyMessage="Clan not found." onRetry={refetch} />
           {!loading && !error && clan && (
             <>
               <section className="relative overflow-hidden rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-              {backdropStyle(clan.look?.backdrop) && <div aria-hidden="true" className="absolute inset-0 opacity-70" style={{ backgroundImage: backdropStyle(clan.look?.backdrop) }} />}
-              <ClanBannerBackdrop banner={clan.thumbnail} />
+              <ClanBannerStrip banner={clan.thumbnail} name={clan.name} />
               <div className="relative flex flex-wrap items-center gap-4 p-6">
                 <ClanMark logo={clan.logo} tag={clan.tag} className="size-16 text-[15px]" />
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <h1 className="truncate text-[22px] font-semibold leading-tight">{clan.name} <span {...clanTagProps(clan.look, "text-[13px] font-medium text-[var(--text-dim)]")}>[{clan.tag}]</span></h1>
+                  <h1 className="truncate text-[22px] font-semibold leading-tight">{clan.name} <span className="text-[13px] font-medium text-[var(--text-dim)]">[{clan.tag}]</span></h1>
                   <p className="flex flex-wrap items-center gap-x-3 text-[13px] text-[var(--text-dim)]"><span>{clan.region} · {clan.currentPlayers}/{clan.maxPlayers} members</span><JoinModeLabel mode={clan.joinMode} /></p>
                   {clan.description && <p className="max-w-2xl text-[13px] text-[var(--text-dim)]">{clan.description}</p>}
                 </div>
@@ -461,7 +437,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                   <DialogHeader>
                     <DialogTitle>Delete {clan.name}?</DialogTitle>
                     <DialogDescription>
-                      The clan, its members list and any extra places are removed for good, and the LX spent on the clan and its places are not given back. The appearance you bought (tag colour, glow, backgrounds) stays yours and can be worn by your next clan. This cannot be undone.
+                      The clan, its members list and any extra places are removed for good, and the LX spent on the clan and its places are not given back. This cannot be undone.
                     </DialogDescription>
                   </DialogHeader>
                   <form
