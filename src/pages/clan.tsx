@@ -42,15 +42,24 @@ function PageWash({ page }: { page: ClanLook["page"] | undefined }) {
   return createPortal(<div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-[1]"><ClanBackground page={page} calm={calm} /></div>, document.body)
 }
 
-/** The clan's banner (a picture or a GIF), shown whole and unfaded in a wide strip above the header. */
+/**
+ * A banner picture or GIF shown whole at its own resolution, whatever its shape: the sharp picture is fitted inside the box and
+ * the space left over is filled by a blurred, enlarged copy of the same picture, so nothing is cropped and nothing is stretched.
+ */
+function BannerArt({ src, alt = "", className, eager }: { src: string; alt?: string; className?: string; eager?: boolean }) {
+  return (
+    <div className={cn("relative overflow-hidden bg-[var(--raised)]", className)}>
+      <img src={src} alt="" aria-hidden="true" loading={eager ? "eager" : "lazy"} decoding="async" className="absolute inset-0 size-full scale-125 object-cover opacity-60 blur-2xl" />
+      <img src={src} alt={alt} loading={eager ? "eager" : "lazy"} decoding="async" className="relative size-full object-contain" />
+    </div>
+  )
+}
+
+/** The clan's banner, whole and unfaded in a wide strip above the header. */
 function ClanBannerStrip({ banner, name }: { banner?: string | null; name: string }) {
   const src = clanArtSrc(banner)
   if (!src) return null
-  return (
-    <div className="relative aspect-[3/1] max-h-[260px] w-full overflow-hidden border-b border-[var(--glass-line)] bg-[var(--raised)]">
-      <img src={src} alt={`${name} banner`} decoding="async" className="size-full object-cover" />
-    </div>
-  )
+  return <BannerArt src={src} alt={`${name} banner`} eager className="aspect-[3/1] max-h-[340px] w-full border-b border-[var(--glass-line)]" />
 }
 
 /**
@@ -327,7 +336,7 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
   const buttonClass = "relative inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-medium transition-colors hover:border-[var(--line-strong)] disabled:cursor-not-allowed disabled:opacity-50"
   return (
     <div className="lx-fx-card relative isolate flex min-h-[210px] flex-col overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]">
-      {banner && <img src={banner} alt="" loading="lazy" decoding="async" className="absolute inset-0 -z-10 size-full object-cover" />}
+      {banner && <BannerArt src={banner} className="absolute inset-0 -z-10" />}
       <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-[var(--card-surface)] via-[var(--card-surface)]/80 to-[var(--card-surface)]/30" />
       <div className="relative flex flex-1 flex-col gap-4 p-[18px]">
         <button type="button" onClick={() => onClanNavigate(String(clan.number ?? clan.id))} className="flex items-center gap-3 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
