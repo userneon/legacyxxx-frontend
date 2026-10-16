@@ -154,12 +154,12 @@ export function HomePage({ onNavigate }: HomePageProps) {
               <div className={cn("relative mt-4 flex h-9 items-center justify-between gap-3 transition-opacity duration-300", status ? "opacity-100" : "opacity-0")}>
                 <span className="flex items-center gap-1.5">
                   {status?.live && <span className="lx-live-dot size-1.5 rounded-full bg-[var(--status-green)]" />}
-                  <span className="text-xs text-[var(--text-dim)]">{status?.text ?? " "}</span>
+                  <span className="whitespace-nowrap text-xs text-[var(--text-dim)]">{status?.text ?? " "}</span>
                 </span>
                 <span
                   aria-hidden={!isWide}
                   className={cn(
-                    "lx-primary-button inline-flex h-9 items-center gap-2 rounded-lg px-4 text-[13px] font-semibold transition-[opacity,translate] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
+                    "lx-primary-button absolute right-0 top-0 inline-flex h-9 items-center gap-2 rounded-lg px-4 text-[13px] font-semibold transition-[opacity,translate] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
                     isWide ? "translate-y-0 opacity-100 delay-150" : "pointer-events-none translate-y-1 opacity-0",
                   )}
                 >
