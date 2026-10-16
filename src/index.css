@@ -1693,3 +1693,23 @@ body::before {
 
 /* FuseButton: the fuse is the button's outline, drawn in full and burning down to nothing. */
 @keyframes lx-fuse-burn { from { stroke-dashoffset: 0; } to { stroke-dashoffset: 1; } }
+
+/* Leaders → Boosters (owner request 2026-10-16): the cards wear Discord's server boost look, its pink and gem pictures. The pink is
+   Discord's own brand colour, so it only lives inside .lx-boost cards. */
+.lx-boost {
+  --boost: #ff73fa; /* palette-exempt: Discord Boost brand */
+  --boost-deep: #6b1d68; /* palette-exempt: Discord Boost brand */
+  border-color: color-mix(in oklab, var(--boost) 30%, var(--line-soft)) !important;
+  background:
+    radial-gradient(120% 90% at 100% 0%, color-mix(in oklab, var(--boost) 16%, transparent), transparent 60%),
+    var(--glass-fill);
+}
+.lx-boost-first {
+  border-color: color-mix(in oklab, var(--boost) 55%, transparent) !important;
+  box-shadow: 0 18px 50px -26px color-mix(in oklab, var(--boost) 60%, transparent);
+}
+.lx-boost-gem {
+  filter: drop-shadow(0 6px 14px color-mix(in oklab, var(--boost) 45%, transparent));
+}
+.lx-boost-num { color: var(--boost); }
+.lx-boost-row:hover { background: color-mix(in oklab, var(--boost) 7%, transparent); }
