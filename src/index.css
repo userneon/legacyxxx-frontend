@@ -1696,9 +1696,11 @@ body::before {
 
 /* Leaders → Boosters (owner request 2026-10-16): the cards wear Discord's server boost look, its pink and gem pictures. The pink is
    Discord's own brand colour, so it only lives inside .lx-boost cards. */
-.lx-boost {
+.lx-boost, .lx-boost-row {
   --boost: #ff73fa; /* palette-exempt: Discord Boost brand */
   --boost-deep: #6b1d68; /* palette-exempt: Discord Boost brand */
+}
+.lx-boost {
   border-color: color-mix(in oklab, var(--boost) 30%, var(--line-soft)) !important;
   background:
     radial-gradient(120% 90% at 100% 0%, color-mix(in oklab, var(--boost) 16%, transparent), transparent 60%),
@@ -1771,3 +1773,18 @@ body::before {
   .lx-boost-orbit, .lx-boost::after, .lx-boost-name, .lx-boost-gem, .lx-boost-star, .lx-boost-row .lx-boost-gem-sm { animation: none; }
   .lx-boost-star { opacity: 0; }
 }
+
+/* A row of a member who boosts right now gets the same Nitro motion in small: a pink sheen, a shining name and twinkling stars. */
+.lx-boost-row-on::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 38%, color-mix(in oklab, var(--boost) 14%, transparent) 50%, transparent 62%);
+  background-size: 260% 100%;
+  background-position: 160% 0;
+  background-repeat: no-repeat;
+  animation: lx-boost-sheen 8s ease-in-out infinite;
+}
+.lx-boost-row-on { box-shadow: inset 2px 0 0 var(--boost); }
+@media (prefers-reduced-motion: reduce) { .lx-boost-row-on::after { animation: none; } }

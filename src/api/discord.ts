@@ -15,6 +15,8 @@ export interface CommunityEntry {
   username: string
   avatar: string
   steamId: string | null
+  /** True while the member boosts the Discord server. */
+  boosting: boolean
   boosts: number
   boostingSince: string | null
   invites: number

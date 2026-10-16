@@ -19,7 +19,7 @@ const sinceText = (value: string | null) => (value ? new Date(value).toLocaleDat
 function Who({ entry, big }: { entry: CommunityEntry; big?: boolean }) {
   return (
     <span className="flex min-w-0 flex-col gap-1">
-      <span className={cn("truncate font-semibold text-[var(--text)]", big ? "text-base lx-boost-name" : "text-[13px]")} title={entry.name}>{entry.name}</span>
+      <span className={cn("truncate font-semibold text-[var(--text)]", big ? "text-base" : "text-[13px]", entry.boosting && "lx-boost-name")} title={entry.name}>{entry.name}</span>
       {entry.username && <span className="truncate text-xs text-[var(--text-dim)]">@{entry.username}</span>}
     </span>
   )
@@ -80,12 +80,14 @@ function TopCard({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen?
 
 function Row({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen?: () => void }) {
   return (
-    <div className={cn(GRID, "lx-boost-row lx-layer group h-14 w-full border-b border-[var(--raised)] text-left transition-colors")}>
+    <div className={cn(GRID, "lx-boost-row lx-layer group relative h-14 w-full overflow-hidden border-b border-[var(--raised)] text-left transition-colors", entry.boosting && "lx-boost-row-on")}>
+      {entry.boosting && <span aria-hidden="true" className="lx-boost-star left-[78px] top-[10px]" style={{ animationDelay: "0.4s", width: 8, height: 8 }} />}
+      {entry.boosting && <span aria-hidden="true" className="lx-boost-star left-[228px] top-[38px]" style={{ animationDelay: "1.6s", width: 7, height: 7 }} />}
       <span className="text-sm font-semibold text-[var(--text-muted)] group-hover:text-[var(--text)]">{entry.position}</span>
       <span className="flex min-w-0 items-center gap-3">
         <PlayerAvatar avatar={entry.avatar || undefined} name={entry.name} className="size-8 shrink-0 rounded-[9px] text-[10px]" />
         <span className="flex min-w-0 items-baseline gap-2">
-          <span className="min-w-0 truncate text-[13px] font-medium text-[var(--text)]" title={entry.name}>{entry.name}</span>
+          <span className={cn("min-w-0 truncate text-[13px] font-medium text-[var(--text)]", entry.boosting && "lx-boost-name")} title={entry.name}>{entry.name}</span>
           {entry.username && <span className="shrink-0 text-xs text-[var(--text-dim)] max-sm:hidden">@{entry.username}</span>}
         </span>
       </span>
