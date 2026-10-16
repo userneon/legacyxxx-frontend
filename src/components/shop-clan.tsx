@@ -3,7 +3,8 @@ import { Coins, UserPlus, Users } from "lucide-react"
 import { toast } from "sonner"
 import { useEffect, useRef, useState } from "react"
 
-import { clansService, type ClanLookItem, type ClanLookKind, type ClanLooks, type ClanPrices, type MyClanState } from "@/api"
+import { walletService, clansService, type Wallet, type ClanLookItem, type ClanLookKind, type ClanLooks, type ClanPrices, type MyClanState } from "@/api"
+import { useAuth } from "@/hooks/use-auth"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { ClanBackground } from "@/components/clan-background"
 import { backdropStyle, clanTagProps } from "@/lib/cosmetics"
@@ -97,7 +98,6 @@ export function ShopClan({ prices, balance, mine, loading, onChanged }: ShopClan
 const KINDS: Array<{ kind: ClanLookKind; label: string; hint: string }> = [
   { kind: "tag_color", label: "Tag colour", hint: "The colour of [TAG] everywhere the clan shows." },
   { kind: "tag_glow", label: "Tag glow", hint: "A light around [TAG]." },
-  { kind: "backdrop", label: "Card backdrop", hint: "Behind the clan's header, its card in Clans and its row in Leaders." },
   { kind: "page", label: "Page background", hint: "The background of the whole clan page." },
 ]
 const RARITY = ["", "Common", "Rare", "Epic", "Legendary"]
@@ -214,4 +214,11 @@ export function ClanLooksShop({ clanId, canWear = true, tag, balance, onChanged 
       })}
     </div>
   )
+}
+
+/** The Appearance tab of Clans: what the clan wears and what it can still buy. Wearing and buying are the leader's. */
+export function ClanAppearancePanel({ clanId, tag, leader }: { clanId: string; tag: string; leader: boolean }) {
+  const { user } = useAuth()
+  const { data: wallet, refetch } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
+  return <ClanLooksShop clanId={clanId} canWear={leader} tag={tag} balance={wallet?.balance ?? null} onChanged={() => refetch()} />
 }

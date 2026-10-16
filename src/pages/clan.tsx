@@ -1,12 +1,16 @@
+import { createPortal } from "react-dom"
 import { useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
+import { usePathTab } from "@/hooks/use-url-tab"
 import { useNavigate, useParams } from "react-router-dom"
 import { ArrowLeft, Check, Coins, Globe, Lock, Pencil, Plus, Search, Upload, UserPlus, Users, X } from "lucide-react"
 import { toast } from "sonner"
 
 
 import { cn } from "@/lib/utils"
-import { clansService } from "@/api"
+import { clansService, type ClanLook } from "@/api"
+import { ClanBackground } from "@/components/clan-background"
+import { ClanAppearancePanel } from "@/components/shop-clan"
 import { CLAN_ART_RULES, clanArtProblem, clanArtSrc, type ClanArtKind } from "@/api/clans"
 import type { ClanCard, ClanDetail, ClanJoinRequest, ClanRole, MyClanState } from "@/api/types"
 import { ClanMark } from "@/components/clan-mark"
@@ -26,9 +30,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { pageBackground } from "@/lib/cosmetics"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
+
+/** The clan's animated or gradient page background: a fixed layer behind the (transparent) shell. An animated one is loaded only when a clan wears it. */
+function PageWash({ page }: { page: ClanLook["page"] | undefined }) {
+  if (!pageBackground(page) || !page) return null
+  const calm = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+  return createPortal(<div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-[1]"><ClanBackground page={page} calm={calm} /></div>, document.body)
+}
 
 /** The clan's banner (a picture or a GIF), shown whole and unfaded in a wide strip above the header. */
 function ClanBannerStrip({ banner, name }: { banner?: string | null; name: string }) {
@@ -121,13 +133,14 @@ function ClanListSkeleton() {
   )
 }
 
-// The viewer's own clan, kept while moving between "Clans" and "My clan": each of those remounts a page, and without it
+// The viewer's own clan, kept while moving between "Clans", "My clan" and "Appearance": each of those remounts a page, and without it
 // the page first draws the tabs of a player without a clan and then redraws them once the answer arrives.
 let lastMine: MyClanState | null = null
 
 function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void }) {
   const { isAuthenticated, loginWithSteam } = useAuth()
   const [creating, setCreating] = useState(() => new URLSearchParams(window.location.search).get("create") === "1")
+  const [tab, setTab] = usePathTab<"all" | "appearance">("/clans", { all: "", appearance: "appearance" }, "all")
   const [search, setSearch] = useState("")
   const [sort, setSort] = useState<"new" | "name">("new")
   const [limit, setLimit] = useState(PAGE_SIZE)
@@ -160,14 +173,17 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
   return (
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
-        {mineKnown ? <PageTabs<"all" | "mine">
+        {mineKnown ? <PageTabs<"all" | "appearance" | "mine">
           ariaLabel="Clans"
-          value="all"
-          onChange={(next) => { if (next === "mine" && mine) onClanNavigate(String(mine.clan.number ?? mine.clan.id)) }}
-          options={mine ? [{ value: "all", label: "Clans" }, { value: "mine", label: "My clan" }] : [{ value: "all", label: "All clans" }]}
+          value={mine && tab === "appearance" ? "appearance" : "all"}
+          onChange={(next) => {
+            if (next === "mine" && mine) { onClanNavigate(String(mine.clan.number ?? mine.clan.id)); return }
+            setTab(next === "appearance" ? "appearance" : "all")
+          }}
+          options={mine ? [{ value: "all", label: "Clans" }, { value: "mine", label: "My clan" }, { value: "appearance", label: "Appearance" }] : [{ value: "all", label: "All clans" }]}
         /> : <span />}
         <PageBarEnd>
-          {mineKnown && (
+          {mineKnown && !(mine && tab === "appearance") && (
             <>
               <div className="flex items-center gap-1 text-[13px]" role="group" aria-label="Sort">
                 {(["new", "name"] as const).map((value) => (
@@ -193,7 +209,9 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
         <div className="flex flex-col gap-4 px-6 pb-4 pt-4">
           {invites.length > 0 && !mine && <Invitations invites={invites} onChanged={changed} />}
 
-          {(
+          {!mineKnown && tab === "appearance" ? null : mine && tab === "appearance" ? (
+            <ClanAppearancePanel clanId={String(mine.clan.id)} tag={mine.clan.tag} leader={mine.role === "leader"} />
+          ) : (
             <>
               {!loading && !error && !q && (
                 <div className="lx-stat-grid grid-cols-3">
@@ -384,11 +402,11 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
         {role ? (
-          <PageTabs<"all" | "mine">
+          <PageTabs<"all" | "appearance" | "mine">
             ariaLabel="Clans"
             value="mine"
-            onChange={(next) => { if (next === "all") navigate("/clans") }}
-            options={[{ value: "all", label: "Clans" }, { value: "mine", label: "My clan" }]}
+            onChange={(next) => { if (next === "all") navigate("/clans"); else if (next === "appearance") navigate("/clans", { state: { tab: "appearance" } }) }}
+            options={[{ value: "all", label: "Clans" }, { value: "mine", label: "My clan" }, { value: "appearance", label: "Appearance" }]}
           />
         ) : (
           <button type="button" onClick={() => navigate("/clans")} className="inline-flex h-11 items-center gap-2 text-[13px] text-[var(--text-dim)] transition-colors hover:text-[var(--text)]">
@@ -415,6 +433,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
       </PageBar>
 
       <div className="relative min-h-0 flex-1">
+      <PageWash page={clan?.look?.page} />
       <div className="scrollbar-hidden relative size-full overflow-y-auto">
         <div className="flex flex-col gap-4 px-6 pb-4 pt-4">
           <QueryState loading={loading} error={error} empty={!loading && !error && !clan} emptyMessage="Clan not found." onRetry={refetch} />
