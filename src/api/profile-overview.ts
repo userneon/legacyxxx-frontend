@@ -69,6 +69,8 @@ export interface ProfileOverview {
   presence: { serverId: string; serverName: string; connectAddress: string | null; map: string } | null
   /** The player linked Discord (only the fact is public). Absent from an older API: no mark. */
   discordLinked?: boolean
+  /** The linked Discord account boosts the LEGACY-X Discord server right now (shows a Booster mark). Absent from an older API. */
+  discordBoosting?: boolean
   /** The clan the player is in (absent when the clan feature is off). */
   clan?: { id: string; name: string; tag: string } | null
   /** Links the player shows on the profile (the Owner role). Absent or empty: nothing is shown. */

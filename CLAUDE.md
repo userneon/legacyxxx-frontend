@@ -142,6 +142,10 @@ same top-three cards and rows as the other ladders, each with the Discord displa
 does not give a boost count per member, so the bot counts the boost messages it sees from the day it starts. The cards wear Discord's server boost look
 (owner request 2026-10-16): its pink (`--boost`, palette-exempt, only inside `.lx-boost`) and the owner-supplied gem pictures (`src/assets/boosters/`).
 
+Booster reward (owner decision 2026-10-17): a member who boosts the Discord server and has linked Discord gets the **Server Booster** avatar frame
+(`public/frames/server-booster.webp`, achievement type, given once and kept for good; no LX), and a pink **Booster** mark next to the name on the profile
+(`components/booster-badge.tsx`) only while they still boost. A booster who links Discord later gets the frame then.
+
 ### Creators (owner request 2026-10-12)
 
 Two creator roles, **Main Content Creator** and **Content Creator**, kept apart from staff (`legacy_x.content_creators`; no

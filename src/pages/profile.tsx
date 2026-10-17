@@ -1,4 +1,5 @@
 import { DiscordIcon } from "@/components/discord-strip"
+import { BoosterBadge } from "@/components/booster-badge"
 import { PlayerNameText } from "@/components/player-name-text"
 import { DiscordLinkedMark } from "@/components/discord-linked-mark"
 import { useEffect, useRef, useState } from "react"
@@ -175,6 +176,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
           <RoleBadge role={user.role} />
           {overview.creator && <CreatorBadge tier={overview.creator.tier} label={overview.creator.label} />}
           <DiscordLinkedMark linked={overview.discordLinked} className="[&_svg]:size-4" />
+          {overview.discordBoosting && <BoosterBadge />}
           {overview.clan && (
             <Link to={`/clans/${overview.clan.id}`} title={overview.clan.name} className="inline-flex h-6 items-center gap-1 rounded-full border border-[var(--line)] px-2 text-[11px] font-semibold text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]">
               [{overview.clan.tag}] <span className="max-w-[140px] truncate font-medium">{overview.clan.name}</span>

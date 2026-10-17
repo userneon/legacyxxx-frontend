@@ -35,6 +35,7 @@ const FRAMES: Record<string, FrameArt> = {
   "eclipse-clouds": { opening: 0.76, dx: -0.02, dy: 0.0 },
   "film-and-butterflies": { opening: 0.75, dx: -0.03, dy: -0.01 },
   "glitch": { opening: 0.8, dx: 0.0, dy: -0.01 },
+  "server-booster": { opening: 0.8, dx: 0, dy: 0 },
 }
 
 export function frameArt(id: string | null | undefined): ({ src: string } & FrameArt) | null {
@@ -96,6 +97,7 @@ const ACCENTS: Record<string, string> = {
   "angel-wings": "#e5e7eb", // palette-exempt: the frame's own light
   "eclipse-clouds": "#9ca3af", // palette-exempt: the frame's own light
   "glitch": "#22d3ee", // palette-exempt: the frame's own light
+  "server-booster": "#ff73fa", // palette-exempt: Discord Boost brand
 }
 
 export function frameAccent(id: string): string {

@@ -1788,3 +1788,11 @@ body::before {
 }
 .lx-boost-row-on { box-shadow: inset 2px 0 0 var(--boost); }
 @media (prefers-reduced-motion: reduce) { .lx-boost-row-on::after { animation: none; } }
+
+/* The Booster mark next to a name on the profile: Discord's boost pink, only while the player boosts. */
+.lx-boost-badge {
+  --boost: #ff73fa; /* palette-exempt: Discord Boost brand */
+  border-color: color-mix(in oklab, var(--boost) 45%, transparent);
+  background: color-mix(in oklab, var(--boost) 12%, transparent);
+  color: color-mix(in oklab, var(--boost) 80%, white);
+}
