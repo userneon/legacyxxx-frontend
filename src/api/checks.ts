@@ -95,7 +95,7 @@ export interface NewCheck {
   /** "installer": an .msi the player installs and types the code into; "zip": the program with the code already inside. */
   downloadKind?: "installer" | "zip"
   downloadPath?: string | null
-  /** The same download on its own address (https://download.legacyx.cc/<code>) when the API has one set; preferred over downloadPath. */
+  /** The same download on its own address (https://checker.legacyx.cc/<code>) when the API has one set; preferred over downloadPath. */
   downloadUrl?: string | null
   /** The SHA-256 of the checker program, so the player can check the file they got (Get-FileHash). */
   checkerSha256?: string | null
