@@ -24,7 +24,6 @@ import { CompetitiveRankBadge, RankLabel, RankPill } from "@/components/competit
 import { FaceitLevelBadge } from "@/components/faceit-level-badge"
 import { MatchDetailsDialog } from "@/components/match-details-dialog"
 import { setProfileScene } from "@/lib/profile-scene"
-import { OwnerThemeButton } from "@/components/owner-theme-button"
 import { ProfileStaffMenu } from "@/components/profile-staff"
 import { OwnerPanel } from "@/components/owner-panel"
 import { OwnerSections } from "@/components/owner-sections"
@@ -733,7 +732,6 @@ export function ProfilePage({ userId }: { userId?: string }) {
       {tab !== "profile" ? (
         <div className="px-6 pb-8 pt-6 max-md:px-4 max-md:pt-4"><div className="mx-auto w-full max-w-4xl">{tab === "appearance" ? <AppearanceSettings /> : <AccountSettings />}</div></div>
       ) : (<>
-      {data.user.role === "Owner" && <OwnerThemeButton key={data.user.id} />}
       {data.user.role === "Owner" && <div className="px-6 pt-4 max-md:px-4"><div className="mx-auto flex w-full max-w-3xl flex-col gap-4"><OwnerPanel overview={data} /><OwnerSections overview={data} /></div></div>}
       {(
       <div className="flex flex-col gap-4 px-6 pb-8 pt-4 max-md:px-4">
