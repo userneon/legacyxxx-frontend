@@ -58,7 +58,7 @@ export function NewCheckDialog({ open, onOpenChange, initialSteamId = "", name, 
   }
 
   // The personal download has this check's code inside, so it comes first; the shared link is the fallback.
-  const personalLink = created?.downloadPath ? new URL(created.downloadPath, API_BASE_URL || window.location.origin).toString() : null
+  const personalLink = created?.downloadUrl ?? (created?.downloadPath ? new URL(created.downloadPath, API_BASE_URL || window.location.origin).toString() : null)
   const checkerLink = personalLink ?? sharedLink
   // An installer has no code inside: the player types it.
   const codeInside = Boolean(personalLink) && created?.downloadKind !== "installer"
