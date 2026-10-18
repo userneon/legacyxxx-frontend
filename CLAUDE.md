@@ -134,6 +134,8 @@ players and star, inside a solid grey (`--card-surface`) box. The right side (sa
 state, then a CS2-style scoreboard (owner pick "D", 2026-10-12): T rows tinted gold, the score and round between the teams, CT rows
 tinted blue, K/D/A live every 5 s; then Copy IP / Connect. The phone sheet uses the same scoreboard. Below 1180px the list fills the page and a server opens in
 the sheet. Pro League needs a sign-in; a player below the rank sees the rank lock instead of the servers.
+Connect and Quick play are inactive (with the reason in a tooltip and as a line of text) for a visitor who is not signed in and for a player blocked for leaving ranked matches too often (owner request 2026-10-18: within 24 hours the 1st and 2nd leave cost EXP, the 3rd blocks 30 minutes and each later one 30 more; `usePlayGate`, `GET /play/status`). The game servers enforce the same rules, so typing the address does not get a player in.
+Notifications in the bell have an icon each: by kind (penalty, match, clan, system) and, for system ones, by `metadata.kind`.
 
 ### Leaders → Boosters (owner request 2026-10-16)
 

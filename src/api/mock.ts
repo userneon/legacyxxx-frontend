@@ -607,6 +607,18 @@ export async function mockResponse(method: string, path: string, query: Query, b
     try { window.localStorage.removeItem("legacyx_access_token") } catch { /* storage blocked */ }
     return undefined
   }
+  if (path === "/api/v1/play/status") return { leavesToday: 0, cooldown: null, next: { cooldownMinutes: 0 } }
+  if (path === "/api/v1/notifications" && method === "GET") {
+    const ago = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString()
+    const entries = [
+      { id: "n1", kind: "penalty", title: "Voice mute", body: "Muted for 1 hour: mic spam.", metadata: {}, readAt: null, createdAt: ago(4) },
+      { id: "n2", kind: "match", title: "Match finished", body: "Win 13-9 on de_mirage, +24 EXP.", metadata: {}, readAt: null, createdAt: ago(35) },
+      { id: "n3", kind: "clan", title: "Clan invite", body: "WOLF invited you to join.", metadata: {}, readAt: ago(60), createdAt: ago(90) },
+      { id: "n4", kind: "system", title: "Unban approved", body: "Your unban request was approved.", metadata: { kind: "lift_decision" }, readAt: ago(120), createdAt: ago(200) },
+      { id: "n5", kind: "system", title: "Message from staff", body: "Welcome to LEGACY-X.", metadata: { kind: "staff_message" }, readAt: ago(300), createdAt: ago(400) },
+    ]
+    return { entries, unreadCount: 2 }
+  }
   if (path === "/api/v1/auth/me") {
     if (!signedIn()) throw unauthorized()
     return MOCK_USER

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
-import { ChevronDown, Copy, Gamepad2, LoaderCircle, Lock, Play, Map as MapIcon, RotateCcw, SlidersHorizontal, Star, X } from "lucide-react"
+import { ChevronDown, Clock, Copy, Gamepad2, LoaderCircle, Lock, Play, Map as MapIcon, RotateCcw, SlidersHorizontal, Star, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -10,6 +10,7 @@ import type { CompetitiveAccess, PlaySubMode, ServerLiveMatch, ServerLiveMatchPl
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useViewParams } from "@/hooks/use-view-params"
 import { useAuth } from "@/hooks/use-auth"
+import { usePlayGate, type PlayGate } from "@/hooks/use-play-gate"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { PAGE_ROUTES } from "@/lib/routes"
 import { CompetitiveRankBadge, RankLabel } from "@/components/competitive-rank-badge"
@@ -276,7 +277,7 @@ function Scoreboard({ live, loading, error, refetch }: ReturnType<typeof useLive
   return <p className="text-[13px] text-[var(--text-dim)]">No one on this server right now.</p>
 }
 
-function ServerSheet({ server, onClose }: { server: PlayServer | null; onClose: () => void }) {
+function ServerSheet({ server, onClose, gate }: { server: PlayServer | null; onClose: () => void; gate: PlayGate }) {
   const serverId = server?.id ?? ""
   const liveMatch = useLiveMatch(serverId)
   const { live } = liveMatch
@@ -321,11 +322,12 @@ function ServerSheet({ server, onClose }: { server: PlayServer | null; onClose: 
                 <Copy className="size-3.5" />
                 Copy IP
               </button>
-              <button type="button" disabled={!connectable} onClick={() => connect(address, server.name)} className={cn(primary, "h-10 flex-1 text-[13px]")}>
+              <button type="button" disabled={!connectable || gate.reason !== null} onClick={() => connect(address, server.name)} className={cn(primary, "h-10 flex-1 text-[13px]")}>
                 <Play className="size-3.5" />
                 Connect
               </button>
             </div>
+            {gate.reason !== null && <GateNote gate={gate} className="border-t border-[var(--line-soft)] px-[18px] py-2.5" />}
           </>
         )}
       </SheetContent>
@@ -455,8 +457,18 @@ function ListSkeleton() {
   )
 }
 
+/** Says why Connect is inactive, in text (a tooltip does not show on a phone). */
+function GateNote({ gate, className }: { gate: PlayGate; className?: string }) {
+  return (
+    <p className={cn("flex items-center gap-2 text-[12px] text-[var(--text-dim)]", className)}>
+      <Clock className="size-3.5 shrink-0" aria-hidden="true" />
+      {gate.reason}
+    </p>
+  )
+}
+
 /** The open server on wide screens: its map with name and score, both teams, and Copy IP / Connect. */
-function ServerDetail({ server }: { server: PlayServer }) {
+function ServerDetail({ server, gate }: { server: PlayServer; gate: PlayGate }) {
   const liveMatch = useLiveMatch(server.id)
   const { live } = liveMatch
   const address = live?.connectAddress ?? server.connectAddress ?? null
@@ -489,7 +501,7 @@ function ServerDetail({ server }: { server: PlayServer }) {
           <Copy className="size-3.5" />
           Copy IP
         </button>
-        {connectable ? (
+        {connectable && gate.reason === null ? (
           <button type="button" onClick={() => connect(address, server.name)} className={cn(primary, "h-11 flex-[2] text-[14px]")}>
             <Play className="size-4 fill-current" />
             Connect
@@ -501,10 +513,11 @@ function ServerDetail({ server }: { server: PlayServer }) {
                 <button type="button" disabled className={cn(secondary, "h-11 w-full")}><Play className="size-4" />Connect</button>
               </span>
             </TooltipTrigger>
-            <TooltipContent>{reason}</TooltipContent>
+            <TooltipContent>{gate.reason ?? reason}</TooltipContent>
           </Tooltip>
         )}
       </div>
+      {gate.reason !== null && <GateNote gate={gate} className="border-t border-[var(--line-soft)] px-[22px] py-3" />}
     </section>
   )
 }
@@ -568,6 +581,7 @@ function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode;
   const anyJoinable = servers.some((server) => server.joinable)
   const liveCount = servers.filter((server) => server.status === "live").length
 
+  const gate = usePlayGate()
   const [busy, setBusy] = useState(false)
   const quickPlay = async () => {
     setBusy(true)
@@ -628,14 +642,14 @@ function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode;
           </div>
           <Tooltip>
             <TooltipTrigger asChild>
-              <span tabIndex={anyJoinable ? -1 : 0}>
-                <button type="button" disabled={!anyJoinable || busy} onClick={() => void quickPlay()} className={cn(primary, "h-10 gap-2 px-5 text-[13px]")}>
+              <span tabIndex={anyJoinable && gate.reason === null ? -1 : 0}>
+                <button type="button" disabled={!anyJoinable || busy || gate.reason !== null} onClick={() => void quickPlay()} className={cn(primary, "h-10 gap-2 px-5 text-[13px]")}>
                   {busy ? <LoaderCircle className="size-4 animate-spin" /> : <Play className="size-4 fill-current" />}
                   Quick play
                 </button>
               </span>
             </TooltipTrigger>
-            <TooltipContent>{anyJoinable ? pickRule : "No open server right now"}</TooltipContent>
+            <TooltipContent>{gate.reason ?? (anyJoinable ? pickRule : "No open server right now")}</TooltipContent>
           </Tooltip>
         </header>
 
@@ -701,11 +715,11 @@ function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode;
             </div>
             <div className={cn(wide && "scrollbar-hidden min-h-0 flex-1 overflow-y-auto")}>{list}</div>
           </div>
-          {wide && (shown ? <ServerDetail server={shown} /> : (
+          {wide && (shown ? <ServerDetail server={shown} gate={gate} /> : (
             <div className="flex items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--card-surface)] text-[13px] text-[var(--text-dim)]">{data ? "Pick a server on the left." : ""}</div>
           ))}
         </div>
-        {!wide && <ServerSheet server={picked} onClose={() => update({ server: null })} />}
+        {!wide && <ServerSheet server={picked} gate={gate} onClose={() => update({ server: null })} />}
       </div>
     </TooltipProvider>
   )
