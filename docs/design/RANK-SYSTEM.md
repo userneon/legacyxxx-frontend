@@ -58,7 +58,7 @@ Performance = clamp( round(8 × z) , −8 , +8 )
 
 | Case | Rule |
 |---|---|
-| Player leaves and doesn't return within the Match Core rejoin window | ΔEXP = **−25** fixed (no performance), counted as a loss |
+| Player leaves and doesn't return within the Match Core rejoin window | ΔEXP = **−25** plus the `Performance` term for the rounds they played (−8 … +8, against the same lobby), so −33 … −17; counted as a loss. In a match that does not count, or with no rounds played, just −25 |
 | Your team played ≥ 3 rounds short-handed because of a leaver | Your Result loss is **halved**; gains unchanged |
 | Match not valid (see 3) | ΔEXP = 0 for everyone; match still saved in history |
 | EXP would go below 0 | Floor at 0 |
