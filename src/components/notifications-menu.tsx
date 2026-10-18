@@ -6,7 +6,7 @@
  * marks what it shows as read.
  */
 import { useState } from "react"
-import { Bell, Loader2 } from "lucide-react"
+import { Bell, CircleCheck, Gavel, Info, Loader2, MessageSquare, Scale, Swords, Users, type LucideIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { notificationsService, type NotificationEntry, type NotificationFeed } from "@/api"
@@ -16,12 +16,25 @@ import { RelativeTime } from "@/components/relative-time"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 
-/** Row icon tile per kind; neutral surfaces, the accent only marks unread. */
-const KIND_TONE: Record<NotificationEntry["kind"], string> = {
-  penalty: "bg-[var(--line)]",
-  match: "bg-[var(--line)]",
-  system: "bg-[var(--line)]",
-  clan: "bg-[var(--line)]",
+/** The icon of each kind, in a neutral tile; the accent only marks unread. */
+const KIND_ICON: Record<NotificationEntry["kind"], LucideIcon> = {
+  penalty: Gavel,
+  match: Swords,
+  system: Info,
+  clan: Users,
+}
+
+/** System notifications say what they are about in `metadata.kind`: a more exact icon for each. */
+const SYSTEM_ICON: Record<string, LucideIcon> = {
+  lift_request: Scale,
+  lift_decision: CircleCheck,
+  staff_message: MessageSquare,
+}
+
+/** The icon of one notification. Anything unknown gets the kind's icon, and an unknown kind the info icon. */
+export function notificationIcon(notification: Pick<NotificationEntry, "kind" | "metadata">): LucideIcon {
+  const detail = notification.kind === "system" && typeof notification.metadata?.kind === "string" ? SYSTEM_ICON[notification.metadata.kind] : undefined
+  return detail ?? KIND_ICON[notification.kind] ?? Info
 }
 
 export function NotificationsMenu() {
@@ -109,9 +122,13 @@ export function NotificationsMenu() {
           <p className="px-4 pb-5 pt-1 text-center text-xs text-muted-foreground">No notifications</p>
         ) : (
           <ul className="flex max-h-80 flex-col overflow-y-auto">
-            {entries.map((notification) => (
+            {entries.map((notification) => {
+              const Icon = notificationIcon(notification)
+              return (
               <li key={notification.id} className="flex items-start gap-3 px-4 py-3">
-                <span className={cn("mt-0.5 size-8 shrink-0 rounded-lg", KIND_TONE[notification.kind] ?? KIND_TONE.system)} />
+                <span aria-hidden="true" className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--line)] text-[var(--text-2)]">
+                  <Icon className="size-4" strokeWidth={2} />
+                </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{notification.title}</p>
                   {notification.body && <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{notification.body}</p>}
@@ -119,7 +136,8 @@ export function NotificationsMenu() {
                 </div>
                 {notification.readAt === null && <span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-[var(--accent-solid)]" />}
               </li>
-            ))}
+              )
+            })}
           </ul>
         )}
       </PopoverContent>
