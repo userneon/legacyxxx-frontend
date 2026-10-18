@@ -474,7 +474,7 @@ PHASE 11 — Rank system (backend)  (spec: docs/design/RANK-SYSTEM.md — read i
   (±3), lobby-relative performance z-score (±8), highlight bonus (max +2),
   calibration ×2 for the first 10 ranked matches, clamp ±45 (±90 calibrating),
   floor 0. Fun Mode never changes EXP.
-- Validity rules (section 3): ≥ 8 human players at the end, ≥ 13 rounds, player
+- Validity rules (section 3): ≥ 2 human players per team at the end (any sizes, never a 1v1), ≥ 13 rounds, player
   present ≥ 50 % of rounds; leaver = −25; short-handed team loss halved.
 - Formula lives in TypeScript (pure function + unit tests covering the worked
   example in section 5 and every special case). One SQL function applies all
