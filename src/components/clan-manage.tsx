@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Coins, Crown, Send, ShieldAlert, Trash2, UserMinus, X } from "lucide-react"
 import { toast } from "sonner"
 
-import { clansService } from "@/api"
+import { clansService, walletService, type Wallet } from "@/api"
 import type { ApiError, ClanActivityLine, ClanDetail, ClanJoinRequest, ClanMember, ClanRole } from "@/api/types"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { formatRelativeTime } from "@/components/relative-time"
@@ -11,10 +11,16 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useApiQuery } from "@/hooks/use-api-query"
+import { useAuth } from "@/hooks/use-auth"
 
-/** What a clan costs. The server enforces these; the numbers only explain them. */
-export const CLAN_FEE = 500
-export const CLAN_RENAME_FEE = 200
+/** What a clan costs, as the API says (the server enforces it). Null until it is known. */
+function useClanPrices() {
+  const { user } = useAuth()
+  const { data } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
+  return data?.clanPrices ?? null
+}
+export const useClanFee = (): number | null => useClanPrices()?.create ?? null
+export const useClanRenameFee = (): number | null => useClanPrices()?.rename ?? null
 
 const REASONS: Record<string, string> = {
   clan_name_taken: "That clan name or tag is already taken.",
@@ -190,6 +196,7 @@ export function ActivityPanel({ clanId }: { clanId: string }) {
 
 /** A new name or tag, for LX, once a week (the leader only). */
 export function RenameForm({ clan, onChanged }: { clan: ClanDetail; onChanged: () => void }) {
+  const renameFee = useClanRenameFee()
   const [name, setName] = useState(clan.name)
   const [tag, setTag] = useState(clan.tag)
   const [busy, setBusy] = useState(false)
@@ -215,7 +222,7 @@ export function RenameForm({ clan, onChanged }: { clan: ClanDetail; onChanged: (
         <Input aria-label="Clan tag" className="w-24" maxLength={5} value={tag} onChange={(event) => setTag(event.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase())} />
       </div>
       <div>
-        <Button type="button" variant="outline" size="sm" disabled={!changed || !valid || busy} onClick={() => void save()}><Coins className="size-3.5" /> Change · {CLAN_RENAME_FEE} coins</Button>
+        <Button type="button" variant="outline" size="sm" disabled={!changed || !valid || busy} onClick={() => void save()}><Coins className="size-3.5" /> Change{renameFee != null ? ` · ${renameFee.toLocaleString()} LX` : ""}</Button>
         <span className="ml-3 text-[11px] text-[var(--text-dim)]">Once a week</span>
       </div>
     </div>

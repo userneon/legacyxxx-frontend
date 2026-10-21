@@ -14,7 +14,7 @@ import { ClanAppearancePanel } from "@/components/shop-clan"
 import { CLAN_ART_RULES, clanArtProblem, clanArtSrc, type ClanArtKind } from "@/api/clans"
 import type { ClanCard, ClanDetail, ClanJoinRequest, ClanRole, MyClanState } from "@/api/types"
 import { ClanMark } from "@/components/clan-mark"
-import { ActivityPanel, ManagersSection, CLAN_FEE, InvitePanel, MemberControls, RenameForm, clanFailure, roleLabel } from "@/components/clan-manage"
+import { ActivityPanel, ManagersSection, useClanFee, InvitePanel, MemberControls, RenameForm, clanFailure, roleLabel } from "@/components/clan-manage"
 import { Button } from "@/components/ui/button"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -30,7 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { pageBackground } from "@/lib/cosmetics"
+import { backdropStyle, clanTagProps, pageBackground } from "@/lib/cosmetics"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
@@ -147,6 +147,7 @@ function ClanListSkeleton() {
 let lastMine: MyClanState | null = null
 
 function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void }) {
+  const fee = useClanFee()
   const { isAuthenticated, loginWithSteam } = useAuth()
   const [creating, setCreating] = useState(() => new URLSearchParams(window.location.search).get("create") === "1")
   const [tab, setTab] = usePathTab<"all" | "appearance">("/clans", { all: "", appearance: "appearance" }, "all")
@@ -208,7 +209,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
           {mineKnown && !mine && (
             <button type="button" onClick={() => (isAuthenticated ? setCreating(true) : loginWithSteam())} className="lx-primary-button inline-flex h-9 items-center gap-2 rounded-lg px-3.5 text-[13px] font-semibold">
               <Plus className="size-4" aria-hidden="true" />
-              Create clan · {CLAN_FEE}
+              Create clan{fee != null ? ` · ${fee.toLocaleString()}` : ""}
             </button>
           )}
         </PageBarEnd>
@@ -236,7 +237,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
               <QueryState loading={loading && list.length === 0} skeleton={<ClanListSkeleton />} error={error} empty={!loading && !error && list.length === 0} emptyMessage={q ? "No clan has that name." : "No clans yet."} onRetry={refetch} />
 
               {!error && list.length > 0 && (
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
                   {list.map((clan) => (
                     <ClanCardItem key={clan.id} clan={clan} mine={mine} pending={pending.includes(clan.id)} canJoin={!mine} onClanNavigate={onClanNavigate} onChanged={changed} />
                   ))}
@@ -255,7 +256,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2.5"><span className="lx-add-icon"><Users className="size-4" /></span>Create a clan</DialogTitle>
             <DialogDescription>
-              {CLAN_FEE} LX are taken from your wallet when the clan is created. You choose who can join and how many players it holds.
+              {fee != null ? `${fee.toLocaleString()} LX` : "LX"} are taken from your wallet when the clan is created.
             </DialogDescription>
           </DialogHeader>
           <CreateClanForm onClose={() => setCreating(false)} onCreated={(clan) => { setCreating(false); changed(); onClanNavigate(String(clan.number ?? clan.id)) }} />
@@ -334,25 +335,34 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
   }
 
   const buttonClass = "relative inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-medium transition-colors hover:border-[var(--line-strong)] disabled:cursor-not-allowed disabled:opacity-50"
+  const wash = backdropStyle(clan.look?.backdrop)
   return (
-    <div className="lx-fx-card relative isolate flex min-h-[210px] flex-col overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]">
-      {banner && <BannerArt src={banner} className="absolute inset-0 -z-10" />}
-      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-[var(--card-surface)] via-[var(--card-surface)]/80 to-[var(--card-surface)]/30" />
-      <div className="relative flex flex-1 flex-col gap-4 p-[18px]">
-        <button type="button" onClick={() => onClanNavigate(String(clan.number ?? clan.id))} className="flex items-center gap-3 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-          <ClanMark logo={clan.logo} tag={clan.tag} className="size-[52px]" />
-          <span className="flex min-w-0 flex-col gap-1.5">
-            <span className="truncate text-sm font-semibold" title={clan.name}>{clan.name}</span>
-            <JoinModeLabel mode={clan.joinMode} />
+    <div className="lx-fx-card group relative isolate flex min-h-[270px] flex-col overflow-hidden rounded-2xl border border-[var(--line-soft)] bg-[var(--card-surface)] transition-colors hover:border-[var(--line-strong)]">
+      {banner ? (
+        <BannerArt src={banner} className="absolute inset-0 -z-10 transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
+      ) : (
+        <div aria-hidden="true" className="absolute inset-0 -z-10 opacity-50" style={{ background: wash ?? "radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,.12), transparent 62%)" }} />
+      )}
+      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-[var(--card-surface)] via-[var(--card-surface)]/75 to-[var(--card-surface)]/5" />
+      <div className="relative flex flex-1 flex-col gap-4 p-5">
+        <div className="flex items-center justify-between gap-2">
+          {clan.number != null ? <span className="rounded-full border border-[var(--line-strong)] bg-[var(--card-surface)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--text-2)]">#{clan.number}</span> : <span />}
+          <JoinModeLabel mode={clan.joinMode} className="rounded-full border border-[var(--line)] bg-[var(--card-surface)] px-2.5 py-0.5" />
+        </div>
+        <button type="button" onClick={() => onClanNavigate(String(clan.number ?? clan.id))} className="mt-auto flex items-end gap-3.5 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
+          <ClanMark logo={clan.logo} tag={clan.tag} className="size-[68px] rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.5)]" />
+          <span className="flex min-w-0 flex-col gap-1">
+            <span className="truncate text-[19px] font-bold leading-tight" title={clan.name}>{clan.name}</span>
+            <span {...clanTagProps(clan.look, "w-fit text-[13px] font-semibold tracking-wide text-[var(--text-2)]")}>[{clan.tag}]</span>
           </span>
         </button>
 
-        <div className="mt-auto flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between text-[11px] text-[var(--text-dim)]">
             <span className="inline-flex items-center gap-1.5"><Users className="size-3.5" aria-hidden="true" /> Members</span>
             <span className={cn("font-semibold", isFull ? "text-[var(--text)]" : "text-[var(--text-dim)]")}>{clan.currentPlayers}/{clan.maxPlayers}</span>
           </div>
-          <div className="h-1 overflow-hidden rounded-full bg-[var(--raised)]">
+          <div className="h-1.5 overflow-hidden rounded-full bg-[var(--raised)]">
             <div className="h-full rounded-full bg-[var(--accent-solid)]" style={{ width: `${fill}%` }} />
           </div>
         </div>
@@ -523,6 +533,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
 }
 
 function CreateClanForm({ onClose, onCreated }: { onClose: () => void; onCreated: (clan: ClanDetail) => void }) {
+  const fee = useClanFee()
   const [name, setName] = useState("")
   const [tag, setTag] = useState("")
   const [joinMode, setJoinMode] = useState<"open" | "request">("open")
@@ -572,7 +583,7 @@ function CreateClanForm({ onClose, onCreated }: { onClose: () => void; onCreated
         <Button type="button" variant="outline" onClick={onClose} disabled={submitting}><X className="size-4" /> Cancel</Button>
         <button type="submit" disabled={!valid || submitting} className="lx-primary-button inline-flex h-9 items-center gap-2 rounded-lg px-3.5 text-[13px] font-semibold disabled:opacity-50">
           <Coins className="size-4" aria-hidden="true" />
-          {submitting ? "Creating…" : `Create · ${CLAN_FEE} LX`}
+          {submitting ? "Creating…" : `Create${fee != null ? ` · ${fee.toLocaleString()} LX` : ""}`}
         </button>
       </div>
     </form>
