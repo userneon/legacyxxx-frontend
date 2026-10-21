@@ -46,7 +46,9 @@ function PageWash({ page }: { page: ClanLook["page"] | undefined }) {
  * A banner picture or GIF shown whole at its own resolution, whatever its shape: the sharp picture is fitted inside the box and
  * the space left over is filled by a blurred, enlarged copy of the same picture, so nothing is cropped and nothing is stretched.
  */
-function BannerArt({ src, alt = "", className, eager }: { src: string; alt?: string; className?: string; eager?: boolean }) {
+function BannerArt({ src, alt = "", className, eager, fill }: { src: string; alt?: string; className?: string; eager?: boolean; fill?: boolean }) {
+  // `fill`: the picture covers the whole box (cards); otherwise it is shown whole over its own blurred copy (the banner strip).
+  if (fill) return <div className={cn("relative overflow-hidden bg-[var(--raised)]", className)}><img src={src} alt={alt} loading={eager ? "eager" : "lazy"} decoding="async" className="size-full object-cover" /></div>
   return (
     <div className={cn("relative overflow-hidden bg-[var(--raised)]", className)}>
       <img src={src} alt="" aria-hidden="true" loading={eager ? "eager" : "lazy"} decoding="async" className="absolute inset-0 size-full scale-125 object-cover opacity-60 blur-2xl" />
@@ -353,7 +355,7 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
   return (
     <div className="lx-fx-card group relative isolate flex min-h-[270px] flex-col overflow-hidden rounded-2xl border border-[var(--line-soft)] bg-[var(--card-surface)] transition-colors hover:border-[var(--line-strong)]">
       {banner ? (
-        <BannerArt src={banner} className="absolute inset-0 -z-10 transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
+        <BannerArt src={banner} fill className="absolute inset-0 -z-10 transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
       ) : (
         <div aria-hidden="true" className="absolute inset-0 -z-10 opacity-50" style={{ background: wash ?? `radial-gradient(120% 90% at 100% 0%, ${tint(45)}, transparent 62%)` }} />
       )}
