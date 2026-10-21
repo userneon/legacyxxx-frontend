@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
-import { Check, ChevronDown, Coins, Lock, RotateCcw } from "lucide-react"
+import { Check, ChevronDown, Lock, RotateCcw, Search, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -14,7 +14,9 @@ import { ShopClan } from "@/components/shop-clan"
 import { ShopGoods } from "@/components/shop-goods"
 import { ShopTopUp } from "@/components/shop-topup"
 import { FramedAvatar } from "@/components/framed-avatar"
-import { PageBar, PageTabs } from "@/components/page-tabs"
+import { LxMark } from "@/components/lx-mark"
+import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -91,6 +93,8 @@ export function ShopPage() {
   const [sort, setSort] = useState<"price-up" | "price-down" | "rarity">("price-up")
   const [busy, setBusy] = useState(false)
   const [picked, setPicked] = useState<string | null>(params.get("item"))
+  const [search, setSearch] = useState("")
+  const [sheetOpen, setSheetOpen] = useState(false)
 
   const all: ShopItem[] = useMemo(() => [
     ...(data?.frames ?? []).map((item) => ({ ...item, kind: "frame" as const })),
@@ -104,13 +108,15 @@ export function ShopPage() {
   const featured = all.filter((item) => item.featured && item.unlock === "coin")
   const inTab = all.filter((item) => tab === "featured" || item.kind === tab)
   const shown = inTab
-    .filter((item) => (rarity === 0 || item.rarity === rarity) && !(hideOwned && item.owned))
+    .filter((item) => (rarity === 0 || item.rarity === rarity) && !(hideOwned && item.owned) && (!search.trim() || item.name.toLowerCase().includes(search.trim().toLowerCase())))
     // What you can still buy comes first, then what you own, then what is only earned.
     .sort((a, b) => group(a) - group(b) || (sort === "rarity" ? (b.rarity ?? 0) - (a.rarity ?? 0) || a.price - b.price : sort === "price-up" ? a.price - b.price : b.price - a.price))
 
   const selected = all.find((item) => item.id === picked) ?? featured[0] ?? shown[0] ?? null
   const choose = (item: ShopItem) => {
     setPicked(item.id)
+    // On a phone the preview and the buy button live in a sheet, so choosing an item never sends you down the page.
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches) setSheetOpen(true)
     setParams((current) => {
       const updated = new URLSearchParams(current)
       if (item.id) updated.set("item", item.id)
@@ -153,7 +159,7 @@ export function ShopPage() {
     const action = item.owned
       ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--status-green)]"><Check className="size-3" />{worn[item.kind] === item.id ? "Worn" : "Owned"}</span>
       : item.unlock === "coin"
-        ? <span className="inline-flex items-center gap-1 whitespace-nowrap text-sm font-bold text-[var(--text)]"><Coins className="size-3.5 text-[var(--text-muted)]" />{item.price.toLocaleString()}</span>
+        ? <span className="inline-flex items-center gap-1 whitespace-nowrap text-sm font-bold text-[var(--text)]"><LxMark size={14} />{item.price.toLocaleString()}</span>
         : <span className="inline-flex items-center gap-1 text-xs text-[var(--text-dim)]"><Lock className="size-3" />Earned</span>
     return (
       <li key={item.id}>
@@ -168,11 +174,11 @@ export function ShopPage() {
             <Spot accent={accentOf(item)} height={132}><div className="pt-3"><ItemArt item={item} avatar={user?.avatar} username={username} size={92} /></div></Spot>
           </div>
           <div className="flex flex-col gap-1.5 px-3 pb-3 pt-2.5">
-            <span className="truncate text-[13px] font-semibold text-[var(--text)]">{item.name}</span>
             <span className="flex items-center justify-between gap-2">
-              <span className="truncate text-[11px] text-[var(--text-dim)]">{item.kind === "frame" ? "Frame" : item.kind === "name_color" ? "Name colour" : "Name glow"} · {ownersLine(item, data?.players)}</span>
+              <span className="truncate text-[13px] font-semibold text-[var(--text)]">{item.name}</span>
               {action}
             </span>
+            <span className="truncate text-[11px] text-[var(--text-dim)]">{item.kind === "frame" ? "Frame" : item.kind === "name_color" ? "Name colour" : "Name glow"} · {ownersLine(item, data?.players)}</span>
           </div>
         </button>
       </li>
@@ -199,8 +205,8 @@ export function ShopPage() {
                 <span className="flex justify-between border-t border-[var(--line-soft)] pt-2 text-[13px] font-semibold text-[var(--text)]"><span>After buying</span><span>{afford ? (balance - item.price).toLocaleString() : `${(item.price - balance).toLocaleString()} short`}</span></span>
               </div>
             )}
-            <button type="button" disabled={busy || !afford} onClick={() => void buy(item)} className="lx-primary-button inline-flex h-10 w-full items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-60">
-              {afford ? `Buy for ${item.price.toLocaleString()} LX` : `Need ${(item.price - (balance ?? 0)).toLocaleString()} more LX`}
+            <button type="button" disabled={busy} onClick={() => (afford ? void buy(item) : (setSheetOpen(false), setTab("lx")))} className="lx-primary-button inline-flex h-10 w-full items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-60">
+              {afford ? `Buy for ${item.price.toLocaleString()} LX` : `Top up ${(item.price - (balance ?? 0)).toLocaleString()} more LX`}
             </button>
             <p className="text-center text-[11px] text-[var(--text-faint)]">Buying wears it right away. Change it any time in Profile → Appearance.</p>
           </>
@@ -211,9 +217,8 @@ export function ShopPage() {
     )
   }
 
-  const rail = (
-    <aside className="flex flex-col gap-3 self-start lg:sticky lg:top-6">
-      <div className="overflow-hidden rounded-[14px] border border-[var(--line)] bg-[var(--card-surface)]">
+  const railBody = (
+    <div className="overflow-hidden rounded-[14px] border border-[var(--line)] bg-[var(--card-surface)]">
         <div className="flex items-center justify-between border-b border-[var(--line-soft)] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]"><span>See it everywhere</span><span className="normal-case tracking-normal">{selected?.name}</span></div>
         <div className="flex flex-col gap-3 p-3.5">
           <Context label="Profile">
@@ -222,15 +227,20 @@ export function ShopPage() {
               <div className="min-w-0"><span {...nameProps(previewLook, "block truncate text-[19px] font-bold text-[var(--text)]")}>{username}</span><span className="text-[11px] text-[var(--text-dim)]">Your profile</span></div>
             </div>
           </Context>
-          <Context label="Leaderboard">
+          <div className="max-lg:hidden"><Context label="Leaderboard">
             <div className="flex items-center gap-2.5 text-[13px]"><b className="w-3.5 text-[var(--text-dim)]">4</b><FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={46} /><span {...nameProps(previewLook, "min-w-0 flex-1 truncate font-medium text-[var(--text)]")}>{username}</span></div>
-          </Context>
-          <Context label="Review">
+          </Context></div>
+          <div className="max-lg:hidden"><Context label="Review">
             <div className="flex items-center gap-2.5"><FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={46} /><span {...nameProps(previewLook, "min-w-0 flex-1 truncate text-[13px] font-medium text-[var(--text)]")}>{username}</span></div>
-          </Context>
+          </Context></div>
         </div>
         {selected && buyBlock(selected)}
       </div>
+  )
+
+  const rail = (
+    <aside className="hidden flex-col gap-3 self-start lg:sticky lg:top-6 lg:flex">
+      {railBody}
     </aside>
   )
 
@@ -238,6 +248,15 @@ export function ShopPage() {
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
         <PageTabs<ShopTab> ariaLabel="Shop sections" value={tab} onChange={(next) => { setTab(next); setRarity(0) }} options={TABS} />
+        {(tab === "featured" || tab === "frame" || tab === "name_color" || tab === "name_glow") && (
+          <PageBarEnd>
+            <label className={cn(pageSearchClass, "max-md:hidden")}>
+              <Search className="size-4 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />
+              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search items" aria-label="Search items" className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] focus:outline-none" />
+              {search && <button type="button" aria-label="Clear search" onClick={() => setSearch("")} className="text-[var(--text-dim)] hover:text-[var(--text)]"><X className="size-3.5" /></button>}
+            </label>
+          </PageBarEnd>
+        )}
       </PageBar>
       <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 max-md:px-4">
         {tab === "goods" ? (
@@ -257,7 +276,7 @@ export function ShopPage() {
               {tab === "featured" && featured.length > 0 && (
                 <section aria-label="Featured">
                   <div className="mb-2.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">Featured</div>
-                  <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{featured.map(card)}</ul>
+                  <ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 scrollbar-hidden sm:mx-0 sm:grid sm:snap-none sm:grid-cols-2 sm:overflow-visible sm:px-0 xl:grid-cols-4 [&>li]:w-[230px] [&>li]:shrink-0 [&>li]:snap-start sm:[&>li]:w-auto">{featured.map(card)}</ul>
                 </section>
               )}
               {tab === "featured" && (
@@ -274,7 +293,7 @@ export function ShopPage() {
                 </section>
               )}
               <section aria-label="Items">
-                <div className="mb-3 flex flex-wrap items-center gap-2">
+                <div className="mb-3 flex items-center gap-2 max-md:-mx-4 max-md:overflow-x-auto max-md:px-4 max-md:pb-1 max-md:scrollbar-hidden md:flex-wrap [&>*]:shrink-0">
                   <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{tab === "featured" ? "All items" : TABS.find((entry) => entry.value === tab)?.label}</span>
                   <span className="flex-1" />
                   {([0, 1, 2, 3, 4] as const).map((step) => <button key={step} type="button" aria-pressed={rarity === step} onClick={() => setRarity(step)} className={pill(rarity === step)}>{step === 0 ? "All" : RARITY_NAMES[step]}</button>)}
@@ -306,6 +325,13 @@ export function ShopPage() {
           )
         )}
       </div>
+      <Sheet open={sheetOpen && Boolean(selected)} onOpenChange={setSheetOpen}>
+        <SheetContent side="bottom" className="max-h-[88dvh] gap-0 overflow-y-auto rounded-t-2xl border-[var(--line)] bg-[var(--panel)] p-0 lg:hidden">
+          <SheetTitle className="sr-only">{selected?.name}</SheetTitle>
+          <SheetDescription className="sr-only">Preview and buy this item</SheetDescription>
+          <div className="p-3 pt-11">{railBody}</div>
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }
