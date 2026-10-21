@@ -47,7 +47,7 @@ export function WalletMenu() {
           <span className="text-[26px] font-bold leading-none text-[var(--text)]">{wallet.balance.toLocaleString()}</span>
         </div>
         {wallet.transactions.length === 0 ? (
-          <p className="p-4 text-[13px] text-[var(--text-dim)]">No LX activity yet. Finish a ranked match to earn your first LX.</p>
+          <p className="p-4 text-[13px] text-[var(--text-dim)]">No LX activity yet.</p>
         ) : (
           <ul className="flex max-h-[280px] flex-col overflow-y-auto p-1.5">
             {wallet.transactions.map((entry) => (

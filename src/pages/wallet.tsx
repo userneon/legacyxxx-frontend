@@ -207,7 +207,7 @@ export function WalletPage() {
               <div className="grid items-start gap-3.5 xl:grid-cols-[1.25fr_1fr]">
                 <section className={cn(card, "overflow-hidden")} aria-label="Activity">
                   <div className="flex items-center gap-2 border-b border-[var(--line-soft)] px-4 py-3"><span className={cn(label, "mr-auto")}>Activity</span><Chips value={filter} onChange={setFilter} /></div>
-                  <Activity entries={entries.slice(0, 8)} empty="No LX activity yet. Finish a ranked match to earn your first LX." />
+                  <Activity entries={entries.slice(0, 8)} empty="No LX activity yet." />
                 </section>
                 {earnRules}
               </div>
