@@ -1,4 +1,4 @@
-import { get, post, type CallOptions } from "./client"
+import { get, post, put, type CallOptions } from "./client"
 
 /** Real goods in the Shop (NFC charms, stickers). Nothing is paid here: the player asks, staff call them and take the payment. */
 export interface GoodsProduct {
@@ -25,7 +25,43 @@ export interface GoodsOrder {
   createdAt: string
 }
 
+/** Staff view: an order with the player's contact. */
+export interface StaffGoodsOrder extends GoodsOrder {
+  phone: string
+  note: string
+  player: { steamId: string; username: string }
+}
+
+/** Staff view: a product with whether it is shown in the shop. */
+export interface StaffGoodsProduct extends GoodsProduct {
+  enabled: boolean
+  sort: number
+}
+
+export interface GoodsProductInput {
+  name: string
+  description: string
+  kind: GoodsProduct["kind"]
+  priceMnt: number
+  imageUrl: string | null
+  stock: number
+  enabled: boolean
+  sort: number
+}
+
 export const shopGoodsService = {
+  async staffOrders(status: GoodsOrderStatus | undefined, options?: CallOptions): Promise<StaffGoodsOrder[]> {
+    return (await get<{ orders: StaffGoodsOrder[] }>("/api/v1/staff/shop/orders", status ? { status } : undefined, options)).orders
+  },
+  async setOrderStatus(orderId: string, status: GoodsOrderStatus): Promise<void> {
+    await put<unknown>(`/api/v1/staff/shop/orders/${orderId}`, { status })
+  },
+  async staffProducts(options?: CallOptions): Promise<StaffGoodsProduct[]> {
+    return (await get<{ products: StaffGoodsProduct[] }>("/api/v1/staff/shop/products", undefined, options)).products
+  },
+  async saveProduct(slug: string, input: GoodsProductInput): Promise<void> {
+    await put<unknown>(`/api/v1/staff/shop/products/${slug}`, input)
+  },
   async products(options?: CallOptions): Promise<GoodsProduct[]> {
     return (await get<{ products: GoodsProduct[] }>("/api/v1/shop/products", undefined, options)).products
   },
