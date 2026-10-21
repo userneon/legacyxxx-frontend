@@ -46,26 +46,34 @@ export function ShopGoods() {
         {shown.length === 0 ? (
           <p className="py-8 text-[13px] text-[var(--text-dim)]">No goods are on sale right now.</p>
         ) : (
-          <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-            {shown.map((product) => (
-              <li key={product.id} className="flex flex-col overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-                <div className="grid h-[170px] place-items-center bg-[var(--card-surface)]">
-                  {product.imageUrl ? <img src={product.imageUrl} alt="" loading="lazy" className="max-h-full max-w-full object-contain" /> : <Package className="size-8 text-[var(--text-faint)]" aria-hidden="true" />}
-                </div>
-                <div className="flex flex-1 flex-col gap-2 p-3.5">
-                  <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{product.kind === "charm" ? "NFC charm" : product.kind === "sticker" ? "Sticker" : "Goods"}</span>
-                  <span className="text-[15px] font-semibold text-[var(--text)]">{product.name}</span>
-                  {product.description && <span className="text-[13px] leading-relaxed text-[var(--text-muted)]">{product.description}</span>}
-                  <div className="mt-auto flex items-center justify-between pt-2">
-                    <span className="text-[15px] font-semibold text-[var(--text)]">{mnt(product.priceMnt)}</span>
-                    <span className="text-[11px] text-[var(--text-dim)]">{product.stock > 0 ? `${product.stock} left` : "Sold out"}</span>
+          <ul className="grid grid-flow-dense grid-cols-2 gap-3 lg:grid-cols-3 2xl:grid-cols-4">
+            {shown.map((product, index) => {
+              const hero = shown.length > 2 && index === 0
+              return (
+                <li key={product.id} className={cn("group relative flex h-[340px] flex-col justify-end overflow-hidden rounded-2xl border border-[var(--line-soft)] bg-[var(--card-surface)] max-sm:h-[300px]", hero && "col-span-2")}>
+                  {product.imageUrl ? (
+                    <img src={product.imageUrl} alt="" loading="lazy" className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
+                  ) : (
+                    <span className="absolute left-1/2 top-[36%] -translate-x-1/2 -translate-y-1/2"><Package className="size-14 text-[var(--text-faint)]" aria-hidden="true" /></span>
+                  )}
+                  <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[68%] bg-gradient-to-t from-[var(--card-surface)] via-[var(--card-surface)]/90 to-transparent" />
+                  <span className="absolute left-3 top-3 z-[1] rounded-full border border-[var(--line-strong)] bg-[var(--card-surface)] px-2 py-0.5 text-[11px] text-[var(--text-2)]">{product.kind === "charm" ? "NFC charm" : product.kind === "sticker" ? "Sticker" : "Goods"}</span>
+                  <div className="relative z-[1] flex flex-col gap-2 p-4">
+                    <div className="flex items-end justify-between gap-3">
+                      <span className="text-[17px] font-bold leading-tight text-[var(--text)]">{product.name}</span>
+                      <span className="shrink-0 text-[17px] font-bold text-[var(--text)]">{mnt(product.priceMnt)}</span>
+                    </div>
+                    {product.description && <span className="line-clamp-2 text-[13px] leading-relaxed text-[var(--text-muted)]">{product.description}</span>}
+                    <div className="flex items-center gap-3 pt-1">
+                      <span className="text-[11px] text-[var(--text-dim)]">{product.stock > 0 ? (product.stock <= 5 ? `Only ${product.stock} left` : `${product.stock} in stock`) : "Sold out"}</span>
+                      <button type="button" disabled={product.stock < 1} onClick={() => (user ? setPicked(product) : toast.error("Sign in with Steam to order."))} className="lx-primary-button ml-auto inline-flex h-9 items-center justify-center rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50">
+                        {product.stock < 1 ? "Sold out" : "Order"}
+                      </button>
+                    </div>
                   </div>
-                  <button type="button" disabled={product.stock < 1} onClick={() => (user ? setPicked(product) : toast.error("Sign in with Steam to order."))} className="lx-primary-button inline-flex h-9 items-center justify-center rounded-lg px-3.5 text-[13px] font-semibold disabled:opacity-50">
-                    {product.stock < 1 ? "Sold out" : "Order"}
-                  </button>
-                </div>
-              </li>
-            ))}
+                </li>
+              )
+            })}
           </ul>
         )}
       </section>

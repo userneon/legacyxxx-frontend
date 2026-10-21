@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom"
-import { Coins, UserPlus, Users } from "lucide-react"
+import { UserPlus, Users } from "lucide-react"
+
+import { LxMark } from "@/components/lx-mark"
 import { toast } from "sonner"
 import { useEffect, useRef, useState } from "react"
 
@@ -25,7 +27,7 @@ function Card({ icon, title, price, children }: { icon: React.ReactNode; title: 
       <div className="flex items-center gap-2.5">
         <span className="grid size-9 place-items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]">{icon}</span>
         <span className="min-w-0 flex-1 text-[15px] font-semibold text-[var(--text)]">{title}</span>
-        <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-[var(--text)]"><Coins className="size-3.5 text-[var(--text-dim)]" />{price}</span>
+        <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-[var(--text)]"><LxMark size={14} />{price}</span>
       </div>
       {children}
     </li>
@@ -203,7 +205,7 @@ export function ClanLooksShop({ clanId, canWear = true, tag, balance, onChanged 
                     ) : item.owned && clanId ? (
                       <button type="button" disabled={busy !== null} onClick={() => run(item.id, () => clansService.equipLook(clanId, kind, item.id), `${item.name} is now worn`)} className="inline-flex h-8 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-xs hover:border-[var(--line-strong)] disabled:opacity-50">Wear</button>
                     ) : (
-                      <button type="button" disabled={busy !== null || short} onClick={() => run(item.id, async () => { if (wear && clanId) { await clansService.buyLook(clanId, item.id); await clansService.equipLook(clanId, kind, item.id) } else await clansService.buyMyLook(item.id) }, wear ? `${item.name} is yours and now worn by the clan` : `${item.name} is yours. Wear it once you lead a clan`)} className="lx-primary-button inline-flex h-8 items-center justify-center gap-1.5 rounded-lg text-xs font-semibold disabled:opacity-50"><Coins className="size-3.5" />{item.price}</button>
+                      <button type="button" disabled={busy !== null || short} onClick={() => run(item.id, async () => { if (wear && clanId) { await clansService.buyLook(clanId, item.id); await clansService.equipLook(clanId, kind, item.id) } else await clansService.buyMyLook(item.id) }, wear ? `${item.name} is yours and now worn by the clan` : `${item.name} is yours. Wear it once you lead a clan`)} className="lx-primary-button inline-flex h-8 items-center justify-center gap-1.5 rounded-lg text-xs font-semibold disabled:opacity-50"><LxMark size={14} />{item.price}</button>
                     )}
                   </li>
                 )

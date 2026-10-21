@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { cosmeticsService, type CosmeticKind, type Cosmetics, type FrameItem } from "@/api/cosmetics"
 import { clansService, walletService, type MyClanState, type Wallet } from "@/api"
+import { shopGoodsService, type GoodsProduct } from "@/api/shop-goods"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { frameAccent, nameProps } from "@/lib/cosmetics"
@@ -86,10 +87,11 @@ export function ShopPage() {
   const [params, setParams] = useSearchParams()
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
+  const { data: goods } = useApiQuery<GoodsProduct[]>((signal) => shopGoodsService.products({ signal }), { queryKey: "shop-goods" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
   const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name_color: "name-colors", name_glow: "name-glows", clan: "clan", goods: "goods", lx: "top-up" }, "featured")
   const [rarity, setRarity] = useState<Rarity>(0)
-  const [hideOwned, setHideOwned] = useState(false)
+  const [status, setStatus] = useState<"all" | "sale" | "owned" | "earned">("all")
   const [sort, setSort] = useState<"price-up" | "price-down" | "rarity">("price-up")
   const [busy, setBusy] = useState(false)
   const [picked, setPicked] = useState<string | null>(params.get("item"))
@@ -108,7 +110,7 @@ export function ShopPage() {
   const featured = all.filter((item) => item.featured && item.unlock === "coin")
   const inTab = all.filter((item) => tab === "featured" || item.kind === tab)
   const shown = inTab
-    .filter((item) => (rarity === 0 || item.rarity === rarity) && !(hideOwned && item.owned) && (!search.trim() || item.name.toLowerCase().includes(search.trim().toLowerCase())))
+    .filter((item) => (rarity === 0 || item.rarity === rarity) && (status === "all" || (status === "sale" ? item.unlock === "coin" && !item.owned : status === "owned" ? item.owned : item.unlock === "achievement" && !item.owned)) && (!search.trim() || item.name.toLowerCase().includes(search.trim().toLowerCase())))
     // What you can still buy comes first, then what you own, then what is only earned.
     .sort((a, b) => group(a) - group(b) || (sort === "rarity" ? (b.rarity ?? 0) - (a.rarity ?? 0) || a.price - b.price : sort === "price-up" ? a.price - b.price : b.price - a.price))
 
@@ -273,6 +275,31 @@ export function ShopPage() {
           ) : (
           <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
             <div className="flex min-w-0 flex-col gap-5">
+              {tab === "featured" && featured[0] && (() => {
+                const item = featured[0]
+                const cheapest = (goods ?? []).filter((product) => product.kind === "lx" && product.grantsLx > 0).sort((a, b) => a.priceMnt - b.priceMnt)[0]
+                return (
+                  <section aria-label="Spotlight" className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_280px]">
+                    <button type="button" onClick={() => choose(item)} className="group relative flex min-h-[220px] items-center gap-6 overflow-hidden rounded-2xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-6 text-left transition-colors hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 max-sm:flex-col max-sm:items-start max-sm:gap-3 max-sm:p-4">
+                      <span aria-hidden="true" className="absolute -left-10 top-1/2 aspect-square w-[420px] -translate-y-1/2 opacity-30" style={{ background: `radial-gradient(circle, ${accentOf(item)} 0%, transparent 62%)` }} />
+                      <span className="relative z-[1] flex w-[200px] shrink-0 items-center justify-center max-sm:w-full"><ItemArt item={item} avatar={user?.avatar} username={username} size={150} /></span>
+                      <span className="relative z-[1] flex min-w-0 flex-col gap-2">
+                        <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[1px] text-[var(--text-2)]"><RarityDots rarity={item.rarity ?? 1} />{RARITY_NAMES[item.rarity ?? 1]} · Spotlight</span>
+                        <span className="text-[28px] font-bold leading-tight text-[var(--text)]">{item.name}</span>
+                        <span className="text-[13px] text-[var(--text-muted)]">{item.kind === "frame" ? "Avatar frame" : item.kind === "name_color" ? "Name colour" : "Name glow"} · {ownersLine(item, data?.players)}</span>
+                        <span className="mt-1 inline-flex items-center gap-2 text-[18px] font-bold text-[var(--text)]"><LxMark size={20} />{item.price.toLocaleString()}</span>
+                      </span>
+                    </button>
+                    {cheapest && (
+                      <button type="button" onClick={() => setTab("lx")} className="group relative flex flex-col justify-between gap-4 overflow-hidden rounded-2xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-5 text-left transition-colors hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
+                        <LxMark size={44} />
+                        <span className="flex flex-col gap-1"><span className="text-[17px] font-bold text-[var(--text)]">Top up LX</span><span className="text-[13px] text-[var(--text-muted)]">Packages from {cheapest.priceMnt.toLocaleString()}₮. Clans, frames and more.</span></span>
+                        <span className="text-xs font-semibold text-[var(--text-2)]">See packages →</span>
+                      </button>
+                    )}
+                  </section>
+                )
+              })()}
               {tab === "featured" && featured.length > 0 && (
                 <section aria-label="Featured">
                   <div className="mb-2.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">Featured</div>
@@ -294,10 +321,11 @@ export function ShopPage() {
               )}
               <section aria-label="Items">
                 <div className="mb-3 flex items-center gap-2 max-md:-mx-4 max-md:overflow-x-auto max-md:px-4 max-md:pb-1 max-md:scrollbar-hidden md:flex-wrap [&>*]:shrink-0">
-                  <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{tab === "featured" ? "All items" : TABS.find((entry) => entry.value === tab)?.label}</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{tab === "featured" ? "All items" : TABS.find((entry) => entry.value === tab)?.label}{tab !== "featured" && (() => { const { owned, total } = collection(tab as CosmeticKind); return <b className="ml-2 font-semibold normal-case tracking-normal text-[var(--text-2)]">{owned} / {total} owned</b> })()}</span>
                   <span className="flex-1" />
                   {([0, 1, 2, 3, 4] as const).map((step) => <button key={step} type="button" aria-pressed={rarity === step} onClick={() => setRarity(step)} className={pill(rarity === step)}>{step === 0 ? "All" : RARITY_NAMES[step]}</button>)}
-                  <button type="button" aria-pressed={hideOwned} onClick={() => setHideOwned((current) => !current)} className={pill(hideOwned)}>Hide owned</button>
+                  <span aria-hidden="true" className="mx-0.5 h-4 w-px bg-[var(--line)]" />
+                  {([["all", "Everything"], ["sale", "For sale"], ["owned", "Owned"], ["earned", "Earned"]] as const).map(([value, text]) => <button key={value} type="button" aria-pressed={status === value} onClick={() => setStatus(value)} className={pill(status === value)}>{text}</button>)}
                   <Popover>
                     <PopoverTrigger asChild>
                       <button type="button" aria-label="Sort" className={cn(pill(false), "group gap-1.5 text-[var(--text-2)]")}>
