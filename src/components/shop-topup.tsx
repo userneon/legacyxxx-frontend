@@ -98,21 +98,38 @@ export function ShopTopUp() {
       <div className="flex min-w-0 flex-col gap-6">
         <section aria-label="Packages" className="flex flex-col gap-3">
           <span className={label}>Choose a package</span>
-          <div role="radiogroup" aria-label="LX packages" className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+          <div role="radiogroup" aria-label="LX packages" className="grid grid-flow-dense grid-cols-2 gap-3 lg:grid-cols-3 2xl:grid-cols-4">
             {packages.map((pack) => {
               const on = pack.id === picked
               const bonus = bonusOf(pack)
+              const hero = packages.length > 2 && bestValue?.id === pack.id
               return (
-                <button key={pack.id} type="button" role="radio" aria-checked={on} onClick={() => setPicked(pack.id)} className={cn("relative flex flex-col items-start gap-2 rounded-xl border bg-[var(--glass-fill)] p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50", on ? "border-[var(--text)] bg-[var(--raised)]" : "border-[var(--glass-line)] hover:border-[var(--line-strong)]")}>
-                  {on && <span className="absolute right-3 top-3 grid size-5 place-items-center rounded-full bg-[var(--text)] text-[var(--bg)]"><Check className="size-3.5" aria-hidden="true" /></span>}
-                  <LxMark size={30} />
-                  <span className="text-[24px] font-bold leading-none text-[var(--text)]">{pack.grantsLx.toLocaleString()}</span>
-                  <span className="text-[15px] font-semibold text-[var(--text)]">{mnt(pack.priceMnt)}</span>
-                  <span className="flex min-h-[22px] flex-wrap gap-1.5">
-                    {bonus > 0 && <span className="rounded-full border border-[var(--status-green)]/40 px-2 py-0.5 text-[11px] font-semibold text-[var(--status-green)]">+{bonus}% more</span>}
-                    {bestValue?.id === pack.id && <span className="rounded-full border border-[var(--line-strong)] px-2 py-0.5 text-[11px] text-[var(--text-2)]">Best value</span>}
+                <button key={pack.id} type="button" role="radio" aria-checked={on} onClick={() => setPicked(pack.id)} className={cn("group relative flex h-[280px] flex-col justify-end overflow-hidden rounded-2xl border bg-[var(--card-surface)] text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 max-sm:h-[230px]", hero && "col-span-2", on ? "border-[var(--text)]" : "border-[var(--line-soft)] hover:border-[var(--line-strong)]")}>
+                  {/* The package's own picture fills the card; without one, a soft light and the LX coin stand in. */}
+                  {pack.imageUrl ? (
+                    <img src={pack.imageUrl} alt="" loading="lazy" className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
+                  ) : (
+                    <>
+                      <span aria-hidden="true" className="absolute left-1/2 top-[38%] aspect-square w-[120%] -translate-x-1/2 -translate-y-1/2 opacity-30" style={{ background: "radial-gradient(circle, #e5e5e5 0%, transparent 58%)" }} />
+                      <span className="absolute left-1/2 top-[38%] -translate-x-1/2 -translate-y-1/2"><LxMark size={hero ? 96 : 72} /></span>
+                    </>
+                  )}
+                  <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-[var(--card-surface)] via-[var(--card-surface)]/90 to-transparent" />
+                  <span className="absolute left-3 top-3 z-[1] flex flex-wrap gap-1.5">
+                    {bonus > 0 && <span className="rounded-full border border-[var(--status-green)]/50 bg-[var(--card-surface)] px-2 py-0.5 text-[11px] font-semibold text-[var(--status-green)]">+{bonus}% more</span>}
+                    {bestValue?.id === pack.id && <span className="rounded-full border border-[var(--line-strong)] bg-[var(--card-surface)] px-2 py-0.5 text-[11px] text-[var(--text-2)]">Best value</span>}
                   </span>
-                  <span className="text-[11px] text-[var(--text-dim)]">{mnt(Math.round((pack.priceMnt / pack.grantsLx) * 1000))} per 1,000 LX</span>
+                  {on && <span className="absolute right-3 top-3 z-[1] grid size-6 place-items-center rounded-full bg-[var(--text)] text-[var(--bg)]"><Check className="size-4" aria-hidden="true" /></span>}
+                  <span className="relative z-[1] flex items-end justify-between gap-3 p-4">
+                    <span className="flex min-w-0 flex-col gap-1">
+                      <span className="flex items-baseline gap-1.5"><span className={cn("font-bold leading-none text-[var(--text)]", hero ? "text-[34px]" : "text-[26px]")}>{pack.grantsLx.toLocaleString()}</span><span className="text-[13px] font-semibold text-[var(--text-muted)]">LX</span></span>
+                      {(pack.name !== `${pack.grantsLx.toLocaleString()} LX` || pack.description) && <span className="truncate text-[11px] text-[var(--text-dim)]">{[pack.name !== `${pack.grantsLx.toLocaleString()} LX` ? pack.name : "", pack.description].filter(Boolean).join(" · ")}</span>}
+                    </span>
+                    <span className="flex shrink-0 flex-col items-end gap-0.5">
+                      <span className="text-[17px] font-bold text-[var(--text)]">{mnt(pack.priceMnt)}</span>
+                      <span className="text-[11px] text-[var(--text-dim)]">{mnt(Math.round((pack.priceMnt / pack.grantsLx) * 1000))} / 1,000 LX</span>
+                    </span>
+                  </span>
                 </button>
               )
             })}
