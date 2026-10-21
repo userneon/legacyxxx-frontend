@@ -307,6 +307,16 @@ function JoinModeLabel({ mode, className }: { mode: ClanCard["joinMode"]; classN
   )
 }
 
+/** A clan's colour: the one it bought for its backdrop, else one of five calm hues picked from its tag (violet, orchid, emerald, teal, ruby). */
+const CLAN_HUES = [262, 285, 152, 172, 350]
+function clanAccent(clan: ClanCard): string {
+  const own = clan.look?.backdrop?.from
+  if (own && /^#[0-9a-fA-F]{6}$/.test(own)) return own
+  let hash = 0
+  for (const char of `${clan.tag}${clan.id}`) hash = (hash * 31 + char.charCodeAt(0)) >>> 0
+  return `hsl(${CLAN_HUES[hash % CLAN_HUES.length]} 70% 58%)`
+}
+
 function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged }: { clan: ClanCard; mine: MyClanState["membership"]; pending: boolean; canJoin: boolean; onClanNavigate: (clanId: string) => void; onChanged: () => void }) {
   const { isAuthenticated, loginWithSteam } = useAuth()
   const isFull = clan.currentPlayers >= clan.maxPlayers
@@ -336,24 +346,30 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
 
   const buttonClass = "relative inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-medium transition-colors hover:border-[var(--line-strong)] disabled:cursor-not-allowed disabled:opacity-50"
   const wash = backdropStyle(clan.look?.backdrop)
+  const accent = clanAccent(clan)
+  const baseTag = clanTagProps(clan.look, "w-fit text-[13px] font-semibold tracking-wide")
+  const tagProps = clan.look?.tagColor ? baseTag : { ...baseTag, style: { ...baseTag.style, color: accent } }
+  const tint = (percent: number) => `color-mix(in srgb, ${accent} ${percent}%, transparent)`
   return (
     <div className="lx-fx-card group relative isolate flex min-h-[270px] flex-col overflow-hidden rounded-2xl border border-[var(--line-soft)] bg-[var(--card-surface)] transition-colors hover:border-[var(--line-strong)]">
       {banner ? (
         <BannerArt src={banner} className="absolute inset-0 -z-10 transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
       ) : (
-        <div aria-hidden="true" className="absolute inset-0 -z-10 opacity-50" style={{ background: wash ?? "radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,.12), transparent 62%)" }} />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 opacity-50" style={{ background: wash ?? `radial-gradient(120% 90% at 100% 0%, ${tint(45)}, transparent 62%)` }} />
       )}
+      <span aria-hidden="true" className="absolute inset-x-0 top-0 z-[1] h-[3px]" style={{ background: `linear-gradient(90deg, ${accent}, transparent 85%)` }} />
       <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-[var(--card-surface)] via-[var(--card-surface)]/75 to-[var(--card-surface)]/5" />
+      <div aria-hidden="true" className="absolute inset-0 -z-10 opacity-70 transition-opacity duration-300 group-hover:opacity-100" style={{ background: `radial-gradient(80% 55% at 85% 0%, ${tint(38)}, transparent 70%)` }} />
       <div className="relative flex flex-1 flex-col gap-4 p-5">
         <div className="flex items-center justify-between gap-2">
           {clan.number != null ? <span className="rounded-full border border-[var(--line-strong)] bg-[var(--card-surface)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--text-2)]">#{clan.number}</span> : <span />}
           <JoinModeLabel mode={clan.joinMode} className="rounded-full border border-[var(--line)] bg-[var(--card-surface)] px-2.5 py-0.5" />
         </div>
         <button type="button" onClick={() => onClanNavigate(String(clan.number ?? clan.id))} className="mt-auto flex items-end gap-3.5 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-          <ClanMark logo={clan.logo} tag={clan.tag} className="size-[68px] rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.5)]" />
+          <ClanMark logo={clan.logo} tag={clan.tag} className="size-[68px] rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.5)]" style={{ boxShadow: `0 8px 24px rgba(0,0,0,.5), 0 0 0 2px ${tint(55)}` }} />
           <span className="flex min-w-0 flex-col gap-1">
             <span className="truncate text-[19px] font-bold leading-tight" title={clan.name}>{clan.name}</span>
-            <span {...clanTagProps(clan.look, "w-fit text-[13px] font-semibold tracking-wide text-[var(--text-2)]")}>[{clan.tag}]</span>
+            <span {...tagProps}>[{clan.tag}]</span>
           </span>
         </button>
 
@@ -363,7 +379,7 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
             <span className={cn("font-semibold", isFull ? "text-[var(--text)]" : "text-[var(--text-dim)]")}>{clan.currentPlayers}/{clan.maxPlayers}</span>
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-[var(--raised)]">
-            <div className="h-full rounded-full bg-[var(--accent-solid)]" style={{ width: `${fill}%` }} />
+            <div className="h-full rounded-full" style={{ width: `${fill}%`, background: accent }} />
           </div>
         </div>
 
@@ -374,7 +390,7 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
             <X className="size-4" aria-hidden="true" /> Requested · cancel
           </button>
         ) : (
-          <button type="button" disabled={isFull || busy || (isAuthenticated && !canJoin)} onClick={join} className={buttonClass}>
+          <button type="button" disabled={isFull || busy || (isAuthenticated && !canJoin)} onClick={join} className={cn(buttonClass, !isFull && "lx-primary-button border-transparent font-semibold")}>
             <UserPlus className="size-4" aria-hidden="true" />
             {isFull ? "Full" : busy ? "Sending…" : clan.joinMode === "request" ? "Request to join" : "Join"}
           </button>
