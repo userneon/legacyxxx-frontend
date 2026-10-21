@@ -1,23 +1,25 @@
 import { useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { ArrowUp, Clock, Flame, Gavel, RotateCcw, ShoppingBag, Trophy, Users } from "lucide-react"
+import { ArrowUp, Clock, Flame, Gavel, Plus, RotateCcw, ShoppingBag, Trophy, Users } from "lucide-react"
 
 import { walletService, type Wallet, type WalletTransaction } from "@/api"
 import { AnimatedNumber } from "@/components/animated-number"
 import { LxMark } from "@/components/lx-mark"
 import { PageBar, PageTabs } from "@/components/page-tabs"
 import { RelativeTime } from "@/components/relative-time"
+import { ShopTopUp } from "@/components/shop-topup"
 import { Skeleton } from "@/components/ui/skeleton"
 import { usePathTab } from "@/hooks/use-url-tab"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
 
-type Tab = "overview" | "history" | "earn"
+type Tab = "overview" | "topup" | "history" | "earn"
 type Filter = "all" | "earned" | "spent"
 
 const TABS: Array<{ value: Tab; label: string }> = [
   { value: "overview", label: "Overview" },
+  { value: "topup", label: "Top up" },
   { value: "history", label: "History" },
   { value: "earn", label: "How to earn" },
 ]
@@ -104,12 +106,14 @@ function EarningsChart({ daily }: { daily: Array<{ day: string; earned: number }
 export function WalletPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [tab, setTab] = usePathTab<Tab>("/wallet", { overview: "", history: "history", earn: "earn" }, "overview")
+  const [tab, setTab] = usePathTab<Tab>("/wallet", { overview: "", topup: "top-up", history: "history", earn: "earn" }, "overview")
   const [filter, setFilter] = useState<Filter>("all")
   const { data: wallet, loading, error, refetch } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
 
   const entries = useMemo(() => (wallet?.transactions ?? []).filter((entry) => filter === "all" || (filter === "earned" ? entry.amount > 0 : entry.amount < 0)), [wallet, filter])
   const summary = wallet?.summary ?? null
+  // Playing earns LX only while the API lists the play rules (it does not once LX is bought with a top-up).
+  const playEarning = (wallet?.earn ?? []).some((rule) => rule.id === "match")
 
   const earnRules = (
     <section className={cn(card, "flex flex-col overflow-hidden")} aria-label="How to earn">
@@ -121,7 +125,7 @@ export function WalletPage() {
           <b className="text-[var(--text)]">+{rule.coins}</b>
         </div>
       ))}
-      <p className="border-t border-[var(--line-soft)] px-4 py-3 text-[11px] text-[var(--text-dim)]">Past the daily EXP limit you earn a quarter; past the weekly limit, nothing.</p>
+      <p className="border-t border-[var(--line-soft)] px-4 py-3 text-[11px] text-[var(--text-dim)]">{playEarning ? "Past the daily EXP limit you earn a quarter; past the weekly limit, nothing." : "LX is not earned by playing. Top it up in the Top up tab."}</p>
     </section>
   )
 
@@ -131,7 +135,9 @@ export function WalletPage() {
         <PageTabs<Tab> ariaLabel="Wallet sections" value={tab} onChange={setTab} options={TABS} />
       </PageBar>
       <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 max-md:px-4">
-        {loading && !wallet ? (
+        {tab === "topup" ? (
+          <ShopTopUp />
+        ) : loading && !wallet ? (
           <div className="grid gap-5 lg:grid-cols-[440px_minmax(0,1fr)]"><Skeleton className="h-[236px] rounded-2xl" /><Skeleton className="h-[236px] rounded-xl" /></div>
         ) : error || !wallet ? (
           <p className="flex items-center justify-center gap-3 py-24 text-[13px] text-[var(--text-dim)]">Could not load your wallet.<button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>
@@ -167,7 +173,7 @@ export function WalletPage() {
               </section>
 
               <div className="flex gap-2">
-                {[{ label: "Shop", icon: ShoppingBag, to: "/shop" }, { label: "Clan", icon: Users, to: "/clans" }, { label: "History", icon: Clock, to: "" }].map((action) => (
+                {[{ label: "Top up", icon: Plus, to: "/wallet/top-up" }, { label: "Shop", icon: ShoppingBag, to: "/shop" }, { label: "Clan", icon: Users, to: "/clans" }, { label: "History", icon: Clock, to: "" }].map((action) => (
                   <button key={action.label} type="button" onClick={() => (action.to ? navigate(action.to) : setTab("history"))} className="flex h-[60px] flex-1 flex-col items-center justify-center gap-1 rounded-xl border border-[var(--line)] bg-[var(--glass-fill)] text-xs font-semibold text-[var(--text-2)] transition-colors hover:bg-[var(--raised)]">
                     <action.icon className="size-5 opacity-80" aria-hidden="true" />{action.label}
                   </button>
@@ -178,8 +184,8 @@ export function WalletPage() {
                 <>
                   <div className={cn(card, "grid grid-cols-3 divide-x divide-[var(--line-soft)]")}>
                     {[
-                      { name: "Today", value: `+${summary.todayEarned.toLocaleString()}`, hint: `${summary.todayMatches} ${summary.todayMatches === 1 ? "match" : "matches"}`, green: summary.todayEarned > 0 },
-                      { name: "This week", value: `+${summary.weekEarned.toLocaleString()}`, hint: `${summary.weekMatches} ${summary.weekMatches === 1 ? "match" : "matches"}`, green: false },
+                      { name: "Today", value: `+${summary.todayEarned.toLocaleString()}`, hint: playEarning ? `${summary.todayMatches} ${summary.todayMatches === 1 ? "match" : "matches"}` : "", green: summary.todayEarned > 0 },
+                      { name: "This week", value: `+${summary.weekEarned.toLocaleString()}`, hint: playEarning ? `${summary.weekMatches} ${summary.weekMatches === 1 ? "match" : "matches"}` : "", green: false },
                       { name: "Spent", value: summary.spentTotal.toLocaleString(), hint: `${summary.spentCount} ${summary.spentCount === 1 ? "purchase" : "purchases"}`, green: false },
                     ].map((stat) => (
                       <div key={stat.name} className="flex flex-col gap-1 px-4 py-3.5">
@@ -189,7 +195,7 @@ export function WalletPage() {
                       </div>
                     ))}
                   </div>
-                  <section className={cn(card, "flex flex-col gap-2.5 p-4")} aria-label="Play streak">
+                  {playEarning && <section className={cn(card, "flex flex-col gap-2.5 p-4")} aria-label="Play streak">
                     <div className="flex items-center gap-2"><Flame className="size-4 text-[var(--text-2)]" aria-hidden="true" /><span className={label}>Play streak</span><span className="ml-auto text-xs text-[var(--text-muted)]"><b className="text-[var(--text)]">{summary.streakDays}</b> {summary.streakDays === 1 ? "day" : "days"}</span></div>
                     <div className="flex items-center gap-1.5">
                       {summary.week.map((entry) => (
@@ -197,7 +203,7 @@ export function WalletPage() {
                       ))}
                       <span className="ml-auto text-[11px] text-[var(--text-dim)]">+100 LX on day 7</span>
                     </div>
-                  </section>
+                  </section>}
                 </>
               )}
             </div>

@@ -148,6 +148,7 @@ export function App() {
               <Route path="/wallet" element={<ProtectedPage pageName="Wallet"><WalletPage /></ProtectedPage>} />
               <Route path="/wallet/:tab" element={<ProtectedPage pageName="Wallet"><WalletPage /></ProtectedPage>} />
               {isFeatureEnabled("shop") && <Route path="/shop" element={<ProtectedPage pageName="Shop"><ShopPage /></ProtectedPage>} />}
+              {isFeatureEnabled("shop") && <Route path="/shop/top-up" element={<Navigate to="/wallet/top-up" replace />} />}
               {isFeatureEnabled("shop") && <Route path="/shop/:tab" element={<ProtectedPage pageName="Shop"><ShopPage /></ProtectedPage>} />}
               <Route path="/penalties" element={<PenaltiesPage onProfileNavigate={handleProfileNavigate} />} />
               {/* Settings now live in Profile. */}

@@ -13,7 +13,6 @@ import { useAuth } from "@/hooks/use-auth"
 import { frameAccent, nameProps } from "@/lib/cosmetics"
 import { ShopClan } from "@/components/shop-clan"
 import { ShopGoods } from "@/components/shop-goods"
-import { ShopTopUp } from "@/components/shop-topup"
 import { FramedAvatar } from "@/components/framed-avatar"
 import { LxMark } from "@/components/lx-mark"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
@@ -27,7 +26,7 @@ const SORTS = [
   { value: "rarity", label: "Rarity" },
 ] as const
 
-type ShopTab = "featured" | CosmeticKind | "clan" | "goods" | "lx"
+type ShopTab = "featured" | CosmeticKind | "clan" | "goods"
 type Rarity = 0 | 1 | 2 | 3 | 4
 
 const RARITY_NAMES = ["", "Common", "Rare", "Epic", "Legendary"]
@@ -38,7 +37,6 @@ const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "name_glow", label: "Name glow" },
   { value: "clan", label: "Clan" },
   { value: "goods", label: "Goods" },
-  { value: "lx", label: "Top up" },
 ]
 
 type ShopItem = FrameItem & { kind: CosmeticKind }
@@ -89,7 +87,7 @@ export function ShopPage() {
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const { data: goods } = useApiQuery<GoodsProduct[]>((signal) => shopGoodsService.products({ signal }), { queryKey: "shop-goods" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
-  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name_color: "name-colors", name_glow: "name-glows", clan: "clan", goods: "goods", lx: "top-up" }, "featured")
+  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name_color: "name-colors", name_glow: "name-glows", clan: "clan", goods: "goods" }, "featured")
   const [rarity, setRarity] = useState<Rarity>(0)
   const [status, setStatus] = useState<"all" | "sale" | "owned" | "earned">("all")
   const [sort, setSort] = useState<"price-up" | "price-down" | "rarity">("price-up")
@@ -207,7 +205,7 @@ export function ShopPage() {
                 <span className="flex justify-between border-t border-[var(--line-soft)] pt-2 text-[13px] font-semibold text-[var(--text)]"><span>After buying</span><span>{afford ? (balance - item.price).toLocaleString() : `${(item.price - balance).toLocaleString()} short`}</span></span>
               </div>
             )}
-            <button type="button" disabled={busy} onClick={() => (afford ? void buy(item) : (setSheetOpen(false), setTab("lx")))} className="lx-primary-button inline-flex h-10 w-full items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-60">
+            <button type="button" disabled={busy} onClick={() => (afford ? void buy(item) : (setSheetOpen(false), navigate("/wallet/top-up")))} className="lx-primary-button inline-flex h-10 w-full items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-60">
               {afford ? `Buy for ${item.price.toLocaleString()} LX` : `Top up ${(item.price - (balance ?? 0)).toLocaleString()} more LX`}
             </button>
             <p className="text-center text-[11px] text-[var(--text-faint)]">Buying wears it right away. Change it any time in Profile → Appearance.</p>
@@ -263,8 +261,6 @@ export function ShopPage() {
       <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 max-md:px-4">
         {tab === "goods" ? (
           <ShopGoods />
-        ) : tab === "lx" ? (
-          <ShopTopUp />
         ) : loading ? (
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]"><Skeleton className="h-[480px] rounded-xl" /><Skeleton className="h-[480px] rounded-xl" /></div>
         ) : error || !data ? (
@@ -291,7 +287,7 @@ export function ShopPage() {
                       </span>
                     </button>
                     {cheapest && (
-                      <button type="button" onClick={() => setTab("lx")} className="group relative flex flex-col justify-between gap-4 overflow-hidden rounded-2xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-5 text-left transition-colors hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
+                      <button type="button" onClick={() => navigate("/wallet/top-up")} className="group relative flex flex-col justify-between gap-4 overflow-hidden rounded-2xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-5 text-left transition-colors hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
                         <LxMark size={44} />
                         <span className="flex flex-col gap-1"><span className="text-[17px] font-bold text-[var(--text)]">Top up LX</span><span className="text-[13px] text-[var(--text-muted)]">Packages from {cheapest.priceMnt.toLocaleString()}₮. Clans, frames and more.</span></span>
                         <span className="text-xs font-semibold text-[var(--text-2)]">See packages →</span>

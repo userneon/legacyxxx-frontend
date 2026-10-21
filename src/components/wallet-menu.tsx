@@ -63,6 +63,9 @@ export function WalletMenu() {
             ))}
           </ul>
         )}
+        <button type="button" onClick={() => { setOpen(false); navigate("/wallet/top-up") }} className="flex w-full items-center justify-between border-t border-[var(--line-soft)] px-4 py-3 text-[13px] font-semibold text-[var(--text)] transition-colors hover:bg-[var(--raised)]">
+          Top up LX <ChevronRight className="size-4" aria-hidden="true" />
+        </button>
         <button type="button" onClick={() => { setOpen(false); navigate("/wallet") }} className="flex w-full items-center justify-between border-t border-[var(--line-soft)] px-4 py-3 text-[13px] font-medium text-[var(--text-2)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)]">
           Open my wallet <ChevronRight className="size-4" aria-hidden="true" />
         </button>
