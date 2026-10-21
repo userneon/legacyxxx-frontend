@@ -6,13 +6,13 @@ import { useState } from "react"
 import { Package, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
 
-import { LxMark } from "@/components/lx-mark"
 import { shopGoodsService, type GoodsOrder, type GoodsOrderStatus, type GoodsProduct } from "@/api/shop-goods"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { RelativeTime } from "@/components/relative-time"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
+import { cn } from "@/lib/utils"
 
 const STATUS_LABEL: Record<GoodsOrderStatus, string> = {
   new: "Waiting for us",
@@ -26,13 +26,14 @@ const STATUS_LABEL: Record<GoodsOrderStatus, string> = {
 const mnt = (value: number) => `${value.toLocaleString()}₮`
 const field = "h-10 w-full rounded-lg border border-[var(--line)] bg-[var(--panel)] px-3 text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
 
-/** `goods`: the real items; `lx`: the LX top-up packages (paid like goods, then the LX arrive in the wallet). */
-export function ShopGoods({ mode = "goods" }: { mode?: "goods" | "lx" }) {
+/** The Shop's real items. (The LX top-up packages have their own tab, see shop-topup.tsx.) */
+export function ShopGoods() {
   const { user } = useAuth()
   const { data: products, loading, error, refetch } = useApiQuery<GoodsProduct[]>((signal) => shopGoodsService.products({ signal }), { queryKey: "shop-goods" })
   const { data: orders, refetch: refetchOrders } = useApiQuery<GoodsOrder[]>((signal) => shopGoodsService.myOrders({ signal }), { enabled: Boolean(user), queryKey: user ? `shop-orders:${user.id}` : "shop-orders:guest" })
   const [picked, setPicked] = useState<GoodsProduct | null>(null)
-  const shown = (products ?? []).filter((product) => (product.kind === "lx") === (mode === "lx"))
+  const shown = (products ?? []).filter((product) => product.kind !== "lx")
+  const goodsOrders = (orders ?? []).filter((order) => order.productKind !== "lx")
 
   if (loading) return <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">{[0, 1, 2, 3].map((n) => <Skeleton key={n} className="h-[280px] rounded-xl" />)}</div>
   if (error || !products) {
@@ -43,24 +44,24 @@ export function ShopGoods({ mode = "goods" }: { mode?: "goods" | "lx" }) {
     <div className="flex flex-col gap-6">
       <section aria-label="Goods">
         {shown.length === 0 ? (
-          <p className="py-8 text-[13px] text-[var(--text-dim)]">{mode === "lx" ? "No top-up packages right now." : "No goods are on sale right now."}</p>
+          <p className="py-8 text-[13px] text-[var(--text-dim)]">No goods are on sale right now.</p>
         ) : (
-          <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+          <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
             {shown.map((product) => (
               <li key={product.id} className="flex flex-col overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
                 <div className="grid h-[170px] place-items-center bg-[var(--card-surface)]">
-                  {product.kind === "lx" ? <span className="flex flex-col items-center gap-2"><LxMark size={56} /><span className="text-[26px] font-bold leading-none text-[var(--text)]">{product.grantsLx.toLocaleString()}</span></span> : product.imageUrl ? <img src={product.imageUrl} alt="" loading="lazy" className="max-h-full max-w-full object-contain" /> : <Package className="size-8 text-[var(--text-faint)]" aria-hidden="true" />}
+                  {product.imageUrl ? <img src={product.imageUrl} alt="" loading="lazy" className="max-h-full max-w-full object-contain" /> : <Package className="size-8 text-[var(--text-faint)]" aria-hidden="true" />}
                 </div>
                 <div className="flex flex-1 flex-col gap-2 p-3.5">
-                  <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{product.kind === "lx" ? "LX top-up" : product.kind === "charm" ? "NFC charm" : product.kind === "sticker" ? "Sticker" : "Goods"}</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{product.kind === "charm" ? "NFC charm" : product.kind === "sticker" ? "Sticker" : "Goods"}</span>
                   <span className="text-[15px] font-semibold text-[var(--text)]">{product.name}</span>
                   {product.description && <span className="text-[13px] leading-relaxed text-[var(--text-muted)]">{product.description}</span>}
                   <div className="mt-auto flex items-center justify-between pt-2">
                     <span className="text-[15px] font-semibold text-[var(--text)]">{mnt(product.priceMnt)}</span>
-                    {product.kind !== "lx" && <span className="text-[11px] text-[var(--text-dim)]">{product.stock > 0 ? `${product.stock} left` : "Sold out"}</span>}
+                    <span className="text-[11px] text-[var(--text-dim)]">{product.stock > 0 ? `${product.stock} left` : "Sold out"}</span>
                   </div>
                   <button type="button" disabled={product.stock < 1} onClick={() => (user ? setPicked(product) : toast.error("Sign in with Steam to order."))} className="lx-primary-button inline-flex h-9 items-center justify-center rounded-lg px-3.5 text-[13px] font-semibold disabled:opacity-50">
-                    {product.stock < 1 ? "Sold out" : product.kind === "lx" ? "Top up" : "Order"}
+                    {product.stock < 1 ? "Sold out" : "Order"}
                   </button>
                 </div>
               </li>
@@ -69,11 +70,11 @@ export function ShopGoods({ mode = "goods" }: { mode?: "goods" | "lx" }) {
         )}
       </section>
 
-      {user && orders && orders.length > 0 && (
+      {user && goodsOrders.length > 0 && (
         <section aria-label="My orders" className="flex flex-col gap-2.5">
           <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">My orders</span>
           <ul className="divide-y divide-[var(--line-soft)] overflow-hidden rounded-xl border border-[var(--glass-line)]">
-            {orders.map((order) => (
+            {goodsOrders.map((order) => (
               <li key={order.id} className="flex items-center gap-3 px-4 py-3">
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="truncate text-[13px] text-[var(--text)]">{order.productName} × {order.quantity}</span>
@@ -92,7 +93,7 @@ export function ShopGoods({ mode = "goods" }: { mode?: "goods" | "lx" }) {
   )
 }
 
-function OrderDialog({ product, onClose, onDone }: { product: GoodsProduct | null; onClose: () => void; onDone: () => void }) {
+export function OrderDialog({ product, onClose, onDone }: { product: GoodsProduct | null; onClose: () => void; onDone: () => void }) {
   const [quantity, setQuantity] = useState(1)
   const [phone, setPhone] = useState("")
   const [note, setNote] = useState("")
@@ -123,7 +124,7 @@ function OrderDialog({ product, onClose, onDone }: { product: GoodsProduct | nul
         </DialogHeader>
         {product && (
           <div className="flex flex-col gap-3">
-            <label className="flex flex-col gap-1.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">
+            <label className={cn("flex flex-col gap-1.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]", product.kind === "lx" && "hidden")}>
               How many
               <select value={quantity} onChange={(event) => setQuantity(Number(event.target.value))} className={field}>
                 {Array.from({ length: Math.min(10, product.stock) }, (_, index) => index + 1).map((n) => <option key={n} value={n}>{n}</option>)}

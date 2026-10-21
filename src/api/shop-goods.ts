@@ -21,6 +21,10 @@ export interface GoodsOrder {
   id: string
   productId: string
   productName: string
+  /** "lx" for a top-up package. */
+  productKind: string
+  /** LX the order puts in the wallet once paid; 0 for goods. */
+  grantsLx: number
   quantity: number
   unitPriceMnt: number
   status: GoodsOrderStatus

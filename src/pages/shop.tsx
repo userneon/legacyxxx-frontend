@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { frameAccent, nameProps } from "@/lib/cosmetics"
 import { ShopClan } from "@/components/shop-clan"
 import { ShopGoods } from "@/components/shop-goods"
+import { ShopTopUp } from "@/components/shop-topup"
 import { FramedAvatar } from "@/components/framed-avatar"
 import { PageBar, PageTabs } from "@/components/page-tabs"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -239,8 +240,10 @@ export function ShopPage() {
         <PageTabs<ShopTab> ariaLabel="Shop sections" value={tab} onChange={(next) => { setTab(next); setRarity(0) }} options={TABS} />
       </PageBar>
       <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 max-md:px-4">
-        {tab === "goods" || tab === "lx" ? (
-          <ShopGoods mode={tab} />
+        {tab === "goods" ? (
+          <ShopGoods />
+        ) : tab === "lx" ? (
+          <ShopTopUp />
         ) : loading ? (
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]"><Skeleton className="h-[480px] rounded-xl" /><Skeleton className="h-[480px] rounded-xl" /></div>
         ) : error || !data ? (
