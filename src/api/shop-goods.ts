@@ -6,11 +6,13 @@ export interface GoodsProduct {
   slug: string
   name: string
   description: string
-  kind: "charm" | "sticker" | "other"
+  kind: "charm" | "sticker" | "other" | "lx"
   /** Price in tugrik (MNT). */
   priceMnt: number
   imageUrl: string | null
   stock: number
+  /** For kind "lx": the LX the package puts in the wallet once it is paid. */
+  grantsLx: number
 }
 
 export type GoodsOrderStatus = "new" | "contacted" | "paid" | "shipped" | "done" | "cancelled"
@@ -42,6 +44,7 @@ export interface GoodsProductInput {
   name: string
   description: string
   kind: GoodsProduct["kind"]
+  grantsLx: number
   priceMnt: number
   imageUrl: string | null
   stock: number

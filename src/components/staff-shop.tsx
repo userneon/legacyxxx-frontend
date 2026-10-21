@@ -23,7 +23,7 @@ const STATUSES: Array<{ value: GoodsOrderStatus; label: string }> = [
 const mnt = (value: number) => `${value.toLocaleString()}₮`
 
 type Draft = GoodsProductInput & { slug: string; isNew: boolean }
-const EMPTY: Draft = { slug: "", isNew: true, name: "", description: "", kind: "charm", priceMnt: 0, imageUrl: null, stock: 0, enabled: true, sort: 0 }
+const EMPTY: Draft = { slug: "", isNew: true, name: "", description: "", kind: "charm", grantsLx: 0, priceMnt: 0, imageUrl: null, stock: 0, enabled: true, sort: 0 }
 
 /** Staff → Shop: the orders players asked for (call them, take the payment, move the status along) and the products on sale. Owners and Managers. */
 export function StaffShop() {
@@ -63,7 +63,7 @@ export function StaffShop() {
       setBusy(false)
     }
   }
-  const edit = (product: StaffGoodsProduct) => setDraft({ slug: product.slug, isNew: false, name: product.name, description: product.description, kind: product.kind, priceMnt: product.priceMnt, imageUrl: product.imageUrl, stock: product.stock, enabled: product.enabled, sort: product.sort })
+  const edit = (product: StaffGoodsProduct) => setDraft({ slug: product.slug, isNew: false, name: product.name, description: product.description, kind: product.kind, grantsLx: product.grantsLx, priceMnt: product.priceMnt, imageUrl: product.imageUrl, stock: product.stock, enabled: product.enabled, sort: product.sort })
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-5 max-md:px-4">
@@ -123,7 +123,7 @@ export function StaffShop() {
             <div className="grid gap-3 sm:grid-cols-4">
               <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Type
                 <select className={input} value={draft.kind} onChange={(event) => setDraft({ ...draft, kind: event.target.value as Draft["kind"] })}>
-                  <option value="charm">NFC charm</option><option value="sticker">Sticker</option><option value="other">Other</option>
+                  <option value="charm">NFC charm</option><option value="sticker">Sticker</option><option value="other">Other</option><option value="lx">LX top-up package</option>
                 </select>
               </label>
               <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Price (₮)
@@ -136,6 +136,11 @@ export function StaffShop() {
                 <input className={input} type="number" value={draft.sort} onChange={(event) => setDraft({ ...draft, sort: Math.floor(Number(event.target.value) || 0) })} />
               </label>
             </div>
+            {draft.kind === "lx" && (
+              <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">LX the package gives (credited once when the order is marked Paid)
+                <input className={input} type="number" min={0} value={draft.grantsLx} onChange={(event) => setDraft({ ...draft, grantsLx: Math.max(0, Math.floor(Number(event.target.value) || 0)) })} />
+              </label>
+            )}
             <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Picture address (https://…)
               <input className={input} value={draft.imageUrl ?? ""} onChange={(event) => setDraft({ ...draft, imageUrl: event.target.value || null })} placeholder="https://…" />
             </label>
@@ -159,7 +164,7 @@ export function StaffShop() {
               <li key={product.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-[var(--line)] bg-[var(--card-surface)] px-4 py-3">
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="truncate text-[13px] font-semibold text-[var(--text)]">{product.name}</span>
-                  <span className="truncate text-xs text-[var(--text-dim)]">{mnt(product.priceMnt)} · {product.stock} in stock · {product.enabled ? "Shown" : "Hidden"}</span>
+                  <span className="truncate text-xs text-[var(--text-dim)]">{mnt(product.priceMnt)}{product.kind === "lx" ? ` · gives ${product.grantsLx.toLocaleString()} LX` : ` · ${product.stock} in stock`} · {product.enabled ? "Shown" : "Hidden"}</span>
                 </span>
                 <button type="button" aria-label={`Edit ${product.name}`} onClick={() => edit(product)} className={cn(secondary, "w-9 px-0")}><Pencil className="size-4" /></button>
               </li>

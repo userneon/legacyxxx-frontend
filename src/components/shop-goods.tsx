@@ -6,6 +6,7 @@ import { useState } from "react"
 import { Package, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
 
+import { LxMark } from "@/components/lx-mark"
 import { shopGoodsService, type GoodsOrder, type GoodsOrderStatus, type GoodsProduct } from "@/api/shop-goods"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -25,11 +26,13 @@ const STATUS_LABEL: Record<GoodsOrderStatus, string> = {
 const mnt = (value: number) => `${value.toLocaleString()}₮`
 const field = "h-10 w-full rounded-lg border border-[var(--line)] bg-[var(--panel)] px-3 text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
 
-export function ShopGoods() {
+/** `goods`: the real items; `lx`: the LX top-up packages (paid like goods, then the LX arrive in the wallet). */
+export function ShopGoods({ mode = "goods" }: { mode?: "goods" | "lx" }) {
   const { user } = useAuth()
   const { data: products, loading, error, refetch } = useApiQuery<GoodsProduct[]>((signal) => shopGoodsService.products({ signal }), { queryKey: "shop-goods" })
   const { data: orders, refetch: refetchOrders } = useApiQuery<GoodsOrder[]>((signal) => shopGoodsService.myOrders({ signal }), { enabled: Boolean(user), queryKey: user ? `shop-orders:${user.id}` : "shop-orders:guest" })
   const [picked, setPicked] = useState<GoodsProduct | null>(null)
+  const shown = (products ?? []).filter((product) => (product.kind === "lx") === (mode === "lx"))
 
   if (loading) return <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">{[0, 1, 2, 3].map((n) => <Skeleton key={n} className="h-[280px] rounded-xl" />)}</div>
   if (error || !products) {
@@ -39,25 +42,25 @@ export function ShopGoods() {
   return (
     <div className="flex flex-col gap-6">
       <section aria-label="Goods">
-        {products.length === 0 ? (
-          <p className="py-8 text-[13px] text-[var(--text-dim)]">No goods are on sale right now.</p>
+        {shown.length === 0 ? (
+          <p className="py-8 text-[13px] text-[var(--text-dim)]">{mode === "lx" ? "No top-up packages right now." : "No goods are on sale right now."}</p>
         ) : (
           <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
-            {products.map((product) => (
+            {shown.map((product) => (
               <li key={product.id} className="flex flex-col overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
                 <div className="grid h-[170px] place-items-center bg-[var(--card-surface)]">
-                  {product.imageUrl ? <img src={product.imageUrl} alt="" loading="lazy" className="max-h-full max-w-full object-contain" /> : <Package className="size-8 text-[var(--text-faint)]" aria-hidden="true" />}
+                  {product.kind === "lx" ? <span className="flex flex-col items-center gap-2"><LxMark size={56} /><span className="text-[26px] font-bold leading-none text-[var(--text)]">{product.grantsLx.toLocaleString()}</span></span> : product.imageUrl ? <img src={product.imageUrl} alt="" loading="lazy" className="max-h-full max-w-full object-contain" /> : <Package className="size-8 text-[var(--text-faint)]" aria-hidden="true" />}
                 </div>
                 <div className="flex flex-1 flex-col gap-2 p-3.5">
-                  <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{product.kind === "charm" ? "NFC charm" : product.kind === "sticker" ? "Sticker" : "Goods"}</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{product.kind === "lx" ? "LX top-up" : product.kind === "charm" ? "NFC charm" : product.kind === "sticker" ? "Sticker" : "Goods"}</span>
                   <span className="text-[15px] font-semibold text-[var(--text)]">{product.name}</span>
                   {product.description && <span className="text-[13px] leading-relaxed text-[var(--text-muted)]">{product.description}</span>}
                   <div className="mt-auto flex items-center justify-between pt-2">
                     <span className="text-[15px] font-semibold text-[var(--text)]">{mnt(product.priceMnt)}</span>
-                    <span className="text-[11px] text-[var(--text-dim)]">{product.stock > 0 ? `${product.stock} left` : "Sold out"}</span>
+                    {product.kind !== "lx" && <span className="text-[11px] text-[var(--text-dim)]">{product.stock > 0 ? `${product.stock} left` : "Sold out"}</span>}
                   </div>
                   <button type="button" disabled={product.stock < 1} onClick={() => (user ? setPicked(product) : toast.error("Sign in with Steam to order."))} className="lx-primary-button inline-flex h-9 items-center justify-center rounded-lg px-3.5 text-[13px] font-semibold disabled:opacity-50">
-                    {product.stock < 1 ? "Sold out" : "Order"}
+                    {product.stock < 1 ? "Sold out" : product.kind === "lx" ? "Top up" : "Order"}
                   </button>
                 </div>
               </li>
@@ -115,8 +118,8 @@ function OrderDialog({ product, onClose, onDone }: { product: GoodsProduct | nul
     <Dialog open={Boolean(product)} onOpenChange={(open) => { if (!open) onClose() }}>
       <DialogContent className="rounded-2xl">
         <DialogHeader>
-          <DialogTitle>Order {product?.name}</DialogTitle>
-          <DialogDescription>You pay when we call: bank transfer or QPay. Nothing is charged here.</DialogDescription>
+          <DialogTitle>{product?.kind === "lx" ? "Top up" : "Order"} {product?.name}</DialogTitle>
+          <DialogDescription>{product?.kind === "lx" ? "You pay when we call: bank transfer or QPay. The LX arrive in your wallet as soon as we confirm the payment. Nothing is charged here." : "You pay when we call: bank transfer or QPay. Nothing is charged here."}</DialogDescription>
         </DialogHeader>
         {product && (
           <div className="flex flex-col gap-3">

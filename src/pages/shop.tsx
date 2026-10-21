@@ -23,7 +23,7 @@ const SORTS = [
   { value: "rarity", label: "Rarity" },
 ] as const
 
-type ShopTab = "featured" | CosmeticKind | "clan" | "goods"
+type ShopTab = "featured" | CosmeticKind | "clan" | "goods" | "lx"
 type Rarity = 0 | 1 | 2 | 3 | 4
 
 const RARITY_NAMES = ["", "Common", "Rare", "Epic", "Legendary"]
@@ -34,6 +34,7 @@ const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "name_glow", label: "Name glow" },
   { value: "clan", label: "Clan" },
   { value: "goods", label: "Goods" },
+  { value: "lx", label: "Top up" },
 ]
 
 type ShopItem = FrameItem & { kind: CosmeticKind }
@@ -83,7 +84,7 @@ export function ShopPage() {
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
-  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name_color: "name-colors", name_glow: "name-glows", clan: "clan", goods: "goods" }, "featured")
+  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name_color: "name-colors", name_glow: "name-glows", clan: "clan", goods: "goods", lx: "top-up" }, "featured")
   const [rarity, setRarity] = useState<Rarity>(0)
   const [hideOwned, setHideOwned] = useState(false)
   const [sort, setSort] = useState<"price-up" | "price-down" | "rarity">("price-up")
@@ -238,8 +239,8 @@ export function ShopPage() {
         <PageTabs<ShopTab> ariaLabel="Shop sections" value={tab} onChange={(next) => { setTab(next); setRarity(0) }} options={TABS} />
       </PageBar>
       <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 max-md:px-4">
-        {tab === "goods" ? (
-          <ShopGoods />
+        {tab === "goods" || tab === "lx" ? (
+          <ShopGoods mode={tab} />
         ) : loading ? (
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]"><Skeleton className="h-[480px] rounded-xl" /><Skeleton className="h-[480px] rounded-xl" /></div>
         ) : error || !data ? (
