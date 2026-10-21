@@ -11,6 +11,7 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { frameAccent, nameProps } from "@/lib/cosmetics"
 import { ShopClan } from "@/components/shop-clan"
+import { ShopGoods } from "@/components/shop-goods"
 import { FramedAvatar } from "@/components/framed-avatar"
 import { PageBar, PageTabs } from "@/components/page-tabs"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -22,7 +23,7 @@ const SORTS = [
   { value: "rarity", label: "Rarity" },
 ] as const
 
-type ShopTab = "featured" | CosmeticKind | "clan"
+type ShopTab = "featured" | CosmeticKind | "clan" | "goods"
 type Rarity = 0 | 1 | 2 | 3 | 4
 
 const RARITY_NAMES = ["", "Common", "Rare", "Epic", "Legendary"]
@@ -32,6 +33,7 @@ const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "name_color", label: "Name colour" },
   { value: "name_glow", label: "Name glow" },
   { value: "clan", label: "Clan" },
+  { value: "goods", label: "Goods" },
 ]
 
 type ShopItem = FrameItem & { kind: CosmeticKind }
@@ -81,7 +83,7 @@ export function ShopPage() {
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
-  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name_color: "name-colors", name_glow: "name-glows", clan: "clan" }, "featured")
+  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name_color: "name-colors", name_glow: "name-glows", clan: "clan", goods: "goods" }, "featured")
   const [rarity, setRarity] = useState<Rarity>(0)
   const [hideOwned, setHideOwned] = useState(false)
   const [sort, setSort] = useState<"price-up" | "price-down" | "rarity">("price-up")
@@ -236,7 +238,9 @@ export function ShopPage() {
         <PageTabs<ShopTab> ariaLabel="Shop sections" value={tab} onChange={(next) => { setTab(next); setRarity(0) }} options={TABS} />
       </PageBar>
       <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 max-md:px-4">
-        {loading ? (
+        {tab === "goods" ? (
+          <ShopGoods />
+        ) : loading ? (
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]"><Skeleton className="h-[480px] rounded-xl" /><Skeleton className="h-[480px] rounded-xl" /></div>
         ) : error || !data ? (
           <p className="flex items-center justify-center gap-3 py-24 text-[13px] text-[var(--text-dim)]">Could not load the shop.<button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>

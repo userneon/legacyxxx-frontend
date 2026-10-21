@@ -688,6 +688,8 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path === "/api/v1/moderation/notify") return undefined
   if (path.startsWith("/api/v1/moderation/lift-requests/")) return undefined
   if (path.startsWith("/api/v1/moderation/penalties") && method !== "GET") return path === "/api/v1/moderation/penalties" ? { penaltyId: "new" } : undefined
+  if (path === "/api/v1/shop/products") return { products: [] }
+  if (path === "/api/v1/shop/orders/me") return { orders: [] }
   if (path.startsWith("/api/v1/cosmetics")) {
     if (!signedIn()) throw unauthorized()
     const frames = mockFrames()
