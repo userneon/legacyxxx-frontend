@@ -126,7 +126,7 @@ function NoTournament({ past, onOpen }: { past: PastTournament[]; onOpen: (id: s
         </span>
         <span className="relative text-lg font-semibold text-[var(--text)]">No tournament scheduled right now</span>
         <span className="relative max-w-[420px] text-[13px] leading-[1.5] text-[var(--text-muted)]">
-          New tournaments are announced on Discord first. Turn on notifications so you don't miss registration.
+          Turn on notifications to catch registration.
         </span>
         {LINKS.discordAnnouncements && (
           <a href={LINKS.discordAnnouncements} target="_blank" rel="noreferrer" className={cn(primaryButton, "relative mt-1.5 h-[38px] px-4 text-[13px]")}>
@@ -493,7 +493,7 @@ function TeamNameDialog({ open, onClose, onSubmit, busy, error }: { open: boolea
             <X className="size-4" />
           </button>
         </div>
-        <DialogDescription className="sr-only">Choose a team name. Your teammates join it from the Players tab.</DialogDescription>
+        <DialogDescription className="sr-only">Choose a team name.</DialogDescription>
         <form className="flex flex-col gap-3 p-5" onSubmit={(event) => { event.preventDefault(); if (valid && !busy) onSubmit(name.trim()) }}>
           <label className="flex flex-col gap-2">
             <span className="text-xs text-[var(--text-muted)]">Team name</span>

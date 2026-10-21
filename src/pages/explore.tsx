@@ -193,7 +193,7 @@ export function ExplorePage({ onProfileNavigate }: { onProfileNavigate: (userId:
               <Search className="size-6" />
             </span>
             <span className="text-base font-semibold text-[var(--text)]">Start typing to search</span>
-            <span className="max-w-sm text-[13px] text-[var(--text-dim)]">Search any player by name or Steam ID, or paste a Steam profile link.</span>
+            <span className="max-w-sm text-[13px] text-[var(--text-dim)]">Name, Steam ID or profile link.</span>
             {suggestions.length > 0 && (
               <div className="mt-3 flex max-w-[640px] flex-col items-center gap-2.5">
                 <span className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">

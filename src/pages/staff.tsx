@@ -206,7 +206,7 @@ function PlayersTab({ access, caseId, onFind, onBack, onChecks }: { access: Mode
   return (
     <div className="flex max-w-xl flex-col gap-3 px-6 pb-8 pt-6">
       <p className="text-[15px] font-semibold text-[var(--text)]">Find a player</p>
-      <p className="text-[13px] text-[var(--text-dim)]">Type a name or a Steam ID. Their penalties, what the checker found and the buttons to act are on one screen.</p>
+      <p className="text-[13px] text-[var(--text-dim)]">Type a name or a Steam ID.</p>
       <div>
         <Button type="button" onClick={onFind}><Search className="size-4" aria-hidden="true" />Find a player<kbd className="ml-1 rounded border border-[var(--line)] px-1 text-[10px]">Ctrl K</kbd></Button>
       </div>

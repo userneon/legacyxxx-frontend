@@ -52,7 +52,7 @@ export function StaffCreators() {
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-6 py-5 max-md:px-4">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-[13px] text-[var(--text-muted)]">Creators get a badge on their profile and a place on the Creators page. No staff permissions. Owners and Managers can change this list.</p>
+        <p className="text-[13px] text-[var(--text-muted)]">Creators get a badge and a card on the Creators page.</p>
         {!draft && <button type="button" onClick={() => setDraft(EMPTY)} className="lx-primary-button inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-3.5 text-[13px] font-semibold"><Plus className="size-4" />Add creator</button>}
       </div>
 

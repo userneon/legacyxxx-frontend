@@ -202,7 +202,7 @@ export function IssuePenaltyDialog({ open, onOpenChange, access, onIssued, initi
       <DialogContent className="lx-add-box rounded-2xl" onOpenAutoFocus={(event) => { if (/^7656119\d{10}$/.test(initialSteamId)) { event.preventDefault(); document.getElementById("penalty-new-reason")?.focus() } }}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2.5"><span className="lx-add-icon"><Gavel className="size-4" /></span>New penalty</DialogTitle>
-          <DialogDescription>Issues a penalty to the player by Steam ID. It shows on the Penalties page and their profile.</DialogDescription>
+          <DialogDescription>Give a penalty by Steam ID.</DialogDescription>
         </DialogHeader>
         <form className="mt-2 flex flex-col gap-4" onSubmit={(event) => void submit(event)}>
           <div className="flex flex-col gap-2">

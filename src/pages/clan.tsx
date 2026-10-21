@@ -464,7 +464,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                   <DialogHeader>
                     <DialogTitle>Delete {clan.name}?</DialogTitle>
                     <DialogDescription>
-                      The clan, its members list and any extra places are removed for good, and the LX spent on the clan and its places are not given back. This cannot be undone.
+                      The clan and its members are removed for good. LX spent is not given back.
                     </DialogDescription>
                   </DialogHeader>
                   <form

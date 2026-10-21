@@ -169,7 +169,7 @@ function Detail({ id, onClose, onRemoved }: { id: string; onClose: () => void; o
               <p className="flex items-start gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 py-2 font-mono text-[12px] text-[var(--text-2)]"><span className="mt-1 size-2 shrink-0 rounded-full bg-[var(--status-green)]" aria-hidden="true" />steam id {data.targetSteamId} is on this pc</p>
             )}
             {!report.matchesTarget && (
-              <p className="flex items-start gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 py-2 text-xs text-[var(--text-2)]"><TriangleAlert className="mt-px size-4 shrink-0" aria-hidden="true" />The player's Steam ID was not among the accounts found on this PC. The check may have been run on another computer, or by someone else.</p>
+              <p className="flex items-start gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 py-2 text-xs text-[var(--text-2)]"><TriangleAlert className="mt-px size-4 shrink-0" aria-hidden="true" />The player's Steam ID was not found on this PC. The check may be from another computer.</p>
             )}
             <SteamAccounts report={report} targetSteamId={data.targetSteamId} />
             {data.hwid && <Hardware hwid={data.hwid} />}

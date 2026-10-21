@@ -21,10 +21,10 @@ const mnt = (value: number) => `${value.toLocaleString()}₮`
 const label = "text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]"
 
 const STEPS = [
-  { title: "Pick a package", text: "Choose how much LX you want." },
-  { title: "We call you", text: "Leave your number. We call to confirm." },
-  { title: "You pay", text: "Bank transfer or QPay. Nothing is charged on the site." },
-  { title: "LX arrive", text: "As soon as we confirm, they are in your wallet." },
+  { title: "Pick a package" },
+  { title: "We call you" },
+  { title: "You pay by bank or QPay" },
+  { title: "LX reach your wallet" },
 ]
 
 /** Where a top-up order stands: 0 sent, 1 called, 2 paid (the LX are in the wallet). -1 cancelled. */
@@ -82,7 +82,7 @@ export function ShopTopUp() {
             </div>
             {clanPrice != null && balance != null && (
               <p className="text-xs leading-relaxed text-[var(--text-muted)]">
-                {balance + selected.grantsLx >= clanPrice ? `Enough to open a clan (${clanPrice.toLocaleString()} LX).` : `${(clanPrice - balance - selected.grantsLx).toLocaleString()} LX short of opening a clan (${clanPrice.toLocaleString()} LX).`}
+                {balance + selected.grantsLx >= clanPrice ? "Enough for a clan." : `${(clanPrice - balance - selected.grantsLx).toLocaleString()} LX short of a clan.`}
               </p>
             )}
             <button type="button" onClick={() => (user ? setOrdering(selected) : toast.error("Sign in with Steam to top up."))} className="lx-primary-button inline-flex h-11 items-center justify-center rounded-lg px-4 text-[14px] font-semibold">
@@ -144,7 +144,7 @@ export function ShopTopUp() {
             {STEPS.map((step, index) => (
               <li key={step.title} className="flex gap-3 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-3.5">
                 <span className="grid size-6 shrink-0 place-items-center rounded-full border border-[var(--line)] text-[12px] font-semibold text-[var(--text-2)]">{index + 1}</span>
-                <span className="flex flex-col gap-0.5"><span className="text-[13px] font-semibold text-[var(--text)]">{step.title}</span><span className="text-xs leading-relaxed text-[var(--text-muted)]">{step.text}</span></span>
+                <span className="self-center text-[13px] font-semibold text-[var(--text)]">{step.title}</span>
               </li>
             ))}
           </ol>

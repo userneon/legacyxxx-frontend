@@ -71,7 +71,7 @@ export function ShopClan({ prices, balance, mine, loading, onChanged }: ShopClan
     <div className="flex flex-col gap-6">
     <ul className="grid max-w-md gap-3" aria-label="Clan services">
       <Card icon={<UserPlus className="size-4" />} title={`+${prices.slotStep} member places`} price={prices.slots}>
-        <p className={note}>Make room for more players. Buy it again whenever the clan is full, up to {prices.slotCap} players.</p>
+        <p className={note}>Room for more players, up to {prices.slotCap}.</p>
         {!clan ? (
           <button type="button" onClick={() => navigate("/clans")} className={secondary}>Find or create a clan in Clans</button>
         ) : (
@@ -91,16 +91,15 @@ export function ShopClan({ prices, balance, mine, loading, onChanged }: ShopClan
         )}
       </Card>
     </ul>
-    <p className="text-[13px] text-[var(--text-dim)]">{leader ? "What you buy stays yours, even if the clan is deleted." : "Anyone can buy clan appearance. It stays yours and can be worn once you lead a clan."}</p>
     <ClanLooksShop clanId={clan ? String(clan.id) : null} canWear={leader} tag={clan?.tag ?? "TAG"} balance={balance} onChanged={onChanged} />
     </div>
   )
 }
 
 const KINDS: Array<{ kind: ClanLookKind; label: string; hint: string }> = [
-  { kind: "tag_color", label: "Tag colour", hint: "The colour of [TAG] everywhere the clan shows." },
-  { kind: "tag_glow", label: "Tag glow", hint: "A light around [TAG]." },
-  { kind: "page", label: "Page background", hint: "The background of the whole clan page." },
+  { kind: "tag_color", label: "Tag colour", hint: "" },
+  { kind: "tag_glow", label: "Tag glow", hint: "" },
+  { kind: "page", label: "Page background", hint: "" },
 ]
 const RARITY = ["", "Common", "Rare", "Epic", "Legendary"]
 
@@ -176,14 +175,13 @@ export function ClanLooksShop({ clanId, canWear = true, tag, balance, onChanged 
 
   return (
     <div className="flex flex-col gap-6">
-      {KINDS.map(({ kind, label, hint }) => {
+      {KINDS.map(({ kind, label }) => {
         const items = data.items.filter((item) => item.kind === kind)
         const wearing = data.equipped[kind]
         return (
           <section key={kind} aria-label={label}>
             <div className="mb-2.5 flex flex-wrap items-baseline gap-2">
               <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{label}</span>
-              <span className="text-xs text-[var(--text-faint)]">{hint}</span>
               <span className="flex-1" />
               {wear && clanId && wearing && <button type="button" disabled={busy !== null} onClick={() => run(kind, () => clansService.equipLook(clanId, kind, null), "Taken off")} className="text-xs text-[var(--text-dim)] hover:text-[var(--text)]">Take off</button>}
             </div>

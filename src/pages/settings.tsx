@@ -310,7 +310,7 @@ function Appearance() {
   const sampleName = user?.username ?? "Player"
 
   return (
-    <Section id="appearance" index={0} title="Appearance" description="Frames, name colours and glows. They are only for show and never change your matches or EXP." aside={saved.node}>
+    <Section id="appearance" index={0} title="Appearance" description="Frames, name colours and glows. Cosmetic only." aside={saved.node}>
       {loading ? (
         <div className="grid gap-4 md:grid-cols-[210px_minmax(0,1fr)]"><Skeleton className="h-[300px] rounded-[10px]" /><Skeleton className="h-[300px] rounded-[10px]" /></div>
       ) : error || !data ? (

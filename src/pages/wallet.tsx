@@ -125,7 +125,7 @@ export function WalletPage() {
           <b className="text-[var(--text)]">+{rule.coins}</b>
         </div>
       ))}
-      <p className="border-t border-[var(--line-soft)] px-4 py-3 text-[11px] text-[var(--text-dim)]">{playEarning ? "Past the daily EXP limit you earn a quarter; past the weekly limit, nothing." : "LX is not earned by playing. Top it up in the Top up tab."}</p>
+      {playEarning && <p className="border-t border-[var(--line-soft)] px-4 py-3 text-[11px] text-[var(--text-dim)]">Past the daily EXP limit you earn a quarter; past the weekly limit, nothing.</p>}
     </section>
   )
 
@@ -145,7 +145,6 @@ export function WalletPage() {
           <section className={cn(card, "max-w-3xl overflow-hidden")}>
             <div className="flex items-center gap-2 border-b border-[var(--line-soft)] px-4 py-3"><span className={cn(label, "mr-auto")}>History</span><Chips value={filter} onChange={setFilter} /></div>
             <Activity entries={entries} empty="Nothing here yet." />
-            <p className="border-t border-[var(--line-soft)] px-4 py-2.5 text-xs text-[var(--text-dim)]">Your latest {wallet.transactions.length} entries.</p>
           </section>
         ) : tab === "earn" ? (
           <div className="max-w-xl">{earnRules}</div>

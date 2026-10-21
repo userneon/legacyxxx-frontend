@@ -1547,7 +1547,7 @@ export function SkinchangerPage() {
         <AlertDialogContent size="sm">
           <AlertDialogHeader>
             <AlertDialogTitle>Reset customization?</AlertDialogTitle>
-            <AlertDialogDescription>This removes the wear, stickers, and charm currently set for this skin. You can customize it again before saving.</AlertDialogDescription>
+            <AlertDialogDescription>Removes the wear, stickers and charm set for this skin.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Keep changes</AlertDialogCancel>

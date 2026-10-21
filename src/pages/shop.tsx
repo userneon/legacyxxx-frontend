@@ -208,7 +208,6 @@ export function ShopPage() {
             <button type="button" disabled={busy} onClick={() => (afford ? void buy(item) : (setSheetOpen(false), navigate("/wallet/top-up")))} className="lx-primary-button inline-flex h-10 w-full items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-60">
               {afford ? `Buy for ${item.price.toLocaleString()} LX` : `Top up ${(item.price - (balance ?? 0)).toLocaleString()} more LX`}
             </button>
-            <p className="text-center text-[11px] text-[var(--text-faint)]">Buying wears it right away. Change it any time in Profile → Appearance.</p>
           </>
         ) : (
           <p className="text-xs text-[var(--text-dim)]">{item.requirement || "Earned in game, not for sale."}</p>

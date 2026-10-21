@@ -84,8 +84,8 @@ export function NewCheckDialog({ open, onOpenChange, initialSteamId = "", name, 
           <DialogTitle>{created ? "Send this code to the player" : name ? `Check ${name}` : "Ask for a check"}</DialogTitle>
           <DialogDescription>
             {created
-              ? "The player runs the checker program. The installer asks for this code; a personal zip already has it inside. It works once, for one hour, and is not shown again."
-              : "The player runs the checker program with a one-time code. They see who asked and must agree before it scans. A result is not a verdict: you read it and decide."}
+              ? "One-time code, valid for one hour. Not shown again."
+              : "The player runs the checker and agrees before it scans."}
           </DialogDescription>
         </DialogHeader>
         {created ? (
