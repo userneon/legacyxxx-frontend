@@ -712,7 +712,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
     if (!signedIn()) throw unauthorized()
     return {
       earn: [{ id: "match", label: "Ranked match", coins: 20 }, { id: "win", label: "Ranked win", coins: 30 }, { id: "first-win", label: "First win of the day", coins: 25 }, { id: "rank-up", label: "Each new rank", coins: 50 }, { id: "streak-3", label: "3 days in a row", coins: 30 }, { id: "streak-7", label: "7 days in a row", coins: 100 }, { id: "discord", label: "Link Discord (once)", coins: 50 }],
-      clanPrices: { create: 500, rename: 200, slots: 300, slotStep: 2, slotCap: 50 },
+      clanPrices: { create: 20000, rename: 200, slots: 300, slotStep: 2, slotCap: 50 },
       summary: {
         todayEarned: 75, weekEarned: 310, todayMatches: 3, weekMatches: 12, spentTotal: 1050, spentCount: 5, streakDays: 5,
         daily: [40, 0, 70, 50, 0, 0, 95, 60, 25, 80, 110, 0, 75, 125].map((earned, index, all) => ({ day: new Date(Date.now() - (all.length - 1 - index) * 86_400_000).toISOString().slice(0, 10), earned })),
