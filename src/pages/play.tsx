@@ -15,7 +15,7 @@ import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { PAGE_ROUTES } from "@/lib/routes"
 import { CompetitiveRankBadge, RankLabel } from "@/components/competitive-rank-badge"
 import { PlayerAvatar } from "@/components/player-avatar"
-import type { TeamSide } from "@/components/team-icon"
+import { TeamIcon, type TeamSide } from "@/components/team-icon"
 import { SteamLoginGate } from "@/components/steam-login-gate"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
@@ -194,7 +194,7 @@ function visibleName(name: string) {
   return name.replace(/[\p{C}\p{Z}ᅟᅠㅤﾠ⠀]/gu, "") ? name : "Unknown player"
 }
 
-const SCORE_COLUMNS = "grid grid-cols-[minmax(0,1fr)_40px_40px_40px] items-center gap-2"
+const SCORE_COLUMNS = "grid grid-cols-[18px_minmax(0,1fr)_26px_36px_36px_36px] items-center gap-2"
 
 /**
  * One team as CS2-style rows: each row is tinted with its side's colour (T gold, CT blue) and fades out to the right;
@@ -208,9 +208,16 @@ function TeamRows({ players, side }: { players: ServerLiveMatchPlayer[]; side?: 
     <div className="flex flex-col gap-[3px]">
       {players.map((player) => (
         <div key={player.steamId} style={tint} className={cn(SCORE_COLUMNS, "h-[38px] rounded-md px-3 text-[13px]", !side && "bg-[var(--raised)]")}>
+          {/* The side's emblem, to the left of the picture, as in the CS2 scoreboard. */}
+          <span className="flex size-[18px] items-center justify-center">
+            {side && <TeamIcon side={side} className="size-[18px]" />}
+          </span>
           <span className="flex min-w-0 items-center gap-2">
             <PlayerAvatar avatar={player.avatar ?? undefined} name={visibleName(player.name)} className="size-[22px] shrink-0 rounded-md text-[9px]" />
             <span className={cn("truncate font-medium", player.connected ? "text-[var(--text)]" : "text-[var(--text-dim)]")} title={visibleName(player.name)}>{visibleName(player.name)}</span>
+          </span>
+          <span className="flex items-center justify-center">
+            {player.rankId != null && <CompetitiveRankBadge rankId={player.rankId} rankName={player.rankName ?? undefined} imageKey={player.rankImageKey} size={22} />}
           </span>
           <span className="text-center font-bold text-[var(--text)]">{stat(player.kills)}</span>
           <span className="text-center text-[var(--text-2)]">{stat(player.deaths)}</span>
@@ -240,10 +247,12 @@ function useLiveMatch(serverId: string) {
 function Scoreboard({ live, loading, error, refetch }: ReturnType<typeof useLiveMatch>) {
   const header = (
     <div className={cn(SCORE_COLUMNS, "px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--text-dim)]")}>
+      <span />
       <span className="flex items-center gap-2">
         Player
         {loading && live && <LoaderCircle aria-label="Updating" className="size-3 animate-spin" />}
       </span>
+      <span />
       <span className="text-center">K</span><span className="text-center">D</span><span className="text-center">A</span>
     </div>
   )
