@@ -1,3 +1,4 @@
+import { EmoteArt } from "@/components/emote-art"
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Bell, Check, CircleCheck, Frame, Link2, Lock, RotateCcw, MonitorSmartphone, type LucideIcon } from "lucide-react"
@@ -241,6 +242,7 @@ const KINDS: Array<{ value: CosmeticKind; label: string; noun: string }> = [
   { value: "frame", label: "Frames", noun: "frame" },
   { value: "name_color", label: "Name colour", noun: "colour" },
   { value: "name_glow", label: "Name glow", noun: "glow" },
+  { value: "emote", label: "Emotes", noun: "emote" },
 ]
 
 function Appearance() {
@@ -254,8 +256,8 @@ function Appearance() {
   const [picked, setPicked] = useState<Partial<Record<CosmeticKind, string>>>({})
   const saved = useSavedFlash()
 
-  const lists: Record<CosmeticKind, FrameItem[]> = { frame: data?.frames ?? [], name_color: data?.nameColors ?? [], name_glow: data?.nameGlows ?? [] }
-  const worn: Record<CosmeticKind, string | null> = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null }
+  const lists: Record<CosmeticKind, FrameItem[]> = { frame: data?.frames ?? [], name_color: data?.nameColors ?? [], name_glow: data?.nameGlows ?? [], emote: data?.emotes ?? [] }
+  const worn: Record<CosmeticKind, string | null> = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, emote: data?.equippedEmote ?? null }
   const noun = KINDS.find((entry) => entry.value === kind)?.noun ?? "item"
   const frames = lists[kind]
   const selectedId = picked[kind] ?? worn[kind] ?? frames[0]?.id ?? null
@@ -357,6 +359,8 @@ function Appearance() {
                     >
                       {kind === "frame" ? (
                         <FramedAvatar avatar={user?.avatar} name={user?.username} frame={item.id} size={76} />
+                      ) : kind === "emote" ? (
+                        <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><EmoteArt name={item.name} username={sampleName} compact /></span>
                       ) : (
                         <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><span {...nameProps(kind === "name_color" ? { color: item.color ?? null, colorFx: item.fx ?? null } : { glow: item.glow ?? null, glowFx: item.fx ?? null }, "truncate text-[15px] font-bold text-[var(--text)]")}>{sampleName}</span></span>
                       )}

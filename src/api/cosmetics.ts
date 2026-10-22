@@ -24,7 +24,7 @@ export interface FrameItem {
   owners?: number | null
 }
 
-export type CosmeticKind = "frame" | "name_color" | "name_glow"
+export type CosmeticKind = "frame" | "name_color" | "name_glow" | "emote"
 
 /** How a player's name is painted: plain colours from the API, never a style string. */
 export interface NameStyle {
@@ -40,9 +40,12 @@ export interface Cosmetics {
   equippedFrame: string | null
   equippedNameColor?: string | null
   equippedNameGlow?: string | null
+  equippedEmote?: string | null
   frames: FrameItem[]
   nameColors?: FrameItem[]
   nameGlows?: FrameItem[]
+  /** Played in game with .e; the game shows a line in the chat. */
+  emotes?: FrameItem[]
 }
 
 export const cosmeticsService = {

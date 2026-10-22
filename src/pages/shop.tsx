@@ -1,3 +1,4 @@
+import { EmoteArt } from "@/components/emote-art"
 import { useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
@@ -35,11 +36,15 @@ const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "frame", label: "Frames" },
   { value: "name_color", label: "Name colour" },
   { value: "name_glow", label: "Name glow" },
+  { value: "emote", label: "Emotes" },
   { value: "clan", label: "Clan" },
   { value: "goods", label: "Goods" },
 ]
 
 type ShopItem = FrameItem & { kind: CosmeticKind }
+
+const KIND_NAME: Record<CosmeticKind, string> = { frame: "Frame", name_color: "Name colour", name_glow: "Name glow", emote: "Emote" }
+const KIND_PLURAL: Record<CosmeticKind, string> = { frame: "Frames", name_color: "Name colours", name_glow: "Name glows", emote: "Emotes" }
 
 function RarityDots({ rarity }: { rarity: number }) {
   return (
@@ -52,6 +57,7 @@ function RarityDots({ rarity }: { rarity: number }) {
 /** What the item looks like: a frame around your picture, or your name painted with it. */
 function ItemArt({ item, avatar, username, size }: { item: ShopItem; avatar?: string; username: string; size: number }) {
   if (item.kind === "frame") return <FramedAvatar avatar={avatar} name={username} frame={item.id} size={size} />
+  if (item.kind === "emote") return <EmoteArt name={item.name} username={username} />
   const look = item.kind === "name_color" ? { color: item.color ?? null, colorFx: item.fx ?? null } : { glow: item.glow ?? null, glowFx: item.fx ?? null }
   return <span {...nameProps(look, "max-w-full truncate px-2 text-[19px] font-bold text-[var(--text)]")}>{username}</span>
 }
@@ -87,7 +93,7 @@ export function ShopPage() {
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const { data: goods } = useApiQuery<GoodsProduct[]>((signal) => shopGoodsService.products({ signal }), { queryKey: "shop-goods" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
-  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name_color: "name-colors", name_glow: "name-glows", clan: "clan", goods: "goods" }, "featured")
+  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name_color: "name-colors", name_glow: "name-glows", emote: "emotes", clan: "clan", goods: "goods" }, "featured")
   const [rarity, setRarity] = useState<Rarity>(0)
   const [status, setStatus] = useState<"all" | "sale" | "owned" | "earned">("all")
   const [sort, setSort] = useState<"price-up" | "price-down" | "rarity">("price-up")
@@ -100,8 +106,9 @@ export function ShopPage() {
     ...(data?.frames ?? []).map((item) => ({ ...item, kind: "frame" as const })),
     ...(data?.nameColors ?? []).map((item) => ({ ...item, kind: "name_color" as const })),
     ...(data?.nameGlows ?? []).map((item) => ({ ...item, kind: "name_glow" as const })),
+    ...(data?.emotes ?? []).map((item) => ({ ...item, kind: "emote" as const })),
   ], [data])
-  const worn = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null }
+  const worn = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, emote: data?.equippedEmote ?? null }
   const balance = wallet?.balance ?? null
   const username = user?.username ?? "Player"
 
@@ -112,7 +119,7 @@ export function ShopPage() {
     // What you can still buy comes first, then what you own, then what is only earned.
     .sort((a, b) => group(a) - group(b) || (sort === "rarity" ? (b.rarity ?? 0) - (a.rarity ?? 0) || a.price - b.price : sort === "price-up" ? a.price - b.price : b.price - a.price))
 
-  const selected = all.find((item) => item.id === picked) ?? featured[0] ?? shown[0] ?? null
+  const selected = all.find((item) => item.id === picked) ?? (tab === "featured" ? featured[0] : null) ?? shown[0] ?? featured[0] ?? null
   const choose = (item: ShopItem) => {
     setPicked(item.id)
     // On a phone the preview and the buy button live in a sheet, so choosing an item never sends you down the page.
@@ -178,7 +185,7 @@ export function ShopPage() {
               <span className="truncate text-[13px] font-semibold text-[var(--text)]">{item.name}</span>
               {action}
             </span>
-            <span className="truncate text-[11px] text-[var(--text-dim)]">{item.kind === "frame" ? "Frame" : item.kind === "name_color" ? "Name colour" : "Name glow"} · {ownersLine(item, data?.players)}</span>
+            <span className="truncate text-[11px] text-[var(--text-dim)]">{KIND_NAME[item.kind]} · {ownersLine(item, data?.players)}</span>
           </div>
         </button>
       </li>
@@ -193,7 +200,7 @@ export function ShopPage() {
         <div className="flex items-baseline justify-between"><span className="text-[15px] font-semibold text-[var(--text)]">{item.name}</span><span className="flex items-center gap-1.5 text-xs text-[var(--text-dim)]"><RarityDots rarity={item.rarity ?? 1} />{RARITY_NAMES[item.rarity ?? 1]}</span></div>
         {item.owned ? (
           <>
-            <p className="text-xs text-[var(--text-dim)]">{isWorn ? "You are wearing this." : "You own this. Wear it in Profile → Appearance."}</p>
+            <p className="text-xs text-[var(--text-dim)]">{isWorn ? (item.kind === "emote" ? "Worn. Type .e in game to play it." : "You are wearing this.") : "You own this. Wear it in Profile → Appearance."}</p>
             <button type="button" onClick={() => navigate("/profile", { state: { tab: "appearance" } })} className="inline-flex h-10 w-full items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-semibold text-[var(--text-2)] hover:border-[var(--line-strong)]">Open Appearance</button>
           </>
         ) : item.unlock === "coin" ? (
@@ -247,7 +254,7 @@ export function ShopPage() {
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
         <PageTabs<ShopTab> ariaLabel="Shop sections" value={tab} onChange={(next) => { setTab(next); setRarity(0) }} options={TABS} />
-        {(tab === "featured" || tab === "frame" || tab === "name_color" || tab === "name_glow") && (
+        {(tab === "featured" || tab === "frame" || tab === "name_color" || tab === "name_glow" || tab === "emote") && (
           <PageBarEnd>
             <label className={cn(pageSearchClass, "max-md:hidden")}>
               <Search className="size-4 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />
@@ -281,7 +288,7 @@ export function ShopPage() {
                       <span className="relative z-[1] flex min-w-0 flex-col gap-2">
                         <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[1px] text-[var(--text-2)]"><RarityDots rarity={item.rarity ?? 1} />{RARITY_NAMES[item.rarity ?? 1]} · Spotlight</span>
                         <span className="text-[28px] font-bold leading-tight text-[var(--text)]">{item.name}</span>
-                        <span className="text-[13px] text-[var(--text-muted)]">{item.kind === "frame" ? "Avatar frame" : item.kind === "name_color" ? "Name colour" : "Name glow"} · {ownersLine(item, data?.players)}</span>
+                        <span className="text-[13px] text-[var(--text-muted)]">{item.kind === "frame" ? "Avatar frame" : KIND_NAME[item.kind]} · {ownersLine(item, data?.players)}</span>
                         <span className="mt-1 inline-flex items-center gap-2 text-[18px] font-bold text-[var(--text)]"><LxMark size={20} />{item.price.toLocaleString()}</span>
                       </span>
                     </button>
@@ -302,12 +309,12 @@ export function ShopPage() {
                 </section>
               )}
               {tab === "featured" && (
-                <section aria-label="Your collection" className="grid gap-4 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] px-4 py-3 sm:grid-cols-3">
-                  {(["frame", "name_color", "name_glow"] as const).map((kind) => {
+                <section aria-label="Your collection" className="grid gap-4 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] px-4 py-3 sm:grid-cols-4">
+                  {(["frame", "name_color", "name_glow", "emote"] as const).map((kind) => {
                     const { owned, total } = collection(kind)
                     return (
                       <div key={kind} className="flex flex-col gap-1.5">
-                        <span className="flex justify-between text-xs text-[var(--text-muted)]"><span>{kind === "frame" ? "Frames" : kind === "name_color" ? "Name colours" : "Name glows"}</span><b className="text-[var(--text-2)]">{owned} / {total}</b></span>
+                        <span className="flex justify-between text-xs text-[var(--text-muted)]"><span>{KIND_PLURAL[kind]}</span><b className="text-[var(--text-2)]">{owned} / {total}</b></span>
                         <span className="h-1 overflow-hidden rounded-full bg-[var(--line)]"><i className="block h-full bg-[var(--text-2)]" style={{ width: `${total ? (owned / total) * 100 : 0}%` }} /></span>
                       </div>
                     )
