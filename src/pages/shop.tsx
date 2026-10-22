@@ -59,7 +59,7 @@ function ItemArt({ item, avatar, username, size }: { item: ShopItem; avatar?: st
   if (item.kind === "frame") return <FramedAvatar avatar={avatar} name={username} frame={item.id} size={size} />
   if (item.kind === "emote") return <EmoteArt name={item.name} username={username} />
   const look = item.kind === "name_color" ? { color: item.color ?? null, colorFx: item.fx ?? null } : { glow: item.glow ?? null, glowFx: item.fx ?? null }
-  return <span {...nameProps(look, "max-w-full truncate px-2 text-[19px] font-bold text-[var(--text)]")}>{username}</span>
+  return <span {...nameProps(look, cn("max-w-full truncate px-2 font-bold text-[var(--text)]", size > 100 ? "text-[19px]" : "text-[15px]"))}>{username}</span>
 }
 
 function accentOf(item: ShopItem) {
@@ -178,14 +178,14 @@ export function ShopPage() {
         >
           <div className="relative">
             <span className="absolute left-2.5 top-2.5 z-[2] flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[1px] text-[var(--text-2)]"><RarityDots rarity={item.rarity ?? 1} />{RARITY_NAMES[item.rarity ?? 1]}</span>
-            <Spot accent={accentOf(item)} height={132}><div className="pt-3"><ItemArt item={item} avatar={user?.avatar} username={username} size={92} /></div></Spot>
+            <Spot accent={accentOf(item)} height={104}><div className="pt-2"><ItemArt item={item} avatar={user?.avatar} username={username} size={70} /></div></Spot>
           </div>
-          <div className="flex flex-col gap-1.5 px-3 pb-3 pt-2.5">
+          <div className="flex flex-col gap-1 px-2.5 pb-2.5 pt-2">
+            <span className="truncate text-[13px] font-semibold text-[var(--text)]">{item.name}</span>
             <span className="flex items-center justify-between gap-2">
-              <span className="truncate text-[13px] font-semibold text-[var(--text)]">{item.name}</span>
               {action}
+              <span className="truncate text-[11px] text-[var(--text-dim)]">{tab === "featured" ? `${KIND_NAME[item.kind]} · ` : ""}{ownersLine(item, data?.players)}</span>
             </span>
-            <span className="truncate text-[11px] text-[var(--text-dim)]">{KIND_NAME[item.kind]} · {ownersLine(item, data?.players)}</span>
           </div>
         </button>
       </li>
@@ -305,7 +305,7 @@ export function ShopPage() {
               {tab === "featured" && featured.length > 0 && (
                 <section aria-label="Featured">
                   <div className="mb-2.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">Featured</div>
-                  <ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 scrollbar-hidden sm:mx-0 sm:grid sm:snap-none sm:grid-cols-2 sm:overflow-visible sm:px-0 xl:grid-cols-4 [&>li]:w-[230px] [&>li]:shrink-0 [&>li]:snap-start sm:[&>li]:w-auto">{featured.map(card)}</ul>
+                  <ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 scrollbar-hidden sm:mx-0 sm:grid sm:snap-none sm:grid-cols-3 sm:overflow-visible sm:px-0 xl:grid-cols-5 [&>li]:w-[170px] [&>li]:shrink-0 [&>li]:snap-start sm:[&>li]:w-auto">{featured.map(card)}</ul>
                 </section>
               )}
               {tab === "featured" && (
@@ -347,7 +347,7 @@ export function ShopPage() {
                     </PopoverContent>
                   </Popover>
                 </div>
-                {shown.length === 0 ? <p className="py-8 text-[13px] text-[var(--text-dim)]">Nothing here.</p> : <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">{shown.map(card)}</ul>}
+                {shown.length === 0 ? <p className="py-8 text-[13px] text-[var(--text-dim)]">Nothing here.</p> : <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">{shown.map(card)}</ul>}
               </section>
             </div>
             {rail}
