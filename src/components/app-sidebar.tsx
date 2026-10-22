@@ -1,5 +1,5 @@
 import { useEffect, useState, type ComponentType } from "react"
-import { ArrowLeftRight, ShoppingBag, DoorOpen, Swords, MountainSnow, Scale, ScrollText, Telescope, Users, Lock, PanelLeft, ChevronDown, ShieldCheck, Clapperboard } from "lucide-react"
+import { ArrowLeftRight, Gem, DoorOpen, Swords, MountainSnow, Scale, ScrollText, Telescope, Users, Lock, PanelLeft, ChevronDown, ShieldCheck, Clapperboard } from "lucide-react"
 
 import { isFeatureEnabled, isPageEnabled } from "@/lib/features"
 import { competitiveService } from "@/api"
@@ -36,7 +36,7 @@ const PLAY_ITEMS: NavItem[] = enabledNav([
 const NAV_ITEMS: NavItem[] = enabledNav([
   { id: "skinchanger", label: "Skinchanger", icon: KnifeIcon },
   { id: "compare", label: "Compare", icon: ArrowLeftRight },
-  { id: "shop", label: "Shop", icon: ShoppingBag },
+  { id: "shop", label: "Shop", icon: Gem },
   { id: "leaders", label: "Leaders", icon: MountainSnow },
   { id: "clan", label: "Clans", icon: Users },
   { id: "creators", label: "Creators", icon: Clapperboard },

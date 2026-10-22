@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { ArrowUp, Clock, Flame, Gavel, Plus, RotateCcw, ShoppingBag, Trophy, Users } from "lucide-react"
+import { ArrowUp, Clock, Flame, Gavel, Gem, Plus, RotateCcw, Trophy, Users } from "lucide-react"
 
 import { walletService, type Wallet, type WalletTransaction } from "@/api"
 import { AnimatedNumber } from "@/components/animated-number"
@@ -37,7 +37,7 @@ function dayLetter(day: string) {
 function lineIcon(entry: WalletTransaction) {
   const reason = entry.reason.toLowerCase()
   if (entry.kind === "penalty") return <Gavel className="size-4" aria-hidden="true" />
-  if (entry.amount < 0) return <ShoppingBag className="size-4" aria-hidden="true" />
+  if (entry.amount < 0) return <Gem className="size-4" aria-hidden="true" />
   if (reason.includes("in a row")) return <Flame className="size-4" aria-hidden="true" />
   if (reason.includes("rank") && !reason.includes("match")) return <Trophy className="size-4" aria-hidden="true" />
   if (reason.includes("first win")) return <Trophy className="size-4" aria-hidden="true" />
@@ -172,7 +172,7 @@ export function WalletPage() {
               </section>
 
               <div className="flex gap-2">
-                {[{ label: "Top up", icon: Plus, to: "/wallet/top-up" }, { label: "Shop", icon: ShoppingBag, to: "/shop" }, { label: "Clan", icon: Users, to: "/clans" }, { label: "History", icon: Clock, to: "" }].map((action) => (
+                {[{ label: "Top up", icon: Plus, to: "/wallet/top-up" }, { label: "Shop", icon: Gem, to: "/shop" }, { label: "Clan", icon: Users, to: "/clans" }, { label: "History", icon: Clock, to: "" }].map((action) => (
                   <button key={action.label} type="button" onClick={() => (action.to ? navigate(action.to) : setTab("history"))} className="flex h-[60px] flex-1 flex-col items-center justify-center gap-1 rounded-xl border border-[var(--line)] bg-[var(--glass-fill)] text-xs font-semibold text-[var(--text-2)] transition-colors hover:bg-[var(--raised)]">
                     <action.icon className="size-5 opacity-80" aria-hidden="true" />{action.label}
                   </button>
