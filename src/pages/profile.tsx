@@ -409,6 +409,9 @@ function StatsRow({ stats }: { stats: NonNullable<ProfileOverview["stats"]> }) {
         const percentile = tile.percentile ?? null
         const above = average !== null && tile.value > average
         const below = average !== null && tile.value < average
+        // Above the community average is green, below is red, equal is grey (the same colours as the Compare page).
+        const tone = above ? "text-[var(--result-win)]" : below ? "text-[var(--result-loss)]" : "text-[var(--text-2)]"
+        const toneBg = above ? "bg-[var(--result-win)]" : below ? "bg-[var(--result-loss)]" : "bg-[var(--text-2)]"
         return (
           <div key={tile.key} title={format(tile.key, tile.value)} className="lx-stat-cell px-4 py-3.5">
             <span className="lx-stat-label">{tile.label}</span>
@@ -417,16 +420,16 @@ function StatsRow({ stats }: { stats: NonNullable<ProfileOverview["stats"]> }) {
             </span>
             {percentile !== null && (
               <span role="img" aria-label={`Better than ${percentile}% of ranked players`} className="relative mt-0.5 block h-1 overflow-hidden rounded-full bg-[var(--line)]">
-                <i className="lx-stat-fill block h-full rounded-full bg-[var(--text-2)]" style={{ width: `${Math.max(3, percentile)}%` }} />
+                <i className={cn("lx-stat-fill block h-full rounded-full", toneBg)} style={{ width: `${Math.max(3, percentile)}%` }} />
               </span>
             )}
             {average !== null && (
               <span className="flex items-center justify-between gap-2 text-[11px] text-[var(--text-dim)]">
                 <span title="Average of ranked players with 5+ matches" className="inline-flex items-center gap-1">
-                  {above ? <ArrowUp className="size-3 text-[var(--text-2)]" aria-hidden="true" /> : below ? <ArrowDown className="size-3 text-[var(--text-2)]" aria-hidden="true" /> : <Minus className="size-3 text-[var(--text-2)]" aria-hidden="true" />}
+                  {above ? <ArrowUp className={cn("size-3", tone)} aria-hidden="true" /> : below ? <ArrowDown className={cn("size-3", tone)} aria-hidden="true" /> : <Minus className={cn("size-3", tone)} aria-hidden="true" />}
                   Avg {format(tile.key, average)}
                 </span>
-                {percentile !== null && <span className="font-semibold text-[var(--text-2)]">{percentile >= 50 ? `Top ${Math.max(1, 100 - percentile)}%` : `Beats ${percentile}%`}</span>}
+                {percentile !== null && <span className={cn("font-semibold", tone)}>{percentile >= 50 ? `Top ${Math.max(1, 100 - percentile)}%` : `Beats ${percentile}%`}</span>}
               </span>
             )}
           </div>

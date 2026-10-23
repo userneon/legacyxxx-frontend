@@ -170,8 +170,8 @@ its opening), the **Gold Foil banner** (profile banner, effect key `goldfoil`, `
 (`components/founder-pack.tsx`). The card shows the API's real numbers (remaining of limit, deadline); nothing is invented. Banners and titles are earned cosmetics: they
 are worn in Profile → Appearance, not sold in the Shop tabs. Frames can have a `mask` entry in `lib/cosmetics.ts`; `FramedAvatar` then fills the opening exactly.
 
-Profile stats (owner request 2026-10-23): under each number a thin bar shows how many ranked players the player beats, with "Avg …" (the community average) and "Top N%" / "Beats N%". Neutral
-white, no green or red. Both come from the API (players with 5+ ranked matches; nothing is shown while fewer than 10 players qualify) and are never computed or guessed on the site.
+Profile stats (owner request 2026-10-23): under each number a thin bar shows how many ranked players the player beats, with "Avg …" (the community average) and "Top N%" / "Beats N%". Above the
+community average is green (`--result-win`), below is red (`--result-loss`), equal is grey, the same outcome colours as the Compare page (owner request 2026-10-23); still not a general accent. Both come from the API (players with 5+ ranked matches; nothing is shown while fewer than 10 players qualify) and are never computed or guessed on the site.
 
 ## Icons and assets
 
