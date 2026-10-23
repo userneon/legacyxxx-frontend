@@ -726,8 +726,8 @@ export function ProfilePage({ userId }: { userId?: string }) {
       {tab === "profile" && (
       <div className="px-6 pt-6 max-md:px-4 max-md:pt-4">
         <section aria-label="Profile" className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-          <ProfileBanner fx={data.user.banner} />
-          <div className="relative px-5 pb-6 pt-7 max-md:px-4">
+          <ProfileBanner fx={data.user.banner} fade className="h-[190px]" />
+          <div className={cn("relative px-5 pb-6 max-md:px-4", data.user.banner ? "pt-[84px]" : "pt-7")}>
             <Header overview={data} onVisibilityChange={refetch} />
           </div>
         </section>

@@ -35,7 +35,7 @@ export function FounderPack() {
 
   return (
     <section aria-label="Founder pack" className="relative overflow-hidden rounded-2xl border border-[color-mix(in_oklab,var(--founder-2)_40%,transparent)] bg-[var(--card-surface)]">
-      <ProfileBanner fx="goldfoil" className="h-[150px] opacity-80" />
+      <ProfileBanner fx="goldfoil" fade className="h-[150px] opacity-80" />
       <div className="relative grid gap-5 p-5 md:grid-cols-[minmax(0,260px)_minmax(0,1fr)] max-md:p-4">
         <div className="flex flex-col items-center justify-end gap-2 pt-16 max-md:pt-10">
           <FramedAvatar avatar={user?.avatar} name={user?.username ?? "Player"} frame="founder" size={170} />
