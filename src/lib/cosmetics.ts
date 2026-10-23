@@ -13,7 +13,7 @@ interface FrameArt {
 }
 
 const FRAMES: Record<string, FrameArt> = {
-  "founder": { opening: 0.52, dx: 0, dy: -0.014, mask: true },
+  "founder": { opening: 0.6, dx: 0.002, dy: -0.014, mask: true },
   "starlight-corners": { opening: 0.8, dx: -0.002, dy: -0.002 },
   "torn-tape": { opening: 0.83, dx: -0.002, dy: -0.008 },
   "red-circuit": { opening: 0.86, dx: 0.002, dy: 0.004 },
