@@ -14,7 +14,7 @@ const secondary = "inline-flex h-9 items-center justify-center gap-1.5 rounded-l
 export function StaffSettings({ isOwner }: { isOwner: boolean }) {
   const { data, loading, error, refetch } = useApiQuery<SiteSetting[]>((signal) => staffConfigService.settings({ signal }), { enabled: isOwner, queryKey: `staff-settings:${isOwner}` })
   if (!isOwner) return <div className={STAFF_BODY}><p className="text-[13px] text-[var(--text-dim)]">Only the Owner can change the settings.</p></div>
-  const groups = ["Play", "Checks", "Creators"] as const
+  const groups = ["Play", "Chat", "Checks", "Creators"] as const
   return (
     <div className={STAFF_BODY}>
       <p className="text-[13px] text-[var(--text-muted)]">Numbers that decide how the site behaves. A change applies within a few seconds. A value that was changed is marked; Reset puts the default back.</p>

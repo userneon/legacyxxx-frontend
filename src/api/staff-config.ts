@@ -3,7 +3,7 @@ import { get, put, type CallOptions } from "./client"
 /** A number the Owner can change on the staff site (Staff → Settings). */
 export interface SiteSetting {
   key: string
-  group: "Play" | "Checks" | "Creators"
+  group: "Play" | "Checks" | "Creators" | "Chat"
   label: string
   hint: string
   unit: string

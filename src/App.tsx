@@ -8,6 +8,7 @@ import { Navigate, Routes, Route, useNavigate, useLocation } from "react-router-
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { ProfileBlock } from "@/components/profile-block"
+import { PublicChat } from "@/components/public-chat"
 import { HomePage } from "@/pages/home"
 import { PlayPage } from "@/pages/play"
 import { getWebsitePreferences } from "@/lib/preferences"
@@ -179,6 +180,7 @@ export function App() {
           </div>
         </div>
       </SidebarInset>
+      <PublicChat />
     </SidebarProvider>
   )
 }

@@ -166,6 +166,12 @@ Booster podium (owner request 2026-10-23): the three members with the most serve
 and **Bronze** frames (`public/frames/booster-*.webp`, masked like the Genesis frame). They are earned and follow the ranking: the API gives each frame to its holder and takes it from whoever loses the place.
 The Server Booster frame stays for every member who still boosts; the podium places are worn only while boosting too. The violet in these three comes from the owner-supplied art (a booster look, like the Boosters page's pink), not from site chrome.
 
+### Public chat (owner request 2026-10-23)
+
+A round button bottom right on every page of the website (`components/public-chat.tsx`) opens the community chat in a solid `--panel` panel (it floats over content). Everyone reads; a signed-in player writes
+(300 characters, no links, one message per `chat.cooldown_seconds`, refused while they have an active gag); staff who can ban see a Remove icon on each message; staff roles show a small pill (Owner violet, others neutral).
+Real data from `/public/chat`, refreshed every 4 s while open and every 30 s shut (a white dot on the button says something new was written). The staff site has no chat. Neutral palette, white send button.
+
 ### Creators (owner request 2026-10-12)
 
 Two creator roles, **Main Content Creator** and **Content Creator**, kept apart from staff (`legacy_x.content_creators`; no

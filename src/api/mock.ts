@@ -606,6 +606,11 @@ const MOCK_CLANS = [
 
 /** Notification settings for the session, so the switches in Settings really toggle. */
 let mockCreatorApplication: { status: "pending" | "approved" | "declined"; note: string; createdAt: string; decidedAt: string | null } | null = null
+const mockChat: Array<{ id: string; body: string; createdAt: string; author: { steamId: string; name: string; avatar: string | null; frame: string | null; nameStyle: null; staffRole: "OWNER" | "MANAGER" | "ADMIN" | null } }> = [
+  { id: "c1", body: "gg wp everyone, Mirage was close", createdAt: new Date(Date.now() - 14 * 60_000).toISOString(), author: { steamId: "76561198000000001", name: "xBataa", avatar: null, frame: null, nameStyle: null, staffRole: null } },
+  { id: "c2", body: "anyone for 5x5 at 8.30?", createdAt: new Date(Date.now() - 9 * 60_000).toISOString(), author: { steamId: "76561198000000004", name: "Enkh.", avatar: null, frame: null, nameStyle: null, staffRole: null } },
+  { id: "c3", body: "Servers are up. Report cheaters with the Reviews page.", createdAt: new Date(Date.now() - 4 * 60_000).toISOString(), author: { steamId: "76561198000000005", name: "Gansukh", avatar: null, frame: null, nameStyle: null, staffRole: "ADMIN" } },
+]
 let notificationPrefs = { tournaments: true, rankChanges: false, penalties: true }
 
 export async function mockResponse(method: string, path: string, query: Query, body?: unknown): Promise<unknown> {
@@ -652,6 +657,13 @@ export async function mockResponse(method: string, path: string, query: Query, b
   ] }
   if (path.startsWith("/api/v1/staff/cosmetics/") && method === "PUT") return { id: path.split("/").pop() }
   if (path.startsWith("/api/v1/staff/clans/") && path.endsWith("/transfer") && method === "POST") return undefined
+  if (path === "/api/v1/public/chat") return { messages: mockChat }
+  if (path === "/api/v1/chat" && method === "POST") {
+    const message = { id: `c${mockChat.length + 1}`, body: String((body as { body: string }).body), createdAt: new Date().toISOString(), author: { steamId: "76561198000000000", name: "LegacyTester", avatar: null, frame: null, nameStyle: null, staffRole: "OWNER" as const } }
+    mockChat.push(message)
+    return { message }
+  }
+  if (path.startsWith("/api/v1/staff/chat/") && method === "DELETE") { const at = mockChat.findIndex((entry) => entry.id === path.split("/").pop()); if (at >= 0) mockChat.splice(at, 1); return undefined }
   if (path === "/api/v1/play/status") return { leavesToday: 0, cooldown: null, next: { cooldownMinutes: 0 } }
   if (path === "/api/v1/notifications" && method === "GET") {
     const ago = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString()
