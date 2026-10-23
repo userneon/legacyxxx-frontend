@@ -4,6 +4,7 @@ import { toast } from "sonner"
 
 import { shopGoodsService, type GoodsOrderStatus, type GoodsProductInput, type StaffGoodsProduct } from "@/api/shop-goods"
 import { RelativeTime } from "@/components/relative-time"
+import { StaffCosmetics } from "@/components/staff-cosmetics"
 import { CardIcon, STAFF_BODY, STAFF_CARD, STAFF_GRID, StaffEmpty, type Tone } from "@/components/staff-ui"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -200,6 +201,7 @@ export function StaffShop() {
           </ul>
         )}
       </section>
+      <StaffCosmetics />
     </div>
   )
 }

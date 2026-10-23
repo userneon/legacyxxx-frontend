@@ -632,6 +632,25 @@ export async function mockResponse(method: string, path: string, query: Query, b
     const needle = String(query?.query ?? "").trim().toLowerCase()
     return { players: NAMES.map((name, index) => ({ steamId: `7656119800000${String(index).padStart(4, "0")}`, name, avatar: "", level: 24 - index })).filter((player) => !needle || player.name.toLowerCase().includes(needle)) }
   }
+  if (path === "/api/v1/staff/settings" && method === "GET") return { settings: [
+    { key: "play.leave_window_hours", group: "Play", label: "Leave counting window", hint: "Leaves of ranked matches are counted over this many hours.", unit: "hours", def: 24, min: 1, max: 168, value: 24, changed: false, updatedAt: null },
+    { key: "play.leave_block_from", group: "Play", label: "Block from the Nth leave", hint: "Earlier leaves only cost EXP; this one and later ones also block playing.", unit: "leaves", def: 3, min: 1, max: 20, value: 2, changed: true, updatedAt: new Date().toISOString() },
+    { key: "play.leave_block_step_minutes", group: "Play", label: "Block length per leave", hint: "The block starts at this many minutes and grows by it with every further leave.", unit: "minutes", def: 30, min: 1, max: 1440, value: 30, changed: false, updatedAt: null },
+    { key: "checks.code_minutes", group: "Checks", label: "Check code lifetime", hint: "How long the one-time code works after staff ask for a check.", unit: "minutes", def: 60, min: 5, max: 1440, value: 60, changed: false, updatedAt: null },
+    { key: "checks.retention_days", group: "Checks", label: "Keep checks for", hint: "Finished checks and their results are removed after this long.", unit: "days", def: 30, min: 1, max: 365, value: 30, changed: false, updatedAt: null },
+    { key: "checks.max_downloads", group: "Checks", label: "Downloads per check", hint: "How many times one code may download the checker.", unit: "times", def: 3, min: 1, max: 20, value: 3, changed: false, updatedAt: null },
+    { key: "creators.reapply_days", group: "Creators", label: "Apply again after a decline", hint: "A player whose creator application was declined may ask again after this long.", unit: "days", def: 7, min: 0, max: 365, value: 7, changed: false, updatedAt: null },
+  ] }
+  if (path.startsWith("/api/v1/staff/settings/") && method === "PUT") return { key: path.split("/").pop(), value: (body as { value: number | null }).value ?? 0 }
+  if (path === "/api/v1/staff/cosmetics" && method === "GET") return { items: [
+    { id: "frost-ring", kind: "frame", nameEn: "Frost Ring", nameMn: "Мөсөн цагираг", unlock: "coin", price: 200, requirement: "", sort: 4, enabled: true, owners: 38 },
+    { id: "blood-moon", kind: "frame", nameEn: "Blood Moon", nameMn: "Цус сар", unlock: "coin", price: 300, requirement: "", sort: 7, enabled: true, owners: 12 },
+    { id: "golden-crown", kind: "frame", nameEn: "Golden Crown", nameMn: "Алтан титэм", unlock: "achievement", price: 0, requirement: "Reach the Legacy rank", sort: 13, enabled: true, owners: 2 },
+    { id: "red-dragon", kind: "frame", nameEn: "Red Dragon", nameMn: "Улаан луу", unlock: "free", price: 0, requirement: "", sort: 1, enabled: false, owners: 120 },
+    { id: "ember", kind: "name_color", nameEn: "Ember", nameMn: "Нүүрс", unlock: "coin", price: 150, requirement: "", sort: 2, enabled: true, owners: 21 },
+    { id: "wave", kind: "emote", nameEn: "Wave", nameMn: "Мэндлэх", unlock: "coin", price: 250, requirement: "", sort: 1, enabled: true, owners: 9 },
+  ] }
+  if (path.startsWith("/api/v1/staff/cosmetics/") && method === "PUT") return { id: path.split("/").pop() }
   if (path === "/api/v1/play/status") return { leavesToday: 0, cooldown: null, next: { cooldownMinutes: 0 } }
   if (path === "/api/v1/notifications" && method === "GET") {
     const ago = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString()

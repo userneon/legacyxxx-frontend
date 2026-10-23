@@ -31,10 +31,11 @@ import { usePathTab } from "@/hooks/use-url-tab"
 import { ServerMapCard } from "@/components/staff-server-card"
 import { CardIcon, STAFF_BODY, STAFF_CARD, STAFF_GRID, StaffEmpty, StaffSection } from "@/components/staff-ui"
 import { StaffCreators } from "@/components/staff-creators"
+import { StaffSettings } from "@/components/staff-settings"
 import { StaffShop } from "@/components/staff-shop"
 import { StaffTeam } from "@/components/staff-team"
 
-type StaffTab = "overview" | "checks" | "penalties" | "players" | "clans" | "creators" | "shop" | "team" | "servers"
+type StaffTab = "overview" | "checks" | "penalties" | "players" | "clans" | "creators" | "shop" | "team" | "servers" | "settings"
 
 const TABS: Array<{ value: StaffTab; label: string }> = [
   { value: "overview", label: "Overview" },
@@ -46,6 +47,7 @@ const TABS: Array<{ value: StaffTab; label: string }> = [
   { value: "shop", label: "Shop" },
   { value: "team", label: "Team" },
   { value: "servers", label: "Servers" },
+  { value: "settings", label: "Settings" },
 ]
 
 const STEAM_ID = /^7656119\d{10}$/
@@ -54,7 +56,7 @@ const STEAM_ID = /^7656119\d{10}$/
 export function StaffPage({ initialTab = "overview" }: { initialTab?: StaffTab } = {}) {
   const { isAuthenticated } = useAuth()
   const { data: access, loading } = useApiQuery<ModerationAccess>((signal) => penaltyAdminService.getAccess({ signal }), { enabled: isAuthenticated, queryKey: `staff-access:${isAuthenticated}` })
-  const [tab, setTab] = usePathTab<StaffTab>("/staff", { overview: "", checks: "checks", penalties: "penalties", players: "players", clans: "clans", creators: "creators", shop: "shop", team: "team", servers: "servers" }, initialTab)
+  const [tab, setTab] = usePathTab<StaffTab>("/staff", { overview: "", checks: "checks", penalties: "penalties", players: "players", clans: "clans", creators: "creators", shop: "shop", team: "team", servers: "servers", settings: "settings" }, initialTab)
   const [params, setParams] = useSearchParams()
   const [finding, setFinding] = useState(false)
   // What is waiting, fetched once here: the Overview lists it and the tabs show how many are waiting.
@@ -112,6 +114,7 @@ export function StaffPage({ initialTab = "overview" }: { initialTab?: StaffTab }
         {tab === "shop" && <StaffShop />}
         {tab === "team" && <StaffTeam />}
         {tab === "servers" && <ServersPanel />}
+        {tab === "settings" && <StaffSettings isOwner={access.role === "OWNER"} />}
       </div>
       <StaffCommand open={finding} onOpenChange={setFinding} onPick={openCase} />
     </div>
