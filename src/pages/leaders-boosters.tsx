@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Crown, RotateCcw } from "lucide-react"
 
 import { discordService, type CommunityEntry } from "@/api/discord"
+import { FramedAvatar } from "@/components/framed-avatar"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { SteamIcon } from "@/components/steam-login-gate"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -36,8 +37,12 @@ function ProfileButton({ entry, onOpen, className }: { entry: CommunityEntry; on
   )
 }
 
+/** The booster podium frames (owner request 2026-10-23): on the most-boosts ladder the first three wear Gold, Silver and Bronze, as on their profiles. */
+const PODIUM_FRAMES = ["booster-gold", "booster-silver", "booster-bronze"]
+
 function TopCard({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen: () => void }) {
   const first = entry.position === 1
+  const podiumFrame = by === "boosts" && entry.boosts > 0 ? PODIUM_FRAMES[entry.position - 1] ?? null : null
   const slot = PODIUM_ORDER.indexOf(entry.position)
   return (
     <div
@@ -61,7 +66,11 @@ function TopCard({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen:
       <span aria-hidden="true" className="lx-boost-star right-6 top-[96px]" style={{ animationDelay: "1.1s", width: 7, height: 7 }} />
       <span aria-hidden="true" className="lx-boost-star right-[60px] top-[50px]" style={{ animationDelay: "2.1s", width: 8, height: 8 }} />
       <span className="flex min-w-0 items-center gap-3">
-        <PlayerAvatar avatar={entry.avatar || undefined} name={entry.name} className={cn("shrink-0 text-base", first ? "size-[60px] rounded-[15px] ring-2 ring-[var(--boost)]/70 ring-offset-2 ring-offset-[var(--card-surface)]" : "size-[52px] rounded-[13px]")} />
+        {podiumFrame ? (
+          <span className="-mb-5 -ml-3 -mt-2 shrink-0"><FramedAvatar avatar={entry.avatar || undefined} name={entry.name} frame={podiumFrame} size={first ? 112 : 98} /></span>
+        ) : (
+          <PlayerAvatar avatar={entry.avatar || undefined} name={entry.name} className={cn("shrink-0 text-base", first ? "size-[60px] rounded-[15px] ring-2 ring-[var(--boost)]/70 ring-offset-2 ring-offset-[var(--card-surface)]" : "size-[52px] rounded-[13px]")} />
+        )}
         <Who entry={entry} big={first} />
       </span>
       <span className="flex items-end justify-between border-t border-[var(--line-soft)] pt-3.5">
