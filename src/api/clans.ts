@@ -96,6 +96,11 @@ export const clansService = {
     await del<void>(`/api/v1/staff/clans/${clanId}`, options)
   },
 
+  /** Staff only: hand the clan to another member; the old leader stays as a co-leader. */
+  async moderateTransfer(clanId: string, userId: string, options?: CallOptions): Promise<void> {
+    await post<void>(`/api/v1/staff/clans/${clanId}/transfer`, { userId }, options)
+  },
+
   async moderateArt(clanId: string, kind: ClanArtKind, options?: CallOptions): Promise<void> {
     await del<void>(`/api/v1/staff/clans/${clanId}/art/${kind}`, options)
   },

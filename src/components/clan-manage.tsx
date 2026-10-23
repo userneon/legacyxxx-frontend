@@ -239,6 +239,9 @@ export function ModerateClan({ clan, onChanged, onDeleted, defaultOpen = false, 
   const [busy, setBusy] = useState(false)
   const [name, setName] = useState(clan.name)
   const [tag, setTag] = useState(clan.tag)
+  const [heir, setHeir] = useState("")
+  const leader = (clan.members ?? []).find((member) => member.role === "leader")
+  const heirs = (clan.members ?? []).filter((member) => member.role !== "leader")
   const run = async (action: () => Promise<unknown>, done: string, after: () => void) => {
     setBusy(true)
     try {
@@ -281,6 +284,21 @@ export function ModerateClan({ clan, onChanged, onDeleted, defaultOpen = false, 
                 <Input aria-label="Clan tag" className="w-24" maxLength={5} value={tag} onChange={(event) => setTag(event.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase())} />
               </div>
               <div><Button type="button" variant="outline" size="sm" disabled={busy || !renameOk} onClick={() => void run(() => clansService.moderateRename(clan.id, { name: name.trim(), tag }), "Name changed", onChanged)}>Save name</Button></div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="moderate-leader">Leader{leader ? `: ${leader.name}` : ""}</Label>
+              {heirs.length === 0 ? (
+                <p className="text-xs text-[var(--text-dim)]">There is no other member to hand the clan to.</p>
+              ) : (
+                <div className="flex gap-2">
+                  <select id="moderate-leader" value={heir} onChange={(event) => setHeir(event.target.value)} className="h-9 min-w-0 flex-1 rounded-lg border border-[var(--line)] bg-[var(--bg)] px-3 text-[13px] text-[var(--text)] focus:border-[var(--text-faint)] focus:outline-none">
+                    <option value="">Pick the new leader…</option>
+                    {heirs.map((member) => <option key={member.id} value={member.id}>{member.name} ({member.role === "co-leader" ? "co-leader" : "member"})</option>)}
+                  </select>
+                  <Button type="button" variant="outline" size="sm" className="h-9" disabled={busy || !heir} onClick={() => { const next = heirs.find((member) => member.id === heir); if (next && window.confirm(`Make ${next.name} the leader of ${clan.name}? ${leader ? `${leader.name} becomes a co-leader.` : ""}`)) void run(() => clansService.moderateTransfer(clan.id, next.id), `${next.name} leads ${clan.name} now`, () => { setHeir(""); onChanged() }) }}>Make leader</Button>
+                </div>
+              )}
+              <p className="text-xs text-[var(--text-dim)]">For a clan whose leader is gone or banned. Both players are told.</p>
             </div>
             <button type="button" disabled={busy} onClick={() => { if (window.confirm(`Delete ${clan.name}? Its members are released.`)) void run(() => clansService.moderateDelete(clan.id), "Clan deleted", () => { setOpen(false); onDeleted() }) }} className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-semibold text-[var(--status-red)] transition-colors hover:border-[var(--line-strong)] disabled:opacity-50">
               <Trash2 className="size-4" aria-hidden="true" /> Delete clan

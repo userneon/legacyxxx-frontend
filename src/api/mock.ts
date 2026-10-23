@@ -651,6 +651,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
     { id: "wave", kind: "emote", nameEn: "Wave", nameMn: "Мэндлэх", unlock: "coin", price: 250, requirement: "", sort: 1, enabled: true, owners: 9 },
   ] }
   if (path.startsWith("/api/v1/staff/cosmetics/") && method === "PUT") return { id: path.split("/").pop() }
+  if (path.startsWith("/api/v1/staff/clans/") && path.endsWith("/transfer") && method === "POST") return undefined
   if (path === "/api/v1/play/status") return { leavesToday: 0, cooldown: null, next: { cooldownMinutes: 0 } }
   if (path === "/api/v1/notifications" && method === "GET") {
     const ago = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString()
