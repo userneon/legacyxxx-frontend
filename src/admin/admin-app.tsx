@@ -2,7 +2,6 @@ import { Suspense, lazy, useEffect } from "react"
 import { ExternalLink, LogOut } from "lucide-react"
 import { Navigate, Route, Routes, useLocation } from "react-router-dom"
 
-import { BackgroundBeams } from "@/components/background-beams"
 import { ExternalRedirect } from "@/components/external-redirect"
 import { ProtectedPage } from "@/components/protected-page"
 import { useAuth } from "@/hooks/use-auth"
@@ -23,7 +22,6 @@ export function AdminApp() {
 
   return (
     <div className="flex h-svh min-w-0 flex-col gap-2 p-2">
-      <BackgroundBeams />
       <header className="lx-glass-shell flex h-14 shrink-0 items-center gap-4 rounded-[14px] px-4 max-md:px-3">
         <img src="/logolegacyx.webp" alt="" aria-hidden="true" className="size-6 shrink-0" />
         <div className="flex min-w-0 flex-1 items-center gap-2 text-[13px]">
