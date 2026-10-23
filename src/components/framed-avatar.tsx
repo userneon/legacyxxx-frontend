@@ -6,9 +6,13 @@ import { PlayerAvatar } from "@/components/player-avatar"
 export function FramedAvatar({ avatar, name, frame, size }: { avatar?: string; name?: string; frame: string | null | undefined; size: number }) {
   const art = frameArt(frame)
   const inner = Math.round(size * (art?.opening ?? 0.7))
+  // A frame with a mask: the picture covers the whole box and is cut to the shape of the frame's opening.
+  const masked = art?.maskSrc
+    ? { width: size, height: size, fontSize: Math.round(size * 0.3), borderRadius: 0, WebkitMaskImage: `url(${art.maskSrc})`, maskImage: `url(${art.maskSrc})`, WebkitMaskSize: "100% 100%", maskSize: "100% 100%" }
+    : null
   return (
     <span className="relative inline-flex shrink-0 items-center justify-center" style={{ width: size, height: size }}>
-      <PlayerAvatar avatar={avatar} name={name} className="relative z-0" style={{ width: inner, height: inner, fontSize: Math.round(inner * 0.4), background: avatar ? undefined : "linear-gradient(135deg, var(--line-strong), var(--raised))", color: "var(--text-2)", borderRadius: Math.round(inner * 0.16), translate: art ? `${art.dx * size}px ${art.dy * size}px` : undefined }} />
+      <PlayerAvatar avatar={avatar} name={name} className="relative z-0" style={masked ?? { width: inner, height: inner, fontSize: Math.round(inner * 0.4), background: avatar ? undefined : "linear-gradient(135deg, var(--line-strong), var(--raised))", color: "var(--text-2)", borderRadius: Math.round(inner * 0.16), translate: art ? `${art.dx * size}px ${art.dy * size}px` : undefined }} />
       {art && <img src={art.src} alt="" aria-hidden="true" width={size} height={size} className="pointer-events-none absolute inset-0 z-10 size-full max-w-none select-none" draggable={false} />}
     </span>
   )

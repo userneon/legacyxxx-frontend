@@ -8,9 +8,12 @@ interface FrameArt {
   opening: number
   dx: number
   dy: number
+  /** The art has a mask (public/frames/<id>-mask.webp, the shape of its opening): FramedAvatar cuts the picture to it, so it fills an opening that is not a square. */
+  mask?: boolean
 }
 
 const FRAMES: Record<string, FrameArt> = {
+  "founder": { opening: 0.52, dx: 0, dy: -0.014, mask: true },
   "starlight-corners": { opening: 0.8, dx: -0.002, dy: -0.002 },
   "torn-tape": { opening: 0.83, dx: -0.002, dy: -0.008 },
   "red-circuit": { opening: 0.86, dx: 0.002, dy: 0.004 },
@@ -38,9 +41,9 @@ const FRAMES: Record<string, FrameArt> = {
   "server-booster": { opening: 0.8, dx: 0, dy: 0 },
 }
 
-export function frameArt(id: string | null | undefined): ({ src: string } & FrameArt) | null {
+export function frameArt(id: string | null | undefined): ({ src: string; maskSrc?: string } & FrameArt) | null {
   if (!id || !(id in FRAMES)) return null
-  return { src: `/frames/${id}.webp`, ...FRAMES[id] }
+  return { src: `/frames/${id}.webp`, ...(FRAMES[id].mask ? { maskSrc: `/frames/${id}-mask.webp` } : {}), ...FRAMES[id] }
 }
 
 const COLOR_FX = new Set(["chrome", "gold", "ice", "sakura", "emerald", "aurora", "holo", "fire", "void", "sunrise", "ocean", "lava", "candy", "toxic", "midnight", "rosegold", "platinum", "spectrum", "galaxy"])
@@ -97,11 +100,18 @@ const ACCENTS: Record<string, string> = {
   "angel-wings": "#e5e7eb", // palette-exempt: the frame's own light
   "eclipse-clouds": "#9ca3af", // palette-exempt: the frame's own light
   "glitch": "#22d3ee", // palette-exempt: the frame's own light
+  "founder": "#f2cd72", // palette-exempt: the frame's own light
   "server-booster": "#ff73fa", // palette-exempt: Discord Boost brand
 }
 
 export function frameAccent(id: string): string {
   return ACCENTS[id] ?? "#d4d4d4" // palette-exempt: neutral light
+}
+
+/** Profile banners the site can draw: the API sends only an effect key, mapped to a CSS class here (anything else draws nothing). */
+const BANNER_CLASSES: Record<string, string> = { goldfoil: "lx-banner-goldfoil" }
+export function bannerClass(fx: string | null | undefined): string | null {
+  return fx && fx in BANNER_CLASSES ? BANNER_CLASSES[fx] : null
 }
 
 /** Props for a clan's [TAG]: the colour and glow the clan bought. Same safe handling as a player's name. */

@@ -161,6 +161,15 @@ Staff → Creators (`src/components/staff-creators.tsx`).
 Clan cards on the Clans page (owner request 2026-10-21, "more colour"): each clan carries its own colour, the backdrop it bought or else one of five calm hues from its tag (violet, orchid, emerald, teal, ruby), for the top hairline, the soft glow, the logo ring, the tag and the member bar. Computed, not a palette; a white primary Join.
 Creator cards on the Creators page are violet `.lx-add-box` cards like the Staff team cards, with a violet tier pill (owner request 2026-10-16).
 
+### Founder pack (owner decision 2026-10-23)
+
+A numbered, limited pack sold once for 30,000₮ through a Shop order that staff confirm (the goods flow: no payment on the site). Marking the order paid gives
+the buyer the next Founder number and: the **Founder frame** (`public/frames/founder.webp`, the owner-supplied art, masked: `founder-mask.webp` cuts the avatar to the shape of
+its opening), the **Gold Foil banner** (profile banner, effect key `goldfoil`, `.lx-banner-goldfoil`), the **Founder title** under the name and a gold **Founder #0001** badge
+(`components/founder-badge.tsx`). It is the only place gold appears: `--founder-1..4` (palette-exempt) on the banner, badge, title and the Featured-tab card
+(`components/founder-pack.tsx`). The card shows the API's real numbers (remaining of limit, deadline); nothing is invented. Banners and titles are earned cosmetics: they
+are worn in Profile → Appearance, not sold in the Shop tabs. Frames can have a `mask` entry in `lib/cosmetics.ts`; `FramedAvatar` then fills the opening exactly.
+
 ## Icons and assets
 
 lucide-react only, stroke 2, no emoji, no placeholder icons. Sizes: 18px nav/top bar,

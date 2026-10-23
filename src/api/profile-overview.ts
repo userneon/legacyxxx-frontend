@@ -36,6 +36,12 @@ export interface ProfileOverview {
     steamMedia: UserProfile["steamMedia"]
     /** The avatar frame the player wears (id), if any. */
     frame?: string | null
+    /** The profile banner the player wears (an effect key the site draws), if any. */
+    banner?: string | null
+    /** The title the player wears under their name, if any. */
+    title?: string | null
+    /** The player's number in the Founder pack, if they bought it. */
+    founder?: number | null
     /** The name colour and glow the player wears. */
     nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   }

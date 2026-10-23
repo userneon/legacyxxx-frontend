@@ -1,4 +1,5 @@
 import { EmoteArt } from "@/components/emote-art"
+import { FounderPack } from "@/components/founder-pack"
 import { useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
@@ -27,7 +28,9 @@ const SORTS = [
   { value: "rarity", label: "Rarity" },
 ] as const
 
-type ShopTab = "featured" | CosmeticKind | "clan" | "goods"
+/** The kinds the Shop sells (banners and titles are earned: they live in Profile → Appearance). */
+type ShopKind = Exclude<CosmeticKind, "banner" | "title">
+type ShopTab = "featured" | ShopKind | "clan" | "goods"
 type Rarity = 0 | 1 | 2 | 3 | 4
 
 const RARITY_NAMES = ["", "Common", "Rare", "Epic", "Legendary"]
@@ -41,10 +44,10 @@ const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "goods", label: "Goods" },
 ]
 
-type ShopItem = FrameItem & { kind: CosmeticKind }
+type ShopItem = FrameItem & { kind: ShopKind }
 
-const KIND_NAME: Record<CosmeticKind, string> = { frame: "Frame", name_color: "Name colour", name_glow: "Name glow", emote: "Emote" }
-const KIND_PLURAL: Record<CosmeticKind, string> = { frame: "Frames", name_color: "Name colours", name_glow: "Name glows", emote: "Emotes" }
+const KIND_NAME: Record<ShopKind, string> = { frame: "Frame", name_color: "Name colour", name_glow: "Name glow", emote: "Emote" }
+const KIND_PLURAL: Record<ShopKind, string> = { frame: "Frames", name_color: "Name colours", name_glow: "Name glows", emote: "Emotes" }
 
 function RarityDots({ rarity }: { rarity: number }) {
   return (
@@ -133,13 +136,13 @@ export function ShopPage() {
   }
 
   // The preview wears the item you look at, and whatever you already wear of the other kinds.
-  const previewOf = (kind: CosmeticKind) => (selected?.kind === kind ? selected : all.find((item) => item.kind === kind && item.id === worn[kind])) ?? null
+  const previewOf = (kind: ShopKind) => (selected?.kind === kind ? selected : all.find((item) => item.kind === kind && item.id === worn[kind])) ?? null
   const previewFrame = previewOf("frame")
   const previewColor = previewOf("name_color")
   const previewGlow = previewOf("name_glow")
   const previewLook = { color: previewColor?.color ?? null, colorFx: previewColor?.fx ?? null, glow: previewGlow?.glow ?? null, glowFx: previewGlow?.fx ?? null }
 
-  const collection = (kind: CosmeticKind) => {
+  const collection = (kind: ShopKind) => {
     const list = all.filter((item) => item.kind === kind)
     return { owned: list.filter((item) => item.owned).length, total: list.length }
   }
@@ -277,6 +280,7 @@ export function ShopPage() {
           ) : (
           <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
             <div className="flex min-w-0 flex-col gap-5">
+              {tab === "featured" && <FounderPack />}
               {tab === "featured" && featured[0] && (() => {
                 const item = featured[0]
                 const cheapest = (goods ?? []).filter((product) => product.kind === "lx" && product.grantsLx > 0).sort((a, b) => a.priceMnt - b.priceMnt)[0]
@@ -323,7 +327,7 @@ export function ShopPage() {
               )}
               <section aria-label="Items">
                 <div className="mb-3 flex items-center gap-2 max-md:-mx-4 max-md:overflow-x-auto max-md:px-4 max-md:pb-1 max-md:scrollbar-hidden md:flex-wrap [&>*]:shrink-0">
-                  <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{tab === "featured" ? "All items" : TABS.find((entry) => entry.value === tab)?.label}{tab !== "featured" && (() => { const { owned, total } = collection(tab as CosmeticKind); return <b className="ml-2 font-semibold normal-case tracking-normal text-[var(--text-2)]">{owned} / {total} owned</b> })()}</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{tab === "featured" ? "All items" : TABS.find((entry) => entry.value === tab)?.label}{tab !== "featured" && (() => { const { owned, total } = collection(tab as ShopKind); return <b className="ml-2 font-semibold normal-case tracking-normal text-[var(--text-2)]">{owned} / {total} owned</b> })()}</span>
                   <span className="flex-1" />
                   {([0, 1, 2, 3, 4] as const).map((step) => <button key={step} type="button" aria-pressed={rarity === step} onClick={() => setRarity(step)} className={pill(rarity === step)}>{step === 0 ? "All" : RARITY_NAMES[step]}</button>)}
                   <span aria-hidden="true" className="mx-0.5 h-4 w-px bg-[var(--line)]" />

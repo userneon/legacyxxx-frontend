@@ -6,7 +6,7 @@ import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
 import { cosmeticsService, type CosmeticKind, type Cosmetics, type FrameItem } from "@/api/cosmetics"
-import { nameProps } from "@/lib/cosmetics"
+import { bannerClass, nameProps } from "@/lib/cosmetics"
 import { walletService, type Wallet } from "@/api"
 import { FramedAvatar } from "@/components/framed-avatar"
 import { discordService, type DiscordLinkState } from "@/api/discord"
@@ -243,6 +243,8 @@ const KINDS: Array<{ value: CosmeticKind; label: string; noun: string }> = [
   { value: "name_color", label: "Name colour", noun: "colour" },
   { value: "name_glow", label: "Name glow", noun: "glow" },
   { value: "emote", label: "Emotes", noun: "emote" },
+  { value: "banner", label: "Banner", noun: "banner" },
+  { value: "title", label: "Title", noun: "title" },
 ]
 
 function Appearance() {
@@ -256,8 +258,8 @@ function Appearance() {
   const [picked, setPicked] = useState<Partial<Record<CosmeticKind, string>>>({})
   const saved = useSavedFlash()
 
-  const lists: Record<CosmeticKind, FrameItem[]> = { frame: data?.frames ?? [], name_color: data?.nameColors ?? [], name_glow: data?.nameGlows ?? [], emote: data?.emotes ?? [] }
-  const worn: Record<CosmeticKind, string | null> = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, emote: data?.equippedEmote ?? null }
+  const lists: Record<CosmeticKind, FrameItem[]> = { frame: data?.frames ?? [], name_color: data?.nameColors ?? [], name_glow: data?.nameGlows ?? [], emote: data?.emotes ?? [], banner: data?.banners ?? [], title: data?.titles ?? [] }
+  const worn: Record<CosmeticKind, string | null> = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, emote: data?.equippedEmote ?? null, banner: data?.equippedBanner ?? null, title: data?.equippedTitle ?? null }
   const noun = KINDS.find((entry) => entry.value === kind)?.noun ?? "item"
   const frames = lists[kind]
   const selectedId = picked[kind] ?? worn[kind] ?? frames[0]?.id ?? null
@@ -312,7 +314,7 @@ function Appearance() {
   const sampleName = user?.username ?? "Player"
 
   return (
-    <Section id="appearance" index={0} title="Appearance" description="Frames, name colours and glows. Cosmetic only." aside={saved.node}>
+    <Section id="appearance" index={0} title="Appearance" description="Frames, name styles, emotes, banners and titles. Cosmetic only." aside={saved.node}>
       {loading ? (
         <div className="grid gap-4 md:grid-cols-[210px_minmax(0,1fr)]"><Skeleton className="h-[300px] rounded-[10px]" /><Skeleton className="h-[300px] rounded-[10px]" /></div>
       ) : error || !data ? (
@@ -359,6 +361,10 @@ function Appearance() {
                     >
                       {kind === "frame" ? (
                         <FramedAvatar avatar={user?.avatar} name={user?.username} frame={item.id} size={76} />
+                      ) : kind === "banner" ? (
+                        <span className="relative flex h-[76px] w-full items-center justify-center overflow-hidden rounded-lg"><span aria-hidden="true" className={cn("absolute inset-0", bannerClass(item.fx))} /></span>
+                      ) : kind === "title" ? (
+                        <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><span className={cn("truncate text-[11px] font-semibold uppercase tracking-[3px]", item.name === "Founder" ? "lx-profile-title-founder" : "text-[var(--text-dim)]")}>{item.name}</span></span>
                       ) : kind === "emote" ? (
                         <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><EmoteArt name={item.name} username={sampleName} compact /></span>
                       ) : (

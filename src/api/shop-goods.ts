@@ -6,13 +6,15 @@ export interface GoodsProduct {
   slug: string
   name: string
   description: string
-  kind: "charm" | "sticker" | "other" | "lx"
+  kind: "charm" | "sticker" | "other" | "lx" | "founder"
   /** Price in tugrik (MNT). */
   priceMnt: number
   imageUrl: string | null
   stock: number
   /** For kind "lx": the LX the package puts in the wallet once it is paid. */
   grantsLx: number
+  /** For the Founder pack: how many packs there are, how many are taken, when it stops selling, and whether it can still be ordered. */
+  founder?: { limit: number; taken: number; remaining: number; endsAt: string | null; open: boolean }
 }
 
 export type GoodsOrderStatus = "new" | "contacted" | "paid" | "shipped" | "done" | "cancelled"

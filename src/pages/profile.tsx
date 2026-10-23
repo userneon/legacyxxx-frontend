@@ -1,5 +1,7 @@
 import { DiscordIcon } from "@/components/discord-strip"
 import { BoosterBadge } from "@/components/booster-badge"
+import { FounderBadge } from "@/components/founder-badge"
+import { ProfileBanner } from "@/components/profile-banner"
 import { PlayerNameText } from "@/components/player-name-text"
 import { DiscordLinkedMark } from "@/components/discord-linked-mark"
 import { useEffect, useRef, useState } from "react"
@@ -170,11 +172,13 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
     <header className="lx-swap-in flex flex-col items-center gap-4 text-center">
       <Avatar user={user} />
       <div className="flex min-w-0 max-w-full flex-col items-center gap-2.5">
+        {user.title && <span className={cn("text-[11px] font-semibold uppercase tracking-[3px]", user.title === "Founder" ? "lx-profile-title-founder" : "text-[var(--text-dim)]")}>{user.title}</span>}
         <div className="flex flex-wrap items-center justify-center gap-2.5">
           <h1 {...nameProps(user.nameStyle, "truncate text-[30px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]")} title={user.username}><PlayerNameText name={user.username} /></h1>
           <RoleBadge role={user.role} />
           {overview.creator && <CreatorBadge tier={overview.creator.tier} label={overview.creator.label} />}
           <DiscordLinkedMark linked={overview.discordLinked} className="[&_svg]:size-[18px]" />
+          {user.founder ? <FounderBadge number={user.founder} /> : null}
           {overview.discordBoosting && <BoosterBadge />}
           {overview.clan && (
             <Link to={`/clans/${overview.clan.id}`} title={overview.clan.name} className="inline-flex h-6 items-center gap-1 rounded-full border border-[var(--line)] px-2 text-[11px] font-semibold text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]">
@@ -721,8 +725,9 @@ export function ProfilePage({ userId }: { userId?: string }) {
       )}
       {tab === "profile" && (
       <div className="px-6 pt-6 max-md:px-4 max-md:pt-4">
-        <section aria-label="Profile" className="overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-          <div className="px-5 pb-6 pt-7 max-md:px-4">
+        <section aria-label="Profile" className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
+          <ProfileBanner fx={data.user.banner} />
+          <div className="relative px-5 pb-6 pt-7 max-md:px-4">
             <Header overview={data} onVisibilityChange={refetch} />
           </div>
         </section>

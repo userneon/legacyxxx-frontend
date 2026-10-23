@@ -123,7 +123,7 @@ export function StaffShop() {
             <div className="grid gap-3 sm:grid-cols-4">
               <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Type
                 <select className={input} value={draft.kind} onChange={(event) => setDraft({ ...draft, kind: event.target.value as Draft["kind"] })}>
-                  <option value="charm">NFC charm</option><option value="sticker">Sticker</option><option value="other">Other</option><option value="lx">LX top-up package</option>
+                  <option value="charm">NFC charm</option><option value="sticker">Sticker</option><option value="other">Other</option><option value="lx">LX top-up package</option><option value="founder">Founder pack (In stock = number of packs)</option>
                 </select>
               </label>
               <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Price (₮)

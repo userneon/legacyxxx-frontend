@@ -32,7 +32,7 @@ export function ShopGoods() {
   const { data: products, loading, error, refetch } = useApiQuery<GoodsProduct[]>((signal) => shopGoodsService.products({ signal }), { queryKey: "shop-goods" })
   const { data: orders, refetch: refetchOrders } = useApiQuery<GoodsOrder[]>((signal) => shopGoodsService.myOrders({ signal }), { enabled: Boolean(user), queryKey: user ? `shop-orders:${user.id}` : "shop-orders:guest" })
   const [picked, setPicked] = useState<GoodsProduct | null>(null)
-  const shown = (products ?? []).filter((product) => product.kind !== "lx")
+  const shown = (products ?? []).filter((product) => product.kind !== "lx" && product.kind !== "founder")
   const goodsOrders = (orders ?? []).filter((order) => order.productKind !== "lx")
 
   if (loading) return <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">{[0, 1, 2, 3].map((n) => <Skeleton key={n} className="h-[280px] rounded-xl" />)}</div>
@@ -132,7 +132,7 @@ export function OrderDialog({ product, onClose, onDone }: { product: GoodsProduc
         </DialogHeader>
         {product && (
           <div className="flex flex-col gap-3">
-            <label className={cn("flex flex-col gap-1.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]", product.kind === "lx" && "hidden")}>
+            <label className={cn("flex flex-col gap-1.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]", (product.kind === "lx" || product.kind === "founder") && "hidden")}>
               How many
               <select value={quantity} onChange={(event) => setQuantity(Number(event.target.value))} className={field}>
                 {Array.from({ length: Math.min(10, product.stock) }, (_, index) => index + 1).map((n) => <option key={n} value={n}>{n}</option>)}
