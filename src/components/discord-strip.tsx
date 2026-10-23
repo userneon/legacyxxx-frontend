@@ -1,9 +1,9 @@
 import { useEffect, useState, type ComponentProps } from "react"
 import { ArrowUpRight } from "lucide-react"
 
+import { LINKS } from "@/lib/links"
 import { cn } from "@/lib/utils"
 
-const DISCORD_INVITE = "https://discord.gg/legacyx"
 /** Discord server ID; live counts need Server Settings → Widget → Enable Server Widget. */
 const DISCORD_GUILD_ID = (import.meta.env.VITE_DISCORD_GUILD_ID as string | undefined)?.trim()
 
@@ -44,7 +44,7 @@ export function DiscordStrip() {
 
   return (
     <a
-      href={widget?.instant_invite || DISCORD_INVITE}
+      href={widget?.instant_invite || LINKS.discordInvite}
       target="_blank"
       rel="noreferrer"
       aria-label="Join the LEGACY-X Discord"

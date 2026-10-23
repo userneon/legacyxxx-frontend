@@ -6,15 +6,15 @@ import { cn } from "@/lib/utils"
 
 /**
  * A small Discord glyph next to a name: this player linked their Discord. Only the fact is shown, never the account.
- * Hover or focus pops a small "Discord linked" card with a green tick (the tick pops in a beat later; both stop moving for reduced motion).
+ * Hover (or focus, where `focusable` is set: the profile; a list of rows would be a tab stop per row) pops a small "Discord linked" card with a green tick (the tick pops in a beat later; both stop moving for reduced motion).
  */
-export function DiscordLinkedMark({ linked, className }: { linked?: boolean; className?: string }) {
+export function DiscordLinkedMark({ linked, className, focusable }: { linked?: boolean; className?: string; focusable?: boolean }) {
   if (!linked) return null
   return (
     <TooltipProvider delayDuration={80}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <span tabIndex={0} role="img" aria-label="Discord linked" className={cn("inline-flex shrink-0 cursor-default items-center rounded-sm text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50", className)}>
+          <span tabIndex={focusable ? 0 : undefined} role="img" aria-label="Discord linked" className={cn("inline-flex shrink-0 cursor-default items-center rounded-sm text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50", className)}>
             <DiscordIcon className="size-4" />
           </span>
         </TooltipTrigger>

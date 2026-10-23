@@ -21,6 +21,14 @@ const STATUSES: Array<{ value: GoodsOrderStatus; label: string }> = [
   { value: "cancelled", label: "Cancelled" },
 ]
 const mnt = (value: number) => `${value.toLocaleString()}₮`
+/** An ISO time as the "YYYY-MM-DDTHH:mm" a datetime-local box wants, in the viewer's own time. */
+const toLocalInput = (iso: string | null | undefined) => {
+  if (!iso) return ""
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return ""
+  const pad = (n: number) => String(n).padStart(2, "0")
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
 
 type Draft = GoodsProductInput & { slug: string; isNew: boolean }
 const EMPTY: Draft = { slug: "", isNew: true, name: "", description: "", kind: "charm", grantsLx: 0, priceMnt: 0, imageUrl: null, stock: 0, enabled: true, sort: 0 }
@@ -53,7 +61,7 @@ export function StaffShop() {
     setBusy(true)
     try {
       const { slug, isNew: _isNew, ...body } = draft
-      await shopGoodsService.saveProduct(slug, { ...body, name: body.name.trim(), description: body.description.trim(), imageUrl: body.imageUrl?.trim() || null })
+      await shopGoodsService.saveProduct(slug, { ...body, name: body.name.trim(), description: body.description.trim(), imageUrl: body.imageUrl?.trim() || null, ...(body.kind === "founder" ? { endsAt: body.endsAt ?? null } : { endsAt: undefined }) })
       toast.success("Saved")
       setDraft(null)
       products.refetch()
@@ -63,7 +71,7 @@ export function StaffShop() {
       setBusy(false)
     }
   }
-  const edit = (product: StaffGoodsProduct) => setDraft({ slug: product.slug, isNew: false, name: product.name, description: product.description, kind: product.kind, grantsLx: product.grantsLx, priceMnt: product.priceMnt, imageUrl: product.imageUrl, stock: product.stock, enabled: product.enabled, sort: product.sort })
+  const edit = (product: StaffGoodsProduct) => setDraft({ slug: product.slug, isNew: false, name: product.name, description: product.description, kind: product.kind, grantsLx: product.grantsLx, priceMnt: product.priceMnt, imageUrl: product.imageUrl, stock: product.stock, enabled: product.enabled, sort: product.sort, ...(product.kind === "founder" ? { endsAt: product.founder?.endsAt ?? null } : {}) })
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-5 max-md:px-4">
@@ -139,6 +147,11 @@ export function StaffShop() {
             {draft.kind === "lx" && (
               <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">LX the package gives (credited once when the order is marked Paid)
                 <input className={input} type="number" min={0} value={draft.grantsLx} onChange={(event) => setDraft({ ...draft, grantsLx: Math.max(0, Math.floor(Number(event.target.value) || 0)) })} />
+              </label>
+            )}
+            {draft.kind === "founder" && (
+              <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Sales end (leave empty for no end; the pack count is "In stock")
+                <input className={input} type="datetime-local" value={toLocalInput(draft.endsAt)} onChange={(event) => setDraft({ ...draft, endsAt: event.target.value ? new Date(event.target.value).toISOString() : null })} />
               </label>
             )}
             <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Picture address (https://…)

@@ -56,6 +56,8 @@ export interface GoodsProductInput {
   stock: number
   enabled: boolean
   sort: number
+  /** The Founder pack only: when it stops selling (an ISO time; null = it never ends). Leave out for other products. */
+  endsAt?: string | null
 }
 
 export const shopGoodsService = {

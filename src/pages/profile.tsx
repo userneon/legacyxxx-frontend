@@ -177,7 +177,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
           <h1 {...nameProps(user.nameStyle, "truncate text-[30px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]")} title={user.username}><PlayerNameText name={user.username} /></h1>
           <RoleBadge role={user.role} />
           {overview.creator && <CreatorBadge tier={overview.creator.tier} label={overview.creator.label} />}
-          <DiscordLinkedMark linked={overview.discordLinked} className="[&_svg]:size-[18px]" />
+          <DiscordLinkedMark linked={overview.discordLinked} focusable className="[&_svg]:size-[18px]" />
           {user.founder ? <FounderBadge number={user.founder} /> : null}
           {(overview.discordBoosting || overview.boosterPlace) && <BoosterBadge place={overview.boosterPlace} />}
           {overview.clan && (
