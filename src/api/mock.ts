@@ -14,7 +14,7 @@ const RANKS: [number, string][] = [
   [4, "Recruit III"], [3, "Recruit II"], [2, "Recruit I"], [2, "Recruit I"], [1, "Recruit I"], [1, "Recruit I"],
 ]
 
-const mockFrameState = { equipped: null as string | null, nameColor: null as string | null, nameGlow: null as string | null, emote: null as string | null, owned: new Set<string>() }
+const mockFrameState = { equipped: null as string | null, nameColor: null as string | null, nameGlow: null as string | null, owned: new Set<string>() }
 function mockNameItems(kind: "color" | "glow"): Array<{ id: string; name: string; nameMn: string; unlock: "free" | "coin" | "achievement"; price: number; requirement: string; owned: boolean; rarity: number; featured: boolean; owners: number | null; color?: string; glow?: string; fx?: string }> {
   // [key, name, unlock, price, requirement, value, effect]
   const rows: Array<[string, string, "free" | "coin" | "achievement", number, string, string, string?]> = kind === "color"
@@ -23,10 +23,6 @@ function mockNameItems(kind: "color" | "glow"): Array<{ id: string; name: string
     : [["white", "Soft White", "coin", 250, "", "#ffffff", "neon"], ["ice", "Ice", "coin", 250, "", "#38bdf8", "neon"], ["mint", "Mint", "coin", 250, "", "#4ade80", "neon"], ["crimson", "Crimson", "coin", 300, "", "#f43f5e", "neon"], ["violet", "Violet", "coin", 300, "", "#a78bfa", "neon"], ["gold", "Gold", "coin", 350, "", "#fbbf24", "neon"], ["aurora", "Aurora", "achievement", 0, "Clan tournament winner", "#2dd4bf", "neon"], // palette-exempt: cosmetic data
        ["pulse", "Crimson Pulse", "coin", 400, "", "#f43f5e", "pulse"], ["flame", "Flame", "coin", 450, "", "#fb923c", "flame"], ["electric", "Electric", "coin", 450, "", "#60a5fa", "electric"], ["royal", "Royal Aura", "coin", 500, "", "#fbbf24", "aura"]] // palette-exempt: cosmetic data
   return rows.map(([key, name, unlock, price, requirement, value, fx]) => ({ id: `${kind}-${key}`, name, nameMn: name, unlock, price, requirement, owned: unlock === "free" || mockFrameState.owned.has(`${kind}-${key}`), rarity: unlock === "achievement" ? 4 : unlock === "free" || price <= 250 ? 1 : price <= 500 ? 2 : 3, featured: key === "holo" || key === "royal", owners: unlock === "free" ? null : (key.length * 2) % 5, ...(kind === "color" ? { color: value } : { glow: value }), ...(fx ? { fx } : {}) })) // palette-exempt: name colours are cosmetic data a player picks
-}
-function mockEmotes() {
-  const rows: Array<[string, string, "free" | "coin" | "achievement", number, string]> = [["gg", "GG", "free", 0, ""], ["hello", "Hello", "coin", 100, ""], ["gl", "Good Luck", "coin", 100, ""], ["nice", "Nice Shot", "coin", 150, ""], ["clap", "Applause", "coin", 150, ""], ["salute", "Salute", "coin", 200, ""], ["fire", "On Fire", "coin", 250, ""], ["legacy", "Legacy", "achievement", 0, "Reach the Legacy rank"]]
-  return rows.map(([key, name, unlock, price, requirement]) => ({ id: `emote-${key}`, name, nameMn: name, unlock, price, requirement, owned: unlock === "free" || mockFrameState.owned.has(`emote-${key}`), rarity: unlock === "achievement" ? 4 : price <= 100 ? 1 : price <= 200 ? 2 : 3, featured: false, owners: unlock === "free" ? null : (key.length * 2) % 5, fx: key }))
 }
 function mockNameStyle() {
   const colorItem = mockNameItems("color").find((item) => item.id === mockFrameState.nameColor)
@@ -653,7 +649,6 @@ export async function mockResponse(method: string, path: string, query: Query, b
     { id: "golden-crown", kind: "frame", nameEn: "Golden Crown", nameMn: "Алтан титэм", unlock: "achievement", price: 0, requirement: "Reach the Legacy rank", sort: 13, enabled: true, owners: 2 },
     { id: "red-dragon", kind: "frame", nameEn: "Red Dragon", nameMn: "Улаан луу", unlock: "free", price: 0, requirement: "", sort: 1, enabled: false, owners: 120 },
     { id: "ember", kind: "name_color", nameEn: "Ember", nameMn: "Нүүрс", unlock: "coin", price: 150, requirement: "", sort: 2, enabled: true, owners: 21 },
-    { id: "wave", kind: "emote", nameEn: "Wave", nameMn: "Мэндлэх", unlock: "coin", price: 250, requirement: "", sort: 1, enabled: true, owners: 9 },
   ] }
   if (path.startsWith("/api/v1/staff/cosmetics/") && method === "PUT") return { id: path.split("/").pop() }
   if (path.startsWith("/api/v1/staff/clans/") && path.endsWith("/transfer") && method === "POST") return undefined
@@ -759,10 +754,9 @@ export async function mockResponse(method: string, path: string, query: Query, b
     if (!signedIn()) throw unauthorized()
     const frames = mockFrames()
     if (method === "PUT") {
-      const { kind, item } = body as { kind: "frame" | "name_color" | "name_glow" | "emote"; item: string | null }
+      const { kind, item } = body as { kind: "frame" | "name_color" | "name_glow"; item: string | null }
       if (kind === "frame") mockFrameState.equipped = item
       else if (kind === "name_color") mockFrameState.nameColor = item
-      else if (kind === "emote") mockFrameState.emote = item
       else mockFrameState.nameGlow = item
       return { kind, item }
     }
@@ -770,7 +764,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
       mockFrameState.owned.add(decodeURIComponent(path.split("/")[4]))
       return { owned: true }
     }
-    return { players: 8, equippedFrame: mockFrameState.equipped, equippedNameColor: mockFrameState.nameColor, equippedNameGlow: mockFrameState.nameGlow, equippedEmote: mockFrameState.emote, emotes: mockEmotes(), banners: [{ id: "banner-gold-foil", name: "Gold Foil", nameMn: "Алтан тугалга", unlock: "achievement" as const, price: 0, requirement: "Genesis pack", owned: mockIsFounder(), rarity: 4, featured: false, owners: 0, fx: "goldfoil" }], titles: [{ id: "title-founder", name: "Genesis", nameMn: "Genesis", unlock: "achievement" as const, price: 0, requirement: "Genesis pack", owned: mockIsFounder(), rarity: 4, featured: false, owners: 0 }], equippedBanner: mockIsFounder() ? "banner-gold-foil" : null, equippedTitle: mockIsFounder() ? "title-founder" : null, frames, nameColors: mockNameItems("color"), nameGlows: mockNameItems("glow") }
+    return { players: 8, equippedFrame: mockFrameState.equipped, equippedNameColor: mockFrameState.nameColor, equippedNameGlow: mockFrameState.nameGlow, banners: [{ id: "banner-gold-foil", name: "Gold Foil", nameMn: "Алтан тугалга", unlock: "achievement" as const, price: 0, requirement: "Genesis pack", owned: mockIsFounder(), rarity: 4, featured: false, owners: 0, fx: "goldfoil" }], titles: [{ id: "title-founder", name: "Genesis", nameMn: "Genesis", unlock: "achievement" as const, price: 0, requirement: "Genesis pack", owned: mockIsFounder(), rarity: 4, featured: false, owners: 0 }], equippedBanner: mockIsFounder() ? "banner-gold-foil" : null, equippedTitle: mockIsFounder() ? "title-founder" : null, frames, nameColors: mockNameItems("color"), nameGlows: mockNameItems("glow") }
   }
   if (path === "/api/v1/wallet/me") {
     if (!signedIn()) throw unauthorized()

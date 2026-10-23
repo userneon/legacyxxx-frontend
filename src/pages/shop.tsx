@@ -1,4 +1,3 @@
-import { EmoteArt } from "@/components/emote-art"
 import { FounderPack } from "@/components/founder-pack"
 import { useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
@@ -39,15 +38,14 @@ const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "frame", label: "Frames" },
   { value: "name_color", label: "Name colour" },
   { value: "name_glow", label: "Name glow" },
-  { value: "emote", label: "Emotes" },
   { value: "clan", label: "Clan" },
   { value: "goods", label: "Goods" },
 ]
 
 type ShopItem = FrameItem & { kind: ShopKind }
 
-const KIND_NAME: Record<ShopKind, string> = { frame: "Frame", name_color: "Name colour", name_glow: "Name glow", emote: "Emote" }
-const KIND_PLURAL: Record<ShopKind, string> = { frame: "Frames", name_color: "Name colours", name_glow: "Name glows", emote: "Emotes" }
+const KIND_NAME: Record<ShopKind, string> = { frame: "Frame", name_color: "Name colour", name_glow: "Name glow" }
+const KIND_PLURAL: Record<ShopKind, string> = { frame: "Frames", name_color: "Name colours", name_glow: "Name glows" }
 
 function RarityDots({ rarity }: { rarity: number }) {
   return (
@@ -60,7 +58,6 @@ function RarityDots({ rarity }: { rarity: number }) {
 /** What the item looks like: a frame around your picture, or your name painted with it. */
 function ItemArt({ item, avatar, username, size }: { item: ShopItem; avatar?: string; username: string; size: number }) {
   if (item.kind === "frame") return <FramedAvatar avatar={avatar} name={username} frame={item.id} size={size} />
-  if (item.kind === "emote") return <EmoteArt name={item.name} username={username} />
   const look = item.kind === "name_color" ? { color: item.color ?? null, colorFx: item.fx ?? null } : { glow: item.glow ?? null, glowFx: item.fx ?? null }
   return <span {...nameProps(look, cn("max-w-full truncate px-2 font-bold text-[var(--text)]", size > 100 ? "text-[19px]" : "text-[15px]"))}>{username}</span>
 }
@@ -96,7 +93,7 @@ export function ShopPage() {
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const { data: goods } = useApiQuery<GoodsProduct[]>((signal) => shopGoodsService.products({ signal }), { queryKey: "shop-goods" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
-  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name_color: "name-colors", name_glow: "name-glows", emote: "emotes", clan: "clan", goods: "goods" }, "featured")
+  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name_color: "name-colors", name_glow: "name-glows", clan: "clan", goods: "goods" }, "featured")
   const [rarity, setRarity] = useState<Rarity>(0)
   const [status, setStatus] = useState<"all" | "sale" | "owned" | "earned">("all")
   const [sort, setSort] = useState<"price-up" | "price-down" | "rarity">("price-up")
@@ -109,9 +106,8 @@ export function ShopPage() {
     ...(data?.frames ?? []).map((item) => ({ ...item, kind: "frame" as const })),
     ...(data?.nameColors ?? []).map((item) => ({ ...item, kind: "name_color" as const })),
     ...(data?.nameGlows ?? []).map((item) => ({ ...item, kind: "name_glow" as const })),
-    ...(data?.emotes ?? []).map((item) => ({ ...item, kind: "emote" as const })),
   ], [data])
-  const worn = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, emote: data?.equippedEmote ?? null }
+  const worn = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null }
   const balance = wallet?.balance ?? null
   const username = user?.username ?? "Player"
 
@@ -203,7 +199,7 @@ export function ShopPage() {
         <div className="flex items-baseline justify-between"><span className="text-[15px] font-semibold text-[var(--text)]">{item.name}</span><span className="flex items-center gap-1.5 text-xs text-[var(--text-dim)]"><RarityDots rarity={item.rarity ?? 1} />{RARITY_NAMES[item.rarity ?? 1]}</span></div>
         {item.owned ? (
           <>
-            <p className="text-xs text-[var(--text-dim)]">{isWorn ? (item.kind === "emote" ? "Worn. Type .e in game to play it." : "You are wearing this.") : "You own this. Wear it in Profile → Appearance."}</p>
+            <p className="text-xs text-[var(--text-dim)]">{isWorn ? "You are wearing this." : "You own this. Wear it in Profile → Appearance."}</p>
             <button type="button" onClick={() => navigate("/profile", { state: { tab: "appearance" } })} className="inline-flex h-10 w-full items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-semibold text-[var(--text-2)] hover:border-[var(--line-strong)]">Open Appearance</button>
           </>
         ) : item.unlock === "coin" ? (
@@ -257,7 +253,7 @@ export function ShopPage() {
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
         <PageTabs<ShopTab> ariaLabel="Shop sections" value={tab} onChange={(next) => { setTab(next); setRarity(0) }} options={TABS} />
-        {(tab === "featured" || tab === "frame" || tab === "name_color" || tab === "name_glow" || tab === "emote") && (
+        {(tab === "featured" || tab === "frame" || tab === "name_color" || tab === "name_glow") && (
           <PageBarEnd>
             <label className={cn(pageSearchClass, "max-md:hidden")}>
               <Search className="size-4 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />
@@ -313,8 +309,8 @@ export function ShopPage() {
                 </section>
               )}
               {tab === "featured" && (
-                <section aria-label="Your collection" className="grid gap-4 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] px-4 py-3 sm:grid-cols-4">
-                  {(["frame", "name_color", "name_glow", "emote"] as const).map((kind) => {
+                <section aria-label="Your collection" className="grid gap-4 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] px-4 py-3 sm:grid-cols-3">
+                  {(["frame", "name_color", "name_glow"] as const).map((kind) => {
                     const { owned, total } = collection(kind)
                     return (
                       <div key={kind} className="flex flex-col gap-1.5">

@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils"
 const input = "h-9 w-full rounded-lg border border-[var(--line)] bg-[var(--bg)] px-3 text-[13px] text-[var(--text)] focus:border-[var(--text-faint)] focus:outline-none"
 const secondary = "inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] disabled:opacity-50"
 
-const KIND_LABEL: Record<CosmeticKindId, string> = { frame: "Frames", name_color: "Name colours", name_glow: "Name glows", emote: "Emotes", banner: "Banners", title: "Titles" }
+const KIND_LABEL: Record<CosmeticKindId, string> = { frame: "Frames", name_color: "Name colours", name_glow: "Name glows", banner: "Banners", title: "Titles" }
 const UNLOCK_LABEL: Record<CosmeticUnlock, string> = { free: "Free", coin: "LX", achievement: "Earned" }
 const UNLOCK_TONE: Record<CosmeticUnlock, Tone> = { free: "green", coin: "sky", achievement: "violet" }
 
