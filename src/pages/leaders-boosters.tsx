@@ -43,7 +43,7 @@ const PODIUM_FRAMES = ["booster-gold", "booster-silver", "booster-bronze"]
 function TopCard({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen: () => void }) {
   const first = entry.position === 1
   // Gold, Silver and Bronze on the boosts ladder; anyone else who boosted wears the Server Booster frame every booster keeps.
-  const podiumFrame = entry.boosts > 0 ? (by === "boosts" ? PODIUM_FRAMES[entry.position - 1] ?? null : "server-booster") : null
+  const podiumFrame = entry.boosts > 0 && entry.boosting ? (by === "boosts" ? PODIUM_FRAMES[entry.position - 1] ?? null : "server-booster") : null
   const slot = PODIUM_ORDER.indexOf(entry.position)
   return (
     <div
@@ -95,7 +95,7 @@ function Row({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen: () 
       {entry.boosting && <span aria-hidden="true" className="lx-boost-star left-[228px] top-[38px]" style={{ animationDelay: "1.6s", width: 7, height: 7 }} />}
       <span className="text-sm font-semibold text-[var(--text-muted)] group-hover:text-[var(--text)]">{entry.position}</span>
       <span className="flex min-w-0 items-center gap-3">
-        {entry.boosts > 0 ? (
+        {entry.boosts > 0 && entry.boosting ? (
           <FramedAvatar avatar={entry.avatar || undefined} name={entry.name} frame="server-booster" size={42} />
         ) : (
           <PlayerAvatar avatar={entry.avatar || undefined} name={entry.name} className="size-8 shrink-0 rounded-[9px] text-[10px]" />
