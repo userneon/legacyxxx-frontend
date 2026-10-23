@@ -696,6 +696,9 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path === "/api/v1/staffpanel/staff" && method === "GET") return [
     { id: "s1", userId: "u0", username: "Owner", steamId: "76561198000000000", avatar: "", role: "OWNER", status: "active", stamina: 1000, immunity: 1000, expiresAt: null, createdAt: "2026-09-01T00:00:00Z" },
     { id: "s2", userId: "u5", username: "Gansukh", steamId: "76561198000000005", avatar: "", role: "ADMIN", status: "active", stamina: 500, immunity: 500, expiresAt: "2026-11-11T15:59:59Z", createdAt: "2026-09-20T00:00:00Z" },
+    { id: "s3", userId: "u6", username: "Temuulen", steamId: "76561198000000006", avatar: "", role: "MANAGER", status: "active", stamina: 750, immunity: 750, expiresAt: null, createdAt: "2026-09-21T00:00:00Z" },
+    { id: "s4", userId: "u7", username: "Bold", steamId: "76561198000000007", avatar: "", role: "DEVELOPER", status: "active", stamina: 0, immunity: 0, expiresAt: null, createdAt: "2026-09-22T00:00:00Z" },
+    { id: "s5", userId: "u8", username: "Saran", steamId: "76561198000000008", avatar: "", role: "DESIGNER", status: "suspended", stamina: 0, immunity: 0, expiresAt: null, createdAt: "2026-09-23T00:00:00Z" },
   ]
   if (path.startsWith("/api/v1/staffpanel/staff") || path.startsWith("/api/v1/staffpanel/creators")) return { ok: true, label: "Content Creator" }
   if (path === "/api/v1/moderation/access") return { canManage: true, role: "OWNER", canApprove: true, requestedPenaltyIds: [], can: { ban: true, unban: true, edit: true } }

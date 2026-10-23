@@ -4,7 +4,7 @@ import { toast } from "sonner"
 
 import { get, patch, post } from "@/api/client"
 import { PlayerAvatar } from "@/components/player-avatar"
-import { STAFF_BODY } from "@/components/staff-ui"
+import { STAFF_BODY, type Tone } from "@/components/staff-ui"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cn } from "@/lib/utils"
@@ -13,12 +13,13 @@ type StaffRole = "OWNER" | "MANAGER" | "ADMIN" | "DEVELOPER" | "DESIGNER"
 type StaffStatus = "active" | "suspended" | "revoked"
 interface StaffMember { id: string; userId: string; username: string; steamId: string; avatar: string; role: StaffRole; status: StaffStatus; stamina: number; immunity: number; expiresAt: string | null; createdAt: string }
 
-const ROLES: Array<{ id: StaffRole; label: string; note: string; level: number }> = [
-  { id: "OWNER", label: "Owner", note: "Everything, including this list", level: 1000 },
-  { id: "MANAGER", label: "Manager", note: "Staff tools, server console, creators", level: 750 },
-  { id: "ADMIN", label: "Admin", note: "Bans, mutes, kicks in game and on the site", level: 500 },
-  { id: "DEVELOPER", label: "Developer", note: "Team badge, no moderation", level: 0 },
-  { id: "DESIGNER", label: "Designer", note: "Team badge, no moderation", level: 0 },
+/** Each role has its own colour (owner request 2026-10-23): Owner violet, Manager red, Admin sky, Developer green, Designer amber. */
+const ROLES: Array<{ id: StaffRole; label: string; note: string; level: number; tone: Tone }> = [
+  { id: "OWNER", label: "Owner", note: "Everything, including this list", level: 1000, tone: "violet" },
+  { id: "MANAGER", label: "Manager", note: "Staff tools, server console, creators", level: 750, tone: "red" },
+  { id: "ADMIN", label: "Admin", note: "Bans, mutes, kicks in game and on the site", level: 500, tone: "sky" },
+  { id: "DEVELOPER", label: "Developer", note: "Team badge, no moderation", level: 0, tone: "green" },
+  { id: "DESIGNER", label: "Designer", note: "Team badge, no moderation", level: 0, tone: "amber" },
 ]
 const STATUS_LABEL: Record<StaffStatus, string> = { active: "Active", suspended: "Suspended", revoked: "Removed" }
 
@@ -60,7 +61,7 @@ function RolePicker({ value, onChange }: { value: StaffRole; onChange: (role: St
   return (
     <div role="radiogroup" aria-label="Role" className="grid gap-1.5 sm:grid-cols-5">
       {ROLES.map((role) => (
-        <button key={role.id} type="button" role="radio" aria-checked={value === role.id} onClick={() => onChange(role.id)} className={cn("flex flex-col items-start gap-0.5 rounded-lg border px-3 py-2 text-left transition-colors", value === role.id ? "border-[var(--brand)] bg-[var(--raised)]" : "border-[var(--line)] hover:border-[var(--line-strong)]")}>
+        <button key={role.id} type="button" role="radio" aria-checked={value === role.id} data-tone={role.tone} onClick={() => onChange(role.id)} className={cn("lx-tone flex flex-col items-start gap-0.5 rounded-lg border px-3 py-2 text-left transition-colors", value === role.id ? "border-[var(--tone)] bg-[var(--raised)]" : "border-[var(--line)]")}>
           <span className="text-[13px] font-semibold text-[var(--text)]">{role.label}</span>
           <span className="text-[11px] leading-snug text-[var(--text-dim)]">{role.note}</span>
         </button>
@@ -155,13 +156,13 @@ export function StaffTeam() {
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {members.map((member) => (
-            <li key={member.id} className={cn("relative lx-add-box flex flex-col gap-3.5 rounded-2xl border p-[18px]", member.status !== "active" && "opacity-60 saturate-50")}>
+            <li key={member.id} data-tone={ROLES.find((role) => role.id === member.role)?.tone} className={cn("lx-tone relative flex flex-col gap-3.5 rounded-2xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-[18px]", member.status !== "active" && "opacity-60 saturate-50")}>
               <div className="flex items-center gap-3">
-                <PlayerAvatar avatar={member.avatar || undefined} name={member.username} className="size-12 shrink-0 rounded-xl text-[13px] ring-1 ring-[var(--brand)]/40" />
+                <PlayerAvatar avatar={member.avatar || undefined} name={member.username} className="size-12 shrink-0 rounded-xl text-[13px] ring-1 ring-[color-mix(in_oklab,var(--tone)_45%,transparent)]" />
                 <span className="flex min-w-0 flex-1 flex-col gap-1">
                   <span className="truncate text-[15px] font-semibold text-[var(--text)]" title={member.username}>{member.username}</span>
                   <span className="flex flex-wrap items-center gap-1.5">
-                    <span className="inline-flex h-6 items-center rounded-full border border-[var(--brand)]/45 bg-[var(--brand)]/12 px-2.5 text-xs font-semibold text-[var(--brand-bright)]">{ROLES.find((role) => role.id === member.role)?.label ?? member.role}</span>
+                    <span className="lx-tone-text inline-flex h-6 items-center rounded-full border border-[color-mix(in_oklab,var(--tone)_45%,transparent)] bg-[color-mix(in_oklab,var(--tone)_12%,transparent)] px-2.5 text-xs font-semibold">{ROLES.find((role) => role.id === member.role)?.label ?? member.role}</span>
                     {member.status !== "active" && <span className="text-xs text-[var(--text-dim)]">{STATUS_LABEL[member.status]}</span>}
                   </span>
                 </span>
@@ -171,7 +172,7 @@ export function StaffTeam() {
                 <span className="lx-stat-cell gap-1 px-3 py-2"><span className="lx-stat-label">Stamina</span><span className="text-[15px] font-semibold text-[var(--text)]">{member.stamina}</span></span>
               </div>
               <span className="flex flex-col gap-0.5 text-[11px] text-[var(--text-dim)]">
-                <span className={cn(member.expiresAt && "text-[var(--brand-bright)]")}>{untilText(member.expiresAt)}</span>
+                <span className={cn(member.expiresAt && "lx-tone-text")}>{untilText(member.expiresAt)}</span>
                 <span className="truncate">{member.steamId}</span>
               </span>
               <div className="mt-auto flex gap-2">
