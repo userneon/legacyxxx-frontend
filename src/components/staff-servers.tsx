@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from "react"
 import { Database, Loader2, LockKeyhole, Map, Megaphone, MonitorUp, Power, RotateCcw, ServerCog, ShieldAlert, UserRoundCog, UsersRound } from "lucide-react"
 
-import { STAFF_BODY, STAFF_CARD, StaffEmpty } from "@/components/staff-ui"
+import { STAFF_BODY, STAFF_CARD, StaffEmpty, type Tone } from "@/components/staff-ui"
 import { staffPanelService } from "@/api/staffpanel"
 import type { ApiError, StaffPanelAccess, StaffPanelActionRequest, StaffPanelDatabaseOverview, StaffPanelOverview } from "@/api/types"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+
+/** An action's colour: red hurts a player or stops a server, amber restarts, green starts, sky talks, violet moves the game, none just looks. */
+const ACTION_TONE: Partial<Record<string, Tone>> = { ban: "red", kick: "red", mute: "red", timeout: "red", stop_server: "red", rename: "violet", map_change: "violet", server_announcement: "sky", match_announcement: "sky", hud_announcement: "sky", player_message: "sky", restart_all: "amber", restart_server: "amber", start_server: "green" }
 
 type ActionDef = { type: StaffPanelActionRequest["type"]; label: string; icon: typeof UsersRound; needsPlayer?: boolean; needsMessage?: boolean; needsMap?: boolean; confirm?: string }
 
@@ -123,7 +126,7 @@ export function ServersPanel() {
               const online = isOnline(item.last_heartbeat_at)
               return (
                 <li key={item.server_id}>
-                  <button type="button" role="radio" aria-checked={picked} onClick={() => setServer(item.server_id)} className={cn(STAFF_CARD, "h-full w-full text-left", picked && "border-[var(--text-2)] bg-[var(--raised)]")}>
+                  <button type="button" role="radio" aria-checked={picked} data-tone={online ? "green" : "red"} onClick={() => setServer(item.server_id)} className={cn(STAFF_CARD, "h-full w-full text-left", picked && "border-[var(--text-2)] bg-[var(--raised)]")}>
                     <span className="flex items-center gap-2">
                       <span className={cn("size-2 shrink-0 rounded-full", online ? "bg-[var(--status-green)]" : "bg-[var(--text-faint)]")} aria-hidden="true" />
                       <span className="min-w-0 flex-1 truncate text-[13px] font-semibold text-[var(--text)]">{item.name || item.server_id}</span>
@@ -151,8 +154,8 @@ export function ServersPanel() {
           </div>
           <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
             {actions.map((action) => (
-              <button key={action.type} type="button" disabled={busy} onClick={() => void queue(action)} className={cn(STAFF_CARD, "flex-row items-center gap-3 px-3.5 py-3 text-left text-[13px] text-[var(--text)] disabled:opacity-50")}>
-                <action.icon className="size-4 shrink-0 text-[var(--text-2)]" aria-hidden="true" />{action.label}
+              <button key={action.type} type="button" data-tone={ACTION_TONE[action.type]} disabled={busy} onClick={() => void queue(action)} className={cn(STAFF_CARD, "flex-row items-center gap-3 px-3.5 py-3 text-left text-[13px] text-[var(--text)] disabled:opacity-50")}>
+                <action.icon className={cn("size-4 shrink-0", ACTION_TONE[action.type] ? "lx-tone-text" : "text-[var(--text-2)]")} aria-hidden="true" />{action.label}
               </button>
             ))}
           </div>
@@ -165,7 +168,7 @@ export function ServersPanel() {
           ) : (
             <ul className="grid gap-3">
               {overview?.pendingActions.map((action) => (
-                <li key={action.id} className={cn(STAFF_CARD, "gap-1 px-3.5 py-3 text-[13px]")}>
+                <li key={action.id} data-tone={action.status === "completed" ? "green" : action.status === "failed" ? "red" : "amber"} className={cn(STAFF_CARD, "gap-1 px-3.5 py-3 text-[13px]")}>
                   <span className="flex items-center justify-between gap-3">
                     <span className="min-w-0 truncate text-[var(--text)]">{action.action_type.replace(/_/g, " ")} <span className="text-[var(--text-dim)]">· {action.server_id}</span></span>
                     <span className={cn("flex shrink-0 items-center gap-1.5 text-[11px] font-semibold", action.status === "completed" ? "text-[var(--status-green)]" : action.status === "failed" ? "text-[var(--status-red)]" : "text-[var(--text-dim)]")}>

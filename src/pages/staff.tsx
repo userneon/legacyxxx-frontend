@@ -131,6 +131,7 @@ function Overview({ access, onGo, onCase }: { access: ModerationAccess; onGo: (t
     })),
   ].sort((a, b) => a.at - b.at)
   const icons = { c: ScanSearch, p: Clock, l: Gavel } as const
+  const tones = { c: "red", p: "amber", l: "violet" } as const
   return (
     <div className={STAFF_BODY}>
       <div className="lx-stat-grid grid-cols-2 sm:grid-flow-col sm:grid-cols-none sm:auto-cols-fr">
@@ -147,7 +148,7 @@ function Overview({ access, onGo, onCase }: { access: ModerationAccess; onGo: (t
         ) : (
           <ul className={STAFF_GRID}>
             {queue.map((item) => (
-              <li key={item.key} className={STAFF_CARD}>
+              <li key={item.key} data-tone={tones[item.key[0] as keyof typeof tones]} className={STAFF_CARD}>
                 <div className="flex items-start gap-3">
                   <CardIcon icon={icons[item.key[0] as keyof typeof icons]} />
                   <span className="min-w-0 flex-1">
@@ -167,13 +168,13 @@ function Overview({ access, onGo, onCase }: { access: ModerationAccess; onGo: (t
       <StaffSection title="Where to go">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {([
-            { tab: "checks", icon: ScanSearch, title: "Ask for a check", text: "Give a player a one-time code, read what the checker found." },
-            { tab: "penalties", icon: Scale, title: "Penalties", text: "Issue a ban, mute or gag, and decide on unban requests." },
-            { tab: "players", icon: UserSearch, title: "Find a player", text: "Open a player by Steam ID, or penalise them." },
-            { tab: "clans", icon: Users, title: "Clans", text: "Remove a logo or banner, rename a clan or delete it." },
-            { tab: "servers", icon: Server, title: "Servers", text: "Ban, kick, change the map, announce, restart." },
+            { tab: "checks", tone: "violet", icon: ScanSearch, title: "Ask for a check", text: "Give a player a one-time code, read what the checker found." },
+            { tab: "penalties", tone: "red", icon: Scale, title: "Penalties", text: "Issue a ban, mute or gag, and decide on unban requests." },
+            { tab: "players", tone: "sky", icon: UserSearch, title: "Find a player", text: "Open a player by Steam ID, or penalise them." },
+            { tab: "clans", tone: "green", icon: Users, title: "Clans", text: "Remove a logo or banner, rename a clan or delete it." },
+            { tab: "servers", tone: "amber", icon: Server, title: "Servers", text: "Ban, kick, change the map, announce, restart." },
           ] as const).map((card) => (
-            <button key={card.tab} type="button" onClick={() => onGo(card.tab)} className={cn(STAFF_CARD, "text-left")}>
+            <button key={card.tab} type="button" data-tone={card.tone} onClick={() => onGo(card.tab)} className={cn(STAFF_CARD, "text-left")}>
               <CardIcon icon={card.icon} />
               <span className="text-[15px] font-semibold text-[var(--text)]">{card.title}</span>
               <span className="text-[13px] text-[var(--text-dim)]">{card.text}</span>
@@ -211,7 +212,7 @@ function PlayersTab({ access, caseId, onFind, onBack, onChecks }: { access: Mode
   if (caseId && STEAM_ID.test(caseId)) return <PlayerCase key={caseId} steamId={caseId} access={access} onBack={onBack} onFind={onFind} onChecks={onChecks} />
   return (
     <div className={STAFF_BODY}>
-      <div className={cn(STAFF_CARD, "mx-auto mt-6 w-full max-w-md items-center gap-3 p-8 text-center")}>
+      <div data-tone="sky" className={cn(STAFF_CARD, "mx-auto mt-6 w-full max-w-md items-center gap-3 p-8 text-center")}>
         <CardIcon icon={UserSearch} className="size-12" />
         <p className="text-[15px] font-semibold text-[var(--text)]">Find a player</p>
         <p className="text-[13px] text-[var(--text-dim)]">Type a name or a Steam ID to open their case: penalties, checks and the buttons to act.</p>
@@ -243,7 +244,7 @@ function ClansTab() {
       ) : (
         <ul className={STAFF_GRID}>
           {list.map((clan) => (
-            <li key={clan.id} className={STAFF_CARD}>
+            <li key={clan.id} data-tone={clan.currentPlayers >= clan.maxPlayers ? "amber" : "green"} className={STAFF_CARD}>
               <div className="flex items-start gap-3">
                 <CardIcon icon={Users} />
                 <div className="min-w-0 flex-1">
@@ -252,7 +253,7 @@ function ClansTab() {
                 </div>
               </div>
               <div className="flex flex-col gap-1.5">
-                <div className="h-1.5 overflow-hidden rounded-full bg-[var(--raised)]"><div className="h-full rounded-full bg-[var(--text-2)]" style={{ width: `${Math.min(100, Math.round((clan.currentPlayers / Math.max(1, clan.maxPlayers)) * 100))}%` }} /></div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-[var(--raised)]"><div className="lx-tone-fill h-full rounded-full" style={{ width: `${Math.min(100, Math.round((clan.currentPlayers / Math.max(1, clan.maxPlayers)) * 100))}%` }} /></div>
                 <p className="text-[11px] text-[var(--text-dim)]">{clan.currentPlayers} / {clan.maxPlayers} players</p>
               </div>
               <div className="mt-auto flex gap-2">

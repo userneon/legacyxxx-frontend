@@ -4,7 +4,7 @@ import { toast } from "sonner"
 
 import { shopGoodsService, type GoodsOrderStatus, type GoodsProductInput, type StaffGoodsProduct } from "@/api/shop-goods"
 import { RelativeTime } from "@/components/relative-time"
-import { CardIcon, STAFF_BODY, STAFF_CARD, STAFF_GRID, StaffEmpty } from "@/components/staff-ui"
+import { CardIcon, STAFF_BODY, STAFF_CARD, STAFF_GRID, StaffEmpty, type Tone } from "@/components/staff-ui"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cn } from "@/lib/utils"
@@ -30,6 +30,9 @@ const toLocalInput = (iso: string | null | undefined) => {
   const pad = (n: number) => String(n).padStart(2, "0")
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
+
+/** Where an order stands, in colour: new waits (amber), contacted (sky), paid and done are fine (green), shipped is on its way (violet), cancelled is red. */
+const ORDER_TONE: Record<GoodsOrderStatus, Tone> = { new: "amber", contacted: "sky", paid: "green", shipped: "violet", done: "green", cancelled: "red" }
 
 type Draft = GoodsProductInput & { slug: string; isNew: boolean }
 const EMPTY: Draft = { slug: "", isNew: true, name: "", description: "", kind: "charm", grantsLx: 0, priceMnt: 0, imageUrl: null, stock: 0, enabled: true, sort: 0 }
@@ -93,7 +96,7 @@ export function StaffShop() {
         ) : (
           <ul className={STAFF_GRID}>
             {orders.data!.map((order) => (
-              <li key={order.id} className={STAFF_CARD}>
+              <li key={order.id} data-tone={ORDER_TONE[order.status]} className={STAFF_CARD}>
                 <div className="flex items-start gap-3">
                   <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                     <span className="truncate text-[13px] font-semibold text-[var(--text)]" title={order.productName}>{order.productName} × {order.quantity}</span>
@@ -181,7 +184,7 @@ export function StaffShop() {
         ) : (
           <ul className={STAFF_GRID}>
             {products.data!.map((product) => (
-              <li key={product.id} className={STAFF_CARD}>
+              <li key={product.id} data-tone={product.enabled ? "green" : undefined} className={STAFF_CARD}>
                 <div className="flex items-start gap-3">
                   {product.imageUrl ? <img src={product.imageUrl} alt="" className="size-12 shrink-0 rounded-xl border border-[var(--line)] object-cover" /> : <CardIcon icon={Package} className="size-12" />}
                   <span className="flex min-w-0 flex-1 flex-col gap-0.5">

@@ -8,7 +8,10 @@ import { cn } from "@/lib/utils"
  */
 export const STAFF_BODY = "mx-auto flex w-full max-w-[1320px] flex-col gap-6 px-6 pb-10 pt-5 max-md:px-4"
 export const STAFF_GRID = "grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
-export const STAFF_CARD = "relative flex min-w-0 flex-col gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4 transition-colors hover:border-[var(--line-strong)]"
+export type Tone = "red" | "amber" | "green" | "sky" | "violet"
+
+/** The card shape, with `lx-tone` so a `data-tone` on the card colours its hairline, wash and icon tile. */
+export const STAFF_CARD = "lx-tone relative flex min-w-0 flex-col gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4 transition-colors hover:border-[var(--line-strong)]"
 
 /** A titled block: small caps title with a count on the left, controls on the right, then its content. */
 export function StaffSection({ title, count, end, children, label }: { title: string; count?: number; end?: ReactNode; children: ReactNode; label?: string }) {
@@ -27,7 +30,7 @@ export function StaffSection({ title, count, end, children, label }: { title: st
 
 /** A square icon tile at the head of a card. */
 export function CardIcon({ icon: Icon, className }: { icon: ComponentType<{ className?: string }>; className?: string }) {
-  return <span aria-hidden="true" className={cn("grid size-10 shrink-0 place-items-center rounded-[10px] border border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]", className)}><Icon className="size-[18px]" /></span>
+  return <span aria-hidden="true" className={cn("lx-tone-icon grid size-10 shrink-0 place-items-center rounded-[10px] border border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]", className)}><Icon className="size-[18px]" /></span>
 }
 
 /** One quiet line where a list is empty. */

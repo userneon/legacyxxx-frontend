@@ -125,7 +125,7 @@ export function StaffCreators() {
         ) : (
           <ul className={STAFF_GRID}>
             {data!.creators.map((creator) => (
-              <li key={creator.userId} className={STAFF_CARD}>
+              <li key={creator.userId} data-tone={creator.tier === "main" ? "violet" : "sky"} className={STAFF_CARD}>
                 <div className="flex items-center gap-3">
                   <PlayerAvatar avatar={creator.avatar ?? undefined} name={creator.username} className="size-12 shrink-0 rounded-xl text-[13px]" />
                   <span className="flex min-w-0 flex-1 flex-col gap-1">
@@ -153,7 +153,7 @@ function ApplicationRow({ application, busy, onAnswer }: { application: StaffCre
   const [tier, setTier] = useState<CreatorTier>("creator")
   const [note, setNote] = useState("")
   return (
-    <li className={STAFF_CARD}>
+    <li data-tone="amber" className={STAFF_CARD}>
       <div className="flex items-center gap-3">
         <PlayerAvatar avatar={application.player.avatar ?? undefined} name={application.player.username} className="size-12 shrink-0 rounded-xl text-[13px]" />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">

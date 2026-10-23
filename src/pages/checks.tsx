@@ -294,7 +294,7 @@ export function ChecksPage({ embedded = false }: { embedded?: boolean } = {}) {
                   const summary = check.summary
                   return (
                     <li key={check.id} className="group/row relative">
-                      <button type="button" data-level={threat === "flagged" ? "flagged" : threat === "clear" ? "clear" : "review"} onClick={() => setOpen(check.id)} className="chk-row chk-panel group flex h-full w-full flex-col gap-3 py-4 pl-5 pr-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
+                      <button type="button" data-level={threat === "flagged" ? "flagged" : threat === "clear" ? "clear" : threat === "waiting" ? "waiting" : "review"} onClick={() => setOpen(check.id)} className="chk-row chk-panel group flex h-full w-full flex-col gap-3 py-4 pl-5 pr-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
                         <span className="flex items-center gap-3 pr-9">
                           <PlayerAvatar avatar={check.targetAvatar ?? undefined} name={check.targetName ?? check.targetSteamId} className="size-11 shrink-0 rounded-[10px] text-sm" />
                           <span className="flex min-w-0 flex-1 flex-col gap-1.5">

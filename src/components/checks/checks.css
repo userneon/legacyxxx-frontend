@@ -84,7 +84,8 @@
 }
 .chk-row[data-level="flagged"] { --chk-bar: var(--chk-danger); border-color: color-mix(in oklab, var(--chk-danger) 40%, transparent); }
 .chk-row[data-level="clear"] { --chk-bar: var(--chk-accent); }
-.chk-row[data-level="review"] { --chk-bar: var(--text-2); }
+.chk-row[data-level="review"] { --chk-bar: var(--tone-amber); }
+.chk-row[data-level="waiting"] { --chk-bar: var(--tone-sky); }
 .chk-row:hover { background-color: rgb(255 255 255 / 0.05); transform: translateY(-2px); }
 
 /* Segments of the risk meter */
