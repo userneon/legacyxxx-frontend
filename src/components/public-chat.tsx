@@ -27,8 +27,13 @@ export function PublicChat() {
   const [text, setText] = useState("")
   const [busy, setBusy] = useState(false)
   const [seen, setSeen] = useState<string | null>(null)
+  // The panel stays mounted a moment after it closes so it can fade out: `present` is mounted, `shown` is the visible state it transitions to.
+  const [present, setPresent] = useState(false)
+  const [shown, setShown] = useState(false)
   const list = useRef<HTMLDivElement>(null)
   const stick = useRef(true)
+  const introIds = useRef<Set<string> | null>(null)
+  const prevCount = useRef(0)
   const { data, loading, error, refetch } = useApiQuery<ChatMessage[]>((signal) => chatService.list({ signal }), { queryKey: "public-chat", keepPreviousData: true })
   const messages = data ?? []
   const newest = messages[messages.length - 1]
@@ -42,11 +47,29 @@ export function PublicChat() {
   useEffect(() => { if (open && newest) setSeen(newest.id) }, [open, newest])
   const unread = !open && newest !== undefined && newest.id !== seen && seen !== null && newest.author.steamId !== user?.steamId
 
-  // Keep the bottom in view while the reader is at the bottom (or the panel was just opened).
+  useEffect(() => {
+    if (open) {
+      setPresent(true)
+      const frame = window.requestAnimationFrame(() => window.requestAnimationFrame(() => setShown(true)))
+      return () => window.cancelAnimationFrame(frame)
+    }
+    setShown(false)
+    const timer = window.setTimeout(() => { setPresent(false); introIds.current = null }, 200)
+    return () => window.clearTimeout(timer)
+  }, [open])
+
+  // Keep the bottom in view while the reader is at the bottom: at once when the panel opens, smoothly when a message arrives.
   useLayoutEffect(() => {
     const el = list.current
-    if (el && open && stick.current) el.scrollTop = el.scrollHeight
-  }, [messages.length, open])
+    if (!el || !present) { prevCount.current = 0; return }
+    if (stick.current) {
+      const grew = prevCount.current > 0 && messages.length > prevCount.current
+      const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+      if (grew && !calm) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" })
+      else el.scrollTop = el.scrollHeight
+    }
+    prevCount.current = messages.length
+  }, [messages.length, present])
   useEffect(() => { if (open) stick.current = true }, [open])
   useEffect(() => { if (!open && newest && seen === null) setSeen(newest.id) }, [open, newest, seen])
 
@@ -75,10 +98,13 @@ export function PublicChat() {
     }
   }
 
+  // What was already in the chat when it opened shows at once; only messages that arrive later slide in.
+  if (present && introIds.current === null && data) introIds.current = new Set(data.map((message) => message.id))
+
   return (
     <div className="fixed bottom-4 right-4 z-40 flex flex-col items-end gap-3 max-sm:bottom-3 max-sm:right-3">
-      {open && (
-        <section aria-label="Community chat" className="flex h-[480px] max-h-[calc(100dvh-6rem)] w-[360px] max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded-2xl border border-[var(--glass-line)] bg-[var(--panel)] shadow-[0_24px_48px_-20px_rgb(0_0_0/0.8)]">
+      {present && (
+        <section aria-label="Community chat" aria-hidden={!open} className={cn("flex h-[480px] max-h-[calc(100dvh-6rem)] w-[360px] max-w-[calc(100vw-1.5rem)] origin-bottom-right flex-col overflow-hidden rounded-2xl border border-[var(--glass-line)] bg-[var(--panel)] shadow-[0_24px_48px_-20px_rgb(0_0_0/0.8)] transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none", shown && open ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none translate-y-2 scale-[0.97] opacity-0")}>
           <header className="flex h-12 shrink-0 items-center gap-2 border-b border-[var(--line-soft)] px-4">
             <span aria-hidden="true" className="size-2 rounded-full bg-[var(--status-green)]" />
             <h2 className="flex-1 text-[13px] font-semibold text-[var(--text)]">Community chat</h2>
@@ -98,7 +124,7 @@ export function PublicChat() {
               <p className="m-auto text-[13px] text-[var(--text-dim)]">No messages yet. Say hello.</p>
             ) : (
               messages.map((message) => (
-                <article key={message.id} className="group/msg flex gap-2.5">
+                <article key={message.id} className={cn("group/msg flex gap-2.5", introIds.current && !introIds.current.has(message.id) && "animate-[lx-chat-in_200ms_ease-out_both] motion-reduce:animate-none")}>
                   <FramedAvatar avatar={message.author.avatar ?? undefined} name={message.author.name} frame={message.author.frame} size={32} />
                   <div className="min-w-0 flex-1">
                     <p className="flex items-center gap-1.5 text-xs">
@@ -126,8 +152,10 @@ export function PublicChat() {
           </footer>
         </section>
       )}
-      <button type="button" onClick={() => setOpen((value) => !value)} aria-label={open ? "Close the chat" : "Open the community chat"} aria-expanded={open} className="relative grid size-12 place-items-center rounded-full border border-[var(--line-strong)] bg-[var(--card-surface)] text-[var(--text)] shadow-[0_8px_24px_-8px_rgb(0_0_0/0.8)] transition-colors hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-        {open ? <X className="size-5" /> : <MessageCircle className="size-5" />}
+      <button type="button" onClick={() => setOpen((value) => !value)} aria-label={open ? "Close the chat" : "Open the community chat"} aria-expanded={open} className="relative grid size-12 animate-[lx-chat-pop_360ms_cubic-bezier(0.22,1,0.36,1)_both] place-items-center rounded-full border border-[var(--line-strong)] bg-[var(--card-surface)] text-[var(--text)] shadow-[0_8px_24px_-8px_rgb(0_0_0/0.8)] transition-[background-color,transform] duration-200 ease-out hover:scale-105 hover:bg-[var(--raised)] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 motion-reduce:animate-none motion-reduce:transition-colors motion-reduce:hover:scale-100 motion-reduce:active:scale-100">
+        <MessageCircle aria-hidden="true" className={cn("absolute size-5 transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none", open ? "rotate-90 scale-50 opacity-0" : "rotate-0 scale-100 opacity-100")} />
+        <X aria-hidden="true" className={cn("absolute size-5 transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none", open ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-50 opacity-0")} />
+        {unread && <span aria-hidden="true" className="absolute right-0.5 top-0.5 size-3 animate-[lx-chat-ring_1.6s_ease-out_infinite] rounded-full bg-[var(--accent-solid)] motion-reduce:animate-none" />}
         {unread && <span aria-hidden="true" className="absolute right-0.5 top-0.5 size-3 rounded-full border-2 border-[var(--card-surface)] bg-[var(--accent-solid)]" />}
       </button>
     </div>
