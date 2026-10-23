@@ -30,7 +30,10 @@ export function FounderPack() {
   if (!pack?.founder) return null
   const info = pack.founder
   const mine = (orders ?? []).find((order) => order.productKind === "founder" && order.status !== "cancelled")
-  const owned = mine && (mine.status === "paid" || mine.status === "shipped" || mine.status === "done")
+  const confirmed = Boolean(mine && (mine.status === "paid" || mine.status === "shipped" || mine.status === "done"))
+  // "In Genesis" means the pack was really given (the player has a number), not only that staff moved the order along; an older API
+  // does not say, so it falls back to the status.
+  const owned = mine ? (mine.founderNumber !== undefined ? mine.founderNumber !== null : confirmed) : false
   const ends = info.endsAt ? new Date(info.endsAt).toLocaleDateString("en-GB", { day: "numeric", month: "long" }) : null
 
   return (
@@ -62,7 +65,7 @@ export function FounderPack() {
             {owned ? (
               <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[var(--status-green)]"><Check className="size-4" aria-hidden="true" />You are in Genesis</span>
             ) : mine ? (
-              <span className="text-[13px] font-semibold text-[var(--text-2)]">Your order is in. We will call you.</span>
+              <span className="text-[13px] font-semibold text-[var(--text-2)]">{confirmed ? "Your order is confirmed. The pack is being applied." : "Your order is in. We will call you."}</span>
             ) : (
               <button
                 type="button"

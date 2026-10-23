@@ -31,6 +31,8 @@ export interface GoodsOrder {
   unitPriceMnt: number
   status: GoodsOrderStatus
   createdAt: string
+  /** A Genesis order: the number the player really has, or null while the pack is not given. Absent from an older API. */
+  founderNumber?: number | null
 }
 
 /** Staff view: an order with the player's contact. */
