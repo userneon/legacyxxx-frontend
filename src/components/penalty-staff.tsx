@@ -1,3 +1,4 @@
+import { PlayerPicker } from "@/components/player-picker"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Plus, RotateCcw, ShieldCheck, Gavel } from "lucide-react"
@@ -209,12 +210,12 @@ export function IssuePenaltyDialog({ open, onOpenChange, access, onIssued, initi
       <DialogContent className="lx-add-box rounded-2xl" onOpenAutoFocus={(event) => { if (/^7656119\d{10}$/.test(initialSteamId)) { event.preventDefault(); document.getElementById("penalty-new-reason")?.focus() } }}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2.5"><span className="lx-add-icon"><Gavel className="size-4" /></span>New penalty</DialogTitle>
-          <DialogDescription>Give a penalty by Steam ID.</DialogDescription>
+          <DialogDescription>Pick the player, then the type, the term and the reason.</DialogDescription>
         </DialogHeader>
         <form className="mt-2 flex flex-col gap-4" onSubmit={(event) => void submit(event)}>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="penalty-steam">Steam ID (64-bit)</Label>
-            <Input id="penalty-steam" inputMode="numeric" placeholder="7656119…" value={steamId} onChange={(event) => setSteamId(event.target.value)} />
+            <Label>Player</Label>
+            <PlayerPicker value={steamId} onChange={setSteamId} />
           </div>
           <div className="flex gap-2" role="group" aria-label="Type">
             {kinds.map(([value, label]) => (

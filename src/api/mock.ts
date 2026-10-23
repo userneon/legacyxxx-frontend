@@ -628,6 +628,10 @@ export async function mockResponse(method: string, path: string, query: Query, b
     { id: "p2", slug: "nfc-charm", name: "LEGACY-X NFC charm", description: "", kind: "charm", priceMnt: 12000, imageUrl: null, stock: 40, grantsLx: 0, enabled: true, sort: 1 },
     { id: "p3", slug: "lx-5000", name: "5,000 LX", description: "", kind: "lx", priceMnt: 15000, imageUrl: null, stock: 0, grantsLx: 5000, enabled: false, sort: 2 },
   ] }
+  if (path === "/api/v1/moderation/roster") {
+    const needle = String(query?.query ?? "").trim().toLowerCase()
+    return { players: NAMES.map((name, index) => ({ steamId: `7656119800000${String(index).padStart(4, "0")}`, name, avatar: "", level: 24 - index })).filter((player) => !needle || player.name.toLowerCase().includes(needle)) }
+  }
   if (path === "/api/v1/play/status") return { leavesToday: 0, cooldown: null, next: { cooldownMinutes: 0 } }
   if (path === "/api/v1/notifications" && method === "GET") {
     const ago = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString()

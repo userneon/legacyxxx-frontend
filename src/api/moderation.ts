@@ -22,3 +22,17 @@ export const moderationService = {
     return get<PenaltyStats>("/api/v1/moderation/penalties/stats", undefined, options)
   },
 }
+/** A player in the staff picker. */
+export interface RosterPlayer {
+  steamId: string
+  name: string
+  avatar: string
+  level: number
+}
+
+export const rosterService = {
+  /** Staff only. With no text: the players who were active last; with text: those whose name matches. */
+  async list(query: string, options?: CallOptions): Promise<RosterPlayer[]> {
+    return (await get<{ players: RosterPlayer[] }>("/api/v1/moderation/roster", query.trim() ? { query: query.trim() } : undefined, options)).players
+  },
+}

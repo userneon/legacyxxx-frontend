@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { Database, Loader2, LockKeyhole, Map, Megaphone, MonitorUp, Power, RotateCcw, ServerCog, ShieldAlert, UserRoundCog, UsersRound } from "lucide-react"
 
+import { PlayerPicker } from "@/components/player-picker"
 import { ServerMapCard } from "@/components/staff-server-card"
 import { STAFF_BODY, STAFF_CARD, StaffEmpty, type Tone } from "@/components/staff-ui"
 import { CS2_MAP_KEYS, cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
@@ -136,7 +137,7 @@ export function ServersPanel() {
             ))}
           </div>
           <div className="grid gap-2 sm:grid-cols-3">
-            <Input value={steamId} onChange={(event) => setSteamId(event.target.value)} inputMode="numeric" placeholder="Player Steam ID" className="font-mono" aria-label="Player Steam ID" />
+            <PlayerPicker compact value={steamId} onChange={setSteamId} label="Player" placeholder="Player (name or Steam ID)" />
             <Input value={map} onChange={(event) => setMap(event.target.value)} placeholder="Map" aria-label="Map" />
             <Input value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Reason or message" aria-label="Reason or message" />
           </div>

@@ -4,6 +4,7 @@ import { toast } from "sonner"
 
 import { creatorsService, CREATOR_PLATFORMS, type Creator, type StaffCreatorApplication, type CreatorInput, type CreatorLinks, type CreatorTier } from "@/api/creators"
 import { CreatorBadge, CreatorLinks as CreatorLinkButtons } from "@/pages/creators"
+import { PlayerPicker } from "@/components/player-picker"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { STAFF_BODY, STAFF_CARD, STAFF_GRID, StaffEmpty, StaffSection } from "@/components/staff-ui"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -76,10 +77,10 @@ export function StaffCreators() {
       {draft && (
         <section aria-label="Creator" className="relative lx-add-box flex flex-col gap-3 rounded-2xl border p-[18px]">
           <div className="flex items-center gap-2.5"><span className="lx-add-icon"><Clapperboard className="size-4" /></span><span className="flex flex-col"><span className="text-[15px] font-semibold text-[var(--text)]">{data?.creators.some((creator) => creator.steamId === draft.steamId) ? "Edit creator" : "Add creator"}</span><span className="text-xs text-[var(--text-dim)]">Badge on the profile and a card on Creators.</span></span></div>
-          <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-            <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">SteamID64
-              <input className={input} value={draft.steamId} onChange={(event) => setDraft({ ...draft, steamId: event.target.value })} placeholder="7656119…" inputMode="numeric" />
-            </label>
+          <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-start">
+            <div className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Player
+              {data?.creators.some((creator) => creator.steamId === draft.steamId) ? <span className="flex h-9 items-center font-mono text-[13px] text-[var(--text)]">{draft.steamId}</span> : <PlayerPicker value={draft.steamId} onChange={(steamId) => setDraft({ ...draft, steamId })} />}
+            </div>
             <div className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Role
               <div role="radiogroup" className="flex h-9 gap-0.5 rounded-lg border border-[var(--line)] p-[3px]">
                 {(["main", "creator"] as const).map((tier) => (

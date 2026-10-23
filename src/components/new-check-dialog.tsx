@@ -1,3 +1,4 @@
+import { PlayerPicker } from "@/components/player-picker"
 import { useEffect, useState } from "react"
 import { Check, Copy, Download, ScanSearch } from "lucide-react"
 import { toast } from "sonner"
@@ -7,7 +8,6 @@ import { checksService, type NewCheck } from "@/api/checks"
 import type { ApiError } from "@/api/types"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useCheckerLink } from "@/hooks/use-checker-link"
 import "@/components/checks/checks.css"
@@ -111,8 +111,8 @@ export function NewCheckDialog({ open, onOpenChange, initialSteamId = "", name, 
         ) : (
           <form className="flex flex-col gap-4" onSubmit={(event) => { event.preventDefault(); if (valid && !busy) void submit() }}>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="check-steam-id">Steam ID of the player</Label>
-              <Input id="check-steam-id" inputMode="numeric" autoComplete="off" placeholder="76561198…" maxLength={17} value={steamId} onChange={(event) => setSteamId(event.target.value.replace(/\D/g, ""))} />
+              <Label>Player to check</Label>
+              <PlayerPicker value={steamId} onChange={setSteamId} />
             </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>Cancel</Button>

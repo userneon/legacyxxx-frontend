@@ -3,6 +3,7 @@ import { Pencil, Plus, RotateCcw, Shield } from "lucide-react"
 import { toast } from "sonner"
 
 import { get, patch, post } from "@/api/client"
+import { PlayerPicker } from "@/components/player-picker"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { STAFF_BODY, type Tone } from "@/components/staff-ui"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -120,9 +121,9 @@ export function StaffTeam() {
         <section aria-label={draft.id ? "Edit staff member" : "Add staff member"} className="relative lx-add-box flex flex-col gap-3 rounded-2xl border p-[18px]">
           <div className="flex items-center gap-2.5"><span className="lx-add-icon"><Shield className="size-4" /></span><span className="flex flex-col"><span className="text-[15px] font-semibold text-[var(--text)]">{draft.id ? "Edit staff member" : "Add staff"}</span><span className="text-xs text-[var(--text-dim)]">The game servers pick it up within a minute.</span></span></div>
           {!draft.id && (
-            <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">SteamID64
-              <input className={input} value={draft.steamId} onChange={(event) => setDraft({ ...draft, steamId: event.target.value })} placeholder="7656119…" inputMode="numeric" />
-            </label>
+            <div className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Player
+              <PlayerPicker value={draft.steamId} onChange={(steamId) => setDraft({ ...draft, steamId })} />
+            </div>
           )}
           <RolePicker value={draft.role} onChange={pickRole} />
           <div className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">How long
