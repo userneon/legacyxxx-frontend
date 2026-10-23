@@ -457,7 +457,7 @@ function StatsRow({ stats, form }: { stats: NonNullable<ProfileOverview["stats"]
   )
 }
 
-function RecentMatches({ matches, onOpen }: { matches: ProfileMatchRow[]; onOpen: (match: ProfileMatchRow) => void }) {
+function RecentMatches({ matches, kdAverage, onOpen }: { matches: ProfileMatchRow[]; kdAverage: number | null; onOpen: (match: ProfileMatchRow) => void }) {
   useWebsitePreferences()
   const form = matches.slice(0, 10)
   const grid = "grid grid-cols-[minmax(0,1fr)_70px_70px_60px_70px_80px] items-center gap-3 px-4 max-md:grid-cols-[minmax(0,1fr)_60px_60px_70px]"
@@ -506,7 +506,12 @@ function RecentMatches({ matches, onOpen }: { matches: ProfileMatchRow[]; onOpen
                 </span>
                 <span className={cn("font-medium", match.result === "Win" ? "text-[var(--result-win)]" : match.result === "Loss" ? "text-[var(--result-loss)]" : "text-[var(--text-muted)]")}>{match.result}</span>
                 <span className="text-[var(--text-2)]">{match.score}</span>
-                <span className="text-[var(--text-2)] max-md:hidden">{match.kd}</span>
+                {(() => {
+                  // A match K/D above the community average (see the stats row) is green, below it red; with no average it stays plain.
+                  const value = Number(match.kd)
+                  const tone = kdAverage !== null && Number.isFinite(value) ? (value > kdAverage ? "text-[var(--result-win)]" : value < kdAverage ? "text-[var(--result-loss)]" : "text-[var(--text-2)]") : "text-[var(--text-2)]"
+                  return <span title={kdAverage !== null ? `Community average ${kdAverage.toFixed(2)}` : undefined} className={cn("max-md:hidden", tone)}>{match.kd}</span>
+                })()}
                 <span className={cn("font-medium", (match.expDelta ?? 0) > 0 ? "text-[var(--result-win)]" : (match.expDelta ?? 0) < 0 ? "text-[var(--result-loss)]" : "text-[var(--text-dim)]")}>{typeof match.expDelta === "number" ? `${match.expDelta > 0 ? "+" : ""}${match.expDelta}` : "—"}{match.expBreakdown?.limited && <span title={match.expBreakdown.limited === "weekly" ? "Weekly EXP limit: no EXP until Monday" : "Daily EXP limit: this gain counted for a quarter"} className="ml-1.5 text-[10px] font-semibold uppercase text-[var(--status-red)]">{match.expBreakdown.limited === "weekly" ? "stop" : "×¼"}</span>}</span>
                 <span className="truncate text-xs text-[var(--text-dim)] max-md:hidden">{match.playedAt ? <RelativeTime value={match.playedAt} /> : "—"}</span>
               </button>
@@ -805,7 +810,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
           <div className="flex min-w-0 flex-col gap-4">
             {hidden.has("matches") ? <HiddenCard section="matches" /> : (
               <>
-                <RecentMatches matches={data.recentMatches ?? []} onOpen={setOpenMatch} />
+                <RecentMatches matches={data.recentMatches ?? []} kdAverage={data.stats?.find((tile) => tile.key === "kd")?.average ?? null} onOpen={setOpenMatch} />
                 {data.maps && <MapsCard maps={data.maps} />}
               </>
             )}
