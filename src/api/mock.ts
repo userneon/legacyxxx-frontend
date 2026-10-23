@@ -794,7 +794,8 @@ export async function mockResponse(method: string, path: string, query: Query, b
   const liveMatch = /^\/api\/v1\/public\/servers\/([^/]+)\/live-match$/.exec(path)
   if (liveMatch) {
     const all = [...SERVERS["5x5"], ...SERVERS.fun, ...SERVERS.pro]
-    const found = all.find((entry) => entry.id === decodeURIComponent(liveMatch[1]))
+    const wanted = decodeURIComponent(liveMatch[1])
+    const found = all.find((entry) => entry.id === wanted) ?? (wanted === "s1" ? all[0] : wanted === "s2" ? all[1] : undefined)
     if (!found) throw notFound()
     const roster = (offset: number, count: number) => Array.from({ length: count }, (_, i) => ({
       steamId: `76561198${offset + i}`, name: NAMES[(offset + i) % NAMES.length], connected: i !== 3, rankId: RANKS[(offset + i) % RANKS.length][0], rankName: RANKS[(offset + i) % RANKS.length][1], rankImageKey: null,

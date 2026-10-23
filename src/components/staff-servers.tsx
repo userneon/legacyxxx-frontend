@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { Database, Loader2, LockKeyhole, Map, Megaphone, MonitorUp, Power, RotateCcw, ServerCog, ShieldAlert, UserRoundCog, UsersRound } from "lucide-react"
 
+import { ServerLive } from "@/components/staff-server-live"
 import { PlayerPicker } from "@/components/player-picker"
 import { ServerMapCard } from "@/components/staff-server-card"
 import { STAFF_BODY, STAFF_CARD, StaffEmpty, type Tone } from "@/components/staff-ui"
@@ -101,6 +102,23 @@ export function ServersPanel() {
     }
   }
 
+  /** An action on one player from their card on the live view; true when it was queued. */
+  const actOn = async (type: StaffPanelActionRequest["type"], playerSteamId: string, text: string): Promise<boolean> => {
+    if (!server) { setNotice("Pick a server first."); return false }
+    setBusy(true)
+    try {
+      await staffPanelService.queueAction({ serverId: server, type, playerSteamId, message: text || undefined })
+      setNotice("Sent. The server runs it within a few seconds; the result shows under Recent actions.")
+      await load()
+      return true
+    } catch (error) {
+      setNotice(messageOf(error))
+      return false
+    } finally {
+      setBusy(false)
+    }
+  }
+
   if (!access) {
     return failed ? (
       <p className="flex items-center gap-3 px-6 py-10 text-[13px] text-[var(--text-dim)]">{notice} <button type="button" onClick={() => { setFailed(false); setNotice(""); void load() }} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" aria-hidden="true" />Retry</button></p>
@@ -125,9 +143,11 @@ export function ServersPanel() {
         )}
       </section>
 
+      {server && <ServerLive serverId={server} busy={busy} onAct={actOn} />}
+
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <section aria-label="Actions" className="flex flex-col gap-3">
-          <h3 className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-faint)]">Action</h3>
+          <h3 className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-faint)]">Server actions · or a player who is not on it</h3>
           <div role="group" aria-label="Map" className="grid grid-cols-5 gap-2 lg:grid-cols-10">
             {CS2_MAP_KEYS.map((key) => (
               <button key={key} type="button" aria-pressed={map === key} onClick={() => setMap(key)} className={cn("group flex flex-col overflow-hidden rounded-lg border bg-[var(--card-surface)] text-left transition-colors", map === key ? "border-[var(--text)]" : "border-[var(--line)] hover:border-[var(--line-strong)]")}>
