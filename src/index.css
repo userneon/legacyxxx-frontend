@@ -1789,12 +1789,38 @@ body::before {
 .lx-boost-row-on { box-shadow: inset 2px 0 0 var(--boost); }
 @media (prefers-reduced-motion: reduce) { .lx-boost-row-on::after { animation: none; } }
 
-/* The Booster mark next to a name on the profile: Discord's boost pink, only while the player boosts. */
+/* The Booster mark next to a name on the profile: Discord's boost pink, only while the player boosts. A pink-to-violet edge, a soft glow,
+   a glowing gem and a slow sheen; the sheen and the twinkle stand still for reduced motion. */
 .lx-boost-badge {
   --boost: #ff73fa; /* palette-exempt: Discord Boost brand */
-  border-color: color-mix(in oklab, var(--boost) 45%, transparent);
-  background: color-mix(in oklab, var(--boost) 12%, transparent);
-  color: color-mix(in oklab, var(--boost) 80%, white);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--boost) 30%, var(--card-surface)), color-mix(in oklab, var(--boost) 8%, var(--card-surface))) padding-box,
+    linear-gradient(135deg, color-mix(in oklab, var(--boost) 90%, white), color-mix(in oklab, var(--boost) 32%, transparent) 55%, color-mix(in oklab, var(--brand) 75%, transparent)) border-box;
+  color: color-mix(in oklab, var(--boost) 55%, white);
+  text-shadow: 0 0 8px color-mix(in oklab, var(--boost) 65%, transparent);
+  box-shadow: 0 0 14px color-mix(in oklab, var(--boost) 26%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+.lx-boost-badge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.3) 50%, transparent 65%);
+  background-size: 250% 100%;
+  background-position: 160% 0;
+  background-repeat: no-repeat;
+  animation: lx-boost-sheen 4.8s ease-in-out infinite;
+}
+.lx-boost-badge img {
+  filter: drop-shadow(0 0 5px color-mix(in oklab, var(--boost) 80%, transparent));
+}
+@media (prefers-reduced-motion: reduce) {
+  .lx-boost-badge::after { animation: none; }
 }
 
 /* Founder pack (owner decision 2026-10-23): gold, used only by the Founder banner, badge and title. */

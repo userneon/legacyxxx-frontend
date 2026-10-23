@@ -42,7 +42,8 @@ const PODIUM_FRAMES = ["booster-gold", "booster-silver", "booster-bronze"]
 
 function TopCard({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen: () => void }) {
   const first = entry.position === 1
-  const podiumFrame = by === "boosts" && entry.boosts > 0 ? PODIUM_FRAMES[entry.position - 1] ?? null : null
+  // Gold, Silver and Bronze on the boosts ladder; anyone else who boosted wears the Server Booster frame every booster keeps.
+  const podiumFrame = entry.boosts > 0 ? (by === "boosts" ? PODIUM_FRAMES[entry.position - 1] ?? null : "server-booster") : null
   const slot = PODIUM_ORDER.indexOf(entry.position)
   return (
     <div
@@ -67,7 +68,7 @@ function TopCard({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen:
       <span aria-hidden="true" className="lx-boost-star right-[60px] top-[50px]" style={{ animationDelay: "2.1s", width: 8, height: 8 }} />
       <span className="flex min-w-0 items-center gap-3">
         {podiumFrame ? (
-          <span className="-mb-5 -ml-3 -mt-2 shrink-0"><FramedAvatar avatar={entry.avatar || undefined} name={entry.name} frame={podiumFrame} size={first ? 112 : 98} /></span>
+          <span className={cn("shrink-0", by === "boosts" ? "-mb-5 -ml-3 -mt-2" : "-my-1 -ml-1")}><FramedAvatar avatar={entry.avatar || undefined} name={entry.name} frame={podiumFrame} size={by === "boosts" ? (first ? 112 : 98) : first ? 78 : 70} /></span>
         ) : (
           <PlayerAvatar avatar={entry.avatar || undefined} name={entry.name} className={cn("shrink-0 text-base", first ? "size-[60px] rounded-[15px] ring-2 ring-[var(--boost)]/70 ring-offset-2 ring-offset-[var(--card-surface)]" : "size-[52px] rounded-[13px]")} />
         )}
@@ -94,7 +95,11 @@ function Row({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen: () 
       {entry.boosting && <span aria-hidden="true" className="lx-boost-star left-[228px] top-[38px]" style={{ animationDelay: "1.6s", width: 7, height: 7 }} />}
       <span className="text-sm font-semibold text-[var(--text-muted)] group-hover:text-[var(--text)]">{entry.position}</span>
       <span className="flex min-w-0 items-center gap-3">
-        <PlayerAvatar avatar={entry.avatar || undefined} name={entry.name} className="size-8 shrink-0 rounded-[9px] text-[10px]" />
+        {entry.boosts > 0 ? (
+          <FramedAvatar avatar={entry.avatar || undefined} name={entry.name} frame="server-booster" size={42} />
+        ) : (
+          <PlayerAvatar avatar={entry.avatar || undefined} name={entry.name} className="size-8 shrink-0 rounded-[9px] text-[10px]" />
+        )}
         <span className="flex min-w-0 items-baseline gap-2">
           <span className={cn("min-w-0 truncate text-[13px] font-medium text-[var(--text)]", entry.boosting && "lx-boost-name")} title={entry.name}>{entry.name}</span>
           {entry.username && <span className="shrink-0 text-xs text-[var(--text-dim)] max-sm:hidden">@{entry.username}</span>}
