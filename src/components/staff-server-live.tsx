@@ -5,7 +5,8 @@ import { serversService } from "@/api/servers"
 import type { ServerLiveMatch, ServerLiveMatchPlayer } from "@/api/types"
 import type { StaffPanelActionRequest } from "@/api/types"
 import { PlayerAvatar } from "@/components/player-avatar"
-import { STAFF_CARD, StaffEmpty, StaffSection, type Tone } from "@/components/staff-ui"
+import { ACTION_HINTS } from "@/lib/staff-action-hints"
+import { STAFF_CARD, StaffEmpty, StaffSection, Tip, type Tone } from "@/components/staff-ui"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cs2MapLabel } from "@/lib/cs2-map-art"
 import { cn } from "@/lib/utils"
@@ -111,10 +112,12 @@ function PlayerCard({ player, tone, busy, onAct }: { player: ServerLiveMatchPlay
       ) : (
         <div className="mt-auto grid grid-cols-5 gap-1.5">
           {PLAYER_ACTIONS.map((action) => (
-            <button key={action.type} type="button" disabled={busy} data-tone={action.tone} onClick={() => setArmed(action)} title={`${action.label} ${player.name}`} aria-label={`${action.label} ${player.name}`} className="lx-tone flex h-11 flex-col items-center justify-center gap-0.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)] transition-colors hover:text-[var(--text)] disabled:opacity-50">
-              <action.icon className={cn("size-4", action.tone && "lx-tone-text")} aria-hidden="true" />
-              <span className="text-[10px] leading-none">{action.label}</span>
-            </button>
+            <Tip key={action.type} text={`${ACTION_HINTS[action.type] ?? action.label}`}>
+              <button type="button" disabled={busy} data-tone={action.tone} onClick={() => setArmed(action)} aria-label={`${action.label} ${player.name}`} className="lx-tone flex h-11 flex-col items-center justify-center gap-0.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)] transition-colors hover:text-[var(--text)] disabled:opacity-50">
+                <action.icon className={cn("size-4", action.tone && "lx-tone-text")} aria-hidden="true" />
+                <span className="text-[10px] leading-none">{action.label}</span>
+              </button>
+            </Tip>
           ))}
         </div>
       )}

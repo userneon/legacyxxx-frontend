@@ -1,5 +1,6 @@
 import type { ComponentType, ReactNode } from "react"
 
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
 /**
@@ -36,4 +37,16 @@ export function CardIcon({ icon: Icon, className }: { icon: ComponentType<{ clas
 /** One quiet line where a list is empty. */
 export function StaffEmpty({ children }: { children: ReactNode }) {
   return <p className="rounded-xl border border-dashed border-[var(--line)] px-4 py-8 text-center text-[13px] text-[var(--text-dim)]">{children}</p>
+}
+
+/** A short note on hover or keyboard focus for the control inside (a button that needs one line of explaining). */
+export function Tip({ text, children, side = "top" }: { text: string; children: ReactNode; side?: "top" | "bottom" }) {
+  return (
+    <TooltipProvider delayDuration={250}>
+      <Tooltip>
+        <TooltipTrigger asChild>{children}</TooltipTrigger>
+        <TooltipContent side={side} sideOffset={6} className="max-w-[260px] border border-[var(--line-strong)] bg-[var(--card-surface)] text-[var(--text-2)] [--tooltip-bg:var(--card-surface)]">{text}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  )
 }

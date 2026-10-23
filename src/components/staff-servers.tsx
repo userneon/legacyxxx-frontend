@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from "react"
 import { Database, Loader2, LockKeyhole, Map, Megaphone, MonitorUp, Power, RotateCcw, ServerCog, ShieldAlert, UserRoundCog, UsersRound } from "lucide-react"
 
 import { ServerLive } from "@/components/staff-server-live"
+import { ACTION_HINTS } from "@/lib/staff-action-hints"
 import { PlayerPicker } from "@/components/player-picker"
 import { ServerMapCard } from "@/components/staff-server-card"
-import { STAFF_BODY, STAFF_CARD, StaffEmpty, type Tone } from "@/components/staff-ui"
+import { STAFF_BODY, STAFF_CARD, StaffEmpty, Tip, type Tone } from "@/components/staff-ui"
 import { CS2_MAP_KEYS, cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { staffPanelService } from "@/api/staffpanel"
 import type { ApiError, StaffPanelAccess, StaffPanelActionRequest, StaffPanelDatabaseOverview, StaffPanelOverview } from "@/api/types"
@@ -163,9 +164,11 @@ export function ServersPanel() {
           </div>
           <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
             {actions.map((action) => (
-              <button key={action.type} type="button" data-tone={ACTION_TONE[action.type]} disabled={busy} onClick={() => void queue(action)} className={cn(STAFF_CARD, "flex-row items-center gap-3 px-3.5 py-3 text-left text-[13px] text-[var(--text)] disabled:opacity-50")}>
-                <action.icon className={cn("size-4 shrink-0", ACTION_TONE[action.type] ? "lx-tone-text" : "text-[var(--text-2)]")} aria-hidden="true" />{action.label}
-              </button>
+              <Tip key={action.type} text={ACTION_HINTS[action.type] ?? action.label}>
+                <button type="button" data-tone={ACTION_TONE[action.type]} disabled={busy} onClick={() => void queue(action)} className={cn(STAFF_CARD, "flex-row items-center gap-3 px-3.5 py-3 text-left text-[13px] text-[var(--text)] disabled:opacity-50")}>
+                  <action.icon className={cn("size-4 shrink-0", ACTION_TONE[action.type] ? "lx-tone-text" : "text-[var(--text-2)]")} aria-hidden="true" />{action.label}
+                </button>
+              </Tip>
             ))}
           </div>
         </section>
