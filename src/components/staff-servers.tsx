@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react"
 import { Database, Loader2, LockKeyhole, Map, Megaphone, MonitorUp, Power, RotateCcw, ServerCog, ShieldAlert, UserRoundCog, UsersRound } from "lucide-react"
 
+import { ServerMapCard } from "@/components/staff-server-card"
 import { STAFF_BODY, STAFF_CARD, StaffEmpty, type Tone } from "@/components/staff-ui"
+import { CS2_MAP_KEYS, cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { staffPanelService } from "@/api/staffpanel"
 import type { ApiError, StaffPanelAccess, StaffPanelActionRequest, StaffPanelDatabaseOverview, StaffPanelOverview } from "@/api/types"
 import { Input } from "@/components/ui/input"
@@ -35,10 +37,6 @@ const OWNER_ACTIONS: ActionDef[] = [
 
 function messageOf(error: unknown) {
   return (error as ApiError | null)?.message || "Could not complete that."
-}
-
-function isOnline(lastHeartbeat: string | null) {
-  return lastHeartbeat !== null && Date.now() - Date.parse(lastHeartbeat) < 90_000
 }
 
 /**
@@ -121,25 +119,7 @@ export function ServersPanel() {
           <StaffEmpty>No server has reported in yet.</StaffEmpty>
         ) : (
           <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" role="radiogroup" aria-label="Server">
-            {overview?.servers.map((item) => {
-              const picked = item.server_id === server
-              const online = isOnline(item.last_heartbeat_at)
-              return (
-                <li key={item.server_id}>
-                  <button type="button" role="radio" aria-checked={picked} data-tone={online ? "green" : "red"} onClick={() => setServer(item.server_id)} className={cn(STAFF_CARD, "h-full w-full text-left", picked && "border-[var(--text-2)] bg-[var(--raised)]")}>
-                    <span className="flex items-center gap-2">
-                      <span className={cn("size-2 shrink-0 rounded-full", online ? "bg-[var(--status-green)]" : "bg-[var(--text-faint)]")} aria-hidden="true" />
-                      <span className="min-w-0 flex-1 truncate text-[13px] font-semibold text-[var(--text)]">{item.name || item.server_id}</span>
-                      <span className="text-[11px] text-[var(--text-dim)]">{online ? "online" : "not reporting"}</span>
-                    </span>
-                    <span className="flex items-baseline justify-between gap-2">
-                      <span className="text-xl font-semibold leading-none text-[var(--text)]">{item.player_count}<span className="ml-1 text-xs font-normal text-[var(--text-dim)]">players</span></span>
-                      <span className="truncate text-[11px] text-[var(--text-dim)]">{item.mode} · {item.map_name}</span>
-                    </span>
-                  </button>
-                </li>
-              )
-            })}
+            {overview?.servers.map((item) => <li key={item.server_id}><ServerMapCard server={item} picked={item.server_id === server} onPick={() => setServer(item.server_id)} /></li>)}
           </ul>
         )}
       </section>
@@ -147,6 +127,14 @@ export function ServersPanel() {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <section aria-label="Actions" className="flex flex-col gap-3">
           <h3 className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-faint)]">Action</h3>
+          <div role="group" aria-label="Map" className="grid grid-cols-5 gap-2 lg:grid-cols-10">
+            {CS2_MAP_KEYS.map((key) => (
+              <button key={key} type="button" aria-pressed={map === key} onClick={() => setMap(key)} className={cn("group flex flex-col overflow-hidden rounded-lg border bg-[var(--card-surface)] text-left transition-colors", map === key ? "border-[var(--text)]" : "border-[var(--line)] hover:border-[var(--line-strong)]")}>
+                <img src={cs2MapArtwork(key) ?? undefined} alt="" loading="lazy" draggable={false} className={cn("h-12 w-full object-cover transition-[filter]", map === key ? "" : "brightness-75 group-hover:brightness-100")} />
+                <span className="truncate px-1.5 py-1 text-[11px] text-[var(--text-2)]">{cs2MapLabel(key)}</span>
+              </button>
+            ))}
+          </div>
           <div className="grid gap-2 sm:grid-cols-3">
             <Input value={steamId} onChange={(event) => setSteamId(event.target.value)} inputMode="numeric" placeholder="Player Steam ID" className="font-mono" aria-label="Player Steam ID" />
             <Input value={map} onChange={(event) => setMap(event.target.value)} placeholder="Map" aria-label="Map" />

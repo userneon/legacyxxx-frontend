@@ -67,3 +67,6 @@ export function cs2MapLabel(mapName: string | null | undefined): string {
   if (key && CS2_MAP_LABELS[key]) return CS2_MAP_LABELS[key]
   return String(mapName ?? "Unknown").replace(/^de_/i, "") || "Unknown"
 }
+
+/** The maps with supplied artwork, in the order they are listed here. */
+export const CS2_MAP_KEYS = Object.keys(CS2_MAP_ARTWORK)

@@ -28,6 +28,7 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
 import { usePathTab } from "@/hooks/use-url-tab"
+import { ServerMapCard } from "@/components/staff-server-card"
 import { CardIcon, STAFF_BODY, STAFF_CARD, STAFF_GRID, StaffEmpty, StaffSection } from "@/components/staff-ui"
 import { StaffCreators } from "@/components/staff-creators"
 import { StaffShop } from "@/components/staff-shop"
@@ -201,15 +202,7 @@ function Overview({ access, onGo, onCase, checks, requests, applications, orders
       {servers && servers.servers.length > 0 && (
         <StaffSection title="Servers" count={servers.servers.length} end={<Button type="button" variant="ghost" size="sm" onClick={() => onGo("servers")}>Open the console</Button>}>
           <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {servers.servers.map((server) => {
-              const online = Boolean(server.last_heartbeat_at) && Date.now() - Date.parse(server.last_heartbeat_at as string) < 120_000
-              return (
-                <li key={server.server_id} data-tone={online ? "green" : "red"} className={STAFF_CARD}>
-                  <span className="flex items-center gap-2"><span aria-hidden="true" className="lx-tone-fill size-2 shrink-0 rounded-full" /><span className="min-w-0 flex-1 truncate text-[13px] font-semibold text-[var(--text)]">{server.name || server.server_id}</span><span className="text-[11px] text-[var(--text-dim)]">{online ? "online" : "not reporting"}</span></span>
-                  <span className="flex items-baseline justify-between gap-2"><span className="text-xl font-semibold leading-none text-[var(--text)]">{server.player_count}<span className="ml-1 text-xs font-normal text-[var(--text-dim)]">players</span></span><span className="truncate text-[11px] text-[var(--text-dim)]">{server.mode} · {server.map_name}</span></span>
-                </li>
-              )
-            })}
+            {servers.servers.map((server) => <li key={server.server_id}><ServerMapCard server={server} /></li>)}
           </ul>
         </StaffSection>
       )}
