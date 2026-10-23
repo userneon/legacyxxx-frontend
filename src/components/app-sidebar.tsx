@@ -4,6 +4,7 @@ import { ArrowLeftRight, Gem, DoorOpen, Swords, MountainSnow, Scale, ScrollText,
 import { isFeatureEnabled, isPageEnabled } from "@/lib/features"
 import { competitiveService } from "@/api"
 import { playService, type PlayServerList } from "@/api/play"
+import { ADMIN_URL } from "@/lib/sites"
 import type { CompetitiveAccess, PageId } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useModerationAccess } from "@/components/penalty-staff"
@@ -227,6 +228,16 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                       </div>
                     </div>
                   </div>
+                </div>
+              )
+            }
+            if (item.id === "staff") {
+              return (
+                <div key={item.id} className="relative">
+                  <a href={ADMIN_URL} aria-label={item.label} className={rowClass}>
+                    <item.icon className="size-[18px] shrink-0" />
+                    <span className={labelClass(collapsed)}>{item.label}</span>
+                  </a>
                 </div>
               )
             }

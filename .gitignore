@@ -40,3 +40,4 @@ dist-ssr
 .claude/skills/
 .claude/agents/
 .claude/settings.local.json
+dist-admin

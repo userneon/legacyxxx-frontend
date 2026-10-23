@@ -18,6 +18,8 @@ import { useAuth } from "@/hooks/use-auth"
 import type { PageId } from "@/api/types"
 import { routeToPage, pageToRoute, PAGE_TITLES, documentTitle } from "@/lib/routes"
 import { isFeatureEnabled } from "@/lib/features"
+import { ExternalRedirect } from "@/components/external-redirect"
+import { ADMIN_URL } from "@/lib/sites"
 import { cn } from "@/lib/utils"
 
 // Pages other than the first ones a visitor needs load when they are opened, so the first page does not wait for the Staff, Shop and Skinchanger code.
@@ -26,7 +28,6 @@ const SkinchangerPage = lazy(() => import("@/pages/skinchanger").then((module) =
 const ComparePage = lazy(() => import("@/pages/compare").then((module) => ({ default: module.ComparePage })))
 const ShopPage = lazy(() => import("@/pages/shop").then((module) => ({ default: module.ShopPage })))
 const WalletPage = lazy(() => import("@/pages/wallet").then((module) => ({ default: module.WalletPage })))
-const StaffPage = lazy(() => import("@/pages/staff").then((module) => ({ default: module.StaffPage })))
 const PenaltiesPage = lazy(() => import("@/pages/penalties").then((module) => ({ default: module.PenaltiesPage })))
 const ExplorePage = lazy(() => import("@/pages/explore").then((module) => ({ default: module.ExplorePage })))
 const CreatorsPage = lazy(() => import("@/pages/creators").then((module) => ({ default: module.CreatorsPage })))
@@ -142,9 +143,9 @@ export function App() {
               {isFeatureEnabled("clan") && <Route path="/clans/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
               <Route path="/skinchanger" element={<ProtectedPage pageName="Skinchanger"><SkinchangerPage /></ProtectedPage>} />
               {isFeatureEnabled("compare") && <Route path="/compare" element={<ComparePage />} />}
-              <Route path="/staff" element={<ProtectedPage pageName="Staff"><StaffPage /></ProtectedPage>} />
-              {/* Checks live in the Staff page now; the older address opens it on that tab. */}
-              <Route path="/checks" element={<ProtectedPage pageName="Staff"><StaffPage initialTab="checks" /></ProtectedPage>} />
+              {/* Staff lives on its own site now (owner request 2026-10-23); the older addresses move there. */}
+              <Route path="/staff/*" element={<ExternalRedirect to={`${ADMIN_URL}${location.pathname}${location.search}`} />} />
+              <Route path="/checks" element={<ExternalRedirect to={`${ADMIN_URL}/staff/checks`} />} />
               <Route path="/wallet" element={<ProtectedPage pageName="Wallet"><WalletPage /></ProtectedPage>} />
               <Route path="/wallet/:tab" element={<ProtectedPage pageName="Wallet"><WalletPage /></ProtectedPage>} />
               {isFeatureEnabled("shop") && <Route path="/shop" element={<ProtectedPage pageName="Shop"><ShopPage /></ProtectedPage>} />}

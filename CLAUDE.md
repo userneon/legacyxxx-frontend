@@ -98,6 +98,11 @@ Skin picker tiles (owner request 2026-10-11): on hover the tile lifts 4px with a
 
 ### Staff page (owner request 2026-10-11)
 
+**The Staff page is its own site, `admin.legacyx.cc`** (owner request 2026-10-23): same repo and code, a second entry (`admin.html`, `src/admin/`, `vite.admin.config.ts`;
+`npm run dev:admin` on :5200, `npm run build:admin` writes `dist-admin/`, `ops/deploy-admin.sh`, Nginx in `ops/nginx/legacyx-admin.conf`). The website no longer bundles it:
+`/staff` and `/checks` there move to the admin site, and the sidebar's Staff entry is a link (`lib/sites.ts`: `ADMIN_URL`, `SITE_URL`). On the admin site a staff
+link to a profile, clan or the Penalties list opens the website. The API needs `ADMIN_ORIGIN` (CORS + Steam sign-in that returns there, `?to=admin`); the session cookies are on `.legacyx.cc`, so one sign-in covers both.
+
 The Staff page (`src/pages/staff.tsx`, `src/components/staff-*.tsx`) is built around what staff do all day, not around the data. **Ctrl K** (or the box in the page bar) finds a
 player by name or Steam ID and opens their case: penalties with who lifted them, what the checker found, and the buttons to act (B ban, M mute, G gag, `/` find, Esc back).
 "Needs you" on Overview lists finished checks, checks still waiting and unban requests, oldest first. It stays inside the site's palette (neutral, white accent); it

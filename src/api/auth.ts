@@ -1,4 +1,5 @@
 import { API_BASE_URL, MOCK_API, get, post, refreshSession, setAccessToken, type CallOptions } from "./client"
+import { isAdminSite } from "@/lib/sites"
 import type { AuthSession, UserProfile } from "./types"
 
 /**
@@ -21,7 +22,7 @@ export const authService = {
   getSteamLoginUrl(): string {
     // Design preview: "sign in" as a sample player by handing the app the callback token directly.
     if (MOCK_API) return `${window.location.pathname}?access_token=mock-session`
-    return steamLoginUrl()
+    return steamLoginUrl(isAdminSite() ? "?to=admin" : "")
   },
 
   async logout(options?: CallOptions): Promise<void> {
