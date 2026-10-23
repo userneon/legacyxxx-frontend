@@ -400,7 +400,20 @@ function EmptyStatsRow() {
   )
 }
 
-function StatsRow({ stats }: { stats: NonNullable<ProfileOverview["stats"]> }) {
+/** The last results as small W / L / D chips, newest first (the same chips as the Form row under Recent matches). */
+function FormChips({ results }: { results: string[] }) {
+  return (
+    <span aria-label={`Last ${results.length} results`} className="flex gap-1">
+      {results.map((result, index) => (
+        <span key={index} title={result} style={{ animationDelay: `${index * 40}ms` }} className={cn("lx-row-in flex size-[20px] items-center justify-center rounded-md border text-[10px] font-bold", result === "Win" ? "border-[var(--result-win)]/45 bg-[var(--result-win)]/20 text-[var(--result-win)]" : result === "Loss" ? "border-[var(--result-loss)]/40 bg-[var(--result-loss)]/10 text-[var(--result-loss)]" : "border-[var(--line-strong)] text-[var(--text-dim)]")}>
+          {result === "Win" ? "W" : result === "Loss" ? "L" : "D"}
+        </span>
+      ))}
+    </span>
+  )
+}
+
+function StatsRow({ stats, form }: { stats: NonNullable<ProfileOverview["stats"]>; form?: string[] }) {
   const format = (key: string, value: number) => (key === "winRate" || key === "hs" ? `${value}%` : key === "kd" ? value.toFixed(2) : key === "avgKills" ? value.toFixed(1) : value.toLocaleString())
   return (
     <section aria-label="LEGACY-X stats" className="lx-stat-grid grid-cols-2 sm:grid-flow-col sm:grid-cols-none sm:auto-cols-fr">
@@ -410,13 +423,18 @@ function StatsRow({ stats }: { stats: NonNullable<ProfileOverview["stats"]> }) {
         const above = average !== null && tile.value > average
         const below = average !== null && tile.value < average
         // Above the community average is green, below is red, equal is grey (the same colours as the Compare page).
-        const tone = above ? "text-[var(--result-win)]" : below ? "text-[var(--result-loss)]" : "text-[var(--text-2)]"
-        const toneBg = above ? "bg-[var(--result-win)]" : below ? "bg-[var(--result-loss)]" : "bg-[var(--text-2)]"
+        // How many matches a player has played is not good or bad, so that tile stays neutral.
+        const judged = tile.key !== "matches"
+        const tone = judged && above ? "text-[var(--result-win)]" : judged && below ? "text-[var(--result-loss)]" : "text-[var(--text-2)]"
+        const toneBg = judged && above ? "bg-[var(--result-win)]" : judged && below ? "bg-[var(--result-loss)]" : "bg-[var(--text-2)]"
         return (
           <div key={tile.key} title={format(tile.key, tile.value)} className="lx-stat-cell px-4 py-3.5">
             <span className="lx-stat-label">{tile.label}</span>
-            <span className="text-2xl font-semibold leading-none text-[var(--text)]">
-              <AnimatedNumber value={tile.value} decimals={tile.key === "kd" ? 2 : tile.key === "avgKills" ? 1 : 0} suffix={tile.key === "winRate" || tile.key === "hs" ? "%" : ""} />
+            <span className="flex items-center justify-between gap-2">
+              <span className="text-2xl font-semibold leading-none text-[var(--text)]">
+                <AnimatedNumber value={tile.value} decimals={tile.key === "kd" ? 2 : tile.key === "avgKills" ? 1 : 0} suffix={tile.key === "winRate" || tile.key === "hs" ? "%" : ""} />
+              </span>
+              {tile.key === "matches" && form && form.length > 0 && <FormChips results={form} />}
             </span>
             {percentile !== null && (
               <span role="img" aria-label={`Better than ${percentile}% of ranked players`} className="relative mt-0.5 block h-1 overflow-hidden rounded-full bg-[var(--line)]">
@@ -781,7 +799,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
           <TrustCard overview={data} onOpenPenalty={(id) => setOpenPenalty(penaltyById(id))} />
         </div>
 
-        {hidden.has("stats") ? <HiddenCard section="stats" /> : data.stats ? <StatsRow stats={data.stats} /> : <EmptyStatsRow />}
+        {hidden.has("stats") ? <HiddenCard section="stats" /> : data.stats ? <StatsRow stats={data.stats} form={data.recentMatches?.slice(0, 5).map((match) => match.result)} /> : <EmptyStatsRow />}
 
         <div {...rise(3)} className={cn(rise(3).className, "grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]")}>
           <div className="flex min-w-0 flex-col gap-4">
