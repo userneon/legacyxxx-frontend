@@ -1,4 +1,4 @@
-import { del, get, put, type CallOptions } from "./client"
+import { del, get, post, put, type CallOptions } from "./client"
 
 /** Content creators (owner request 2026-10-12): Main Content Creator and Content Creator. */
 export type CreatorTier = "main" | "creator"
@@ -35,9 +35,34 @@ export interface CreatorInput {
   sort?: number
 }
 
+export interface CreatorApplicationInput {
+  bio: string
+  links: CreatorLinks
+}
+
+/** Where the signed-in player stands: already a creator, waiting, or turned down (and when they may ask again). */
+export interface MyCreatorApplication {
+  isCreator: boolean
+  application: { status: "pending" | "approved" | "declined"; note: string; createdAt: string; decidedAt: string | null } | null
+  canApplyAgainAt: string | null
+}
+
+export interface StaffCreatorApplication {
+  id: string
+  bio: string
+  links: CreatorLinks
+  createdAt: string
+  player: { steamId: string; username: string; avatar: string | null }
+}
+
 export const creatorsService = {
   list: (options?: CallOptions) => get<{ creators: Creator[] }>("/api/v1/public/creators", undefined, options),
   /** Owners and Managers only (the API checks). */
   save: (steamId: string, input: CreatorInput, options?: CallOptions) => put<{ ok: true; label: string }>(`/api/v1/staffpanel/creators/${encodeURIComponent(steamId)}`, input, options),
+  apply: (input: CreatorApplicationInput, options?: CallOptions) => post<{ id: string; status: "pending" }>("/api/v1/creators/applications", input, options),
+  myApplication: (options?: CallOptions) => get<MyCreatorApplication>("/api/v1/creators/applications/me", undefined, options),
+  /** Owners and Managers only (the API checks). */
+  applications: (options?: CallOptions) => get<{ applications: StaffCreatorApplication[] }>("/api/v1/staff/creators/applications", undefined, options),
+  decide: (id: string, body: { decision: "approve" | "decline"; tier?: CreatorTier; note?: string }, options?: CallOptions) => put<{ id: string; status: "approved" | "declined" }>(`/api/v1/staff/creators/applications/${encodeURIComponent(id)}`, body, options),
   remove: (steamId: string, options?: CallOptions) => del<{ ok: true }>(`/api/v1/staffpanel/creators/${encodeURIComponent(steamId)}`, options),
 }

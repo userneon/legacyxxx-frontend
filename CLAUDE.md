@@ -163,6 +163,7 @@ owner request 2026-10-12): black, TikTok's note with its cyan and red offsets, t
 hover (off for reduced motion); its brand colours are palette-exempt. Owners and Managers manage the list in
 Staff → Creators (`src/components/staff-creators.tsx`).
 Clan cards on the Clans page (owner request 2026-10-21, "more colour"): each clan carries its own colour, the backdrop it bought or else one of five calm hues from its tag (violet, orchid, emerald, teal, ruby), for the top hairline, the soft glow, the logo ring, the tag and the member bar. Computed, not a palette; a white primary Join.
+Applications (owner request 2026-10-23): a signed-in player who is not a creator sees **Become a creator** in the Creators page bar (`components/creator-apply.tsx`): a short line about their content and at least one https channel link. While it waits the bar says "Application sent"; a declined player sees the staff note and can apply again after 7 days (the API enforces it). Owners and Managers answer in Staff → Creators → Applications (`staff-creators.tsx`): pick Content Creator or Main Content Creator, optional note, Approve or Decline; approving creates the creator and both answers notify the player. Neutral controls, white primary button.
 Creator cards on the Creators page are violet `.lx-add-box` cards like the Staff team cards, with a violet tier pill (owner request 2026-10-16).
 
 ### Genesis pack (owner decision 2026-10-23; first called Founder)

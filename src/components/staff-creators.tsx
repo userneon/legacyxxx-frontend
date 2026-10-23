@@ -1,9 +1,9 @@
 import { useState } from "react"
-import { Clapperboard, Pencil, Plus, RotateCcw, Trash2 } from "lucide-react"
+import { Check, Clapperboard, Pencil, Plus, RotateCcw, Trash2, X } from "lucide-react"
 import { toast } from "sonner"
 
-import { creatorsService, CREATOR_PLATFORMS, type Creator, type CreatorInput, type CreatorLinks, type CreatorTier } from "@/api/creators"
-import { CreatorBadge } from "@/pages/creators"
+import { creatorsService, CREATOR_PLATFORMS, type Creator, type StaffCreatorApplication, type CreatorInput, type CreatorLinks, type CreatorTier } from "@/api/creators"
+import { CreatorBadge, CreatorLinks as CreatorLinkButtons } from "@/pages/creators"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cn } from "@/lib/utils"
@@ -32,6 +32,21 @@ export function StaffCreators() {
       refetch()
     } catch (caught) {
       toast.error((caught as { message?: string }).message ?? "Could not save the creator")
+    } finally {
+      setBusy(false)
+    }
+  }
+  const applications = useApiQuery((signal) => creatorsService.applications({ signal }), { queryKey: "staff-creator-applications" })
+  const answer = async (application: StaffCreatorApplication, decision: "approve" | "decline", tier: CreatorTier, note: string) => {
+    setBusy(true)
+    try {
+      await creatorsService.decide(application.id, { decision, tier, note: note.trim() })
+      toast.success(decision === "approve" ? `${application.player.username} is now a creator` : "Application declined")
+      applications.refetch()
+      if (decision === "approve") refetch()
+    } catch (caught) {
+      toast.error((caught as { message?: string }).message ?? "Could not save the answer")
+      applications.refetch()
     } finally {
       setBusy(false)
     }
@@ -90,6 +105,15 @@ export function StaffCreators() {
         </section>
       )}
 
+      {(applications.data?.applications.length ?? 0) > 0 && (
+        <section aria-label="Applications" className="flex flex-col gap-2">
+          <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-dim)]">Applications ({applications.data!.applications.length})</h2>
+          <ul className="flex flex-col gap-2">
+            {applications.data!.applications.map((application) => <ApplicationRow key={application.id} application={application} busy={busy} onAnswer={answer} />)}
+          </ul>
+        </section>
+      )}
+
       {loading && !data ? (
         <div className="flex flex-col gap-2" aria-hidden="true">{[0, 1, 2].map((index) => <Skeleton key={index} className="h-14 rounded-xl bg-[var(--card-surface)]" />)}</div>
       ) : error && !data ? (
@@ -112,5 +136,33 @@ export function StaffCreators() {
         </ul>
       )}
     </div>
+  )
+}
+
+/** One waiting application: who, what they said, their channels, and Approve (choosing the role) or Decline (with an optional note). */
+function ApplicationRow({ application, busy, onAnswer }: { application: StaffCreatorApplication; busy: boolean; onAnswer: (application: StaffCreatorApplication, decision: "approve" | "decline", tier: CreatorTier, note: string) => Promise<void> }) {
+  const [tier, setTier] = useState<CreatorTier>("creator")
+  const [note, setNote] = useState("")
+  return (
+    <li className="flex flex-col gap-3 rounded-xl border border-[var(--line)] bg-[var(--card-surface)] px-4 py-3">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <a href={`/profile/${application.player.steamId}`} target="_blank" rel="noopener noreferrer" className="truncate text-[13px] font-semibold text-[var(--text)] hover:underline underline-offset-4">{application.player.username}</a>
+        <span className="text-xs text-[var(--text-dim)]">{application.player.steamId} · {new Date(application.createdAt).toLocaleDateString()}</span>
+      </div>
+      <p className="text-[13px] leading-relaxed text-[var(--text-muted)]">{application.bio}</p>
+      <CreatorLinkButtons links={application.links} />
+      <div className="flex flex-wrap items-center gap-2">
+        <div role="radiogroup" aria-label="Role" className="flex h-9 gap-0.5 rounded-lg border border-[var(--line)] p-[3px]">
+          {(["creator", "main"] as const).map((value) => (
+            <button key={value} type="button" role="radio" aria-checked={tier === value} onClick={() => setTier(value)} className={cn("rounded-md px-3 text-[13px] transition-colors", tier === value ? "bg-[var(--line)] text-[var(--text)]" : "text-[var(--text-muted)] hover:text-[var(--text)]")}>
+              {value === "main" ? "Main Content Creator" : "Content Creator"}
+            </button>
+          ))}
+        </div>
+        <input className={cn(input, "min-w-40 flex-1")} maxLength={200} value={note} onChange={(event) => setNote(event.target.value)} placeholder="Note for the player (shown if declined)" aria-label="Note" />
+        <button type="button" disabled={busy} onClick={() => void onAnswer(application, "decline", tier, note)} className={secondary}><X className="size-4" />Decline</button>
+        <button type="button" disabled={busy} onClick={() => void onAnswer(application, "approve", tier, note)} className="lx-primary-button inline-flex h-9 items-center gap-1.5 rounded-lg px-3.5 text-[13px] font-semibold disabled:opacity-50"><Check className="size-4" />Approve</button>
+      </div>
+    </li>
   )
 }

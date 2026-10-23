@@ -4,6 +4,7 @@ import { Link } from "react-router-dom"
 import { Clapperboard, ExternalLink, RotateCcw, Star } from "lucide-react"
 
 import { creatorsService, CREATOR_PLATFORMS, type Creator, type CreatorTier } from "@/api/creators"
+import { CreatorApply } from "@/components/creator-apply"
 import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
 import { FramedAvatar } from "@/components/framed-avatar"
 import { PageBar, PageBarEnd, PageTabs } from "@/components/page-tabs"
@@ -108,7 +109,7 @@ export function CreatorsPage() {
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
         <PageTabs<CreatorsTab> ariaLabel="Creators" value={tab} onChange={setTab} options={[{ value: "all", label: "All" }, { value: "main", label: "Main Content Creators" }, { value: "creator", label: "Content Creators" }]} />
-        <PageBarEnd>{data && <span className="text-xs text-[var(--text-dim)]">{creators.length} creator{creators.length === 1 ? "" : "s"}</span>}</PageBarEnd>
+        <PageBarEnd>{data && <span className="text-xs text-[var(--text-dim)] max-sm:hidden">{creators.length} creator{creators.length === 1 ? "" : "s"}</span>}<CreatorApply /></PageBarEnd>
       </PageBar>
       <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 py-5 max-md:px-4">
         {loading && !data ? (

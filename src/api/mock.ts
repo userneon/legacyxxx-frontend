@@ -605,6 +605,7 @@ const MOCK_CLANS = [
 ]
 
 /** Notification settings for the session, so the switches in Settings really toggle. */
+let mockCreatorApplication: { status: "pending" | "approved" | "declined"; note: string; createdAt: string; decidedAt: string | null } | null = null
 let notificationPrefs = { tournaments: true, rankChanges: false, penalties: true }
 
 export async function mockResponse(method: string, path: string, query: Query, body?: unknown): Promise<unknown> {
@@ -614,6 +615,10 @@ export async function mockResponse(method: string, path: string, query: Query, b
     try { window.localStorage.removeItem("legacyx_access_token") } catch { /* storage blocked */ }
     return undefined
   }
+  if (path === "/api/v1/creators/applications/me") return { isCreator: false, application: mockCreatorApplication, canApplyAgainAt: null }
+  if (path === "/api/v1/creators/applications" && method === "POST") { mockCreatorApplication = { status: "pending", note: "", createdAt: new Date().toISOString(), decidedAt: null }; return { id: "ca1", status: "pending" } }
+  if (path === "/api/v1/staff/creators/applications" && method === "GET") return { applications: mockCreatorApplication ? [] : [{ id: "ca2", bio: "Mirage and Dust II clips with Mongolian commentary.", links: { youtube: "https://youtube.com/@clips", tiktok: "https://tiktok.com/@clips" }, createdAt: new Date(Date.now() - 3 * HOUR).toISOString(), player: { steamId: "76561198000000009", username: "ClipMaker", avatar: null } }] }
+  if (path.startsWith("/api/v1/staff/creators/applications/") && method === "PUT") return { id: path.split("/").pop(), status: (body as { decision: string }).decision === "approve" ? "approved" : "declined" }
   if (path === "/api/v1/play/status") return { leavesToday: 0, cooldown: null, next: { cooldownMinutes: 0 } }
   if (path === "/api/v1/notifications" && method === "GET") {
     const ago = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString()
