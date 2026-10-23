@@ -52,11 +52,23 @@ const TABS: Array<{ value: StaffTab; label: string }> = [
 
 const STEAM_ID = /^7656119\d{10}$/
 
+/**
+ * What each role sees (owner decision 2026-10-23: Admin and above get the staff site). An Admin works with checks, penalties and players;
+ * a Manager adds clans, creators, the shop and the server console; the Owner adds the team and the settings. The API enforces the same
+ * lines; hiding a tab only spares someone a page that would refuse them.
+ */
+const ADMIN_TABS: StaffTab[] = ["overview", "checks", "penalties", "players"]
+const MANAGER_TABS: StaffTab[] = [...ADMIN_TABS, "clans", "creators", "shop", "servers"]
+const OWNER_TABS: StaffTab[] = [...MANAGER_TABS, "team", "settings"]
+const tabsFor = (role: string | null | undefined): ReadonlySet<StaffTab> => new Set(role === "OWNER" ? OWNER_TABS : role === "MANAGER" ? MANAGER_TABS : ADMIN_TABS)
+
 /** Everything staff do on the site in one place: what is waiting, checks, penalties, a player by Steam ID, and the server console. */
 export function StaffPage({ initialTab = "overview" }: { initialTab?: StaffTab } = {}) {
   const { isAuthenticated } = useAuth()
   const { data: access, loading } = useApiQuery<ModerationAccess>((signal) => penaltyAdminService.getAccess({ signal }), { enabled: isAuthenticated, queryKey: `staff-access:${isAuthenticated}` })
-  const [tab, setTab] = usePathTab<StaffTab>("/staff", { overview: "", checks: "checks", penalties: "penalties", players: "players", clans: "clans", creators: "creators", shop: "shop", team: "team", servers: "servers", settings: "settings" }, initialTab)
+  const [asked, setTab] = usePathTab<StaffTab>("/staff", { overview: "", checks: "checks", penalties: "penalties", players: "players", clans: "clans", creators: "creators", shop: "shop", team: "team", servers: "servers", settings: "settings" }, initialTab)
+  const allowed = tabsFor(access?.role)
+  const tab: StaffTab = allowed.has(asked) ? asked : "overview"
   const [params, setParams] = useSearchParams()
   const [finding, setFinding] = useState(false)
   // What is waiting, fetched once here: the Overview lists it and the tabs show how many are waiting.
@@ -95,7 +107,7 @@ export function StaffPage({ initialTab = "overview" }: { initialTab?: StaffTab }
   return (
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
-        <PageTabs<StaffTab> ariaLabel="Staff" value={tab} onChange={setTab} options={TABS.map((entry) => ({ ...entry, count: counts[entry.value] || undefined }))} />
+        <PageTabs<StaffTab> ariaLabel="Staff" value={tab} onChange={setTab} options={TABS.filter((entry) => allowed.has(entry.value)).map((entry) => ({ ...entry, count: counts[entry.value] || undefined }))} />
         <PageBarEnd>
           <button type="button" onClick={() => setFinding(true)} className="flex h-9 w-[240px] items-center gap-2 rounded-lg border border-[var(--glass-line)] px-3 text-[13px] text-[var(--text-dim)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]">
             <Search className="size-4 shrink-0" aria-hidden="true" />
@@ -105,7 +117,7 @@ export function StaffPage({ initialTab = "overview" }: { initialTab?: StaffTab }
         </PageBarEnd>
       </PageBar>
       <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
-        {tab === "overview" && <Overview access={access} onGo={setTab} onCase={openCase} checks={checks.data} requests={requests.data} applications={applications.data?.applications ?? null} orders={orders.data} servers={servers.data} />}
+        {tab === "overview" && <Overview access={access} allowed={allowed} onGo={setTab} onCase={openCase} checks={checks.data} requests={requests.data} applications={applications.data?.applications ?? null} orders={orders.data} servers={servers.data} />}
         {tab === "checks" && <ChecksPage embedded />}
         {tab === "penalties" && <PenaltiesTab access={access} onCase={openCase} />}
         {tab === "players" && <PlayersTab access={access} caseId={params.get("case")} onFind={() => setFinding(true)} onBack={() => setParams((current) => { const next = new URLSearchParams(current); next.delete("case"); return next })} onChecks={() => setTab("checks")} />}
@@ -136,7 +148,7 @@ function Cell({ label, value, onClick }: { label: string; value: string | number
   return onClick ? <button type="button" onClick={onClick} className="lx-stat-cell text-left shadow-none! transition-colors hover:bg-[var(--raised)]">{body}</button> : <div className="lx-stat-cell shadow-none!">{body}</div>
 }
 
-function Overview({ access, onGo, onCase, checks, requests, applications, orders, servers }: { access: ModerationAccess; onGo: (tab: StaffTab) => void; onCase: (steamId: string) => void; checks: PlayerCheck[] | null; requests: LiftRequest[] | null; applications: StaffCreatorApplication[] | null; orders: StaffGoodsOrder[] | null; servers: StaffPanelOverview | null }) {
+function Overview({ access, allowed, onGo, onCase, checks, requests, applications, orders, servers }: { access: ModerationAccess; allowed: ReadonlySet<StaffTab>; onGo: (tab: StaffTab) => void; onCase: (steamId: string) => void; checks: PlayerCheck[] | null; requests: LiftRequest[] | null; applications: StaffCreatorApplication[] | null; orders: StaffGoodsOrder[] | null; servers: StaffPanelOverview | null }) {
   const list = checks ?? []
   const waiting = list.filter((check) => check.status === "pending").length
   const toRead = list.filter(needsReading).length
@@ -217,7 +229,7 @@ function Overview({ access, onGo, onCase, checks, requests, applications, orders
             { tab: "players", tone: "sky", icon: UserSearch, title: "Find a player", text: "Open a player by Steam ID, or penalise them." },
             { tab: "clans", tone: "green", icon: Users, title: "Clans", text: "Remove a logo or banner, rename a clan or delete it." },
             { tab: "servers", tone: "amber", icon: Server, title: "Servers", text: "Ban, kick, change the map, announce, restart." },
-          ] as const).map((card) => (
+          ] as const).filter((card) => allowed.has(card.tab)).map((card) => (
             <button key={card.tab} type="button" data-tone={card.tone} onClick={() => onGo(card.tab)} className={cn(STAFF_CARD, "text-left")}>
               <CardIcon icon={card.icon} />
               <span className="text-[15px] font-semibold text-[var(--text)]">{card.title}</span>
