@@ -38,6 +38,9 @@ const FRAMES: Record<string, FrameArt> = {
   "eclipse-clouds": { opening: 0.76, dx: -0.02, dy: 0.0 },
   "film-and-butterflies": { opening: 0.75, dx: -0.03, dy: -0.01 },
   "glitch": { opening: 0.8, dx: 0.0, dy: -0.01 },
+  "booster-gold": { opening: 0.589, dx: -0.002, dy: -0.014, mask: true },
+  "booster-silver": { opening: 0.606, dx: 0, dy: -0.002, mask: true },
+  "booster-bronze": { opening: 0.602, dx: 0, dy: -0.016, mask: true },
   "server-booster": { opening: 0.8, dx: 0, dy: 0 },
 }
 
@@ -101,6 +104,9 @@ const ACCENTS: Record<string, string> = {
   "eclipse-clouds": "#9ca3af", // palette-exempt: the frame's own light
   "glitch": "#22d3ee", // palette-exempt: the frame's own light
   "founder": "#f2cd72", // palette-exempt: the frame's own light
+  "booster-gold": "#f2cd72", // palette-exempt: the frame's own light
+  "booster-silver": "#cbd5e1", // palette-exempt: the frame's own light
+  "booster-bronze": "#d98a5f", // palette-exempt: the frame's own light
   "server-booster": "#ff73fa", // palette-exempt: Discord Boost brand
 }
 

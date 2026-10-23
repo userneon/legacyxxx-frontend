@@ -148,6 +148,10 @@ Booster reward (owner decision 2026-10-17): a member who boosts the Discord serv
 (`public/frames/server-booster.webp`, achievement type, given once and kept for good; no LX), and a pink **Booster** mark next to the name on the profile
 (`components/booster-badge.tsx`) only while they still boost. A booster who links Discord later gets the frame then.
 
+Booster podium (owner request 2026-10-23): the three members with the most server boosts (the Boosters ladder's first three, linked and with at least one boost) wear the **Booster Gold**, **Silver**
+and **Bronze** frames (`public/frames/booster-*.webp`, masked like the Founder frame). They are earned and follow the ranking: the API gives each frame to its holder and takes it from whoever loses the place.
+The Server Booster frame stays for every booster. The violet in these three comes from the owner-supplied art (a booster look, like the Boosters page's pink), not from site chrome.
+
 ### Creators (owner request 2026-10-12)
 
 Two creator roles, **Main Content Creator** and **Content Creator**, kept apart from staff (`legacy_x.content_creators`; no

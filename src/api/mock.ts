@@ -58,6 +58,9 @@ function mockFrames() {
     ["eclipse-clouds", "Eclipse Clouds", "achievement", 0, "Clan tournament winner"],
     ["glitch", "Glitch", "achievement", 0, "Season 1 winner"],
     ["founder", "Founder", "achievement", 0, "Founder pack"],
+    ["booster-gold", "Booster Gold", "achievement", 0, "The #1 server booster"],
+    ["booster-silver", "Booster Silver", "achievement", 0, "The #2 server booster"],
+    ["booster-bronze", "Booster Bronze", "achievement", 0, "The #3 server booster"],
   ]
   const featured = new Set(["planet-orbit", "ice-crystals"])
   return list.map(([id, name, unlock, price, requirement]) => ({ id, name, nameMn: name, unlock, price, requirement, owned: unlock === "free" || mockFrameState.owned.has(id) || (id === "founder" && mockIsFounder()), rarity: unlock === "achievement" ? 4 : unlock === "free" || price <= 250 ? 1 : price <= 500 ? 2 : 3, featured: featured.has(id), owners: unlock === "free" ? null : (id.length * 3) % 7 }))
