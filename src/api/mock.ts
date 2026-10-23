@@ -619,6 +619,15 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path === "/api/v1/creators/applications" && method === "POST") { mockCreatorApplication = { status: "pending", note: "", createdAt: new Date().toISOString(), decidedAt: null }; return { id: "ca1", status: "pending" } }
   if (path === "/api/v1/staff/creators/applications" && method === "GET") return { applications: mockCreatorApplication ? [] : [{ id: "ca2", bio: "Mirage and Dust II clips with Mongolian commentary.", links: { youtube: "https://youtube.com/@clips", tiktok: "https://tiktok.com/@clips" }, createdAt: new Date(Date.now() - 3 * HOUR).toISOString(), player: { steamId: "76561198000000009", username: "ClipMaker", avatar: null } }] }
   if (path.startsWith("/api/v1/staff/creators/applications/") && method === "PUT") return { id: path.split("/").pop(), status: (body as { decision: string }).decision === "approve" ? "approved" : "declined" }
+  if (path === "/api/v1/staff/shop/orders" && method === "GET") return { orders: [
+    { id: "o1", productId: "p1", productName: "Genesis pack", productKind: "founder", grantsLx: 0, quantity: 1, unitPriceMnt: 30000, status: "new", createdAt: new Date(Date.now() - 2 * HOUR).toISOString(), phone: "99112233", note: "Call after 6 pm", player: { steamId: "76561198000000001", username: "xBataa" } },
+    { id: "o2", productId: "p2", productName: "LEGACY-X NFC charm", productKind: "charm", grantsLx: 0, quantity: 2, unitPriceMnt: 12000, status: "contacted", createdAt: new Date(Date.now() - 20 * HOUR).toISOString(), phone: "88001122", note: "", player: { steamId: "76561198000000004", username: "Enkh." } },
+  ] }
+  if (path === "/api/v1/staff/shop/products" && method === "GET") return { products: [
+    { id: "p1", slug: "genesis", name: "Genesis pack", description: "", kind: "founder", priceMnt: 30000, imageUrl: null, stock: 500, grantsLx: 0, enabled: true, sort: 0 },
+    { id: "p2", slug: "nfc-charm", name: "LEGACY-X NFC charm", description: "", kind: "charm", priceMnt: 12000, imageUrl: null, stock: 40, grantsLx: 0, enabled: true, sort: 1 },
+    { id: "p3", slug: "lx-5000", name: "5,000 LX", description: "", kind: "lx", priceMnt: 15000, imageUrl: null, stock: 0, grantsLx: 5000, enabled: false, sort: 2 },
+  ] }
   if (path === "/api/v1/play/status") return { leavesToday: 0, cooldown: null, next: { cooldownMinutes: 0 } }
   if (path === "/api/v1/notifications" && method === "GET") {
     const ago = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString()

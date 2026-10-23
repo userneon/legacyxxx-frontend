@@ -103,6 +103,7 @@ Skin picker tiles (owner request 2026-10-11): on hover the tile lifts 4px with a
 `/staff` and `/checks` there move to the admin site, and the sidebar's Staff entry is a link (`lib/sites.ts`: `ADMIN_URL`, `SITE_URL`). On the admin site a staff
 link to a profile, clan or the Penalties list opens the website. The API needs `ADMIN_ORIGIN` (CORS + Steam sign-in that returns there, `?to=admin`); the session cookies are on `.legacyx.cc`, so one sign-in covers both.
 
+Staff lists are **cards, not rows** (owner request 2026-10-23): every tab sits in one centred column (`STAFF_BODY`, max 1320px) and a list is a grid of flat-outline cards (`STAFF_GRID`, `STAFF_CARD`, `StaffSection`, `CardIcon` in `components/staff-ui.tsx`), 1 / 2 / 3 columns. Overview's "Needs you", unban requests, clans, creators, applications, shop orders and products, servers and checks all follow it; the Checks cards keep the console look.
 The Staff page (`src/pages/staff.tsx`, `src/components/staff-*.tsx`) is built around what staff do all day, not around the data. **Ctrl K** (or the box in the page bar) finds a
 player by name or Steam ID and opens their case: penalties with who lifted them, what the checker found, and the buttons to act (B ban, M mute, G gag, `/` find, Esc back).
 "Needs you" on Overview lists finished checks, checks still waiting and unban requests, oldest first. It stays inside the site's palette (neutral, white accent); it

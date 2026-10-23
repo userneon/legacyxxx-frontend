@@ -4,6 +4,7 @@ import { toast } from "sonner"
 
 import { shopGoodsService, type GoodsOrderStatus, type GoodsProductInput, type StaffGoodsProduct } from "@/api/shop-goods"
 import { RelativeTime } from "@/components/relative-time"
+import { CardIcon, STAFF_BODY, STAFF_CARD, STAFF_GRID, StaffEmpty } from "@/components/staff-ui"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cn } from "@/lib/utils"
@@ -74,7 +75,7 @@ export function StaffShop() {
   const edit = (product: StaffGoodsProduct) => setDraft({ slug: product.slug, isNew: false, name: product.name, description: product.description, kind: product.kind, grantsLx: product.grantsLx, priceMnt: product.priceMnt, imageUrl: product.imageUrl, stock: product.stock, enabled: product.enabled, sort: product.sort, ...(product.kind === "founder" ? { endsAt: product.founder?.endsAt ?? null } : {}) })
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-5 max-md:px-4">
+    <div className={STAFF_BODY}>
       <section aria-label="Orders" className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <span className={label}>Orders</span>
@@ -84,22 +85,28 @@ export function StaffShop() {
           ))}
         </div>
         {orders.loading && !orders.data ? (
-          <div className="flex flex-col gap-2" aria-hidden="true">{[0, 1].map((index) => <Skeleton key={index} className="h-20 rounded-xl bg-[var(--card-surface)]" />)}</div>
+          <div className={STAFF_GRID} aria-hidden="true">{[0, 1, 2].map((index) => <Skeleton key={index} className="h-[150px] rounded-xl bg-[var(--glass-fill)]" />)}</div>
         ) : orders.error && !orders.data ? (
           <p className="flex items-center gap-3 text-[13px] text-[var(--text-dim)]">Could not load the orders.<button type="button" onClick={orders.refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>
         ) : (orders.data?.length ?? 0) === 0 ? (
-          <p className="py-6 text-[13px] text-[var(--text-dim)]">No orders here.</p>
+          <StaffEmpty>No orders here.</StaffEmpty>
         ) : (
-          <ul className="flex flex-col gap-2">
+          <ul className={STAFF_GRID}>
             {orders.data!.map((order) => (
-              <li key={order.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-[var(--line)] bg-[var(--card-surface)] px-4 py-3">
-                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <span className="truncate text-[13px] font-semibold text-[var(--text)]">{order.productName} × {order.quantity} · {mnt(order.unitPriceMnt * order.quantity)}</span>
-                  <span className="truncate text-xs text-[var(--text-dim)]">{order.player.username} · {order.player.steamId} · <a href={`tel:${order.phone}`} className="text-[var(--text-2)] hover:text-[var(--text)]">{order.phone}</a></span>
-                  {order.note && <span className="truncate text-xs text-[var(--text-muted)]">{order.note}</span>}
-                  <RelativeTime value={order.createdAt} className="text-[11px] text-[var(--text-dim)]" />
+              <li key={order.id} className={STAFF_CARD}>
+                <div className="flex items-start gap-3">
+                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <span className="truncate text-[13px] font-semibold text-[var(--text)]" title={order.productName}>{order.productName} × {order.quantity}</span>
+                    <span className="text-[15px] font-semibold text-[var(--text)]">{mnt(order.unitPriceMnt * order.quantity)}</span>
+                  </span>
+                  <RelativeTime value={order.createdAt} className="shrink-0 text-[11px] text-[var(--text-dim)]" />
+                </div>
+                <span className="flex flex-col gap-0.5 text-xs text-[var(--text-dim)]">
+                  <span className="truncate">{order.player.username} · {order.player.steamId}</span>
+                  <a href={`tel:${order.phone}`} className="w-fit text-[var(--text-2)] hover:text-[var(--text)]">{order.phone}</a>
                 </span>
-                <select aria-label="Order status" value={order.status} disabled={busy} onChange={(event) => void move(order.id, event.target.value as GoodsOrderStatus)} className={cn(input, "w-[140px]")}>
+                {order.note && <p className="line-clamp-2 text-xs text-[var(--text-muted)]">{order.note}</p>}
+                <select aria-label="Order status" value={order.status} disabled={busy} onChange={(event) => void move(order.id, event.target.value as GoodsOrderStatus)} className={cn(input, "mt-auto")}>
                   {STATUSES.map((entry) => <option key={entry.value} value={entry.value}>{entry.label}</option>)}
                 </select>
               </li>
@@ -166,20 +173,25 @@ export function StaffShop() {
         )}
 
         {products.loading && !products.data ? (
-          <Skeleton className="h-14 rounded-xl bg-[var(--card-surface)]" />
+          <div className={STAFF_GRID} aria-hidden="true">{[0, 1, 2].map((index) => <Skeleton key={index} className="h-[130px] rounded-xl bg-[var(--glass-fill)]" />)}</div>
         ) : products.error && !products.data ? (
           <p className="flex items-center gap-3 text-[13px] text-[var(--text-dim)]">Could not load the products.<button type="button" onClick={products.refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>
         ) : (products.data?.length ?? 0) === 0 ? (
-          <p className="py-6 text-[13px] text-[var(--text-dim)]">No products yet.</p>
+          <StaffEmpty>No products yet.</StaffEmpty>
         ) : (
-          <ul className="flex flex-col gap-2">
+          <ul className={STAFF_GRID}>
             {products.data!.map((product) => (
-              <li key={product.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-[var(--line)] bg-[var(--card-surface)] px-4 py-3">
-                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <span className="truncate text-[13px] font-semibold text-[var(--text)]">{product.name}</span>
-                  <span className="truncate text-xs text-[var(--text-dim)]">{mnt(product.priceMnt)}{product.kind === "lx" ? ` · gives ${product.grantsLx.toLocaleString()} LX` : ` · ${product.stock} in stock`} · {product.enabled ? "Shown" : "Hidden"}</span>
-                </span>
-                <button type="button" aria-label={`Edit ${product.name}`} onClick={() => edit(product)} className={cn(secondary, "w-9 px-0")}><Pencil className="size-4" /></button>
+              <li key={product.id} className={STAFF_CARD}>
+                <div className="flex items-start gap-3">
+                  {product.imageUrl ? <img src={product.imageUrl} alt="" className="size-12 shrink-0 rounded-xl border border-[var(--line)] object-cover" /> : <CardIcon icon={Package} className="size-12" />}
+                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <span className="truncate text-[15px] font-semibold text-[var(--text)]" title={product.name}>{product.name}</span>
+                    <span className="text-[13px] text-[var(--text-2)]">{mnt(product.priceMnt)}</span>
+                  </span>
+                  <span className={cn("shrink-0 rounded-full border px-2 py-0.5 text-[11px]", product.enabled ? "border-[var(--status-green)]/45 text-[var(--status-green)]" : "border-[var(--line)] text-[var(--text-dim)]")}>{product.enabled ? "Shown" : "Hidden"}</span>
+                </div>
+                <p className="text-xs text-[var(--text-dim)]">{product.kind === "lx" ? `Gives ${product.grantsLx.toLocaleString()} LX` : `${product.stock} in stock`}</p>
+                <button type="button" onClick={() => edit(product)} className={cn(secondary, "mt-auto")}><Pencil className="size-4" />Edit</button>
               </li>
             ))}
           </ul>

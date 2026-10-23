@@ -267,15 +267,15 @@ export function ChecksPage({ embedded = false }: { embedded?: boolean } = {}) {
       </PageBar>
       <div className="chk-stage min-h-0 flex-1 overflow-y-auto px-6 py-5 max-md:px-4">
         {loading && !data ? (
-          <div className="flex max-w-4xl flex-col gap-2">{Array.from({ length: 4 }, (_, index) => <Skeleton key={index} className="h-[72px] rounded-xl" />)}</div>
+          <div className="mx-auto grid w-full max-w-[1320px] gap-3 sm:grid-cols-2 xl:grid-cols-3">{Array.from({ length: 6 }, (_, index) => <Skeleton key={index} className="h-[150px] rounded-xl" />)}</div>
         ) : forbidden ? (
           <p className="py-24 text-center font-mono text-[13px] text-[var(--text-dim)]">&gt; access denied: only an admin, manager or owner can use this page.</p>
         ) : error || !data ? (
           <p className="flex items-center justify-center gap-3 py-24 font-mono text-[13px] text-[var(--text-dim)]">could not load the checks.<button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />retry</button></p>
         ) : list.length === 0 ? (
-          <div className="max-w-4xl"><Protocol onAsk={() => setCreating(true)} /></div>
+          <div className="mx-auto w-full max-w-[1320px]"><Protocol onAsk={() => setCreating(true)} /></div>
         ) : (
-          <div className="flex max-w-4xl flex-col gap-5">
+          <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-5">
             <div className="flex flex-col gap-1">
               <PromptLine className="text-[20px] font-semibold text-[var(--text)]" text="checks // console" />
               <p className="font-mono text-[12px] text-[var(--text-dim)]">// {counts.waiting} waiting · {counts.flagged} flagged · latest {counts.all}</p>
@@ -288,30 +288,36 @@ export function ChecksPage({ embedded = false }: { embedded?: boolean } = {}) {
             {shown.length === 0 ? (
               <p className="py-6 font-mono text-[13px] text-[var(--text-dim)]">&gt; no check matches that.</p>
             ) : (
-              <ul className="flex flex-col gap-2.5">
+              <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {shown.map((check) => {
                   const threat = threatOf(check)
                   const summary = check.summary
                   return (
                     <li key={check.id} className="group/row relative">
-                      <button type="button" data-level={threat === "flagged" ? "flagged" : threat === "clear" ? "clear" : "review"} onClick={() => setOpen(check.id)} className="chk-row chk-panel group flex w-full items-center gap-4 py-3 pl-5 pr-[4.5rem] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
-                        <PlayerAvatar avatar={check.targetAvatar ?? undefined} name={check.targetName ?? check.targetSteamId} className="size-10 rounded-[10px] text-sm" />
-                        <span className="flex min-w-0 flex-1 flex-col gap-1.5">
-                          <span className="flex items-center gap-2"><span className="truncate font-mono text-[13px] font-semibold text-[var(--text)]">{check.targetName ?? "not on legacy-x"}</span><ThreatBadge threat={threat} /></span>
-                          <span className="truncate font-mono text-[11px] text-[var(--text-dim)]">{check.targetSteamId} // {check.requestedBy} // <RelativeTime value={check.createdAt} />{check.status === "pending" ? ` // ${minutesLeft(check)} min left` : ""}</span>
+                      <button type="button" data-level={threat === "flagged" ? "flagged" : threat === "clear" ? "clear" : "review"} onClick={() => setOpen(check.id)} className="chk-row chk-panel group flex h-full w-full flex-col gap-3 py-4 pl-5 pr-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
+                        <span className="flex items-center gap-3 pr-9">
+                          <PlayerAvatar avatar={check.targetAvatar ?? undefined} name={check.targetName ?? check.targetSteamId} className="size-11 shrink-0 rounded-[10px] text-sm" />
+                          <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+                            <span className="truncate font-mono text-[13px] font-semibold text-[var(--text)]">{check.targetName ?? "not on legacy-x"}</span>
+                            <span><ThreatBadge threat={threat} /></span>
+                          </span>
                         </span>
-                        <span className="hidden shrink-0 flex-col items-end gap-1.5 sm:flex">
-                          <RiskMeter detections={summary?.detections ?? 0} suspicions={summary?.suspicions ?? 0} banned={summary?.bannedAccounts ?? 0} className={cn(!summary && "opacity-30")} />
-                          <span className="font-mono text-[10px] tracking-[1px] text-[var(--text-dim)]">{summary ? `${summary.detections} DET · ${summary.suspicions} SUS${(summary.bannedAccounts ?? 0) > 0 ? ` · ${summary.bannedAccounts} BAN` : ""}` : check.status === "pending" ? "AWAITING PLAYER" : "NO RESULT"}{summary && !summary.matchesTarget && <span className="text-[var(--status-red)]"> · ID NOT ON PC</span>}</span>
+                        <span className="truncate font-mono text-[11px] text-[var(--text-dim)]">{check.targetSteamId}</span>
+                        <span className="truncate font-mono text-[11px] text-[var(--text-dim)]">{check.requestedBy} // <RelativeTime value={check.createdAt} />{check.status === "pending" ? ` // ${minutesLeft(check)} min left` : ""}</span>
+                        <span className="mt-auto flex items-end justify-between gap-3 border-t border-[var(--line-soft)] pt-3">
+                          <span className="flex flex-col gap-1.5">
+                            <RiskMeter detections={summary?.detections ?? 0} suspicions={summary?.suspicions ?? 0} banned={summary?.bannedAccounts ?? 0} className={cn(!summary && "opacity-30")} />
+                            <span className="font-mono text-[10px] tracking-[1px] text-[var(--text-dim)]">{summary ? `${summary.detections} DET · ${summary.suspicions} SUS${(summary.bannedAccounts ?? 0) > 0 ? ` · ${summary.bannedAccounts} BAN` : ""}` : check.status === "pending" ? "AWAITING PLAYER" : "NO RESULT"}{summary && !summary.matchesTarget && <span className="text-[var(--status-red)]"> · ID NOT ON PC</span>}</span>
+                          </span>
+                          <ChevronRight className="size-4 shrink-0 text-[var(--text-faint)] transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
                         </span>
-                        <ChevronRight className="size-4 shrink-0 text-[var(--text-faint)] transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
                       </button>
                       <button
                         type="button"
                         aria-label={check.status === "pending" ? "Cancel this check" : "Remove this check"}
                         title={check.status === "pending" ? "Cancel" : "Remove"}
                         onClick={async () => { if (await removeCheck(check.id, check.status === "pending")) void refetch() }}
-                        className="absolute right-11 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg border border-transparent text-[var(--text-faint)] opacity-0 transition-[opacity,color,border-color] hover:border-[var(--line)] hover:text-[var(--status-red)] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 group-hover/row:opacity-100 max-sm:opacity-100"
+                        className="absolute right-3 top-3 grid size-8 place-items-center rounded-lg border border-transparent text-[var(--text-faint)] opacity-0 transition-[opacity,color,border-color] hover:border-[var(--line)] hover:text-[var(--status-red)] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 group-hover/row:opacity-100 max-sm:opacity-100"
                       >
                         <Trash2 className="size-4" aria-hidden="true" />
                       </button>

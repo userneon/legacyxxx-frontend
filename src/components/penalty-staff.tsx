@@ -111,19 +111,26 @@ export function LiftRequests({ access, onDecided }: { access: ModerationAccess; 
     }
   }
   return (
-    <section aria-label="Unban requests" className="flex flex-col gap-2">
+    <section aria-label="Unban requests" className="flex flex-col gap-3">
       <h2 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-dim)]">Unban requests · {requests.length}</h2>
-      {requests.map((request) => (
-        <div key={request.id} className="flex items-center gap-3 rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3">
-          <PlayerAvatar avatar={request.avatar} name={request.player} className="size-10 rounded-[10px] text-sm" />
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-[13px] font-medium">{request.player} <span className="text-[var(--text-dim)]">· {LIFT_LABEL[request.type] ?? "Lift"}</span></span>
-            <span className="block truncate text-[11px] text-[var(--text-dim)]">{request.requestedBy} asked {formatRelativeTime(new Date(request.at))} · {request.penaltyReason}</span>
-          </span>
-          <Button type="button" size="sm" disabled={busy === request.id} onClick={() => void decide(request, true)}>Approve</Button>
-          <Button type="button" variant="outline" size="sm" disabled={busy === request.id} onClick={() => void decide(request, false)}>Decline</Button>
-        </div>
-      ))}
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {requests.map((request) => (
+          <div key={request.id} className="flex min-w-0 flex-col gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4 transition-colors hover:border-[var(--line-strong)]">
+            <div className="flex items-start gap-3">
+              <PlayerAvatar avatar={request.avatar} name={request.player} className="size-10 shrink-0 rounded-[10px] text-sm" />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[13px] font-semibold text-[var(--text)]">{request.player}</span>
+                <span className="block text-[11px] text-[var(--text-dim)]">{LIFT_LABEL[request.type] ?? "Lift"} · {request.requestedBy} asked {formatRelativeTime(new Date(request.at))}</span>
+              </span>
+            </div>
+            <p className="line-clamp-2 text-xs text-[var(--text-muted)]">{request.penaltyReason}</p>
+            <div className="mt-auto flex gap-2">
+              <Button type="button" size="sm" className="flex-1" disabled={busy === request.id} onClick={() => void decide(request, true)}>Approve</Button>
+              <Button type="button" variant="outline" size="sm" className="flex-1" disabled={busy === request.id} onClick={() => void decide(request, false)}>Decline</Button>
+            </div>
+          </div>
+        ))}
+      </div>
     </section>
   )
 }

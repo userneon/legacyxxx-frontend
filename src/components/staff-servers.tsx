@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { Database, Loader2, LockKeyhole, Map, Megaphone, MonitorUp, Power, RotateCcw, ServerCog, ShieldAlert, UserRoundCog, UsersRound } from "lucide-react"
 
+import { STAFF_BODY, STAFF_CARD, StaffEmpty } from "@/components/staff-ui"
 import { staffPanelService } from "@/api/staffpanel"
 import type { ApiError, StaffPanelAccess, StaffPanelActionRequest, StaffPanelDatabaseOverview, StaffPanelOverview } from "@/api/types"
 import { Input } from "@/components/ui/input"
@@ -107,61 +108,64 @@ export function ServersPanel() {
   }
 
   return (
-    <div className="flex flex-col gap-4 px-6 pb-8 pt-4">
+    <div className={STAFF_BODY}>
       {notice && <p className="rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 py-2 text-[13px] text-[var(--text-2)]" role="status">{notice}</p>}
       <p className="text-[13px] text-[var(--text-dim)]">{access.username} · {access.role}. Every action is queued and audited; the browser never runs a server command itself.</p>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-        <div className="flex flex-col gap-4">
-          <section aria-label="Servers" className="flex flex-col gap-2">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-faint)]">Servers · {overview?.servers.length ?? 0}</h3>
-            {(overview?.servers ?? []).length === 0 ? (
-              <p className="text-[13px] text-[var(--text-dim)]">No server has reported in yet.</p>
-            ) : (
-              <ul className="flex flex-col gap-2" role="radiogroup" aria-label="Server">
-                {overview?.servers.map((item) => {
-                  const picked = item.server_id === server
-                  return (
-                    <li key={item.server_id}>
-                      <button type="button" role="radio" aria-checked={picked} onClick={() => setServer(item.server_id)} className={cn("flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left transition-colors", picked ? "border-[var(--line-strong)] bg-[var(--raised)]" : "border-[var(--glass-line)] bg-[var(--glass-fill)] hover:border-[var(--line-strong)]")}>
-                        <span className={cn("size-2 shrink-0 rounded-full", isOnline(item.last_heartbeat_at) ? "bg-[var(--status-green)]" : "bg-[var(--text-faint)]")} aria-hidden="true" />
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-[13px] font-semibold text-[var(--text)]">{item.name || item.server_id}</span>
-                          <span className="block text-[11px] text-[var(--text-dim)]">{item.mode} · {item.map_name} · {item.player_count} players · {isOnline(item.last_heartbeat_at) ? "online" : "not reporting"}</span>
-                        </span>
-                      </button>
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-          </section>
+      <section aria-label="Servers" className="flex flex-col gap-3">
+        <h3 className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-faint)]">Servers · {overview?.servers.length ?? 0} <span className="font-normal normal-case tracking-normal">· pick one for the actions below</span></h3>
+        {(overview?.servers ?? []).length === 0 ? (
+          <StaffEmpty>No server has reported in yet.</StaffEmpty>
+        ) : (
+          <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" role="radiogroup" aria-label="Server">
+            {overview?.servers.map((item) => {
+              const picked = item.server_id === server
+              const online = isOnline(item.last_heartbeat_at)
+              return (
+                <li key={item.server_id}>
+                  <button type="button" role="radio" aria-checked={picked} onClick={() => setServer(item.server_id)} className={cn(STAFF_CARD, "h-full w-full text-left", picked && "border-[var(--text-2)] bg-[var(--raised)]")}>
+                    <span className="flex items-center gap-2">
+                      <span className={cn("size-2 shrink-0 rounded-full", online ? "bg-[var(--status-green)]" : "bg-[var(--text-faint)]")} aria-hidden="true" />
+                      <span className="min-w-0 flex-1 truncate text-[13px] font-semibold text-[var(--text)]">{item.name || item.server_id}</span>
+                      <span className="text-[11px] text-[var(--text-dim)]">{online ? "online" : "not reporting"}</span>
+                    </span>
+                    <span className="flex items-baseline justify-between gap-2">
+                      <span className="text-xl font-semibold leading-none text-[var(--text)]">{item.player_count}<span className="ml-1 text-xs font-normal text-[var(--text-dim)]">players</span></span>
+                      <span className="truncate text-[11px] text-[var(--text-dim)]">{item.mode} · {item.map_name}</span>
+                    </span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </section>
 
-          <section aria-label="Actions" className="flex flex-col gap-3">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-faint)]">Action</h3>
-            <div className="grid gap-2 sm:grid-cols-3">
-              <Input value={steamId} onChange={(event) => setSteamId(event.target.value)} inputMode="numeric" placeholder="Player Steam ID" className="font-mono" aria-label="Player Steam ID" />
-              <Input value={map} onChange={(event) => setMap(event.target.value)} placeholder="Map" aria-label="Map" />
-              <Input value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Reason or message" aria-label="Reason or message" />
-            </div>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {actions.map((action) => (
-                <button key={action.type} type="button" disabled={busy} onClick={() => void queue(action)} className="flex items-center gap-3 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 py-2.5 text-left text-[13px] text-[var(--text)] transition-colors hover:border-[var(--line-strong)] disabled:opacity-50">
-                  <action.icon className="size-4 shrink-0 text-[var(--text-2)]" aria-hidden="true" />{action.label}
-                </button>
-              ))}
-            </div>
-          </section>
-        </div>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+        <section aria-label="Actions" className="flex flex-col gap-3">
+          <h3 className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-faint)]">Action</h3>
+          <div className="grid gap-2 sm:grid-cols-3">
+            <Input value={steamId} onChange={(event) => setSteamId(event.target.value)} inputMode="numeric" placeholder="Player Steam ID" className="font-mono" aria-label="Player Steam ID" />
+            <Input value={map} onChange={(event) => setMap(event.target.value)} placeholder="Map" aria-label="Map" />
+            <Input value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Reason or message" aria-label="Reason or message" />
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+            {actions.map((action) => (
+              <button key={action.type} type="button" disabled={busy} onClick={() => void queue(action)} className={cn(STAFF_CARD, "flex-row items-center gap-3 px-3.5 py-3 text-left text-[13px] text-[var(--text)] disabled:opacity-50")}>
+                <action.icon className="size-4 shrink-0 text-[var(--text-2)]" aria-hidden="true" />{action.label}
+              </button>
+            ))}
+          </div>
+        </section>
 
-        <section aria-label="Queue" className="flex flex-col gap-2 self-start">
+        <section aria-label="Queue" className="flex flex-col gap-3 self-start">
           <h3 className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-faint)]">Recent actions</h3>
           {(overview?.pendingActions ?? []).length === 0 ? (
-            <p className="text-[13px] text-[var(--text-dim)]">No actions yet.</p>
+            <StaffEmpty>No actions yet.</StaffEmpty>
           ) : (
-            <ul className="flex flex-col gap-2">
+            <ul className="grid gap-3">
               {overview?.pendingActions.map((action) => (
-                <li key={action.id} className="flex flex-col gap-1 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] px-3 py-2 text-[13px]">
+                <li key={action.id} className={cn(STAFF_CARD, "gap-1 px-3.5 py-3 text-[13px]")}>
                   <span className="flex items-center justify-between gap-3">
                     <span className="min-w-0 truncate text-[var(--text)]">{action.action_type.replace(/_/g, " ")} <span className="text-[var(--text-dim)]">· {action.server_id}</span></span>
                     <span className={cn("flex shrink-0 items-center gap-1.5 text-[11px] font-semibold", action.status === "completed" ? "text-[var(--status-green)]" : action.status === "failed" ? "text-[var(--status-red)]" : "text-[var(--text-dim)]")}>

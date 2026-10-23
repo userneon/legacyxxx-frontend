@@ -4,6 +4,8 @@ import { toast } from "sonner"
 
 import { creatorsService, CREATOR_PLATFORMS, type Creator, type StaffCreatorApplication, type CreatorInput, type CreatorLinks, type CreatorTier } from "@/api/creators"
 import { CreatorBadge, CreatorLinks as CreatorLinkButtons } from "@/pages/creators"
+import { PlayerAvatar } from "@/components/player-avatar"
+import { STAFF_BODY, STAFF_CARD, STAFF_GRID, StaffEmpty, StaffSection } from "@/components/staff-ui"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cn } from "@/lib/utils"
@@ -65,7 +67,7 @@ export function StaffCreators() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-6 py-5 max-md:px-4">
+    <div className={STAFF_BODY}>
       <div className="flex items-center justify-between gap-3">
         <p className="text-[13px] text-[var(--text-muted)]">Creators get a badge and a card on the Creators page.</p>
         {!draft && <button type="button" onClick={() => setDraft(EMPTY)} className="lx-primary-button inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-3.5 text-[13px] font-semibold"><Plus className="size-4" />Add creator</button>}
@@ -106,35 +108,42 @@ export function StaffCreators() {
       )}
 
       {(applications.data?.applications.length ?? 0) > 0 && (
-        <section aria-label="Applications" className="flex flex-col gap-2">
-          <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-dim)]">Applications ({applications.data!.applications.length})</h2>
-          <ul className="flex flex-col gap-2">
+        <StaffSection title="Applications" count={applications.data!.applications.length}>
+          <ul className={STAFF_GRID}>
             {applications.data!.applications.map((application) => <ApplicationRow key={application.id} application={application} busy={busy} onAnswer={answer} />)}
           </ul>
-        </section>
+        </StaffSection>
       )}
 
-      {loading && !data ? (
-        <div className="flex flex-col gap-2" aria-hidden="true">{[0, 1, 2].map((index) => <Skeleton key={index} className="h-14 rounded-xl bg-[var(--card-surface)]" />)}</div>
-      ) : error && !data ? (
-        <p className="flex items-center gap-3 text-[13px] text-[var(--text-dim)]">Could not load the creators.<button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>
-      ) : (data?.creators.length ?? 0) === 0 ? (
-        <p className="py-10 text-center text-[13px] text-[var(--text-dim)]">No creators yet.</p>
-      ) : (
-        <ul className="flex flex-col gap-2">
-          {data!.creators.map((creator) => (
-            <li key={creator.userId} className="flex flex-wrap items-center gap-3 rounded-xl border border-[var(--line)] bg-[var(--card-surface)] px-4 py-3">
-              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="truncate text-[13px] font-semibold text-[var(--text)]">{creator.username}</span>
-                <span className="truncate text-xs text-[var(--text-dim)]">{creator.steamId}{creator.bio ? ` · ${creator.bio}` : ""}</span>
-              </span>
-              <CreatorBadge tier={creator.tier} label={creator.label} />
-              <button type="button" aria-label={`Edit ${creator.username}`} onClick={() => setDraft({ steamId: creator.steamId, tier: creator.tier, bio: creator.bio, links: creator.links })} className={cn(secondary, "w-9 px-0")}><Pencil className="size-4" /></button>
-              <button type="button" aria-label={`Remove ${creator.username}`} disabled={busy} onClick={() => void remove(creator)} className={cn(secondary, "w-9 px-0")}><Trash2 className="size-4" /></button>
-            </li>
-          ))}
-        </ul>
-      )}
+      <StaffSection title="Creators" count={data?.creators.length}>
+        {loading && !data ? (
+          <div className={STAFF_GRID} aria-hidden="true">{[0, 1, 2].map((index) => <Skeleton key={index} className="h-[150px] rounded-xl bg-[var(--glass-fill)]" />)}</div>
+        ) : error && !data ? (
+          <p className="flex items-center gap-3 text-[13px] text-[var(--text-dim)]">Could not load the creators.<button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>
+        ) : (data?.creators.length ?? 0) === 0 ? (
+          <StaffEmpty>No creators yet.</StaffEmpty>
+        ) : (
+          <ul className={STAFF_GRID}>
+            {data!.creators.map((creator) => (
+              <li key={creator.userId} className={STAFF_CARD}>
+                <div className="flex items-center gap-3">
+                  <PlayerAvatar avatar={creator.avatar ?? undefined} name={creator.username} className="size-12 shrink-0 rounded-xl text-[13px]" />
+                  <span className="flex min-w-0 flex-1 flex-col gap-1">
+                    <span className="truncate text-[15px] font-semibold text-[var(--text)]" title={creator.username}>{creator.username}</span>
+                    <span className="truncate text-[11px] text-[var(--text-dim)]">{creator.steamId}</span>
+                  </span>
+                </div>
+                <span><CreatorBadge tier={creator.tier} label={creator.label} /></span>
+                {creator.bio && <p className="line-clamp-2 text-xs leading-relaxed text-[var(--text-muted)]">{creator.bio}</p>}
+                <div className="mt-auto flex gap-2">
+                  <button type="button" onClick={() => setDraft({ steamId: creator.steamId, tier: creator.tier, bio: creator.bio, links: creator.links })} className={cn(secondary, "flex-1")}><Pencil className="size-4" />Edit</button>
+                  <button type="button" aria-label={`Remove ${creator.username}`} disabled={busy} onClick={() => void remove(creator)} className={cn(secondary, "w-9 px-0")}><Trash2 className="size-4" /></button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </StaffSection>
     </div>
   )
 }
@@ -144,24 +153,29 @@ function ApplicationRow({ application, busy, onAnswer }: { application: StaffCre
   const [tier, setTier] = useState<CreatorTier>("creator")
   const [note, setNote] = useState("")
   return (
-    <li className="flex flex-col gap-3 rounded-xl border border-[var(--line)] bg-[var(--card-surface)] px-4 py-3">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <a href={`/profile/${application.player.steamId}`} target="_blank" rel="noopener noreferrer" className="truncate text-[13px] font-semibold text-[var(--text)] hover:underline underline-offset-4">{application.player.username}</a>
-        <span className="text-xs text-[var(--text-dim)]">{application.player.steamId} · {new Date(application.createdAt).toLocaleDateString()}</span>
+    <li className={STAFF_CARD}>
+      <div className="flex items-center gap-3">
+        <PlayerAvatar avatar={application.player.avatar ?? undefined} name={application.player.username} className="size-12 shrink-0 rounded-xl text-[13px]" />
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <a href={`/profile/${application.player.steamId}`} target="_blank" rel="noopener noreferrer" className="truncate text-[15px] font-semibold text-[var(--text)] hover:underline underline-offset-4">{application.player.username}</a>
+          <span className="truncate text-[11px] text-[var(--text-dim)]">{application.player.steamId} · {new Date(application.createdAt).toLocaleDateString()}</span>
+        </span>
       </div>
       <p className="text-[13px] leading-relaxed text-[var(--text-muted)]">{application.bio}</p>
       <CreatorLinkButtons links={application.links} />
-      <div className="flex flex-wrap items-center gap-2">
-        <div role="radiogroup" aria-label="Role" className="flex h-9 gap-0.5 rounded-lg border border-[var(--line)] p-[3px]">
+      <div className="mt-auto flex flex-col gap-2 border-t border-[var(--line-soft)] pt-3">
+        <div role="radiogroup" aria-label="Role" className="grid h-9 grid-cols-2 gap-0.5 rounded-lg border border-[var(--line)] p-[3px]">
           {(["creator", "main"] as const).map((value) => (
-            <button key={value} type="button" role="radio" aria-checked={tier === value} onClick={() => setTier(value)} className={cn("rounded-md px-3 text-[13px] transition-colors", tier === value ? "bg-[var(--line)] text-[var(--text)]" : "text-[var(--text-muted)] hover:text-[var(--text)]")}>
+            <button key={value} type="button" role="radio" aria-checked={tier === value} onClick={() => setTier(value)} className={cn("rounded-md px-2 text-[13px] transition-colors", tier === value ? "bg-[var(--line)] text-[var(--text)]" : "text-[var(--text-muted)] hover:text-[var(--text)]")}>
               {value === "main" ? "Main Content Creator" : "Content Creator"}
             </button>
           ))}
         </div>
-        <input className={cn(input, "min-w-40 flex-1")} maxLength={200} value={note} onChange={(event) => setNote(event.target.value)} placeholder="Note for the player (shown if declined)" aria-label="Note" />
-        <button type="button" disabled={busy} onClick={() => void onAnswer(application, "decline", tier, note)} className={secondary}><X className="size-4" />Decline</button>
-        <button type="button" disabled={busy} onClick={() => void onAnswer(application, "approve", tier, note)} className="lx-primary-button inline-flex h-9 items-center gap-1.5 rounded-lg px-3.5 text-[13px] font-semibold disabled:opacity-50"><Check className="size-4" />Approve</button>
+        <input className={input} maxLength={200} value={note} onChange={(event) => setNote(event.target.value)} placeholder="Note for the player (shown if declined)" aria-label="Note" />
+        <div className="grid grid-cols-2 gap-2">
+          <button type="button" disabled={busy} onClick={() => void onAnswer(application, "decline", tier, note)} className={secondary}><X className="size-4" />Decline</button>
+          <button type="button" disabled={busy} onClick={() => void onAnswer(application, "approve", tier, note)} className="lx-primary-button inline-flex h-9 items-center justify-center gap-1.5 rounded-lg px-3.5 text-[13px] font-semibold disabled:opacity-50"><Check className="size-4" />Approve</button>
+        </div>
       </div>
     </li>
   )

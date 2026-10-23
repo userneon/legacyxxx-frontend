@@ -4,6 +4,7 @@ import { toast } from "sonner"
 
 import { get, patch, post } from "@/api/client"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { STAFF_BODY } from "@/components/staff-ui"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cn } from "@/lib/utils"
@@ -108,7 +109,7 @@ export function StaffTeam() {
 
   const members = data ?? []
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-6 py-5 max-md:px-4">
+    <div className={STAFF_BODY}>
       <div className="flex items-center justify-between gap-3">
         <p className="text-[13px] text-[var(--text-muted)]">The LEGACY-X team. Game servers update within a minute.</p>
         {!draft && <button type="button" onClick={() => setDraft({ id: null, steamId: "", role: "ADMIN", immunity: 500, stamina: 500, term: "none", until: "" })} className="lx-primary-button inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-3.5 text-[13px] font-semibold"><Plus className="size-4" />Add staff</button>}
@@ -148,11 +149,11 @@ export function StaffTeam() {
       )}
 
       {loading && !data ? (
-        <div className="flex flex-col gap-2" aria-hidden="true">{[0, 1, 2].map((index) => <Skeleton key={index} className="h-16 rounded-xl bg-[var(--card-surface)]" />)}</div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3" aria-hidden="true">{[0, 1, 2].map((index) => <Skeleton key={index} className="h-[230px] rounded-2xl bg-[var(--glass-fill)]" />)}</div>
       ) : members.length === 0 ? (
         <p className="py-10 text-center text-[13px] text-[var(--text-dim)]">No staff yet.</p>
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {members.map((member) => (
             <li key={member.id} className={cn("relative lx-add-box flex flex-col gap-3.5 rounded-2xl border p-[18px]", member.status !== "active" && "opacity-60 saturate-50")}>
               <div className="flex items-center gap-3">
