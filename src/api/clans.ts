@@ -96,9 +96,9 @@ export const clansService = {
     await del<void>(`/api/v1/staff/clans/${clanId}`, options)
   },
 
-  /** Staff only: hand the clan to another member; the old leader stays as a co-leader. */
-  async moderateTransfer(clanId: string, userId: string, options?: CallOptions): Promise<void> {
-    await post<void>(`/api/v1/staff/clans/${clanId}/transfer`, { userId }, options)
+  /** Staff only: make a player the leader (a member, or a player in no clan, who joins first); the old leader stays as a co-leader. */
+  async moderateTransfer(clanId: string, steamId: string, options?: CallOptions): Promise<void> {
+    await post<void>(`/api/v1/staff/clans/${clanId}/transfer`, { steamId }, options)
   },
 
   async moderateArt(clanId: string, kind: ClanArtKind, options?: CallOptions): Promise<void> {
