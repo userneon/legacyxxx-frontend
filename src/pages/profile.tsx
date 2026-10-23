@@ -179,7 +179,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
           {overview.creator && <CreatorBadge tier={overview.creator.tier} label={overview.creator.label} />}
           <DiscordLinkedMark linked={overview.discordLinked} className="[&_svg]:size-[18px]" />
           {user.founder ? <FounderBadge number={user.founder} /> : null}
-          {overview.discordBoosting && <BoosterBadge />}
+          {(overview.discordBoosting || overview.boosterPlace) && <BoosterBadge place={overview.boosterPlace} />}
           {overview.clan && (
             <Link to={`/clans/${overview.clan.id}`} title={overview.clan.name} className="inline-flex h-6 items-center gap-1 rounded-full border border-[var(--line)] px-2 text-[11px] font-semibold text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]">
               [{overview.clan.tag}] <span className="max-w-[140px] truncate font-medium">{overview.clan.name}</span>

@@ -1823,6 +1823,20 @@ body::before {
   .lx-boost-badge::after { animation: none; }
 }
 
+/* A top booster's badge wears the place it holds: gold, silver or bronze (owner request 2026-10-23). The same badge, recoloured through --boost. */
+.lx-boost-badge[data-place="1"] {
+  --boost: #f2cd72; /* palette-exempt: gold medal */
+}
+.lx-boost-badge[data-place="2"] {
+  --boost: #cbd5e1; /* palette-exempt: silver medal */
+}
+.lx-boost-badge[data-place="3"] {
+  --boost: #d98a5f; /* palette-exempt: bronze medal */
+}
+.lx-boost-badge[data-place="1"] img { filter: hue-rotate(105deg) saturate(1.2) drop-shadow(0 0 5px color-mix(in oklab, var(--boost) 80%, transparent)); }
+.lx-boost-badge[data-place="2"] img { filter: grayscale(1) brightness(1.25) drop-shadow(0 0 5px color-mix(in oklab, var(--boost) 80%, transparent)); }
+.lx-boost-badge[data-place="3"] img { filter: hue-rotate(80deg) saturate(0.9) brightness(0.95) drop-shadow(0 0 5px color-mix(in oklab, var(--boost) 80%, transparent)); }
+
 /* Founder pack (owner decision 2026-10-23): gold, used only by the Founder banner, badge and title. */
 :root {
   --founder-1: #fff3cf; /* palette-exempt: Founder gold */

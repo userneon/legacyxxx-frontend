@@ -545,6 +545,7 @@ function profileOverview(identity: string) {
     presence: own ? null : { serverId: "5x5-01", serverName: "LEGACY-X #1 | MIRAGE", connectAddress: "203.0.113.10:27001", map: "de_mirage" },
     discordLinked: index % 3 !== 1,
     discordBoosting: index % 3 === 0,
+    boosterPlace: index === 0 ? 1 : index === 3 ? 2 : index === 6 ? 3 : null,
     clan: index % 4 === 0 ? { id: "c1", number: 1, name: "Steppe Wolves", tag: "WOLF" } : null,
   }
 }

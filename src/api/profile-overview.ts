@@ -25,6 +25,8 @@ export interface ProfileMatchRow {
 }
 
 export interface ProfileOverview {
+  /** 1, 2 or 3 for the top three Discord boosters (the Gold, Silver or Bronze booster frame), otherwise null. */
+  boosterPlace?: 1 | 2 | 3 | null
   user: {
     id: string
     steamId: string
