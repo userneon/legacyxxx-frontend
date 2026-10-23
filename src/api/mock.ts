@@ -33,7 +33,7 @@ function mockNameStyle() {
   const glowItem = mockNameItems("glow").find((item) => item.id === mockFrameState.nameGlow)
   return colorItem || glowItem ? { color: colorItem?.color ?? null, glow: glowItem?.glow ?? null, colorFx: colorItem?.fx ?? null, glowFx: glowItem?.fx ?? null } : null
 }
-/** Design preview only: open /shop?founder=1 once, or set localStorage legacyx_mock_founder=1, to see a Founder's profile and Appearance. */
+/** Design preview only: open /shop?founder=1 once, or set localStorage legacyx_mock_founder=1, to see a Genesis member's profile and Appearance. */
 function mockIsFounder() {
   try { return typeof localStorage !== "undefined" && localStorage.getItem("legacyx_mock_founder") === "1" } catch { return false }
 }
@@ -57,7 +57,7 @@ function mockFrames() {
     ["angel-wings", "Angel Wings", "achievement", 0, "Reach the Apex rank"],
     ["eclipse-clouds", "Eclipse Clouds", "achievement", 0, "Clan tournament winner"],
     ["glitch", "Glitch", "achievement", 0, "Season 1 winner"],
-    ["founder", "Founder", "achievement", 0, "Founder pack"],
+    ["founder", "Genesis", "achievement", 0, "Genesis pack"],
     ["booster-gold", "Booster Gold", "achievement", 0, "The #1 server booster"],
     ["booster-silver", "Booster Silver", "achievement", 0, "The #2 server booster"],
     ["booster-bronze", "Booster Bronze", "achievement", 0, "The #3 server booster"],
@@ -482,7 +482,7 @@ function profileOverview(identity: string) {
   const maps = ["de_mirage", "de_inferno", "de_dust2", "de_ancient", "de_nuke", "de_anubis"]
   const results = ["Win", "Win", "Loss", "Win", "Win", "Loss", "Win", "Loss", "Win", "Win"]
   return {
-    user: { id: own ? MOCK_USER.id : `mock-${index}`, steamId: own ? MOCK_USER.steamId : byName >= 0 ? `7656119800000${String(index).padStart(4, "0")}` : identity, username: name, avatar: "", role: own ? "Player" : index === 0 ? "Owner" : "Player", memberSince: new Date(Date.now() - 400 * 24 * HOUR).toISOString(), steamBackground: null, steamMedia: null, frame: own ? (mockIsFounder() ? "founder" : mockFrameState.equipped) : null, nameStyle: own ? mockNameStyle() : null, banner: own && mockIsFounder() ? "goldfoil" : null, title: own && mockIsFounder() ? "Founder" : null, founder: own && mockIsFounder() ? 1 : null },
+    user: { id: own ? MOCK_USER.id : `mock-${index}`, steamId: own ? MOCK_USER.steamId : byName >= 0 ? `7656119800000${String(index).padStart(4, "0")}` : identity, username: name, avatar: "", role: own ? "Player" : index === 0 ? "Owner" : "Player", memberSince: new Date(Date.now() - 400 * 24 * HOUR).toISOString(), steamBackground: null, steamMedia: null, frame: own ? (mockIsFounder() ? "founder" : mockFrameState.equipped) : null, nameStyle: own ? mockNameStyle() : null, banner: own && mockIsFounder() ? "goldfoil" : null, title: own && mockIsFounder() ? "Genesis" : null, founder: own && mockIsFounder() ? 1 : null },
     viewer: { isOwner: own, isStaff: false },
     // Only the sample Owner has Respect and links, like the real Owner profile will.
     ...(index === 0 ? {
@@ -697,7 +697,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path.startsWith("/api/v1/moderation/penalties") && method !== "GET") return path === "/api/v1/moderation/penalties" ? { penaltyId: "new" } : undefined
   if (path === "/api/v1/shop/products") {
     const lx = (id: string, grantsLx: number, priceMnt: number) => ({ id, slug: id, name: `${grantsLx.toLocaleString()} LX`, description: "", kind: "lx", priceMnt, imageUrl: null, stock: 100000, grantsLx })
-    return { products: [lx("lx-750", 750, 5000), lx("lx-1500", 1500, 10000), lx("lx-3000", 3000, 20000), lx("lx-3300", 3300, 20000), lx("lx-8500", 8500, 50000), { id: "founder-pack", slug: "founder-pack", name: "LEGACY-X Founder", description: "", kind: "founder", priceMnt: 30000, imageUrl: null, stock: 500, grantsLx: 0, founder: { limit: 500, taken: 37, remaining: 463, endsAt: "2026-11-30T15:59:59Z", open: true } }, { id: "charm", slug: "charm", name: "LEGACY-X NFC charm", description: "Tap it to open your profile.", kind: "charm", priceMnt: 15000, imageUrl: null, stock: 12, grantsLx: 0 }] }
+    return { products: [lx("lx-750", 750, 5000), lx("lx-1500", 1500, 10000), lx("lx-3000", 3000, 20000), lx("lx-3300", 3300, 20000), lx("lx-8500", 8500, 50000), { id: "founder-pack", slug: "founder-pack", name: "LEGACY-X Genesis", description: "", kind: "founder", priceMnt: 30000, imageUrl: null, stock: 500, grantsLx: 0, founder: { limit: 500, taken: 37, remaining: 463, endsAt: "2026-11-30T15:59:59Z", open: true } }, { id: "charm", slug: "charm", name: "LEGACY-X NFC charm", description: "Tap it to open your profile.", kind: "charm", priceMnt: 15000, imageUrl: null, stock: 12, grantsLx: 0 }] }
   }
   if (path === "/api/v1/shop/orders/me") return { orders: [{ id: "o1", productId: "lx-3000", productName: "3,000 LX", productKind: "lx", grantsLx: 3000, quantity: 1, unitPriceMnt: 20000, status: "contacted", createdAt: new Date(Date.now() - 3 * HOUR).toISOString() }, { id: "o2", productId: "lx-750", productName: "750 LX", productKind: "lx", grantsLx: 750, quantity: 1, unitPriceMnt: 5000, status: "paid", createdAt: new Date(Date.now() - 30 * HOUR).toISOString() }] }
   if (path === "/api/v1/staff/shop/orders") return { orders: [] }
@@ -717,7 +717,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
       mockFrameState.owned.add(decodeURIComponent(path.split("/")[4]))
       return { owned: true }
     }
-    return { players: 8, equippedFrame: mockFrameState.equipped, equippedNameColor: mockFrameState.nameColor, equippedNameGlow: mockFrameState.nameGlow, equippedEmote: mockFrameState.emote, emotes: mockEmotes(), banners: [{ id: "banner-gold-foil", name: "Gold Foil", nameMn: "Алтан тугалга", unlock: "achievement" as const, price: 0, requirement: "Founder pack", owned: mockIsFounder(), rarity: 4, featured: false, owners: 0, fx: "goldfoil" }], titles: [{ id: "title-founder", name: "Founder", nameMn: "Үүсгэн байгуулагч", unlock: "achievement" as const, price: 0, requirement: "Founder pack", owned: mockIsFounder(), rarity: 4, featured: false, owners: 0 }], equippedBanner: mockIsFounder() ? "banner-gold-foil" : null, equippedTitle: mockIsFounder() ? "title-founder" : null, frames, nameColors: mockNameItems("color"), nameGlows: mockNameItems("glow") }
+    return { players: 8, equippedFrame: mockFrameState.equipped, equippedNameColor: mockFrameState.nameColor, equippedNameGlow: mockFrameState.nameGlow, equippedEmote: mockFrameState.emote, emotes: mockEmotes(), banners: [{ id: "banner-gold-foil", name: "Gold Foil", nameMn: "Алтан тугалга", unlock: "achievement" as const, price: 0, requirement: "Genesis pack", owned: mockIsFounder(), rarity: 4, featured: false, owners: 0, fx: "goldfoil" }], titles: [{ id: "title-founder", name: "Genesis", nameMn: "Genesis", unlock: "achievement" as const, price: 0, requirement: "Genesis pack", owned: mockIsFounder(), rarity: 4, featured: false, owners: 0 }], equippedBanner: mockIsFounder() ? "banner-gold-foil" : null, equippedTitle: mockIsFounder() ? "title-founder" : null, frames, nameColors: mockNameItems("color"), nameGlows: mockNameItems("glow") }
   }
   if (path === "/api/v1/wallet/me") {
     if (!signedIn()) throw unauthorized()

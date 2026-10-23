@@ -42,7 +42,7 @@ export interface ProfileOverview {
     banner?: string | null
     /** The title the player wears under their name, if any. */
     title?: string | null
-    /** The player's number in the Founder pack, if they bought it. */
+    /** The player's number in the Genesis pack, if they bought it. */
     founder?: number | null
     /** The name colour and glow the player wears. */
     nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null

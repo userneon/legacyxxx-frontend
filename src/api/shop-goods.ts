@@ -13,7 +13,7 @@ export interface GoodsProduct {
   stock: number
   /** For kind "lx": the LX the package puts in the wallet once it is paid. */
   grantsLx: number
-  /** For the Founder pack: how many packs there are, how many are taken, when it stops selling, and whether it can still be ordered. */
+  /** For the Genesis pack: how many packs there are, how many are taken, when it stops selling, and whether it can still be ordered. */
   founder?: { limit: number; taken: number; remaining: number; endsAt: string | null; open: boolean }
 }
 
@@ -56,7 +56,7 @@ export interface GoodsProductInput {
   stock: number
   enabled: boolean
   sort: number
-  /** The Founder pack only: when it stops selling (an ISO time; null = it never ends). Leave out for other products. */
+  /** The Genesis pack only: when it stops selling (an ISO time; null = it never ends). Leave out for other products. */
   endsAt?: string | null
 }
 

@@ -172,7 +172,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
     <header className="lx-swap-in flex flex-col items-center gap-4 text-center">
       <Avatar user={user} />
       <div className="flex min-w-0 max-w-full flex-col items-center gap-2.5">
-        {user.title && <span className={cn("text-[11px] font-semibold uppercase tracking-[3px]", user.title === "Founder" ? "lx-profile-title-founder" : "text-[var(--text-dim)]")}>{user.title}</span>}
+        {user.title && <span className={cn("text-[11px] font-semibold uppercase tracking-[3px]", user.title === "Genesis" ? "lx-profile-title-founder" : "text-[var(--text-dim)]")}>{user.title}</span>}
         <div className="flex flex-wrap items-center justify-center gap-2.5">
           <h1 {...nameProps(user.nameStyle, "truncate text-[30px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]")} title={user.username}><PlayerNameText name={user.username} /></h1>
           <RoleBadge role={user.role} />

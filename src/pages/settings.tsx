@@ -364,7 +364,7 @@ function Appearance() {
                       ) : kind === "banner" ? (
                         <span className="relative flex h-[76px] w-full items-center justify-center overflow-hidden rounded-lg"><span aria-hidden="true" className={cn("absolute inset-0", bannerClass(item.fx))} /></span>
                       ) : kind === "title" ? (
-                        <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><span className={cn("truncate text-[11px] font-semibold uppercase tracking-[3px]", item.name === "Founder" ? "lx-profile-title-founder" : "text-[var(--text-dim)]")}>{item.name}</span></span>
+                        <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><span className={cn("truncate text-[11px] font-semibold uppercase tracking-[3px]", item.name === "Genesis" ? "lx-profile-title-founder" : "text-[var(--text-dim)]")}>{item.name}</span></span>
                       ) : kind === "emote" ? (
                         <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><EmoteArt name={item.name} username={sampleName} compact /></span>
                       ) : (

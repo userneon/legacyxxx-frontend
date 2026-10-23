@@ -1,6 +1,6 @@
 /**
- * The LEGACY-X Founder pack on the Shop's Featured tab (owner decision 2026-10-23): numbered, limited, bought by an order that staff
- * confirm (30,000₮ as the API says). Every number comes from the API; with no Founder product the card is not drawn.
+ * The LEGACY-X Genesis pack on the Shop's Featured tab (owner decision 2026-10-23): numbered, limited, bought by an order that staff
+ * confirm (30,000₮ as the API says). Every number comes from the API; with no Genesis product the card is not drawn.
  */
 import { useState } from "react"
 import { Check, Frame, Gem, Image as ImageIcon, Text } from "lucide-react"
@@ -15,9 +15,9 @@ import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
 
 const CONTAINS = [
-  { icon: Frame, label: "Founder frame" },
-  { icon: Gem, label: "Founder badge with your number" },
-  { icon: Text, label: "Founder title" },
+  { icon: Frame, label: "Genesis frame" },
+  { icon: Gem, label: "Genesis badge with your number" },
+  { icon: Text, label: "Genesis title" },
   { icon: ImageIcon, label: "Gold Foil banner" },
 ]
 
@@ -34,7 +34,7 @@ export function FounderPack() {
   const ends = info.endsAt ? new Date(info.endsAt).toLocaleDateString("en-GB", { day: "numeric", month: "long" }) : null
 
   return (
-    <section aria-label="Founder pack" className="relative overflow-hidden rounded-2xl border border-[color-mix(in_oklab,var(--founder-2)_40%,transparent)] bg-[var(--card-surface)]">
+    <section aria-label="Genesis pack" className="relative overflow-hidden rounded-2xl border border-[color-mix(in_oklab,var(--founder-2)_40%,transparent)] bg-[var(--card-surface)]">
       <ProfileBanner fx="goldfoil" fade className="h-[150px] opacity-80" />
       <div className="relative grid gap-5 p-5 md:grid-cols-[minmax(0,260px)_minmax(0,1fr)] max-md:p-4">
         <div className="flex flex-col items-center justify-end gap-2 pt-16 max-md:pt-10">
@@ -43,7 +43,7 @@ export function FounderPack() {
         </div>
         <div className="flex min-w-0 flex-col gap-3 pt-2 md:pt-[120px]">
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <h2 className="text-[26px] font-bold leading-none tracking-[-0.4px] text-[var(--text)]">LEGACY-X <span className="lx-profile-title-founder">Founder</span></h2>
+            <h2 className="text-[26px] font-bold leading-none tracking-[-0.4px] text-[var(--text)]">LEGACY-X <span className="lx-profile-title-founder">Genesis</span></h2>
             <span className="text-[11px] font-semibold uppercase tracking-[2px] text-[var(--text-dim)]">Numbered · limited</span>
           </div>
           <p className="text-[13px] text-[var(--text-muted)]">One pack per player. Never sold again after it closes.</p>
@@ -60,7 +60,7 @@ export function FounderPack() {
             <span className="text-xs text-[var(--text-dim)]">{info.remaining.toLocaleString()} of {info.limit.toLocaleString()} left{ends ? ` · until ${ends}` : ""}</span>
             <span className="flex-1" />
             {owned ? (
-              <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[var(--status-green)]"><Check className="size-4" aria-hidden="true" />You are a Founder</span>
+              <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[var(--status-green)]"><Check className="size-4" aria-hidden="true" />You are in Genesis</span>
             ) : mine ? (
               <span className="text-[13px] font-semibold text-[var(--text-2)]">Your order is in. We will call you.</span>
             ) : (
@@ -70,7 +70,7 @@ export function FounderPack() {
                 onClick={() => setPicked(pack)}
                 className={cn("lx-primary-button inline-flex h-10 items-center justify-center rounded-lg px-5 text-[13px] font-semibold", !info.open && "opacity-50")}
               >
-                {info.open ? "Order the Founder pack" : info.remaining <= 0 ? "Sold out" : "Closed"}
+                {info.open ? "Order the Genesis pack" : info.remaining <= 0 ? "Sold out" : "Closed"}
               </button>
             )}
           </div>

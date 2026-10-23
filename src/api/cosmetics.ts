@@ -48,7 +48,7 @@ export interface Cosmetics {
   nameGlows?: FrameItem[]
   /** Played in game with .e; the game shows a line in the chat. */
   emotes?: FrameItem[]
-  /** Profile banners and titles (the Founder pack's are earned, never sold). */
+  /** Profile banners and titles (the Genesis pack's are earned, never sold). */
   banners?: FrameItem[]
   titles?: FrameItem[]
 }
