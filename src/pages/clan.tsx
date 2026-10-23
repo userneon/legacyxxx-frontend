@@ -42,26 +42,24 @@ function PageWash({ page }: { page: ClanLook["page"] | undefined }) {
   return createPortal(<div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-[1]"><ClanBackground page={page} calm={calm} /></div>, document.body)
 }
 
-/**
- * A banner picture or GIF shown whole at its own resolution, whatever its shape: the sharp picture is fitted inside the box and
- * the space left over is filled by a blurred, enlarged copy of the same picture, so nothing is cropped and nothing is stretched.
- */
-function BannerArt({ src, alt = "", className, eager, fill }: { src: string; alt?: string; className?: string; eager?: boolean; fill?: boolean }) {
-  // `fill`: the picture covers the whole box (cards); otherwise it is shown whole over its own blurred copy (the banner strip).
-  if (fill) return <div className={cn("relative overflow-hidden bg-[var(--raised)]", className)}><img src={src} alt={alt} loading={eager ? "eager" : "lazy"} decoding="async" className="size-full object-cover" /></div>
-  return (
-    <div className={cn("relative overflow-hidden bg-[var(--raised)]", className)}>
-      <img src={src} alt="" aria-hidden="true" loading={eager ? "eager" : "lazy"} decoding="async" className="absolute inset-0 size-full scale-125 object-cover opacity-60 blur-2xl" />
-      <img src={src} alt={alt} loading={eager ? "eager" : "lazy"} decoding="async" className="relative size-full object-contain" />
-    </div>
-  )
+/** A clan card's banner: the picture covers the whole box. (The clan page shows it whole instead: ClanBannerStrip.) */
+function BannerArt({ src, alt = "", className, eager }: { src: string; alt?: string; className?: string; eager?: boolean }) {
+  return <div className={cn("relative overflow-hidden bg-[var(--raised)]", className)}><img src={src} alt={alt} loading={eager ? "eager" : "lazy"} decoding="async" className="size-full object-cover" /></div>
 }
 
-/** The clan's banner, whole and unfaded in a wide strip above the header. */
+/**
+ * The clan's banner, whole and unfaded above the header, at the picture's own shape. It used to sit in a fixed 5:1 strip, which on a phone
+ * was a sliver (about 70px tall at 360px wide) and made any other shape tiny. A very tall picture is capped and sits over its own blurred copy.
+ */
 function ClanBannerStrip({ banner, name }: { banner?: string | null; name: string }) {
   const src = clanArtSrc(banner)
   if (!src) return null
-  return <BannerArt src={src} alt={`${name} banner`} eager className="aspect-[5/1] max-h-[200px] w-full border-b border-[var(--glass-line)]" />
+  return (
+    <div className="relative overflow-hidden border-b border-[var(--glass-line)] bg-[var(--raised)]">
+      <img src={src} alt="" aria-hidden="true" loading="eager" decoding="async" className="absolute inset-0 size-full scale-125 object-cover opacity-60 blur-2xl" />
+      <img src={src} alt={`${name} banner`} loading="eager" decoding="async" className="relative mx-auto block h-auto max-h-[min(360px,50vh)] w-full object-contain" />
+    </div>
+  )
 }
 
 /**
@@ -355,7 +353,7 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
   return (
     <div className="lx-fx-card group relative isolate flex min-h-[270px] flex-col overflow-hidden rounded-2xl border border-[var(--line-soft)] bg-[var(--card-surface)] transition-colors hover:border-[var(--line-strong)]">
       {banner ? (
-        <BannerArt src={banner} fill className="absolute inset-0 -z-10 transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
+        <BannerArt src={banner} className="absolute inset-0 -z-10 transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
       ) : (
         <div aria-hidden="true" className="absolute inset-0 -z-10 opacity-50" style={{ background: wash ?? `radial-gradient(120% 90% at 100% 0%, ${tint(45)}, transparent 62%)` }} />
       )}
