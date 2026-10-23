@@ -7,7 +7,7 @@ import { DiscordLinkedMark } from "@/components/discord-linked-mark"
 import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
-import { ArrowLeftRight, ChevronRight, Copy, Crown, ExternalLink, Eye, EyeOff, Info, MessageCircle, MoreHorizontal, Play, RotateCcw, ShieldAlert, ShieldCheck, Shield } from "lucide-react"
+import { ArrowDown, ArrowLeftRight, ArrowUp, ChevronRight, Copy, Crown, ExternalLink, Eye, EyeOff, Info, MessageCircle, Minus, MoreHorizontal, Play, RotateCcw, ShieldAlert, ShieldCheck, Shield } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -401,17 +401,37 @@ function EmptyStatsRow() {
 }
 
 function StatsRow({ stats }: { stats: NonNullable<ProfileOverview["stats"]> }) {
-  const format = (key: string, value: number) => (key === "winRate" || key === "hs" ? `${value}%` : key === "kd" ? value.toFixed(2) : value.toLocaleString())
+  const format = (key: string, value: number) => (key === "winRate" || key === "hs" ? `${value}%` : key === "kd" ? value.toFixed(2) : key === "avgKills" ? value.toFixed(1) : value.toLocaleString())
   return (
     <section aria-label="LEGACY-X stats" className="lx-stat-grid grid-cols-2 sm:grid-flow-col sm:grid-cols-none sm:auto-cols-fr">
-      {stats.map((tile) => (
-        <div key={tile.key} title={format(tile.key, tile.value)} className="lx-stat-cell px-4 py-3.5">
-          <span className="lx-stat-label">{tile.label}</span>
-          <span className="text-2xl font-semibold leading-none text-[var(--text)]">
-            <AnimatedNumber value={tile.value} decimals={tile.key === "kd" ? 2 : 0} suffix={tile.key === "winRate" || tile.key === "hs" ? "%" : ""} />
-          </span>
-        </div>
-      ))}
+      {stats.map((tile) => {
+        const average = tile.average ?? null
+        const percentile = tile.percentile ?? null
+        const above = average !== null && tile.value > average
+        const below = average !== null && tile.value < average
+        return (
+          <div key={tile.key} title={format(tile.key, tile.value)} className="lx-stat-cell px-4 py-3.5">
+            <span className="lx-stat-label">{tile.label}</span>
+            <span className="text-2xl font-semibold leading-none text-[var(--text)]">
+              <AnimatedNumber value={tile.value} decimals={tile.key === "kd" ? 2 : tile.key === "avgKills" ? 1 : 0} suffix={tile.key === "winRate" || tile.key === "hs" ? "%" : ""} />
+            </span>
+            {percentile !== null && (
+              <span role="img" aria-label={`Better than ${percentile}% of ranked players`} className="relative mt-0.5 block h-1 overflow-hidden rounded-full bg-[var(--line)]">
+                <i className="lx-stat-fill block h-full rounded-full bg-[var(--text-2)]" style={{ width: `${Math.max(3, percentile)}%` }} />
+              </span>
+            )}
+            {average !== null && (
+              <span className="flex items-center justify-between gap-2 text-[11px] text-[var(--text-dim)]">
+                <span title="Average of ranked players with 5+ matches" className="inline-flex items-center gap-1">
+                  {above ? <ArrowUp className="size-3 text-[var(--text-2)]" aria-hidden="true" /> : below ? <ArrowDown className="size-3 text-[var(--text-2)]" aria-hidden="true" /> : <Minus className="size-3 text-[var(--text-2)]" aria-hidden="true" />}
+                  Avg {format(tile.key, average)}
+                </span>
+                {percentile !== null && <span className="font-semibold text-[var(--text-2)]">{percentile >= 50 ? `Top ${Math.max(1, 100 - percentile)}%` : `Beats ${percentile}%`}</span>}
+              </span>
+            )}
+          </div>
+        )
+      })}
     </section>
   )
 }

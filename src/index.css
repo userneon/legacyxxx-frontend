@@ -1839,3 +1839,15 @@ body::before {
 .lx-profile-title-founder {
   color: var(--founder-2);
 }
+
+/* The bar under a profile stat grows from the left once; still for reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .lx-stat-fill {
+    animation: lx-stat-grow 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+@keyframes lx-stat-grow {
+  from {
+    width: 0;
+  }
+}

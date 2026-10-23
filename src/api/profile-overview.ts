@@ -63,7 +63,8 @@ export interface ProfileOverview {
   } | null
   lastPlayedAt: string | null
   trust: { steamAccountCreatedAt: string | null; activePenalty: { id: string; type: PenaltyEntry["type"] } | null }
-  stats: { key: "matches" | "winRate" | "kd" | "hs" | "avgKills"; label: string; value: number }[] | null
+  /** `average` is the community's (players with at least 5 ranked matches); `percentile` is the share of them this player beats. Both are null when there are too few players to say. */
+  stats: { key: "matches" | "winRate" | "kd" | "hs" | "avgKills"; label: string; value: number; average?: number | null; percentile?: number | null }[] | null
   recentMatches: ProfileMatchRow[] | null
   maps: { map: string; matches: number; wins: number; winRate: number }[] | null
   penalties: PenaltyEntry[]

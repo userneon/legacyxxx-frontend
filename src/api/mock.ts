@@ -510,11 +510,11 @@ function profileOverview(identity: string) {
     trust: { steamAccountCreatedAt: new Date(Date.now() - 6.5 * 365 * 24 * HOUR).toISOString(), activePenalty: null },
     // Each sample player gets different numbers, so comparing two of them shows a real difference.
     stats: [
-      { key: "matches", label: "Matches", value: 184 - variant * 11 + ((variant * 17) % 40) },
-      { key: "winRate", label: "Win rate", value: 58 + ((variant * 7) % 13) - 6 },
-      { key: "kd", label: "K/D", value: Number((1.27 + (((variant * 5) % 9) - 4) * 0.07).toFixed(2)) },
-      { key: "hs", label: "Headshot %", value: 46 + ((variant * 11) % 17) - 8 },
-      { key: "avgKills", label: "Avg. kills", value: 19 + ((variant * 3) % 7) - 3 },
+      { key: "matches", label: "Matches", value: 184 - variant * 11 + ((variant * 17) % 40), average: 62, percentile: 94 },
+      { key: "winRate", label: "Win rate", value: 58 + ((variant * 7) % 13) - 6, average: 49, percentile: 78 },
+      { key: "kd", label: "K/D", value: Number((1.27 + (((variant * 5) % 9) - 4) * 0.07).toFixed(2)), average: 1.04, percentile: 71 },
+      { key: "hs", label: "Headshot %", value: 46 + ((variant * 11) % 17) - 8, average: 41, percentile: 64 },
+      { key: "avgKills", label: "Avg. kills", value: 19 + ((variant * 3) % 7) - 3, average: 17.4, percentile: 38 },
     ],
     recentMatches: results.map((result, i) => ({
       map: maps[i % maps.length],
