@@ -1,18 +1,17 @@
 import { useState } from "react"
-import { Download, Search, Share2, ThumbsUp, Trash2, X } from "lucide-react"
+import { Download, Search, Share2, ThumbsUp, Trash2 } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
-import { skinchangerService, type SkinCollection, type SkinCollectionDetailItem, type SkinCollectionSort } from "@/api"
+import { skinchangerService, type SkinCollection, type SkinCollectionSort } from "@/api"
 import type { ApiError } from "@/api/types"
 import { QueryState } from "@/components/query-state"
 import { OptimizedImage } from "@/components/optimized-image"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { PageTabs, pageSearchClass } from "@/components/page-tabs"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { useApiQuery } from "@/hooks/use-api-query"
-import { TeamIcon } from "@/components/team-icon"
 import { rarityStyles } from "@/lib/cs2-rarity"
 import { cn } from "@/lib/utils"
 
@@ -23,80 +22,30 @@ const SORTS: Array<{ value: SkinCollectionSort; label: string }> = [
 ]
 
 /** Says what went wrong, so a server that has not been updated yet is not mistaken for a broken page. */
-function loadFailure(error: ApiError) {
+export function loadFailure(error: ApiError) {
   if (error.status === 404) return "Could not load collections: the server does not have them yet (404). Update the backend, then retry."
   if (error.status === 0) return "Could not load collections: the server could not be reached. Check the connection and retry."
   const detail = error.message && error.message.length < 140 ? `: ${error.message}` : ""
   return `Could not load collections (${error.status})${detail}`
 }
 
-const SLOT_LABEL: Record<string, string> = { weapon: "Weapon", knife: "Knife", glove: "Gloves", agent: "Agent", music_kit: "Music kit", pin: "Pin" }
+export const SLOT_LABEL: Record<string, string> = { weapon: "Weapon", knife: "Knife", glove: "Gloves", agent: "Agent", music_kit: "Music kit", pin: "Pin" }
 
-function wearLabel(wear: number) {
+export function wearLabel(wear: number) {
   return wear < 0.07 ? "Factory New" : wear < 0.15 ? "Minimal Wear" : wear < 0.38 ? "Field-Tested" : wear < 0.45 ? "Well-Worn" : "Battle-Scarred"
 }
 
-/** One item of a collection: picture, name, where it goes and how it is set up. */
-function DetailRow({ item }: { item: SkinCollectionDetailItem }) {
-  const accent = item.rarity ? rarityStyles[item.rarity]?.accent : undefined
-  const extras = [
-    item.wear !== null && wearLabel(item.wear),
-    item.statTrak && "StatTrak™",
-    item.stickers > 0 && `${item.stickers} sticker${item.stickers > 1 ? "s" : ""}`,
-    item.hasCharm && "Charm",
-  ].filter(Boolean) as string[]
-  return (
-    <li className="relative flex items-center gap-3 overflow-hidden rounded-[10px] border border-[var(--line-soft)] bg-[var(--card-surface)] py-2 pl-3 pr-3">
-      {accent && <span aria-hidden="true" className="absolute inset-y-0 left-0 w-[3px]" style={{ background: accent }} />}
-      <div className="flex h-12 w-[76px] shrink-0 items-center justify-center">
-        <OptimizedImage src={item.imageUrl ?? ""} width={120} height={64} alt="" className="max-h-12 w-full object-contain" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-[13px] font-semibold text-[var(--text)]">{item.name}</p>
-        <p className="truncate text-[11px] text-[var(--text-dim)]">{extras.length ? extras.join(" · ") : item.rarity ?? "Default settings"}</p>
-      </div>
-      <div className="flex shrink-0 flex-col items-end gap-1 text-[11px] text-[var(--text-faint)]">
-        <span>{SLOT_LABEL[item.slot] ?? item.slot}</span>
-        {(item.teamScope === "t" || item.teamScope === "ct") && <span className="rounded-md border border-[var(--line)] px-1.5 py-0.5"><TeamIcon side={item.teamScope} className="size-4" /></span>}
-      </div>
-    </li>
-  )
-}
-
-const TEAM_SECTIONS: Array<{ scope: string; label: string }> = [
-  { scope: "t", label: "T side" },
-  { scope: "ct", label: "CT side" },
-  { scope: "all", label: "Both teams" },
-]
-
-/** A collection's items split by the side they are worn on: T, CT, then whatever both sides share. */
-function TeamSections({ items }: { items: SkinCollectionDetailItem[] }) {
-  const sections = TEAM_SECTIONS.map((section) => ({ ...section, items: items.filter((item) => (item.teamScope === "t" || item.teamScope === "ct" ? item.teamScope : "all") === section.scope) })).filter((section) => section.items.length > 0)
-  // One side only: no headings needed.
-  if (sections.length === 1) return <ul className="flex flex-col gap-2">{sections[0].items.map((item, index) => <DetailRow key={`${item.name}:${item.teamScope}:${index}`} item={item} />)}</ul>
-  return (
-    <div className="flex flex-col gap-4">
-      {sections.map((section) => (
-        <section key={section.scope} aria-label={section.label} className="flex flex-col gap-2">
-          <h3 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{section.scope === "all" ? <span className="inline-flex gap-0.5"><TeamIcon side="t" className="size-5" /><TeamIcon side="ct" className="size-5" /></span> : <TeamIcon side={section.scope as "t" | "ct"} className="size-5" />}{section.label}<span className="font-medium text-[var(--text-faint)]">{section.items.length}</span></h3>
-          <ul className="flex flex-col gap-2">{section.items.map((item, index) => <DetailRow key={`${item.name}:${item.teamScope}:${index}`} item={item} />)}</ul>
-        </section>
-      ))}
-    </div>
-  )
-}
-
-function daysAgo(iso: string) {
+export function daysAgo(iso: string) {
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000)
   return days < 1 ? "today" : days === 1 ? "yesterday" : `${days} days ago`
 }
 
 /** Community collections: loadouts other players shared. Applying one replaces your whole loadout. */
 export function SkinCollections({ onApplied }: { onApplied: () => void }) {
+  const navigate = useNavigate()
   const [sort, setSort] = useState<SkinCollectionSort>("popular")
   const [query, setQuery] = useState("")
   const [target, setTarget] = useState<SkinCollection | null>(null)
-  const [viewing, setViewing] = useState<SkinCollection | null>(null)
   const [removing, setRemoving] = useState<SkinCollection | null>(null)
   const [applying, setApplying] = useState(false)
   const [sharing, setSharing] = useState(false)
@@ -108,10 +57,8 @@ export function SkinCollections({ onApplied }: { onApplied: () => void }) {
     { queryKey: `collections:${sort}:${query.trim()}` },
   )
   const collections = data?.collections ?? []
-  const { data: detail, loading: detailLoading, error: detailError, refetch: refetchDetail } = useApiQuery(
-    (signal) => skinchangerService.getCollection(viewing!.id, { signal }),
-    { enabled: Boolean(viewing), queryKey: `collection:${viewing?.id ?? ""}` },
-  )
+
+  const openCollection = (collection: SkinCollection) => navigate(`/skinchanger/collections/${encodeURIComponent(collection.id)}`)
 
   const failure = (error: unknown, fallback: string) => {
     const message = (error as Partial<ApiError> | null)?.message
@@ -198,8 +145,8 @@ export function SkinCollections({ onApplied }: { onApplied: () => void }) {
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {collections.map((collection) => (
-            <article key={collection.id} onClick={() => setViewing(collection)} className="lx-layer group flex cursor-pointer flex-col gap-3 rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3 transition-colors duration-300 hover:border-[var(--line-strong)]">
-              <button type="button" onClick={() => setViewing(collection)} aria-label={`See everything in ${collection.name}`} className="grid grid-cols-4 gap-1.5 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
+            <article key={collection.id} onClick={() => openCollection(collection)} className="lx-layer group flex cursor-pointer flex-col gap-3 rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3 transition-colors duration-300 hover:border-[var(--line-strong)]">
+              <button type="button" onClick={() => openCollection(collection)} aria-label={`See everything in ${collection.name}`} className="grid grid-cols-4 gap-1.5 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
                 {(collection.itemCount > 4 ? collection.items.slice(0, 3) : collection.items).map((item, index) => {
                   const accent = item.rarity ? rarityStyles[item.rarity]?.accent : undefined
                   return (
@@ -214,7 +161,7 @@ export function SkinCollections({ onApplied }: { onApplied: () => void }) {
                 )}
               </button>
               <div className="min-w-0">
-                <h3 className="truncate text-[15px] font-semibold text-[var(--text)]"><button type="button" onClick={() => setViewing(collection)} className="max-w-full truncate hover:underline focus-visible:outline-none focus-visible:underline">{collection.name}</button></h3>
+                <h3 className="truncate text-[15px] font-semibold text-[var(--text)]"><button type="button" onClick={() => openCollection(collection)} className="max-w-full truncate hover:underline focus-visible:outline-none focus-visible:underline">{collection.name}</button></h3>
                 <p className="mt-0.5 line-clamp-1 text-[13px] text-[var(--text-dim)]">{collection.description}</p>
                 <p className="mt-2 flex items-center gap-1.5 text-[11px] text-[var(--text-faint)]">
                   <PlayerAvatar avatar={collection.author.avatar} name={collection.author.username} className="size-5 rounded-full" />
@@ -243,45 +190,6 @@ export function SkinCollections({ onApplied }: { onApplied: () => void }) {
           ))}
         </div>
       )}
-
-      <Sheet open={Boolean(viewing)} onOpenChange={(open) => { if (!open) setViewing(null) }}>
-        <SheetContent
-          side="right"
-          showCloseButton={false}
-          overlayClassName="lx-sheet-overlay bg-[rgba(10,10,10,0.55)] data-[state=open]:duration-300 data-[state=closed]:duration-200"
-          className="lx-sheet inset-y-2 right-2 h-auto w-[460px] max-w-[calc(100%-16px)] gap-0 overflow-hidden rounded-2xl border border-[var(--line)] p-0 data-[state=open]:duration-[450ms] data-[state=open]:ease-[cubic-bezier(0.22,1,0.36,1)] data-[state=closed]:duration-[250ms] data-[state=closed]:ease-[cubic-bezier(0.4,0,1,1)] sm:max-w-[460px]"
-        >
-          {viewing && (
-            <div className="flex min-h-0 flex-1 flex-col">
-              <div className="flex items-start gap-3 border-b border-[var(--line-soft)] p-[18px]">
-                <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <SheetTitle className="truncate text-lg font-bold tracking-[-0.2px] text-[var(--text)]">{viewing.name}</SheetTitle>
-                  <SheetDescription className="text-[13px] text-[var(--text-dim)]">{viewing.description || "No description."}</SheetDescription>
-                  <p className="mt-1 flex items-center gap-1.5 text-[11px] text-[var(--text-faint)]">
-                    <PlayerAvatar avatar={viewing.author.avatar} name={viewing.author.username} className="size-5 rounded-full" />
-                    <span className="min-w-0"><span className="text-[var(--text-muted)]">{viewing.author.username}</span> · {viewing.itemCount} items · {daysAgo(viewing.createdAt)} · {viewing.likes} likes · {viewing.applies} applies</span>
-                  </p>
-                </div>
-                <button type="button" onClick={() => setViewing(null)} aria-label="Close" className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] text-[var(--text-muted)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
-                  <X className="size-4" />
-                </button>
-              </div>
-              <div className="scrollbar-hidden flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-[18px]">
-                {detailError ? (
-                  <QueryState loading={false} error={{ ...detailError, message: loadFailure(detailError).replace("collections", "this collection") }} empty={false} onRetry={refetchDetail} />
-                ) : detailLoading || !detail ? (
-                  Array.from({ length: Math.min(viewing.itemCount, 8) }, (_, index) => <Skeleton key={index} className="h-[64px] rounded-[10px] bg-[var(--glass-fill)]" />)
-                ) : (
-                  <TeamSections items={detail.collection.items} />
-                )}
-              </div>
-              <div className="border-t border-[var(--line-soft)] p-[18px]">
-                <button type="button" onClick={() => { setTarget(viewing); setViewing(null) }} className="inline-flex h-9 w-full items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-medium text-[var(--text)] transition-colors hover:border-[var(--line-strong)]">Apply to my loadout</button>
-              </div>
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
 
       <AlertDialog open={Boolean(target)} onOpenChange={(open) => { if (!open && !applying) setTarget(null) }}>
         <AlertDialogContent size="sm">
