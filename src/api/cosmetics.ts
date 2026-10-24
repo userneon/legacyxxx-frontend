@@ -27,6 +27,8 @@ export interface FrameItem {
   owned: boolean
   /** Name colour items: the #rrggbb the name is painted with. */
   color?: string
+  /** Smoke colour items with two colours (a gradient): the second one. */
+  color2?: string
   /** Name glow items: the #rrggbb of the glow around the name. */
   glow?: string
   /** The finished effect (chrome, gold, neon, flame ...) the website draws for this item. */

@@ -60,7 +60,7 @@ function RarityDots({ rarity }: { rarity: number }) {
 /** What the item looks like: a frame around your picture, or your name painted with it. */
 function ItemArt({ item, avatar, username, size }: { item: ShopItem; avatar?: string; username: string; size: number }) {
   if (item.kind === "frame") return <FramedAvatar avatar={avatar} name={username} frame={item.id} size={size} />
-  if (item.kind === "smoke_color") return <SmokePuff color={item.color} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
+  if (item.kind === "smoke_color") return <SmokePuff color={item.color} color2={item.color2} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   const look = item.kind === "name_color" ? { color: item.color ?? null, colorFx: item.fx ?? null } : { glow: item.glow ?? null, glowFx: item.fx ?? null }
   return <span {...nameProps(look, cn("max-w-full truncate px-2 font-bold text-[var(--text)]", size > 100 ? "text-[19px]" : "text-[15px]"))}>{username}</span>
 }
@@ -251,7 +251,7 @@ export function ShopPage() {
         <div className="scrollbar-hidden flex min-h-0 flex-col gap-3 overflow-y-auto p-3.5">
           {selected?.kind === "smoke_color" && (
             <Context label="In game">
-              <div className="flex items-center justify-center py-1"><SmokePuff color={selected.color} className="w-[220px]" /></div>
+              <div className="flex items-center justify-center py-1"><SmokePuff color={selected.color} color2={selected.color2} className="w-[220px]" /></div>
             </Context>
           )}
           <Context label="Profile">

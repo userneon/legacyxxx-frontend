@@ -324,7 +324,7 @@ function Appearance() {
           <div className="flex flex-col items-center gap-3 self-start rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] p-4 md:sticky md:top-6">
             <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={150} />
             <span {...nameProps(previewLook, "max-w-full truncate text-[15px] font-bold text-[var(--text)]")}>{sampleName}</span>
-            {kind === "smoke_color" && selected && <SmokePuff color={selected.color} className="w-[150px]" />}
+            {kind === "smoke_color" && selected && <SmokePuff color={selected.color} color2={selected.color2} className="w-[150px]" />}
             <div className="flex w-full flex-col items-center gap-1 text-center">
               <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--text-dim)]">Preview</span>
               <span className="text-[15px] font-semibold text-[var(--text)]">{selected?.name ?? `No ${noun}`}</span>
@@ -365,7 +365,7 @@ function Appearance() {
                       ) : kind === "banner" ? (
                         <span className="relative flex h-[76px] w-full items-center justify-center overflow-hidden rounded-lg"><span aria-hidden="true" className={cn("absolute inset-0", bannerClass(item.fx))} /></span>
                       ) : kind === "smoke_color" ? (
-                        <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><SmokePuff color={item.color} className="w-[88px]" /></span>
+                        <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><SmokePuff color={item.color} color2={item.color2} className="w-[88px]" /></span>
                       ) : kind === "title" ? (
                         <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><span className={cn("truncate text-[11px] font-semibold uppercase tracking-[3px]", item.name === "Genesis" ? "lx-profile-title-founder" : "text-[var(--text-dim)]")}>{item.name}</span></span>
                       ) : (
