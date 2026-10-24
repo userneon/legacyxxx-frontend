@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { Bell, Check, CircleCheck, Frame, Link2, Lock, RotateCcw, MonitorSmartphone, type LucideIcon } from "lucide-react"
 import { toast } from "sonner"
 
@@ -98,72 +98,23 @@ function ConnectionRow({ icon, title, description, action }: { icon: React.React
   )
 }
 
-const DISCORD_RESULTS: Record<string, { ok: boolean; text: string }> = {
-  linked: { ok: true, text: "Discord linked. Your rank role arrives in a moment." },
-  cancelled: { ok: false, text: "Discord link cancelled." },
-  expired: { ok: false, text: "That link expired. Try again." },
-  failed: { ok: false, text: "Discord could not be linked. Try again." },
-  unavailable: { ok: false, text: "Linking Discord is not set up yet." },
-}
-
-/** Link or unlink Discord from here: Discord asks for consent, then the rank role follows. */
+/** Discord is linked and unlinked on its own page (owner request 2026-10-24); here it only shows the state and points there. */
 function DiscordConnection() {
   const { data, loading, error, refetch } = useApiQuery<DiscordLinkState>((signal) => discordService.getLink({ signal }))
-  const [busy, setBusy] = useState(false)
-
-  // Coming back from Discord: say how it went once, then clean the address.
-  useEffect(() => {
-    const url = new URL(window.location.href)
-    const result = url.searchParams.get("discord")
-    if (!result) return
-    const outcome = DISCORD_RESULTS[result]
-    if (outcome) (outcome.ok ? toast.success : toast.error)(outcome.text)
-    url.searchParams.delete("discord")
-    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`)
-    void refetch()
-  }, [refetch])
-
-  const link = async () => {
-    setBusy(true)
-    try {
-      const { url } = await discordService.start()
-      window.location.assign(url)
-    } catch {
-      toast.error("Could not start the Discord link", { description: "Try again in a moment." })
-      setBusy(false)
-    }
-  }
-  const unlink = async () => {
-    if (!window.confirm("Unlink your Discord account? You lose the rank role.")) return
-    setBusy(true)
-    try {
-      await discordService.unlink()
-      toast.success("Discord unlinked")
-      await refetch()
-    } catch {
-      toast.error("Could not unlink Discord", { description: "Try again in a moment." })
-    } finally {
-      setBusy(false)
-    }
-  }
-  const button = "inline-flex h-[34px] shrink-0 items-center rounded-lg border border-[var(--line)] px-3.5 text-[13px] font-medium transition-colors disabled:opacity-60"
+  const button = "inline-flex h-[34px] shrink-0 items-center rounded-lg border border-[var(--line)] px-3.5 text-[13px] font-medium text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)]"
   return (
     <ConnectionRow
       icon={<DiscordGlyph />}
       title="Discord"
-      description={data?.link ? `${data.link.discordName} · rank role and /stats in Discord` : "Link Discord for your rank role and /stats, and get 50 LX once."}
+      description={data?.link ? `${data.link.discordName} · rank role, pings and /stats in Discord` : "Link Discord for your rank role and /stats, and get 50 LX once."}
       action={
         loading ? <Skeleton className="h-[34px] w-24 rounded-lg" />
-        : error ? <button type="button" onClick={refetch} className={cn(button, "text-[var(--text-2)] hover:border-[var(--line-strong)]")}>Retry</button>
-        : data?.link ? (
+        : error ? <button type="button" onClick={refetch} className={button}>Retry</button>
+        : (
           <span className="flex shrink-0 items-center gap-3">
-            <span className="inline-flex items-center gap-[5px] text-xs font-medium text-[var(--status-green)]"><CircleCheck className="size-3.5" />Linked</span>
-            <button type="button" disabled={busy} onClick={() => void unlink()} className={cn(button, "text-[var(--text-2)] hover:border-[var(--line-strong)] hover:bg-[var(--raised)]")}>Unlink</button>
+            {data?.link && <span className="inline-flex items-center gap-[5px] text-xs font-medium text-[var(--status-green)]"><CircleCheck className="size-3.5" />Linked</span>}
+            <Link to="/discord" className={button}>{data?.link ? "Manage" : "Set up"}</Link>
           </span>
-        ) : (
-          <button type="button" disabled={busy || !data?.available} onClick={() => void link()} title={data?.available ? undefined : "Not set up yet"} className={cn(button, data?.available ? "lx-primary-button border-transparent font-semibold" : "text-[var(--text-muted)]")}>
-            {data?.available ? "Link Discord" : "Not set up yet"}
-          </button>
         )
       }
     />

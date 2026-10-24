@@ -1,7 +1,7 @@
 /** The LEGACY-X Discord: how to join, how to link your account, and what the server's bot does. Live counts only when the server widget is on. */
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
-import { ArrowUpRight, BellRing, Link2, Mic, Scale, ScrollText, Search, ShieldAlert, Trophy, Megaphone } from "lucide-react"
+import { ArrowUpRight, BellRing, CircleCheck, Link2, Mic, Scale, ScrollText, Search, ShieldAlert, Trophy, Megaphone } from "lucide-react"
 import { toast } from "sonner"
 
 import { discordService, type DiscordLinkState, type PingTopic } from "@/api/discord"
@@ -16,6 +16,13 @@ import { cn } from "@/lib/utils"
 
 /* Discord's own blue is the brand of the invite button only; the rest of the page is the site's neutral look. */
 const joinButton = "inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#5865F2] px-5 text-[13px] font-semibold text-white transition-colors hover:bg-[#4752c4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7289DA]" /* palette-exempt: Discord brand */
+const LINK_RESULTS: Record<string, { ok: boolean; text: string }> = {
+  linked: { ok: true, text: "Discord linked. Your rank role arrives in a moment." },
+  cancelled: { ok: false, text: "Discord link cancelled." },
+  expired: { ok: false, text: "That link expired. Try again." },
+  failed: { ok: false, text: "Discord could not be linked. Try again." },
+  unavailable: { ok: false, text: "Linking Discord is not set up yet." },
+}
 const card = "lx-layer rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-5"
 
 /** What the server's bot does, in the words of its own commands. Nothing here is a number or a promise: it is the list of features. */
@@ -46,6 +53,33 @@ export function DiscordPage() {
     } catch {
       setFlipped((current) => ({ ...current, [topic.key]: !enabled }))
       toast.error("Could not save the ping", { description: "Try again in a moment." })
+    }
+  }
+
+  // Coming back from Discord's consent page: say how it went once, then clean the address.
+  const { refetch: refetchLink } = link
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    const result = url.searchParams.get("discord")
+    if (!result) return
+    const outcome = LINK_RESULTS[result]
+    if (outcome) (outcome.ok ? toast.success : toast.error)(outcome.text)
+    url.searchParams.delete("discord")
+    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`)
+    refetchLink()
+  }, [refetchLink])
+
+  const unlink = async () => {
+    if (!window.confirm("Unlink your Discord account? You lose the rank role and your pings.")) return
+    setBusy(true)
+    try {
+      await discordService.unlink()
+      toast.success("Discord unlinked")
+      refetchLink()
+    } catch {
+      toast.error("Could not unlink Discord", { description: "Try again in a moment." })
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -90,15 +124,19 @@ export function DiscordPage() {
           <div className="min-w-0 flex-1">
             <h2 className="text-[15px] font-semibold text-[var(--text)]">Link your Discord to your profile</h2>
             <p className="mt-0.5 text-[13px] text-[var(--text-dim)]">
-              {!isAuthenticated ? "Sign in with Steam first, then link Discord." : link.loading && !link.data ? "Checking…" : link.data?.link ? `Linked as ${link.data.link.discordName}.` : "Your rank role, the Booster badge and your place on Leaders → Boosters need it."}
+              {!isAuthenticated ? "Sign in with Steam first, then link Discord." : link.loading && !link.data ? "Checking…" : link.data?.link ? `Linked as ${link.data.link.discordName}.` : "Your rank role, pings, the Booster badge and your place on Leaders → Boosters need it. You also get 50 LX once."}
             </p>
           </div>
           {!isAuthenticated ? null : link.loading && !link.data ? (
             <Skeleton className="h-10 w-32 rounded-lg" />
           ) : link.data?.link ? (
-            <Link to="/leaders?sort=boosters" className="inline-flex h-10 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-4 text-[13px] font-semibold text-[var(--text-2)] hover:border-[var(--line-strong)]">See Boosters</Link>
+            <span className="flex shrink-0 flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-[5px] text-xs font-medium text-[var(--status-green)]"><CircleCheck className="size-3.5" />Linked</span>
+              <Link to="/leaders?sort=boosters" className="inline-flex h-10 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-4 text-[13px] font-semibold text-[var(--text-2)] hover:border-[var(--line-strong)]">See Boosters</Link>
+              <button type="button" disabled={busy} onClick={() => void unlink()} className="inline-flex h-10 items-center rounded-lg border border-[var(--line)] px-4 text-[13px] font-medium text-[var(--text-2)] hover:border-[var(--line-strong)] hover:bg-[var(--raised)] disabled:opacity-60">Unlink</button>
+            </span>
           ) : (
-            <button type="button" disabled={busy || link.data?.available === false} onClick={() => void startLink()} className="lx-primary-button inline-flex h-10 items-center rounded-lg px-5 text-[13px] font-semibold disabled:opacity-60">Link Discord</button>
+            <button type="button" disabled={busy || link.data?.available === false} onClick={() => void startLink()} title={link.data?.available === false ? "Not set up yet" : undefined} className="lx-primary-button inline-flex h-10 items-center rounded-lg px-5 text-[13px] font-semibold disabled:opacity-60">{link.data?.available === false ? "Not set up yet" : "Link Discord"}</button>
           )}
         </section>
 
