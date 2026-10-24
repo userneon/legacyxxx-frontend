@@ -1,4 +1,5 @@
 import { ScrollRow } from "@/components/scroll-row"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import {
   ArrowLeft,
@@ -1287,34 +1288,42 @@ export function SkinchangerPage() {
             <div className={cn("flex min-h-0 flex-col", selected && pickerHasOptions && !accessoryOpen && "hidden lg:flex")}>
               {accessoryOpen ? renderAccessoryBrowser() : (<>
               {slotTeam && (category === "knife" || category === "glove") && (
+                <TooltipProvider delayDuration={80} skipDelayDuration={300}>
                 <ScrollRow role="tablist" aria-label={category === "knife" ? "Knife type" : "Glove type"} className="gap-1.5 border-b border-border px-3 py-2.5">
                   {modelsForSlot(category).map((model) => {
                     const isActive = activeWeapon?.id === model.id
                     const isSaved = modelForEntry(category, slotEntryFor(category, slotTeam))?.id === model.id
                     // Knives: the grey picture of that knife; gloves: the catalogue picture; nothing to show: the name.
                     const icon = category === "knife" ? knifeIcon(model.weapon_class) ?? model.image_url : model.image_url
+                    const modelName = model.display_name.replace(/^★\s*/, "")
                     return (
+                      <Tooltip key={model.id}>
+                      <TooltipTrigger asChild>
                       <button
-                        key={model.id}
                         type="button"
                         role="tab"
                         aria-selected={isActive}
                         onClick={() => switchSlotModel(model)}
-                        title={model.display_name.replace(/^★\s*/, "")}
-                        aria-label={model.display_name.replace(/^★\s*/, "")}
+                        aria-label={modelName}
                         className={cn(
-                          "group relative shrink-0 rounded-lg border text-xs font-medium transition-colors",
+                          "group relative shrink-0 rounded-lg border text-xs font-medium transition-[color,background-color,border-color] duration-200 motion-reduce:transition-none",
                           icon ? "flex h-11 w-[84px] items-center justify-center px-2" : "h-8 px-3",
                           isActive ? "border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text)]" : "border-border text-muted-foreground hover:border-[var(--line-strong)] hover:text-foreground",
                         )}
                       >
                         {/* The knife or glove itself; the name is the tooltip and the accessible label. Without a picture, the name. */}
-                        {icon ? <img src={icon} alt="" draggable={false} className={cn("w-full object-contain transition-opacity", category === "knife" ? "h-6" : "h-8", isActive ? "opacity-100" : "opacity-60 group-hover:opacity-100")} /> : model.display_name.replace(/\s+(Gloves|Knife)$/i, "")}
+                        {icon ? <img src={icon} alt="" draggable={false} className={cn("w-full object-contain transition-opacity duration-200", category === "knife" ? "h-6" : "h-8", isActive ? "opacity-100" : "opacity-60 group-hover:opacity-100")} /> : model.display_name.replace(/\s+(Gloves|Knife)$/i, "")}
                         {isSaved && <span aria-label="saved" className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-[var(--status-green)]" />}
                       </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" sideOffset={8} className="rounded-lg border border-[var(--line-strong)] px-2.5 py-1.5 text-[12px] font-semibold text-[var(--text)] shadow-[0_8px_24px_rgba(0,0,0,0.5)] duration-150 [--tooltip-bg:var(--card-surface)]">
+                        {modelName}{isSaved && <span className="ml-1.5 font-normal text-[var(--status-green)]">saved</span>}
+                      </TooltipContent>
+                      </Tooltip>
                     )
                   })}
                 </ScrollRow>
+                </TooltipProvider>
               )}
               <div className="flex flex-wrap items-center gap-1.5 border-b border-[var(--line-soft)] p-3 sm:hidden">
                 <label className="relative block w-full">

@@ -29,20 +29,20 @@ export function ScrollRow({ className, children, ...rest }: HTMLAttributes<HTMLD
 
   const slide = (direction: -1 | 1) => row.current?.scrollBy({ left: direction * Math.max(160, (row.current?.clientWidth ?? 0) * 0.7), behavior: "smooth" })
 
-  const arrow = "absolute top-1/2 z-10 flex size-7 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)] shadow-sm transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]"
+  const arrow = "absolute top-1/2 z-10 flex size-7 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)] shadow-sm transition-[opacity,color,border-color] duration-200 hover:border-[var(--line-strong)] hover:text-[var(--text)] motion-reduce:transition-none"
   return (
     <div className="relative">
       <div
         ref={row}
         onScroll={measure}
         onWheel={(event) => { if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) event.currentTarget.scrollLeft += event.deltaY }}
-        className={cn("scrollbar-hidden flex overflow-x-auto", className)}
+        className={cn("scrollbar-hidden flex scroll-smooth overflow-x-auto motion-reduce:scroll-auto", className)}
         {...rest}
       >
         {children}
       </div>
-      {more.left && <button type="button" tabIndex={-1} aria-label="Scroll left" onClick={() => slide(-1)} className={cn(arrow, "left-1.5")}><ChevronLeft className="size-4" aria-hidden="true" /></button>}
-      {more.right && <button type="button" tabIndex={-1} aria-label="Scroll right" onClick={() => slide(1)} className={cn(arrow, "right-1.5")}><ChevronRight className="size-4" aria-hidden="true" /></button>}
+      <button type="button" tabIndex={-1} aria-label="Scroll left" aria-hidden={!more.left} disabled={!more.left} onClick={() => slide(-1)} className={cn(arrow, "left-1.5", !more.left && "pointer-events-none opacity-0")}><ChevronLeft className="size-4" aria-hidden="true" /></button>
+      <button type="button" tabIndex={-1} aria-label="Scroll right" aria-hidden={!more.right} disabled={!more.right} onClick={() => slide(1)} className={cn(arrow, "right-1.5", !more.right && "pointer-events-none opacity-0")}><ChevronRight className="size-4" aria-hidden="true" /></button>
     </div>
   )
 }
