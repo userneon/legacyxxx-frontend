@@ -164,7 +164,7 @@ export function DiscordPage() {
                     </li>
                   ))}
             </ul>
-            {pings.error && <p className="mt-3 text-[13px] text-[var(--text-dim)]">Could not load your pings.</p>}
+            {pings.error && !pings.data && <p className="mt-3 text-[13px] text-[var(--text-dim)]">Could not load your pings. <button type="button" onClick={pings.refetch} className="text-[var(--text-2)] underline-offset-4 hover:underline">Retry</button></p>}
           </section>
         )}
 
@@ -183,18 +183,21 @@ export function DiscordPage() {
           </ul>
         </section>
 
-        <section id="join" className={cn(card, "flex flex-wrap items-center gap-x-6 gap-y-3 p-5")} aria-label="Join the Discord">
-          <span className={"flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#5865F2]/15 text-[#8b95f5]" /* palette-exempt: Discord brand */}><DiscordIcon className="size-5" /></span>
-          <div className="min-w-0 flex-1">
-            <h2 className="text-[15px] font-semibold text-[var(--text)]">Not on the server yet?</h2>
-            <p className="text-[13px] text-[var(--text-dim)]">Join first, then link your account above.</p>
-          </div>
-          <a href={widget?.instant_invite || LINKS.discordInvite} target="_blank" rel="noreferrer" className={joinButton}>
-            <DiscordIcon className="size-4" />
-            Join the Discord
-            <ArrowUpRight className="size-3.5" />
-          </a>
-        </section>
+        {/* Someone the bot has seen on the server does not need the invite. */}
+        {link.data?.link?.inServer !== true && (
+          <section id="join" className={cn(card, "flex flex-wrap items-center gap-x-6 gap-y-3 p-5")} aria-label="Join the Discord">
+            <span className={"flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#5865F2]/15 text-[#8b95f5]" /* palette-exempt: Discord brand */}><DiscordIcon className="size-5" /></span>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-[15px] font-semibold text-[var(--text)]">{link.data?.link?.inServer === false ? "You are not on the server" : "Not on the server yet?"}</h2>
+              <p className="text-[13px] text-[var(--text-dim)]">{link.data?.link ? "Your account is linked, but it is not on the server." : "Join first, then link your account above."}</p>
+            </div>
+            <a href={widget?.instant_invite || LINKS.discordInvite} target="_blank" rel="noreferrer" className={joinButton}>
+              <DiscordIcon className="size-4" />
+              Join the Discord
+              <ArrowUpRight className="size-3.5" />
+            </a>
+          </section>
+        )}
       </div>
     </div>
   )
