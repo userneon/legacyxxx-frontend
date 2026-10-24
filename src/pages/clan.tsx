@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { usePathTab } from "@/hooks/use-url-tab"
 import { useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft, Check, Coins, Globe, Lock, Pencil, Plus, Search, Upload, UserPlus, Users, X } from "lucide-react"
+import { ArrowLeft, Check, Coins, Crown, Globe, Lock, Pencil, Plus, Search, Upload, UserPlus, Users, X } from "lucide-react"
 import { toast } from "sonner"
 
 
@@ -112,6 +112,8 @@ export function ClanPage({ onProfileNavigate, onClanNavigate }: { onProfileNavig
 const PAGE_SIZE = 24
 
 /** The stat row and the card grid of the clan list, in the places the real ones appear. */
+const ROLE_ORDER = ["leader", "co-leader", "member"]
+
 function ClanListSkeleton() {
   return (
     <div className="flex flex-col gap-4" aria-hidden="true">
@@ -515,25 +517,37 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
 
               {isManager && <JoinRequests clanId={clanId} onAccepted={() => void refetch()} />}
 
-              <section className="flex flex-col gap-3">
-                <h2 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-dim)]"><Users className="size-3.5" aria-hidden="true" /> Members</h2>
+              <section aria-label="Roster" className="flex flex-col gap-3">
+                <h2 className="lx-shop-heading">Roster<span className="lx-shop-price !h-5 !text-[11px]">{clan.currentPlayers} / {clan.maxPlayers}</span></h2>
                 {members.length === 0 ? (
                   <p className="text-[13px] text-[var(--text-dim)]">No members to show.</p>
                 ) : (
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {members.map((member) => (
-                      <div key={member.id} className="flex items-center gap-1 rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] transition-[border-color] duration-200 hover:border-[var(--line-strong)]">
-                        <button type="button" onClick={() => onProfileNavigate(member.steamId || member.id)} className="flex min-w-0 flex-1 items-center gap-3 rounded-[10px] p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-                          <PlayerAvatar avatar={member.avatar} name={member.name} frame={member.frame} className="size-10 rounded-[10px] text-sm" />
-                          <span className="min-w-0">
-                            <span {...nameProps(member.nameStyle, "block truncate text-[13px] font-medium")}>{member.name}{member.id === user?.id ? " (you)" : ""}</span>
-                            <span className="block text-[11px] text-[var(--text-dim)]">{roleLabel(member.role)}</span>
-                          </span>
-                        </button>
-                        {member.id !== user?.id && <MemberControls clanId={clanId} member={member} viewerRole={role} onChanged={() => void refetch()} />}
-                      </div>
+                  <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {[...members].sort((x, y) => ROLE_ORDER.indexOf(x.role) - ROLE_ORDER.indexOf(y.role)).map((member) => {
+                      const ranked = member.role === "leader" || member.role === "co-leader"
+                      return (
+                        <li key={member.id} data-worn={ranked} className="lx-shop-tile flex items-center gap-1 rounded-xl">
+                          <button type="button" onClick={() => onProfileNavigate(member.steamId || member.id)} className="flex min-w-0 flex-1 items-center gap-3.5 rounded-xl p-3.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60">
+                            <PlayerAvatar avatar={member.avatar} name={member.name} frame={member.frame} className={cn("shrink-0 rounded-xl", ranked ? "size-14 text-base" : "size-12 text-sm")} />
+                            <span className="flex min-w-0 flex-col gap-1">
+                              <span {...nameProps(member.nameStyle, cn("block truncate font-semibold", ranked ? "text-[15px]" : "text-[13px]"))}>{member.name}{member.id === user?.id ? " (you)" : ""}</span>
+                              {ranked
+                                ? <span className="inline-flex w-fit items-center gap-1 rounded-full border border-[color-mix(in_oklch,var(--brand-bright)_35%,transparent)] bg-[color-mix(in_oklch,var(--brand)_14%,transparent)] px-2 py-px text-[11px] font-semibold text-[var(--brand-bright)]">{member.role === "leader" && <Crown className="size-3" aria-hidden="true" />}{roleLabel(member.role)}</span>
+                                : <span className="text-[11px] text-[var(--text-dim)]">{roleLabel(member.role)}</span>}
+                              {member.description && <span className="line-clamp-1 text-[11px] text-[var(--text-faint)]">{member.description}</span>}
+                            </span>
+                          </button>
+                          {member.id !== user?.id && <MemberControls clanId={clanId} member={member} viewerRole={role} onChanged={() => void refetch()} />}
+                        </li>
+                      )
+                    })}
+                    {Array.from({ length: Math.min(Math.max(clan.maxPlayers - members.length, 0), 3) }, (_, index) => (
+                      <li key={`open-${index}`} className="flex items-center gap-3.5 rounded-xl border border-dashed border-[var(--line)] p-3.5 text-[var(--text-faint)]">
+                        <span className="grid size-12 place-items-center rounded-xl border border-dashed border-[var(--line)]"><UserPlus className="size-4" aria-hidden="true" /></span>
+                        <span className="text-[13px]">{index === 2 && clan.maxPlayers - members.length > 3 ? `+${clan.maxPlayers - members.length - 2} open slots` : "Open slot"}</span>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 )}
               </section>
 
