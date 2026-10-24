@@ -101,6 +101,8 @@ export function ShopPage() {
   const [picked, setPicked] = useState<string | null>(params.get("item"))
   const [search, setSearch] = useState("")
   const [sheetOpen, setSheetOpen] = useState(false)
+  // The item bought a moment ago: its card rings once and the buy block turns into "Worn" with a fade.
+  const [justBought, setJustBought] = useState<string | null>(null)
 
   const all: ShopItem[] = useMemo(() => [
     ...(data?.frames ?? []).map((item) => ({ ...item, kind: "frame" as const })),
@@ -151,6 +153,8 @@ export function ShopPage() {
       await cosmeticsService.equip(item.kind, item.id)
       toast.success(`${item.name} is yours and now worn`)
       await Promise.all([refetch(), refetchWallet()])
+      setJustBought(item.id)
+      window.setTimeout(() => setJustBought((current) => (current === item.id ? null : current)), 1400)
     } catch (caught) {
       toast.error("Could not buy it", { description: caught instanceof Error ? caught.message : "Try again in a moment." })
     } finally {
@@ -168,7 +172,7 @@ export function ShopPage() {
         ? <span className="inline-flex items-center gap-1 whitespace-nowrap text-sm font-bold text-[var(--text)]"><LxMark size={14} />{item.price.toLocaleString()}</span>
         : <span className="inline-flex items-center gap-1 text-xs text-[var(--text-dim)]"><Lock className="size-3" />Earned</span>
     return (
-      <li key={item.id}>
+      <li key={item.id} className={cn("rounded-xl", justBought === item.id && "lx-bought")}>
         <button
           type="button"
           onClick={() => choose(item)}
@@ -198,10 +202,10 @@ export function ShopPage() {
       <div className="flex flex-col gap-2.5 border-t border-[var(--line-soft)] px-4 py-3.5">
         <div className="flex items-baseline justify-between"><span className="text-[15px] font-semibold text-[var(--text)]">{item.name}</span><span className="flex items-center gap-1.5 text-xs text-[var(--text-dim)]"><RarityDots rarity={item.rarity ?? 1} />{RARITY_NAMES[item.rarity ?? 1]}</span></div>
         {item.owned ? (
-          <>
+          <div key="owned" className={cn("flex flex-col gap-2.5", justBought === item.id && "lx-swap-in")}>
             <p className="text-xs text-[var(--text-dim)]">{isWorn ? "You are wearing this." : "You own this. Wear it in Profile → Appearance."}</p>
             <button type="button" onClick={() => navigate("/profile", { state: { tab: "appearance" } })} className="inline-flex h-10 w-full items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-semibold text-[var(--text-2)] hover:border-[var(--line-strong)]">Open Appearance</button>
-          </>
+          </div>
         ) : item.unlock === "coin" ? (
           <>
             {balance !== null && (
@@ -267,7 +271,7 @@ export function ShopPage() {
       <div className="min-h-0 flex-1 px-6 py-5 max-md:px-4">
         {tab === "goods" ? (
           <ShopGoods />
-        ) : loading ? (
+        ) : loading && !data ? (
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]"><Skeleton className="h-[480px] rounded-xl" /><Skeleton className="h-[480px] rounded-xl" /></div>
         ) : error || !data ? (
           <p className="flex items-center justify-center gap-3 py-24 text-[13px] text-[var(--text-dim)]">Could not load the shop.<button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>

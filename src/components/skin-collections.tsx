@@ -111,11 +111,20 @@ export function SkinCollections({ onApplied }: { onApplied: () => void }) {
     }
   }
 
+  // A like shows at once and pops; the server's answer replaces it, and a refusal puts it back.
+  const [likeOverride, setLikeOverride] = useState<Record<string, { liked: boolean; likes: number }>>({})
+  const [popped, setPopped] = useState<string | null>(null)
+  const likeOf = (collection: SkinCollection) => likeOverride[collection.id] ?? { liked: collection.liked, likes: collection.likes }
   const toggleLike = async (collection: SkinCollection) => {
+    const before = likeOf(collection)
+    const next = { liked: !before.liked, likes: before.likes + (before.liked ? -1 : 1) }
+    setLikeOverride((current) => ({ ...current, [collection.id]: next }))
+    setPopped(next.liked ? collection.id : null)
     try {
-      await skinchangerService.likeCollection(collection.id, !collection.liked)
-      refetch()
+      const result = await skinchangerService.likeCollection(collection.id, next.liked)
+      setLikeOverride((current) => ({ ...current, [collection.id]: { liked: result.liked, likes: result.likes } }))
     } catch (error) {
+      setLikeOverride((current) => ({ ...current, [collection.id]: before }))
       failure(error, "Could not save your like. Please try again.")
     }
   }
@@ -136,7 +145,7 @@ export function SkinCollections({ onApplied }: { onApplied: () => void }) {
 
       {error ? (
         <QueryState loading={false} error={{ ...error, message: loadFailure(error) }} empty={false} onRetry={refetch} />
-      ) : loading ? (
+      ) : loading && !data ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3" aria-hidden="true">
           {Array.from({ length: 6 }, (_, index) => <Skeleton key={index} className="h-[218px] rounded-[10px] bg-[var(--glass-fill)]" />)}
         </div>
@@ -169,9 +178,9 @@ export function SkinCollections({ onApplied }: { onApplied: () => void }) {
                 </p>
               </div>
               <div className="mt-auto flex items-center gap-3 border-t border-[var(--line-soft)] pt-3">
-<button type="button" disabled={collection.mine} onClick={(event) => { event.stopPropagation(); void toggleLike(collection) }} aria-pressed={collection.liked} aria-label={collection.liked ? "Remove like" : "Like"} className={cn("inline-flex items-center gap-1.5 text-[13px] transition-colors enabled:hover:text-[var(--text)] disabled:cursor-default", collection.liked ? "text-[var(--text)]" : "text-[var(--text-dim)]")}>
-                  <ThumbsUp className={cn("size-3.5", collection.liked && "fill-current")} />
-                  {collection.likes}
+<button type="button" disabled={collection.mine} onClick={(event) => { event.stopPropagation(); void toggleLike(collection) }} aria-pressed={likeOf(collection).liked} aria-label={likeOf(collection).liked ? "Remove like" : "Like"} className={cn("inline-flex items-center gap-1.5 text-[13px] transition-colors enabled:hover:text-[var(--text)] disabled:cursor-default", likeOf(collection).liked ? "text-[var(--text)]" : "text-[var(--text-dim)]")}>
+                  <ThumbsUp className={cn("size-3.5", likeOf(collection).liked && "fill-current", popped === collection.id && likeOf(collection).liked && "lx-like-pop")} />
+                  <span key={likeOf(collection).likes} className={cn(popped === collection.id && "lx-count-in")}>{likeOf(collection).likes}</span>
                 </button>
                 <span className="inline-flex items-center gap-1.5 text-[13px] text-[var(--text-dim)]">
                   <Download className="size-3.5" />

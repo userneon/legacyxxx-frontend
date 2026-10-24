@@ -68,7 +68,7 @@ function ItemCard({ item }: { item: SkinCollectionDetailItem }) {
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="flex items-baseline gap-1.5">
-      <span className="text-[17px] font-semibold text-[var(--text)]">{value}</span>
+      <span key={value} className="lx-count-in text-[17px] font-semibold text-[var(--text)]">{value}</span>
       <span className="text-[13px] text-[var(--text-dim)]">{label}</span>
     </div>
   )
@@ -84,7 +84,7 @@ export function SkinCollectionPage() {
   const [side, setSide] = useState<SideFilter>("all")
   // The sidebar marks Collections while one is open, even when the address was opened directly.
   useEffect(() => { setSkinchangerView("collections") }, [])
-  const { data, loading, error, refetch } = useApiQuery(
+  const { data, error, refetch } = useApiQuery(
     (signal) => skinchangerService.getCollection(collectionId, { signal }),
     { queryKey: `collection-page:${collectionId}`, keepPreviousData: true },
   )
@@ -131,12 +131,22 @@ export function SkinCollectionPage() {
     }
   }
 
+  // A like shows at once and pops; the server's answer replaces it, and a refusal puts it back.
+  const [likeState, setLikeState] = useState<{ liked: boolean; likes: number } | null>(null)
+  const [popped, setPopped] = useState(false)
+  const liked = likeState?.liked ?? collection?.liked ?? false
+  const likes = likeState?.likes ?? collection?.likes ?? 0
   const toggleLike = async () => {
     if (!collection) return
+    const before = { liked, likes }
+    const next = { liked: !liked, likes: likes + (liked ? -1 : 1) }
+    setLikeState(next)
+    setPopped(next.liked)
     try {
-      await skinchangerService.likeCollection(collection.id, !collection.liked)
-      refetch()
+      const result = await skinchangerService.likeCollection(collection.id, next.liked)
+      setLikeState({ liked: result.liked, likes: result.likes })
     } catch (problem) {
+      setLikeState(before)
       failure(problem, "Could not save your like. Please try again.")
     }
   }
@@ -166,7 +176,7 @@ export function SkinCollectionPage() {
       <div className="scrollbar-hidden flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-6 pb-8 pt-5">
         {error ? (
           <QueryState loading={false} error={{ ...error, message: loadFailure(error).replace("collections", "this collection") }} empty={false} onRetry={refetch} />
-        ) : loading || !collection ? (
+        ) : !collection ? (
           <div className="flex flex-col gap-6" aria-hidden="true">
             <Skeleton className="h-[200px] rounded-xl bg-[var(--glass-fill)]" />
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(168px,1fr))]">
@@ -187,16 +197,16 @@ export function SkinCollectionPage() {
                 </Link>
                 <div className="flex flex-wrap gap-x-6 gap-y-1">
                   <Stat label="items" value={collection.itemCount} />
-                  <Stat label="likes" value={collection.likes} />
+                  <Stat label="likes" value={likes} />
                   <Stat label="applied" value={collection.applies} />
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <button type="button" onClick={() => setTarget(true)} className="lx-primary-button inline-flex h-11 items-center rounded-lg px-6 text-[14px] font-semibold">
                     Apply to my loadout
                   </button>
-                  <button type="button" disabled={collection.mine} onClick={() => void toggleLike()} aria-pressed={collection.liked} className={cn("inline-flex h-11 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-4 text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 disabled:cursor-default", collection.liked ? "text-[var(--text)]" : "text-[var(--text-muted)] enabled:hover:text-[var(--text)]")}>
-                    <ThumbsUp className={cn("size-4", collection.liked && "fill-current")} />
-                    {collection.liked ? "Liked" : "Like"}
+                  <button type="button" disabled={collection.mine} onClick={() => void toggleLike()} aria-pressed={liked} className={cn("inline-flex h-11 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-4 text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 disabled:cursor-default", liked ? "text-[var(--text)]" : "text-[var(--text-muted)] enabled:hover:text-[var(--text)]")}>
+                    <ThumbsUp className={cn("size-4", liked && "fill-current", popped && liked && "lx-like-pop")} />
+                    {liked ? "Liked" : "Like"}
                   </button>
                   {collection.mine && (
                     <button type="button" onClick={() => setRemoving(true)} aria-label={`Remove ${collection.name}`} className="inline-flex size-11 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[var(--text-muted)] transition-colors hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
