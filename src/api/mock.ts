@@ -24,6 +24,7 @@ function withRentals<T extends Record<string, unknown>>(cosmetics: T): T {
   }) : list)
   return Object.fromEntries(Object.entries(cosmetics).map(([key, value]) => [key, rent(value)])) as T
 }
+const mockPings = new Set<string>(["updates"])
 const mockFrameState = { equipped: null as string | null, nameColor: null as string | null, nameGlow: null as string | null, smoke: null as string | null, owned: new Set<string>() }
 function mockNameItems(kind: "color" | "glow"): Array<{ id: string; name: string; nameMn: string; unlock: "free" | "coin" | "achievement"; price: number; requirement: string; owned: boolean; rarity: number; featured: boolean; owners: number | null; color?: string; glow?: string; fx?: string }> {
   // [key, name, unlock, price, requirement, value, effect]
@@ -749,6 +750,10 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path === "/api/v1/staffpanel/database") return { tables: [{ name: "users", count: 8 }, { name: "penalties", count: 3 }, { name: "clans", count: 3 }, { name: "player_checks", count: 4 }] }
   if (path === "/api/v1/moderation/lift-requests") return [{ id: "r1", penaltyId: "p1", type: "ban", player: "Enkh.", avatar: "", penaltyReason: "Aimbot", reason: null, requestedBy: "Admin", at: new Date(Date.now() - 2 * HOUR).toISOString() }]
   if (path.startsWith("/api/v1/feedback/") && path.endsWith("/reaction")) return { reactions: { like: 3, love: 1, funny: 0 }, myReaction: (body as { reaction: string | null } | undefined)?.reaction ?? null }
+  if (path === "/api/v1/discord/pings") {
+    if (method === "PUT") { const { topic, enabled } = body as { topic: string; enabled: boolean }; if (enabled) mockPings.add(topic); else mockPings.delete(topic); return { topic, enabled } }
+    return { linked: true, topics: [["updates", "Updates", "Website and game server updates"], ["news", "News", "Counter-Strike 2 news"], ["live", "Creators live", "A LEGACY-X creator goes live"], ["play", "Servers need players", "A server is short of players"]].map(([key, label, description]) => ({ key, label, description, enabled: mockPings.has(key) })) }
+  }
   if (path === "/api/v1/discord/link/start") return { url: "https://discord.com/oauth2/authorize" }
   if (path === "/api/v1/discord/link") return { available: true, link: { discordId: "987654321098765432", discordName: "Legacy Player", linkedAt: new Date(Date.now() - 3 * 24 * HOUR).toISOString() } }
   if (path === "/api/v1/moderation/notify") return undefined

@@ -1,12 +1,13 @@
 /** The LEGACY-X Discord: how to join, how to link your account, and what the server's bot does. Live counts only when the server widget is on. */
 import { useState } from "react"
 import { Link } from "react-router-dom"
-import { ArrowUpRight, Link2, Mic, Scale, ScrollText, Search, ShieldAlert, Trophy, Megaphone } from "lucide-react"
+import { ArrowUpRight, BellRing, Link2, Mic, Scale, ScrollText, Search, ShieldAlert, Trophy, Megaphone } from "lucide-react"
 import { toast } from "sonner"
 
-import { discordService, type DiscordLinkState } from "@/api/discord"
+import { discordService, type DiscordLinkState, type PingTopic } from "@/api/discord"
 import { DiscordIcon, useDiscordWidget } from "@/components/discord-strip"
-import { PageBar, PageBarEnd } from "@/components/page-tabs"
+import { PageBar } from "@/components/page-tabs"
+import { Switch } from "@/components/switch"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
@@ -33,6 +34,20 @@ export function DiscordPage() {
   const inVoice = widget?.members.filter((member) => member.channel_id).length ?? 0
   const link = useApiQuery<DiscordLinkState>((signal) => discordService.getLink({ signal }), { enabled: isAuthenticated, queryKey: `discord-page-link:${isAuthenticated}` })
   const [busy, setBusy] = useState(false)
+  const linked = Boolean(link.data?.link)
+  const pings = useApiQuery<{ linked: boolean; topics: PingTopic[] }>((signal) => discordService.getPings({ signal }), { enabled: isAuthenticated && linked, queryKey: `discord-page-pings:${linked}`, keepPreviousData: true })
+  // A switch moves at once; a refused change puts it back.
+  const [flipped, setFlipped] = useState<Partial<Record<PingTopic["key"], boolean>>>({})
+  const setPing = async (topic: PingTopic, enabled: boolean) => {
+    setFlipped((current) => ({ ...current, [topic.key]: enabled }))
+    try {
+      await discordService.setPing(topic.key, enabled)
+      pings.refetch()
+    } catch {
+      setFlipped((current) => ({ ...current, [topic.key]: !enabled }))
+      toast.error("Could not save the ping", { description: "Try again in a moment." })
+    }
+  }
 
   const startLink = async () => {
     setBusy(true)
@@ -49,13 +64,6 @@ export function DiscordPage() {
     <div className="flex min-h-0 flex-1 flex-col">
       <PageBar>
         <span className="py-3 text-[13px] text-[var(--text-dim)]">Community server</span>
-        <PageBarEnd>
-          <a href={widget?.instant_invite || LINKS.discordInvite} target="_blank" rel="noreferrer" className={joinButton}>
-            <DiscordIcon className="size-4" />
-            Join the Discord
-            <ArrowUpRight className="size-3.5" />
-          </a>
-        </PageBarEnd>
       </PageBar>
 
       <div className="mx-auto flex w-full max-w-[980px] flex-col gap-5 px-6 py-6 max-md:px-4">
@@ -94,6 +102,32 @@ export function DiscordPage() {
           )}
         </section>
 
+        {linked && (
+          <section className={card} aria-label="Pings">
+            <div className="flex items-center gap-3">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]"><BellRing className="size-[18px]" /></span>
+              <div className="min-w-0">
+                <h2 className="text-[15px] font-semibold text-[var(--text)]">Pings</h2>
+                <p className="text-[13px] text-[var(--text-dim)]">Switch on what you want to be pinged for. The bot gives you the role within a few minutes; switch it off and it takes it back.</p>
+              </div>
+            </div>
+            <ul className="mt-4 flex flex-col divide-y divide-[var(--line-soft)]">
+              {pings.loading && !pings.data
+                ? Array.from({ length: 4 }, (_, index) => <li key={index} className="py-3"><Skeleton className="h-9 rounded-lg" /></li>)
+                : (pings.data?.topics ?? []).map((topic) => (
+                    <li key={topic.key} className="flex items-center justify-between gap-4 py-3">
+                      <div className="min-w-0">
+                        <div className="text-[14px] font-medium text-[var(--text)]">{topic.label}</div>
+                        <div className="text-[12px] text-[var(--text-dim)]">{topic.description}</div>
+                      </div>
+                      <Switch label={topic.label} checked={flipped[topic.key] ?? topic.enabled} onChange={(next) => void setPing(topic, next)} />
+                    </li>
+                  ))}
+            </ul>
+            {pings.error && <p className="mt-3 text-[13px] text-[var(--text-dim)]">Could not load your pings.</p>}
+          </section>
+        )}
+
         <section aria-label="What the server does">
           <div className="mb-2.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">What the server does</div>
           <ul className="grid gap-3 sm:grid-cols-2">
@@ -107,6 +141,19 @@ export function DiscordPage() {
               </li>
             ))}
           </ul>
+        </section>
+
+        <section className={cn(card, "flex flex-wrap items-center gap-x-6 gap-y-3 p-5")} aria-label="Join the Discord">
+          <span className={"flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#5865F2]/15 text-[#8b95f5]" /* palette-exempt: Discord brand */}><DiscordIcon className="size-5" /></span>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-[15px] font-semibold text-[var(--text)]">Not on the server yet?</h2>
+            <p className="text-[13px] text-[var(--text-dim)]">Join first, then link your account above.</p>
+          </div>
+          <a href={widget?.instant_invite || LINKS.discordInvite} target="_blank" rel="noreferrer" className={joinButton}>
+            <DiscordIcon className="size-4" />
+            Join the Discord
+            <ArrowUpRight className="size-3.5" />
+          </a>
         </section>
       </div>
     </div>

@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { cosmeticsService, type CosmeticKind, type Cosmetics, type FrameItem } from "@/api/cosmetics"
 import { bannerClass, nameProps, timeLeft } from "@/lib/cosmetics"
+import { Switch } from "@/components/switch"
 import { SmokePuff } from "@/components/smoke-puff"
 import { walletService, type Wallet } from "@/api"
 import { FramedAvatar } from "@/components/framed-avatar"
@@ -21,27 +22,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 type SectionId = "connections" | "notifications" | "appearance" | "website"
 const SECTION_ICON: Record<SectionId, LucideIcon> = { connections: Link2, notifications: Bell, appearance: Frame, website: MonitorSmartphone }
-
-function Switch({ checked, onChange, label, disabled }: { checked: boolean; onChange?: (next: boolean) => void; label: string; disabled?: boolean }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      disabled={disabled}
-      onClick={() => onChange?.(!checked)}
-      className={cn(
-        "group",
-        "relative h-6 w-[42px] shrink-0 rounded-full p-0.5 transition-[background-color,box-shadow] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 disabled:cursor-default disabled:opacity-50",
-        checked ? "bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))]" : "bg-[var(--line-strong)]",
-      )}
-    >
-      {/* The knob springs across and stretches a little on the way. */}
-      <span className={cn("block size-5 rounded-full bg-white shadow-[0_1px_4px_rgba(0,0,0,0.35)] transition-[translate,width] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:transition-none group-active:w-6", checked ? "translate-x-[18px]" : "translate-x-0")} />
-    </button>
-  )
-}
 
 function Row({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
   return (
