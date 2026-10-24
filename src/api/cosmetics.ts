@@ -24,7 +24,7 @@ export interface FrameItem {
   owners?: number | null
 }
 
-export type CosmeticKind = "frame" | "name_color" | "name_glow" | "banner" | "title"
+export type CosmeticKind = "frame" | "name_color" | "name_glow" | "banner" | "title" | "smoke_color"
 
 /** How a player's name is painted: plain colours from the API, never a style string. */
 export interface NameStyle {
@@ -42,12 +42,15 @@ export interface Cosmetics {
   equippedNameGlow?: string | null
   equippedBanner?: string | null
   equippedTitle?: string | null
+  equippedSmokeColor?: string | null
   frames: FrameItem[]
   nameColors?: FrameItem[]
   nameGlows?: FrameItem[]
   /** Profile banners and titles (the Genesis pack's are earned, never sold). */
   banners?: FrameItem[]
   titles?: FrameItem[]
+  /** The colour of your own smoke grenades in game. */
+  smokeColors?: FrameItem[]
 }
 
 export const cosmeticsService = {

@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { cosmeticsService, type CosmeticKind, type Cosmetics, type FrameItem } from "@/api/cosmetics"
 import { bannerClass, nameProps } from "@/lib/cosmetics"
+import { SmokePuff } from "@/components/smoke-puff"
 import { walletService, type Wallet } from "@/api"
 import { FramedAvatar } from "@/components/framed-avatar"
 import { discordService, type DiscordLinkState } from "@/api/discord"
@@ -243,6 +244,7 @@ const KINDS: Array<{ value: CosmeticKind; label: string; noun: string }> = [
   { value: "name_glow", label: "Name glow", noun: "glow" },
   { value: "banner", label: "Banner", noun: "banner" },
   { value: "title", label: "Title", noun: "title" },
+  { value: "smoke_color", label: "Smoke colour", noun: "smoke colour" },
 ]
 
 function Appearance() {
@@ -256,8 +258,8 @@ function Appearance() {
   const [picked, setPicked] = useState<Partial<Record<CosmeticKind, string>>>({})
   const saved = useSavedFlash()
 
-  const lists: Record<CosmeticKind, FrameItem[]> = { frame: data?.frames ?? [], name_color: data?.nameColors ?? [], name_glow: data?.nameGlows ?? [], banner: data?.banners ?? [], title: data?.titles ?? [] }
-  const worn: Record<CosmeticKind, string | null> = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, banner: data?.equippedBanner ?? null, title: data?.equippedTitle ?? null }
+  const lists: Record<CosmeticKind, FrameItem[]> = { frame: data?.frames ?? [], name_color: data?.nameColors ?? [], name_glow: data?.nameGlows ?? [], banner: data?.banners ?? [], title: data?.titles ?? [], smoke_color: data?.smokeColors ?? [] }
+  const worn: Record<CosmeticKind, string | null> = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, banner: data?.equippedBanner ?? null, title: data?.equippedTitle ?? null, smoke_color: data?.equippedSmokeColor ?? null }
   const noun = KINDS.find((entry) => entry.value === kind)?.noun ?? "item"
   const frames = lists[kind]
   const selectedId = picked[kind] ?? worn[kind] ?? frames[0]?.id ?? null
@@ -322,6 +324,7 @@ function Appearance() {
           <div className="flex flex-col items-center gap-3 self-start rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] p-4 md:sticky md:top-6">
             <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={150} />
             <span {...nameProps(previewLook, "max-w-full truncate text-[15px] font-bold text-[var(--text)]")}>{sampleName}</span>
+            {kind === "smoke_color" && selected && <SmokePuff color={selected.color} className="w-[150px]" />}
             <div className="flex w-full flex-col items-center gap-1 text-center">
               <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--text-dim)]">Preview</span>
               <span className="text-[15px] font-semibold text-[var(--text)]">{selected?.name ?? `No ${noun}`}</span>
@@ -361,6 +364,8 @@ function Appearance() {
                         <FramedAvatar avatar={user?.avatar} name={user?.username} frame={item.id} size={76} />
                       ) : kind === "banner" ? (
                         <span className="relative flex h-[76px] w-full items-center justify-center overflow-hidden rounded-lg"><span aria-hidden="true" className={cn("absolute inset-0", bannerClass(item.fx))} /></span>
+                      ) : kind === "smoke_color" ? (
+                        <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><SmokePuff color={item.color} className="w-[88px]" /></span>
                       ) : kind === "title" ? (
                         <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><span className={cn("truncate text-[11px] font-semibold uppercase tracking-[3px]", item.name === "Genesis" ? "lx-profile-title-founder" : "text-[var(--text-dim)]")}>{item.name}</span></span>
                       ) : (

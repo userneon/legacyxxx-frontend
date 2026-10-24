@@ -12,6 +12,7 @@ import { shopGoodsService, type GoodsProduct } from "@/api/shop-goods"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { frameAccent, nameProps } from "@/lib/cosmetics"
+import { SmokePuff } from "@/components/smoke-puff"
 import { ShopClan } from "@/components/shop-clan"
 import { ShopGoods } from "@/components/shop-goods"
 import { FramedAvatar } from "@/components/framed-avatar"
@@ -38,14 +39,15 @@ const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "frame", label: "Frames" },
   { value: "name_color", label: "Name colour" },
   { value: "name_glow", label: "Name glow" },
+  { value: "smoke_color", label: "Smoke" },
   { value: "clan", label: "Clan" },
   { value: "goods", label: "Goods" },
 ]
 
 type ShopItem = FrameItem & { kind: ShopKind }
 
-const KIND_NAME: Record<ShopKind, string> = { frame: "Frame", name_color: "Name colour", name_glow: "Name glow" }
-const KIND_PLURAL: Record<ShopKind, string> = { frame: "Frames", name_color: "Name colours", name_glow: "Name glows" }
+const KIND_NAME: Record<ShopKind, string> = { frame: "Frame", name_color: "Name colour", name_glow: "Name glow", smoke_color: "Smoke colour" }
+const KIND_PLURAL: Record<ShopKind, string> = { frame: "Frames", name_color: "Name colours", name_glow: "Name glows", smoke_color: "Smoke colours" }
 
 function RarityDots({ rarity }: { rarity: number }) {
   return (
@@ -58,6 +60,7 @@ function RarityDots({ rarity }: { rarity: number }) {
 /** What the item looks like: a frame around your picture, or your name painted with it. */
 function ItemArt({ item, avatar, username, size }: { item: ShopItem; avatar?: string; username: string; size: number }) {
   if (item.kind === "frame") return <FramedAvatar avatar={avatar} name={username} frame={item.id} size={size} />
+  if (item.kind === "smoke_color") return <SmokePuff color={item.color} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   const look = item.kind === "name_color" ? { color: item.color ?? null, colorFx: item.fx ?? null } : { glow: item.glow ?? null, glowFx: item.fx ?? null }
   return <span {...nameProps(look, cn("max-w-full truncate px-2 font-bold text-[var(--text)]", size > 100 ? "text-[19px]" : "text-[15px]"))}>{username}</span>
 }
@@ -93,7 +96,7 @@ export function ShopPage() {
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const { data: goods } = useApiQuery<GoodsProduct[]>((signal) => shopGoodsService.products({ signal }), { queryKey: "shop-goods" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
-  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name_color: "name-colors", name_glow: "name-glows", clan: "clan", goods: "goods" }, "featured")
+  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name_color: "name-colors", name_glow: "name-glows", smoke_color: "smoke", clan: "clan", goods: "goods" }, "featured")
   const [rarity, setRarity] = useState<Rarity>(0)
   const [status, setStatus] = useState<"all" | "sale" | "owned" | "earned">("all")
   const [sort, setSort] = useState<"price-up" | "price-down" | "rarity">("price-up")
@@ -108,8 +111,9 @@ export function ShopPage() {
     ...(data?.frames ?? []).map((item) => ({ ...item, kind: "frame" as const })),
     ...(data?.nameColors ?? []).map((item) => ({ ...item, kind: "name_color" as const })),
     ...(data?.nameGlows ?? []).map((item) => ({ ...item, kind: "name_glow" as const })),
+    ...(data?.smokeColors ?? []).map((item) => ({ ...item, kind: "smoke_color" as const })),
   ], [data])
-  const worn = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null }
+  const worn = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, smoke_color: data?.equippedSmokeColor ?? null }
   const balance = wallet?.balance ?? null
   const username = user?.username ?? "Player"
 
@@ -230,6 +234,11 @@ export function ShopPage() {
     <div className="overflow-hidden rounded-[14px] border border-[var(--line)] bg-[var(--card-surface)]">
         <div className="flex items-center justify-between border-b border-[var(--line-soft)] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]"><span>See it everywhere</span><span className="normal-case tracking-normal">{selected?.name}</span></div>
         <div className="flex flex-col gap-3 p-3.5">
+          {selected?.kind === "smoke_color" && (
+            <Context label="In game">
+              <div className="flex items-center justify-center py-1"><SmokePuff color={selected.color} className="w-[220px]" /></div>
+            </Context>
+          )}
           <Context label="Profile">
             <div className="flex items-center gap-3">
               <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={92} />
@@ -257,7 +266,7 @@ export function ShopPage() {
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
         <PageTabs<ShopTab> ariaLabel="Shop sections" value={tab} onChange={(next) => { setTab(next); setRarity(0) }} options={TABS} />
-        {(tab === "featured" || tab === "frame" || tab === "name_color" || tab === "name_glow") && (
+        {(tab === "featured" || tab === "frame" || tab === "name_color" || tab === "name_glow" || tab === "smoke_color") && (
           <PageBarEnd>
             <label className={cn(pageSearchClass, "max-md:hidden")}>
               <Search className="size-4 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />
@@ -314,8 +323,8 @@ export function ShopPage() {
                 </section>
               )}
               {tab === "featured" && (
-                <section aria-label="Your collection" className="grid gap-4 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] px-4 py-3 sm:grid-cols-3">
-                  {(["frame", "name_color", "name_glow"] as const).map((kind) => {
+                <section aria-label="Your collection" className="grid gap-4 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] px-4 py-3 sm:grid-cols-4">
+                  {(["frame", "name_color", "name_glow", "smoke_color"] as const).map((kind) => {
                     const { owned, total } = collection(kind)
                     return (
                       <div key={kind} className="flex flex-col gap-1.5">
