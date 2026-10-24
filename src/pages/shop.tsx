@@ -80,6 +80,9 @@ function Spot({ accent, height, children }: { accent: string; height: number; ch
   )
 }
 
+/** A plain single colour (no effect, no second smoke colour): these share one card with a swatch each instead of a card apiece. */
+const isSolid = (item: ShopItem) => item.kind !== "frame" && !item.fx && !(item.kind === "smoke_color" && item.color2)
+
 const group = (item: ShopItem) => (item.unlock === "coin" && !item.owned ? 0 : item.owned ? 1 : 2)
 
 function ownersLine(item: ShopItem, players: number | null | undefined) {
@@ -170,6 +173,37 @@ export function ShopPage() {
   }
 
   const pill = (active: boolean) => cn("inline-flex h-[26px] items-center rounded-full border px-2.5 text-xs transition-colors", active ? "border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text)]" : "border-[var(--line)] text-[var(--text-dim)] hover:text-[var(--text)]")
+
+  const solidPalette = (items: ShopItem[]) => {
+    const current = items.find((item) => item.id === selected?.id) ?? items[0]
+    return (
+      <li key="solid-palette" className="col-span-full rounded-xl">
+        <div className="flex flex-col gap-3 overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-3 sm:flex-row sm:items-center">
+          <div className="sm:w-[190px] sm:shrink-0">
+            <Spot accent={accentOf(current)} height={104}><ItemArt item={current} avatar={user?.avatar} username={username} size={70} /></Spot>
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col gap-2.5">
+            <span className="flex items-baseline justify-between gap-2">
+              <span className="text-[13px] font-semibold text-[var(--text)]">Solid colours<b className="ml-2 font-medium text-[var(--text-dim)]">{items.length}</b></span>
+              <span className="truncate text-[11px] text-[var(--text-dim)]">{current.name} · {current.owned ? (worn[current.kind] === current.id ? "Worn" : "Owned") : current.unlock === "coin" ? `from ${priceFor(current, "1d").toLocaleString()} LX` : "Earned"}</span>
+            </span>
+            <ul role="group" aria-label="Solid colours" className="flex flex-wrap gap-2">
+              {items.map((item) => {
+                const active = item.id === current.id && selected?.id === item.id
+                return (
+                  <li key={item.id}>
+                    <button type="button" onClick={() => choose(item)} aria-pressed={active} aria-label={item.name} title={item.name} className={cn("relative grid size-7 place-items-center rounded-full border transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60", active ? "border-[var(--text)] ring-2 ring-[var(--text)]/40" : "border-[var(--line-strong)]", justBought === item.id && "lx-bought")} style={{ background: accentOf(item) }}>
+                      {item.owned ? <Check className="size-3.5 text-white mix-blend-difference" aria-hidden="true" /> : item.unlock !== "coin" ? <Lock className="size-3 text-white mix-blend-difference" aria-hidden="true" /> : null}
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        </div>
+      </li>
+    )
+  }
 
   const card = (item: ShopItem) => {
     const active = selected?.id === item.id
@@ -386,7 +420,10 @@ export function ShopPage() {
                     </PopoverContent>
                   </Popover>
                 </div>
-                {shown.length === 0 ? <p className="py-8 text-[13px] text-[var(--text-dim)]">Nothing here.</p> : <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">{shown.map(card)}</ul>}
+                {shown.length === 0 ? <p className="py-8 text-[13px] text-[var(--text-dim)]">Nothing here.</p> : <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">{(() => {
+                  const solids = tab === "name_color" || tab === "name_glow" || tab === "smoke_color" ? shown.filter(isSolid) : []
+                  return solids.length > 1 ? [solidPalette(solids), ...shown.filter((item) => !solids.includes(item)).map(card)] : shown.map(card)
+                })()}</ul>}
               </section>
             </div>
             {rail}

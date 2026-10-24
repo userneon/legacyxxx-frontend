@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom"
-import { UserPlus, Users } from "lucide-react"
+import { Check, UserPlus, Users } from "lucide-react"
 
 import { LxMark } from "@/components/lx-mark"
 import { toast } from "sonner"
@@ -156,6 +156,7 @@ export function ClanLooksShop({ clanId, canWear = true, tag, balance, onChanged 
   const wear = Boolean(clanId) && canWear
   const { data, loading, error, refetch } = useApiQuery<ClanLooks>((signal) => (wear && clanId ? clansService.getLooks(clanId, { signal }) : clansService.getMyLooks({ signal })), { queryKey: `clan-looks:${wear ? clanId : "mine"}` })
   const [busy, setBusy] = useState<string | null>(null)
+  const [picked, setPicked] = useState<Record<string, string>>({})
   if (loading) return <Skeleton className="h-64 rounded-xl" />
   if (error || !data) return <p className="flex items-center gap-3 text-[13px] text-[var(--text-dim)]">Could not load the clan looks.<button type="button" onClick={refetch} className="text-[var(--text-2)] hover:text-[var(--text)]">Retry</button></p>
 
@@ -186,17 +187,12 @@ export function ClanLooksShop({ clanId, canWear = true, tag, balance, onChanged 
               {wear && clanId && wearing && <button type="button" disabled={busy !== null} onClick={() => run(kind, () => clansService.equipLook(clanId, kind, null), "Taken off")} className="text-xs text-[var(--text-dim)] hover:text-[var(--text)]">Take off</button>}
             </div>
             <ul className={cn("grid gap-3", kind === "backdrop" || kind === "page" ? "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3" : "grid-cols-2 md:grid-cols-3 xl:grid-cols-4")}>
-              {items.map((item) => {
-                const worn = wearing === item.id
-                const short = !item.owned && balance != null && balance < item.price
-                return (
-                  <li key={item.id} className={cn("flex flex-col gap-2.5 rounded-xl border bg-[var(--glass-fill)] p-3", worn ? "border-[var(--line-strong)]" : "border-[var(--glass-line)]")}>
-                    <Preview item={item} tag={tag} big={kind === "backdrop" || kind === "page"} />
-                    <div className="flex items-baseline justify-between gap-2">
-                      <span className="truncate text-[13px] font-medium text-[var(--text)]">{item.name}</span>
-                      <span className="shrink-0 text-[11px] text-[var(--text-dim)]">{RARITY[item.rarity]}</span>
-                    </div>
-                    {worn ? (
+              {(() => {
+                const actions = (item: ClanLookItem) => {
+                  const worn = wearing === item.id
+                  const short = !item.owned && balance != null && balance < item.price
+                  return (
+                    worn ? (
                       <span className="inline-flex h-8 items-center justify-center rounded-lg border border-[var(--line)] text-xs text-[var(--text-dim)]">Worn</span>
                     ) : item.owned && !(wear && clanId) ? (
                       <span className="inline-flex h-8 items-center justify-center rounded-lg border border-[var(--line)] text-xs text-[var(--text-dim)]">Owned</span>
@@ -204,10 +200,46 @@ export function ClanLooksShop({ clanId, canWear = true, tag, balance, onChanged 
                       <button type="button" disabled={busy !== null} onClick={() => run(item.id, () => clansService.equipLook(clanId, kind, item.id), `${item.name} is now worn`)} className="inline-flex h-8 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-xs hover:border-[var(--line-strong)] disabled:opacity-50">Wear</button>
                     ) : (
                       <button type="button" disabled={busy !== null || short} onClick={() => run(item.id, async () => { if (wear && clanId) { await clansService.buyLook(clanId, item.id); await clansService.equipLook(clanId, kind, item.id) } else await clansService.buyMyLook(item.id) }, wear ? `${item.name} is yours and now worn by the clan` : `${item.name} is yours. Wear it once you lead a clan`)} className="lx-primary-button inline-flex h-8 items-center justify-center gap-1.5 rounded-lg text-xs font-semibold disabled:opacity-50"><LxMark size={14} />{item.price}</button>
-                    )}
+                    )
+                  )
+                }
+                const card = (item: ClanLookItem) => (
+                  <li key={item.id} className={cn("flex flex-col gap-2.5 rounded-xl border bg-[var(--glass-fill)] p-3", wearing === item.id ? "border-[var(--line-strong)]" : "border-[var(--glass-line)]")}>
+                    <Preview item={item} tag={tag} big={kind === "backdrop" || kind === "page"} />
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="truncate text-[13px] font-medium text-[var(--text)]">{item.name}</span>
+                      <span className="shrink-0 text-[11px] text-[var(--text-dim)]">{RARITY[item.rarity]}</span>
+                    </div>
+                    {actions(item)}
                   </li>
                 )
-              })}
+                // Plain single colours share one card with a swatch each; effects keep a card apiece.
+                const solids = kind === "tag_color" || kind === "tag_glow" ? items.filter((item) => !item.fx) : []
+                if (solids.length < 2) return items.map(card)
+                const current = solids.find((item) => item.id === picked[kind]) ?? solids.find((item) => item.id === wearing) ?? solids[0]
+                const palette = (
+                  <li key="solid-palette" className="col-span-full flex flex-col gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3 sm:flex-row sm:items-center">
+                    <div className="sm:w-[220px] sm:shrink-0"><Preview item={current} tag={tag} /></div>
+                    <div className="flex min-w-0 flex-1 flex-col gap-2.5">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <span className="text-[13px] font-medium text-[var(--text)]">Solid colours<b className="ml-2 font-medium text-[var(--text-dim)]">{solids.length}</b></span>
+                        <span className="truncate text-[11px] text-[var(--text-dim)]">{current.name} · {RARITY[current.rarity]}</span>
+                      </div>
+                      <ul role="group" aria-label="Solid colours" className="flex flex-wrap gap-2">
+                        {solids.map((item) => (
+                          <li key={item.id}>
+                            <button type="button" aria-pressed={item.id === current.id} aria-label={item.name} title={item.name} onClick={() => setPicked((state) => ({ ...state, [kind]: item.id }))} className={cn("relative grid size-7 place-items-center rounded-full border transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60", item.id === current.id ? "border-[var(--text)] ring-2 ring-[var(--text)]/40" : "border-[var(--line-strong)]")} style={{ background: item.color ?? item.glow ?? "var(--text-2)" }}>
+                              {item.owned && <Check className="size-3.5 text-white mix-blend-difference" aria-hidden="true" />}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="sm:max-w-[240px]">{actions(current)}</div>
+                    </div>
+                  </li>
+                )
+                return [palette, ...items.filter((item) => item.fx).map(card)]
+              })()}
             </ul>
           </section>
         )
