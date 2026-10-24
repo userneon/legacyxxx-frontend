@@ -112,8 +112,12 @@ export function ShopPage() {
     .sort((a, b) => group(a) - group(b) || (sort === "rarity" ? (b.rarity ?? 0) - (a.rarity ?? 0) || a.price - b.price : sort === "price-up" ? a.price - b.price : b.price - a.price))
 
   const selected = all.find((item) => item.id === picked) ?? (tab === "featured" ? featured[0] : null) ?? shown[0] ?? featured[0] ?? null
+  // The name colour and the name glow being tried together: the preview wears both, and each is bought on its own.
+  const [combo, setCombo] = useState<{ name_color?: string; name_glow?: string }>({})
+  const isPicked = (item: ShopItem) => selected?.id === item.id || (item.kind === "name_color" || item.kind === "name_glow" ? combo[item.kind] === item.id : false)
   const choose = (item: ShopItem) => {
     setPicked(item.id)
+    if (item.kind === "name_color" || item.kind === "name_glow") setCombo((current) => ({ ...current, [item.kind]: item.id }))
     // On a phone the preview and the buy button live in a sheet, so choosing an item never sends you down the page.
     if (typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches) setSheetOpen(true)
     setParams((current) => {
@@ -125,7 +129,7 @@ export function ShopPage() {
   }
 
   // The preview wears the item you look at, and whatever you already wear of the other kinds.
-  const previewOf = (kind: ShopKind) => (selected?.kind === kind ? selected : all.find((item) => item.kind === kind && item.id === worn[kind])) ?? null
+  const previewOf = (kind: ShopKind) => (kind === "name_color" || kind === "name_glow" ? all.find((item) => item.id === combo[kind]) : undefined) ?? (selected?.kind === kind ? selected : all.find((item) => item.kind === kind && item.id === worn[kind])) ?? null
   const previewFrame = previewOf("frame")
   const previewColor = previewOf("name_color")
   const previewGlow = previewOf("name_glow")
@@ -152,7 +156,7 @@ export function ShopPage() {
   const pill = (active: boolean) => cn("inline-flex h-[26px] items-center rounded-full border px-2.5 text-xs transition-colors", active ? "border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text)]" : "border-[var(--line)] text-[var(--text-dim)] hover:text-[var(--text)]")
 
   const solidPalette = (items: ShopItem[]) => {
-    const current = items.find((item) => item.id === selected?.id) ?? items[0]
+    const current = items.find((item) => isPicked(item)) ?? items[0]
     return (
       <li key="solid-palette" className="col-span-full rounded-xl">
         <div className="flex flex-col gap-3 overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-3 sm:flex-row sm:items-center">
@@ -166,7 +170,7 @@ export function ShopPage() {
             </span>
             <ul role="group" aria-label="Solid colours" className="flex flex-wrap gap-2">
               {items.map((item) => {
-                const active = item.id === current.id && selected?.id === item.id
+                const active = item.id === current.id && isPicked(item)
                 return (
                   <li key={item.id}>
                     <button type="button" onClick={() => choose(item)} aria-pressed={active} aria-label={item.name} title={item.name} className={cn("relative grid size-7 place-items-center rounded-full border transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60", active ? "border-[var(--text)] ring-2 ring-[var(--text)]/40" : "border-[var(--line-strong)]", justBought === item.id && "lx-bought")} style={{ background: accentOf(item) }}>
@@ -183,7 +187,7 @@ export function ShopPage() {
   }
 
   const card = (item: ShopItem) => {
-    const active = selected?.id === item.id
+    const active = isPicked(item)
     const action = item.owned
       ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--status-green)]"><Check className="size-3" />{worn[item.kind] === item.id ? "Worn" : "Owned"}{item.expiresAt ? <span className="font-medium text-[var(--text-dim)]"> · {timeLeft(item.expiresAt)}</span> : null}</span>
       : item.unlock === "coin"
@@ -293,7 +297,13 @@ export function ShopPage() {
             </div>
           )}
         </div>
-        {selected && <div className="shrink-0">{buyBlock(selected)}</div>}
+        {selected && (
+          <div className="shrink-0">
+            {tab === "name" && combo.name_color && combo.name_glow
+              ? [combo.name_color, combo.name_glow].map((id) => all.find((item) => item.id === id)).filter((item): item is ShopItem => Boolean(item)).map((item) => <div key={item.id}>{buyBlock(item)}</div>)
+              : buyBlock(selected)}
+          </div>
+        )}
       </div>
   )
 
