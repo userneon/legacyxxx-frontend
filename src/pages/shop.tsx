@@ -244,7 +244,7 @@ export function ShopPage() {
   )
 
   const rail = (
-    <aside className="hidden flex-col gap-3 self-start lg:sticky lg:top-6 lg:flex">
+    <aside className="scrollbar-hidden hidden flex-col gap-3 self-start lg:sticky lg:top-6 lg:flex lg:max-h-[calc(100dvh-8rem)] lg:overflow-y-auto">
       {railBody}
     </aside>
   )
@@ -263,7 +263,8 @@ export function ShopPage() {
           </PageBarEnd>
         )}
       </PageBar>
-      <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 max-md:px-4">
+      {/* Not a scroller itself: the page panel around it scrolls, and a sticky rail sticks to the nearest scroller (an inner overflow-y-auto that never scrolled kept it from sticking). */}
+      <div className="min-h-0 flex-1 px-6 py-5 max-md:px-4">
         {tab === "goods" ? (
           <ShopGoods />
         ) : loading ? (
