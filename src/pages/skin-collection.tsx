@@ -152,12 +152,32 @@ export function SkinCollectionPage() {
   }
 
   const items = [...(collection?.items ?? [])].sort((x, y) => rarityRank(x) - rarityRank(y))
-  const shown = side === "all" ? items : items.filter((item) => sideOf(item) === side)
+  // Changing side lets the current cards shrink away first, then the new side's cards arrive one after another.
+  const [shownSide, setShownSide] = useState<SideFilter>("all")
+  const [leaving, setLeaving] = useState(false)
+  const changeSide = (next: SideFilter) => {
+    if (next === side) return
+    setSide(next)
+    setLeaving(true)
+    window.setTimeout(() => { setShownSide(next); setLeaving(false) }, 180)
+  }
+  const shown = shownSide === "all" ? items : items.filter((item) => sideOf(item) === shownSide)
+  const sideLabel = (value: SideFilter) => {
+    if (value === "all") return "All items"
+    const name = value === "t" ? "T side" : value === "ct" ? "CT side" : "Both teams"
+    return (
+      <span className="inline-flex items-center gap-1">
+        {value !== "ct" && <TeamIcon side="t" className="size-[22px]" />}
+        {value !== "t" && <TeamIcon side="ct" className="size-[22px]" />}
+        <span className="sr-only">{name}</span>
+      </span>
+    )
+  }
   const sideOptions: SegmentOption<SideFilter>[] = [
     { value: "all", label: "All items", count: items.length },
     ...(["t", "ct", "both"] as const).flatMap((value) => {
       const count = items.filter((item) => sideOf(item) === value).length
-      return count > 0 ? [{ value, label: value === "t" ? "T side" : value === "ct" ? "CT side" : "Both teams", count }] : []
+      return count > 0 ? [{ value, label: sideLabel(value), count }] : []
     }),
   ]
   // The three rarest items stand in the header as the collection's face.
@@ -170,7 +190,7 @@ export function SkinCollectionPage() {
           <ArrowLeft className="size-4" />
           Collections
         </button>
-        {collection && <div className="scrollbar-hidden -mr-6 max-w-full overflow-x-auto pr-6 [&_button]:whitespace-nowrap"><PageTabs value={side} onChange={setSide} options={sideOptions} ariaLabel="Show items by side" /></div>}
+        {collection && <div className="scrollbar-hidden -mr-6 max-w-full overflow-x-auto pr-6 [&_button]:whitespace-nowrap"><PageTabs value={side} onChange={changeSide} options={sideOptions} ariaLabel="Show items by side" /></div>}
       </PageBar>
 
       <div className="scrollbar-hidden flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-6 pb-8 pt-5">
@@ -226,7 +246,7 @@ export function SkinCollectionPage() {
               )}
             </header>
 
-            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(168px,1fr))] sm:gap-4">
+            <ul key={shownSide} className={cn("grid grid-cols-2 gap-3 transition-[opacity,scale] duration-[180ms] ease-out sm:grid-cols-[repeat(auto-fill,minmax(168px,1fr))] sm:gap-4 motion-reduce:transition-none", leaving && "scale-[0.97] opacity-0")}>
               {shown.map((item, index) => <ItemCard key={`${item.name}:${item.teamScope}:${index}`} item={item} index={index} />)}
             </ul>
           </>
