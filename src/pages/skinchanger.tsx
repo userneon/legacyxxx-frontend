@@ -72,8 +72,8 @@ const categories: CollectionMeta[] = [
   { id: "pin", category: "pin", label: "Pins", slot: "pin" },
 ]
 
-type WeaponGridGroup = "Pistols" | "SMGs" | "Rifles" | "Sniper Rifles" | "Heavy"
-const weaponGridGroups: WeaponGridGroup[] = ["Pistols", "SMGs", "Rifles", "Sniper Rifles", "Heavy"]
+type WeaponGridGroup = "Pistols" | "SMGs" | "Rifles" | "Sniper Rifles" | "Heavy" | "Equipment"
+const weaponGridGroups: WeaponGridGroup[] = ["Pistols", "SMGs", "Rifles", "Sniper Rifles", "Heavy", "Equipment"]
 
 /** weapon_class values exactly as stored in skinchanger_catalog_items (category "weapon"). */
 const firearmGridGroup: Record<string, WeaponGridGroup> = {
@@ -83,6 +83,7 @@ const firearmGridGroup: Record<string, WeaponGridGroup> = {
   "AK-47": "Rifles", "M4A4": "Rifles", "M4A1-S": "Rifles", "FAMAS": "Rifles", "Galil AR": "Rifles", "AUG": "Rifles", "SG 553": "Rifles",
   "AWP": "Sniper Rifles", "SSG 08": "Sniper Rifles", "SCAR-20": "Sniper Rifles", "G3SG1": "Sniper Rifles",
   "Nova": "Heavy", "XM1014": "Heavy", "MAG-7": "Heavy", "Sawed-Off": "Heavy", "Negev": "Heavy", "M249": "Heavy",
+  "Zeus x27": "Equipment",
 }
 
 const firearmClassOrder = Object.keys(firearmGridGroup)
@@ -1249,6 +1250,7 @@ export function SkinchangerPage() {
             <div className="flex flex-col gap-[22px]">
               {weaponSection("SNIPER RIFLES", "Sniper Rifles")}
               {weaponSection("HEAVY", "Heavy")}
+              {weaponSection("EQUIPMENT", "Equipment")}
             </div>
             <div className="flex flex-col gap-[22px]">
               {renderSection("AGENT", [agentCard()])}

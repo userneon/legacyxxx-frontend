@@ -378,6 +378,7 @@ const FIREARMS: [string, string, string][] = [
   ["AK-47", "ak47", "Rifles"], ["M4A4", "m4a1", "Rifles"], ["M4A1-S", "m4a1_silencer", "Rifles"], ["FAMAS", "famas", "Rifles"], ["Galil AR", "galilar", "Rifles"], ["AUG", "aug", "Rifles"], ["SG 553", "sg556", "Rifles"],
   ["AWP", "awp", "Sniper Rifles"], ["SSG 08", "ssg08", "Sniper Rifles"], ["SCAR-20", "scar20", "Sniper Rifles"], ["G3SG1", "g3sg1", "Sniper Rifles"],
   ["Nova", "nova", "Heavy"], ["XM1014", "xm1014", "Heavy"], ["MAG-7", "mag7", "Heavy"], ["Sawed-Off", "sawedoff", "Heavy"], ["Negev", "negev", "Heavy"], ["M249", "m249", "Heavy"],
+  ["Zeus x27", "taser", "Equipment"],
 ]
 const KNIVES: [string, string][] = [["Knife", "knife"], ["Karambit", "knife_karambit"], ["Butterfly Knife", "knife_butterfly"], ["M9 Bayonet", "knife_m9_bayonet"], ["Talon Knife", "knife_widowmaker"], ["Skeleton Knife", "knife_skeleton"]]
 const GLOVES = ["Sport Gloves", "Driver Gloves", "Specialist Gloves", "Moto Gloves"]
