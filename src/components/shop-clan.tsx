@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom"
-import { Check, UserPlus, Users } from "lucide-react"
+import { Check, Palette, UserPlus, Users } from "lucide-react"
 
 import { ColorRow, PICK_BASES, PICK_COLORS } from "@/components/color-row"
 import { LxMark } from "@/components/lx-mark"
@@ -24,7 +24,7 @@ interface ShopClanProps {
 
 function Card({ icon, title, price, children }: { icon: React.ReactNode; title: string; price: number; children: React.ReactNode }) {
   return (
-    <li className="flex flex-col gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4">
+    <li className="lx-shop-tile flex flex-col gap-3 rounded-xl p-4">
       <div className="flex items-center gap-2.5">
         <span className="grid size-9 place-items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]">{icon}</span>
         <span className="min-w-0 flex-1 text-[15px] font-semibold text-[var(--text)]">{title}</span>
@@ -69,7 +69,7 @@ export function ShopClan({ prices, balance, mine, loading, onChanged }: ShopClan
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <ClanLooksShop clanId={clan ? String(clan.id) : null} canWear={leader} tag={clan?.tag ?? "TAG"} balance={balance} onChanged={onChanged} header={
     <ul className="grid max-w-md gap-3" aria-label="Clan services">
       <Card icon={<UserPlus className="size-4" />} title={`+${prices.slotStep} member places`} price={prices.slots}>
         <p className={note}>Room for more players, up to {prices.slotCap}.</p>
@@ -91,9 +91,7 @@ export function ShopClan({ prices, balance, mine, loading, onChanged }: ShopClan
           </>
         )}
       </Card>
-    </ul>
-    <ClanLooksShop clanId={clan ? String(clan.id) : null} canWear={leader} tag={clan?.tag ?? "TAG"} balance={balance} onChanged={onChanged} />
-    </div>
+    </ul>} />
   )
 }
 
@@ -102,7 +100,6 @@ const KINDS: Array<{ kind: ClanLookKind; label: string; hint: string }> = [
   { kind: "tag_glow", label: "Tag glow", hint: "" },
   { kind: "page", label: "Page background", hint: "" },
 ]
-const RARITY = ["", "Common", "Rare", "Epic", "Legendary"]
 
 function Preview({ item, tag, big }: { item: ClanLookItem; tag: string; big?: boolean }) {
   const look = {
@@ -119,7 +116,7 @@ function Preview({ item, tag, big }: { item: ClanLookItem; tag: string; big?: bo
     <div className={cn("relative grid place-items-center overflow-hidden rounded-lg border border-[var(--line-soft)]", item.kind === "page" ? "bg-[var(--bg)]" : "bg-[var(--panel)]", big ? "h-[150px]" : "h-[72px]")} style={back ? { backgroundImage: back } : undefined}>
       {isPage && colors && <div aria-hidden="true" className="pointer-events-none absolute inset-0"><ClanBackground page={{ ...colors, effect: item.effect ?? null }} calm={reduced} recorded /></div>}
       <span {...clanTagProps(look, big ? "relative text-[30px] font-semibold text-[var(--text)]" : "relative text-[22px] font-semibold text-[var(--text)]")}>[{tag}]</span>
-      {item.effect && <span className="pointer-events-none absolute right-2 top-1.5 rounded-full border border-[var(--line)] bg-[var(--panel)] px-1.5 text-[10px] text-[var(--text-dim)]">Animated</span>}
+      {item.effect && big && <span className="pointer-events-none absolute right-2 top-1.5 rounded-full border border-[var(--line)] bg-[var(--panel)] px-1.5 text-[10px] text-[var(--text-dim)]">Animated</span>}
     </div>
   )
 }
@@ -131,51 +128,22 @@ function customParts(item: ClanLookItem): { a: string; b: string | null; labels:
   return { a: item.from ?? "#7c3aed", b: item.to ?? "#0a0a0a", labels: [item.kind === "page" ? "Colour" : "From", item.kind === "page" ? "Base" : "To"] }
 }
 
-/** The clan's own colours for a look: the leader who owns it picks them and sees the result live before saving. Several items (the page's effects) share one card. */
-function CustomLookEditor({ kind, items, picked, tag, clanId, editable, wearing, actionsOf, onSave }: { kind: ClanLookKind; items: ClanLookItem[]; picked: ClanLooks["custom"]; tag: string; clanId: string | null; editable: boolean; wearing: string | null; actionsOf: (item: ClanLookItem) => React.ReactNode; onSave: (itemId: string, a: string, b: string | null) => void }) {
-  const [itemId, setItemId] = useState(wearing && items.some((entry) => entry.id === wearing) ? wearing : items[0].id)
-  const item = items.find((entry) => entry.id === itemId) ?? items[0]
-  const start = customParts(item)
-  const saved = picked?.[item.id]
-  return <CustomLookFields key={`${item.id}:${saved?.a}:${saved?.b}`} kind={kind} items={items} item={item} start={{ a: saved?.a ?? start.a, b: saved?.b ?? start.b, labels: start.labels }} tag={tag} clanId={clanId} editable={editable && item.owned} onPick={setItemId} actions={actionsOf(item)} onSave={onSave} />
+/** The item with the colours being tried (a custom one), or as it is. */
+function withColours(item: ClanLookItem, a: string, b: string | null): ClanLookItem {
+  if (!item.custom) return item
+  if (item.kind === "tag_color") return { ...item, color: a }
+  if (item.kind === "tag_glow") return { ...item, glow: a }
+  return { ...item, from: a, to: b ?? item.to }
 }
 
-function CustomLookFields({ kind, items, item, start, tag, clanId, editable, onPick, actions, onSave }: { kind: ClanLookKind; items: ClanLookItem[]; item: ClanLookItem; start: { a: string; b: string | null; labels: [string, string | null] }; tag: string; clanId: string | null; editable: boolean; onPick: (id: string) => void; actions: React.ReactNode; onSave: (itemId: string, a: string, b: string | null) => void }) {
-  const [a, setA] = useState(start.a)
-  const [b, setB] = useState(start.b)
-  const shown: ClanLookItem = kind === "tag_color" ? { ...item, color: a } : kind === "tag_glow" ? { ...item, glow: a } : { ...item, from: a, to: b ?? item.to }
-  return (
-    <div className="lx-shop-tile mb-3 flex flex-col gap-3 rounded-xl p-3 md:flex-row md:items-center">
-      <div className="md:w-[300px] md:shrink-0"><Preview item={shown} tag={tag} big={kind === "backdrop" || kind === "page"} /></div>
-      <div className="flex min-w-0 flex-1 flex-col gap-3">
-        <div className="flex items-baseline justify-between gap-2">
-          <span className="text-[13px] font-semibold text-[var(--text)]">Your own</span>
-          {items.length > 1 && (
-            <select value={item.id} onChange={(event) => onPick(event.target.value)} aria-label="Effect" className="h-8 min-w-0 max-w-[220px] rounded-lg border border-[var(--line)] bg-[var(--raised)] px-2 text-[12px] text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
-              {items.map((entry) => <option key={entry.id} value={entry.id}>{entry.name.replace(/^Custom /, "").replace(/^./, (letter) => letter.toUpperCase())}{entry.owned ? " ✓" : ""}</option>)}
-            </select>
-          )}
-        </div>
-        {editable ? (
-          <>
-            <ColorRow label={start.labels[0]} value={a} colors={PICK_COLORS} onChange={setA} />
-            {start.labels[1] && b !== null && <ColorRow label={start.labels[1]} value={b} colors={kind === "page" ? PICK_BASES : PICK_COLORS} onChange={setB} />}
-            <button type="button" disabled={!clanId} onClick={() => onSave(item.id, a, b)} className="lx-primary-button inline-flex h-8 items-center justify-center self-start rounded-lg px-4 text-xs font-semibold disabled:opacity-50">Save</button>
-          </>
-        ) : (
-          <div className="sm:max-w-[240px]">{actions}</div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-/** Buying is for everyone; wearing is for the leader of a clan (`clanId` is null, or `canWear` false, when it is not). */
-export function ClanLooksShop({ clanId, canWear = true, tag, balance, onChanged }: { clanId: string | null; canWear?: boolean; tag: string; balance: number | null; onChanged: () => void | Promise<unknown> }) {
+/** Buying is for everyone; wearing is for the leader of a clan (`clanId` is null, or `canWear` false, when it is not). A list of tiles beside one stage: the picked look, its colours, and Buy or Wear. */
+export function ClanLooksShop({ clanId, canWear = true, tag, balance, onChanged, header }: { clanId: string | null; canWear?: boolean; tag: string; balance: number | null; onChanged: () => void | Promise<unknown>; header?: React.ReactNode }) {
   const wear = Boolean(clanId) && canWear
   const { data, loading, error, refetch } = useApiQuery<ClanLooks>((signal) => (wear && clanId ? clansService.getLooks(clanId, { signal }) : clansService.getMyLooks({ signal })), { queryKey: `clan-looks:${wear ? clanId : "mine"}` })
   const [busy, setBusy] = useState<string | null>(null)
-  const [picked, setPicked] = useState<Record<string, string>>({})
+  const [pick, setPick] = useState<string | null>(null)
+  // Colours being tried on a custom look before they are saved.
+  const [draft, setDraft] = useState<Record<string, { a: string; b: string | null }>>({})
   if (loading) return <Skeleton className="h-64 rounded-xl" />
   if (error || !data) return <p className="flex items-center gap-3 text-[13px] text-[var(--text-dim)]">Could not load the clan looks.<button type="button" onClick={refetch} className="text-[var(--text-2)] hover:text-[var(--text)]">Retry</button></p>
 
@@ -193,81 +161,89 @@ export function ClanLooksShop({ clanId, canWear = true, tag, balance, onChanged 
     }
   }
 
-  return (
-    <div className="flex flex-col gap-6">
-      {KINDS.map(({ kind, label }) => {
-        const items = data.items.filter((item) => item.kind === kind && !item.custom)
-        const wearing = data.equipped[kind]
-        const actionsOf = (item: ClanLookItem) => {
-          const worn = wearing === item.id
-          const short = !item.owned && balance != null && balance < item.price
-          return (
-            worn ? (
-              <span className="inline-flex h-8 items-center justify-center rounded-lg border border-[var(--line)] text-xs text-[var(--text-dim)]">Worn</span>
-            ) : item.owned && !(wear && clanId) ? (
-              <span className="inline-flex h-8 items-center justify-center rounded-lg border border-[var(--line)] text-xs text-[var(--text-dim)]">Owned</span>
-            ) : item.owned && clanId ? (
-              <button type="button" disabled={busy !== null} onClick={() => run(item.id, () => clansService.equipLook(clanId, kind, item.id), `${item.name} is now worn`)} className="inline-flex h-8 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-xs hover:border-[var(--line-strong)] disabled:opacity-50">Wear</button>
-            ) : (
-              <button type="button" disabled={busy !== null || short} onClick={() => run(item.id, async () => { if (wear && clanId) { await clansService.buyLook(clanId, item.id); await clansService.equipLook(clanId, kind, item.id) } else await clansService.buyMyLook(item.id) }, wear ? `${item.name} is yours and now worn by the clan` : `${item.name} is yours. Wear it once you lead a clan`)} className="lx-primary-button inline-flex h-8 items-center justify-center gap-1.5 rounded-lg text-xs font-semibold disabled:opacity-50"><LxMark size={14} />{item.price}</button>
-            )
-          )
-        }
-        return (
-          <section key={kind} aria-label={label}>
-            <div className="mb-2.5 flex flex-wrap items-baseline gap-2">
-              <span className="lx-shop-heading">{label}</span>
-              <span className="flex-1" />
-              {wear && clanId && wearing && <button type="button" disabled={busy !== null} onClick={() => run(kind, () => clansService.equipLook(clanId, kind, null), "Taken off")} className="text-xs text-[var(--text-dim)] hover:text-[var(--text)]">Take off</button>}
+  const coloursOf = (item: ClanLookItem) => {
+    const start = customParts(item)
+    const saved = data.custom?.[item.id]
+    const tried = draft[item.id]
+    return { a: tried?.a ?? saved?.a ?? start.a, b: tried ? tried.b : saved ? saved.b : start.b, labels: start.labels }
+  }
+  const shownOf = (item: ClanLookItem) => {
+    const { a, b } = coloursOf(item)
+    return withColours(item, a, b)
+  }
+
+  const sections = KINDS.map(({ kind, label }) => ({ kind, label, items: data.items.filter((item) => item.kind === kind).sort((x, y) => Number(Boolean(y.custom)) - Number(Boolean(x.custom)) || x.price - y.price) }))
+  const selected = data.items.find((item) => item.id === pick) ?? sections[0]?.items[0] ?? null
+  const wearing = (item: ClanLookItem) => data.equipped[item.kind] === item.id
+  const cost = selected?.price ?? 0
+  const short = Boolean(selected && !selected.owned && balance != null && balance < cost)
+
+  const stage = selected && (() => {
+    const parts = coloursOf(selected)
+    const worn = wearing(selected)
+    return (
+      <aside className="lx-add-box relative flex flex-col overflow-hidden rounded-[14px] border lg:sticky lg:top-6 lg:self-start">
+        <div className="relative p-3.5">
+          <span aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 aspect-square w-[120%] -translate-x-1/2 -translate-y-1/2 opacity-20" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} />
+          <div className="relative"><Preview item={shownOf(selected)} tag={tag} big /></div>
+        </div>
+        <div className="flex flex-col gap-3 border-t border-[var(--line-soft)] px-4 py-3.5">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-[15px] font-semibold text-[var(--text)]">{selected.name}</span>
+            {worn && <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--status-green)]"><Check className="size-3" />Worn</span>}
+          </div>
+          {selected.custom && selected.owned && wear && (
+            <div className="flex flex-col gap-2.5">
+              <ColorRow label={parts.labels[0]} value={parts.a} colors={PICK_COLORS} onChange={(next) => setDraft((state) => ({ ...state, [selected.id]: { a: next, b: parts.b } }))} />
+              {parts.labels[1] && parts.b !== null && <ColorRow label={parts.labels[1]} value={parts.b} colors={selected.kind === "page" ? PICK_BASES : PICK_COLORS} onChange={(next) => setDraft((state) => ({ ...state, [selected.id]: { a: parts.a, b: next } }))} />}
+              <button type="button" disabled={busy !== null || !clanId} onClick={() => run(selected.id, () => clansService.saveCustomLook(clanId as string, { item: selected.id, a: parts.a, b: parts.b }), "Saved")} className="lx-primary-button inline-flex h-9 items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-50">Save and wear</button>
             </div>
-            {(() => {
-              const customs = data.items.filter((item) => item.kind === kind && item.custom)
-              return customs.length ? <CustomLookEditor kind={kind} items={customs} picked={data.custom} tag={tag} clanId={clanId} editable={wear && Boolean(clanId)} wearing={wearing} actionsOf={actionsOf} onSave={(itemId, a, b) => run("custom", () => clansService.saveCustomLook(clanId as string, { item: itemId, a, b }), "Saved")} /> : null
-            })()}
-            <ul className={cn("grid gap-3", kind === "backdrop" || kind === "page" ? "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3" : "grid-cols-2 md:grid-cols-3 xl:grid-cols-4")}>
-              {(() => {
-                const actions = actionsOf
-                const card = (item: ClanLookItem) => (
-                  <li key={item.id} data-worn={wearing === item.id} className="lx-shop-tile flex flex-col gap-2.5 rounded-xl p-3">
-                    <Preview item={item} tag={tag} big={kind === "backdrop" || kind === "page"} />
-                    <div className="flex items-baseline justify-between gap-2">
-                      <span className="truncate text-[13px] font-medium text-[var(--text)]">{item.name}</span>
-                      <span className="shrink-0 text-[11px] text-[var(--text-dim)]">{RARITY[item.rarity]}</span>
+          )}
+          {selected.owned && !(selected.custom && wear) && (wear && clanId ? (
+            worn ? (
+              <button type="button" disabled={busy !== null} onClick={() => run(selected.kind, () => clansService.equipLook(clanId, selected.kind, null), "Taken off")} className="inline-flex h-9 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] hover:border-[var(--line-strong)] disabled:opacity-50">Take off</button>
+            ) : (
+              <button type="button" disabled={busy !== null} onClick={() => run(selected.id, () => clansService.equipLook(clanId, selected.kind, selected.id), `${selected.name} is now worn`)} className="lx-primary-button inline-flex h-9 items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-50">Wear</button>
+            )
+          ) : (
+            <span className="text-xs text-[var(--text-dim)]">Owned{!wear ? " · wear it once you lead a clan" : ""}</span>
+          ))}
+          {!selected.owned && (
+            <button type="button" disabled={busy !== null || short} onClick={() => run(selected.id, async () => { if (wear && clanId) { await clansService.buyLook(clanId, selected.id); await clansService.equipLook(clanId, selected.kind, selected.id) } else await clansService.buyMyLook(selected.id) }, wear ? `${selected.name} is yours and now worn by the clan` : `${selected.name} is yours. Wear it once you lead a clan`)} className="lx-primary-button inline-flex h-10 items-center justify-center gap-1.5 rounded-lg text-[13px] font-semibold disabled:opacity-50"><LxMark size={14} />{short && balance != null ? `Need ${(cost - balance).toLocaleString()} more LX` : `Buy for ${cost.toLocaleString()} LX`}</button>
+          )}
+        </div>
+      </aside>
+    )
+  })()
+
+  return (
+    <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="flex min-w-0 flex-col gap-6">
+        {header}
+        {sections.map(({ kind, label, items }) => (
+          <section key={kind} aria-label={label}>
+            <div className="lx-shop-heading mb-2.5">{label}</div>
+            <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-4">
+              {items.map((item) => (
+                <li key={item.id}>
+                  <button type="button" aria-pressed={selected?.id === item.id} data-worn={wearing(item)} aria-label={item.name} title={item.name} onClick={() => setPick(item.id)} className="lx-shop-tile flex w-full flex-col gap-2 rounded-xl p-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60">
+                    <div className="relative">
+                      {item.custom && <Palette aria-label="Pick any colour" className="absolute right-2 top-2 z-[2] size-3.5 text-[var(--text-2)]" />}
+                      <Preview item={shownOf(item)} tag={tag} />
                     </div>
-                    {actions(item)}
-                  </li>
-                )
-                // Plain single colours share one card with a swatch each; effects keep a card apiece.
-                const solids = kind === "tag_color" || kind === "tag_glow" ? items.filter((item) => !item.fx) : []
-                if (solids.length < 2) return items.map(card)
-                const current = solids.find((item) => item.id === picked[kind]) ?? solids.find((item) => item.id === wearing) ?? solids[0]
-                const palette = (
-                  <li key="solid-palette" className="lx-shop-tile col-span-full flex flex-col gap-3 rounded-xl p-3 sm:flex-row sm:items-center">
-                    <div className="sm:w-[220px] sm:shrink-0"><Preview item={current} tag={tag} /></div>
-                    <div className="flex min-w-0 flex-1 flex-col gap-2.5">
-                      <div className="flex items-baseline justify-between gap-2">
-                        <span className="text-[13px] font-medium text-[var(--text)]">Solid colours<b className="ml-2 font-medium text-[var(--text-dim)]">{solids.length}</b></span>
-                        <span className="truncate text-[11px] text-[var(--text-dim)]">{current.name}</span>
-                      </div>
-                      <ul role="group" aria-label="Solid colours" className="flex flex-wrap gap-2">
-                        {solids.map((item) => (
-                          <li key={item.id}>
-                            <button type="button" aria-pressed={item.id === current.id} aria-label={item.name} title={item.name} onClick={() => setPicked((state) => ({ ...state, [kind]: item.id }))} className={cn("relative grid size-7 place-items-center rounded-full border transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60", item.id === current.id ? "border-[var(--text)] ring-2 ring-[var(--text)]/40" : "border-[var(--line-strong)]")} style={{ background: item.color ?? item.glow ?? "var(--text-2)" }}>
-                              {item.owned && <Check className="size-3.5 text-white mix-blend-difference" aria-hidden="true" />}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                      <div className="sm:max-w-[240px]">{actions(current)}</div>
-                    </div>
-                  </li>
-                )
-                return [palette, ...items.filter((item) => item.fx).map(card)]
-              })()}
+                    <span className="flex items-center justify-between gap-2 px-1 pb-0.5">
+                      {wearing(item) ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--status-green)]"><Check className="size-3" />Worn</span>
+                        : item.owned ? <span className="text-xs text-[var(--text-dim)]">Owned</span>
+                        : <span className="lx-shop-price"><LxMark size={14} />{item.price.toLocaleString()}</span>}
+                    </span>
+                  </button>
+                </li>
+              ))}
             </ul>
           </section>
-        )
-      })}
+        ))}
+      </div>
+      <div className="max-lg:order-first">{stage}</div>
     </div>
   )
 }
