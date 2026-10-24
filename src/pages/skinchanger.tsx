@@ -268,6 +268,11 @@ export function SkinchangerPage() {
   const [removeTarget, setRemoveTarget] = useState<{ model: SkinchangerCatalogItem; entry: SkinchangerLoadoutEntry } | null>(null)
   const [saving, setSaving] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
+  const pickerOpenRef = useRef(false)
+  pickerOpenRef.current = pickerOpen
+  // True from the moment the picker is closed until its closing animation is over: it still has to show its skins while it fades out.
+  const [pickerLeaving, setPickerLeaving] = useState(false)
+  const pickerLive = pickerOpen || pickerLeaving
   // Knife and glove dialogs are opened per team (T knife, CT gloves...) and always save for that team.
   const [slotTeam, setSlotTeam] = useState<"t" | "ct" | null>(null)
   const [rarityFilter, setRarityFilter] = useState<string | null>(null)
@@ -288,7 +293,7 @@ export function SkinchangerPage() {
   const effectiveWeaponClass = activeWeapon?.weapon_class ?? (weaponClass || undefined)
   const catalogQueryKey = `${collection}:${skinGroup}:${effectiveCategory}:${effectiveWeaponClass ?? ""}:${category === "agent" ? agentTeam ?? "" : ""}:${query}:${offset}`
   const { data: catalog, loading: catalogLoading, error: catalogError, refetch: refetchCatalog } =
-    useApiQuery((signal) => skinchangerService.getCatalog({ category: effectiveCategory, weaponClass: effectiveWeaponClass, team: category === "agent" ? agentTeam ?? undefined : undefined, query: query || undefined, limit: 36, offset }, { signal }), { queryKey: catalogQueryKey, enabled: pickerOpen })
+    useApiQuery((signal) => skinchangerService.getCatalog({ category: effectiveCategory, weaponClass: effectiveWeaponClass, team: category === "agent" ? agentTeam ?? undefined : undefined, query: query || undefined, limit: 36, offset }, { signal }), { queryKey: catalogQueryKey, enabled: pickerLive })
   const { data: firearmModels, loading: firearmsLoading, error: firearmsError, refetch: refetchFirearms } =
     useApiQuery((signal) => skinchangerService.getCatalog({ category: "weapon", limit: 100, offset: 0 }, { signal }), { queryKey: "grid:firearms" })
   const { data: knifeModels, loading: knivesLoading, error: knivesError, refetch: refetchKnives } =
@@ -595,6 +600,7 @@ export function SkinchangerPage() {
   /** Remembers the page's team so a team-locked model or a single-slot item cannot change it for good. */
   const beginPicker = () => {
     if (closeTimerRef.current !== null) { window.clearTimeout(closeTimerRef.current); closeTimerRef.current = null }
+    setPickerLeaving(false)
     if (gridTeamRef.current === null) gridTeamRef.current = teamScope
     setAlsoOtherTeam(false)
     setDefaultChoice(null)
@@ -700,18 +706,23 @@ export function SkinchangerPage() {
     setEditingStickerSlot(null)
   }
 
+  // The picker is wiped only once its closing animation has finished (the dialog's onCloseAutoFocus); the timer is a safety net. Wiping it
+  // earlier (it used to run after 180 ms while the dialog fades for 300 ms) emptied and re-titled the picker while it was still on screen.
   const closePicker = () => {
     setPickerOpen(false)
+    setPickerLeaving(true)
+    if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current)
+    closeTimerRef.current = window.setTimeout(resetPicker, 800)
+  }
+
+  function resetPicker() {
+    if (pickerOpenRef.current) return // it was opened again in the meantime
+    setPickerLeaving(false)
+    if (closeTimerRef.current !== null) { window.clearTimeout(closeTimerRef.current); closeTimerRef.current = null }
     if (gridTeamRef.current !== null) {
       setTeamScope(gridTeamRef.current)
       gridTeamRef.current = null
     }
-    if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current)
-    closeTimerRef.current = window.setTimeout(resetPicker, 180)
-  }
-
-  function resetPicker() {
-    closeTimerRef.current = null
     setSlotTeam(null)
     setActiveWeapon(null)
     setSelected(null)
@@ -1146,7 +1157,7 @@ export function SkinchangerPage() {
   }, [viewTeam, gridShown])
 
   const skinGridRef = useRef<HTMLDivElement>(null)
-  const skinGridKey = pickerOpen && !accessoryOpen ? displayedCatalogItems.map((item) => item.id).join(",") : ""
+  const skinGridKey = pickerLive && !accessoryOpen ? displayedCatalogItems.map((item) => item.id).join(",") : ""
   useLayoutEffect(() => (skinGridKey ? cascadeTiles(skinGridRef.current, "[data-catalog-item-id]") : undefined), [skinGridKey])
 
   const accessoryGridRef = useRef<HTMLDivElement>(null)
@@ -1255,6 +1266,7 @@ export function SkinchangerPage() {
           overlayClassName="lx-blur-overlay bg-black/55 backdrop-blur-[10px]"
           className="flex max-h-[92dvh] w-[calc(100%-1.5rem)] max-w-5xl flex-col gap-0 overflow-hidden rounded-[14px] border-[var(--line)] bg-[var(--panel)] p-0 lx-blur-panel sm:max-w-5xl"
           onOpenAutoFocus={(event) => { if (searchInputRef.current && searchInputRef.current.offsetParent !== null) { event.preventDefault(); searchInputRef.current.focus() } }}
+          onCloseAutoFocus={() => resetPicker()}
         >
           <div className="flex items-center gap-3 border-b border-[var(--line-soft)] px-4 py-3 pr-12">
             {selected && pickerHasOptions && (
