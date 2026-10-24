@@ -2,7 +2,7 @@ import { FounderPack } from "@/components/founder-pack"
 import { useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
-import { Check, ChevronDown, Lock, RotateCcw, Search, X } from "lucide-react"
+import { Check, ChevronDown, Lock, Palette, RotateCcw, Search, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -50,7 +50,7 @@ function ItemArt({ item, avatar, username, size }: { item: ShopItem; avatar?: st
   if (item.kind === "frame") return <FramedAvatar avatar={avatar} name={username} frame={item.id} size={size} />
   if (item.kind === "smoke_color") return <SmokePuff color={item.color} color2={item.color2} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   const look = item.kind === "name_color" ? { color: item.color ?? null, colorFx: item.fx ?? null } : { glow: item.glow ?? null, glowFx: item.fx ?? null }
-  return <span {...nameProps(look, cn("max-w-full truncate px-2 font-bold text-[var(--text)]", size > 100 ? "text-[19px]" : "text-[15px]"))}>{username}</span>
+  return <span {...nameProps(look, cn("font-bold text-[var(--text)]", size > 100 ? "max-w-full truncate text-[19px]" : "whitespace-nowrap text-[13px]"))}>{username}</span>
 }
 
 function accentOf(item: ShopItem) {
@@ -200,7 +200,10 @@ export function ShopPage() {
           title={item.name}
           className={cn("flex w-full flex-col overflow-hidden rounded-xl border text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50", active ? "border-[var(--text-2)] bg-[var(--raised)]" : "border-[var(--line-soft)] bg-[var(--card-surface)] hover:border-[var(--line-strong)]", item.rarity === 4 && !active && "border-[var(--line-strong)]")}
         >
-          <Spot accent={accentOf(item)} height={112}><ItemArt item={item} avatar={user?.avatar} username={username} size={70} /></Spot>
+          <div className="relative">
+            {item.custom && <Palette aria-label="Pick any colour" className="absolute right-2.5 top-2.5 z-[2] size-3.5 text-[var(--text-2)]" />}
+            <Spot accent={accentOf(item)} height={112}><ItemArt item={item} avatar={user?.avatar} username={username} size={70} /></Spot>
+          </div>
           <div className="flex items-center justify-between gap-2 px-3 pb-3 pt-1">{action}</div>
         </button>
       </li>
