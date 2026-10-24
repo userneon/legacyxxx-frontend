@@ -468,6 +468,8 @@ export interface ClanCard {
   joinMode: "open" | "request"
   /** What the clan wears. Absent from an older API. */
   look?: ClanLook | null
+  /** Recruitment is on: asking to join means answering these questions (may be none). Absent or null when it is off. */
+  recruit?: { questions: string[] } | null
 }
 
 export interface ClanDetail extends ClanCard {
@@ -475,6 +477,8 @@ export interface ClanDetail extends ClanCard {
   members?: ClanMember[]
   /** The viewer's role in this clan (null: not a member) and whether they are staff who can moderate it. */
   viewer?: { role: ClanRole | null; canModerate: boolean }
+  /** What the leader set up, on or off (only the leader gets it). */
+  recruitment?: { enabled: boolean; questions: string[] }
 }
 
 export type ClanRole = "leader" | "co-leader" | "member"
@@ -524,6 +528,8 @@ export interface ClanJoinRequest {
   name: string
   avatar: string
   at: string
+  /** The applicant's answers to the clan's recruitment questions. */
+  answers?: Array<{ q: string; a: string }>
 }
 
 /** The signed-in player's own clan, or null when they are in none. */

@@ -338,10 +338,15 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
       setBusy(false)
     }
   }
+  const [asking, setAsking] = useState(false)
+  const [answers, setAnswers] = useState<string[]>([])
+  const questions = clan.recruit?.questions ?? []
   const join = () => {
     if (!isAuthenticated) { loginWithSteam(); return }
+    if (questions.length > 0 && !asking) { setAnswers(questions.map(() => "")); setAsking(true); return }
+    setAsking(false)
     void act(async () => {
-      const result = await clansService.joinClan(clan.id)
+      const result = await clansService.joinClan(clan.id, questions.length > 0 ? answers.map((entry) => entry.trim()) : undefined)
       toast.success(result.status === "requested" ? `Request sent to ${clan.name}` : `You joined ${clan.name}`)
     }, "Could not join the clan")
   }
@@ -354,6 +359,23 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
   const tint = (percent: number) => `color-mix(in srgb, ${accent} ${percent}%, transparent)`
   return (
     <div className="lx-fx-card group relative isolate flex min-h-[270px] flex-col overflow-hidden rounded-2xl border border-[var(--line-soft)] bg-[var(--card-surface)] transition-colors hover:border-[var(--line-strong)]">
+      <Dialog open={asking} onOpenChange={setAsking}>
+        <DialogContent className="rounded-2xl">
+          <DialogHeader><DialogTitle>Join {clan.name}</DialogTitle><DialogDescription>The leader reads your answers before accepting.</DialogDescription></DialogHeader>
+          <form className="flex flex-col gap-4" onSubmit={(event) => { event.preventDefault(); join() }}>
+            {questions.map((question, index) => (
+              <div key={index} className="flex flex-col gap-1.5">
+                <Label htmlFor={`recruit-${clan.id}-${index}`}>{question}</Label>
+                <Input id={`recruit-${clan.id}-${index}`} maxLength={300} value={answers[index] ?? ""} onChange={(event) => setAnswers((current) => current.map((entry, at) => (at === index ? event.target.value : entry)))} autoComplete="off" />
+              </div>
+            ))}
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setAsking(false)}>Cancel</Button>
+              <Button type="submit" disabled={busy || answers.length !== questions.length || answers.some((entry) => !entry.trim())}>Send request</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
       {banner ? (
         <BannerArt src={banner} className="absolute inset-0 -z-10 transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
       ) : (
@@ -668,11 +690,19 @@ function JoinRequests({ clanId, onAccepted }: { clanId: string; onAccepted: () =
       <h2 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-dim)]"><UserPlus className="size-3.5" aria-hidden="true" /> Join requests · {requests.length}</h2>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {requests.map((request) => (
-          <div key={request.id} className="flex items-center gap-3 rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3">
-            <PlayerAvatar avatar={request.avatar} name={request.name} className="size-10 rounded-[10px] text-sm" />
-            <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{request.name}</span>
-            <button type="button" disabled={busy === request.id} aria-label={`Accept ${request.name}`} onClick={() => void answer(request, true)} className="flex size-8 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[var(--status-green)] transition-colors hover:border-[var(--line-strong)] disabled:opacity-50"><Check className="size-4" aria-hidden="true" /></button>
-            <button type="button" disabled={busy === request.id} aria-label={`Decline ${request.name}`} onClick={() => void answer(request, false)} className="flex size-8 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[var(--text-dim)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] disabled:opacity-50"><X className="size-4" aria-hidden="true" /></button>
+          <div key={request.id} className="lx-shop-tile flex flex-col gap-2.5 rounded-xl p-3">
+            <div className="flex items-center gap-3">
+              <PlayerAvatar avatar={request.avatar} name={request.name} className="size-10 rounded-[10px] text-sm" />
+              <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{request.name}</span>
+              <button type="button" disabled={busy === request.id} aria-label={`Accept ${request.name}`} onClick={() => void answer(request, true)} className="flex size-8 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[var(--status-green)] transition-colors hover:border-[var(--line-strong)] disabled:opacity-50"><Check className="size-4" aria-hidden="true" /></button>
+              <button type="button" disabled={busy === request.id} aria-label={`Decline ${request.name}`} onClick={() => void answer(request, false)} className="flex size-8 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[var(--text-dim)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] disabled:opacity-50"><X className="size-4" aria-hidden="true" /></button>
+            </div>
+            {(request.answers ?? []).map((entry, index) => (
+              <div key={index} className="flex flex-col gap-0.5 border-t border-[var(--line-soft)] pt-2">
+                <span className="text-[11px] text-[var(--text-dim)]">{entry.q}</span>
+                <span className="break-words text-[13px] text-[var(--text)]">{entry.a}</span>
+              </div>
+            ))}
           </div>
         ))}
       </div>
@@ -680,6 +710,45 @@ function JoinRequests({ clanId, onAccepted }: { clanId: string; onAccepted: () =
   )
 }
 
+function RecruitmentSettings({ clan, onChanged }: { clan: ClanDetail; onChanged: () => void }) {
+  const [busy, setBusy] = useState(false)
+  const [enabled, setEnabled] = useState(clan.recruitment?.enabled ?? false)
+  const [questions, setQuestions] = useState<string[]>(clan.recruitment?.questions ?? [])
+  const saved = clan.recruitment
+  const cleaned = questions.map((question) => question.trim()).filter(Boolean)
+  const unchanged = enabled === (saved?.enabled ?? false) && cleaned.join("\n") === (saved?.questions ?? []).join("\n")
+  const save = async () => {
+    setBusy(true)
+    try {
+      await clansService.setRecruitment(clan.id, { enabled, questions: cleaned })
+      toast.success(enabled ? "Recruitment is on" : "Recruitment is off")
+      onChanged()
+    } catch (error) {
+      toast.error("Could not save", { description: failureMessage(error, "Try again in a moment.") })
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <div className="flex flex-col gap-2.5">
+      <div className="flex items-center justify-between gap-3">
+        <Label>Recruitment</Label>
+        <button type="button" role="switch" aria-checked={enabled} onClick={() => setEnabled((current) => !current)} className={cn("relative h-6 w-11 rounded-full border transition-colors", enabled ? "border-[var(--brand)] bg-[var(--brand)]/40" : "border-[var(--line)] bg-[var(--raised)]")}>
+          <span className={cn("absolute top-0.5 size-4 rounded-full bg-[var(--text)] transition-all", enabled ? "left-[22px]" : "left-0.5")} />
+        </button>
+      </div>
+      {enabled && (
+        <>
+          <p className="text-[11px] text-[var(--text-dim)]">Players answer these before asking to join, and you read the answers beside the request. The clan takes requests while this is on.</p>
+          {[0, 1, 2].map((index) => (
+            <Input key={index} maxLength={100} value={questions[index] ?? ""} onChange={(event) => setQuestions((current) => { const next = [...current]; next[index] = event.target.value; return next })} placeholder={["Question 1, e.g. How many hours do you play?", "Question 2 (optional)", "Question 3 (optional)"][index]} aria-label={`Question ${index + 1}`} autoComplete="off" />
+          ))}
+        </>
+      )}
+      <button type="button" disabled={busy || unchanged} onClick={() => void save()} className="lx-primary-button inline-flex h-9 items-center justify-center self-start rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50">Save recruitment</button>
+    </div>
+  )
+}
 function EditLook({ clan, isLeader, onChanged }: { clan: ClanDetail; isLeader: boolean; onChanged: () => void }) {
   const [busy, setBusy] = useState(false)
   const [description, setDescription] = useState(clan.description ?? "")
@@ -711,6 +780,7 @@ function EditLook({ clan, isLeader, onChanged }: { clan: ClanDetail; isLeader: b
         <button type="button" disabled={busy || tooFew || unchanged} onClick={() => void run(() => clansService.updateClan(clan.id, { description: description.trim(), joinMode, maxPlayers }), "Settings saved")} className="lx-primary-button inline-flex h-9 items-center rounded-lg px-3.5 text-[13px] font-semibold disabled:opacity-50">Save settings</button>
         {tooFew && <p className="mt-2 text-[13px] text-[var(--status-red)]">The clan already has {clan.currentPlayers} members.</p>}
       </div>
+      {isLeader && <RecruitmentSettings key={`${clan.recruitment?.enabled}:${(clan.recruitment?.questions ?? []).join("|")}`} clan={clan} onChanged={onChanged} />}
       {isLeader && <ManagersSection clan={clan} onChanged={onChanged} />}
       {isLeader && <RenameForm clan={clan} onChanged={onChanged} />}
       <ArtSlot kind="logo" busy={busy} preview={clanArtSrc(clan.logo)} onPick={(file) => void run(() => clansService.uploadArt(clan.id, "logo", file), "Logo saved")} onRemove={() => void run(() => clansService.removeArt(clan.id, "logo"), "Logo removed")} />

@@ -142,8 +142,12 @@ export const clansService = {
   },
 
   /** Joins an open clan at once, or sends a request to a clan that takes requests. */
-  async joinClan(clanId: string, options?: CallOptions): Promise<{ status: "joined" | "requested" }> {
-    return post<{ status: "joined" | "requested" }>(`/api/v1/clans/${clanId}/join`, undefined, options)
+  async joinClan(clanId: string, answers?: string[], options?: CallOptions): Promise<{ status: "joined" | "requested" }> {
+    return post<{ status: "joined" | "requested" }>(`/api/v1/clans/${clanId}/join`, answers ? { answers } : undefined, options)
+  },
+  /** The leader switches recruitment on or off and sets up to three questions for applicants. */
+  async setRecruitment(clanId: string, recruitment: { enabled: boolean; questions: string[] }, options?: CallOptions): Promise<ClanDetail> {
+    return put<ClanDetail>(`/api/v1/clans/${clanId}/recruitment`, recruitment, options)
   },
 
   async cancelRequest(clanId: string, options?: CallOptions): Promise<void> {
