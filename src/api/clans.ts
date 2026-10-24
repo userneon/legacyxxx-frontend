@@ -1,6 +1,7 @@
 import { API_BASE_URL, MOCK_API, del, get, post, put, type CallOptions } from "./client"
 import type {
   ClanCard,
+  ClanPageEffect,
   ClanLookKind,
   ClanLooks,
   ClanDetail,
@@ -86,6 +87,10 @@ export const clansService = {
     return post<ClanLooks>(`/api/v1/clans/${clanId}/looks/${encodeURIComponent(itemId)}/buy`, {}, options)
   },
 
+  /** Save the clan's own page background (needs the Custom Background item) and wear it. */
+  async saveCustomLook(clanId: string, look: { from: string; to: string; effect: ClanPageEffect | null }, options?: CallOptions): Promise<ClanLooks> {
+    return put<ClanLooks>(`/api/v1/clans/${clanId}/looks/custom`, look, options)
+  },
   /** Wear an owned item, or take the kind off with item: null. */
   async equipLook(clanId: string, kind: ClanLookKind, item: string | null, options?: CallOptions): Promise<ClanLooks> {
     return put<ClanLooks>(`/api/v1/clans/${clanId}/looks/equip`, { kind, item }, options)

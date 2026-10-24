@@ -442,11 +442,15 @@ export interface ClanLookItem {
   from?: string
   to?: string
   effect?: ClanPageEffect
+  /** page only: the clan picks the colours and effect itself (from, to and effect are the starting values). */
+  custom?: boolean
 }
 
 export interface ClanLooks {
   items: ClanLookItem[]
   equipped: Record<ClanLookKind, string | null>
+  /** What the clan picked for its custom page background; null before it picked any. */
+  custom?: { from: string; to: string; effect: ClanPageEffect | null } | null
 }
 
 export interface ClanCard {
