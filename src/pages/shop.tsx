@@ -15,6 +15,7 @@ import { frameAccent, nameProps, timeLeft } from "@/lib/cosmetics"
 import { SmokePuff } from "@/components/smoke-puff"
 import { ShopClan } from "@/components/shop-clan"
 import { ShopGoods } from "@/components/shop-goods"
+import { ColorRow, PICK_COLORS } from "@/components/color-row"
 import { FramedAvatar } from "@/components/framed-avatar"
 import { LxMark } from "@/components/lx-mark"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
@@ -81,7 +82,7 @@ function Spot({ accent, height, children }: { accent: string; height: number; ch
 }
 
 /** A plain single colour (no effect, no second smoke colour): these share one card with a swatch each instead of a card apiece. */
-const isSolid = (item: ShopItem) => item.kind !== "frame" && !item.fx && !(item.kind === "smoke_color" && item.color2)
+const isSolid = (item: ShopItem) => item.kind !== "frame" && !item.custom && !item.fx && !(item.kind === "smoke_color" && item.color2)
 
 const group = (item: ShopItem) => (item.unlock === "coin" && !item.owned ? 0 : item.owned ? 1 : 2)
 
@@ -107,6 +108,8 @@ export function ShopPage() {
   const [picked, setPicked] = useState<string | null>(params.get("item"))
   const [search, setSearch] = useState("")
   const [sheetOpen, setSheetOpen] = useState(false)
+  // The colour being tried on a custom item (name colour or glow) before it is saved.
+  const [customDraft, setCustomDraft] = useState<Record<string, string>>({})
   // The item bought a moment ago: its card rings once and the buy block turns into "Worn" with a fade.
   const [justBought, setJustBought] = useState<string | null>(null)
   // How long the next purchase rents the item for; the price of each length is the API's.
@@ -148,7 +151,7 @@ export function ShopPage() {
   const previewFrame = previewOf("frame")
   const previewColor = previewOf("name_color")
   const previewGlow = previewOf("name_glow")
-  const previewLook = { color: previewColor?.color ?? null, colorFx: previewColor?.fx ?? null, glow: previewGlow?.glow ?? null, glowFx: previewGlow?.fx ?? null }
+  const previewLook = { color: (previewColor && customDraft[previewColor.id]) || previewColor?.color || null, colorFx: previewColor?.fx ?? null, glow: (previewGlow && customDraft[previewGlow.id]) || previewGlow?.glow || null, glowFx: previewGlow?.fx ?? null }
 
   const collection = (kind: ShopKind) => {
     const list = all.filter((item) => item.kind === kind)
@@ -236,6 +239,20 @@ export function ShopPage() {
     )
   }
 
+  const saveCustom = async (item: ShopItem, color: string) => {
+    setBusy(true)
+    try {
+      await cosmeticsService.saveCustom(item.id, color)
+      await refetch()
+      setCustomDraft((current) => { const { [item.id]: _saved, ...rest } = current; return rest })
+      toast.success("Saved")
+    } catch (caught) {
+      toast.error("Could not save it", { description: caught instanceof Error ? caught.message : "Try again in a moment." })
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const buyBlock = (item: ShopItem) => {
     const isWorn = worn[item.kind] === item.id
     // Yours for good: nothing to buy. Anything sold with LX that is not (not owned, or only rented) can be bought or extended.
@@ -245,6 +262,12 @@ export function ShopPage() {
     return (
       <div className="flex flex-col gap-2.5 border-t border-[var(--line-soft)] px-4 py-3.5">
         <div className="flex items-baseline justify-between"><span className="text-[15px] font-semibold text-[var(--text)]">{item.name}</span><span className="flex items-center gap-1.5 text-xs text-[var(--text-dim)]"><RarityDots rarity={item.rarity ?? 1} />{RARITY_NAMES[item.rarity ?? 1]}</span></div>
+        {item.custom && item.owned && (
+          <div className="flex flex-col gap-2.5">
+            <ColorRow label={item.kind === "name_glow" ? "Glow" : "Colour"} value={customDraft[item.id] ?? (item.kind === "name_glow" ? item.glow : item.color) ?? "#8b5cf6"} colors={PICK_COLORS} onChange={(next) => setCustomDraft((current) => ({ ...current, [item.id]: next }))} />
+            <button type="button" disabled={busy || !customDraft[item.id]} onClick={() => void saveCustom(item, customDraft[item.id])} className="lx-primary-button inline-flex h-9 items-center justify-center self-start rounded-lg px-4 text-xs font-semibold disabled:opacity-50">Save</button>
+          </div>
+        )}
         {item.owned && (
           <div key="owned" className={cn("flex flex-col gap-2.5", justBought === item.id && "lx-swap-in")}>
             <p className="text-xs text-[var(--text-dim)]">{isWorn ? "You are wearing this." : "You own this. Wear it in Profile → Appearance."}{item.expiresAt ? ` ${timeLeft(item.expiresAt).replace(/^./, (letter) => letter.toUpperCase())}.` : ""}</p>

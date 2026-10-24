@@ -449,8 +449,8 @@ export interface ClanLookItem {
 export interface ClanLooks {
   items: ClanLookItem[]
   equipped: Record<ClanLookKind, string | null>
-  /** What the clan picked for its custom page background; null before it picked any. */
-  custom?: { from: string; to: string; effect: ClanPageEffect | null } | null
+  /** The colours the clan picked for each custom item it owns (a: the colour or the gradient's start, b: the gradient's end). */
+  custom?: Record<string, { a: string; b: string | null }>
 }
 
 export interface ClanCard {
