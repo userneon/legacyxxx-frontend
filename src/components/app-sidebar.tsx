@@ -14,7 +14,6 @@ import { Sidebar, SidebarContent, useSidebar } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
 import { setSkinchangerView, useSkinchangerView, type SkinchangerView } from "@/lib/skinchanger-view"
 import { KnifeIcon } from "@/components/knife-icon"
-import { DiscordIcon } from "@/components/discord-strip"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface AppSidebarProps {
@@ -47,7 +46,6 @@ const NAV_ITEMS: NavItem[] = enabledNav([
   { id: "penalties", label: "Penalties", icon: Scale },
   { id: "feedback", label: "Reviews", icon: ScrollText },
   { id: "explore", label: "Explore", icon: Telescope },
-  { id: "discord", label: "Discord", icon: DiscordIcon },
 ])
 
 // Skinchanger gets a submenu only while community collections are switched on.

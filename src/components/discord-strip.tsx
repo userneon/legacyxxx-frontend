@@ -1,4 +1,5 @@
 import { useEffect, useState, type ComponentProps } from "react"
+import { Link } from "react-router-dom"
 import { ArrowUpRight } from "lucide-react"
 
 import { LINKS } from "@/lib/links"
@@ -80,18 +81,16 @@ export function DiscordStrip() {
   )
 }
 
-/** The Discord invite in the top bar of every page, so nobody has to scroll to the bottom of Home to find it. */
+/** The Discord button in the top bar of every page: it opens the Discord page, where the invite, linking and pings are. */
 export function DiscordTopLink() {
   return (
-    <a
-      href={LINKS.discordInvite}
-      target="_blank"
-      rel="noreferrer"
-      aria-label="Join the LEGACY-X Discord"
+    <Link
+      to="/discord"
+      aria-label="Discord"
       className={"inline-flex h-9 shrink-0 items-center gap-2 rounded-[10px] bg-[#5865F2] px-3 text-[13px] font-semibold text-white transition-colors hover:bg-[#4752c4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7289DA] max-sm:px-2.5" /* palette-exempt: Discord brand */}
     >
       <DiscordIcon className="size-4" />
       <span className="max-sm:hidden">Discord</span>
-    </a>
+    </Link>
   )
 }
