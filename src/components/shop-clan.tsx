@@ -116,7 +116,7 @@ function Preview({ item, tag, big }: { item: ClanLookItem; tag: string; big?: bo
   const reduced = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
   return (
     <div className={cn("relative grid place-items-center overflow-hidden rounded-lg border border-[var(--line-soft)]", item.kind === "page" ? "bg-[var(--bg)]" : "bg-[var(--panel)]", big ? "h-[150px]" : "h-[72px]")} style={back ? { backgroundImage: back } : undefined}>
-      {isPage && colors && <div aria-hidden="true" className="pointer-events-none absolute inset-0"><ClanBackground page={{ ...colors, effect: item.effect ?? null }} calm={reduced} /></div>}
+      {isPage && colors && <div aria-hidden="true" className="pointer-events-none absolute inset-0"><ClanBackground page={{ ...colors, effect: item.effect ?? null }} calm={reduced} recorded /></div>}
       <span {...clanTagProps(look, big ? "relative text-[30px] font-semibold text-[var(--text)]" : "relative text-[22px] font-semibold text-[var(--text)]")}>[{tag}]</span>
       {item.effect && <span className="pointer-events-none absolute right-2 top-1.5 rounded-full border border-[var(--line)] bg-[var(--panel)] px-1.5 text-[10px] text-[var(--text-dim)]">Animated</span>}
     </div>

@@ -35,7 +35,7 @@ function hueOf(hex: string) {
 /** How bright each animated background is: the busy ones are dimmed so text stays readable. */
 export const EFFECT_OPACITY: Record<ClanPageEffect, number> = { slats: 0.45, waves: 0.8, dots: 0.8, aurora: 0.7, threads: 0.7, particles: 0.8, lightning: 0.55, rays: 0.9, lines: 0.5, plasma: 0.4 }
 
-/** The live (WebGL) painting of one effect. The site no longer runs it: scripts/record-clan-effects.mjs records each effect once into public/clan-fx/<effect>.gif. */
+/** The live (WebGL) painting of one effect: the clan page runs it, and scripts/record-clan-effects.mjs records it once into public/clan-fx/<effect>.gif for the Shop previews. */
 export function EffectLayer({ effect, color, base }: { effect: ClanPageEffect; color: string; base: string }) {
   return (
     <Suspense fallback={null}>
@@ -53,13 +53,23 @@ export function EffectLayer({ effect, color, base }: { effect: ClanPageEffect; c
   )
 }
 
-/** Where the recorded effects live: grey on black loops, one per effect, tinted on the page by the clan's colour (see ClanBackground). */
+/** Where the recorded effects live (Shop previews): grey on black loops, one per effect, tinted on the page by the clan's colour (see ClanBackground). */
 export const clanFxSrc = (effect: ClanPageEffect) => `/clan-fx/${effect}.gif`
 
-/** One animated (or gradient) clan background filling its parent. The same piece paints the clan page and the Shop preview. */
-export function ClanBackground({ page, calm }: { page: NonNullable<ClanLook["page"]>; calm?: boolean }) {
+/**
+ * One animated (or gradient) clan background filling its parent. The clan page runs the effect live; the Shop previews (`recorded`)
+ * play the recorded GIF instead, so a page full of previews stays light (owner request 2026-10-24).
+ */
+export function ClanBackground({ page, calm, recorded }: { page: NonNullable<ClanLook["page"]>; calm?: boolean; recorded?: boolean }) {
   const effect = calm ? null : page.effect ?? null
   if (!effect) return <div className="size-full" style={{ backgroundImage: `radial-gradient(130% 80% at 50% 0%, ${page.from}, ${page.to} 78%)`, opacity: 0.45 }} />
+  if (!recorded) {
+    return (
+      <div className="size-full" style={{ opacity: EFFECT_OPACITY[effect] ?? 0.6, backgroundColor: page.to }}>
+        <EffectLayer effect={effect} color={page.from} base={page.to} />
+      </div>
+    )
+  }
   // A recorded grey loop, multiplied by the clan's colour and screened onto its base: any colour, one small file per effect.
   return (
     <div className="relative size-full overflow-hidden" style={{ opacity: EFFECT_OPACITY[effect] ?? 0.6, backgroundColor: page.to }}>
