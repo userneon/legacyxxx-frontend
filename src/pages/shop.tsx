@@ -8,7 +8,6 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { COSMETIC_DURATIONS, cosmeticsService, type CosmeticDuration, type CosmeticKind, type Cosmetics, type FrameItem } from "@/api/cosmetics"
 import { clansService, walletService, type MyClanState, type Wallet } from "@/api"
-import { shopGoodsService, type GoodsProduct } from "@/api/shop-goods"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { frameAccent, nameProps, timeLeft } from "@/lib/cosmetics"
@@ -32,9 +31,6 @@ const SORTS = [
 /** The kinds the Shop sells (banners and titles are earned: they live in Profile → Appearance). */
 type ShopKind = Exclude<CosmeticKind, "banner" | "title">
 type ShopTab = "featured" | ShopKind | "clan" | "goods"
-type Rarity = 0 | 1 | 2 | 3 | 4
-
-const RARITY_NAMES = ["", "Common", "Rare", "Epic", "Legendary"]
 const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "featured", label: "Featured" },
   { value: "frame", label: "Frames" },
@@ -47,16 +43,7 @@ const TABS: Array<{ value: ShopTab; label: string }> = [
 
 type ShopItem = FrameItem & { kind: ShopKind }
 
-const KIND_NAME: Record<ShopKind, string> = { frame: "Frame", name_color: "Name colour", name_glow: "Name glow", smoke_color: "Smoke colour" }
-const KIND_PLURAL: Record<ShopKind, string> = { frame: "Frames", name_color: "Name colours", name_glow: "Name glows", smoke_color: "Smoke colours" }
 
-function RarityDots({ rarity }: { rarity: number }) {
-  return (
-    <span aria-hidden="true" className="inline-flex gap-[3px]">
-      {[1, 2, 3, 4].map((step) => <i key={step} className={cn("size-1.5 rounded-full", step <= rarity ? "bg-[var(--text-2)]" : "bg-[var(--line-strong)]")} />)}
-    </span>
-  )
-}
 
 /** What the item looks like: a frame around your picture, or your name painted with it. */
 function ItemArt({ item, avatar, username, size }: { item: ShopItem; avatar?: string; username: string; size: number }) {
@@ -86,11 +73,6 @@ const isSolid = (item: ShopItem) => item.kind !== "frame" && !item.custom && !it
 
 const group = (item: ShopItem) => (item.unlock === "coin" && !item.owned ? 0 : item.owned ? 1 : 2)
 
-function ownersLine(item: ShopItem, players: number | null | undefined) {
-  if (item.owners == null) return "Free"
-  if (!players || players < 20) return `${item.owners.toLocaleString()} own`
-  return `${Math.round((item.owners / players) * 100)}% own`
-}
 
 export function ShopPage() {
   const { user } = useAuth()
@@ -98,11 +80,8 @@ export function ShopPage() {
   const [params, setParams] = useSearchParams()
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
-  const { data: goods } = useApiQuery<GoodsProduct[]>((signal) => shopGoodsService.products({ signal }), { queryKey: "shop-goods" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
   const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name_color: "name-colors", name_glow: "name-glows", smoke_color: "smoke", clan: "clan", goods: "goods" }, "featured")
-  const [rarity, setRarity] = useState<Rarity>(0)
-  const [status, setStatus] = useState<"all" | "sale" | "owned" | "earned">("all")
   const [sort, setSort] = useState<"price-up" | "price-down" | "rarity">("price-up")
   const [busy, setBusy] = useState(false)
   const [picked, setPicked] = useState<string | null>(params.get("item"))
@@ -129,7 +108,7 @@ export function ShopPage() {
   const featured = all.filter((item) => item.featured && item.unlock === "coin")
   const inTab = all.filter((item) => tab === "featured" || item.kind === tab)
   const shown = inTab
-    .filter((item) => (rarity === 0 || item.rarity === rarity) && (status === "all" || (status === "sale" ? item.unlock === "coin" && !item.owned : status === "owned" ? item.owned : item.unlock === "achievement" && !item.owned)) && (!search.trim() || item.name.toLowerCase().includes(search.trim().toLowerCase())))
+    .filter((item) => (!search.trim() || item.name.toLowerCase().includes(search.trim().toLowerCase())))
     // What you can still buy comes first, then what you own, then what is only earned.
     .sort((a, b) => group(a) - group(b) || (sort === "rarity" ? (b.rarity ?? 0) - (a.rarity ?? 0) || a.price - b.price : sort === "price-up" ? a.price - b.price : b.price - a.price))
 
@@ -153,10 +132,6 @@ export function ShopPage() {
   const previewGlow = previewOf("name_glow")
   const previewLook = { color: (previewColor && customDraft[previewColor.id]) || previewColor?.color || null, colorFx: previewColor?.fx ?? null, glow: (previewGlow && customDraft[previewGlow.id]) || previewGlow?.glow || null, glowFx: previewGlow?.fx ?? null }
 
-  const collection = (kind: ShopKind) => {
-    const list = all.filter((item) => item.kind === kind)
-    return { owned: list.filter((item) => item.owned).length, total: list.length }
-  }
 
   const buy = async (item: ShopItem) => {
     setBusy(true)
@@ -213,7 +188,7 @@ export function ShopPage() {
     const action = item.owned
       ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--status-green)]"><Check className="size-3" />{worn[item.kind] === item.id ? "Worn" : "Owned"}{item.expiresAt ? <span className="font-medium text-[var(--text-dim)]"> · {timeLeft(item.expiresAt)}</span> : null}</span>
       : item.unlock === "coin"
-        ? <span className="inline-flex items-center gap-1 whitespace-nowrap text-sm font-bold text-[var(--text)]"><span className="text-[11px] font-medium text-[var(--text-dim)]">from</span><LxMark size={14} />{priceFor(item, "1d").toLocaleString()}</span>
+        ? <span className="inline-flex items-center gap-1 whitespace-nowrap text-sm font-bold text-[var(--text)]"><LxMark size={14} />{priceFor(item, "30d").toLocaleString()}</span>
         : <span className="inline-flex items-center gap-1 text-xs text-[var(--text-dim)]"><Lock className="size-3" />Earned</span>
     return (
       <li key={item.id} className={cn("rounded-xl", justBought === item.id && "lx-bought")}>
@@ -221,19 +196,12 @@ export function ShopPage() {
           type="button"
           onClick={() => choose(item)}
           aria-pressed={active}
+          aria-label={item.name}
+          title={item.name}
           className={cn("flex w-full flex-col overflow-hidden rounded-xl border text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50", active ? "border-[var(--text-2)] bg-[var(--raised)]" : "border-[var(--line-soft)] bg-[var(--card-surface)] hover:border-[var(--line-strong)]", item.rarity === 4 && !active && "border-[var(--line-strong)]")}
         >
-          <div className="relative">
-            <span className="absolute left-2.5 top-2.5 z-[2] flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[1px] text-[var(--text-2)]"><RarityDots rarity={item.rarity ?? 1} />{RARITY_NAMES[item.rarity ?? 1]}</span>
-            <Spot accent={accentOf(item)} height={104}><div className="pt-2"><ItemArt item={item} avatar={user?.avatar} username={username} size={70} /></div></Spot>
-          </div>
-          <div className="flex flex-col gap-1 px-2.5 pb-2.5 pt-2">
-            <span className="truncate text-[13px] font-semibold text-[var(--text)]">{item.name}</span>
-            <span className="flex items-center justify-between gap-2">
-              {action}
-              <span className="truncate text-[11px] text-[var(--text-dim)]">{tab === "featured" ? `${KIND_NAME[item.kind]} · ` : ""}{ownersLine(item, data?.players)}</span>
-            </span>
-          </div>
+          <Spot accent={accentOf(item)} height={112}><ItemArt item={item} avatar={user?.avatar} username={username} size={70} /></Spot>
+          <div className="flex items-center justify-between gap-2 px-3 pb-3 pt-1">{action}</div>
         </button>
       </li>
     )
@@ -261,7 +229,7 @@ export function ShopPage() {
     const afford = balance === null || balance >= cost
     return (
       <div className="flex flex-col gap-2.5 border-t border-[var(--line-soft)] px-4 py-3.5">
-        <div className="flex items-baseline justify-between"><span className="text-[15px] font-semibold text-[var(--text)]">{item.name}</span><span className="flex items-center gap-1.5 text-xs text-[var(--text-dim)]"><RarityDots rarity={item.rarity ?? 1} />{RARITY_NAMES[item.rarity ?? 1]}</span></div>
+        <span className="text-[15px] font-semibold text-[var(--text)]">{item.name}</span>
         {item.custom && item.owned && (
           <div className="flex flex-col gap-2.5">
             <ColorRow label={item.kind === "name_glow" ? "Glow" : "Colour"} value={customDraft[item.id] ?? (item.kind === "name_glow" ? item.glow : item.color) ?? "#8b5cf6"} colors={PICK_COLORS} onChange={(next) => setCustomDraft((current) => ({ ...current, [item.id]: next }))} />
@@ -270,8 +238,8 @@ export function ShopPage() {
         )}
         {item.owned && (
           <div key="owned" className={cn("flex flex-col gap-2.5", justBought === item.id && "lx-swap-in")}>
-            <p className="text-xs text-[var(--text-dim)]">{isWorn ? "You are wearing this." : "You own this. Wear it in Profile → Appearance."}{item.expiresAt ? ` ${timeLeft(item.expiresAt).replace(/^./, (letter) => letter.toUpperCase())}.` : ""}</p>
-            <button type="button" onClick={() => navigate("/profile", { state: { tab: "appearance" } })} className="inline-flex h-10 w-full items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-semibold text-[var(--text-2)] hover:border-[var(--line-strong)]">Open Appearance</button>
+            <p className="text-xs text-[var(--text-dim)]">{isWorn ? "Worn" : "Owned"}{item.expiresAt ? ` · ${timeLeft(item.expiresAt)}` : ""}</p>
+            <button type="button" onClick={() => navigate("/profile", { state: { tab: "appearance" } })} className="inline-flex h-10 w-full items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-semibold text-[var(--text-2)] hover:border-[var(--line-strong)]">Wear it</button>
           </div>
         )}
         {rentable ? (
@@ -294,13 +262,6 @@ export function ShopPage() {
                 </div>
               </PopoverContent>
             </Popover>
-            {balance !== null && (
-              <div className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">
-                <span className="flex justify-between"><span>Your LX</span><span>{balance.toLocaleString()}</span></span>
-                <span className="flex justify-between"><span>Price</span><span>− {cost.toLocaleString()}</span></span>
-                <span className="flex justify-between border-t border-[var(--line-soft)] pt-2 text-[13px] font-semibold text-[var(--text)]"><span>After buying</span><span>{afford ? (balance - cost).toLocaleString() : `${(cost - balance).toLocaleString()} short`}</span></span>
-              </div>
-            )}
             <button type="button" disabled={busy} onClick={() => (afford ? void buy(item) : (setSheetOpen(false), navigate("/wallet/top-up")))} className="lx-primary-button inline-flex h-10 w-full items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-60">
               {afford ? `${item.owned ? "Extend" : "Buy"} for ${cost.toLocaleString()} LX` : `Top up ${(cost - (balance ?? 0)).toLocaleString()} more LX`}
             </button>
@@ -314,25 +275,15 @@ export function ShopPage() {
 
   const railBody = (
     <div className="flex min-h-0 flex-col overflow-hidden rounded-[14px] border border-[var(--line)] bg-[var(--card-surface)] lg:max-h-[calc(100dvh-11rem)]">
-        <div className="flex shrink-0 items-center justify-between border-b border-[var(--line-soft)] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]"><span>See it everywhere</span><span className="normal-case tracking-normal">{selected?.name}</span></div>
         <div className="scrollbar-hidden flex min-h-0 flex-col gap-3 overflow-y-auto p-3.5">
-          {selected?.kind === "smoke_color" && (
-            <Context label="In game">
-              <div className="flex items-center justify-center py-1"><SmokePuff color={selected.color} color2={selected.color2} className="w-[220px]" /></div>
-            </Context>
-          )}
-          <Context label="Profile">
-            <div className="flex items-center gap-3">
-              <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={92} />
-              <div className="min-w-0"><span {...nameProps(previewLook, "block truncate text-[19px] font-bold text-[var(--text)]")}>{username}</span><span className="text-[11px] text-[var(--text-dim)]">Your profile</span></div>
+          {selected?.kind === "smoke_color" ? (
+            <div className="flex items-center justify-center py-4"><SmokePuff color={selected.color} color2={selected.color2} className="w-[220px]" /></div>
+          ) : (
+            <div className="flex flex-col items-center gap-3 py-4">
+              <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={120} />
+              <span {...nameProps(previewLook, "max-w-full truncate text-[19px] font-bold text-[var(--text)]")}>{username}</span>
             </div>
-          </Context>
-          <div className="max-lg:hidden"><Context label="Leaderboard">
-            <div className="flex items-center gap-2.5 text-[13px]"><b className="w-3.5 text-[var(--text-dim)]">4</b><FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={46} /><span {...nameProps(previewLook, "min-w-0 flex-1 truncate font-medium text-[var(--text)]")}>{username}</span></div>
-          </Context></div>
-          <div className="max-lg:hidden"><Context label="Review">
-            <div className="flex items-center gap-2.5"><FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={46} /><span {...nameProps(previewLook, "min-w-0 flex-1 truncate text-[13px] font-medium text-[var(--text)]")}>{username}</span></div>
-          </Context></div>
+          )}
         </div>
         {selected && <div className="shrink-0">{buyBlock(selected)}</div>}
       </div>
@@ -347,7 +298,7 @@ export function ShopPage() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
-        <PageTabs<ShopTab> ariaLabel="Shop sections" value={tab} onChange={(next) => { setTab(next); setRarity(0) }} options={TABS} />
+        <PageTabs<ShopTab> ariaLabel="Shop sections" value={tab} onChange={setTab} options={TABS} />
         {(tab === "featured" || tab === "frame" || tab === "name_color" || tab === "name_glow" || tab === "smoke_color") && (
           <PageBarEnd>
             <label className={cn(pageSearchClass, "max-md:hidden")}>
@@ -373,57 +324,16 @@ export function ShopPage() {
           <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
             <div className="flex min-w-0 flex-col gap-5">
               {tab === "featured" && <FounderPack />}
-              {tab === "featured" && featured[0] && (() => {
-                const item = featured[0]
-                const cheapest = (goods ?? []).filter((product) => product.kind === "lx" && product.grantsLx > 0).sort((a, b) => a.priceMnt - b.priceMnt)[0]
-                return (
-                  <section aria-label="Spotlight" className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_280px]">
-                    <button type="button" onClick={() => choose(item)} className="group relative flex min-h-[220px] items-center gap-6 overflow-hidden rounded-2xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-6 text-left transition-colors hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 max-sm:flex-col max-sm:items-start max-sm:gap-3 max-sm:p-4">
-                      <span aria-hidden="true" className="absolute -left-10 top-1/2 aspect-square w-[420px] -translate-y-1/2 opacity-30" style={{ background: `radial-gradient(circle, ${accentOf(item)} 0%, transparent 62%)` }} />
-                      <span className="relative z-[1] flex w-[200px] shrink-0 items-center justify-center max-sm:w-full"><ItemArt item={item} avatar={user?.avatar} username={username} size={150} /></span>
-                      <span className="relative z-[1] flex min-w-0 flex-col gap-2">
-                        <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[1px] text-[var(--text-2)]"><RarityDots rarity={item.rarity ?? 1} />{RARITY_NAMES[item.rarity ?? 1]} · Spotlight</span>
-                        <span className="text-[28px] font-bold leading-tight text-[var(--text)]">{item.name}</span>
-                        <span className="text-[13px] text-[var(--text-muted)]">{item.kind === "frame" ? "Avatar frame" : KIND_NAME[item.kind]} · {ownersLine(item, data?.players)}</span>
-                        <span className="mt-1 inline-flex items-center gap-2 text-[18px] font-bold text-[var(--text)]"><span className="text-[13px] font-medium text-[var(--text-dim)]">from</span><LxMark size={20} />{priceFor(item, "1d").toLocaleString()}</span>
-                      </span>
-                    </button>
-                    {cheapest && (
-                      <button type="button" onClick={() => navigate("/wallet/top-up")} className="group relative flex flex-col justify-between gap-4 overflow-hidden rounded-2xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-5 text-left transition-colors hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
-                        <LxMark size={44} />
-                        <span className="flex flex-col gap-1"><span className="text-[17px] font-bold text-[var(--text)]">Top up LX</span><span className="text-[13px] text-[var(--text-muted)]">Packages from {cheapest.priceMnt.toLocaleString()}₮. Clans, frames and more.</span></span>
-                        <span className="text-xs font-semibold text-[var(--text-2)]">See packages →</span>
-                      </button>
-                    )}
-                  </section>
-                )
-              })()}
               {tab === "featured" && featured.length > 0 && (
                 <section aria-label="Featured">
                   <div className="mb-2.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">Featured</div>
                   <ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 scrollbar-hidden sm:mx-0 sm:grid sm:snap-none sm:grid-cols-3 sm:overflow-visible sm:px-0 xl:grid-cols-5 [&>li]:w-[170px] [&>li]:shrink-0 [&>li]:snap-start sm:[&>li]:w-auto">{featured.map(card)}</ul>
                 </section>
               )}
-              {tab === "featured" && (
-                <section aria-label="Your collection" className="grid gap-4 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] px-4 py-3 sm:grid-cols-4">
-                  {(["frame", "name_color", "name_glow", "smoke_color"] as const).map((kind) => {
-                    const { owned, total } = collection(kind)
-                    return (
-                      <div key={kind} className="flex flex-col gap-1.5">
-                        <span className="flex justify-between text-xs text-[var(--text-muted)]"><span>{KIND_PLURAL[kind]}</span><b className="text-[var(--text-2)]">{owned} / {total}</b></span>
-                        <span className="h-1 overflow-hidden rounded-full bg-[var(--line)]"><i className="block h-full bg-[var(--text-2)]" style={{ width: `${total ? (owned / total) * 100 : 0}%` }} /></span>
-                      </div>
-                    )
-                  })}
-                </section>
-              )}
               <section aria-label="Items">
                 <div className="mb-3 flex items-center gap-2 max-md:-mx-4 max-md:overflow-x-auto max-md:px-4 max-md:pb-1 max-md:scrollbar-hidden md:flex-wrap [&>*]:shrink-0">
-                  <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{tab === "featured" ? "All items" : TABS.find((entry) => entry.value === tab)?.label}{tab !== "featured" && (() => { const { owned, total } = collection(tab as ShopKind); return <b className="ml-2 font-semibold normal-case tracking-normal text-[var(--text-2)]">{owned} / {total} owned</b> })()}</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{tab === "featured" ? "All items" : TABS.find((entry) => entry.value === tab)?.label}</span>
                   <span className="flex-1" />
-                  {([0, 1, 2, 3, 4] as const).map((step) => <button key={step} type="button" aria-pressed={rarity === step} onClick={() => setRarity(step)} className={pill(rarity === step)}>{step === 0 ? "All" : RARITY_NAMES[step]}</button>)}
-                  <span aria-hidden="true" className="mx-0.5 h-4 w-px bg-[var(--line)]" />
-                  {([["all", "Everything"], ["sale", "For sale"], ["owned", "Owned"], ["earned", "Earned"]] as const).map(([value, text]) => <button key={value} type="button" aria-pressed={status === value} onClick={() => setStatus(value)} className={pill(status === value)}>{text}</button>)}
                   <Popover>
                     <PopoverTrigger asChild>
                       <button type="button" aria-label="Sort" className={cn(pill(false), "group gap-1.5 text-[var(--text-2)]")}>
@@ -465,11 +375,3 @@ export function ShopPage() {
   )
 }
 
-function Context({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{label}</div>
-      <div className="rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] px-3 py-2.5">{children}</div>
-    </div>
-  )
-}
