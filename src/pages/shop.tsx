@@ -184,8 +184,8 @@ export function ShopPage() {
           </div>
           <div className="flex min-w-0 flex-1 flex-col gap-2.5">
             <span className="flex items-baseline justify-between gap-2">
-              <span className="text-[13px] font-semibold text-[var(--text)]">Solid colours<b className="ml-2 font-medium text-[var(--text-dim)]">{items.length}</b></span>
-              <span className="truncate text-[11px] text-[var(--text-dim)]">{current.name} · {current.owned ? (worn[current.kind] === current.id ? "Worn" : "Owned") : current.unlock === "coin" ? `from ${priceFor(current, "1d").toLocaleString()} LX` : "Earned"}</span>
+              <span className="text-[13px] font-semibold text-[var(--text)]">Solid colours</span>
+              <span className="truncate text-[11px] text-[var(--text-dim)]">{current.name}</span>
             </span>
             <ul role="group" aria-label="Solid colours" className="flex flex-wrap gap-2">
               {items.map((item) => {

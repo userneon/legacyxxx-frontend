@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom"
-import { Check, UserPlus, Users } from "lucide-react"
+import { Check, Plus, UserPlus, Users } from "lucide-react"
 
 import { LxMark } from "@/components/lx-mark"
 import { toast } from "sonner"
@@ -152,7 +152,7 @@ function Preview({ item, tag, big }: { item: ClanLookItem; tag: string; big?: bo
 }
 
 const PAGE_EFFECTS: Array<{ value: ClanPageEffect | ""; label: string }> = [
-  { value: "", label: "None (plain gradient)" },
+  { value: "", label: "None" },
   { value: "slats", label: "Micro slats" },
   { value: "waves", label: "Pattern waves" },
   { value: "dots", label: "Dot field" },
@@ -165,44 +165,53 @@ const PAGE_EFFECTS: Array<{ value: ClanPageEffect | ""; label: string }> = [
   { value: "plasma", label: "Plasma" },
 ]
 
-/** The clan's own page background: the leader picks each part (colour, base, effect) and sees it live before saving. */
+/* palette-exempt: the colours a clan leader can pick for the clan's own page, far apart so they are easy to tell apart. */
+const PICK_COLORS = ["#ef4444", "#fb923c", "#fcd34d", "#22c55e", "#2dd4bf", "#38bdf8", "#8b5cf6", "#fb7185", "#fafafa"] // palette-exempt
+const PICK_BASES = ["#0a0a0a", "#171717", "#262626"]
+
+/** A short row of clearly different colours, and the browser's own picker for any other. */
+function ColorRow({ label, value, colors, onChange }: { label: string; value: string; colors: string[]; onChange: (next: string) => void }) {
+  const custom = !colors.includes(value)
+  return (
+    <div role="group" aria-label={label} className="flex items-center gap-3">
+      <span className="w-12 shrink-0 text-[12px] text-[var(--text-dim)]">{label}</span>
+      <div className="flex flex-wrap items-center gap-2">
+        {colors.map((color) => (
+          <button key={color} type="button" aria-label={color} aria-pressed={value === color} onClick={() => onChange(color)} style={{ background: color }} className={cn("size-7 rounded-full border transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60", value === color ? "border-[var(--text)] ring-2 ring-[var(--text)]/40" : "border-[var(--line-strong)]")} />
+        ))}
+        <label title="Other colour" className={cn("relative grid size-7 cursor-pointer place-items-center overflow-hidden rounded-full border text-[var(--text-2)] transition-transform hover:scale-110", custom ? "border-[var(--text)] ring-2 ring-[var(--text)]/40" : "border-[var(--line-strong)] bg-[var(--raised)]")} style={custom ? { background: value } : undefined}>
+          {!custom && <Plus className="size-3.5" aria-hidden="true" />}
+          <input type="color" value={value} onChange={(event) => onChange(event.target.value)} aria-label={`Other ${label.toLowerCase()}`} className="absolute inset-0 size-full cursor-pointer opacity-0" />
+        </label>
+      </div>
+    </div>
+  )
+}
+
+/** The clan's own page background: the leader picks colour, base and effect and sees it live before saving. */
 function CustomPageEditor({ item, custom, tag, clanId, editable, actions, onSave }: { item: ClanLookItem; custom: ClanLooks["custom"]; tag: string; clanId: string | null; editable: boolean; actions: React.ReactNode; onSave: (look: { from: string; to: string; effect: ClanPageEffect | null }) => void }) {
-  const [from, setFrom] = useState(custom?.from ?? item.from ?? "#7c3aed")
+  const [from, setFrom] = useState(custom?.from ?? item.from ?? "#8b5cf6")
   const [to, setTo] = useState(custom?.to ?? item.to ?? "#0a0a0a")
   const [effect, setEffect] = useState<ClanPageEffect | "">(custom?.effect ?? item.effect ?? "")
-  const picker = (label: string, hint: string, value: string, change: (next: string) => void) => (
-    <label className="flex items-center gap-2.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-2.5 py-2">
-      <input type="color" value={value} onChange={(event) => change(event.target.value)} aria-label={label} className="size-8 shrink-0 cursor-pointer rounded-md border border-[var(--line-strong)] bg-transparent p-0" />
-      <span className="flex min-w-0 flex-col"><span className="text-[13px] font-medium text-[var(--text)]">{label}</span><span className="truncate text-[11px] text-[var(--text-dim)]">{hint} · {value}</span></span>
-    </label>
-  )
   return (
-    <div className="mb-3 flex flex-col gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3 md:flex-row">
-      <div className="md:w-[320px] md:shrink-0"><Preview item={{ ...item, from, to, effect: effect || undefined }} tag={tag} big /></div>
-      <div className="flex min-w-0 flex-1 flex-col gap-2.5">
-        <div className="flex items-baseline justify-between gap-2">
-          <span className="text-[13px] font-semibold text-[var(--text)]">Make your own</span>
-          <span className="text-[11px] text-[var(--text-dim)]">{RARITY[item.rarity]}</span>
-        </div>
+    <div className="mb-3 flex flex-col gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3 md:flex-row md:items-center">
+      <div className="md:w-[300px] md:shrink-0"><Preview item={{ ...item, from, to, effect: effect || undefined }} tag={tag} big /></div>
+      <div className="flex min-w-0 flex-1 flex-col gap-3">
+        <span className="text-[13px] font-semibold text-[var(--text)]">Your own</span>
         {editable ? (
           <>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {picker("Colour", "The glow and the effect", from, setFrom)}
-              {picker("Base", "The dark ground behind it", to, setTo)}
-            </div>
-            <label className="flex flex-col gap-1">
-              <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">Effect</span>
-              <select value={effect} onChange={(event) => setEffect(event.target.value as ClanPageEffect | "")} className="h-9 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-2.5 text-[13px] text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
+            <ColorRow label="Colour" value={from} colors={PICK_COLORS} onChange={setFrom} />
+            <ColorRow label="Base" value={to} colors={PICK_BASES} onChange={setTo} />
+            <label className="flex items-center gap-3">
+              <span className="w-12 shrink-0 text-[12px] text-[var(--text-dim)]">Effect</span>
+              <select value={effect} onChange={(event) => setEffect(event.target.value as ClanPageEffect | "")} className="h-8 min-w-0 flex-1 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-2.5 text-[13px] text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 sm:max-w-[220px]">
                 {PAGE_EFFECTS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
               </select>
             </label>
-            <button type="button" disabled={!clanId} onClick={() => onSave({ from, to, effect: effect || null })} className="lx-primary-button inline-flex h-8 items-center justify-center self-start rounded-lg px-4 text-xs font-semibold disabled:opacity-50">Save and wear</button>
+            <button type="button" disabled={!clanId} onClick={() => onSave({ from, to, effect: effect || null })} className="lx-primary-button inline-flex h-8 items-center justify-center self-start rounded-lg px-4 text-xs font-semibold disabled:opacity-50">Save</button>
           </>
         ) : (
-          <>
-            <p className="text-[12px] text-[var(--text-muted)]">Buy it once, then pick the colour, the base and an effect yourself, as often as you like. Only the clan leader changes it.</p>
-            <div className="sm:max-w-[240px]">{actions}</div>
-          </>
+          <div className="sm:max-w-[240px]">{actions}</div>
         )}
       </div>
     </div>
@@ -261,7 +270,7 @@ export function ClanLooksShop({ clanId, canWear = true, tag, balance, onChanged 
             </div>
             {kind === "page" && (() => {
               const custom = data.items.find((item) => item.kind === "page" && item.custom)
-              return custom ? <CustomPageEditor key={`${custom.id}:${data.custom?.from}:${data.custom?.to}:${data.custom?.effect}`} item={custom} custom={data.custom} tag={tag} clanId={clanId} editable={wear && Boolean(clanId) && custom.owned} actions={actionsOf(custom)} onSave={(look) => run("custom", () => clansService.saveCustomLook(clanId as string, look), "Your background is saved and worn")} /> : null
+              return custom ? <CustomPageEditor key={`${custom.id}:${data.custom?.from}:${data.custom?.to}:${data.custom?.effect}`} item={custom} custom={data.custom} tag={tag} clanId={clanId} editable={wear && Boolean(clanId) && custom.owned} actions={actionsOf(custom)} onSave={(look) => run("custom", () => clansService.saveCustomLook(clanId as string, look), "Saved")} /> : null
             })()}
             <ul className={cn("grid gap-3", kind === "backdrop" || kind === "page" ? "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3" : "grid-cols-2 md:grid-cols-3 xl:grid-cols-4")}>
               {(() => {
@@ -286,7 +295,7 @@ export function ClanLooksShop({ clanId, canWear = true, tag, balance, onChanged 
                     <div className="flex min-w-0 flex-1 flex-col gap-2.5">
                       <div className="flex items-baseline justify-between gap-2">
                         <span className="text-[13px] font-medium text-[var(--text)]">Solid colours<b className="ml-2 font-medium text-[var(--text-dim)]">{solids.length}</b></span>
-                        <span className="truncate text-[11px] text-[var(--text-dim)]">{current.name} · {RARITY[current.rarity]}</span>
+                        <span className="truncate text-[11px] text-[var(--text-dim)]">{current.name}</span>
                       </div>
                       <ul role="group" aria-label="Solid colours" className="flex flex-wrap gap-2">
                         {solids.map((item) => (
