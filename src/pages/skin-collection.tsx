@@ -37,15 +37,15 @@ function ItemCard({ item }: { item: SkinCollectionDetailItem }) {
   const { weapon, finish } = splitName(item.name)
   return (
     <li className="lx-layer group flex flex-col overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] transition-[border-color,translate] duration-300 hover:-translate-y-0.5 hover:border-[var(--line-strong)] motion-reduce:transition-none">
-      <div className="relative flex h-[116px] items-center justify-center sm:h-[168px] bg-[radial-gradient(ellipse_at_50%_85%,var(--raised),var(--card-surface)_70%)] px-5">
-        <OptimizedImage src={item.imageUrl ?? ""} width={360} height={220} alt="" className="max-h-[88px] w-full object-contain sm:max-h-[132px] transition-transform duration-300 group-hover:scale-[1.03] motion-reduce:transition-none" />
+      <div className="relative flex h-[96px] items-center justify-center sm:h-[116px] bg-[radial-gradient(ellipse_at_50%_85%,var(--raised),var(--card-surface)_70%)] px-4">
+        <OptimizedImage src={item.imageUrl ?? ""} width={360} height={220} alt="" className="max-h-[72px] w-full object-contain sm:max-h-[88px] transition-transform duration-300 group-hover:scale-[1.03] motion-reduce:transition-none" />
         {accent && <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: accent }} />}
         {(item.teamScope === "t" || item.teamScope === "ct") && <TeamIcon side={item.teamScope} className="absolute right-3 top-3 size-5" />}
       </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-2.5 p-3 sm:p-4">
+      <div className="flex min-w-0 flex-1 flex-col gap-2 p-3">
         <div className="min-w-0">
           <p className="truncate text-[11px] font-medium uppercase tracking-[1px] text-[var(--text-dim)]">{weapon}{item.slot !== "weapon" && item.slot !== "knife" ? ` · ${SLOT_LABEL[item.slot] ?? item.slot}` : ""}</p>
-          <p className="truncate text-[15px] font-semibold text-[var(--text)]" title={item.name}>{finish}</p>
+          <p className="truncate text-[14px] font-semibold text-[var(--text)]" title={item.name}>{finish}</p>
         </div>
         {item.rarity && (
           <p className="flex items-center gap-1.5 text-[13px] text-[var(--text-muted)]">
@@ -165,7 +165,7 @@ export function SkinCollectionPage() {
         ) : loading || !collection ? (
           <div className="flex flex-col gap-6" aria-hidden="true">
             <Skeleton className="h-[200px] rounded-xl bg-[var(--glass-fill)]" />
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(220px,1fr))]">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(168px,1fr))]">
               {Array.from({ length: 8 }, (_, index) => <Skeleton key={index} className="h-[290px] rounded-xl bg-[var(--glass-fill)]" />)}
             </div>
           </div>
@@ -212,7 +212,7 @@ export function SkinCollectionPage() {
               )}
             </header>
 
-            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] sm:gap-4">
+            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(168px,1fr))] sm:gap-4">
               {shown.map((item, index) => <ItemCard key={`${item.name}:${item.teamScope}:${index}`} item={item} />)}
             </ul>
           </>
