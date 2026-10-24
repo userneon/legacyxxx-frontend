@@ -3,7 +3,7 @@ import { Check, Plus, UserPlus, Users } from "lucide-react"
 
 import { LxMark } from "@/components/lx-mark"
 import { toast } from "sonner"
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 
 import { walletService, clansService, type Wallet, type ClanLookItem, type ClanLookKind, type ClanLooks, type ClanPageEffect, type ClanPrices, type MyClanState } from "@/api"
 import { useAuth } from "@/hooks/use-auth"
@@ -103,33 +103,6 @@ const KINDS: Array<{ kind: ClanLookKind; label: string; hint: string }> = [
 ]
 const RARITY = ["", "Common", "Rare", "Epic", "Legendary"]
 
-/** Browsers allow only about sixteen WebGL pages at once, so at most this many animated previews run together. */
-const MAX_LIVE = 6
-let liveNow = 0
-
-/** Runs an animated preview while its card is on screen (or hovered), within the limit above. */
-function useLive(enabled: boolean) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [visible, setVisible] = useState(false)
-  const [hovered, setHovered] = useState(false)
-  const [live, setLive] = useState(false)
-  useEffect(() => {
-    const node = ref.current
-    if (!enabled || !node || typeof IntersectionObserver === "undefined") return
-    const watcher = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: 0.6 })
-    watcher.observe(node)
-    return () => watcher.disconnect()
-  }, [enabled])
-  const want = enabled && (visible || hovered)
-  useEffect(() => {
-    if (!want || (liveNow >= MAX_LIVE && !hovered)) return
-    liveNow += 1
-    setLive(true)
-    return () => { liveNow -= 1; setLive(false) }
-  }, [want, hovered])
-  return { ref, live, hover: { onMouseEnter: () => setHovered(true), onMouseLeave: () => setHovered(false) } }
-}
-
 function Preview({ item, tag, big }: { item: ClanLookItem; tag: string; big?: boolean }) {
   const look = {
     tagColor: item.kind === "tag_color" ? item.color ?? null : null,
@@ -139,14 +112,13 @@ function Preview({ item, tag, big }: { item: ClanLookItem; tag: string; big?: bo
   }
   const colors = item.from && item.to ? { from: item.from, to: item.to } : null
   const isPage = item.kind === "page" && colors !== null
-  const { ref, live, hover } = useLive(isPage && Boolean(item.effect))
   const back = item.kind === "backdrop" ? backdropStyle(colors) : undefined
   const reduced = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
   return (
-    <div ref={ref} {...hover} className={cn("relative grid place-items-center overflow-hidden rounded-lg border border-[var(--line-soft)]", item.kind === "page" ? "bg-[var(--bg)]" : "bg-[var(--panel)]", big ? "h-[150px]" : "h-[72px]")} style={back ? { backgroundImage: back } : undefined}>
-      {isPage && colors && (!item.effect || live) && <div aria-hidden="true" className="pointer-events-none absolute inset-0"><ClanBackground page={{ ...colors, effect: item.effect ?? null }} calm={reduced} /></div>}
+    <div className={cn("relative grid place-items-center overflow-hidden rounded-lg border border-[var(--line-soft)]", item.kind === "page" ? "bg-[var(--bg)]" : "bg-[var(--panel)]", big ? "h-[150px]" : "h-[72px]")} style={back ? { backgroundImage: back } : undefined}>
+      {isPage && colors && <div aria-hidden="true" className="pointer-events-none absolute inset-0"><ClanBackground page={{ ...colors, effect: item.effect ?? null }} calm={reduced} /></div>}
       <span {...clanTagProps(look, big ? "relative text-[30px] font-semibold text-[var(--text)]" : "relative text-[22px] font-semibold text-[var(--text)]")}>[{tag}]</span>
-      {item.effect && <span className="pointer-events-none absolute right-2 top-1.5 rounded-full border border-[var(--line)] bg-[var(--panel)] px-1.5 text-[10px] text-[var(--text-dim)]">{live ? "Live" : "Animated"}</span>}
+      {item.effect && <span className="pointer-events-none absolute right-2 top-1.5 rounded-full border border-[var(--line)] bg-[var(--panel)] px-1.5 text-[10px] text-[var(--text-dim)]">Animated</span>}
     </div>
   )
 }

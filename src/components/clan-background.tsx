@@ -35,27 +35,38 @@ function hueOf(hex: string) {
 /** How bright each animated background is: the busy ones are dimmed so text stays readable. */
 export const EFFECT_OPACITY: Record<ClanPageEffect, number> = { slats: 0.45, waves: 0.8, dots: 0.8, aurora: 0.7, threads: 0.7, particles: 0.8, lightning: 0.55, rays: 0.9, lines: 0.5, plasma: 0.4 }
 
+/** The live (WebGL) painting of one effect. The site no longer runs it: scripts/record-clan-effects.mjs records each effect once into public/clan-fx/<effect>.gif. */
+export function EffectLayer({ effect, color, base }: { effect: ClanPageEffect; color: string; base: string }) {
+  return (
+    <Suspense fallback={null}>
+      {effect === "slats" && <SlatsBackground color={color} glintColor={color} backgroundColor={base} interactive={false} />}
+      {effect === "waves" && <WavesBackground color={color} backgroundColor={base} interactive={false} />}
+      {effect === "dots" && <div className="size-full" style={{ background: base }}><DotsBackground dotSpacing={18} gradientFrom={rgba(color, 0.95)} gradientTo={rgba(color, 0.6)} glowColor={base} /></div>}
+      {effect === "aurora" && <AuroraBackground colorStops={[color, "#ffffff", color]} amplitude={1} blend={0.6} />}
+      {effect === "threads" && <ThreadsBackground color={channels(color)} amplitude={1} distance={0} enableMouseInteraction={false} />}
+      {effect === "particles" && <ParticlesBackground particleColors={[color, "#ffffff"]} particleCount={300} particleBaseSize={160} moveParticlesOnHover={false} alphaParticles />}
+      {effect === "lightning" && <LightningBackground hue={hueOf(color)} />}
+      {effect === "rays" && <RaysBackground raysColor={color} raysOrigin="top-center" followMouse={false} />}
+      {effect === "lines" && <LinesBackground lineColor={rgba(color, 0.6)} backgroundColor="transparent" />}
+      {effect === "plasma" && <PlasmaBackground color={color} mouseInteractive={false} />}
+    </Suspense>
+  )
+}
+
+/** Where the recorded effects live: grey on black loops, one per effect, tinted on the page by the clan's colour (see ClanBackground). */
+export const clanFxSrc = (effect: ClanPageEffect) => `/clan-fx/${effect}.gif`
+
 /** One animated (or gradient) clan background filling its parent. The same piece paints the clan page and the Shop preview. */
 export function ClanBackground({ page, calm }: { page: NonNullable<ClanLook["page"]>; calm?: boolean }) {
   const effect = calm ? null : page.effect ?? null
-  const color = page.from
-  const base = page.to
+  if (!effect) return <div className="size-full" style={{ backgroundImage: `radial-gradient(130% 80% at 50% 0%, ${page.from}, ${page.to} 78%)`, opacity: 0.45 }} />
+  // A recorded grey loop, multiplied by the clan's colour and screened onto its base: any colour, one small file per effect.
   return (
-    <div className="size-full" style={effect ? { opacity: EFFECT_OPACITY[effect] ?? 0.6, backgroundColor: base } : { backgroundImage: `radial-gradient(130% 80% at 50% 0%, ${page.from}, ${page.to} 78%)`, opacity: 0.45 }}>
-      {effect && (
-        <Suspense fallback={null}>
-          {effect === "slats" && <SlatsBackground color={color} glintColor={color} backgroundColor={base} interactive={false} />}
-          {effect === "waves" && <WavesBackground color={color} backgroundColor={base} interactive={false} />}
-          {effect === "dots" && <div className="size-full" style={{ background: base }}><DotsBackground dotSpacing={18} gradientFrom={rgba(color, 0.95)} gradientTo={rgba(color, 0.6)} glowColor={base} /></div>}
-          {effect === "aurora" && <AuroraBackground colorStops={[color, "#ffffff", color]} amplitude={1} blend={0.6} />}
-          {effect === "threads" && <ThreadsBackground color={channels(color)} amplitude={1} distance={0} enableMouseInteraction={false} />}
-          {effect === "particles" && <ParticlesBackground particleColors={[color, "#ffffff"]} particleCount={300} particleBaseSize={160} moveParticlesOnHover={false} alphaParticles />}
-          {effect === "lightning" && <LightningBackground hue={hueOf(color)} />}
-          {effect === "rays" && <RaysBackground raysColor={color} raysOrigin="top-center" followMouse={false} />}
-          {effect === "lines" && <LinesBackground lineColor={rgba(color, 0.6)} backgroundColor="transparent" />}
-          {effect === "plasma" && <PlasmaBackground color={color} mouseInteractive={false} />}
-        </Suspense>
-      )}
+    <div className="relative size-full overflow-hidden" style={{ opacity: EFFECT_OPACITY[effect] ?? 0.6, backgroundColor: page.to }}>
+      <div className="absolute inset-0" style={{ mixBlendMode: "screen", isolation: "isolate" }}>
+        <img src={clanFxSrc(effect)} alt="" aria-hidden="true" decoding="async" className="size-full object-cover" />
+        <div className="absolute inset-0" style={{ background: page.from, mixBlendMode: "multiply" }} />
+      </div>
     </div>
   )
 }

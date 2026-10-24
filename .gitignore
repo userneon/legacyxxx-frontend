@@ -41,3 +41,4 @@ dist-ssr
 .claude/agents/
 .claude/settings.local.json
 dist-admin
+.fx-frames/
