@@ -460,6 +460,78 @@ body::before {
   background: color-mix(in oklch, var(--brand) 12%, transparent) !important;
   color: var(--text) !important;
 }
+/* Shop (owner request 2026-10-24): a violet look for the whole Shop. A tile lifts and lights up under the pointer, the picked one carries the brand border and glow,
+   the preview stage is an add-box, and a section heading has a short violet bar. Primary buttons stay white. */
+.lx-shop-tile {
+  position: relative;
+  border: 1px solid var(--line-soft);
+  background:
+    radial-gradient(90% 60% at 50% 0%, color-mix(in oklch, var(--brand) 9%, transparent), transparent 70%),
+    var(--card-surface);
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.lx-shop-tile:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklch, var(--brand) 45%, var(--line));
+  box-shadow: 0 14px 34px -20px color-mix(in oklch, var(--brand) 70%, transparent);
+}
+.lx-shop-tile[aria-pressed="true"],
+.lx-shop-tile[data-worn="true"] {
+  border-color: var(--brand);
+  background:
+    radial-gradient(100% 70% at 50% 0%, color-mix(in oklch, var(--brand) 20%, transparent), transparent 72%),
+    var(--card-surface);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--brand) 40%, transparent), 0 18px 44px -20px color-mix(in oklch, var(--brand) 75%, transparent);
+}
+.lx-shop-tile[aria-pressed="true"]::before,
+.lx-shop-tile[data-worn="true"]::before {
+  content: "";
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: -1px;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--brand-bright), transparent);
+}
+.lx-shop-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklch, var(--brand-bright) 30%, transparent);
+  background: color-mix(in oklch, var(--brand) 12%, transparent);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.lx-shop-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.lx-shop-heading::before {
+  content: "";
+  width: 3px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--brand);
+}
+.lx-shop-swatch[aria-pressed="true"] {
+  border-color: var(--brand-bright) !important;
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--brand) 55%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lx-shop-tile:hover { transform: none; }
+}
 /* Home: a soft violet light on top of the backdrop. */
 .lx-glass-page {
   position: relative;

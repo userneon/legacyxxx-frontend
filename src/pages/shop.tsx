@@ -159,7 +159,7 @@ export function ShopPage() {
     const current = items.find((item) => isPicked(item)) ?? items[0]
     return (
       <li key="solid-palette" className="col-span-full rounded-xl">
-        <div className="flex flex-col gap-3 overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-3 sm:flex-row sm:items-center">
+        <div className="lx-shop-tile flex flex-col gap-3 overflow-hidden rounded-xl p-3 sm:flex-row sm:items-center">
           <div className="sm:w-[190px] sm:shrink-0">
             <Spot accent={accentOf(current)} height={104}><ItemArt item={current} avatar={user?.avatar} username={username} size={70} /></Spot>
           </div>
@@ -173,7 +173,7 @@ export function ShopPage() {
                 const active = item.id === current.id && isPicked(item)
                 return (
                   <li key={item.id}>
-                    <button type="button" onClick={() => choose(item)} aria-pressed={active} aria-label={item.name} title={item.name} className={cn("relative grid size-7 place-items-center rounded-full border transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60", active ? "border-[var(--text)] ring-2 ring-[var(--text)]/40" : "border-[var(--line-strong)]", justBought === item.id && "lx-bought")} style={{ background: accentOf(item) }}>
+                    <button type="button" onClick={() => choose(item)} aria-pressed={active} aria-label={item.name} title={item.name} className={cn("lx-shop-swatch relative grid size-7 place-items-center rounded-full border border-[var(--line-strong)] transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60", justBought === item.id && "lx-bought")} style={{ background: accentOf(item) }}>
                       {item.owned ? <Check className="size-3.5 text-white mix-blend-difference" aria-hidden="true" /> : item.unlock !== "coin" ? <Lock className="size-3 text-white mix-blend-difference" aria-hidden="true" /> : null}
                     </button>
                   </li>
@@ -191,7 +191,7 @@ export function ShopPage() {
     const action = item.owned
       ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--status-green)]"><Check className="size-3" />{worn[item.kind] === item.id ? "Worn" : "Owned"}{item.expiresAt ? <span className="font-medium text-[var(--text-dim)]"> · {timeLeft(item.expiresAt)}</span> : null}</span>
       : item.unlock === "coin"
-        ? <span className="inline-flex items-center gap-1 whitespace-nowrap text-sm font-bold text-[var(--text)]"><LxMark size={14} />{priceFor(item, "30d").toLocaleString()}</span>
+        ? <span className="lx-shop-price"><LxMark size={14} />{priceFor(item, "30d").toLocaleString()}</span>
         : <span className="inline-flex items-center gap-1 text-xs text-[var(--text-dim)]"><Lock className="size-3" />Earned</span>
     return (
       <li key={item.id} className={cn("rounded-xl", justBought === item.id && "lx-bought")}>
@@ -201,11 +201,11 @@ export function ShopPage() {
           aria-pressed={active}
           aria-label={item.name}
           title={item.name}
-          className={cn("flex w-full flex-col overflow-hidden rounded-xl border text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50", active ? "border-[var(--text-2)] bg-[var(--raised)]" : "border-[var(--line-soft)] bg-[var(--card-surface)] hover:border-[var(--line-strong)]", item.rarity === 4 && !active && "border-[var(--line-strong)]")}
+          className="lx-shop-tile flex w-full flex-col overflow-hidden rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60"
         >
           <div className="relative">
             {item.custom && <Palette aria-label="Pick any colour" className="absolute right-2.5 top-2.5 z-[2] size-3.5 text-[var(--text-2)]" />}
-            <Spot accent={accentOf(item)} height={112}><ItemArt item={item} avatar={user?.avatar} username={username} size={70} /></Spot>
+            <Spot accent={accentOf(item)} height={124}><ItemArt item={item} avatar={user?.avatar} username={username} size={70} /></Spot>
           </div>
           <div className="flex items-center justify-between gap-2 px-3 pb-3 pt-1">{action}</div>
         </button>
@@ -286,12 +286,13 @@ export function ShopPage() {
   }
 
   const railBody = (
-    <div className="flex min-h-0 flex-col overflow-hidden rounded-[14px] border border-[var(--line)] bg-[var(--card-surface)] lg:max-h-[calc(100dvh-11rem)]">
+    <div className="lx-add-box relative flex min-h-0 flex-col overflow-hidden rounded-[14px] border lg:max-h-[calc(100dvh-11rem)]">
         <div className="scrollbar-hidden flex min-h-0 flex-col gap-3 overflow-y-auto p-3.5">
           {selected?.kind === "smoke_color" ? (
-            <div className="flex items-center justify-center py-4"><SmokePuff color={selected.color} color2={selected.color2} className="w-[220px]" /></div>
+            <div className="relative flex items-center justify-center py-4"><span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} /><SmokePuff color={selected.color} color2={selected.color2} className="w-[220px]" /></div>
           ) : (
-            <div className="flex flex-col items-center gap-3 py-4">
+            <div className="relative flex flex-col items-center gap-3 py-4">
+              <span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} />
               <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={120} />
               <span {...nameProps(previewLook, "max-w-full truncate text-[19px] font-bold text-[var(--text)]")}>{username}</span>
             </div>
@@ -328,7 +329,7 @@ export function ShopPage() {
         )}
       </PageBar>
       {/* Not a scroller itself: the page panel around it scrolls, and a sticky rail sticks to the nearest scroller (an inner overflow-y-auto that never scrolled kept it from sticking). */}
-      <div className="min-h-0 flex-1 px-6 py-5 max-md:px-4">
+      <div className="lx-glass-page min-h-0 flex-1 px-6 py-5 max-md:px-4">
         {tab === "goods" ? (
           <ShopGoods />
         ) : loading && !data ? (
@@ -344,13 +345,13 @@ export function ShopPage() {
               {tab === "featured" && <FounderPack />}
               {tab === "featured" && featured.length > 0 && (
                 <section aria-label="Featured">
-                  <div className="mb-2.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">Featured</div>
+                  <div className="lx-shop-heading mb-2.5">Featured</div>
                   <ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 scrollbar-hidden sm:mx-0 sm:grid sm:snap-none sm:grid-cols-3 sm:overflow-visible sm:px-0 xl:grid-cols-5 [&>li]:w-[170px] [&>li]:shrink-0 [&>li]:snap-start sm:[&>li]:w-auto">{featured.map(card)}</ul>
                 </section>
               )}
               <section aria-label="Items">
                 <div className="mb-3 flex items-center gap-2 max-md:-mx-4 max-md:overflow-x-auto max-md:px-4 max-md:pb-1 max-md:scrollbar-hidden md:flex-wrap [&>*]:shrink-0">
-                  <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{tab === "featured" ? "All items" : tab === "name" ? "" : TABS.find((entry) => entry.value === tab)?.label}</span>
+                  <span className="lx-shop-heading">{tab === "featured" ? "All items" : tab === "name" ? "" : TABS.find((entry) => entry.value === tab)?.label}</span>
                   <span className="flex-1" />
                   <Popover>
                     <PopoverTrigger asChild>
@@ -375,7 +376,7 @@ export function ShopPage() {
                   <div className="flex flex-col gap-6">
                     {([["name_color", "Colour"], ["name_glow", "Glow"]] as const).map(([kind, heading]) => {
                       const list = shown.filter((item) => item.kind === kind)
-                      return list.length ? <div key={kind}><div className="mb-2.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{heading}</div>{grid(list, true)}</div> : null
+                      return list.length ? <div key={kind}><div className="lx-shop-heading mb-2.5">{heading}</div>{grid(list, true)}</div> : null
                     })}
                   </div>
                 ) : grid(shown, tab === "smoke_color")}

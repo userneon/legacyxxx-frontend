@@ -145,7 +145,7 @@ function CustomLookFields({ kind, items, item, start, tag, clanId, editable, onP
   const [b, setB] = useState(start.b)
   const shown: ClanLookItem = kind === "tag_color" ? { ...item, color: a } : kind === "tag_glow" ? { ...item, glow: a } : { ...item, from: a, to: b ?? item.to }
   return (
-    <div className="mb-3 flex flex-col gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3 md:flex-row md:items-center">
+    <div className="lx-shop-tile mb-3 flex flex-col gap-3 rounded-xl p-3 md:flex-row md:items-center">
       <div className="md:w-[300px] md:shrink-0"><Preview item={shown} tag={tag} big={kind === "backdrop" || kind === "page"} /></div>
       <div className="flex min-w-0 flex-1 flex-col gap-3">
         <div className="flex items-baseline justify-between gap-2">
@@ -216,7 +216,7 @@ export function ClanLooksShop({ clanId, canWear = true, tag, balance, onChanged 
         return (
           <section key={kind} aria-label={label}>
             <div className="mb-2.5 flex flex-wrap items-baseline gap-2">
-              <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{label}</span>
+              <span className="lx-shop-heading">{label}</span>
               <span className="flex-1" />
               {wear && clanId && wearing && <button type="button" disabled={busy !== null} onClick={() => run(kind, () => clansService.equipLook(clanId, kind, null), "Taken off")} className="text-xs text-[var(--text-dim)] hover:text-[var(--text)]">Take off</button>}
             </div>
@@ -228,7 +228,7 @@ export function ClanLooksShop({ clanId, canWear = true, tag, balance, onChanged 
               {(() => {
                 const actions = actionsOf
                 const card = (item: ClanLookItem) => (
-                  <li key={item.id} className={cn("flex flex-col gap-2.5 rounded-xl border bg-[var(--glass-fill)] p-3", wearing === item.id ? "border-[var(--line-strong)]" : "border-[var(--glass-line)]")}>
+                  <li key={item.id} data-worn={wearing === item.id} className="lx-shop-tile flex flex-col gap-2.5 rounded-xl p-3">
                     <Preview item={item} tag={tag} big={kind === "backdrop" || kind === "page"} />
                     <div className="flex items-baseline justify-between gap-2">
                       <span className="truncate text-[13px] font-medium text-[var(--text)]">{item.name}</span>
@@ -242,7 +242,7 @@ export function ClanLooksShop({ clanId, canWear = true, tag, balance, onChanged 
                 if (solids.length < 2) return items.map(card)
                 const current = solids.find((item) => item.id === picked[kind]) ?? solids.find((item) => item.id === wearing) ?? solids[0]
                 const palette = (
-                  <li key="solid-palette" className="col-span-full flex flex-col gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3 sm:flex-row sm:items-center">
+                  <li key="solid-palette" className="lx-shop-tile col-span-full flex flex-col gap-3 rounded-xl p-3 sm:flex-row sm:items-center">
                     <div className="sm:w-[220px] sm:shrink-0"><Preview item={current} tag={tag} /></div>
                     <div className="flex min-w-0 flex-1 flex-col gap-2.5">
                       <div className="flex items-baseline justify-between gap-2">

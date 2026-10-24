@@ -14,7 +14,7 @@ export function ColorRow({ label, value, colors, onChange }: { label: string; va
       <span className="w-12 shrink-0 text-[12px] text-[var(--text-dim)]">{label}</span>
       <div className="flex flex-wrap items-center gap-2">
         {colors.map((color) => (
-          <button key={color} type="button" aria-label={color} aria-pressed={value === color} onClick={() => onChange(color)} style={{ background: color }} className={cn("size-7 rounded-full border transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60", value === color ? "border-[var(--text)] ring-2 ring-[var(--text)]/40" : "border-[var(--line-strong)]")} />
+          <button key={color} type="button" aria-label={color} aria-pressed={value === color} onClick={() => onChange(color)} style={{ background: color }} className="lx-shop-swatch size-7 rounded-full border border-[var(--line-strong)] transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60" />
         ))}
         <label title="Other colour" className={cn("relative grid size-7 cursor-pointer place-items-center overflow-hidden rounded-full border text-[var(--text-2)] transition-transform hover:scale-110", custom ? "border-[var(--text)] ring-2 ring-[var(--text)]/40" : "border-[var(--line-strong)] bg-[var(--raised)]")} style={custom ? { background: value } : undefined}>
           {!custom && <Plus className="size-3.5" aria-hidden="true" />}
