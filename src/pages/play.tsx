@@ -802,5 +802,6 @@ export function PlayPage({ mode }: { mode: PlayPageMode }) {
     )
   }
   if (isPro && access && !access.proLeagueUnlocked) return <ProLocked access={access} />
-  return <ServerBrowser mode={config.mode} title={config.title} description={config.description} pickRule={config.pickRule} />
+  // Switching mode in the sidebar keeps the page but swaps what is on it: the new mode fades and rises in.
+  return <div key={mode} className="lx-swap-in flex min-h-0 flex-1 flex-col"><ServerBrowser mode={config.mode} title={config.title} description={config.description} pickRule={config.pickRule} /></div>
 }
