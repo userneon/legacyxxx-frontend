@@ -755,7 +755,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
     return { linked: true, topics: [["updates", "Updates", "Website and game server updates"], ["news", "News", "Counter-Strike 2 news"], ["live", "Creators live", "A LEGACY-X creator goes live"], ["play", "Servers need players", "A server is short of players"]].map(([key, label, description]) => ({ key, label, description, enabled: mockPings.has(key) })) }
   }
   if (path === "/api/v1/discord/link/start") return { url: "https://discord.com/oauth2/authorize" }
-  if (path === "/api/v1/discord/link") return { available: true, link: { discordId: "987654321098765432", discordName: "Legacy Player", linkedAt: new Date(Date.now() - 3 * 24 * HOUR).toISOString() } }
+  if (path === "/api/v1/discord/link") return { available: true, link: { discordId: "987654321098765432", discordName: "Legacy Player", inServer: true, linkedAt: new Date(Date.now() - 3 * 24 * HOUR).toISOString() } }
   if (path === "/api/v1/moderation/notify") return undefined
   if (path.startsWith("/api/v1/moderation/lift-requests/")) return undefined
   if (path.startsWith("/api/v1/moderation/penalties") && method !== "GET") return path === "/api/v1/moderation/penalties" ? { penaltyId: "new" } : undefined

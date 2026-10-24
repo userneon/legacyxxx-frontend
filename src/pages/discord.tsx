@@ -1,7 +1,7 @@
 /** The LEGACY-X Discord: how to join, how to link your account, and what the server's bot does. Live counts only when the server widget is on. */
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
-import { ArrowUpRight, BellRing, CircleCheck, Link2, Mic, Scale, ScrollText, Search, ShieldAlert, Trophy, Megaphone } from "lucide-react"
+import { ArrowUpRight, BellRing, CircleCheck, X, Link2, Mic, Scale, ScrollText, Search, ShieldAlert, Trophy, Megaphone } from "lucide-react"
 import { toast } from "sonner"
 
 import { discordService, type DiscordLinkState, type PingTopic } from "@/api/discord"
@@ -132,6 +132,8 @@ export function DiscordPage() {
           ) : link.data?.link ? (
             <span className="flex shrink-0 flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-[5px] text-xs font-medium text-[var(--status-green)]"><CircleCheck className="size-3.5" />Linked</span>
+              {link.data.link.inServer === true && <span className="inline-flex items-center gap-[5px] text-xs font-medium text-[var(--status-green)]"><CircleCheck className="size-3.5" />On the server</span>}
+              {link.data.link.inServer === false && <a href="#join" className="inline-flex items-center gap-[5px] text-xs font-medium text-[var(--text-muted)] underline-offset-4 hover:text-[var(--text)] hover:underline"><X className="size-3.5" />Not on the server yet: join below</a>}
               <Link to="/leaders?sort=boosters" className="inline-flex h-10 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-4 text-[13px] font-semibold text-[var(--text-2)] hover:border-[var(--line-strong)]">See Boosters</Link>
               <button type="button" disabled={busy} onClick={() => void unlink()} className="inline-flex h-10 items-center rounded-lg border border-[var(--line)] px-4 text-[13px] font-medium text-[var(--text-2)] hover:border-[var(--line-strong)] hover:bg-[var(--raised)] disabled:opacity-60">Unlink</button>
             </span>
@@ -149,11 +151,11 @@ export function DiscordPage() {
                 <p className="text-[13px] text-[var(--text-dim)]">Switch on what you want to be pinged for. The bot gives you the role within a few minutes; switch it off and it takes it back.</p>
               </div>
             </div>
-            <ul className="mt-4 flex flex-col divide-y divide-[var(--line-soft)]">
+            <ul className="mt-4 grid gap-x-8 sm:grid-cols-2 sm:divide-y-0 max-sm:divide-y max-sm:divide-[var(--line-soft)]">
               {pings.loading && !pings.data
                 ? Array.from({ length: 4 }, (_, index) => <li key={index} className="py-3"><Skeleton className="h-9 rounded-lg" /></li>)
                 : (pings.data?.topics ?? []).map((topic) => (
-                    <li key={topic.key} className="flex items-center justify-between gap-4 py-3">
+                    <li key={topic.key} className="flex items-center justify-between gap-4 border-b border-[var(--line-soft)] py-3 last:border-b-0 sm:[&:nth-last-child(2):nth-child(odd)]:border-b-0">
                       <div className="min-w-0">
                         <div className="text-[14px] font-medium text-[var(--text)]">{topic.label}</div>
                         <div className="text-[12px] text-[var(--text-dim)]">{topic.description}</div>
@@ -181,7 +183,7 @@ export function DiscordPage() {
           </ul>
         </section>
 
-        <section className={cn(card, "flex flex-wrap items-center gap-x-6 gap-y-3 p-5")} aria-label="Join the Discord">
+        <section id="join" className={cn(card, "flex flex-wrap items-center gap-x-6 gap-y-3 p-5")} aria-label="Join the Discord">
           <span className={"flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#5865F2]/15 text-[#8b95f5]" /* palette-exempt: Discord brand */}><DiscordIcon className="size-5" /></span>
           <div className="min-w-0 flex-1">
             <h2 className="text-[15px] font-semibold text-[var(--text)]">Not on the server yet?</h2>

@@ -4,7 +4,8 @@ import { del, get, post, put, type CallOptions } from "./client"
 export interface DiscordLinkState {
   /** False until the site's Discord application is set up: the button is then disabled. */
   available: boolean
-  link: { discordId: string; discordName: string; linkedAt: string } | null
+  /** inServer: whether the account is on the Discord server right now, as the bot last saw it; null until it has looked. */
+  link: { discordId: string; discordName: string; linkedAt: string; inServer?: boolean | null } | null
 }
 
 /** A member on Leaders → Boosters: someone who linked Discord to their LEGACY-X profile. */
