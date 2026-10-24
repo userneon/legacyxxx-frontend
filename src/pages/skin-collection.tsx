@@ -32,11 +32,11 @@ function splitName(name: string) {
 const chipClass = "inline-flex h-5 items-center rounded-md border border-[var(--line)] px-1.5 text-[11px] font-medium text-[var(--text-muted)]"
 
 /** One item as a card: a large picture on a lit floor, the finish as the title, then rarity and how it is set up. */
-function ItemCard({ item }: { item: SkinCollectionDetailItem }) {
+function ItemCard({ item, index }: { item: SkinCollectionDetailItem; index: number }) {
   const accent = item.rarity ? rarityStyles[item.rarity]?.accent : undefined
   const { weapon, finish } = splitName(item.name)
   return (
-    <li className="lx-layer group flex flex-col overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] transition-[border-color,translate] duration-300 hover:-translate-y-0.5 hover:border-[var(--line-strong)] motion-reduce:transition-none">
+    <li style={{ animationDelay: `${Math.min(index, 10) * 45}ms` }} className="lx-layer lx-row-in group flex flex-col overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] transition-[border-color,translate] duration-300 hover:-translate-y-0.5 hover:border-[var(--line-strong)] motion-reduce:transition-none">
       <div className="relative flex h-[96px] items-center justify-center sm:h-[116px] bg-[radial-gradient(ellipse_at_50%_85%,var(--raised),var(--card-surface)_70%)] px-4">
         <OptimizedImage src={item.imageUrl ?? ""} width={360} height={220} alt="" className="max-h-[72px] w-full object-contain sm:max-h-[88px] transition-transform duration-300 group-hover:scale-[1.03] motion-reduce:transition-none" />
         {accent && <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: accent }} />}
@@ -185,7 +185,7 @@ export function SkinCollectionPage() {
           </div>
         ) : (
           <>
-            <header className="lx-layer flex flex-wrap items-center gap-x-10 gap-y-6 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-6 sm:p-8">
+            <header className="lx-layer lx-swap-in flex flex-wrap items-center gap-x-10 gap-y-6 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-6 sm:p-8">
               <div className="flex min-w-[260px] flex-1 flex-col gap-4">
                 <div className="flex flex-col gap-2">
                   <h1 className="font-display text-[30px] font-bold leading-tight tracking-[-0.4px] text-[var(--text)] [overflow-wrap:anywhere]">{collection.name}</h1>
@@ -227,7 +227,7 @@ export function SkinCollectionPage() {
             </header>
 
             <ul className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(168px,1fr))] sm:gap-4">
-              {shown.map((item, index) => <ItemCard key={`${item.name}:${item.teamScope}:${index}`} item={item} />)}
+              {shown.map((item, index) => <ItemCard key={`${item.name}:${item.teamScope}:${index}`} item={item} index={index} />)}
             </ul>
           </>
         )}

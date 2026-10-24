@@ -153,8 +153,8 @@ export function SkinCollections({ onApplied }: { onApplied: () => void }) {
         <p className="py-10 text-center text-[13px] text-[var(--text-dim)]">{sort === "mine" ? "You have not shared a loadout yet." : "No collections found."}</p>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {collections.map((collection) => (
-            <article key={collection.id} onClick={() => openCollection(collection)} className="lx-layer group flex cursor-pointer flex-col gap-3 rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3 transition-colors duration-300 hover:border-[var(--line-strong)]">
+          {collections.map((collection, index) => (
+            <article key={collection.id} style={{ animationDelay: `${Math.min(index, 8) * 55}ms` }} onClick={() => openCollection(collection)} className="lx-layer lx-row-in group flex cursor-pointer flex-col gap-3 rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3 transition-colors duration-300 hover:border-[var(--line-strong)]">
               <button type="button" onClick={() => openCollection(collection)} aria-label={`See everything in ${collection.name}`} className="grid grid-cols-4 gap-1.5 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
                 {(collection.itemCount > 4 ? collection.items.slice(0, 3) : collection.items).map((item, index) => {
                   const accent = item.rarity ? rarityStyles[item.rarity]?.accent : undefined
