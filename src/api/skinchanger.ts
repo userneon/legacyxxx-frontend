@@ -24,6 +24,8 @@ export interface SkinCollectionDetailItem extends SkinCollectionItem { teamScope
 /** A loadout a player shared with the community; anyone can apply it to their own loadout. */
 export interface SkinCollection {
   id: string
+  /** Short address number: /skinchanger/collections/7. Absent on a server that has not been updated yet. */
+  number?: number
   name: string
   description: string
   author: { steamId: string; username: string; avatar: string }

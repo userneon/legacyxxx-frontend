@@ -86,9 +86,13 @@ export function SkinCollectionPage() {
   useEffect(() => { setSkinchangerView("collections") }, [])
   const { data, loading, error, refetch } = useApiQuery(
     (signal) => skinchangerService.getCollection(collectionId, { signal }),
-    { queryKey: `collection-page:${collectionId}` },
+    { queryKey: `collection-page:${collectionId}`, keepPreviousData: true },
   )
   const collection: SkinCollectionDetail | undefined = data?.collection
+  // An address with the long id moves to the short one (/skinchanger/collections/7).
+  useEffect(() => {
+    if (collection?.number !== undefined && collectionId !== String(collection.number)) navigate(`/skinchanger/collections/${collection.number}`, { replace: true })
+  }, [collection?.number, collectionId, navigate])
 
   const failure = (problem: unknown, fallback: string) => {
     const message = (problem as Partial<ApiError> | null)?.message

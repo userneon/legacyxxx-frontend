@@ -58,7 +58,7 @@ export function SkinCollections({ onApplied }: { onApplied: () => void }) {
   )
   const collections = data?.collections ?? []
 
-  const openCollection = (collection: SkinCollection) => navigate(`/skinchanger/collections/${encodeURIComponent(collection.id)}`)
+  const openCollection = (collection: SkinCollection) => navigate(`/skinchanger/collections/${encodeURIComponent(String(collection.number ?? collection.id))}`)
 
   const failure = (error: unknown, fallback: string) => {
     const message = (error as Partial<ApiError> | null)?.message
