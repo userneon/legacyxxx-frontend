@@ -30,12 +30,11 @@ const SORTS = [
 
 /** The kinds the Shop sells (banners and titles are earned: they live in Profile → Appearance). */
 type ShopKind = Exclude<CosmeticKind, "banner" | "title">
-type ShopTab = "featured" | ShopKind | "clan" | "goods"
+type ShopTab = "featured" | "frame" | "name" | "smoke_color" | "clan" | "goods"
 const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "featured", label: "Featured" },
   { value: "frame", label: "Frames" },
-  { value: "name_color", label: "Name colour" },
-  { value: "name_glow", label: "Name glow" },
+  { value: "name", label: "Name" },
   { value: "smoke_color", label: "Smoke" },
   { value: "clan", label: "Clan" },
   { value: "goods", label: "Goods" },
@@ -81,7 +80,7 @@ export function ShopPage() {
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
-  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name_color: "name-colors", name_glow: "name-glows", smoke_color: "smoke", clan: "clan", goods: "goods" }, "featured")
+  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name: "name", smoke_color: "smoke", clan: "clan", goods: "goods" }, "featured")
   const [sort, setSort] = useState<"price-up" | "price-down" | "rarity">("price-up")
   const [busy, setBusy] = useState(false)
   const [picked, setPicked] = useState<string | null>(params.get("item"))
@@ -106,7 +105,7 @@ export function ShopPage() {
   const username = user?.username ?? "Player"
 
   const featured = all.filter((item) => item.featured && item.unlock === "coin")
-  const inTab = all.filter((item) => tab === "featured" || item.kind === tab)
+  const inTab = all.filter((item) => tab === "featured" || item.kind === tab || (tab === "name" && (item.kind === "name_color" || item.kind === "name_glow")))
   const shown = inTab
     .filter((item) => (!search.trim() || item.name.toLowerCase().includes(search.trim().toLowerCase())))
     // What you can still buy comes first, then what you own, then what is only earned.
@@ -162,7 +161,7 @@ export function ShopPage() {
           </div>
           <div className="flex min-w-0 flex-1 flex-col gap-2.5">
             <span className="flex items-baseline justify-between gap-2">
-              <span className="text-[13px] font-semibold text-[var(--text)]">Solid colours</span>
+              <span className="text-[13px] font-semibold text-[var(--text)]">{current.kind === "name_glow" ? "Solid glows" : "Solid colours"}</span>
               <span className="truncate text-[11px] text-[var(--text-dim)]">{current.name}</span>
             </span>
             <ul role="group" aria-label="Solid colours" className="flex flex-wrap gap-2">
@@ -222,6 +221,12 @@ export function ShopPage() {
     } finally {
       setBusy(false)
     }
+  }
+
+  /** A grid of cards; plain single colours (when `palette`) share one card with a swatch each. */
+  const grid = (list: ShopItem[], palette: boolean) => {
+    const solids = palette ? list.filter(isSolid) : []
+    return <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">{solids.length > 1 ? [solidPalette(solids), ...list.filter((item) => !solids.includes(item)).map(card)] : list.map(card)}</ul>
   }
 
   const buyBlock = (item: ShopItem) => {
@@ -302,7 +307,7 @@ export function ShopPage() {
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
         <PageTabs<ShopTab> ariaLabel="Shop sections" value={tab} onChange={setTab} options={TABS} />
-        {(tab === "featured" || tab === "frame" || tab === "name_color" || tab === "name_glow" || tab === "smoke_color") && (
+        {(tab === "featured" || tab === "frame" || tab === "name" || tab === "smoke_color") && (
           <PageBarEnd>
             <label className={cn(pageSearchClass, "max-md:hidden")}>
               <Search className="size-4 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />
@@ -335,7 +340,7 @@ export function ShopPage() {
               )}
               <section aria-label="Items">
                 <div className="mb-3 flex items-center gap-2 max-md:-mx-4 max-md:overflow-x-auto max-md:px-4 max-md:pb-1 max-md:scrollbar-hidden md:flex-wrap [&>*]:shrink-0">
-                  <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{tab === "featured" ? "All items" : TABS.find((entry) => entry.value === tab)?.label}</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{tab === "featured" ? "All items" : tab === "name" ? "" : TABS.find((entry) => entry.value === tab)?.label}</span>
                   <span className="flex-1" />
                   <Popover>
                     <PopoverTrigger asChild>
@@ -356,10 +361,14 @@ export function ShopPage() {
                     </PopoverContent>
                   </Popover>
                 </div>
-                {shown.length === 0 ? <p className="py-8 text-[13px] text-[var(--text-dim)]">Nothing here.</p> : <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">{(() => {
-                  const solids = tab === "name_color" || tab === "name_glow" || tab === "smoke_color" ? shown.filter(isSolid) : []
-                  return solids.length > 1 ? [solidPalette(solids), ...shown.filter((item) => !solids.includes(item)).map(card)] : shown.map(card)
-                })()}</ul>}
+                {shown.length === 0 ? <p className="py-8 text-[13px] text-[var(--text-dim)]">Nothing here.</p> : tab === "name" ? (
+                  <div className="flex flex-col gap-6">
+                    {([["name_color", "Colour"], ["name_glow", "Glow"]] as const).map(([kind, heading]) => {
+                      const list = shown.filter((item) => item.kind === kind)
+                      return list.length ? <div key={kind}><div className="mb-2.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{heading}</div>{grid(list, true)}</div> : null
+                    })}
+                  </div>
+                ) : grid(shown, tab === "smoke_color")}
               </section>
             </div>
             {rail}
