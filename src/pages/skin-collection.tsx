@@ -162,17 +162,7 @@ export function SkinCollectionPage() {
     window.setTimeout(() => { setShownSide(next); setLeaving(false) }, 180)
   }
   const shown = shownSide === "all" ? items : items.filter((item) => sideOf(item) === shownSide)
-  const sideLabel = (value: SideFilter) => {
-    if (value === "all") return "All items"
-    const name = value === "t" ? "T side" : value === "ct" ? "CT side" : "Both teams"
-    return (
-      <span className="inline-flex items-center gap-1">
-        {value !== "ct" && <TeamIcon side="t" className="size-[22px]" />}
-        {value !== "t" && <TeamIcon side="ct" className="size-[22px]" />}
-        <span className="sr-only">{name}</span>
-      </span>
-    )
-  }
+  const sideLabel = (value: SideFilter) => (value === "all" ? "All items" : value === "t" ? "T side" : value === "ct" ? "CT side" : "Both teams")
   const sideOptions: SegmentOption<SideFilter>[] = [
     { value: "all", label: "All items", count: items.length },
     ...(["t", "ct", "both"] as const).flatMap((value) => {
