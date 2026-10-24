@@ -219,14 +219,24 @@ export function ShopPage() {
         )}
         {rentable ? (
           <>
-            <div role="radiogroup" aria-label="How long" className="grid grid-cols-2 gap-1.5">
-              {COSMETIC_DURATIONS.map((length) => (
-                <button key={length.value} type="button" role="radio" aria-checked={duration === length.value} onClick={() => setDuration(length.value)} className={cn("flex flex-col items-start rounded-lg border px-2.5 py-1.5 text-left transition-colors", duration === length.value ? "border-[var(--text-2)] bg-[var(--raised)]" : "border-[var(--line)] hover:border-[var(--line-strong)]")}>
-                  <span className="text-[11px] text-[var(--text-dim)]">{length.label}</span>
-                  <span className="flex items-center gap-1 text-[13px] font-semibold text-[var(--text)]"><LxMark size={12} />{priceFor(item, length.value).toLocaleString()}</span>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button type="button" aria-label="How long" className="group flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-left text-[13px] transition-colors hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
+                  <span className="flex min-w-0 items-center gap-2"><span className="text-[var(--text-dim)]">For</span><span className="font-semibold text-[var(--text)]">{COSMETIC_DURATIONS.find((length) => length.value === duration)?.label}</span></span>
+                  <span className="flex items-center gap-2"><span className="flex items-center gap-1 font-semibold text-[var(--text)]"><LxMark size={12} />{priceFor(item).toLocaleString()}</span><ChevronDown className="size-3.5 text-[var(--text-dim)] transition-transform duration-200 group-data-[state=open]:rotate-180" /></span>
                 </button>
-              ))}
-            </div>
+              </PopoverTrigger>
+              <PopoverContent align="end" side="top" sideOffset={8} className="w-[var(--radix-popover-trigger-width)] min-w-[220px] rounded-xl border-[var(--line)] bg-[var(--panel)] p-1.5 shadow-[0_18px_44px_rgba(0,0,0,0.55)]">
+                <div role="radiogroup" aria-label="How long" className="flex flex-col">
+                  {COSMETIC_DURATIONS.map((length) => (
+                    <button key={length.value} type="button" role="radio" aria-checked={duration === length.value} onClick={() => setDuration(length.value)} className="flex h-9 items-center justify-between gap-3 rounded-lg px-2.5 text-left text-[13px] text-[var(--text-2)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)] aria-checked:text-[var(--text)]">
+                      <span className="flex items-center gap-2">{duration === length.value ? <Check className="size-3.5" aria-hidden="true" /> : <span className="size-3.5" aria-hidden="true" />}{length.label}</span>
+                      <span className="flex items-center gap-1 font-semibold"><LxMark size={12} />{priceFor(item, length.value).toLocaleString()}</span>
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
             {balance !== null && (
               <div className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">
                 <span className="flex justify-between"><span>Your LX</span><span>{balance.toLocaleString()}</span></span>
