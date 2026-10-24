@@ -231,9 +231,9 @@ export function ShopPage() {
   }
 
   const railBody = (
-    <div className="overflow-hidden rounded-[14px] border border-[var(--line)] bg-[var(--card-surface)]">
-        <div className="flex items-center justify-between border-b border-[var(--line-soft)] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]"><span>See it everywhere</span><span className="normal-case tracking-normal">{selected?.name}</span></div>
-        <div className="flex flex-col gap-3 p-3.5">
+    <div className="flex min-h-0 flex-col overflow-hidden rounded-[14px] border border-[var(--line)] bg-[var(--card-surface)] lg:max-h-[calc(100dvh-11rem)]">
+        <div className="flex shrink-0 items-center justify-between border-b border-[var(--line-soft)] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]"><span>See it everywhere</span><span className="normal-case tracking-normal">{selected?.name}</span></div>
+        <div className="scrollbar-hidden flex min-h-0 flex-col gap-3 overflow-y-auto p-3.5">
           {selected?.kind === "smoke_color" && (
             <Context label="In game">
               <div className="flex items-center justify-center py-1"><SmokePuff color={selected.color} className="w-[220px]" /></div>
@@ -252,12 +252,12 @@ export function ShopPage() {
             <div className="flex items-center gap-2.5"><FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={46} /><span {...nameProps(previewLook, "min-w-0 flex-1 truncate text-[13px] font-medium text-[var(--text)]")}>{username}</span></div>
           </Context></div>
         </div>
-        {selected && buyBlock(selected)}
+        {selected && <div className="shrink-0">{buyBlock(selected)}</div>}
       </div>
   )
 
   const rail = (
-    <aside className="scrollbar-hidden hidden flex-col gap-3 self-start lg:sticky lg:top-6 lg:flex lg:max-h-[calc(100dvh-8rem)] lg:overflow-y-auto">
+    <aside className="scrollbar-hidden hidden flex-col gap-3 self-start lg:sticky lg:top-6 lg:flex">
       {railBody}
     </aside>
   )
