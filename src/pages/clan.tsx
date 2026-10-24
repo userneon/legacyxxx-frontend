@@ -1,3 +1,4 @@
+import { Reveal } from "@/components/reveal"
 import { createPortal } from "react-dom"
 import { useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -219,7 +220,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
 
       <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
         <div className="flex flex-col gap-4 px-6 pb-4 pt-4">
-          {invites.length > 0 && !mine && <Invitations invites={invites} onChanged={changed} />}
+          {invites.length > 0 && !mine && <Reveal><Invitations invites={invites} onChanged={changed} /></Reveal>}
 
           {!mineKnown && tab === "appearance" ? null : mine && tab === "appearance" ? (
             <ClanAppearancePanel clanId={String(mine.clan.id)} tag={mine.clan.tag} leader={mine.role === "leader"} />
@@ -686,6 +687,7 @@ function JoinRequests({ clanId, onAccepted }: { clanId: string; onAccepted: () =
     }
   }
   return (
+    <Reveal>
     <section className="flex flex-col gap-3">
       <h2 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-dim)]"><UserPlus className="size-3.5" aria-hidden="true" /> Join requests · {requests.length}</h2>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -707,6 +709,7 @@ function JoinRequests({ clanId, onAccepted }: { clanId: string; onAccepted: () =
         ))}
       </div>
     </section>
+    </Reveal>
   )
 }
 

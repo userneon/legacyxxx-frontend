@@ -23,10 +23,12 @@ const CONTAINS = [
 
 export function FounderPack() {
   const { user } = useAuth()
-  const { data: products, refetch } = useApiQuery<GoodsProduct[]>((signal) => shopGoodsService.products({ signal }), { queryKey: "shop-goods" })
+  const { data: products, loading: productsLoading, refetch } = useApiQuery<GoodsProduct[]>((signal) => shopGoodsService.products({ signal }), { queryKey: "shop-goods" })
   const { data: orders, refetch: refetchOrders } = useApiQuery<GoodsOrder[]>((signal) => shopGoodsService.myOrders({ signal }), { enabled: Boolean(user), queryKey: user ? `shop-orders:${user.id}` : "shop-orders:guest" })
   const [picked, setPicked] = useState<GoodsProduct | null>(null)
   const pack = (products ?? []).find((product) => product.kind === "founder" && product.founder)
+  // Same height as the card while the shop loads, so the items below do not jump down when it appears.
+  if (!products && productsLoading) return <div aria-hidden="true" className="h-[460px] animate-pulse rounded-2xl border border-[var(--line-soft)] bg-[var(--card-surface)]" />
   if (!pack?.founder) return null
   const info = pack.founder
   const mine = (orders ?? []).find((order) => order.productKind === "founder" && order.status !== "cancelled")

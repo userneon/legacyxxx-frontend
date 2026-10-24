@@ -1,4 +1,5 @@
 /** The LEGACY-X Discord: how to join, how to link your account, and what the server's bot does. Live counts only when the server widget is on. */
+import { Reveal } from "@/components/reveal"
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { ArrowUpRight, BellRing, CircleCheck, X, Link2, Mic, Scale, ScrollText, Search, ShieldAlert, Trophy, Megaphone } from "lucide-react"
@@ -143,6 +144,7 @@ export function DiscordPage() {
         </section>
 
         {linked && (
+          <Reveal>
           <section className={card} aria-label="Pings">
             <div className="flex items-center gap-3">
               <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]"><BellRing className="size-[18px]" /></span>
@@ -166,6 +168,7 @@ export function DiscordPage() {
             </ul>
             {pings.error && !pings.data && <p className="mt-3 text-[13px] text-[var(--text-dim)]">Could not load your pings. <button type="button" onClick={pings.refetch} className="text-[var(--text-2)] underline-offset-4 hover:underline">Retry</button></p>}
           </section>
+          </Reveal>
         )}
 
         <section aria-label="What the server does">

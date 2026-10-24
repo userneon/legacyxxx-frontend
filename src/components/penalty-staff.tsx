@@ -1,3 +1,4 @@
+import { Reveal } from "@/components/reveal"
 import { PlayerPicker } from "@/components/player-picker"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
@@ -112,6 +113,7 @@ export function LiftRequests({ access, onDecided }: { access: ModerationAccess; 
     }
   }
   return (
+    <Reveal>
     <section aria-label="Unban requests" className="flex flex-col gap-3">
       <h2 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-dim)]">Unban requests · {requests.length}</h2>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -133,6 +135,7 @@ export function LiftRequests({ access, onDecided }: { access: ModerationAccess; 
         ))}
       </div>
     </section>
+    </Reveal>
   )
 }
 

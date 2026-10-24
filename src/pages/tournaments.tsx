@@ -708,14 +708,17 @@ function ErrorLine({ onRetry }: { onRetry: () => void }) {
 function DetailSkeleton() {
   return (
     <div className="flex flex-col gap-5" aria-hidden="true">
-      <div className={cn(card, "flex flex-col gap-4 p-6")}>
+      {/* Shaped like the loaded page (hero, tabs, two columns), so nothing jumps when the data arrives. */}
+      <div className={cn(card, "flex min-h-[272px] flex-col justify-end gap-4 p-6")}>
         <Skeleton className="h-6 w-36 rounded-full bg-[var(--raised)]" />
-        <Skeleton className="h-5 w-80 max-w-full rounded-full bg-[var(--line-strong)]" />
-        <Skeleton className="h-2.5 w-44 rounded-full bg-[var(--line-soft)]" />
+        <Skeleton className="h-7 w-96 max-w-full rounded-full bg-[var(--line-strong)]" />
+        <Skeleton className="h-2.5 w-72 max-w-full rounded-full bg-[var(--line-soft)]" />
+        <Skeleton className="h-14 w-[420px] max-w-full rounded-xl bg-[var(--line-soft)]" />
       </div>
+      <Skeleton className="h-8 w-72 rounded-lg bg-[var(--glass-fill)]" />
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <Skeleton className="h-64 rounded-xl bg-[var(--glass-fill)]" />
-        <Skeleton className="h-48 rounded-xl bg-[var(--glass-fill)]" />
+        <Skeleton className="h-[300px] rounded-xl bg-[var(--glass-fill)]" />
+        <Skeleton className="h-[140px] rounded-xl bg-[var(--glass-fill)]" />
       </div>
     </div>
   )

@@ -13,8 +13,8 @@ export function PageBar({ children, className }: { children: ReactNode; classNam
 }
 
 /** Controls that sit on the right of a {@link PageBar}. */
-export function PageBarEnd({ children }: { children: ReactNode }) {
-  return <div className="ml-auto flex flex-wrap items-center gap-x-4 gap-y-2 py-2">{children}</div>
+export function PageBarEnd({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={cn("ml-auto flex min-h-[52px] flex-wrap items-center gap-x-4 gap-y-2 py-2", className)}>{children}</div>
 }
 
 /** Search field for a {@link PageBar}. */
