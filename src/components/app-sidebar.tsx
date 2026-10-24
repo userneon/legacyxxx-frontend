@@ -1,3 +1,4 @@
+import type React from "react"
 import { useEffect, useState, type ComponentType } from "react"
 import { ArrowLeftRight, Gem, DoorOpen, Swords, MountainSnow, Scale, ScrollText, Telescope, Users, Lock, PanelLeft, ChevronDown, ShieldCheck, Clapperboard } from "lucide-react"
 
@@ -13,6 +14,7 @@ import { Sidebar, SidebarContent, useSidebar } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
 import { setSkinchangerView, useSkinchangerView, type SkinchangerView } from "@/lib/skinchanger-view"
 import { KnifeIcon } from "@/components/knife-icon"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface AppSidebarProps {
   currentPage: PageId
@@ -78,6 +80,19 @@ function labelClass(collapsed: boolean) {
   )
 }
 
+/** On the icon rail the labels are hidden, so the row names itself in a tooltip to the right; expanded, it is a plain row. */
+function RailTip({ label, show, children }: { label: string; show: boolean; children: React.ReactElement }) {
+  if (!show) return children
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipContent side="right" sideOffset={10} className="rounded-lg border border-[var(--line-strong)] px-2.5 py-1.5 text-[12px] font-semibold text-[var(--text)] shadow-[0_8px_24px_rgba(0,0,0,0.5)] duration-150 [--tooltip-bg:var(--card-surface)]">
+        {label}
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
 export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
   const { state, toggleSidebar, isMobile } = useSidebar()
   const collapsed = state === "collapsed" && !isMobile
@@ -115,7 +130,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
             <img src="/logolegacyx.webp" alt="" aria-hidden="true" className="size-6 shrink-0 drop-" />
             <span>LEGACY-<span className="text-[var(--brand-bright)]">X</span></span>
           </span>
-          <button
+<RailTip label="Open sidebar" show={collapsed}><button
             type="button"
             onClick={toggleSidebar}
             aria-expanded={!collapsed}
@@ -123,21 +138,21 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
             className="flex size-8 shrink-0 items-center justify-center rounded-lg text-[var(--text-muted)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
           >
             <PanelLeft className="size-[18px]" />
-          </button>
+          </button></RailTip>
         </div>
 
         <nav aria-label="Main" className="flex flex-col gap-0.5">
           <div className="relative">
-            <button type="button" onClick={() => onNavigate("home")} aria-label="Home" className={cn(rowClass, isActive("home") && activeRowClass)}>
+            <RailTip label="Home" show={collapsed}><button type="button" onClick={() => onNavigate("home")} aria-label="Home" className={cn(rowClass, isActive("home") && activeRowClass)}>
               <DoorOpen className="size-[18px] shrink-0" />
               <span className={labelClass(collapsed)}>Home</span>
-            </button>
+            </button></RailTip>
           </div>
 
           {PLAY_ITEMS.length > 0 && (
             <>
               <div className="relative">
-              <button
+<RailTip label="Play" show={collapsed}><button
                 type="button"
                 // On the icon rail there's no room for the submenu, so Play opens 5x5 directly.
                 onClick={() => (collapsed ? onNavigate(PLAY_ITEMS[0].id) : setPlayOpen((open) => !open))}
@@ -157,7 +172,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                   )}
                 />
                 {collapsed && anyoneOnline && <span aria-hidden="true" className="absolute right-2 top-2 size-1.5 rounded-full bg-[var(--status-green)]" />}
-              </button>
+              </button></RailTip>
               </div>
 
               {/* The submenu folds away (collapsed rail, or closed) instead of appearing and disappearing. */}
@@ -205,7 +220,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
               return (
                 <div key={item.id} className="flex flex-col gap-0.5">
                   <div className="relative">
-                    <button
+<RailTip label={item.label} show={collapsed}><button
                       type="button"
                       onClick={() => { if (collapsed || !isActive("skinchanger")) onNavigate("skinchanger"); if (!collapsed) setSkinOpen((was) => (isActive("skinchanger") ? !was : true)) }}
                       aria-label={item.label}
@@ -215,7 +230,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                       <item.icon className="size-[18px] shrink-0" />
                       <span className={cn(labelClass(collapsed), "flex-1")}>{item.label}</span>
                       <ChevronDown aria-hidden="true" className={cn("size-4 shrink-0 text-[var(--text-dim)] transition-[rotate,opacity] duration-300 motion-reduce:transition-none", EASE, skinOpen && "rotate-180", collapsed ? "opacity-0" : "opacity-100")} />
-                    </button>
+                    </button></RailTip>
                   </div>
                   <div className={cn("grid transition-[grid-template-rows,opacity] duration-300 motion-reduce:transition-none", EASE, open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")} inert={!open || undefined}>
                     <div className="overflow-hidden">
@@ -234,19 +249,19 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
             if (item.id === "staff") {
               return (
                 <div key={item.id} className="relative">
-                  <a href={ADMIN_URL} aria-label={item.label} className={rowClass}>
+                  <RailTip label={item.label} show={collapsed}><a href={ADMIN_URL} aria-label={item.label} className={rowClass}>
                     <item.icon className="size-[18px] shrink-0" />
                     <span className={labelClass(collapsed)}>{item.label}</span>
-                  </a>
+                  </a></RailTip>
                 </div>
               )
             }
             return (
               <div key={item.id} className="relative">
-                <button type="button" onClick={() => onNavigate(item.id)} aria-label={item.label} className={cn(rowClass, isActive(item.id) && activeRowClass)}>
+                <RailTip label={item.label} show={collapsed}><button type="button" onClick={() => onNavigate(item.id)} aria-label={item.label} className={cn(rowClass, isActive(item.id) && activeRowClass)}>
                   <item.icon className="size-[18px] shrink-0" />
                   <span className={labelClass(collapsed)}>{item.label}</span>
-                </button>
+                </button></RailTip>
               </div>
             )
           })}
