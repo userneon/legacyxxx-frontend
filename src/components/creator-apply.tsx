@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Check, Clapperboard, Clock } from "lucide-react"
 import { toast } from "sonner"
 
-import { creatorsService, CREATOR_PLATFORMS, type CreatorLinks, type MyCreatorApplication } from "@/api/creators"
+import { creatorLinkProblem, creatorsService, CREATOR_PLATFORMS, withHttps, type CreatorLinks, type CreatorPlatform, type MyCreatorApplication } from "@/api/creators"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
@@ -46,10 +46,15 @@ function ApplyDialog({ open, onOpenChange, onSent }: { open: boolean; onOpenChan
   const [bio, setBio] = useState("")
   const [links, setLinks] = useState<CreatorLinks>({})
   const [busy, setBusy] = useState(false)
-  const cleaned = Object.fromEntries(Object.entries(links).filter(([, url]) => url?.trim()).map(([key, url]) => [key, url!.trim()])) as CreatorLinks
+  const cleaned = Object.fromEntries(Object.entries(links).filter(([, url]) => url?.trim()).map(([key, url]) => [key, withHttps(url!)])) as CreatorLinks
   const ready = bio.trim().length >= BIO_MIN && Object.keys(cleaned).length > 0
 
   const send = async () => {
+    // Say which link is wrong before asking the server, whose answer is only "Validation failed".
+    for (const [platform, url] of Object.entries(cleaned) as Array<[CreatorPlatform, string]>) {
+      const problem = creatorLinkProblem(platform, url)
+      if (problem) { toast.error(problem); return }
+    }
     setBusy(true)
     try {
       await creatorsService.apply({ bio: bio.trim(), links: cleaned })

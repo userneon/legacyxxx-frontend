@@ -35,7 +35,9 @@ export function PublicChat() {
   const introIds = useRef<Set<string> | null>(null)
   const prevCount = useRef(0)
   const { data, loading, error, refetch } = useApiQuery<ChatMessage[]>((signal) => chatService.list({ signal }), { queryKey: "public-chat", keepPreviousData: true })
-  const messages = data ?? []
+  // Messages just removed disappear at once, even while the list on screen is a few seconds old.
+  const [gone, setGone] = useState<Set<string>>(new Set())
+  const messages = (data ?? []).filter((message) => !gone.has(message.id))
   const newest = messages[messages.length - 1]
 
   useEffect(() => {
@@ -90,10 +92,14 @@ export function PublicChat() {
   }, [text, busy, refetch])
 
   const remove = async (message: ChatMessage) => {
+    setGone((current) => new Set(current).add(message.id))
     try {
       await chatService.remove(message.id)
       refetch()
     } catch (caught) {
+      // "No such message" (404) means it is already gone, which is what was asked for.
+      if ((caught as { status?: number }).status === 404) { refetch(); return }
+      setGone((current) => { const next = new Set(current); next.delete(message.id); return next })
       toast.error((caught as { message?: string }).message ?? "Could not remove the message")
     }
   }

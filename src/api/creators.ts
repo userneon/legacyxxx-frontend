@@ -14,6 +14,39 @@ export const CREATOR_PLATFORMS: Array<{ id: CreatorPlatform; label: string; exam
   { id: "instagram", label: "Instagram", example: "https://instagram.com/name" },
 ]
 
+/** The hosts each platform's links may point to, as the API checks them. */
+const PLATFORM_HOSTS: Record<CreatorPlatform, string[]> = {
+  twitch: ["twitch.tv"],
+  youtube: ["youtube.com", "youtu.be"],
+  tiktok: ["tiktok.com"],
+  kick: ["kick.com"],
+  facebook: ["facebook.com", "fb.com", "fb.gg"],
+  instagram: ["instagram.com"],
+}
+
+/** What a player pasted, as the https link it means ("www.tiktok.com/@name" and "http://…" included). */
+export function withHttps(value: string): string {
+  const text = value.trim()
+  if (!text) return text
+  if (/^http:\/\//i.test(text)) return `https://${text.slice(7)}`
+  if (text.includes("://")) return text
+  return `https://${text.replace(/^\/+/, "")}`
+}
+
+/** The first problem with a channel link (null when it is fine): the platform's own address, not another site's. */
+export function creatorLinkProblem(platform: CreatorPlatform, value: string): string | null {
+  const label = CREATOR_PLATFORMS.find((entry) => entry.id === platform)?.label ?? platform
+  let host: string
+  try {
+    const url = new URL(withHttps(value))
+    if (url.protocol !== "https:") return `${label}: use an https link`
+    host = url.hostname.toLowerCase()
+  } catch {
+    return `${label}: that is not a link`
+  }
+  return PLATFORM_HOSTS[platform].some((allowed) => host === allowed || host.endsWith(`.${allowed}`)) ? null : `${label}: the link must be on ${PLATFORM_HOSTS[platform][0]}`
+}
+
 export interface Creator {
   userId: string
   steamId: string
