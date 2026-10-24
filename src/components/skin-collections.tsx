@@ -6,6 +6,7 @@ import { skinchangerService, type SkinCollection, type SkinCollectionDetailItem,
 import type { ApiError } from "@/api/types"
 import { QueryState } from "@/components/query-state"
 import { OptimizedImage } from "@/components/optimized-image"
+import { PlayerAvatar } from "@/components/player-avatar"
 import { PageTabs, pageSearchClass } from "@/components/page-tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
@@ -197,7 +198,7 @@ export function SkinCollections({ onApplied }: { onApplied: () => void }) {
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {collections.map((collection) => (
-            <article key={collection.id} className="lx-layer group flex flex-col gap-3 rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3 transition-colors duration-300 hover:border-[var(--line-strong)]">
+            <article key={collection.id} onClick={() => setViewing(collection)} className="lx-layer group flex cursor-pointer flex-col gap-3 rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3 transition-colors duration-300 hover:border-[var(--line-strong)]">
               <button type="button" onClick={() => setViewing(collection)} aria-label={`See everything in ${collection.name}`} className="grid grid-cols-4 gap-1.5 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
                 {(collection.itemCount > 4 ? collection.items.slice(0, 3) : collection.items).map((item, index) => {
                   const accent = item.rarity ? rarityStyles[item.rarity]?.accent : undefined
@@ -215,12 +216,13 @@ export function SkinCollections({ onApplied }: { onApplied: () => void }) {
               <div className="min-w-0">
                 <h3 className="truncate text-[15px] font-semibold text-[var(--text)]"><button type="button" onClick={() => setViewing(collection)} className="max-w-full truncate hover:underline focus-visible:outline-none focus-visible:underline">{collection.name}</button></h3>
                 <p className="mt-0.5 line-clamp-1 text-[13px] text-[var(--text-dim)]">{collection.description}</p>
-                <p className="mt-1.5 text-[11px] text-[var(--text-faint)]">
-                  by <span className="text-[var(--text-muted)]">{collection.author.username}</span> · {collection.itemCount} items · {daysAgo(collection.createdAt)}
+                <p className="mt-2 flex items-center gap-1.5 text-[11px] text-[var(--text-faint)]">
+                  <PlayerAvatar avatar={collection.author.avatar} name={collection.author.username} className="size-5 rounded-full" />
+                  <span className="min-w-0 truncate"><span className="text-[var(--text-muted)]">{collection.author.username}</span> · {collection.itemCount} items · {daysAgo(collection.createdAt)}</span>
                 </p>
               </div>
               <div className="mt-auto flex items-center gap-3 border-t border-[var(--line-soft)] pt-3">
-<button type="button" disabled={collection.mine} onClick={() => void toggleLike(collection)} aria-pressed={collection.liked} aria-label={collection.liked ? "Remove like" : "Like"} className={cn("inline-flex items-center gap-1.5 text-[13px] transition-colors enabled:hover:text-[var(--text)] disabled:cursor-default", collection.liked ? "text-[var(--text)]" : "text-[var(--text-dim)]")}>
+<button type="button" disabled={collection.mine} onClick={(event) => { event.stopPropagation(); void toggleLike(collection) }} aria-pressed={collection.liked} aria-label={collection.liked ? "Remove like" : "Like"} className={cn("inline-flex items-center gap-1.5 text-[13px] transition-colors enabled:hover:text-[var(--text)] disabled:cursor-default", collection.liked ? "text-[var(--text)]" : "text-[var(--text-dim)]")}>
                   <ThumbsUp className={cn("size-3.5", collection.liked && "fill-current")} />
                   {collection.likes}
                 </button>
@@ -229,11 +231,11 @@ export function SkinCollections({ onApplied }: { onApplied: () => void }) {
                   {collection.applies}
                 </span>
                 {collection.mine && (
-                  <button type="button" onClick={() => setRemoving(collection)} aria-label={`Remove ${collection.name}`} className="ml-auto inline-flex size-8 items-center justify-center rounded-lg text-[var(--text-dim)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)]">
+                  <button type="button" onClick={(event) => { event.stopPropagation(); setRemoving(collection) }} aria-label={`Remove ${collection.name}`} className="ml-auto inline-flex size-8 items-center justify-center rounded-lg text-[var(--text-dim)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)]">
                     <Trash2 className="size-4" />
                   </button>
                 )}
-                <button type="button" onClick={() => setTarget(collection)} className={cn("inline-flex h-8 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] font-medium text-[var(--text)] transition-colors hover:border-[var(--line-strong)]", !collection.mine && "ml-auto")}>
+                <button type="button" onClick={(event) => { event.stopPropagation(); setTarget(collection) }} className={cn("inline-flex h-8 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] font-medium text-[var(--text)] transition-colors hover:border-[var(--line-strong)]", !collection.mine && "ml-auto")}>
                   Apply
                 </button>
               </div>
@@ -255,8 +257,9 @@ export function SkinCollections({ onApplied }: { onApplied: () => void }) {
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <SheetTitle className="truncate text-lg font-bold tracking-[-0.2px] text-[var(--text)]">{viewing.name}</SheetTitle>
                   <SheetDescription className="text-[13px] text-[var(--text-dim)]">{viewing.description || "No description."}</SheetDescription>
-                  <p className="mt-1 text-[11px] text-[var(--text-faint)]">
-                    by <span className="text-[var(--text-muted)]">{viewing.author.username}</span> · {viewing.itemCount} items · {daysAgo(viewing.createdAt)} · {viewing.likes} likes · {viewing.applies} applies
+                  <p className="mt-1 flex items-center gap-1.5 text-[11px] text-[var(--text-faint)]">
+                    <PlayerAvatar avatar={viewing.author.avatar} name={viewing.author.username} className="size-5 rounded-full" />
+                    <span className="min-w-0"><span className="text-[var(--text-muted)]">{viewing.author.username}</span> · {viewing.itemCount} items · {daysAgo(viewing.createdAt)} · {viewing.likes} likes · {viewing.applies} applies</span>
                   </p>
                 </div>
                 <button type="button" onClick={() => setViewing(null)} aria-label="Close" className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] text-[var(--text-muted)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
