@@ -57,8 +57,11 @@ export function roleLabel(role: string) {
 const iconButton = "flex size-8 items-center justify-center rounded-lg text-[var(--text-dim)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)] disabled:opacity-50"
 
 /** The buttons next to a member: make or unmake a manager, hand the clan over, remove. Only what the viewer may do shows. */
-export function MemberControls({ clanId, member, viewerRole, onChanged }: { clanId: string; member: ClanMember; viewerRole: ClanRole | null; onChanged: () => void }) {
+export function MemberControls({ clanId, clanName, member, viewerRole, onChanged }: { clanId: string; clanName: string; member: ClanMember; viewerRole: ClanRole | null; onChanged: () => void }) {
   const [busy, setBusy] = useState(false)
+  // Handing the clan over is only allowed after typing the clan's name.
+  const [handing, setHanding] = useState(false)
+  const [typed, setTyped] = useState("")
   const target = member.role as ClanRole
   if (target === "leader" || !viewerRole || viewerRole === "member") return null
   const mayRemove = viewerRole === "leader" || target === "member"
@@ -81,9 +84,24 @@ export function MemberControls({ clanId, member, viewerRole, onChanged }: { clan
           <button type="button" disabled={busy} aria-label={target === "co-leader" ? `Make ${member.name} a member` : `Make ${member.name} a manager`} title={target === "co-leader" ? "Remove manager" : "Make manager"} onClick={() => void run(() => clansService.setRole(clanId, member.id, target === "co-leader" ? "member" : "co-leader"), target === "co-leader" ? `${member.name} is a member again` : `${member.name} is a manager`)} className={iconButton}>
             <Crown className="size-4" aria-hidden="true" />
           </button>
-          <button type="button" disabled={busy} aria-label={`Hand the clan to ${member.name}`} title="Make leader" onClick={() => { if (window.confirm(`Hand the clan to ${member.name}? You become a co-leader.`)) void run(() => clansService.transfer(clanId, member.id), `${member.name} leads the clan now`) }} className={iconButton}>
+          <button type="button" disabled={busy} aria-label={`Hand the clan to ${member.name}`} title="Make leader" onClick={() => { setTyped(""); setHanding(true) }} className={iconButton}>
             <Send className="size-4" aria-hidden="true" />
           </button>
+          <Dialog open={handing} onOpenChange={setHanding}>
+            <DialogContent className="rounded-2xl">
+              <DialogHeader>
+                <DialogTitle>Hand the clan to {member.name}?</DialogTitle>
+                <DialogDescription>{member.name} becomes the leader and you become a manager. Type <b className="text-[var(--text)]">{clanName}</b> to confirm.</DialogDescription>
+              </DialogHeader>
+              <form className="flex flex-col gap-3" onSubmit={(event) => { event.preventDefault(); if (typed.trim().toLowerCase() === clanName.trim().toLowerCase()) { setHanding(false); void run(() => clansService.transfer(clanId, member.id), `${member.name} leads the clan now`) } }}>
+                <Input value={typed} onChange={(event) => setTyped(event.target.value)} placeholder={clanName} aria-label="Clan name" autoComplete="off" autoFocus />
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => setHanding(false)}>Cancel</Button>
+                  <Button type="submit" disabled={busy || typed.trim().toLowerCase() !== clanName.trim().toLowerCase()}>Hand over</Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         </>
       )}
       {mayRemove && (

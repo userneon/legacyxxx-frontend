@@ -537,7 +537,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                               {member.description && <span className="line-clamp-1 text-[11px] text-[var(--text-faint)]">{member.description}</span>}
                             </span>
                           </button>
-                          {member.id !== user?.id && <MemberControls clanId={clanId} member={member} viewerRole={role} onChanged={() => void refetch()} />}
+                          {member.id !== user?.id && <MemberControls clanId={clanId} clanName={clan.name} member={member} viewerRole={role} onChanged={() => void refetch()} />}
                         </li>
                       )
                     })}
