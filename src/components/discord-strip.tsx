@@ -22,7 +22,7 @@ type DiscordWidget = {
 }
 
 /** Public Discord widget; null while loading, when no server ID is set or the widget is switched off. */
-function useDiscordWidget() {
+export function useDiscordWidget() {
   const [widget, setWidget] = useState<DiscordWidget | null>(null)
   useEffect(() => {
     if (!DISCORD_GUILD_ID) return

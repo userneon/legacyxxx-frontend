@@ -18,6 +18,7 @@ export const PAGE_ROUTES: Record<PageId, string> = {
   penalties: "/penalties",
   explore: "/explore",
   creators: "/creators",
+  discord: "/discord",
   feedback: "/reviews",
   profile: "/profile",
 }
@@ -44,6 +45,7 @@ export const PAGE_TITLES: Record<PageId, string> = {
   penalties: "Penalties",
   explore: "Explore",
   creators: "Creators",
+  discord: "Discord",
   feedback: "Reviews",
   profile: "Profile",
 }

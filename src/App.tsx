@@ -33,6 +33,7 @@ const ShopPage = lazy(() => import("@/pages/shop").then((module) => ({ default: 
 const WalletPage = lazy(() => import("@/pages/wallet").then((module) => ({ default: module.WalletPage })))
 const PenaltiesPage = lazy(() => import("@/pages/penalties").then((module) => ({ default: module.PenaltiesPage })))
 const ExplorePage = lazy(() => import("@/pages/explore").then((module) => ({ default: module.ExplorePage })))
+const DiscordPage = lazy(() => import("@/pages/discord").then((module) => ({ default: module.DiscordPage })))
 const CreatorsPage = lazy(() => import("@/pages/creators").then((module) => ({ default: module.CreatorsPage })))
 const FeedbackPage = lazy(() => import("@/pages/feedback").then((module) => ({ default: module.FeedbackPage })))
 const ConnectPage = lazy(() => import("@/pages/connect").then((module) => ({ default: module.ConnectPage })))
@@ -161,6 +162,7 @@ export function App() {
               <Route path="/settings" element={<Navigate to="/profile" state={{ tab: "settings" }} replace />} />
               <Route path="/explore" element={<ExplorePage onProfileNavigate={handleProfileNavigate} />} />
               <Route path="/creators" element={<CreatorsPage />} />
+              <Route path="/discord" element={<DiscordPage />} />
               <Route path="/search" element={<ExplorePage onProfileNavigate={handleProfileNavigate} />} />
               <Route path="/reviews" element={<FeedbackPage onProfileNavigate={handleProfileNavigate} />} />
               <Route path="/feedback" element={<FeedbackPage onProfileNavigate={handleProfileNavigate} />} />
