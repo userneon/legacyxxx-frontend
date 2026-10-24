@@ -25,7 +25,7 @@ const MANAGER_ACTIONS: ActionDef[] = [
   { type: "map_change", label: "Change map", icon: Map, needsMap: true },
   { type: "server_announcement", label: "Server announcement", icon: Megaphone, needsMessage: true },
   { type: "match_announcement", label: "Match announcement", icon: Megaphone, needsMessage: true },
-  { type: "hud_announcement", label: "HUD announcement", icon: MonitorUp, needsMessage: true },
+  { type: "hud_announcement", label: "Screen message", icon: MonitorUp, needsMessage: true },
   { type: "player_message", label: "Player message", icon: MonitorUp, needsPlayer: true, needsMessage: true },
 ]
 

@@ -7,7 +7,7 @@ export const ACTION_HINTS: Record<string, string> = {
   map_change: "Changes the map on the picked server to the map chosen above.",
   server_announcement: "Writes a message in the chat of the picked server for everyone.",
   match_announcement: "Writes a message to the players of the running match on the picked server.",
-  hud_announcement: "Shows a message on every player's screen (HUD) on the picked server.",
+  hud_announcement: "Shows a message on every player's screen, in the game's own alert line, on the picked server.",
   player_message: "Shows a private message on this one player's screen.",
   restart_all: "Restarts every game server. Players on them are dropped. Owner only; asks to confirm.",
   restart_server: "Restarts the picked server. Players on it are dropped. Owner only; asks to confirm.",
