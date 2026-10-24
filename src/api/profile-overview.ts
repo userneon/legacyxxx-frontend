@@ -81,7 +81,7 @@ export interface ProfileOverview {
   /** The linked Discord account boosts the LEGACY-X Discord server right now (shows a Booster mark). Absent from an older API. */
   discordBoosting?: boolean
   /** The clan the player is in (absent when the clan feature is off). */
-  clan?: { id: string; name: string; tag: string } | null
+  clan?: { id: string; number?: number | null; name: string; tag: string } | null
   /** Links the player shows on the profile (the Owner role). Absent or empty: nothing is shown. */
   links?: ProfileLink[] | null
   /** The respect count and whether the signed-in viewer gave one. Absent: no Respect button. */
