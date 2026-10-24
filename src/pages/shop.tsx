@@ -6,12 +6,12 @@ import { Check, ChevronDown, Lock, RotateCcw, Search, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
-import { cosmeticsService, type CosmeticKind, type Cosmetics, type FrameItem } from "@/api/cosmetics"
+import { COSMETIC_DURATIONS, cosmeticsService, type CosmeticDuration, type CosmeticKind, type Cosmetics, type FrameItem } from "@/api/cosmetics"
 import { clansService, walletService, type MyClanState, type Wallet } from "@/api"
 import { shopGoodsService, type GoodsProduct } from "@/api/shop-goods"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
-import { frameAccent, nameProps } from "@/lib/cosmetics"
+import { frameAccent, nameProps, timeLeft } from "@/lib/cosmetics"
 import { SmokePuff } from "@/components/smoke-puff"
 import { ShopClan } from "@/components/shop-clan"
 import { ShopGoods } from "@/components/shop-goods"
@@ -106,6 +106,9 @@ export function ShopPage() {
   const [sheetOpen, setSheetOpen] = useState(false)
   // The item bought a moment ago: its card rings once and the buy block turns into "Worn" with a fade.
   const [justBought, setJustBought] = useState<string | null>(null)
+  // How long the next purchase rents the item for; the price of each length is the API's.
+  const [duration, setDuration] = useState<CosmeticDuration>("30d")
+  const priceFor = (item: ShopItem, length: CosmeticDuration = duration) => item.prices?.[length] ?? item.price
 
   const all: ShopItem[] = useMemo(() => [
     ...(data?.frames ?? []).map((item) => ({ ...item, kind: "frame" as const })),
@@ -152,10 +155,10 @@ export function ShopPage() {
   const buy = async (item: ShopItem) => {
     setBusy(true)
     try {
-      await cosmeticsService.buy(item.id)
+      const bought = await cosmeticsService.buy(item.id, duration)
       window.dispatchEvent(new Event("legacyx:wallet-changed"))
       await cosmeticsService.equip(item.kind, item.id)
-      toast.success(`${item.name} is yours and now worn`)
+      toast.success(bought.expiresAt ? `${item.name} is yours for ${COSMETIC_DURATIONS.find((entry) => entry.value === duration)?.label.toLowerCase()} and now worn` : `${item.name} is yours for good and now worn`)
       await Promise.all([refetch(), refetchWallet()])
       setJustBought(item.id)
       window.setTimeout(() => setJustBought((current) => (current === item.id ? null : current)), 1400)
@@ -171,9 +174,9 @@ export function ShopPage() {
   const card = (item: ShopItem) => {
     const active = selected?.id === item.id
     const action = item.owned
-      ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--status-green)]"><Check className="size-3" />{worn[item.kind] === item.id ? "Worn" : "Owned"}</span>
+      ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--status-green)]"><Check className="size-3" />{worn[item.kind] === item.id ? "Worn" : "Owned"}{item.expiresAt ? <span className="font-medium text-[var(--text-dim)]"> · {timeLeft(item.expiresAt)}</span> : null}</span>
       : item.unlock === "coin"
-        ? <span className="inline-flex items-center gap-1 whitespace-nowrap text-sm font-bold text-[var(--text)]"><LxMark size={14} />{item.price.toLocaleString()}</span>
+        ? <span className="inline-flex items-center gap-1 whitespace-nowrap text-sm font-bold text-[var(--text)]"><span className="text-[11px] font-medium text-[var(--text-dim)]">from</span><LxMark size={14} />{priceFor(item, "1d").toLocaleString()}</span>
         : <span className="inline-flex items-center gap-1 text-xs text-[var(--text-dim)]"><Lock className="size-3" />Earned</span>
     return (
       <li key={item.id} className={cn("rounded-xl", justBought === item.id && "lx-bought")}>
@@ -200,32 +203,44 @@ export function ShopPage() {
   }
 
   const buyBlock = (item: ShopItem) => {
-    const afford = balance === null || balance >= item.price
     const isWorn = worn[item.kind] === item.id
+    // Yours for good: nothing to buy. Anything sold with LX that is not (not owned, or only rented) can be bought or extended.
+    const rentable = item.unlock === "coin" && !(item.owned && !item.expiresAt)
+    const cost = priceFor(item)
+    const afford = balance === null || balance >= cost
     return (
       <div className="flex flex-col gap-2.5 border-t border-[var(--line-soft)] px-4 py-3.5">
         <div className="flex items-baseline justify-between"><span className="text-[15px] font-semibold text-[var(--text)]">{item.name}</span><span className="flex items-center gap-1.5 text-xs text-[var(--text-dim)]"><RarityDots rarity={item.rarity ?? 1} />{RARITY_NAMES[item.rarity ?? 1]}</span></div>
-        {item.owned ? (
+        {item.owned && (
           <div key="owned" className={cn("flex flex-col gap-2.5", justBought === item.id && "lx-swap-in")}>
-            <p className="text-xs text-[var(--text-dim)]">{isWorn ? "You are wearing this." : "You own this. Wear it in Profile → Appearance."}</p>
+            <p className="text-xs text-[var(--text-dim)]">{isWorn ? "You are wearing this." : "You own this. Wear it in Profile → Appearance."}{item.expiresAt ? ` ${timeLeft(item.expiresAt).replace(/^./, (letter) => letter.toUpperCase())}.` : ""}</p>
             <button type="button" onClick={() => navigate("/profile", { state: { tab: "appearance" } })} className="inline-flex h-10 w-full items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-semibold text-[var(--text-2)] hover:border-[var(--line-strong)]">Open Appearance</button>
           </div>
-        ) : item.unlock === "coin" ? (
+        )}
+        {rentable ? (
           <>
+            <div role="radiogroup" aria-label="How long" className="grid grid-cols-2 gap-1.5">
+              {COSMETIC_DURATIONS.map((length) => (
+                <button key={length.value} type="button" role="radio" aria-checked={duration === length.value} onClick={() => setDuration(length.value)} className={cn("flex flex-col items-start rounded-lg border px-2.5 py-1.5 text-left transition-colors", duration === length.value ? "border-[var(--text-2)] bg-[var(--raised)]" : "border-[var(--line)] hover:border-[var(--line-strong)]")}>
+                  <span className="text-[11px] text-[var(--text-dim)]">{length.label}</span>
+                  <span className="flex items-center gap-1 text-[13px] font-semibold text-[var(--text)]"><LxMark size={12} />{priceFor(item, length.value).toLocaleString()}</span>
+                </button>
+              ))}
+            </div>
             {balance !== null && (
               <div className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">
                 <span className="flex justify-between"><span>Your LX</span><span>{balance.toLocaleString()}</span></span>
-                <span className="flex justify-between"><span>Price</span><span>− {item.price.toLocaleString()}</span></span>
-                <span className="flex justify-between border-t border-[var(--line-soft)] pt-2 text-[13px] font-semibold text-[var(--text)]"><span>After buying</span><span>{afford ? (balance - item.price).toLocaleString() : `${(item.price - balance).toLocaleString()} short`}</span></span>
+                <span className="flex justify-between"><span>Price</span><span>− {cost.toLocaleString()}</span></span>
+                <span className="flex justify-between border-t border-[var(--line-soft)] pt-2 text-[13px] font-semibold text-[var(--text)]"><span>After buying</span><span>{afford ? (balance - cost).toLocaleString() : `${(cost - balance).toLocaleString()} short`}</span></span>
               </div>
             )}
             <button type="button" disabled={busy} onClick={() => (afford ? void buy(item) : (setSheetOpen(false), navigate("/wallet/top-up")))} className="lx-primary-button inline-flex h-10 w-full items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-60">
-              {afford ? `Buy for ${item.price.toLocaleString()} LX` : `Top up ${(item.price - (balance ?? 0)).toLocaleString()} more LX`}
+              {afford ? `${item.owned ? "Extend" : "Buy"} for ${cost.toLocaleString()} LX` : `Top up ${(cost - (balance ?? 0)).toLocaleString()} more LX`}
             </button>
           </>
-        ) : (
+        ) : !item.owned ? (
           <p className="text-xs text-[var(--text-dim)]">{item.requirement || "Earned in game, not for sale."}</p>
-        )}
+        ) : null}
       </div>
     )
   }
@@ -303,7 +318,7 @@ export function ShopPage() {
                         <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[1px] text-[var(--text-2)]"><RarityDots rarity={item.rarity ?? 1} />{RARITY_NAMES[item.rarity ?? 1]} · Spotlight</span>
                         <span className="text-[28px] font-bold leading-tight text-[var(--text)]">{item.name}</span>
                         <span className="text-[13px] text-[var(--text-muted)]">{item.kind === "frame" ? "Avatar frame" : KIND_NAME[item.kind]} · {ownersLine(item, data?.players)}</span>
-                        <span className="mt-1 inline-flex items-center gap-2 text-[18px] font-bold text-[var(--text)]"><LxMark size={20} />{item.price.toLocaleString()}</span>
+                        <span className="mt-1 inline-flex items-center gap-2 text-[18px] font-bold text-[var(--text)]"><span className="text-[13px] font-medium text-[var(--text-dim)]">from</span><LxMark size={20} />{priceFor(item, "1d").toLocaleString()}</span>
                       </span>
                     </button>
                     {cheapest && (

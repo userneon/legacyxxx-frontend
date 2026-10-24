@@ -5,7 +5,7 @@ import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
 import { cosmeticsService, type CosmeticKind, type Cosmetics, type FrameItem } from "@/api/cosmetics"
-import { bannerClass, nameProps } from "@/lib/cosmetics"
+import { bannerClass, nameProps, timeLeft } from "@/lib/cosmetics"
 import { SmokePuff } from "@/components/smoke-puff"
 import { walletService, type Wallet } from "@/api"
 import { FramedAvatar } from "@/components/framed-avatar"
@@ -299,7 +299,7 @@ function Appearance() {
   }
   const note = (item: FrameItem) => {
     if (worn[kind] === item.id) return `You are wearing this ${noun}.`
-    if (item.owned) return item.unlock === "free" ? "Free for everyone." : `You own this ${noun}.`
+    if (item.owned) return item.unlock === "free" ? "Free for everyone." : item.expiresAt ? `You have this ${noun}: ${timeLeft(item.expiresAt)}.` : `You own this ${noun}.`
     if (item.unlock === "coin") {
       return `${item.price.toLocaleString()} LX in the Shop.`
     }
@@ -307,8 +307,8 @@ function Appearance() {
   }
   const badge = (item: FrameItem) => {
     if (worn[kind] === item.id) return <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[var(--status-green)]"><Check className="size-3" />Worn</span>
-    if (item.owned) return <span className="text-[10px] text-[var(--text-dim)]">{item.unlock === "free" ? "Free" : "Owned"}</span>
-    if (item.unlock === "coin") return <span className="text-[10px] font-medium text-[var(--text-2)]">{item.price.toLocaleString()} LX</span>
+    if (item.owned) return <span className="text-[10px] text-[var(--text-dim)]">{item.unlock === "free" ? "Free" : item.expiresAt ? timeLeft(item.expiresAt) : "Owned"}</span>
+    if (item.unlock === "coin") return <span className="text-[10px] font-medium text-[var(--text-2)]">from {(item.prices?.["1d"] ?? item.price).toLocaleString()} LX</span>
     return <span className="inline-flex items-center gap-1 text-[10px] text-[var(--text-dim)]"><Lock className="size-3" />Earned</span>
   }
   const sampleName = user?.username ?? "Player"

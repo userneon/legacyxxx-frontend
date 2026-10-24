@@ -134,3 +134,15 @@ export function backdropStyle(backdrop: { from: string; to: string } | null | un
 export function pageBackground(page: { from: string; to: string } | null | undefined): string | undefined {
   return page && HEX.test(page.from) && HEX.test(page.to) ? `radial-gradient(130% 80% at 50% 0%, ${page.from}, ${page.to} 78%)` : undefined
 }
+
+/** "3 days left", "5 h left", "under an hour left" for a rented cosmetic; empty for one that is yours for good. */
+export function timeLeft(expiresAt?: string | null, now = Date.now()) {
+  if (!expiresAt) return ""
+  const ms = Date.parse(expiresAt) - now
+  if (!(ms > 0)) return "ended"
+  const hours = ms / 3_600_000
+  if (hours < 1) return "under an hour left"
+  if (hours < 24) return `${Math.floor(hours)} h left`
+  const days = Math.floor(hours / 24)
+  return `${days} day${days === 1 ? "" : "s"} left`
+}

@@ -63,7 +63,7 @@ export function StaffCosmetics() {
                 ))}
               </div>
             </div>
-            <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Price (LX)<input className={input} type="number" min={0} disabled={edit.draft.unlock !== "coin"} value={edit.draft.price} onChange={(event) => setDraft({ price: Math.max(0, Math.floor(Number(event.target.value) || 0)) })} /></label>
+            <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Price for 30 days (LX)<input className={input} type="number" min={0} disabled={edit.draft.unlock !== "coin"} value={edit.draft.price} onChange={(event) => setDraft({ price: Math.max(0, Math.floor(Number(event.target.value) || 0)) })} /><span className="text-[11px] text-[var(--text-faint)]">1 day costs 25% of this, 7 days 60%, forever 300%.</span></label>
             <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Order in the list<input className={input} type="number" value={edit.draft.sort} onChange={(event) => setDraft({ sort: Math.floor(Number(event.target.value) || 0) })} /></label>
           </div>
           <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Line for earned items (how to get it)<input className={input} maxLength={80} value={edit.draft.requirement} onChange={(event) => setDraft({ requirement: event.target.value })} /></label>

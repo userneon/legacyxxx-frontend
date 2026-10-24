@@ -14,6 +14,16 @@ const RANKS: [number, string][] = [
   [4, "Recruit III"], [3, "Recruit II"], [2, "Recruit I"], [2, "Recruit I"], [1, "Recruit I"], [1, "Recruit I"],
 ]
 
+/** Every item sold with LX carries what each rental length costs, like the API's; what was bought runs out in a week. */
+function withRentals<T extends Record<string, unknown>>(cosmetics: T): T {
+  const rent = (list: unknown) => (Array.isArray(list) ? list.map((item) => {
+    const entry = item as { id: string; unlock: string; price: number; owned: boolean }
+    if (entry.unlock !== "coin") return item
+    const prices = { "1d": Math.round(entry.price * 0.25), "7d": Math.round(entry.price * 0.6), "30d": entry.price, forever: entry.price * 3 }
+    return { ...entry, prices, ...(entry.owned ? { expiresAt: new Date(Date.now() + 7 * 86_400_000).toISOString() } : {}) }
+  }) : list)
+  return Object.fromEntries(Object.entries(cosmetics).map(([key, value]) => [key, rent(value)])) as T
+}
 const mockFrameState = { equipped: null as string | null, nameColor: null as string | null, nameGlow: null as string | null, smoke: null as string | null, owned: new Set<string>() }
 function mockNameItems(kind: "color" | "glow"): Array<{ id: string; name: string; nameMn: string; unlock: "free" | "coin" | "achievement"; price: number; requirement: string; owned: boolean; rarity: number; featured: boolean; owners: number | null; color?: string; glow?: string; fx?: string }> {
   // [key, name, unlock, price, requirement, value, effect]
@@ -766,7 +776,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
       mockFrameState.owned.add(decodeURIComponent(path.split("/")[4]))
       return { owned: true }
     }
-    return { players: 8, equippedSmokeColor: mockFrameState.smoke, smokeColors: [["smoke-snow", "Snow", "free", 0, "#e5e5e5"], ["smoke-emerald", "Emerald", "coin", 200, "#10b981"], ["smoke-ice", "Ice", "coin", 200, "#38bdf8"], ["smoke-crimson", "Crimson", "coin", 200, "#e11d48"], ["smoke-violet", "Violet", "coin", 200, "#8b5cf6"], ["smoke-sunset", "Sunset", "coin", 250, "#f97316"]].map(([id, name, unlock, price, color], index) => ({ id, name, nameMn: name, unlock: unlock as "free" | "coin", price: price as number, requirement: "", owned: unlock === "free" || mockFrameState.owned.has(id as string), rarity: 1 + (index > 3 ? 1 : 0), color, owners: unlock === "free" ? null : 3 })), equippedFrame: mockFrameState.equipped, equippedNameColor: mockFrameState.nameColor, equippedNameGlow: mockFrameState.nameGlow, banners: [{ id: "banner-gold-foil", name: "Gold Foil", nameMn: "Алтан тугалга", unlock: "achievement" as const, price: 0, requirement: "Genesis pack", owned: mockIsFounder(), rarity: 4, featured: false, owners: 0, fx: "goldfoil" }], titles: [{ id: "title-founder", name: "Genesis", nameMn: "Genesis", unlock: "achievement" as const, price: 0, requirement: "Genesis pack", owned: mockIsFounder(), rarity: 4, featured: false, owners: 0 }], equippedBanner: mockIsFounder() ? "banner-gold-foil" : null, equippedTitle: mockIsFounder() ? "title-founder" : null, frames, nameColors: mockNameItems("color"), nameGlows: mockNameItems("glow") }
+    return withRentals({ players: 8, equippedSmokeColor: mockFrameState.smoke, smokeColors: [["smoke-snow", "Snow", "free", 0, "#e5e5e5"], ["smoke-emerald", "Emerald", "coin", 200, "#10b981"], ["smoke-ice", "Ice", "coin", 200, "#38bdf8"], ["smoke-crimson", "Crimson", "coin", 200, "#e11d48"], ["smoke-violet", "Violet", "coin", 200, "#8b5cf6"], ["smoke-sunset", "Sunset", "coin", 250, "#f97316"]].map(([id, name, unlock, price, color], index) => ({ id, name, nameMn: name, unlock: unlock as "free" | "coin", price: price as number, requirement: "", owned: unlock === "free" || mockFrameState.owned.has(id as string), rarity: 1 + (index > 3 ? 1 : 0), color, owners: unlock === "free" ? null : 3 })), equippedFrame: mockFrameState.equipped, equippedNameColor: mockFrameState.nameColor, equippedNameGlow: mockFrameState.nameGlow, banners: [{ id: "banner-gold-foil", name: "Gold Foil", nameMn: "Алтан тугалга", unlock: "achievement" as const, price: 0, requirement: "Genesis pack", owned: mockIsFounder(), rarity: 4, featured: false, owners: 0, fx: "goldfoil" }], titles: [{ id: "title-founder", name: "Genesis", nameMn: "Genesis", unlock: "achievement" as const, price: 0, requirement: "Genesis pack", owned: mockIsFounder(), rarity: 4, featured: false, owners: 0 }], equippedBanner: mockIsFounder() ? "banner-gold-foil" : null, equippedTitle: mockIsFounder() ? "title-founder" : null, frames, nameColors: mockNameItems("color"), nameGlows: mockNameItems("glow") })
   }
   if (path === "/api/v1/wallet/me") {
     if (!signedIn()) throw unauthorized()

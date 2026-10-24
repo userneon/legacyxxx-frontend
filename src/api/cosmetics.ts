@@ -1,5 +1,14 @@
 import { get, post, put, type CallOptions } from "./client"
 
+/** How long a bought cosmetic is rented for; "forever" is yours for good. */
+export type CosmeticDuration = "1d" | "7d" | "30d" | "forever"
+export const COSMETIC_DURATIONS: Array<{ value: CosmeticDuration; label: string }> = [
+  { value: "1d", label: "1 day" },
+  { value: "7d", label: "7 days" },
+  { value: "30d", label: "30 days" },
+  { value: "forever", label: "Forever" },
+]
+
 /** Avatar frames, name colours and name glows (backend GET /cosmetics). Purely visual: nothing here changes gameplay or EXP. */
 export interface FrameItem {
   id: string
@@ -7,7 +16,12 @@ export interface FrameItem {
   nameMn: string
   /** free: everyone; coin: bought once with LX; achievement: earned, never sold. */
   unlock: "free" | "coin" | "achievement"
+  /** The 30-day price. */
   price: number
+  /** The price of each rental length (items sold with LX). */
+  prices?: Record<CosmeticDuration, number>
+  /** When a rented item runs out (ISO); absent when it is yours for good. */
+  expiresAt?: string
   /** How an achievement frame is earned. */
   requirement: string
   owned: boolean
@@ -57,8 +71,8 @@ export const cosmeticsService = {
   async getMine(options?: CallOptions): Promise<Cosmetics> {
     return get<Cosmetics>("/api/v1/cosmetics", undefined, options)
   },
-  async buy(id: string, options?: CallOptions): Promise<{ owned: boolean }> {
-    return post<{ owned: boolean }>(`/api/v1/cosmetics/${encodeURIComponent(id)}/buy`, undefined, options)
+  async buy(id: string, duration: CosmeticDuration = "30d", options?: CallOptions): Promise<{ owned: boolean; expiresAt: string | null }> {
+    return post<{ owned: boolean; expiresAt: string | null }>(`/api/v1/cosmetics/${encodeURIComponent(id)}/buy`, { duration }, options)
   },
   /** Wear one, or take it off with null. */
   async equip(kind: CosmeticKind, item: string | null, options?: CallOptions): Promise<{ kind: CosmeticKind; item: string | null }> {
