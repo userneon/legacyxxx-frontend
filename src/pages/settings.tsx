@@ -172,19 +172,21 @@ function Notifications() {
 
 type FrameFilter = "all" | "mine" | "earned"
 
-const KINDS: Array<{ value: CosmeticKind; label: string; noun: string }> = [
-  { value: "frame", label: "Frames", noun: "frame" },
-  { value: "name_color", label: "Name colour", noun: "colour" },
-  { value: "name_glow", label: "Name glow", noun: "glow" },
-  { value: "banner", label: "Banner", noun: "banner" },
-  { value: "title", label: "Title", noun: "title" },
-  { value: "smoke_color", label: "Smoke colour", noun: "smoke colour" },
-  { value: "grenade_trail", label: "Grenade trail", noun: "trail" },
-  { value: "grenade_light", label: "Grenade light", noun: "light" },
-  { value: "kill_effect", label: "Kill effect", noun: "kill effect" },
-  { value: "flash_effect", label: "Flash effect", noun: "flash effect" },
-  { value: "he_effect", label: "Explosion effect", noun: "explosion effect" },
+/** What can be worn, in two groups: what shows on the site, and what shows in game. The chips wrap, so every kind stays in reach. */
+const KINDS: Array<{ value: CosmeticKind; label: string; noun: string; group: "profile" | "game" }> = [
+  { value: "frame", label: "Frame", noun: "frame", group: "profile" },
+  { value: "name_color", label: "Name colour", noun: "colour", group: "profile" },
+  { value: "name_glow", label: "Name glow", noun: "glow", group: "profile" },
+  { value: "banner", label: "Banner", noun: "banner", group: "profile" },
+  { value: "title", label: "Title", noun: "title", group: "profile" },
+  { value: "smoke_color", label: "Smoke", noun: "smoke colour", group: "game" },
+  { value: "grenade_trail", label: "Trail", noun: "trail", group: "game" },
+  { value: "grenade_light", label: "Light", noun: "light", group: "game" },
+  { value: "flash_effect", label: "Flash", noun: "flash effect", group: "game" },
+  { value: "he_effect", label: "Explosion", noun: "explosion effect", group: "game" },
+  { value: "kill_effect", label: "Kill effect", noun: "kill effect", group: "game" },
 ]
+const KIND_GROUPS = [{ id: "profile", label: "Profile" }, { id: "game", label: "In game" }] as const
 
 function Appearance() {
   const { user } = useAuth()
@@ -253,7 +255,7 @@ function Appearance() {
   const sampleName = user?.username ?? "Player"
 
   return (
-    <Section id="appearance" index={0} title="Appearance" description="Frames, name styles, banners and titles. Cosmetic only." aside={saved.node}>
+    <Section id="appearance" index={0} title="Appearance" description="What you wear on the site and in game. Cosmetic only." aside={saved.node}>
       {loading ? (
         <div className="grid gap-4 md:grid-cols-[210px_minmax(0,1fr)]"><Skeleton className="h-[300px] rounded-[10px]" /><Skeleton className="h-[300px] rounded-[10px]" /></div>
       ) : error || !data ? (
@@ -278,8 +280,28 @@ function Appearance() {
             {balance !== null && <span className="text-[11px] text-[var(--text-dim)]">Your LX: <span className="font-semibold text-[var(--text-2)]">{balance.toLocaleString()}</span></span>}
           </div>
           <div className="flex min-w-0 flex-col gap-3">
+            <div role="radiogroup" aria-label="What to change" className="flex flex-col gap-2 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] p-2.5">
+              {KIND_GROUPS.map((group) => (
+                <div key={group.id} className="flex flex-wrap items-center gap-1.5">
+                  <span className="w-[64px] shrink-0 text-[10px] font-semibold uppercase tracking-wide text-[var(--text-faint)]">{group.label}</span>
+                  {KINDS.filter((entry) => entry.group === group.id).map((entry) => (
+                    <button
+                      key={entry.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={kind === entry.value}
+                      onClick={() => { setKind(entry.value); setFilter("all") }}
+                      className={cn("inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors", kind === entry.value ? "border-[var(--text-2)] bg-[var(--raised)] text-[var(--text)]" : "border-[var(--line)] text-[var(--text-dim)] hover:border-[var(--line-strong)] hover:text-[var(--text)]")}
+                    >
+                      {entry.label}
+                      {/* Something of this kind is worn now. */}
+                      {worn[entry.value] && <span aria-label="worn" className="size-1.5 rounded-full bg-[var(--status-green)]" />}
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
             <div className="flex flex-wrap items-center gap-3">
-              <Segmented<CosmeticKind> ariaLabel="What to change" size="sm" value={kind} onChange={(next) => { setKind(next); setFilter("all") }} options={KINDS.map(({ value, label }) => ({ value, label }))} />
               <Segmented<FrameFilter>
                 ariaLabel="Filter"
                 size="sm"
