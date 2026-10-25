@@ -45,6 +45,9 @@ const TABS: Array<{ value: ShopTab; label: string }> = [
 
 type ShopItem = FrameItem & { kind: ShopKind }
 
+/** What each trail and kill effect shape is called on a custom item's picker. */
+const SHAPE_LABEL: Record<string, string> = { line: "Line", dash: "Dash", double: "Double", helix: "Helix", comet: "Comet", ring: "Shockwave", pillar: "Pillar", burst: "Burst", spiral: "Spiral", lightning: "Thunder", halo: "Halo", crown: "Crown", cross: "Cross", xmark: "X", heart: "Heart", soul: "Soul" }
+
 
 
 /** What the item looks like: a frame around your picture, or your name painted with it. */
@@ -94,6 +97,10 @@ export function ShopPage() {
   const [sheetOpen, setSheetOpen] = useState(false)
   // The colour being tried on a custom item (name colour or glow) before it is saved.
   const [customDraft, setCustomDraft] = useState<Record<string, string>>({})
+  // The shape being tried on a custom trail or kill effect.
+  const [shapeDraft, setShapeDraft] = useState<Record<string, string>>({})
+  /** An in-game item as it would look with the colour and shape being tried on it. */
+  const tried = (item: ShopItem) => ({ color: customDraft[item.id] ?? item.color, fx: shapeDraft[item.id] ?? item.fx })
   // The item bought a moment ago: its card rings once and the buy block turns into "Worn" with a fade.
   const [justBought, setJustBought] = useState<string | null>(null)
   // How long the next purchase rents the item for; the price of each length is the API's.
@@ -222,12 +229,13 @@ export function ShopPage() {
     )
   }
 
-  const saveCustom = async (item: ShopItem, color: string) => {
+  const saveCustom = async (item: ShopItem) => {
     setBusy(true)
     try {
-      await cosmeticsService.saveCustom(item.id, color)
+      await cosmeticsService.saveCustom(item.id, customDraft[item.id] ?? (item.kind === "name_glow" ? item.glow : item.color) ?? "#8b5cf6", item.shapes ? shapeDraft[item.id] ?? item.fx : null)
       await refetch()
       setCustomDraft((current) => { const { [item.id]: _saved, ...rest } = current; return rest })
+      setShapeDraft((current) => { const { [item.id]: _saved, ...rest } = current; return rest })
       toast.success("Saved")
     } catch (caught) {
       toast.error("Could not save it", { description: caught instanceof Error ? caught.message : "Try again in a moment." })
@@ -250,11 +258,26 @@ export function ShopPage() {
     const afford = balance === null || balance >= cost
     return (
       <div className="flex flex-col gap-2.5 border-t border-[var(--line-soft)] px-4 py-3.5">
-        <span className="text-[15px] font-semibold text-[var(--text)]">{item.name}</span>
-        {item.custom && item.owned && (
+        <span className="flex items-baseline justify-between gap-2">
+          <span className="min-w-0 truncate text-[15px] font-semibold text-[var(--text)]">{item.name}</span>
+          {/* A real count from the API (players who own it now); nothing when nobody does yet. */}
+          {item.owners ? <span className="shrink-0 text-[11px] text-[var(--text-dim)]">{item.owners.toLocaleString()} {item.owners === 1 ? "player owns" : "players own"} it</span> : null}
+        </span>
+        {/* Anyone can try colours and shapes on; saving them needs the item. */}
+        {item.custom && (
           <div className="flex flex-col gap-2.5">
+            {item.shapes && (
+              <div role="radiogroup" aria-label="Shape" className="flex flex-wrap gap-1.5">
+                {item.shapes.map((shape) => {
+                  const active = (shapeDraft[item.id] ?? item.fx) === shape
+                  return <button key={shape} type="button" role="radio" aria-checked={active} onClick={() => setShapeDraft((current) => ({ ...current, [item.id]: shape }))} className={cn(pill(active), "aria-checked:border-[var(--brand)] aria-checked:text-[var(--text)]")}>{SHAPE_LABEL[shape] ?? shape}</button>
+                })}
+              </div>
+            )}
             <ColorRow label={item.kind === "name_glow" ? "Glow" : "Colour"} value={customDraft[item.id] ?? (item.kind === "name_glow" ? item.glow : item.color) ?? "#8b5cf6"} colors={PICK_COLORS} onChange={(next) => setCustomDraft((current) => ({ ...current, [item.id]: next }))} />
-            <button type="button" disabled={busy || !customDraft[item.id]} onClick={() => void saveCustom(item, customDraft[item.id])} className="lx-primary-button inline-flex h-9 items-center justify-center self-start rounded-lg px-4 text-xs font-semibold disabled:opacity-50">Save</button>
+            {item.owned
+              ? <button type="button" disabled={busy || (!customDraft[item.id] && !shapeDraft[item.id])} onClick={() => void saveCustom(item)} className="lx-primary-button inline-flex h-9 items-center justify-center self-start rounded-lg px-4 text-xs font-semibold disabled:opacity-50">Save</button>
+              : <p className="text-[11px] text-[var(--text-dim)]">Try it on here; buy it to keep your pick.</p>}
           </div>
         )}
         {item.owned && (
@@ -298,13 +321,13 @@ export function ShopPage() {
     <div className="lx-add-box relative flex min-h-0 flex-col overflow-hidden rounded-[14px] border lg:max-h-[calc(100dvh-11rem)]">
         <div className="scrollbar-hidden flex min-h-0 flex-col gap-3 overflow-y-auto p-3.5">
           {selected?.kind === "grenade_trail" ? (
-            <div className="relative flex items-center justify-center py-4"><GrenadeTrail key={selected.id} color={selected.color} shape={selected.fx} className="w-[220px]" /></div>
+            <div className="relative flex items-center justify-center py-4"><GrenadeTrail key={`${selected.id}${tried(selected).fx}`} color={tried(selected).color} shape={tried(selected).fx} className="w-[220px]" /></div>
           ) : selected?.kind === "kill_effect" ? (
-            <div className="relative flex items-center justify-center py-4"><KillEffect key={selected.id} color={selected.color} shape={selected.fx} className="w-[220px]" /></div>
+            <div className="relative flex items-center justify-center py-4"><KillEffect key={`${selected.id}${tried(selected).fx}`} color={tried(selected).color} shape={tried(selected).fx} className="w-[220px]" /></div>
           ) : selected?.kind === "grenade_light" ? (
-            <div className="relative flex items-center justify-center py-4"><GrenadeLight color={selected.color} className="w-[220px]" /></div>
+            <div className="relative flex items-center justify-center py-4"><GrenadeLight color={tried(selected).color} className="w-[220px]" /></div>
           ) : selected?.kind === "smoke_color" ? (
-            <div className="relative flex items-center justify-center py-4"><span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} /><SmokePuff color={selected.color} color2={selected.color2} className="w-[220px]" /></div>
+            <div className="relative flex items-center justify-center py-4"><span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} /><SmokePuff color={tried(selected).color} color2={selected.color2} className="w-[220px]" /></div>
           ) : (
             <div className="relative flex flex-col items-center gap-3 py-4">
               <span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} />
@@ -366,7 +389,8 @@ export function ShopPage() {
               )}
               <section aria-label="Items">
                 <div className="mb-3 flex items-center gap-2 max-md:-mx-4 max-md:overflow-x-auto max-md:px-4 max-md:pb-1 max-md:scrollbar-hidden md:flex-wrap [&>*]:shrink-0">
-                  <span className="lx-shop-heading">{tab === "featured" ? "All items" : tab === "name" || tab === "smoke_color" ? "" : TABS.find((entry) => entry.value === tab)?.label}</span>
+                  {/* Name and Grenades head each of their sections instead, so they get no empty heading here. */}
+                  {tab !== "name" && tab !== "smoke_color" && <span className="lx-shop-heading">{tab === "featured" ? "All items" : TABS.find((entry) => entry.value === tab)?.label}</span>}
                   <span className="flex-1" />
                   <Popover>
                     <PopoverTrigger asChild>
