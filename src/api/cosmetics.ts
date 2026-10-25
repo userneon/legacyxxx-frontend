@@ -44,7 +44,7 @@ export interface FrameItem {
   owners?: number | null
 }
 
-export type CosmeticKind = "frame" | "name_color" | "name_glow" | "banner" | "title" | "smoke_color" | "grenade_trail" | "grenade_light" | "kill_effect"
+export type CosmeticKind = "frame" | "name_color" | "name_glow" | "banner" | "title" | "smoke_color" | "grenade_trail" | "grenade_light" | "kill_effect" | "flash_effect"
 
 /** How a player's name is painted: plain colours from the API, never a style string. */
 export interface NameStyle {
@@ -66,6 +66,7 @@ export interface Cosmetics {
   equippedGrenadeTrail?: string | null
   equippedGrenadeLight?: string | null
   equippedKillEffect?: string | null
+  equippedFlashEffect?: string | null
   frames: FrameItem[]
   nameColors?: FrameItem[]
   nameGlows?: FrameItem[]
@@ -78,6 +79,7 @@ export interface Cosmetics {
   grenadeTrails?: FrameItem[]
   grenadeLights?: FrameItem[]
   killEffects?: FrameItem[]
+  flashEffects?: FrameItem[]
 }
 
 export const cosmeticsService = {
