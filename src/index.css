@@ -539,6 +539,10 @@ body::before {
 .lx-light-pulse { transform-origin: 100px 56px; animation: lx-light-pulse 1.8s ease-in-out infinite; }
 @keyframes lx-light-pulse { 50% { opacity: 0.75; transform: scale(0.94); } }
 @media (prefers-reduced-motion: reduce) { .lx-light-pulse { animation: none; } }
+/* What a trail leaves on its way (flares, sparks, stars) twinkles once the line is drawn. */
+.lx-trail-fx { animation: lx-trail-fx 1.6s ease-in-out 0.6s infinite both; }
+@keyframes lx-trail-fx { 0% { opacity: 0; } 30% { opacity: 1; } 70% { opacity: 0.55; } 100% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .lx-trail-fx { animation: none; } }
 .lx-kill-play { transform-box: fill-box; transform-origin: 50% 100%; animation: lx-kill-play 2.2s ease-out infinite; }
 /* Never fades out fully, so a row of cards always shows what each effect is. */
 @keyframes lx-kill-play { 0% { opacity: 0.45; transform: scale(0.8); } 12% { opacity: 1; transform: scale(1); } 55% { opacity: 1; } 80%, 100% { opacity: 0.45; } }
