@@ -1996,6 +1996,7 @@ body::before {
 .lx-tone[data-tone="green"] { --tone: var(--tone-green); }
 .lx-tone[data-tone="sky"] { --tone: var(--tone-sky); }
 .lx-tone[data-tone="violet"] { --tone: var(--tone-violet); }
+.lx-tone[data-tone="grey"] { --tone: var(--text-faint); }
 .lx-tone::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 2px; border-radius: inherit; border-bottom-left-radius: 0; border-bottom-right-radius: 0; background: var(--tone); opacity: 0.85; pointer-events: none; }
 .lx-tone:hover { border-color: color-mix(in oklab, var(--tone) 45%, var(--line-strong)); }
 .lx-tone .lx-tone-icon { color: var(--tone); background: color-mix(in oklab, var(--tone) 14%, transparent); border-color: color-mix(in oklab, var(--tone) 38%, transparent); }
