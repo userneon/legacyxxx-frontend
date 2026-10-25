@@ -15,7 +15,7 @@ export interface SiteSetting {
   updatedAt: string | null
 }
 
-export type CosmeticKindId = "frame" | "name_color" | "name_glow" | "banner" | "title" | "smoke_color" | "grenade_trail" | "grenade_light"
+export type CosmeticKindId = "frame" | "name_color" | "name_glow" | "banner" | "title" | "smoke_color" | "grenade_trail" | "grenade_light" | "kill_effect"
 export type CosmeticUnlock = "free" | "coin" | "achievement"
 
 /** A cosmetic as staff see it: what they may edit, and how many players own it. */
