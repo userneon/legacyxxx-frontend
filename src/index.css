@@ -540,7 +540,8 @@ body::before {
 @keyframes lx-light-pulse { 50% { opacity: 0.75; transform: scale(0.94); } }
 @media (prefers-reduced-motion: reduce) { .lx-light-pulse { animation: none; } }
 .lx-kill-play { transform-box: fill-box; transform-origin: 50% 100%; animation: lx-kill-play 2.2s ease-out infinite; }
-@keyframes lx-kill-play { 0% { opacity: 0; transform: scale(0.7); } 12% { opacity: 1; transform: scale(1); } 55% { opacity: 1; } 80%, 100% { opacity: 0; } }
+/* Never fades out fully, so a row of cards always shows what each effect is. */
+@keyframes lx-kill-play { 0% { opacity: 0.45; transform: scale(0.8); } 12% { opacity: 1; transform: scale(1); } 55% { opacity: 1; } 80%, 100% { opacity: 0.45; } }
 .lx-kill-ring { transform-box: fill-box; transform-origin: center; animation: lx-kill-ring 2.2s ease-out infinite both; }
 @keyframes lx-kill-ring { 0% { transform: scale(0.3); } 40%, 100% { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .lx-kill-play, .lx-kill-ring { animation: none; } }
