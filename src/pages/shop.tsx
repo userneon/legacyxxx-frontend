@@ -12,7 +12,7 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { frameAccent, nameProps, timeLeft } from "@/lib/cosmetics"
 import { SmokePuff } from "@/components/smoke-puff"
-import { GrenadeTrail } from "@/components/grenade-trail"
+import { GrenadeLight, GrenadeTrail } from "@/components/grenade-trail"
 import { ShopClan } from "@/components/shop-clan"
 import { ShopGoods } from "@/components/shop-goods"
 import { ColorRow, PICK_COLORS } from "@/components/color-row"
@@ -49,7 +49,8 @@ type ShopItem = FrameItem & { kind: ShopKind }
 function ItemArt({ item, avatar, username, size }: { item: ShopItem; avatar?: string; username: string; size: number }) {
   if (item.kind === "frame") return <FramedAvatar avatar={avatar} name={username} frame={item.id} size={size} />
   if (item.kind === "smoke_color") return <SmokePuff color={item.color} color2={item.color2} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
-  if (item.kind === "grenade_trail") return <GrenadeTrail color={item.color} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
+  if (item.kind === "grenade_trail") return <GrenadeTrail color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
+  if (item.kind === "grenade_light") return <GrenadeLight color={item.color} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   const look = item.kind === "name_color" ? { color: item.color ?? null, colorFx: item.fx ?? null } : { glow: item.glow ?? null, glowFx: item.fx ?? null }
   return <span {...nameProps(look, cn("font-bold text-[var(--text)]", size > 100 ? "max-w-full truncate text-[19px]" : "whitespace-nowrap text-[13px]"))}>{username}</span>
 }
@@ -102,13 +103,14 @@ export function ShopPage() {
     ...(data?.nameGlows ?? []).map((item) => ({ ...item, kind: "name_glow" as const })),
     ...(data?.smokeColors ?? []).map((item) => ({ ...item, kind: "smoke_color" as const })),
     ...(data?.grenadeTrails ?? []).map((item) => ({ ...item, kind: "grenade_trail" as const })),
+    ...(data?.grenadeLights ?? []).map((item) => ({ ...item, kind: "grenade_light" as const })),
   ], [data])
-  const worn = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null }
+  const worn = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null, grenade_light: data?.equippedGrenadeLight ?? null }
   const balance = wallet?.balance ?? null
   const username = user?.username ?? "Player"
 
   const featured = all.filter((item) => item.featured && item.unlock === "coin")
-  const inTab = all.filter((item) => tab === "featured" || item.kind === tab || (tab === "name" && (item.kind === "name_color" || item.kind === "name_glow")) || (tab === "smoke_color" && item.kind === "grenade_trail"))
+  const inTab = all.filter((item) => tab === "featured" || item.kind === tab || (tab === "name" && (item.kind === "name_color" || item.kind === "name_glow")) || (tab === "smoke_color" && (item.kind === "grenade_trail" || item.kind === "grenade_light")))
   const shown = inTab
     .filter((item) => (!search.trim() || item.name.toLowerCase().includes(search.trim().toLowerCase())))
     // What you can still buy comes first, then what you own, then what is only earned.
@@ -168,7 +170,7 @@ export function ShopPage() {
           </div>
           <div className="flex min-w-0 flex-1 flex-col gap-2.5">
             <span className="flex items-baseline justify-between gap-2">
-              <span className="text-[13px] font-semibold text-[var(--text)]">{current.kind === "name_glow" ? "Solid glows" : current.kind === "grenade_trail" ? "Trail colours" : current.kind === "smoke_color" ? "Smoke colours" : "Solid colours"}</span>
+              <span className="text-[13px] font-semibold text-[var(--text)]">{current.kind === "name_glow" ? "Solid glows" : current.kind === "grenade_trail" ? "Trail colours" : current.kind === "grenade_light" ? "Light colours" : current.kind === "smoke_color" ? "Smoke colours" : "Solid colours"}</span>
               <span className="truncate text-[11px] text-[var(--text-dim)]">{current.name}</span>
             </span>
             <ul role="group" aria-label="Solid colours" className="flex flex-wrap gap-2">
@@ -292,7 +294,9 @@ export function ShopPage() {
     <div className="lx-add-box relative flex min-h-0 flex-col overflow-hidden rounded-[14px] border lg:max-h-[calc(100dvh-11rem)]">
         <div className="scrollbar-hidden flex min-h-0 flex-col gap-3 overflow-y-auto p-3.5">
           {selected?.kind === "grenade_trail" ? (
-            <div className="relative flex items-center justify-center py-4"><GrenadeTrail key={selected.id} color={selected.color} className="w-[220px]" /></div>
+            <div className="relative flex items-center justify-center py-4"><GrenadeTrail key={selected.id} color={selected.color} shape={selected.fx} className="w-[220px]" /></div>
+          ) : selected?.kind === "grenade_light" ? (
+            <div className="relative flex items-center justify-center py-4"><GrenadeLight color={selected.color} className="w-[220px]" /></div>
           ) : selected?.kind === "smoke_color" ? (
             <div className="relative flex items-center justify-center py-4"><span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} /><SmokePuff color={selected.color} color2={selected.color2} className="w-[220px]" /></div>
           ) : (
@@ -386,7 +390,7 @@ export function ShopPage() {
                   </div>
                 ) : tab === "smoke_color" ? (
                   <div className="flex flex-col gap-6">
-                    {([["smoke_color", "Smoke"], ["grenade_trail", "Trail"]] as const).map(([kind, heading]) => {
+                    {([["smoke_color", "Smoke"], ["grenade_trail", "Trail"], ["grenade_light", "Light"]] as const).map(([kind, heading]) => {
                       const list = shown.filter((item) => item.kind === kind)
                       return list.length ? <div key={kind}><div className="lx-shop-heading mb-2.5">{heading}</div>{grid(list, true)}</div> : null
                     })}
