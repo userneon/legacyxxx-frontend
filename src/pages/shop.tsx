@@ -47,7 +47,7 @@ const TABS: Array<{ value: ShopTab; label: string }> = [
 type ShopItem = FrameItem & { kind: ShopKind }
 
 /** What each trail and kill effect shape is called on a custom item's picker. */
-const SHAPE_LABEL: Record<string, string> = { line: "Line", dash: "Dash", double: "Double", helix: "Helix", comet: "Comet", flare: "Flare", sparks: "Sparks", starfall: "Starfall", inferno: "Inferno", starburst: "Starburst", nova: "Nova", ring: "Shockwave", pillar: "Pillar", burst: "Burst", spiral: "Spiral", lightning: "Thunder", halo: "Halo", crown: "Crown", cross: "Cross", xmark: "X", heart: "Heart", soul: "Soul" }
+const SHAPE_LABEL: Record<string, string> = { line: "Line", dash: "Dash", double: "Double", helix: "Helix", comet: "Comet", zigzag: "Zigzag", flare: "Flare", sparks: "Sparks", starfall: "Starfall", inferno: "Inferno", starburst: "Starburst", nova: "Nova", ring: "Shockwave", pillar: "Pillar", burst: "Burst", spiral: "Spiral", lightning: "Thunder", halo: "Halo", crown: "Crown", cross: "Cross", xmark: "X", heart: "Heart", soul: "Soul" }
 
 
 

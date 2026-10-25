@@ -3,7 +3,7 @@ import { useId } from "react"
 import { cn } from "@/lib/utils"
 
 const HEX = /^#[0-9a-f]{6}$/i
-const SHAPES = new Set(["line", "dash", "double", "helix", "comet", "rainbow", "flare", "sparks", "starfall", "inferno"])
+const SHAPES = new Set(["line", "dash", "double", "helix", "comet", "rainbow", "zigzag", "flare", "sparks", "starfall", "inferno"])
 // Fixed spots along the arc (0 = hand, 1 = grenade) for the effects a trail leaves on its way, so the art never changes between renders.
 const ALONG = [0.38, 0.5, 0.62, 0.74, 0.86]
 // The thrown arc: a quadratic curve from the hand (left) to the grenade (right).
@@ -18,6 +18,9 @@ function point(t: number) {
   const c = t * t
   return { x: a * P0.x + b * P1.x + c * P2.x, y: a * P0.y + b * P1.y + c * P2.y }
 }
+
+/** A sharp triangle wave (-1..1) along the arc, seven zigs from hand to grenade. */
+const zigzag = (t: number) => 1 - Math.abs(((t * 7) % 2) - 1) * 2
 
 /** A strand beside the arc: offset along the curve's normal by `r * wave(t)` (a constant for "double", a sine for "helix"). */
 function strand(wave: (t: number) => number, r: number) {
@@ -37,7 +40,7 @@ function strand(wave: (t: number) => number, r: number) {
 }
 
 /**
- * A grenade's flight in the trail a player picked: the thrown arc in its colour and shape (line, dash, double, helix, comet, rainbow;
+ * A grenade's flight in the trail a player picked: the thrown arc in its colour and shape (line, dash, double, helix, comet, rainbow, zigzag;
  * with effects on the way: flare drops glowing flares, sparks throws sparks, starfall scatters stars, inferno does all three),
  * fading out behind the grenade, which sits at its head. The line draws itself once (off for reduced motion). Colour and shape
  * come from the API as a plain #rrggbb and a short key (never a style string).
@@ -82,6 +85,12 @@ export function GrenadeTrail({ color, shape, className }: { color?: string | nul
         <>
           <path d={strand((t) => Math.sin(t * Math.PI * 9), 6.5)} {...common} strokeWidth="3.2" />
           <path d={strand((t) => -Math.sin(t * Math.PI * 9), 6.5)} {...common} strokeWidth="3.2" />
+        </>
+      )}
+      {kind === "zigzag" && (
+        <>
+          <path d={strand(zigzag, 8)} {...common} strokeWidth="3.2" strokeLinejoin="miter" />
+          <path d={strand((t) => -zigzag(t), 8)} {...common} strokeWidth="3.2" strokeLinejoin="miter" />
         </>
       )}
       {kind === "comet" && <path d={ARC} {...common} strokeWidth="12" />}
