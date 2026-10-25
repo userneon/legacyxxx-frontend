@@ -9,6 +9,10 @@ import type {
   ClanActivityLine,
   ClanJoinRequest,
   ClanRankEntry,
+  ClanBank,
+  ClanStats,
+  ClanWar,
+  ClanWarLadderEntry,
   MyClanState,
 } from "./types"
 
@@ -63,9 +67,41 @@ export const clansService = {
     return put<ClanDetail>(`/api/v1/clans/${clanId}/name`, payload, options)
   },
 
-  /** Leader only: buy more member places with LX (backend POST /clans/:id/slots). */
-  async buySlots(clanId: string, options?: CallOptions): Promise<ClanDetail> {
-    return post<ClanDetail>(`/api/v1/clans/${clanId}/slots`, {}, options)
+  /** Leader only: buy more member places with LX, from their own wallet or the clan bank (backend POST /clans/:id/slots). */
+  async buySlots(clanId: string, from: "wallet" | "bank" = "wallet", options?: CallOptions): Promise<ClanDetail> {
+    return post<ClanDetail>(`/api/v1/clans/${clanId}/slots`, from === "bank" ? { from } : {}, options)
+  },
+
+  /** Stats, achievements and level, from the members' real ranked matches. */
+  async getStats(clanId: string, options?: CallOptions): Promise<ClanStats> {
+    return get<ClanStats>(`/api/v1/clans/${clanId}/stats`, undefined, options)
+  },
+
+  /** Members only: the bank balance, who gave most and the latest moves. */
+  async getBank(clanId: string, options?: CallOptions): Promise<ClanBank> {
+    return get<ClanBank>(`/api/v1/clans/${clanId}/bank`, undefined, options)
+  },
+
+  async donate(clanId: string, amount: number, options?: CallOptions): Promise<{ balance: number }> {
+    return post<{ balance: number }>(`/api/v1/clans/${clanId}/bank/donate`, { amount }, options)
+  },
+
+  async getWars(clanId: string, options?: CallOptions): Promise<{ wars: ClanWar[]; war: ClanStats["progress"]["war"] }> {
+    return get<{ wars: ClanWar[]; war: ClanStats["progress"]["war"] }>(`/api/v1/clans/${clanId}/wars`, undefined, options)
+  },
+
+  /** Leader or co-leader: challenge another clan (by id or number) for a time and map. */
+  async challenge(clanId: string, payload: { opponent: string; map: string; scheduledAt: string; note?: string }, options?: CallOptions): Promise<{ id: string }> {
+    return post<{ id: string }>(`/api/v1/clans/${clanId}/wars`, payload, options)
+  },
+
+  async answerWar(clanId: string, warId: string, action: "accept" | "decline" | "cancel", options?: CallOptions): Promise<{ status: ClanWar["status"] }> {
+    return post<{ status: ClanWar["status"] }>(`/api/v1/clans/${clanId}/wars/${warId}/${action}`, {}, options)
+  },
+
+  async getWarLadder(options?: CallOptions): Promise<ClanWarLadderEntry[]> {
+    const response = await get<{ clans: ClanWarLadderEntry[] }>("/api/v1/clans/war-ladder", undefined, options)
+    return response.clans
   },
 
   /** Any player: the look items and which ones they own (buying needs no clan; wearing needs a clan you lead). */

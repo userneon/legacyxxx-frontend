@@ -1,0 +1,376 @@
+import { useMemo, useState } from "react"
+import { Check, Coins, Crosshair, Flame, Medal, RotateCcw, Shield, Swords, Trophy, Users, X } from "lucide-react"
+import { toast } from "sonner"
+
+import { clansService } from "@/api"
+import type { ClanCard, ClanDetail, ClanRole, ClanStatPerson, ClanStats, ClanWar } from "@/api/types"
+import { ClanMark } from "@/components/clan-mark"
+import { clanFailure } from "@/components/clan-manage"
+import { PlayerAvatar } from "@/components/player-avatar"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useApiQuery } from "@/hooks/use-api-query"
+import { CS2_MAP_KEYS, cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
+import { cn } from "@/lib/utils"
+
+export type ClanSection = "roster" | "stats" | "wars" | "bank"
+
+/** The clan page's own sections under its header: Roster, Stats, Wars, and the Bank for members. */
+export function ClanSectionTabs({ value, onChange, member }: { value: ClanSection; onChange: (next: ClanSection) => void; member: boolean }) {
+  const options: Array<{ value: ClanSection; label: string; Icon: typeof Users }> = [
+    { value: "roster", label: "Roster", Icon: Users },
+    { value: "stats", label: "Stats", Icon: Trophy },
+    { value: "wars", label: "Wars", Icon: Swords },
+    ...(member ? [{ value: "bank" as const, label: "Bank", Icon: Coins }] : []),
+  ]
+  return (
+    <div role="tablist" aria-label="Clan sections" className="flex gap-1 overflow-x-auto border-b border-[var(--line-soft)] scrollbar-hidden">
+      {options.map(({ value: option, label, Icon }) => (
+        <button key={option} type="button" role="tab" aria-selected={value === option} onClick={() => onChange(option)} className={cn("relative inline-flex h-10 shrink-0 items-center gap-2 px-3 text-[13px] font-medium transition-colors", value === option ? "text-[var(--text)]" : "text-[var(--text-dim)] hover:text-[var(--text)]")}>
+          <Icon className="size-4" aria-hidden="true" />
+          {label}
+          {value === option && <span aria-hidden="true" className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-[var(--accent-solid)]" />}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function Retry({ onRetry, text }: { onRetry: () => void; text: string }) {
+  return <p className="flex items-center gap-3 py-8 text-[13px] text-[var(--text-dim)]">{text}<button type="button" onClick={onRetry} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" aria-hidden="true" />Retry</button></p>
+}
+
+/** Level, XP to the next level and what the levels unlock. The fill is the EXP progress violet. */
+function LevelCard({ progress }: { progress: ClanStats["progress"] }) {
+  const span = progress.next === null ? 1 : progress.next - progress.floor
+  const done = progress.next === null ? 1 : (progress.xp - progress.floor) / span
+  return (
+    <section className="flex flex-col gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4">
+      <div className="flex items-center gap-4">
+        <span className={cn("grid size-14 shrink-0 place-items-center rounded-full border-2 text-[22px] font-bold", progress.level >= 15 ? "border-[var(--brand)] text-[var(--brand-bright)]" : progress.level >= 10 ? "border-[#fcd34d] text-[#fcd34d]" /* palette-exempt: gold level ring */ : progress.level >= 5 ? "border-[#d4d4d4] text-[var(--text)]" : "border-[var(--line-strong)] text-[var(--text)]")}>{progress.level}</span>
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <span className="flex items-baseline justify-between gap-2">
+            <span className="text-[15px] font-semibold">Level {progress.level}</span>
+            <span className="text-[11px] text-[var(--text-dim)]">{progress.next === null ? `${progress.xp.toLocaleString()} XP · top level` : `${progress.xp.toLocaleString()} / ${progress.next.toLocaleString()} XP`}</span>
+          </span>
+          <span className="h-2 overflow-hidden rounded-full bg-[var(--raised)]"><span className="block h-full rounded-full bg-[var(--brand)]" style={{ width: `${Math.round(Math.min(1, Math.max(0, done)) * 100)}%` }} /></span>
+          <span className="text-[11px] text-[var(--text-dim)]">Members earn XP for the clan in ranked matches (win 25, draw 15, loss 10) and Clan Wars (win 100, played 40).</span>
+        </div>
+      </div>
+      <ul className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
+        {progress.perks.map((perk) => (
+          <li key={perk.level} className={cn("flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-[11px]", perk.unlocked ? "border-[var(--line-strong)] text-[var(--text)]" : "border-[var(--line-soft)] text-[var(--text-faint)]")}>
+            {perk.unlocked ? <Check className="size-3.5 shrink-0 text-[var(--status-green)]" aria-hidden="true" /> : <span className="w-3.5 shrink-0 text-center font-semibold">{perk.level}</span>}
+            <span className="truncate">Level {perk.level}: {perk.perk}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+function Leader({ label, person, unit, onOpen }: { label: string; person: ClanStatPerson | null; unit: string; onOpen: (id: string) => void }) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3">
+      {person ? (
+        <button type="button" onClick={() => onOpen(person.steamId || person.id)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+          <PlayerAvatar avatar={person.avatar} name={person.name} className="size-10 shrink-0 rounded-[10px] text-sm" />
+          <span className="flex min-w-0 flex-col">
+            <span className="text-[11px] uppercase tracking-wide text-[var(--text-dim)]">{label}</span>
+            <span className="truncate text-[13px] font-semibold">{person.name}</span>
+            <span className="text-[11px] text-[var(--text-2)]">{person.value?.toLocaleString()} {unit}</span>
+          </span>
+        </button>
+      ) : (
+        <span className="flex flex-col"><span className="text-[11px] uppercase tracking-wide text-[var(--text-dim)]">{label}</span><span className="text-[13px] text-[var(--text-faint)]">No one yet</span></span>
+      )}
+    </div>
+  )
+}
+
+/** Totals, the clan's best players and achievements, all from the members' own ranked matches. */
+export function ClanStatsPanel({ clanId, onProfileNavigate }: { clanId: string; onProfileNavigate: (id: string) => void }) {
+  const { data, loading, error, refetch } = useApiQuery<ClanStats>((signal) => clansService.getStats(clanId, { signal }), { queryKey: `clan-stats:${clanId}` })
+  if (loading && !data) return <div className="flex flex-col gap-3"><Skeleton className="h-[150px] rounded-xl" /><Skeleton className="h-[72px] rounded-xl" /><Skeleton className="h-[200px] rounded-xl" /></div>
+  if (error || !data) return <Retry onRetry={refetch} text="Could not load the clan's stats." />
+  const t = data.totals
+  const cells: Array<[string, string]> = [["Matches", t.matches.toLocaleString()], ["Win rate", `${t.winRate}%`], ["Wins", t.wins.toLocaleString()], ["K/D", t.kd.toFixed(2)], ["Kills", t.kills.toLocaleString()], ["HS", `${t.headshotRate}%`], ["Aces", t.aces.toLocaleString()], ["Clutches", t.clutches.toLocaleString()]]
+  return (
+    <div className="flex flex-col gap-4">
+      <LevelCard progress={data.progress} />
+      <div className="lx-stat-grid grid-cols-2 sm:grid-cols-4">
+        {cells.map(([label, value]) => <div key={label} className="lx-stat-cell"><span className="lx-stat-label">{label}</span><span className="text-[22px] font-semibold leading-none">{value}</span></div>)}
+      </div>
+      {t.matches === 0 && <p className="text-[13px] text-[var(--text-dim)]">No ranked matches by members since they joined yet.</p>}
+      <section className="flex flex-col gap-2.5">
+        <h2 className="lx-shop-heading">Best players</h2>
+        <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+          <Leader label="MVP this week" person={data.leaders.weekMvp} unit="EXP" onOpen={onProfileNavigate} />
+          <Leader label="Most kills" person={data.leaders.kills} unit="kills" onOpen={onProfileNavigate} />
+          <Leader label="Best K/D" person={data.leaders.kd} unit="K/D" onOpen={onProfileNavigate} />
+          <Leader label="Most wins" person={data.leaders.wins} unit="wins" onOpen={onProfileNavigate} />
+        </div>
+      </section>
+      <section className="flex flex-col gap-2.5">
+        <h2 className="lx-shop-heading">Achievements</h2>
+        <ul className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+          {data.achievements.map((entry) => (
+            <li key={entry.id} className="flex items-center gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3">
+              <span className={cn("grid size-10 shrink-0 place-items-center rounded-[10px] border", entry.complete ? "border-[var(--line-strong)] text-[var(--text)]" : entry.tier > 0 ? "border-[var(--line)] text-[var(--text-2)]" : "border-[var(--line-soft)] text-[var(--text-faint)]")}><Medal className="size-4" aria-hidden="true" /></span>
+              <span className="flex min-w-0 flex-1 flex-col gap-1">
+                <span className="flex items-baseline justify-between gap-2"><span className="truncate text-[13px] font-semibold">{entry.title}</span><span className="shrink-0 text-[11px] text-[var(--text-dim)]">Tier {entry.tier}/{entry.tiers}</span></span>
+                <span className="h-1.5 overflow-hidden rounded-full bg-[var(--raised)]"><span className="block h-full rounded-full bg-[var(--accent-solid)]" style={{ width: `${entry.complete ? 100 : Math.round(Math.min(1, entry.value / entry.goal) * 100)}%` }} /></span>
+                <span className="text-[11px] text-[var(--text-dim)]">{entry.complete ? `Done · ${entry.value.toLocaleString()}` : `${entry.value.toLocaleString()} / ${entry.goal.toLocaleString()}`}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  )
+}
+
+const STATUS_LABEL: Record<ClanWar["status"], string> = { pending: "Waiting for an answer", accepted: "Accepted", declined: "Declined", cancelled: "Called off", finished: "Played", expired: "Expired" }
+
+function localInput(date: Date) {
+  const pad = (value: number) => String(value).padStart(2, "0")
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
+/** A leader or co-leader picks the clan, the map and the time. */
+function ChallengeForm({ clanId, onSent }: { clanId: string; onSent: () => void }) {
+  const [query, setQuery] = useState("")
+  const [opponent, setOpponent] = useState<ClanCard | null>(null)
+  const [map, setMap] = useState("de_mirage")
+  const [when, setWhen] = useState(() => localInput(new Date(Date.now() + 24 * 3600_000)))
+  const [note, setNote] = useState("")
+  const [busy, setBusy] = useState(false)
+  const { data: found } = useApiQuery<ClanCard[]>((signal) => clansService.getClans({ q: query.trim() || undefined, limit: 6 }, { signal }), { queryKey: `clan-war-search:${query.trim()}` })
+  const choices = (found ?? []).filter((clan) => clan.id !== clanId && String(clan.number) !== clanId)
+  const send = async () => {
+    if (!opponent) return
+    setBusy(true)
+    try {
+      await clansService.challenge(clanId, { opponent: opponent.id, map, scheduledAt: new Date(when).toISOString(), ...(note.trim() ? { note: note.trim() } : {}) })
+      toast.success(`Challenge sent to ${opponent.name}`)
+      setOpponent(null)
+      setNote("")
+      onSent()
+    } catch (failure) {
+      toast.error("Could not send it", { description: clanFailure(failure, "Try again in a moment.") })
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <section className="lx-add-box flex flex-col gap-4 rounded-xl border p-4">
+      <h2 className="flex items-center gap-2 text-[15px] font-semibold"><span className="lx-add-icon"><Swords className="size-4" aria-hidden="true" /></span>Challenge a clan</h2>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="war-clan">Clan</Label>
+        {opponent ? (
+          <div className="flex items-center gap-3 rounded-lg border border-[var(--line-strong)] p-2">
+            <ClanMark logo={opponent.logo} tag={opponent.tag} className="size-9 text-[11px]" />
+            <span className="min-w-0 flex-1 truncate text-[13px] font-semibold">{opponent.name} <span className="text-[var(--text-dim)]">[{opponent.tag}]</span></span>
+            <button type="button" aria-label="Pick another clan" onClick={() => setOpponent(null)} className="grid size-8 place-items-center rounded-lg text-[var(--text-dim)] hover:bg-[var(--raised)] hover:text-[var(--text)]"><X className="size-4" aria-hidden="true" /></button>
+          </div>
+        ) : (
+          <>
+            <Input id="war-clan" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search a clan by name" autoComplete="off" />
+            <ul className="grid gap-1.5 sm:grid-cols-2">
+              {choices.map((clan) => (
+                <li key={clan.id}>
+                  <button type="button" onClick={() => setOpponent(clan)} className="flex w-full items-center gap-2.5 rounded-lg border border-[var(--line)] p-2 text-left transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)]">
+                    <ClanMark logo={clan.logo} tag={clan.tag} className="size-8 text-[10px]" />
+                    <span className="min-w-0 flex-1 truncate text-[13px]">{clan.name} <span className="text-[var(--text-dim)]">[{clan.tag}]</span></span>
+                    <span className="text-[11px] text-[var(--text-dim)]">{clan.currentPlayers} members</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label>Map</Label>
+        <div role="radiogroup" aria-label="Map" className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
+          {CS2_MAP_KEYS.map((key) => (
+            <button key={key} type="button" role="radio" aria-checked={map === key} onClick={() => setMap(key)} className={cn("relative h-14 overflow-hidden rounded-lg border text-left transition-colors", map === key ? "border-[var(--brand)]" : "border-[var(--line)] hover:border-[var(--line-strong)]")}>
+              {cs2MapArtwork(key) && <img src={cs2MapArtwork(key) ?? ""} alt="" loading="lazy" className={cn("absolute inset-0 size-full object-cover", map === key ? "opacity-70" : "opacity-35")} />}
+              <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[var(--card-surface)] px-2 py-1 text-[11px] font-semibold">{cs2MapLabel(key)}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="war-when">When</Label>
+          <Input id="war-when" type="datetime-local" value={when} min={localInput(new Date(Date.now() + 15 * 60_000))} onChange={(event) => setWhen(event.target.value)} />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="war-note">Note (optional)</Label>
+          <Input id="war-note" maxLength={140} value={note} onChange={(event) => setNote(event.target.value)} placeholder="e.g. Best of one, server 5x5 #1" autoComplete="off" />
+        </div>
+      </div>
+      <p className="text-[11px] text-[var(--text-dim)]">The result is not typed in: when at least three players of each clan (or the whole team, if smaller) play a ranked match against each other from an hour before to six hours after the time, that match settles the war.</p>
+      <button type="button" disabled={!opponent || busy} onClick={() => void send()} className="lx-primary-button inline-flex h-10 items-center justify-center gap-2 self-start rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50"><Swords className="size-4" aria-hidden="true" />Send challenge</button>
+    </section>
+  )
+}
+
+/** Wars of the clan: its record and rating, what waits for an answer, what is coming and what was played. */
+export function ClanWarsPanel({ clanId, role, onClanNavigate }: { clanId: string; role: ClanRole | null; onClanNavigate: (id: string) => void }) {
+  const { data, loading, error, refetch } = useApiQuery((signal) => clansService.getWars(clanId, { signal }), { queryKey: `clan-wars:${clanId}` })
+  const [busy, setBusy] = useState("")
+  const manager = role === "leader" || role === "co-leader"
+  const groups = useMemo(() => {
+    const wars = data?.wars ?? []
+    return {
+      open: wars.filter((war) => war.status === "pending" || war.status === "accepted").sort((a, b) => Date.parse(a.scheduledAt) - Date.parse(b.scheduledAt)),
+      past: wars.filter((war) => war.status !== "pending" && war.status !== "accepted"),
+    }
+  }, [data])
+  const answer = async (war: ClanWar, action: "accept" | "decline" | "cancel") => {
+    setBusy(war.id)
+    try {
+      await clansService.answerWar(clanId, war.id, action)
+      toast.success(action === "accept" ? "War accepted" : action === "decline" ? "Challenge declined" : "War called off")
+      void refetch()
+    } catch (failure) {
+      toast.error("That did not work", { description: clanFailure(failure, "Try again in a moment.") })
+    } finally {
+      setBusy("")
+    }
+  }
+  if (loading && !data) return <div className="flex flex-col gap-3"><Skeleton className="h-[86px] rounded-xl" /><Skeleton className="h-[120px] rounded-xl" /></div>
+  if (error || !data) return <Retry onRetry={refetch} text="Could not load the clan's wars." />
+  const record = data.war
+  const row = (war: ClanWar) => {
+    const resultTone = war.result === "win" ? "text-[var(--result-win)]" : war.result === "loss" ? "text-[var(--result-loss)]" : "text-[var(--result-draw)]"
+    return (
+      <li key={war.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3">
+        <button type="button" disabled={!war.opponent} onClick={() => war.opponent && onClanNavigate(String(war.opponent.number ?? war.opponent.id))} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+          {war.opponent ? <ClanMark logo={war.opponent.logo} tag={war.opponent.tag} className="size-10 text-[11px]" /> : <span className="grid size-10 place-items-center rounded-[10px] border border-[var(--line)]"><Shield className="size-4 text-[var(--text-faint)]" aria-hidden="true" /></span>}
+          <span className="flex min-w-0 flex-col">
+            <span className="truncate text-[13px] font-semibold">{war.side === "challenger" ? "vs " : "From "}{war.opponent?.name ?? "A clan that is gone"}{war.opponent && <span className="text-[var(--text-dim)]"> [{war.opponent.tag}]</span>}</span>
+            <span className="text-[11px] text-[var(--text-dim)]">{cs2MapLabel(war.map)} · {new Date(war.scheduledAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}{war.note ? ` · ${war.note}` : ""}</span>
+          </span>
+        </button>
+        {war.status === "finished" ? (
+          <span className="flex items-center gap-3">
+            {war.score && <span className="text-[15px] font-semibold">{war.score.us} : {war.score.them}</span>}
+            <span className={cn("text-[13px] font-semibold capitalize", resultTone)}>{war.result}</span>
+            {war.ratingChange !== null && <span className={cn("text-[11px]", war.ratingChange > 0 ? "text-[var(--result-win)]" : war.ratingChange < 0 ? "text-[var(--result-loss)]" : "text-[var(--result-draw)]")}>{war.ratingChange > 0 ? "+" : war.ratingChange < 0 ? "−" : "±"}{Math.abs(war.ratingChange)}</span>}
+          </span>
+        ) : (
+          <span className="text-[11px] text-[var(--text-dim)]">{STATUS_LABEL[war.status]}</span>
+        )}
+        {manager && war.status === "pending" && war.side === "opponent" && (
+          <span className="flex gap-1.5">
+            <button type="button" disabled={busy === war.id} onClick={() => void answer(war, "accept")} className="lx-primary-button inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold disabled:opacity-50"><Check className="size-3.5" aria-hidden="true" />Accept</button>
+            <button type="button" disabled={busy === war.id} onClick={() => void answer(war, "decline")} className="inline-flex h-8 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-xs hover:border-[var(--line-strong)] disabled:opacity-50">Decline</button>
+          </span>
+        )}
+        {manager && (war.status === "accepted" || (war.status === "pending" && war.side === "challenger")) && Date.parse(war.scheduledAt) > Date.now() && (
+          <button type="button" disabled={busy === war.id} onClick={() => void answer(war, "cancel")} className="inline-flex h-8 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-xs text-[var(--text-2)] hover:border-[var(--line-strong)] disabled:opacity-50">Call off</button>
+        )}
+      </li>
+    )
+  }
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="lx-stat-grid grid-cols-2 sm:grid-cols-4">
+        {([["War rating", record.rating.toLocaleString()], ["Wins", record.wins.toLocaleString()], ["Losses", record.losses.toLocaleString()], ["Draws", record.draws.toLocaleString()]] as const).map(([label, value]) => <div key={label} className="lx-stat-cell"><span className="lx-stat-label">{label}</span><span className="text-[22px] font-semibold leading-none">{value}</span></div>)}
+      </div>
+      {manager && <ChallengeForm clanId={clanId} onSent={() => void refetch()} />}
+      <section className="flex flex-col gap-2.5">
+        <h2 className="lx-shop-heading">Coming up</h2>
+        {groups.open.length ? <ul className="flex flex-col gap-2">{groups.open.map(row)}</ul> : <p className="text-[13px] text-[var(--text-dim)]">No open challenges.</p>}
+      </section>
+      <section className="flex flex-col gap-2.5">
+        <h2 className="lx-shop-heading">History</h2>
+        {groups.past.length ? <ul className="flex flex-col gap-2">{groups.past.map(row)}</ul> : <p className="text-[13px] text-[var(--text-dim)]">No wars yet.</p>}
+      </section>
+    </div>
+  )
+}
+
+/** Members give LX to the clan; the leader spends it on member slots. */
+export function ClanBankPanel({ clan, role, onChanged, onProfileNavigate }: { clan: ClanDetail; role: ClanRole | null; onChanged: () => void; onProfileNavigate: (id: string) => void }) {
+  const { data, loading, error, refetch } = useApiQuery((signal) => clansService.getBank(clan.id, { signal }), { queryKey: `clan-bank:${clan.id}` })
+  const [amount, setAmount] = useState(100)
+  const [busy, setBusy] = useState(false)
+  const run = async (action: () => Promise<unknown>, done: string) => {
+    setBusy(true)
+    try {
+      await action()
+      toast.success(done)
+      void refetch()
+      onChanged()
+    } catch (failure) {
+      toast.error("That did not work", { description: clanFailure(failure, "Try again in a moment.") })
+    } finally {
+      setBusy(false)
+    }
+  }
+  if (loading && !data) return <div className="flex flex-col gap-3"><Skeleton className="h-[120px] rounded-xl" /><Skeleton className="h-[160px] rounded-xl" /></div>
+  if (error || !data) return <Retry onRetry={refetch} text="Could not load the clan bank." />
+  const valid = Number.isInteger(amount) && amount >= 10 && amount <= 100_000
+  return (
+    <div className="flex flex-col gap-4">
+      <section className="flex flex-wrap items-end gap-4 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4">
+        <div className="flex min-w-[140px] flex-1 flex-col gap-1">
+          <span className="lx-stat-label">Clan bank</span>
+          <span className="flex items-center gap-2 text-[22px] font-semibold leading-none"><Coins className="size-5 text-[var(--text-2)]" aria-hidden="true" />{data.balance.toLocaleString()} LX</span>
+          <span className="text-[11px] text-[var(--text-dim)]">Given by members. The leader spends it on the clan.</span>
+        </div>
+        <form className="flex items-end gap-2" onSubmit={(event) => { event.preventDefault(); if (valid) void run(() => clansService.donate(clan.id, amount), `You gave ${amount.toLocaleString()} LX`) }}>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="bank-amount">Give LX</Label>
+            <Input id="bank-amount" type="number" min={10} max={100000} step={10} value={amount} onChange={(event) => setAmount(Math.floor(Number(event.target.value) || 0))} className="w-28" />
+          </div>
+          <button type="submit" disabled={busy || !valid} className="lx-primary-button inline-flex h-9 items-center rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50">Give</button>
+        </form>
+        {role === "leader" && (
+          <button type="button" disabled={busy || data.balance < data.slotPrice} onClick={() => void run(() => clansService.buySlots(clan.id, "bank"), "Two more member slots")} className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] hover:border-[var(--line-strong)] disabled:opacity-50">
+            <Users className="size-4" aria-hidden="true" />+2 slots · {data.slotPrice.toLocaleString()} LX from the bank
+          </button>
+        )}
+      </section>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <section className="flex flex-col gap-2.5">
+          <h2 className="lx-shop-heading">Top givers</h2>
+          {data.donors.length ? (
+            <ol className="flex flex-col gap-1.5">
+              {data.donors.map((donor, index) => (
+                <li key={donor.id}>
+                  <button type="button" onClick={() => onProfileNavigate(donor.steamId || donor.id)} className="flex w-full items-center gap-3 rounded-lg border border-[var(--line-soft)] p-2 text-left transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)]">
+                    <span className="w-5 text-center text-[13px] font-semibold text-[var(--text-dim)]">{index + 1}</span>
+                    <PlayerAvatar avatar={donor.avatar} name={donor.name} className="size-8 rounded-lg text-xs" />
+                    <span className="min-w-0 flex-1 truncate text-[13px]">{donor.name}</span>
+                    <span className="text-[13px] font-semibold">{donor.total.toLocaleString()} LX</span>
+                  </button>
+                </li>
+              ))}
+            </ol>
+          ) : <p className="text-[13px] text-[var(--text-dim)]">Nobody has given yet.</p>}
+        </section>
+        <section className="flex flex-col gap-2.5">
+          <h2 className="lx-shop-heading">Latest</h2>
+          {data.log.length ? (
+            <ul className="flex flex-col divide-y divide-[var(--line-soft)] rounded-xl border border-[var(--glass-line)]">
+              {data.log.map((entry, index) => (
+                <li key={index} className="flex items-center gap-3 px-3 py-2 text-[13px]">
+                  {entry.amount > 0 ? <Flame className="size-3.5 shrink-0 text-[var(--text-dim)]" aria-hidden="true" /> : <Crosshair className="size-3.5 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />}
+                  <span className="min-w-0 flex-1 truncate">{entry.amount > 0 ? `${entry.name ?? "A member"} gave` : `Spent on ${entry.reason}`}</span>
+                  <span className={cn("shrink-0 font-semibold", entry.amount > 0 ? "text-[var(--text)]" : "text-[var(--text-2)]")}>{entry.amount > 0 ? "+" : "−"}{Math.abs(entry.amount).toLocaleString()}</span>
+                  <span className="shrink-0 text-[11px] text-[var(--text-faint)]">{new Date(entry.at).toLocaleDateString()}</span>
+                </li>
+              ))}
+            </ul>
+          ) : <p className="text-[13px] text-[var(--text-dim)]">Nothing yet.</p>}
+        </section>
+      </div>
+    </div>
+  )
+}

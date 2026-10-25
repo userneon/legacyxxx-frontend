@@ -470,6 +470,8 @@ export interface ClanCard {
   look?: ClanLook | null
   /** Recruitment is on: asking to join means answering these questions (may be none). Absent or null when it is off. */
   recruit?: { questions: string[] } | null
+  /** Clan level (from XP its members earn in ranked matches and Clan Wars). Absent from an older API. */
+  level?: number
 }
 
 export interface ClanDetail extends ClanCard {
@@ -482,6 +484,53 @@ export interface ClanDetail extends ClanCard {
 }
 
 export type ClanRole = "leader" | "co-leader" | "member"
+
+/** A clan's level, what levels unlock, and its Clan War record (GET /clans/:id/stats). */
+export interface ClanProgress {
+  level: number
+  xp: number
+  floor: number
+  next: number | null
+  perks: Array<{ level: number; slots: number; perk: string; unlocked: boolean }>
+  war: { rating: number; wins: number; losses: number; draws: number }
+}
+
+export interface ClanStatPerson { id: string; steamId: string; name: string; avatar: string; value: number | null }
+
+export interface ClanStats {
+  totals: { matches: number; wins: number; draws: number; losses: number; kills: number; deaths: number; assists: number; headshots: number; aces: number; clutches: number; rounds: number; kd: number; winRate: number; headshotRate: number }
+  leaders: { kills: ClanStatPerson | null; kd: ClanStatPerson | null; wins: ClanStatPerson | null; weekMvp: ClanStatPerson | null }
+  achievements: Array<{ id: string; title: string; tier: number; tiers: number; value: number; goal: number; complete: boolean }>
+  progress: ClanProgress
+}
+
+/** The clan bank (members only). */
+export interface ClanBank {
+  balance: number
+  donors: Array<{ id: string; steamId: string; name: string; avatar: string; total: number }>
+  log: Array<{ amount: number; reason: string; at: string; name: string | null }>
+  slotPrice: number
+}
+
+export interface ClanWar {
+  id: string
+  status: "pending" | "accepted" | "declined" | "cancelled" | "finished" | "expired"
+  /** Which side this clan is on: it sent the challenge, or it was challenged. */
+  side: "challenger" | "opponent"
+  map: string
+  scheduledAt: string
+  note: string | null
+  opponent: ClanCard | null
+  result: "win" | "loss" | "draw" | null
+  score: { us: number; them: number } | null
+  ratingChange: number | null
+  matchId: string | null
+}
+
+export interface ClanWarLadderEntry extends ClanCard {
+  rank: number
+  war: { rating: number; wins: number; losses: number; draws: number }
+}
 
 /** A clan in the ranking: the total EXP of its members. */
 export interface ClanRankEntry extends ClanCard {

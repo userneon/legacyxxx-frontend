@@ -15,6 +15,7 @@ import { ClanAppearancePanel } from "@/components/shop-clan"
 import { CLAN_ART_RULES, clanArtProblem, clanArtSrc, type ClanArtKind } from "@/api/clans"
 import type { ClanCard, ClanDetail, ClanJoinRequest, ClanRole, MyClanState } from "@/api/types"
 import { ClanMark } from "@/components/clan-mark"
+import { ClanBankPanel, ClanSectionTabs, ClanStatsPanel, ClanWarsPanel, type ClanSection } from "@/components/clan-extras"
 import { ActivityPanel, ManagersSection, useClanFee, InvitePanel, MemberControls, RenameForm, clanFailure, roleLabel } from "@/components/clan-manage"
 import { Button } from "@/components/ui/button"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
@@ -443,6 +444,9 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
   const role = (clan?.viewer?.role ?? knownRole ?? null) as ClanRole | null
   const isLeader = role === "leader"
   const isManager = role === "leader" || role === "co-leader"
+  const [section, setSection] = useState<ClanSection>("roster")
+  // The Bank is for members: anyone else lands on the Roster.
+  const shown: ClanSection = section === "bank" && !role ? "roster" : section
 
   const run = async (action: () => Promise<void>, done: string, after?: () => void) => {
     setBusy(true)
@@ -503,7 +507,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
               <div className="relative flex flex-wrap items-center gap-4 p-6">
                 <ClanMark logo={clan.logo} tag={clan.tag} className="size-16 text-[15px]" />
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <h1 className="truncate text-[22px] font-semibold leading-tight">{clan.name} <span className="text-[13px] font-medium text-[var(--text-dim)]">[{clan.tag}]</span></h1>
+                  <h1 className="flex min-w-0 items-center gap-2 text-[22px] font-semibold leading-tight"><span className="truncate">{clan.name} <span className="text-[13px] font-medium text-[var(--text-dim)]">[{clan.tag}]</span></span>{clan.level ? <span title="Clan level" className="shrink-0 rounded-full border border-[var(--line-strong)] px-2 py-0.5 text-[11px] font-semibold text-[var(--text-2)]">Lv {clan.level}</span> : null}</h1>
                   <p className="flex flex-wrap items-center gap-x-3 text-[13px] text-[var(--text-dim)]"><span>{clan.region} · {clan.currentPlayers}/{clan.maxPlayers} members</span><JoinModeLabel mode={clan.joinMode} /></p>
                   {clan.description && <p className="max-w-2xl text-[13px] text-[var(--text-dim)]">{clan.description}</p>}
                 </div>
@@ -538,6 +542,11 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                 </DialogContent>
               </Dialog>
 
+              <ClanSectionTabs value={shown} onChange={setSection} member={Boolean(role)} />
+              {shown === "stats" && <ClanStatsPanel clanId={clanId} onProfileNavigate={onProfileNavigate} />}
+              {shown === "wars" && <ClanWarsPanel clanId={clanId} role={role} onClanNavigate={(id) => navigate(`/clans/${id}`)} />}
+              {shown === "bank" && <ClanBankPanel clan={clan} role={role} onChanged={() => void refetch()} onProfileNavigate={onProfileNavigate} />}
+              {shown === "roster" && <>
               {isManager && <JoinRequests clanId={clanId} onAccepted={() => void refetch()} />}
 
               <section aria-label="Roster" className="flex flex-col gap-3">
@@ -576,6 +585,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
 
               {isManager && <InvitePanel clanId={clanId} />}
               {isManager && <ActivityPanel clanId={clanId} />}
+              </>}
                     </>
           )}
         </div>
