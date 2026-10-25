@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import { cosmeticsService, type CosmeticKind, type Cosmetics, type FrameItem } from "@/api/cosmetics"
 import { bannerClass, nameProps, timeLeft } from "@/lib/cosmetics"
 import { Switch } from "@/components/switch"
+import { GrenadeTrail } from "@/components/grenade-trail"
 import { SmokePuff } from "@/components/smoke-puff"
 import { walletService, type Wallet } from "@/api"
 import { FramedAvatar } from "@/components/framed-avatar"
@@ -176,6 +177,7 @@ const KINDS: Array<{ value: CosmeticKind; label: string; noun: string }> = [
   { value: "banner", label: "Banner", noun: "banner" },
   { value: "title", label: "Title", noun: "title" },
   { value: "smoke_color", label: "Smoke colour", noun: "smoke colour" },
+  { value: "grenade_trail", label: "Grenade trail", noun: "trail" },
 ]
 
 function Appearance() {
@@ -189,8 +191,8 @@ function Appearance() {
   const [picked, setPicked] = useState<Partial<Record<CosmeticKind, string>>>({})
   const saved = useSavedFlash()
 
-  const lists: Record<CosmeticKind, FrameItem[]> = { frame: data?.frames ?? [], name_color: data?.nameColors ?? [], name_glow: data?.nameGlows ?? [], banner: data?.banners ?? [], title: data?.titles ?? [], smoke_color: data?.smokeColors ?? [] }
-  const worn: Record<CosmeticKind, string | null> = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, banner: data?.equippedBanner ?? null, title: data?.equippedTitle ?? null, smoke_color: data?.equippedSmokeColor ?? null }
+  const lists: Record<CosmeticKind, FrameItem[]> = { frame: data?.frames ?? [], name_color: data?.nameColors ?? [], name_glow: data?.nameGlows ?? [], banner: data?.banners ?? [], title: data?.titles ?? [], smoke_color: data?.smokeColors ?? [], grenade_trail: data?.grenadeTrails ?? [] }
+  const worn: Record<CosmeticKind, string | null> = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, banner: data?.equippedBanner ?? null, title: data?.equippedTitle ?? null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null }
   const noun = KINDS.find((entry) => entry.value === kind)?.noun ?? "item"
   const frames = lists[kind]
   const selectedId = picked[kind] ?? worn[kind] ?? frames[0]?.id ?? null
@@ -256,6 +258,7 @@ function Appearance() {
             <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={150} />
             <span {...nameProps(previewLook, "max-w-full truncate text-[15px] font-bold text-[var(--text)]")}>{sampleName}</span>
             {kind === "smoke_color" && selected && <SmokePuff color={selected.color} color2={selected.color2} className="w-[150px]" />}
+            {kind === "grenade_trail" && selected && <GrenadeTrail key={selected.id} color={selected.color} className="w-[150px]" />}
             <div className="flex w-full flex-col items-center gap-1 text-center">
               <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--text-dim)]">Preview</span>
               <span className="text-[15px] font-semibold text-[var(--text)]">{selected?.name ?? `No ${noun}`}</span>
@@ -295,6 +298,8 @@ function Appearance() {
                         <FramedAvatar avatar={user?.avatar} name={user?.username} frame={item.id} size={76} />
                       ) : kind === "banner" ? (
                         <span className="relative flex h-[76px] w-full items-center justify-center overflow-hidden rounded-lg"><span aria-hidden="true" className={cn("absolute inset-0", bannerClass(item.fx))} /></span>
+                      ) : kind === "grenade_trail" ? (
+                        <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><GrenadeTrail color={item.color} className="w-[88px]" /></span>
                       ) : kind === "smoke_color" ? (
                         <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><SmokePuff color={item.color} color2={item.color2} className="w-[88px]" /></span>
                       ) : kind === "title" ? (
