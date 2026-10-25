@@ -55,6 +55,12 @@ function mockIsFounder() {
 }
 function mockFrames() {
   const list: Array<[string, string, "free" | "coin" | "achievement", number, string]> = [
+    ["dragon-ember", "Dragon Ember", "coin", 2500, ""],
+    ["frost-royale", "Frost Royale", "coin", 2500, ""],
+    ["void-rift", "Void Rift", "coin", 3000, ""],
+    ["hologram", "Hologram", "coin", 3500, ""],
+    ["celestial-crown", "Celestial Crown", "coin", 4000, ""],
+    ["diamond-prestige", "Diamond Prestige", "coin", 5000, ""],
     ["starlight-corners", "Starlight Corners", "free", 0, ""],
     ["red-circuit", "Red Circuit", "free", 0, ""],
     ["charcoal-ring", "Charcoal Ring", "coin", 200, ""],

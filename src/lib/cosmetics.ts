@@ -42,6 +42,13 @@ const FRAMES: Record<string, FrameArt> = {
   "booster-silver": { opening: 0.606, dx: 0, dy: -0.002, mask: true },
   "booster-bronze": { opening: 0.602, dx: 0, dy: -0.016, mask: true },
   "server-booster": { opening: 0.8, dx: 0, dy: 0 },
+  // Premium animated frames (owner request 2026-10-25), drawn by scripts/premium-frames.html: the opening is the middle 380 of 512.
+  "dragon-ember": { opening: 0.74, dx: 0, dy: 0 },
+  "celestial-crown": { opening: 0.74, dx: 0, dy: 0 },
+  "void-rift": { opening: 0.74, dx: 0, dy: 0 },
+  "frost-royale": { opening: 0.74, dx: 0, dy: 0 },
+  "hologram": { opening: 0.74, dx: 0, dy: 0 },
+  "diamond-prestige": { opening: 0.74, dx: 0, dy: 0 },
 }
 
 export function frameArt(id: string | null | undefined): ({ src: string; maskSrc?: string } & FrameArt) | null {
@@ -107,6 +114,12 @@ const ACCENTS: Record<string, string> = {
   "booster-gold": "#f2cd72", // palette-exempt: the frame's own light
   "booster-silver": "#cbd5e1", // palette-exempt: the frame's own light
   "booster-bronze": "#d98a5f", // palette-exempt: the frame's own light
+  "dragon-ember": "#ff6a00", // palette-exempt: the frame's own light
+  "celestial-crown": "#e2b23a", // palette-exempt: the frame's own light
+  "void-rift": "#a855f7", // palette-exempt: the frame's own light
+  "frost-royale": "#7dd3fc", // palette-exempt: the frame's own light
+  "hologram": "#00d4ff", // palette-exempt: the frame's own light
+  "diamond-prestige": "#e5e7eb", // palette-exempt: the frame's own light
   "server-booster": "#ff73fa", // palette-exempt: Discord Boost brand
 }
 

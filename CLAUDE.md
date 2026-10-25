@@ -188,6 +188,8 @@ Clan cards on the Clans page (owner request 2026-10-21, "more colour"): each cla
 Applications (owner request 2026-10-23): a signed-in player who is not a creator sees **Become a creator** in the Creators page bar (`components/creator-apply.tsx`): a short line about their content and at least one https channel link. While it waits the bar says "Application sent"; a declined player sees the staff note and can apply again after 7 days (the API enforces it). Owners and Managers answer in Staff → Creators → Applications (`staff-creators.tsx`): pick Content Creator or Main Content Creator, optional note, Approve or Decline; approving creates the creator and both answers notify the player. Neutral controls, white primary button.
 Creator cards on the Creators page are violet `.lx-add-box` cards like the Staff team cards, with a violet tier pill (owner request 2026-10-16).
 
+Premium animated frames (owner request 2026-10-25, "very valuable profile decorations"): Dragon Ember, Frost Royale, Void Rift, Hologram, Celestial Crown and Diamond Prestige (2,500–5,000 LX) are looping animated WebPs in `public/frames/`, drawn by `scripts/premium-frames.html` (canvas, seamless loop, nothing drawn over the opening) via `scripts/render-premium-frames.mjs` + `scripts/make-premium-frames.py`. Change the art there and re-run both, never by hand.
+
 ### Genesis pack (owner decision 2026-10-23; first called Founder)
 
 A numbered, limited pack sold once for 30,000₮ through a Shop order that staff confirm (the goods flow: no payment on the site). Marking the order paid gives
