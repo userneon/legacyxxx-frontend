@@ -942,6 +942,8 @@ export async function mockResponse(method: string, path: string, query: Query, b
       return loadout()
     case "/api/v1/skinchanger/collections":
       return skinCollections(query)
+    case "/api/v1/public/staff":
+      return { team: [["Owner", 0], ["Manager", 1], ["Manager", 2], ["Admin", 3], ["Admin", 4], ["Admin", 5], ["Developer", 6], ["Designer", 7]].map(([role, index]) => ({ steamId: `7656119800000010${index}`, username: NAMES[index as number], avatar: "", role })) }
     case "/api/v1/public/creators":
       return { creators: [
         { userId: "u1", steamId: "76561198000000001", username: "Temuulen", avatar: null, tier: "main", label: "Main Content Creator", bio: "CS2 streams every evening on LEGACY-X servers.", links: { twitch: "https://twitch.tv/temuulen", youtube: "https://youtube.com/@temuulen" }, rank: { id: 16, name: "Apex III", imageKey: null }, frame: null, nameStyle: null },

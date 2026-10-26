@@ -62,6 +62,7 @@ export type PageId =
   | "penalties"
   | "explore"
   | "creators"
+  | "team"
   | "discord"
   | "feedback"
   | "profile"

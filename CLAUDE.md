@@ -168,6 +168,13 @@ Booster podium (owner request 2026-10-23): the three members with the most serve
 and **Bronze** frames (`public/frames/booster-*.webp`, masked like the Genesis frame). They are earned and follow the ranking: the API gives each frame to its holder and takes it from whoever loses the place.
 The Server Booster frame stays for every member who still boosts; the podium places are worn only while boosting too. The violet in these three comes from the owner-supplied art (a booster look, like the Boosters page's pink), not from site chrome.
 
+### Community and the Staff page (owner request 2026-10-26)
+
+The sidebar's **Community** row opens like Play and holds Clans, Staff and Creators (`COMMUNITY_ITEMS` in `app-sidebar.tsx`); the staff site's own link is now "Staff panel".
+**Staff** (`/team`, `src/pages/team.tsx`, owner pick "1") shows the team as trading cards (`.lx-team-card`): a holo frame in the role's colour (the staff-site tones: Owner violet,
+Manager red, Admin sky, Developer green, Designer amber, palette-exempt), the role's numeral and name in the corners, the Steam avatar in a ring of that colour; the Owner's card is the largest and
+on top, the others grouped by role. Real data from `GET /public/staff` (active staff only, Owner first); a card opens the profile.
+
 ### Public chat (owner request 2026-10-23)
 
 A round button bottom right on every page of the website (`components/public-chat.tsx`) opens the community chat in a solid `--panel` panel (it floats over content). Everyone reads; a signed-in player writes

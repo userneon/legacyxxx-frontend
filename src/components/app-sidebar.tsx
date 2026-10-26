@@ -41,11 +41,16 @@ const NAV_ITEMS: NavItem[] = enabledNav([
   { id: "compare", label: "Compare", icon: ArrowLeftRight },
   { id: "shop", label: "Shop", icon: Gem },
   { id: "leaders", label: "Leaders", icon: MountainSnow },
-  { id: "clan", label: "Clans", icon: Users },
-  { id: "creators", label: "Creators", icon: Clapperboard },
   { id: "penalties", label: "Penalties", icon: Scale },
   { id: "feedback", label: "Reviews", icon: ScrollText },
   { id: "explore", label: "Explore", icon: Telescope },
+])
+
+// Community (owner request 2026-10-26): Clans, the Staff page and Creators under one row that opens like Play.
+const COMMUNITY_ITEMS: NavItem[] = enabledNav([
+  { id: "clan", label: "Clans", icon: Users },
+  { id: "team", label: "Staff", icon: ShieldCheck },
+  { id: "creators", label: "Creators", icon: Clapperboard },
 ])
 
 // Skinchanger gets a submenu only while community collections are switched on.
@@ -114,11 +119,13 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
   // The groups start closed; the one you are inside starts open so the current page is visible.
   const [playOpen, setPlayOpen] = useState(currentPage.startsWith("play-"))
   const [skinOpen, setSkinOpen] = useState(currentPage === "skinchanger")
+  const communityActive = COMMUNITY_ITEMS.some((item) => item.id === currentPage)
+  const [communityOpen, setCommunityOpen] = useState(communityActive)
   const skinView = useSkinchangerView()
   // Admins, Managers and Owners can ask players for a check; nobody else gets the entry.
   const staffAccess = useModerationAccess()
   const mayCheck = Boolean(staffAccess && staffAccess.role && ["ADMIN", "MANAGER", "OWNER"].includes(staffAccess.role))
-  const navItems: NavItem[] = mayCheck ? [...NAV_ITEMS, { id: "staff", label: "Staff", icon: ShieldCheck }] : NAV_ITEMS
+  const navItems: NavItem[] = mayCheck ? [...NAV_ITEMS, { id: "staff", label: "Staff panel", icon: ShieldCheck }] : NAV_ITEMS
 
   // Live player counts next to the Play rows, refreshed every 30s while the tab is visible.
   const { data: competitive, refetch: refetchCompetitive } = useApiQuery<PlayServerList>((signal) => playService.getServers("5x5", { signal }), { queryKey: "sidebar-play-5x5", keepPreviousData: true })
@@ -251,6 +258,44 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                       <div className="ml-5 flex flex-col gap-0.5 border-l border-[var(--line)] pl-2">
                         {SKIN_VIEWS.map((entry) => (
                           <button key={entry.id} type="button" onClick={() => { setSkinchangerView(entry.id); onNavigate("skinchanger") }} className={cn(rowClass, "overflow-visible px-3", isActive("skinchanger") && skinView === entry.id && activeRowClass)}>
+                            <span className="lx-nav-label flex-1 truncate text-left transition-[translate] duration-150 motion-reduce:transition-none">{entry.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            }
+            if (item.id === "leaders" && COMMUNITY_ITEMS.length > 0) {
+              const open = communityOpen && !collapsed
+              return (
+                <div key={item.id} className="flex flex-col gap-0.5">
+                  <div className="relative">
+                    <RailTip label={item.label} show={collapsed}><button type="button" onClick={() => onNavigate(item.id)} aria-label={item.label} className={cn(rowClass, isActive(item.id) && activeRowClass)}>
+                      <item.icon className="size-[18px] shrink-0" />
+                      <span className={labelClass(collapsed)}>{item.label}</span>
+                    </button></RailTip>
+                  </div>
+                  <div className="relative">
+                    <RailTip label="Community" show={collapsed}><button
+                      type="button"
+                      // On the icon rail there's no room for the submenu, so Community opens Clans directly.
+                      onClick={() => (collapsed ? onNavigate(COMMUNITY_ITEMS[0].id) : setCommunityOpen((was) => !was))}
+                      aria-label="Community"
+                      aria-expanded={collapsed ? undefined : communityOpen}
+                      className={cn(rowClass, collapsed && communityActive && activeRowClass)}
+                    >
+                      <Users className="size-[18px] shrink-0" />
+                      <span className={cn(labelClass(collapsed), "flex-1")}>Community</span>
+                      <ChevronDown aria-hidden="true" className={cn("size-4 shrink-0 text-[var(--text-dim)] transition-[rotate,opacity] duration-300 motion-reduce:transition-none", EASE, communityOpen && "rotate-180", collapsed ? "opacity-0" : "opacity-100")} />
+                    </button></RailTip>
+                  </div>
+                  <div className={cn("grid transition-[grid-template-rows,opacity] duration-300 motion-reduce:transition-none", EASE, open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")} inert={!open || undefined}>
+                    <div className="overflow-hidden">
+                      <div className="ml-5 flex flex-col gap-0.5 border-l border-[var(--line)] pl-2">
+                        {COMMUNITY_ITEMS.map((entry) => (
+                          <button key={entry.id} type="button" onClick={() => onNavigate(entry.id)} className={cn(rowClass, "overflow-visible px-3", isActive(entry.id) && activeRowClass)}>
                             <span className="lx-nav-label flex-1 truncate text-left transition-[translate] duration-150 motion-reduce:transition-none">{entry.label}</span>
                           </button>
                         ))}
