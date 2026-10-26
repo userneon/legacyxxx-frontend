@@ -550,6 +550,8 @@ function profileOverview(identity: string) {
       playedAt: new Date(Date.now() - (i + 1) * 9 * HOUR).toISOString(),
       expDelta: result === "Win" ? (i === 1 ? 5 : i === 3 ? 0 : 18 + (i % 7)) : -(12 + (i % 5)),
       expBreakdown: i === 1 ? { limited: "daily" } : i === 3 && result === "Win" ? { limited: "weekly" } : null,
+      matchId: `mock-${variant}-${i}`,
+      expAfter: 4200 + variant * 130 - i * 15 + (i % 3) * 22,
     })),
     // Per-map results with different sizes and rates, including a map with too few matches to rank.
     maps: [["de_mirage", 34, 24], ["de_inferno", 28, 15], ["de_dust2", 31, 16], ["de_ancient", 12, 9], ["de_nuke", 9, 3], ["de_anubis", 6, 2], ["de_overpass", 2, 1]].map(([map, matches, wins], i) => { const played = Math.max(2, (matches as number) + ((variant * (i + 2)) % 7) - 3); const won = Math.min(played, Math.max(0, (wins as number) + ((variant * (i + 3)) % 5) - 2)); return { map: map as string, matches: played, wins: won, winRate: Math.round((won / played) * 100) } }),
@@ -758,6 +760,15 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path.endsWith("/activity")) return [{ id: "1", text: "Member 2 joined", at: new Date(Date.now() - 2 * HOUR).toISOString() }, { id: "2", text: "Member 4 asked to join", at: new Date(Date.now() - 5 * HOUR).toISOString() }, { id: "3", text: "Leader created the clan", at: new Date(Date.now() - 3 * 24 * HOUR).toISOString() }]
   if (path.endsWith("/invites")) return [{ id: "p1", name: "xBataa", avatar: "", at: new Date().toISOString(), answers: [{ q: "How many hours do you play?", a: "About 1,800 hours, mostly evenings." }, { q: "Do you have a microphone?", a: "Yes" }] }]
   if (path.endsWith("/requests")) return [{ id: "p2", name: "Gansukh", avatar: "", at: new Date().toISOString(), answers: [{ q: "How many hours do you play?", a: "About 1,800 hours, mostly evenings." }, { q: "Do you have a microphone?", a: "Yes" }] }]
+  if (path === "/api/v1/compare/head-to-head") {
+    const at = (days: number) => new Date(Date.now() - days * 24 * HOUR).toISOString()
+    return { hidden: false, against: { matches: 5, aWins: 3, bWins: 2, draws: 0, aKills: 96, bKills: 88 }, together: { matches: 4, wins: 3, losses: 1, draws: 0 }, recent: [
+      { matchId: "h1", map: "de_mirage", at: at(1), together: false, outcome: "a", aKills: 24, bKills: 17 },
+      { matchId: "h2", map: "de_inferno", at: at(2), together: true, outcome: "win", aKills: 19, bKills: 21 },
+      { matchId: "h3", map: "de_nuke", at: at(4), together: false, outcome: "b", aKills: 15, bKills: 22 },
+      { matchId: "h4", map: "de_ancient", at: at(6), together: true, outcome: "loss", aKills: 12, bKills: 14 },
+    ] }
+  }
   if (path === "/api/v1/clans/war-ladder") return { clans: MOCK_CLANS.map((clan, index) => ({ ...clan, rank: index + 1, war: { rating: 1064 - index * 40, wins: 5 - index, losses: 1 + index, draws: 0 } })) }
   if (/^\/api\/v1\/clans\/[^/]+\/stats$/.test(path)) {
     const person = (index: number, value: number) => ({ id: `m${index}`, steamId: "", name: index === 0 ? "Leader" : `Member ${index}`, avatar: "", value })

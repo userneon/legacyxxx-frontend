@@ -8,7 +8,7 @@ import { ArrowLeftRight, Download, Link2, LoaderCircle, RotateCcw, Search, X } f
 import { toast } from "sonner"
 
 import { competitiveService, searchService } from "@/api"
-import { profileOverviewService, type ProfileOverview } from "@/api/profile-overview"
+import { compareService, profileOverviewService, type HeadToHead, type ProfileOverview } from "@/api/profile-overview"
 import type { CommunityPlayer } from "@/api/types"
 import { CompetitiveRankBadge, rankTierColor } from "@/components/competitive-rank-badge"
 import { AnimatedNumber } from "@/components/animated-number"
@@ -52,6 +52,8 @@ interface Row {
   suffix: string
   /** The gap between the two, for the pill next to the leader. */
   gap: (difference: number) => string
+  /** Smaller is better (a ladder place). */
+  lowerBetter?: boolean
 }
 
 const statValue = (overview: ProfileOverview, key: NonNullable<ProfileOverview["stats"]>[number]["key"]) => overview.stats?.find((entry) => entry.key === key)?.value ?? null
@@ -66,12 +68,29 @@ function buildRows(a: ProfileOverview, b: ProfileOverview): Row[] {
     { key: "kd", label: "K/D", a: statValue(a, "kd"), b: statValue(b, "kd"), show: (value) => value.toFixed(2), decimals: 2, suffix: "", gap: (value) => value.toFixed(2) },
     { key: "hs", label: "Headshot %", a: statValue(a, "hs"), b: statValue(b, "hs"), show: (value) => `${Math.round(value)}%`, decimals: 0, suffix: "%", gap: points },
     { key: "avgKills", label: "Avg. kills", a: statValue(a, "avgKills"), b: statValue(b, "avgKills"), show: (value) => value.toFixed(1), decimals: 1, suffix: "", gap: (value) => value.toFixed(1) },
+    { key: "place", label: "Ladder place", a: a.competitive?.position ?? null, b: b.competitive?.position ?? null, show: (value) => `#${Math.round(value)}`, decimals: 0, suffix: "", gap: (value) => `${Math.round(value)} places`, lowerBetter: true },
+    { key: "week", label: "EXP this week", a: weekExp(a), b: weekExp(b), show: (value) => `${value > 0 ? "+" : ""}${Math.round(value)}`, decimals: 0, suffix: "", gap: whole },
+    { key: "form", label: "Last 10 wins", a: lastWins(a), b: lastWins(b), show: (value) => `${Math.round(value)}/10`, decimals: 0, suffix: "", gap: whole },
   ]
+}
+
+/** EXP the player gained or lost in ranked matches over the last 7 days, from their own match rows (null while hidden). */
+function weekExp(overview: ProfileOverview) {
+  if (!overview.recentMatches) return null
+  const since = Date.now() - 7 * 86_400_000
+  return overview.recentMatches.filter((match) => match.playedAt && Date.parse(match.playedAt) >= since).reduce((sum, match) => sum + (match.expDelta ?? 0), 0)
+}
+
+/** Wins in the last ten matches (null while hidden or with fewer than ten). */
+function lastWins(overview: ProfileOverview) {
+  const matches = overview.recentMatches
+  if (!matches || matches.length < 10) return null
+  return matches.slice(0, 10).filter((match) => match.result === "Win").length
 }
 
 function leader(row: Row): Side | null {
   if (row.a === null || row.b === null || row.a === row.b) return null
-  return row.a > row.b ? "a" : "b"
+  return (row.a > row.b) !== Boolean(row.lowerBetter) ? "a" : "b"
 }
 
 /** A search box for one side. Arrow keys move through the results, Enter picks, Escape clears. */
@@ -235,7 +254,9 @@ function StatRow({ row, names, index }: { row: Row; names: { a: string; b: strin
   }, [])
   const barStyle = (share: number) => ({ width: grown && total ? `${share * 100}%` : 0, transitionDelay: grown ? "0ms" : `${index * 60}ms` })
   const lead = leader(row)
-  const total = row.a !== null && row.b !== null ? Math.max(row.a + row.b, 1e-9) : 0
+  // A smaller-is-better number fills its bar by the inverse, so the better player still has the longer bar.
+  const amount = (value: number | null) => (value === null ? 0 : row.lowerBetter ? 1 / Math.max(value, 1e-9) : Math.max(value, 0))
+  const total = row.a !== null && row.b !== null ? Math.max(amount(row.a) + amount(row.b), 1e-9) : 0
   const difference = row.a !== null && row.b !== null ? Math.abs(row.a - row.b) : 0
   const known = row.a !== null && row.b !== null
   const cell = (side: Side) => {
@@ -257,10 +278,110 @@ function StatRow({ row, names, index }: { row: Row; names: { a: string; b: strin
         {cell("b")}
       </div>
       <div aria-hidden="true" className="flex h-1.5 gap-1">
-        <div className="flex flex-1 justify-end overflow-hidden rounded-full bg-[var(--line-soft)]"><div className={cn("h-full rounded-full transition-[width,background-color] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]", known ? OUTCOME[outcomeOf(lead, "a")].bar : TONE.a.bar)} style={barStyle((row.a ?? 0) / (total || 1))} /></div>
-        <div className="flex flex-1 overflow-hidden rounded-full bg-[var(--line-soft)]"><div className={cn("h-full rounded-full transition-[width,background-color] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]", known ? OUTCOME[outcomeOf(lead, "b")].bar : TONE.b.bar)} style={barStyle((row.b ?? 0) / (total || 1))} /></div>
+        <div className="flex flex-1 justify-end overflow-hidden rounded-full bg-[var(--line-soft)]"><div className={cn("h-full rounded-full transition-[width,background-color] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]", known ? OUTCOME[outcomeOf(lead, "a")].bar : TONE.a.bar)} style={barStyle(amount(row.a) / (total || 1))} /></div>
+        <div className="flex flex-1 overflow-hidden rounded-full bg-[var(--line-soft)]"><div className={cn("h-full rounded-full transition-[width,background-color] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]", known ? OUTCOME[outcomeOf(lead, "b")].bar : TONE.b.bar)} style={barStyle(amount(row.b) / (total || 1))} /></div>
       </div>
     </div>
+  )
+}
+
+const RESULT_DOT: Record<string, string> = { Win: "bg-[var(--result-win)]", Loss: "bg-[var(--result-loss)]", Draw: "bg-[var(--result-draw)]" }
+
+/** Each player's last ten results as dots (newest on the right) and their EXP over those matches as a small line. */
+function RecentForm({ a, b }: { a: ProfileOverview; b: ProfileOverview }) {
+  if (!a.recentMatches?.length || !b.recentMatches?.length) return null
+  const line = (overview: ProfileOverview, side: Side) => {
+    const last = (overview.recentMatches ?? []).slice(0, 10).reverse()
+    const exp = last.map((match) => match.expAfter).filter((value): value is number => typeof value === "number")
+    const low = Math.min(...exp), high = Math.max(...exp)
+    const points = exp.map((value, index) => `${exp.length === 1 ? 50 : (index / (exp.length - 1)) * 100},${high === low ? 12 : 22 - ((value - low) / (high - low)) * 20}`).join(" ")
+    const change = exp.length > 1 ? exp[exp.length - 1] - exp[0] : null
+    return (
+      <div className={cn("flex min-w-0 flex-col gap-2", side === "a" ? "items-end" : "items-start")}>
+        <div className="flex gap-1" aria-label={`${overview.user.username}: ${last.map((match) => match.result).join(", ")}`}>
+          {last.map((match, index) => <span key={match.matchId ?? index} title={`${match.result} · ${cs2MapLabel(match.map)} · ${match.score}`} className={cn("size-3 rounded-[4px]", RESULT_DOT[match.result] ?? "bg-[var(--line)]")} />)}
+        </div>
+        {exp.length > 1 && (
+          <div className={cn("flex items-center gap-2", side === "a" && "flex-row-reverse")}>
+            <svg viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true" className="h-6 w-28"><polyline points={points} fill="none" stroke="currentColor" strokeWidth="2" vectorEffect="non-scaling-stroke" className={change === null || change === 0 ? "text-[var(--result-draw)]" : change > 0 ? "text-[var(--result-win)]" : "text-[var(--result-loss)]"} /></svg>
+            {change !== null && <span className={cn("text-[11px] font-semibold", change > 0 ? "text-[var(--result-win)]" : change < 0 ? "text-[var(--result-loss)]" : "text-[var(--result-draw)]")}>{change > 0 ? "+" : change < 0 ? "−" : ""}{Math.abs(change).toLocaleString()} EXP</span>}
+          </div>
+        )}
+      </div>
+    )
+  }
+  return (
+    <section aria-label="Recent form" className="lx-swap-in overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
+      <div className="flex items-baseline justify-between gap-3 border-b border-[var(--line-soft)] px-4 py-3">
+        <h2 className="text-sm font-semibold text-[var(--text)]">Recent form</h2>
+        <span className="text-xs text-[var(--text-dim)]">Last 10 ranked matches · EXP over them</span>
+      </div>
+      <div className="grid grid-cols-[1fr_88px_1fr] items-center gap-3 px-4 py-4">
+        {line(a, "a")}
+        <span className="text-center text-[11px] font-medium uppercase tracking-wider text-[var(--text-dim)]">Form</span>
+        {line(b, "b")}
+      </div>
+    </section>
+  )
+}
+
+/** The ranked matches both played: against each other (who won, kills) and on the same team (how that team did). */
+function HeadToHeadPanel({ idA, idB, a, b }: { idA: string; idB: string; a: ProfileOverview; b: ProfileOverview }) {
+  const { data, loading, error, refetch } = useApiQuery<HeadToHead>((signal) => compareService.headToHead(idA, idB, { signal }), { queryKey: `h2h:${idA}:${idB}` })
+  const shell = (body: React.ReactNode, note?: string) => (
+    <section aria-label="Head to head" className="lx-swap-in overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
+      <div className="flex items-baseline justify-between gap-3 border-b border-[var(--line-soft)] px-4 py-3">
+        <h2 className="text-sm font-semibold text-[var(--text)]">Head to head</h2>
+        {note && <span className="text-xs text-[var(--text-dim)]">{note}</span>}
+      </div>
+      {body}
+    </section>
+  )
+  if (loading && !data) return shell(<div className="p-4"><Skeleton className="h-16 rounded-lg" /></div>)
+  if (error || !data) return shell(<p className="flex items-center gap-3 px-4 py-4 text-[13px] text-[var(--text-dim)]">Could not load their matches together.<button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>)
+  if (data.hidden) return shell(<p className="px-4 py-4 text-[13px] text-[var(--text-dim)]">One of them hides their matches.</p>)
+  const against = data.against!, together = data.together!
+  if (against.matches + together.matches === 0) return shell(<p className="px-4 py-4 text-[13px] text-[var(--text-dim)]">They have not played a ranked match together yet.</p>)
+  const lead: Side | null = against.aWins === against.bWins ? null : against.aWins > against.bWins ? "a" : "b"
+  return shell(
+    <>
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 py-4">
+        <div className="flex flex-col items-end gap-0.5">
+          <span className={cn("text-[30px] font-black leading-none", against.matches ? OUTCOME[outcomeOf(lead, "a")].text : "text-[var(--text-faint)]")}>{against.aWins}</span>
+          <span className="text-[11px] text-[var(--text-dim)]">{against.aKills.toLocaleString()} kills</span>
+        </div>
+        <div className="flex flex-col items-center gap-0.5 text-center">
+          <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--text-dim)]">Against each other</span>
+          <span className="text-[13px] text-[var(--text-2)]">{against.matches} match{against.matches === 1 ? "" : "es"}{against.draws ? ` · ${against.draws} draw${against.draws === 1 ? "" : "s"}` : ""}</span>
+        </div>
+        <div className="flex flex-col items-start gap-0.5">
+          <span className={cn("text-[30px] font-black leading-none", against.matches ? OUTCOME[outcomeOf(lead, "b")].text : "text-[var(--text-faint)]")}>{against.bWins}</span>
+          <span className="text-[11px] text-[var(--text-dim)]">{against.bKills.toLocaleString()} kills</span>
+        </div>
+      </div>
+      {together.matches > 0 && (
+        <p className="border-t border-[var(--line-soft)] px-4 py-3 text-center text-[13px] text-[var(--text-2)]">
+          On the same team {together.matches} time{together.matches === 1 ? "" : "s"}: <span className="font-semibold text-[var(--result-win)]">{together.wins} won</span>, <span className="font-semibold text-[var(--result-loss)]">{together.losses} lost</span>{together.draws ? `, ${together.draws} drawn` : ""}
+          {together.matches >= 3 && <span className="text-[var(--text-dim)]"> · {Math.round((together.wins / together.matches) * 100)}% as a duo</span>}
+        </p>
+      )}
+      {(data.recent ?? []).length > 0 && (
+        <ul className="border-t border-[var(--line-soft)]">
+          {(data.recent ?? []).map((match) => {
+            const label = match.together ? (match.outcome === "win" ? "Won together" : match.outcome === "loss" ? "Lost together" : "Drew together") : match.outcome === "a" ? `${a.user.username} won` : match.outcome === "b" ? `${b.user.username} won` : "Draw"
+            const tone = match.together ? (match.outcome === "win" ? "text-[var(--result-win)]" : match.outcome === "loss" ? "text-[var(--result-loss)]" : "text-[var(--result-draw)]") : "text-[var(--text)]"
+            return (
+              <li key={match.matchId} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 border-b border-[var(--line-soft)] px-4 py-2 text-[13px] last:border-b-0">
+                <span className="text-right text-[var(--text-2)]">{match.aKills} kills</span>
+                <span className="flex flex-col items-center"><span className={cn("truncate font-semibold", tone)}>{label}</span><span className="text-[11px] text-[var(--text-dim)]">{match.map ? cs2MapLabel(match.map) : "Map"} · {new Date(match.at).toLocaleDateString()}</span></span>
+                <span className="text-[var(--text-2)]">{match.bKills} kills</span>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </>,
+    "Ranked matches both played",
   )
 }
 
@@ -450,6 +571,8 @@ export function ComparePage() {
               <span className="inline-flex items-center gap-1.5"><span aria-hidden="true" className={cn("size-2 rounded-full", OUTCOME.loss.bar)} />Behind</span>
               <span className="inline-flex items-center gap-1.5"><span aria-hidden="true" className={cn("size-2 rounded-full", OUTCOME.draw.bar)} />Draw</span>
             </p>
+            <HeadToHeadPanel idA={idA} idB={idB} a={a} b={b} />
+            <RecentForm a={a} b={b} />
             <SharedMaps a={a} b={b} />
           </>
         ) : null}

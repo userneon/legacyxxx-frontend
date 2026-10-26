@@ -94,6 +94,20 @@ export interface ProfileOverview {
   updates?: { id: string; title: string; at: string }[] | null
 }
 
+/** Compare → head to head (GET /compare/head-to-head): the ranked matches two players were both in. `hidden` when either hid their matches. */
+export interface HeadToHead {
+  hidden: boolean
+  against?: { matches: number; aWins: number; bWins: number; draws: number; aKills: number; bKills: number }
+  together?: { matches: number; wins: number; losses: number; draws: number }
+  recent?: Array<{ matchId: string; map: string | null; at: string; together: boolean; outcome: "a" | "b" | "draw" | "win" | "loss"; aKills: number; bKills: number }>
+}
+
+export const compareService = {
+  async headToHead(a: string, b: string, options?: CallOptions): Promise<HeadToHead> {
+    return get<HeadToHead>("/api/v1/compare/head-to-head", { a, b }, options)
+  },
+}
+
 export const profileOverviewService = {
   async get(userId: string, options?: CallOptions): Promise<ProfileOverview> {
     return get<ProfileOverview>(`/api/v1/profile/${encodeURIComponent(userId)}/overview`, undefined, options)
