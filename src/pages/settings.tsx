@@ -8,8 +8,7 @@ import { cosmeticsService, type CosmeticKind, type Cosmetics, type FrameItem } f
 import { bannerClass, nameProps, timeLeft } from "@/lib/cosmetics"
 import { Switch } from "@/components/switch"
 import { GrenadeLight, GrenadeTrail } from "@/components/grenade-trail"
-import { FlashEffect, HeEffect } from "@/components/flash-effect"
-import { KillEffect } from "@/components/kill-effect"
+import { FlashEffect } from "@/components/flash-effect"
 import { SmokePuff } from "@/components/smoke-puff"
 import { walletService, type Wallet } from "@/api"
 import { FramedAvatar } from "@/components/framed-avatar"
@@ -183,8 +182,6 @@ const KINDS: Array<{ value: CosmeticKind; label: string; noun: string; group: "p
   { value: "grenade_trail", label: "Trail", noun: "trail", group: "game" },
   { value: "grenade_light", label: "Light", noun: "light", group: "game" },
   { value: "flash_effect", label: "Flash", noun: "flash effect", group: "game" },
-  { value: "he_effect", label: "Explosion", noun: "explosion effect", group: "game" },
-  { value: "kill_effect", label: "Kill effect", noun: "kill effect", group: "game" },
 ]
 const KIND_GROUPS = [{ id: "profile", label: "Profile" }, { id: "game", label: "In game" }] as const
 
@@ -199,8 +196,8 @@ function Appearance() {
   const [picked, setPicked] = useState<Partial<Record<CosmeticKind, string>>>({})
   const saved = useSavedFlash()
 
-  const lists: Record<CosmeticKind, FrameItem[]> = { frame: data?.frames ?? [], name_color: data?.nameColors ?? [], name_glow: data?.nameGlows ?? [], banner: data?.banners ?? [], title: data?.titles ?? [], smoke_color: data?.smokeColors ?? [], grenade_trail: data?.grenadeTrails ?? [], grenade_light: data?.grenadeLights ?? [], kill_effect: data?.killEffects ?? [], flash_effect: data?.flashEffects ?? [], he_effect: data?.heEffects ?? [] }
-  const worn: Record<CosmeticKind, string | null> = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, banner: data?.equippedBanner ?? null, title: data?.equippedTitle ?? null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null, grenade_light: data?.equippedGrenadeLight ?? null, kill_effect: data?.equippedKillEffect ?? null, flash_effect: data?.equippedFlashEffect ?? null, he_effect: data?.equippedHeEffect ?? null }
+  const lists: Record<CosmeticKind, FrameItem[]> = { frame: data?.frames ?? [], name_color: data?.nameColors ?? [], name_glow: data?.nameGlows ?? [], banner: data?.banners ?? [], title: data?.titles ?? [], smoke_color: data?.smokeColors ?? [], grenade_trail: data?.grenadeTrails ?? [], grenade_light: data?.grenadeLights ?? [], flash_effect: data?.flashEffects ?? [] }
+  const worn: Record<CosmeticKind, string | null> = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, banner: data?.equippedBanner ?? null, title: data?.equippedTitle ?? null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null, grenade_light: data?.equippedGrenadeLight ?? null, flash_effect: data?.equippedFlashEffect ?? null }
   const noun = KINDS.find((entry) => entry.value === kind)?.noun ?? "item"
   const frames = lists[kind]
   const selectedId = picked[kind] ?? worn[kind] ?? frames[0]?.id ?? null
@@ -267,9 +264,7 @@ function Appearance() {
             <span {...nameProps(previewLook, "max-w-full truncate text-[15px] font-bold text-[var(--text)]")}>{sampleName}</span>
             {kind === "smoke_color" && selected && <SmokePuff color={selected.color} color2={selected.color2} className="w-[150px]" />}
             {kind === "grenade_trail" && selected && <GrenadeTrail key={selected.id} color={selected.color} shape={selected.fx} className="w-[150px]" />}
-            {kind === "he_effect" && selected && <HeEffect key={selected.id} color={selected.color} shape={selected.fx} className="w-[150px]" />}
             {kind === "flash_effect" && selected && <FlashEffect key={selected.id} color={selected.color} shape={selected.fx} className="w-[150px]" />}
-            {kind === "kill_effect" && selected && <KillEffect key={selected.id} color={selected.color} shape={selected.fx} className="w-[150px]" />}
             {kind === "grenade_light" && selected && <GrenadeLight color={selected.color} className="w-[150px]" />}
             <div className="flex w-full flex-col items-center gap-1 text-center">
               <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--text-dim)]">Preview</span>
@@ -332,12 +327,8 @@ function Appearance() {
                         <span className="relative flex h-[76px] w-full items-center justify-center overflow-hidden rounded-lg"><span aria-hidden="true" className={cn("absolute inset-0", bannerClass(item.fx))} /></span>
                       ) : kind === "grenade_trail" ? (
                         <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><GrenadeTrail color={item.color} shape={item.fx} className="w-[88px]" /></span>
-                      ) : kind === "he_effect" ? (
-                        <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><HeEffect color={item.color} shape={item.fx} className="w-[88px]" /></span>
                       ) : kind === "flash_effect" ? (
                         <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><FlashEffect color={item.color} shape={item.fx} className="w-[88px]" /></span>
-                      ) : kind === "kill_effect" ? (
-                        <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><KillEffect color={item.color} shape={item.fx} className="w-[88px]" /></span>
                       ) : kind === "grenade_light" ? (
                         <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><GrenadeLight color={item.color} className="w-[88px]" /></span>
                       ) : kind === "smoke_color" ? (

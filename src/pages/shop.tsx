@@ -13,8 +13,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { frameAccent, nameProps, timeLeft } from "@/lib/cosmetics"
 import { SmokePuff } from "@/components/smoke-puff"
 import { GrenadeLight, GrenadeTrail } from "@/components/grenade-trail"
-import { FlashEffect, HeEffect } from "@/components/flash-effect"
-import { KillEffect } from "@/components/kill-effect"
+import { FlashEffect } from "@/components/flash-effect"
 import { ShopClan } from "@/components/shop-clan"
 import { ShopGoods } from "@/components/shop-goods"
 import { ColorRow, PICK_COLORS } from "@/components/color-row"
@@ -33,13 +32,12 @@ const SORTS = [
 
 /** The kinds the Shop sells (banners and titles are earned: they live in Profile → Appearance). */
 type ShopKind = Exclude<CosmeticKind, "banner" | "title">
-type ShopTab = "featured" | "frame" | "name" | "smoke_color" | "kill_effect" | "clan" | "goods"
+type ShopTab = "featured" | "frame" | "name" | "smoke_color" | "clan" | "goods"
 const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "featured", label: "Featured" },
   { value: "frame", label: "Frames" },
   { value: "name", label: "Name" },
   { value: "smoke_color", label: "Grenades" },
-  { value: "kill_effect", label: "Kill effects" },
   { value: "clan", label: "Clan" },
   { value: "goods", label: "Goods" },
 ]
@@ -56,9 +54,7 @@ function ItemArt({ item, avatar, username, size }: { item: ShopItem; avatar?: st
   if (item.kind === "frame") return <FramedAvatar avatar={avatar} name={username} frame={item.id} size={size} />
   if (item.kind === "smoke_color") return <SmokePuff color={item.color} color2={item.color2} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "grenade_trail") return <GrenadeTrail color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
-  if (item.kind === "he_effect") return <HeEffect color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "flash_effect") return <FlashEffect color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
-  if (item.kind === "kill_effect") return <KillEffect color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "grenade_light") return <GrenadeLight color={item.color} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   const look = item.kind === "name_color" ? { color: item.color ?? null, colorFx: item.fx ?? null } : { glow: item.glow ?? null, glowFx: item.fx ?? null }
   return <span {...nameProps(look, cn("font-bold text-[var(--text)]", size > 100 ? "max-w-full truncate text-[19px]" : "whitespace-nowrap text-[13px]"))}>{username}</span>
@@ -92,7 +88,7 @@ export function ShopPage() {
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
-  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name: "name", smoke_color: "smoke", kill_effect: "kill", clan: "clan", goods: "goods" }, "featured")
+  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name: "name", smoke_color: "smoke", clan: "clan", goods: "goods" }, "featured")
   const [sort, setSort] = useState<"price-up" | "price-down" | "rarity">("price-up")
   const [busy, setBusy] = useState(false)
   const [picked, setPicked] = useState<string | null>(params.get("item"))
@@ -117,16 +113,14 @@ export function ShopPage() {
     ...(data?.smokeColors ?? []).map((item) => ({ ...item, kind: "smoke_color" as const })),
     ...(data?.grenadeTrails ?? []).map((item) => ({ ...item, kind: "grenade_trail" as const })),
     ...(data?.grenadeLights ?? []).map((item) => ({ ...item, kind: "grenade_light" as const })),
-    ...(data?.killEffects ?? []).map((item) => ({ ...item, kind: "kill_effect" as const })),
     ...(data?.flashEffects ?? []).map((item) => ({ ...item, kind: "flash_effect" as const })),
-    ...(data?.heEffects ?? []).map((item) => ({ ...item, kind: "he_effect" as const })),
   ], [data])
-  const worn = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null, grenade_light: data?.equippedGrenadeLight ?? null, kill_effect: data?.equippedKillEffect ?? null, flash_effect: data?.equippedFlashEffect ?? null, he_effect: data?.equippedHeEffect ?? null }
+  const worn = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null, grenade_light: data?.equippedGrenadeLight ?? null, flash_effect: data?.equippedFlashEffect ?? null }
   const balance = wallet?.balance ?? null
   const username = user?.username ?? "Player"
 
   const featured = all.filter((item) => item.featured && item.unlock === "coin")
-  const inTab = all.filter((item) => tab === "featured" || item.kind === tab || (tab === "name" && (item.kind === "name_color" || item.kind === "name_glow")) || (tab === "smoke_color" && (item.kind === "grenade_trail" || item.kind === "grenade_light" || item.kind === "flash_effect" || item.kind === "he_effect")))
+  const inTab = all.filter((item) => tab === "featured" || item.kind === tab || (tab === "name" && (item.kind === "name_color" || item.kind === "name_glow")) || (tab === "smoke_color" && (item.kind === "grenade_trail" || item.kind === "grenade_light" || item.kind === "flash_effect")))
   const shown = inTab
     .filter((item) => (!search.trim() || item.name.toLowerCase().includes(search.trim().toLowerCase())))
     // What you can still buy comes first, then what you own, then what is only earned.
@@ -327,12 +321,8 @@ export function ShopPage() {
         <div className="scrollbar-hidden flex min-h-0 flex-col gap-3 overflow-y-auto p-3.5">
           {selected?.kind === "grenade_trail" ? (
             <div className="relative flex items-center justify-center py-4"><GrenadeTrail key={`${selected.id}${tried(selected).fx}`} color={tried(selected).color} shape={tried(selected).fx} className="w-[220px]" /></div>
-          ) : selected?.kind === "he_effect" ? (
-            <div className="relative flex items-center justify-center py-4"><HeEffect key={`${selected.id}${tried(selected).fx}`} color={tried(selected).color} shape={tried(selected).fx} className="w-[220px]" /></div>
           ) : selected?.kind === "flash_effect" ? (
             <div className="relative flex items-center justify-center py-4"><FlashEffect key={`${selected.id}${tried(selected).fx}`} color={tried(selected).color} shape={tried(selected).fx} className="w-[220px]" /></div>
-          ) : selected?.kind === "kill_effect" ? (
-            <div className="relative flex items-center justify-center py-4"><KillEffect key={`${selected.id}${tried(selected).fx}`} color={tried(selected).color} shape={tried(selected).fx} className="w-[220px]" /></div>
           ) : selected?.kind === "grenade_light" ? (
             <div className="relative flex items-center justify-center py-4"><GrenadeLight color={tried(selected).color} className="w-[220px]" /></div>
           ) : selected?.kind === "smoke_color" ? (
@@ -365,7 +355,7 @@ export function ShopPage() {
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
         <PageTabs<ShopTab> ariaLabel="Shop sections" value={tab} onChange={setTab} options={TABS} />
-        {(tab === "featured" || tab === "frame" || tab === "name" || tab === "smoke_color" || tab === "kill_effect") && (
+        {(tab === "featured" || tab === "frame" || tab === "name" || tab === "smoke_color") && (
           <PageBarEnd>
             <label className={cn(pageSearchClass, "max-md:hidden")}>
               <Search className="size-4 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />
@@ -429,7 +419,7 @@ export function ShopPage() {
                   </div>
                 ) : tab === "smoke_color" ? (
                   <div className="flex flex-col gap-6">
-                    {([["smoke_color", "Smoke"], ["grenade_trail", "Trail"], ["grenade_light", "Light"], ["flash_effect", "Flash"], ["he_effect", "Explosion"]] as const).map(([kind, heading]) => {
+                    {([["smoke_color", "Smoke"], ["grenade_trail", "Trail"], ["grenade_light", "Light"], ["flash_effect", "Flash"]] as const).map(([kind, heading]) => {
                       const list = shown.filter((item) => item.kind === kind)
                       return list.length ? <div key={kind}><div className="lx-shop-heading mb-2.5">{heading}</div>{grid(list, true)}</div> : null
                     })}
