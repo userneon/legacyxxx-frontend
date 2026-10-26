@@ -2081,3 +2081,6 @@ section[data-tone="red"] { --tone: var(--tone-red); } section[data-tone="sky"] {
 .lx-team-foot { margin-top: auto; padding-top: 26px !important; width: 100%; padding: 12px; text-align: center; background: linear-gradient(0deg, color-mix(in srgb, #000000 70%, transparent), transparent); } /* palette-exempt: shade */
 .lx-team-bar { display: block; width: 40px; height: 2px; margin: 7px auto; background: var(--tone); }
 @media (prefers-reduced-motion: reduce) { .lx-team-card { transition: none; } .lx-team-card:hover { translate: none; } }
+
+/* Creators page (owner request 2026-10-26, "like the other pages"): the Content Creators fill the width like the Staff page's team. */
+.lx-creator-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }

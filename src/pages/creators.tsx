@@ -1,13 +1,13 @@
 /** LEGACY-X Creators: the community's content creators, Main Content Creators first, each with their channels. */
 import { useState } from "react"
 import { Link } from "react-router-dom"
-import { Clapperboard, ExternalLink, RotateCcw, Star } from "lucide-react"
+import { Clapperboard, ExternalLink, RotateCcw, Search, Star, X } from "lucide-react"
 
 import { creatorsService, CREATOR_PLATFORMS, type Creator, type CreatorTier } from "@/api/creators"
 import { CreatorApply } from "@/components/creator-apply"
 import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
 import { FramedAvatar } from "@/components/framed-avatar"
-import { PageBar, PageBarEnd, PageTabs } from "@/components/page-tabs"
+import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { nameProps, type NameLook } from "@/lib/cosmetics"
@@ -76,23 +76,46 @@ export function CreatorLinks({ links, className }: { links: Creator["links"]; cl
   )
 }
 
-function CreatorCard({ creator, big }: { creator: Creator; big?: boolean }) {
+/** A creator's name (in the look they wear), rank and tier, linking to their profile. */
+function CreatorHead({ creator, size }: { creator: Creator; size: number }) {
   return (
-    <article className={cn("lx-add-box relative flex flex-col gap-3 rounded-2xl border p-[18px]", big && "p-6")}>
-      <Link to={`/profile/${creator.steamId}`} className="group flex min-w-0 items-center gap-3">
-        <FramedAvatar avatar={creator.avatar ?? undefined} name={creator.username} frame={creator.frame} size={big ? 72 : 52} />
-        <span className="flex min-w-0 flex-col gap-1">
-          <span {...nameProps(creator.nameStyle as NameLook | null, cn("truncate font-bold text-[var(--text)] group-hover:underline underline-offset-4", big ? "text-[22px] leading-tight" : "text-[15px]"))} title={creator.username}>{creator.username}</span>
-          {creator.rank && (
-            <span className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
-              <CompetitiveRankBadge rankId={creator.rank.id} rankName={creator.rank.name} imageKey={creator.rank.imageKey} size={16} />
-              {creator.rank.name}
-            </span>
-          )}
-        </span>
-      </Link>
-      <span><CreatorBadge tier={creator.tier} label={creator.label} violet /></span>
-      {creator.bio && <p className="text-[13px] leading-relaxed text-[var(--text-muted)]">{creator.bio}</p>}
+    <Link to={`/profile/${creator.steamId}`} className="group flex min-w-0 items-center gap-3">
+      <FramedAvatar avatar={creator.avatar ?? undefined} name={creator.username} frame={creator.frame} size={size} />
+      <span className="flex min-w-0 flex-col gap-1">
+        <span {...nameProps(creator.nameStyle as NameLook | null, cn("truncate font-bold text-[var(--text)] underline-offset-4 group-hover:underline", size > 60 ? "text-[22px] leading-tight" : "text-[15px]"))} title={creator.username}>{creator.username}</span>
+        {creator.rank && (
+          <span className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+            <CompetitiveRankBadge rankId={creator.rank.id} rankName={creator.rank.name} imageKey={creator.rank.imageKey} size={16} />
+            {creator.rank.name}
+          </span>
+        )}
+      </span>
+    </Link>
+  )
+}
+
+/** A Main Content Creator: one wide card, like the Owner's on the Staff page. */
+function MainCard({ creator }: { creator: Creator }) {
+  return (
+    <article className="flex flex-col gap-4 rounded-2xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-5 transition-colors hover:border-[var(--line-strong)] sm:flex-row sm:items-center">
+      <div className="flex min-w-0 flex-col gap-2.5 sm:w-[300px] sm:shrink-0">
+        <CreatorHead creator={creator} size={72} />
+        <span><CreatorBadge tier={creator.tier} label={creator.label} /></span>
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col gap-3 sm:border-l sm:border-[var(--line-soft)] sm:pl-5">
+        {creator.bio ? <p className="text-[13px] leading-relaxed text-[var(--text-2)]">{creator.bio}</p> : <p className="text-[13px] text-[var(--text-dim)]">No line yet.</p>}
+        <CreatorLinks links={creator.links} />
+      </div>
+    </article>
+  )
+}
+
+/** A Content Creator: a compact card in the grid. */
+function CreatorCard({ creator }: { creator: Creator }) {
+  return (
+    <article className="flex h-full flex-col gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4 transition-colors hover:border-[var(--line-strong)]">
+      <CreatorHead creator={creator} size={48} />
+      {creator.bio && <p className="line-clamp-2 text-[13px] leading-relaxed text-[var(--text-muted)]">{creator.bio}</p>}
       <CreatorLinks links={creator.links} className="mt-auto" />
     </article>
   )
@@ -100,46 +123,63 @@ function CreatorCard({ creator, big }: { creator: Creator; big?: boolean }) {
 
 export function CreatorsPage() {
   const [tab, setTab] = useState<CreatorsTab>("all")
+  const [search, setSearch] = useState("")
   const { data, loading, error, refetch } = useApiQuery((signal) => creatorsService.list({ signal }), { queryKey: "creators" })
   const creators = data?.creators ?? []
-  const main = creators.filter((creator) => creator.tier === "main")
-  const others = creators.filter((creator) => creator.tier === "creator")
+  const query = search.trim().toLowerCase()
+  const found = creators.filter((creator) => !query || creator.username.toLowerCase().includes(query))
+  const main = found.filter((creator) => creator.tier === "main")
+  const others = found.filter((creator) => creator.tier === "creator")
+  const count = (tier: CreatorTier) => creators.filter((creator) => creator.tier === tier).length
+  const showMain = tab !== "creator" && main.length > 0
+  const showOthers = tab !== "main" && others.length > 0
 
   return (
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
-        <PageTabs<CreatorsTab> ariaLabel="Creators" value={tab} onChange={setTab} options={[{ value: "all", label: "All" }, { value: "main", label: "Main Content Creators" }, { value: "creator", label: "Content Creators" }]} />
-        <PageBarEnd>{data && <span className="text-xs text-[var(--text-dim)] max-sm:hidden">{creators.length} creator{creators.length === 1 ? "" : "s"}</span>}<CreatorApply /></PageBarEnd>
+        <PageTabs<CreatorsTab> ariaLabel="Creators" value={tab} onChange={setTab} options={[{ value: "all", label: "Everyone", count: data ? creators.length : undefined }, { value: "main", label: "Main", count: data ? count("main") : undefined }, { value: "creator", label: "Creators", count: data ? count("creator") : undefined }]} />
+        <PageBarEnd>
+          <label className={cn(pageSearchClass, "max-md:hidden")}>
+            <Search className="size-4 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Find a creator" aria-label="Find a creator" className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] focus:outline-none" />
+            {search && <button type="button" aria-label="Clear search" onClick={() => setSearch("")} className="text-[var(--text-dim)] hover:text-[var(--text)]"><X className="size-3.5" /></button>}
+          </label>
+          <CreatorApply />
+        </PageBarEnd>
       </PageBar>
-      <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 py-5 max-md:px-4">
-        {loading && !data ? (
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3" aria-hidden="true">
-            {Array.from({ length: 6 }, (_, index) => <Skeleton key={index} className="h-[190px] rounded-xl bg-[var(--card-surface)]" />)}
-          </div>
-        ) : error && !data ? (
-          <p className="flex items-center justify-center gap-3 py-16 text-[13px] text-[var(--text-dim)]">
-            Could not load the creators.
-            <button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button>
-          </p>
-        ) : creators.length === 0 ? (
-          <p className="py-16 text-center text-[13px] text-[var(--text-dim)]">No creators yet.</p>
-        ) : (
-          <div className="flex flex-col gap-7">
-            {tab !== "creator" && main.length > 0 && (
-              <section aria-label="Main Content Creators" className="flex flex-col gap-3">
-                {tab === "all" && <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-dim)]">Main Content Creators</h2>}
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{main.map((creator) => <CreatorCard key={creator.userId} creator={creator} big />)}</div>
-              </section>
-            )}
-            {tab !== "main" && others.length > 0 && (
-              <section aria-label="Content Creators" className="flex flex-col gap-3">
-                {tab === "all" && <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-dim)]">Content Creators</h2>}
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{others.map((creator) => <CreatorCard key={creator.userId} creator={creator} />)}</div>
-              </section>
-            )}
-            {((tab === "main" && main.length === 0) || (tab === "creator" && others.length === 0)) && <p className="py-16 text-center text-[13px] text-[var(--text-dim)]">No creators here yet.</p>}
-          </div>
-        )}
+      <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 py-6 max-md:px-4">
+        <div className="mx-auto flex max-w-[1320px] flex-col gap-7">
+          {loading && !data ? (
+            <div className="flex flex-col gap-3" aria-hidden="true">
+              <div className="grid gap-3 xl:grid-cols-2">{[0, 1].map((index) => <Skeleton key={index} className="h-[130px] rounded-2xl bg-[var(--card-surface)]" />)}</div>
+              <div className="lx-creator-grid">{Array.from({ length: 4 }, (_, index) => <Skeleton key={index} className="h-[150px] rounded-xl bg-[var(--card-surface)]" />)}</div>
+            </div>
+          ) : error && !data ? (
+            <p className="flex items-center justify-center gap-3 py-16 text-[13px] text-[var(--text-dim)]">
+              Could not load the creators.
+              <button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button>
+            </p>
+          ) : creators.length === 0 ? (
+            <p className="py-16 text-center text-[13px] text-[var(--text-dim)]">No creators yet.</p>
+          ) : !showMain && !showOthers ? (
+            <p className="py-16 text-center text-[13px] text-[var(--text-dim)]">{query ? "No creator by that name." : "No creators here yet."}</p>
+          ) : (
+            <>
+              {showMain && (
+                <section aria-label="Main Content Creators" className="flex flex-col gap-3">
+                  {tab === "all" && <h2 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-dim)] before:h-3 before:w-[3px] before:rounded-full before:bg-[var(--text-faint)]">Main Content Creators</h2>}
+                  <div className="flex flex-col gap-3">{main.map((creator) => <MainCard key={creator.userId} creator={creator} />)}</div>
+                </section>
+              )}
+              {showOthers && (
+                <section aria-label="Content Creators" className="flex flex-col gap-3">
+                  {tab === "all" && <h2 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-dim)] before:h-3 before:w-[3px] before:rounded-full before:bg-[var(--text-faint)]">Content Creators</h2>}
+                  <div className="lx-creator-grid">{others.map((creator) => <CreatorCard key={creator.userId} creator={creator} />)}</div>
+                </section>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   )

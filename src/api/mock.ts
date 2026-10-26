@@ -950,6 +950,8 @@ export async function mockResponse(method: string, path: string, query: Query, b
         { userId: "u2", steamId: "76561198000000002", username: "xBataa", avatar: null, tier: "main", label: "Main Content Creator", bio: "Highlights and AWP clips.", links: { youtube: "https://youtube.com/@xbataa", tiktok: "https://tiktok.com/@xbataa" }, rank: { id: 15, name: "Apex II", imageKey: null }, frame: null, nameStyle: null },
         { userId: "u3", steamId: "76561198000000003", username: "Khuslen_AWP", avatar: null, tier: "creator", label: "Content Creator", bio: "", links: { kick: "https://kick.com/khuslen" }, rank: { id: 14, name: "Apex I", imageKey: null }, frame: null, nameStyle: null },
         { userId: "u4", steamId: "76561198000000004", username: "Enkh.", avatar: null, tier: "creator", label: "Content Creator", bio: "Fun Mode surf videos.", links: { facebook: "https://facebook.com/enkh", instagram: "https://instagram.com/enkh" }, rank: null, frame: null, nameStyle: null },
+        { userId: "u5", steamId: "76561198000000005", username: "Gansukh", avatar: null, tier: "creator", label: "Content Creator", bio: "Pro League match reviews every week.", links: { youtube: "https://youtube.com/@gansukh" }, rank: { id: 12, name: "Ace II", imageKey: null }, frame: null, nameStyle: null },
+        { userId: "u6", steamId: "76561198000000006", username: "ZoloMN", avatar: null, tier: "creator", label: "Content Creator", bio: "Short clips and funny moments.", links: { tiktok: "https://tiktok.com/@zolomn" }, rank: { id: 9, name: "Vanguard II", imageKey: null }, frame: null, nameStyle: null },
       ] }
     case "/api/v1/search/players":
       return searchPlayers(String(query?.query ?? ""))
