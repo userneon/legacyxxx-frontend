@@ -185,9 +185,9 @@ the top (rank, Matches / Win / K/D, since), and the rest fill the width in a gri
 Matches / Win / K/D and "Since <month>"; a role filter adds one line of what that role does. Real data from `GET /public/staff` (active staff only, Owner first, with rank, ranked numbers,
 clan tag and staff start date); a card opens the profile.
 
-### Public chat (owner request 2026-10-23)
-
 Notifications in the bell open the page they are about when clicked (`notificationTarget` in `notifications-menu.tsx`; a staff message has none). `useApiQuery` keeps what is on screen while it asks again, so a page does not drop to its skeleton after a buy, wear or accept.
+
+### Public chat (owner request 2026-10-23)
 
 A round button bottom right on every page of the website (`components/public-chat.tsx`) opens the community chat in a solid `--panel` panel (it floats over content). Everyone reads; a signed-in player writes
 (300 characters, no links, one message per `chat.cooldown_seconds`, refused while they have an active gag); staff who can ban see a Remove icon on each message; staff roles show a small pill (Owner violet, others neutral).
