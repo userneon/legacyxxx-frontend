@@ -6,6 +6,7 @@
  * marks what it shows as read.
  */
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { Bell, CircleCheck, Gavel, Info, Loader2, MessageSquare, Scale, Swords, Users, type LucideIcon } from "lucide-react"
 import { toast } from "sonner"
 
@@ -37,8 +38,26 @@ export function notificationIcon(notification: Pick<NotificationEntry, "kind" | 
   return detail ?? KIND_ICON[notification.kind] ?? Info
 }
 
+/** The page a notification is about, or null when there is nothing to open (a message from staff, for one). */
+export function notificationTarget(notification: Pick<NotificationEntry, "kind" | "metadata">): string | null {
+  const detail = typeof notification.metadata?.kind === "string" ? notification.metadata.kind : ""
+  const clanId = typeof notification.metadata?.clanId === "string" ? notification.metadata.clanId : ""
+  if (notification.kind === "penalty") return "/penalties"
+  if (notification.kind === "match") return "/profile"
+  if (notification.kind === "clan") return clanId ? `/clans/${encodeURIComponent(clanId)}` : "/clans"
+  switch (detail) {
+    case "lift_request": return "/staff/penalties"
+    case "lift_decision": return "/penalties"
+    case "wallet": return "/wallet"
+    case "founder": return "/profile/appearance"
+    case "creator": return "/creators"
+    default: return null
+  }
+}
+
 export function NotificationsMenu() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [clearing, setClearing] = useState(false)
   const [readLocally, setReadLocally] = useState(false)
@@ -124,17 +143,25 @@ export function NotificationsMenu() {
           <ul className="flex max-h-80 flex-col overflow-y-auto">
             {entries.map((notification) => {
               const Icon = notificationIcon(notification)
+              const target = notificationTarget(notification)
               return (
-              <li key={notification.id} className="flex items-start gap-3 px-4 py-3">
-                <span aria-hidden="true" className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--line)] text-[var(--text-2)]">
-                  <Icon className="size-4" strokeWidth={2} />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{notification.title}</p>
-                  {notification.body && <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{notification.body}</p>}
-                  <RelativeTime value={notification.createdAt} className="mt-1 block text-[11px] text-[var(--text-dim)]" />
-                </div>
-                {notification.readAt === null && <span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-[var(--accent-solid)]" />}
+              <li key={notification.id}>
+                <button
+                  type="button"
+                  disabled={target === null}
+                  onClick={() => { if (target === null) return; setOpen(false); navigate(target) }}
+                  className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors enabled:hover:bg-[var(--raised)] disabled:cursor-default"
+                >
+                  <span aria-hidden="true" className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--line)] text-[var(--text-2)]">
+                    <Icon className="size-4" strokeWidth={2} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{notification.title}</p>
+                    {notification.body && <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{notification.body}</p>}
+                    <RelativeTime value={notification.createdAt} className="mt-1 block text-[11px] text-[var(--text-dim)]" />
+                  </div>
+                  {notification.readAt === null && <span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-[var(--accent-solid)]" />}
+                </button>
               </li>
               )
             })}
