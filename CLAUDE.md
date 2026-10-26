@@ -36,7 +36,7 @@ The earlier orange `#ff5a1f` exception was dropped and no longer exists in `src/
 - Surfaces: `--bg` `#0a0a0a`, `--panel` `#0f0f0f`, `--card-surface` `#141414`, `--raised` `#1a1a1a`
 - Lines: `--line-soft` `#1f1f1f`, `--line` `#262626`, `--line-strong` `#333333`
 - Text: `--text` `#fafafa` → `--text-faint` `#525252`
-- `--accent-solid` `#fafafa` (on `#0a0a0a`): primary buttons (`.lx-primary-button`), progress fills, unread dots
+- `--accent-solid` `#fafafa` (on `#0a0a0a`): progress fills, unread dots
 - `--brand` `#8b5cf6` (fills, borders, glows), `--brand-bright` `#a78bfa` (text, icons), `--brand-deep`
   `#2e1065`, `--brand-on` `#f5f3ff`. Violet is used sparingly (owner request 2026-10-01: too much of it).
   It belongs to: the wordmark's "-X", the active sidebar item, the Home hero's accent word and the soft glow behind its art, the flagship "Players Online" figure, the #1 leader
@@ -45,7 +45,7 @@ The earlier orange `#ff5a1f` exception was dropped and no longer exists in `src/
   `PageBar` (`components/page-tabs.tsx`: underlined tabs on the left, hint and controls on the right, one hairline) and the page
   name lives in the top bar. Everything else is neutral: section-heading bars
   (`--text-faint`), hover borders (`--line-strong`), hover fills (`--raised`), focus rings (`--accent-solid`),
-  icon tiles, slot dots (`--text-2`). A primary button stays white. Before adding violet somewhere new,
+  icon tiles, slot dots (`--text-2`). A primary button stays neutral (`.lx-primary-button`). Before adding violet somewhere new,
   ask whether it is one of the spots above; if not, leave it neutral.
 - `--status-green` `#22c55e` (online/live/verified) and `--status-red` `#ef4444` (limits, bans) are the status colors
 - Rank emblems use the CS2 rarity ladder (`--rank-<tier>`) **only** inside emblem
@@ -61,7 +61,7 @@ The earlier orange `#ff5a1f` exception was dropped and no longer exists in `src/
   nothing else gets its own number.
 - **Text:** 10–11px meta and labels, 13px body and controls, 15px emphasis, 22px+ headings, `font-display`
   only for the wordmark and page titles. Don't add a new pixel size.
-- **Buttons:** the primary action is `.lx-primary-button` (white); a secondary action is a bordered
+- **Buttons:** the primary action is `.lx-primary-button`: dark `#262626` with a light `#404040` border and white text (owner pick "3", 2026-10-26, the white was too harsh; also the shadcn Button's default). Where this file still says a "white" primary button, it means this one; a secondary action is a bordered
   `--raised` button; hover on neutral controls is `hover:bg-[var(--raised)]`. Brand violet appears on a
   button only as a selected/active state, never as the default look.
 - **Surfaces:** shell and cards use the flat-outline tokens below; a plain `--panel`/`--raised` fill is for nested

@@ -1485,13 +1485,16 @@ body::before {
    ======================================== */
 /* Primary action: flat violet. No gradient, no glow: the colour alone carries it. */
 /* Primary action: the neutral white accent, like every other button (no hue). Owner request 2026-09-30. */
+/* The main action (owner pick "3", 2026-10-26: the white was too harsh): a dark raised button with a light border and white text. */
 .lx-primary-button {
-  background: #e5e5e5;
-  color: #0a0a0a;
-  transition: background-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  background: #262626;
+  color: #fafafa;
+  box-shadow: inset 0 0 0 1px #404040;
+  transition: background-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
 }
 .lx-primary-button:hover {
-  background: #d4d4d4;
+  background: #2e2e2e;
+  box-shadow: inset 0 0 0 1px #525252;
 }
 .lx-primary-button:active {
   transform: translateY(1px);
