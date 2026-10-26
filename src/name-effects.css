@@ -139,3 +139,46 @@
 @media (prefers-reduced-motion: reduce) {
   .lx-fx-candy, .lx-fx-rosegold, .lx-fx-platinum, .lx-fx-spectrum, .lx-fx-galaxy, .lx-glow-breathe, .lx-glow-spark { animation: none; }
 }
+
+/*
+ * ---- colour it yourself (owner request 2026-10-26): the designs sold in the Shop take the player's own colour (--name-color) ----
+ * Gradient, Fire, Chrome, Foil and Drift are built from that one colour mixed with white and black, so any pick works. Until a
+ * colour is picked the name is a neutral grey.
+ */
+.lx-fx-gradient, .lx-fx-foil, .lx-fx-drift, .lx-fx-tint-fire, .lx-fx-tint-chrome {
+  --c: var(--name-color, #d4d4d4); /* palette-exempt */
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.lx-fx-gradient { background-image: linear-gradient(180deg, color-mix(in srgb, var(--c) 22%, #ffffff) 0%, var(--c) 46%, color-mix(in srgb, var(--c) 58%, #000000) 100%); } /* palette-exempt */
+/* Fire: a white-hot tip over the colour, burning down to a dark ember, flickering a little. */
+.lx-fx-tint-fire {
+  background-image: linear-gradient(0deg, color-mix(in srgb, var(--c) 62%, #000000) 0%, var(--c) 34%, color-mix(in srgb, var(--c) 45%, #fff3b0) 70%, #fffbea 100%); /* palette-exempt */
+  background-size: 100% 130%;
+  animation: lx-name-flicker 1.8s ease-in-out infinite;
+}
+/* Chrome: a bright sky, a dark horizon line and a ground reflection, all tinted with the colour. */
+.lx-fx-tint-chrome { background-image: linear-gradient(180deg, #ffffff 0%, color-mix(in srgb, var(--c) 18%, #ffffff) 26%, color-mix(in srgb, var(--c) 55%, #1f2937) 49%, #ffffff 53%, var(--c) 80%, color-mix(in srgb, var(--c) 30%, #ffffff) 100%); } /* palette-exempt */
+/* Foil: the colour as metal with a highlight sweeping across it. */
+.lx-fx-foil {
+  background-image:
+    linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.9) 50%, transparent 62%), /* palette-exempt */
+    linear-gradient(180deg, color-mix(in srgb, var(--c) 30%, #ffffff) 0%, var(--c) 32%, color-mix(in srgb, var(--c) 55%, #000000) 56%, color-mix(in srgb, var(--c) 55%, #ffffff) 76%, color-mix(in srgb, var(--c) 80%, #000000) 100%); /* palette-exempt */
+  background-size: 260% 100%, 100% 100%;
+  background-position: 160% 0, 0 0;
+  background-repeat: no-repeat;
+  animation: lx-name-sweep 4.5s ease-in-out infinite;
+}
+/* Drift: the colour and its neighbours on the colour wheel flowing through the name. */
+.lx-fx-drift {
+  background-image: linear-gradient(90deg, var(--c), color-mix(in srgb, var(--c) 35%, #ffffff), color-mix(in srgb, var(--c) 65%, #000000), color-mix(in srgb, var(--c) 35%, #ffffff), var(--c)); /* palette-exempt */
+  background-image: linear-gradient(90deg, var(--c), oklch(from var(--c) calc(l + 0.08) c calc(h + 50)), oklch(from var(--c) l c calc(h - 50)), oklch(from var(--c) calc(l + 0.08) c calc(h + 50)), var(--c));
+  background-size: 300% 100%;
+  animation: lx-name-drift 6s linear infinite;
+}
+@keyframes lx-name-flicker { 0%, 100% { background-position: 0 0; } 40% { background-position: 0 30%; } 70% { background-position: 0 12%; } }
+@media (prefers-reduced-motion: reduce) {
+  .lx-fx-tint-fire, .lx-fx-foil, .lx-fx-drift { animation: none; }
+}

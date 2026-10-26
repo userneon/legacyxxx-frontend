@@ -56,7 +56,9 @@ export function frameArt(id: string | null | undefined): ({ src: string; maskSrc
   return { src: `/frames/${id}.webp`, ...(FRAMES[id].mask ? { maskSrc: `/frames/${id}-mask.webp` } : {}), ...FRAMES[id] }
 }
 
-const COLOR_FX = new Set(["chrome", "gold", "ice", "sakura", "emerald", "aurora", "holo", "fire", "void", "sunrise", "ocean", "lava", "candy", "toxic", "midnight", "rosegold", "platinum", "spectrum", "galaxy"])
+/** Designs coloured with the player's own pick (--name-color); fire and chrome have a fixed-colour look too, used when no colour comes. */
+const TINT_FX: Record<string, string> = { gradient: "gradient", foil: "foil", drift: "drift", fire: "tint-fire", chrome: "tint-chrome" }
+const COLOR_FX = new Set(["gradient", "foil", "drift", "chrome", "gold", "ice", "sakura", "emerald", "aurora", "holo", "fire", "void", "sunrise", "ocean", "lava", "candy", "toxic", "midnight", "rosegold", "platinum", "spectrum", "galaxy"])
 const GLOW_FX = new Set(["neon", "pulse", "flame", "electric", "aura", "halo", "breathe", "spark"])
 const HEX = /^#[0-9a-f]{6}$/i
 
@@ -78,9 +80,11 @@ export function nameProps(look: NameLook | null | undefined, base = ""): { class
   const glow = look?.glow && HEX.test(look.glow) ? look.glow : null
   const glowFx = glow ? (look?.glowFx && GLOW_FX.has(look.glowFx) ? look.glowFx : "neon") : null
   if (!colorFx && !color && !glow) return { className: base }
+  // A design with a picked colour paints from it; the old fixed looks (and earned items) keep their own colours.
+  const fxClass = colorFx && (color ? TINT_FX[colorFx] ?? colorFx : colorFx)
   return {
-    className: [base, "lx-name", colorFx && `lx-fx-${colorFx}`, glowFx && `lx-glow-${glowFx}`].filter(Boolean).join(" "),
-    style: { ...(color && !colorFx ? { color } : {}), ...(glow ? ({ "--name-glow": glow } as React.CSSProperties) : {}) },
+    className: [base, "lx-name", fxClass && `lx-fx-${fxClass}`, glowFx && `lx-glow-${glowFx}`].filter(Boolean).join(" "),
+    style: { ...(color && !colorFx ? { color } : {}), ...(color && colorFx ? ({ "--name-color": color } as React.CSSProperties) : {}), ...(glow ? ({ "--name-glow": glow } as React.CSSProperties) : {}) },
   }
 }
 

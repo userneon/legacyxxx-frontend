@@ -2,7 +2,7 @@ import { FounderPack } from "@/components/founder-pack"
 import { useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
-import { Check, ChevronDown, Lock, Palette, RotateCcw, Search, X } from "lucide-react"
+import { Check, ChevronDown, Lock, RotateCcw, Search, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -44,11 +44,6 @@ const TABS: Array<{ value: ShopTab; label: string }> = [
 
 type ShopItem = FrameItem & { kind: ShopKind }
 
-/** What each trail and kill effect shape is called on a custom item's picker. */
-const SHAPE_LABEL: Record<string, string> = { line: "Line", dash: "Dash", double: "Double", helix: "Helix", comet: "Comet", zigzag: "Zigzag", flare: "Flare", sparks: "Sparks", starfall: "Starfall", inferno: "Inferno", starburst: "Starburst", nova: "Nova", shockwave: "Shockwave", dome: "Dome", embers: "Embers", ring: "Shockwave", pillar: "Pillar", burst: "Burst", spiral: "Spiral", lightning: "Thunder", halo: "Halo", crown: "Crown", cross: "Cross", xmark: "X", heart: "Heart", soul: "Soul" }
-
-
-
 /** What the item looks like: a frame around your picture, or your name painted with it. */
 function ItemArt({ item, avatar, username, size }: { item: ShopItem; avatar?: string; username: string; size: number }) {
   if (item.kind === "frame") return <FramedAvatar avatar={avatar} name={username} frame={item.id} size={size} />
@@ -75,9 +70,6 @@ function Spot({ accent, height, children }: { accent: string; height: number; ch
   )
 }
 
-/** A plain single colour (no effect, no second smoke colour): these share one card with a swatch each instead of a card apiece. */
-const isSolid = (item: ShopItem) => item.kind !== "frame" && !item.custom && !item.fx && !(item.kind === "smoke_color" && item.color2)
-
 const group = (item: ShopItem) => (item.unlock === "coin" && !item.owned ? 0 : item.owned ? 1 : 2)
 
 
@@ -94,12 +86,15 @@ export function ShopPage() {
   const [picked, setPicked] = useState<string | null>(params.get("item"))
   const [search, setSearch] = useState("")
   const [sheetOpen, setSheetOpen] = useState(false)
-  // The colour being tried on a custom item (name colour or glow) before it is saved.
+  // The colours being tried on a design before they are saved (anyone can try; buying or saving keeps them).
   const [customDraft, setCustomDraft] = useState<Record<string, string>>({})
-  // The shape being tried on a custom trail or kill effect.
-  const [shapeDraft, setShapeDraft] = useState<Record<string, string>>({})
-  /** An in-game item as it would look with the colour and shape being tried on it. */
-  const tried = (item: ShopItem) => ({ color: customDraft[item.id] ?? item.color, fx: shapeDraft[item.id] ?? item.fx })
+  const [customDraft2, setCustomDraft2] = useState<Record<string, string>>({})
+  /** An in-game item as it would look with the colours being tried on it. */
+  const tried = (item: ShopItem) => ({ color: customDraft[item.id] ?? item.color, color2: customDraft2[item.id] ?? item.color2, fx: item.fx })
+  const dropDrafts = (id: string) => {
+    setCustomDraft((current) => { const { [id]: _saved, ...rest } = current; return rest })
+    setCustomDraft2((current) => { const { [id]: _saved, ...rest } = current; return rest })
+  }
   // The item bought a moment ago: its card rings once and the buy block turns into "Worn" with a fade.
   const [justBought, setJustBought] = useState<string | null>(null)
   // How long the next purchase rents the item for; the price of each length is the API's.
@@ -156,6 +151,10 @@ export function ShopPage() {
     try {
       const bought = await cosmeticsService.buy(item.id, duration)
       window.dispatchEvent(new Event("legacyx:wallet-changed"))
+      if (item.custom && (customDraft[item.id] || customDraft2[item.id])) {
+        await cosmeticsService.saveCustom(item.id, customDraft[item.id] ?? (item.kind === "name_glow" ? item.glow : item.color) ?? "#d4d4d4", item.twoColours ? customDraft2[item.id] ?? item.color2 : null)
+        dropDrafts(item.id)
+      }
       await cosmeticsService.equip(item.kind, item.id)
       toast.success(bought.expiresAt ? `${item.name} is yours for ${COSMETIC_DURATIONS.find((entry) => entry.value === duration)?.label.toLowerCase()} and now worn` : `${item.name} is yours for good and now worn`)
       await Promise.all([refetch(), refetchWallet()])
@@ -169,37 +168,6 @@ export function ShopPage() {
   }
 
   const pill = (active: boolean) => cn("inline-flex h-[26px] items-center rounded-full border px-2.5 text-xs transition-colors", active ? "border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text)]" : "border-[var(--line)] text-[var(--text-dim)] hover:text-[var(--text)]")
-
-  const solidPalette = (items: ShopItem[]) => {
-    const current = items.find((item) => isPicked(item)) ?? items[0]
-    return (
-      <li key="solid-palette" className="col-span-full rounded-xl">
-        <div className="lx-shop-tile flex flex-col gap-3 overflow-hidden rounded-xl p-3 sm:flex-row sm:items-center">
-          <div className="sm:w-[190px] sm:shrink-0">
-            <Spot accent={accentOf(current)} height={104}><ItemArt item={current} avatar={user?.avatar} username={username} size={70} /></Spot>
-          </div>
-          <div className="flex min-w-0 flex-1 flex-col gap-2.5">
-            <span className="flex items-baseline justify-between gap-2">
-              <span className="text-[13px] font-semibold text-[var(--text)]">{current.kind === "name_glow" ? "Solid glows" : current.kind === "grenade_trail" ? "Trail colours" : current.kind === "grenade_light" ? "Light colours" : current.kind === "smoke_color" ? "Smoke colours" : "Solid colours"}</span>
-              <span className="truncate text-[11px] text-[var(--text-dim)]">{current.name}</span>
-            </span>
-            <ul role="group" aria-label="Solid colours" className="flex flex-wrap gap-2">
-              {items.map((item) => {
-                const active = item.id === current.id && isPicked(item)
-                return (
-                  <li key={item.id}>
-                    <button type="button" onClick={() => choose(item)} aria-pressed={active} aria-label={item.name} title={item.name} className={cn("lx-shop-swatch relative grid size-7 place-items-center rounded-full border border-[var(--line-strong)] transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60", justBought === item.id && "lx-bought")} style={{ background: accentOf(item) }}>
-                      {item.owned ? <Check className="size-3.5 text-white mix-blend-difference" aria-hidden="true" /> : item.unlock !== "coin" ? <Lock className="size-3 text-white mix-blend-difference" aria-hidden="true" /> : null}
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        </div>
-      </li>
-    )
-  }
 
   const card = (item: ShopItem) => {
     const active = isPicked(item)
@@ -219,10 +187,9 @@ export function ShopPage() {
           className="lx-shop-tile flex w-full flex-col overflow-hidden rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60"
         >
           <div className="relative">
-            {item.custom && <Palette aria-label="Pick any colour" className="absolute right-2.5 top-2.5 z-[2] size-3.5 text-[var(--text-2)]" />}
             <Spot accent={accentOf(item)} height={124}><ItemArt item={item} avatar={user?.avatar} username={username} size={70} /></Spot>
           </div>
-          <div className="flex items-center justify-between gap-2 px-3 pb-3 pt-1">{action}</div>
+          <div className="flex items-center justify-between gap-2 px-3 pb-3 pt-1">{action}<span className="min-w-0 truncate text-[11px] font-medium text-[var(--text-dim)]">{item.name}</span></div>
         </button>
       </li>
     )
@@ -231,10 +198,9 @@ export function ShopPage() {
   const saveCustom = async (item: ShopItem) => {
     setBusy(true)
     try {
-      await cosmeticsService.saveCustom(item.id, customDraft[item.id] ?? (item.kind === "name_glow" ? item.glow : item.color) ?? "#8b5cf6", item.shapes ? shapeDraft[item.id] ?? item.fx : null)
+      await cosmeticsService.saveCustom(item.id, customDraft[item.id] ?? (item.kind === "name_glow" ? item.glow : item.color) ?? "#d4d4d4", item.twoColours ? customDraft2[item.id] ?? item.color2 : null)
       await refetch()
-      setCustomDraft((current) => { const { [item.id]: _saved, ...rest } = current; return rest })
-      setShapeDraft((current) => { const { [item.id]: _saved, ...rest } = current; return rest })
+      dropDrafts(item.id)
       toast.success("Saved")
     } catch (caught) {
       toast.error("Could not save it", { description: caught instanceof Error ? caught.message : "Try again in a moment." })
@@ -243,11 +209,8 @@ export function ShopPage() {
     }
   }
 
-  /** A grid of cards; plain single colours (when `palette`) share one card with a swatch each. */
-  const grid = (list: ShopItem[], palette: boolean) => {
-    const solids = palette ? list.filter(isSolid) : []
-    return <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">{solids.length > 1 ? [solidPalette(solids), ...list.filter((item) => !solids.includes(item)).map(card)] : list.map(card)}</ul>
-  }
+  /** A grid of cards, one per design. */
+  const grid = (list: ShopItem[]) => <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">{list.map(card)}</ul>
 
   const buyBlock = (item: ShopItem) => {
     const isWorn = worn[item.kind] === item.id
@@ -262,21 +225,14 @@ export function ShopPage() {
           {/* A real count from the API (players who own it now); nothing when nobody does yet. */}
           {item.owners ? <span className="shrink-0 text-[11px] text-[var(--text-dim)]">{item.owners.toLocaleString()} {item.owners === 1 ? "player owns" : "players own"} it</span> : null}
         </span>
-        {/* Anyone can try colours and shapes on; saving them needs the item. */}
+        {/* Every design is coloured by the player: anyone can try colours on here; buying or saving keeps them. */}
         {item.custom && (
           <div className="flex flex-col gap-2.5">
-            {item.shapes && (
-              <div role="radiogroup" aria-label="Shape" className="flex flex-wrap gap-1.5">
-                {item.shapes.map((shape) => {
-                  const active = (shapeDraft[item.id] ?? item.fx) === shape
-                  return <button key={shape} type="button" role="radio" aria-checked={active} onClick={() => setShapeDraft((current) => ({ ...current, [item.id]: shape }))} className={cn(pill(active), "aria-checked:border-[var(--brand)] aria-checked:text-[var(--text)]")}>{SHAPE_LABEL[shape] ?? shape}</button>
-                })}
-              </div>
-            )}
-            <ColorRow label={item.kind === "name_glow" ? "Glow" : "Colour"} value={customDraft[item.id] ?? (item.kind === "name_glow" ? item.glow : item.color) ?? "#8b5cf6"} colors={PICK_COLORS} onChange={(next) => setCustomDraft((current) => ({ ...current, [item.id]: next }))} />
+            <ColorRow label={item.kind === "name_glow" ? "Glow" : item.twoColours ? "First" : "Colour"} value={customDraft[item.id] ?? (item.kind === "name_glow" ? item.glow : item.color) ?? "#d4d4d4"} colors={PICK_COLORS} onChange={(next) => setCustomDraft((current) => ({ ...current, [item.id]: next }))} />
+            {item.twoColours && <ColorRow label="Second" value={customDraft2[item.id] ?? item.color2 ?? "#737373"} colors={PICK_COLORS} onChange={(next) => setCustomDraft2((current) => ({ ...current, [item.id]: next }))} />}
             {item.owned
-              ? <button type="button" disabled={busy || (!customDraft[item.id] && !shapeDraft[item.id])} onClick={() => void saveCustom(item)} className="lx-primary-button inline-flex h-9 items-center justify-center self-start rounded-lg px-4 text-xs font-semibold disabled:opacity-50">Save</button>
-              : <p className="text-[11px] text-[var(--text-dim)]">Try it on here; buy it to keep your pick.</p>}
+              ? <button type="button" disabled={busy || (!customDraft[item.id] && !customDraft2[item.id])} onClick={() => void saveCustom(item)} className="lx-primary-button inline-flex h-9 items-center justify-center self-start rounded-lg px-4 text-xs font-semibold disabled:opacity-50">Save colour</button>
+              : <p className="text-[11px] text-[var(--text-dim)]">Pick any colour; it is kept when you buy it.</p>}
           </div>
         )}
         {item.owned && (
@@ -326,7 +282,7 @@ export function ShopPage() {
           ) : selected?.kind === "grenade_light" ? (
             <div className="relative flex items-center justify-center py-4"><GrenadeLight color={tried(selected).color} className="w-[220px]" /></div>
           ) : selected?.kind === "smoke_color" ? (
-            <div className="relative flex items-center justify-center py-4"><span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} /><SmokePuff color={tried(selected).color} color2={selected.color2} className="w-[220px]" /></div>
+            <div className="relative flex items-center justify-center py-4"><span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} /><SmokePuff color={tried(selected).color} color2={tried(selected).color2} className="w-[220px]" /></div>
           ) : (
             <div className="relative flex flex-col items-center gap-3 py-4">
               <span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} />
@@ -414,17 +370,17 @@ export function ShopPage() {
                   <div className="flex flex-col gap-6">
                     {([["name_color", "Colour"], ["name_glow", "Glow"]] as const).map(([kind, heading]) => {
                       const list = shown.filter((item) => item.kind === kind)
-                      return list.length ? <div key={kind}><div className="lx-shop-heading mb-2.5">{heading}</div>{grid(list, true)}</div> : null
+                      return list.length ? <div key={kind}><div className="lx-shop-heading mb-2.5">{heading}</div>{grid(list)}</div> : null
                     })}
                   </div>
                 ) : tab === "smoke_color" ? (
                   <div className="flex flex-col gap-6">
                     {([["smoke_color", "Smoke"], ["grenade_trail", "Trail"], ["grenade_light", "Light"], ["flash_effect", "Flash"]] as const).map(([kind, heading]) => {
                       const list = shown.filter((item) => item.kind === kind)
-                      return list.length ? <div key={kind}><div className="lx-shop-heading mb-2.5">{heading}</div>{grid(list, true)}</div> : null
+                      return list.length ? <div key={kind}><div className="lx-shop-heading mb-2.5">{heading}</div>{grid(list)}</div> : null
                     })}
                   </div>
-                ) : grid(shown, false)}
+                ) : grid(shown)}
               </section>
             </div>
             {rail}

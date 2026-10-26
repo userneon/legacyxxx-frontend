@@ -33,10 +33,10 @@ export interface FrameItem {
   glow?: string
   /** The finished effect (chrome, gold, neon, flame ...) the website draws for this item. */
   fx?: string
-  /** The player picks the colour of this one (name colour or glow): `color` / `glow` is their pick, or the starting colour. */
+  /** A design the player colours themselves (owner request 2026-10-26): `color` / `glow` (and `color2`) is their pick, or grey until they pick. */
   custom?: boolean
-  /** The shapes the player can pick for a custom in-game item (with the colour). */
-  shapes?: string[]
+  /** The design takes a second colour too (the dual smoke). */
+  twoColours?: boolean
   /** 1 common, 2 rare, 3 epic, 4 legendary (the ones that are earned). Absent from an older API. */
   rarity?: number
   featured?: boolean
@@ -87,9 +87,9 @@ export const cosmeticsService = {
   async buy(id: string, duration: CosmeticDuration = "30d", options?: CallOptions): Promise<{ owned: boolean; expiresAt: string | null }> {
     return post<{ owned: boolean; expiresAt: string | null }>(`/api/v1/cosmetics/${encodeURIComponent(id)}/buy`, { duration }, options)
   },
-  /** Pick the colour of a custom item you own (and wear it). */
-  async saveCustom(item: string, color: string, fx?: string | null, options?: CallOptions): Promise<{ kind: CosmeticKind; item: string; color: string }> {
-    return put<{ kind: CosmeticKind; item: string; color: string }>("/api/v1/cosmetics/custom", fx ? { item, color, fx } : { item, color }, options)
+  /** Pick the colour (and the dual smoke's second one) of a design you own. */
+  async saveCustom(item: string, color: string, color2?: string | null, options?: CallOptions): Promise<{ kind: CosmeticKind; item: string; color: string }> {
+    return put<{ kind: CosmeticKind; item: string; color: string }>("/api/v1/cosmetics/custom", color2 ? { item, color, color2 } : { item, color }, options)
   },
   /** Wear one, or take it off with null. */
   async equip(kind: CosmeticKind, item: string | null, options?: CallOptions): Promise<{ kind: CosmeticKind; item: string | null }> {
