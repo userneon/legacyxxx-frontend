@@ -14,7 +14,7 @@ export interface GoodsProduct {
   /** For kind "lx": the LX the package puts in the wallet once it is paid. */
   grantsLx: number
   /** For the Genesis pack: how many packs there are, how many are taken, when it stops selling, and whether it can still be ordered. */
-  founder?: { limit: number; taken: number; remaining: number; endsAt: string | null; open: boolean }
+  founder?: { limit: number; taken: number; remaining: number; endsAt: string | null; open: boolean; priceLx: number }
 }
 
 export type GoodsOrderStatus = "new" | "contacted" | "paid" | "shipped" | "done" | "cancelled"
@@ -80,6 +80,10 @@ export const shopGoodsService = {
   },
   async myOrders(options?: CallOptions): Promise<GoodsOrder[]> {
     return (await get<{ orders: GoodsOrder[] }>("/api/v1/shop/orders/me", undefined, options)).orders
+  },
+  /** Buys the Genesis pack with LX from the wallet: the number and the cosmetics are given at once. */
+  async buyFounder(): Promise<{ number: number; label: string }> {
+    return post<{ number: number; label: string }>("/api/v1/shop/founder/buy", {})
   },
   async order(input: { productId: string; quantity: number; phone: string; note: string }): Promise<GoodsOrder> {
     return post<GoodsOrder>("/api/v1/shop/orders", input)

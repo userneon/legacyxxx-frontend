@@ -187,6 +187,8 @@ clan tag and staff start date); a card opens the profile.
 
 ### Public chat (owner request 2026-10-23)
 
+Notifications in the bell open the page they are about when clicked (`notificationTarget` in `notifications-menu.tsx`; a staff message has none). `useApiQuery` keeps what is on screen while it asks again, so a page does not drop to its skeleton after a buy, wear or accept.
+
 A round button bottom right on every page of the website (`components/public-chat.tsx`) opens the community chat in a solid `--panel` panel (it floats over content). Everyone reads; a signed-in player writes
 (300 characters, no links, one message per `chat.cooldown_seconds`, refused while they have an active gag); staff who can ban see a Remove icon on each message; staff roles show a small pill (Owner violet, others neutral).
 Real data from `/public/chat`, refreshed every 4 s while open and every 30 s shut (a white dot on the button says something new was written). The staff site has no chat. Neutral palette, white send button.
@@ -211,13 +213,13 @@ Colour it yourself (owner request 2026-10-26): every coloured player cosmetic (n
 
 Per grenade (owner request 2026-10-26, option "A"): a trail and a light are bought once and worn on one kind of grenade only if the player wants: Profile → Appearance → Trail / Light shows "For each grenade" (`components/nade-slots.tsx`): HE, Flashbang, Smoke, Fire (molotov and incendiary) and Decoy, each Default (the item worn in the list above), Nothing, or any trail/light they own. `GET /cosmetics` sends `nadeSlots` (only the grenades that differ), `PUT /cosmetics/nade-slot` sets one. The colour a player picked belongs to the item, so the same trail on two grenades has the same colour.
 
-Profile → Appearance lists only what the player owns (owner request 2026-10-26): no buying, no price, no LX balance, no link to the Shop, no locked items; the Shop is the only place to buy.
+Profile → Appearance lists only what the player owns, also what staff switched off after they bought it (`retired`: still wearable, not shown in the Shop) (owner request 2026-10-26): no buying, no price, no LX balance, no link to the Shop, no locked items; the Shop is the only place to buy.
 
 Premium animated frames (owner request 2026-10-25, "very valuable profile decorations"): Dragon Ember, Frost Royale, Void Rift, Hologram, Celestial Crown and Diamond Prestige (2,500–5,000 LX) are looping animated WebPs in `public/frames/`, drawn by `scripts/premium-frames.html` (canvas, seamless loop, nothing drawn over the opening) via `scripts/render-premium-frames.mjs` + `scripts/make-premium-frames.py`. Change the art there and re-run both, never by hand.
 
 ### Genesis pack (owner decision 2026-10-23; first called Founder)
 
-A numbered, limited pack sold once for 30,000₮ through a Shop order that staff confirm (the goods flow: no payment on the site). Marking the order paid gives
+A numbered, limited pack bought **with LX** (owner request 2026-10-26: 4,500 LX, the 30,000₮ it cost at the clan fee's rate; `POST /shop/founder/buy`, `COIN_RULES.founderPrice`): the wallet is charged and the pack given at once, no order. (Before that it was a Shop order that staff confirmed; that route still exists.) Buying gives
 the buyer the next Genesis number and: the **Genesis frame** (`public/frames/founder.webp`, the owner-supplied art, masked: `founder-mask.webp` cuts the avatar to the shape of
 its opening), the **Gold Foil banner** (profile banner, effect key `goldfoil`, `.lx-banner-goldfoil`), the **Genesis title** under the name and a gold **Genesis #0001** badge
 (`components/founder-badge.tsx`). It is the only place gold appears: `--founder-1..4` (palette-exempt) on the banner, badge, title and the Featured-tab card

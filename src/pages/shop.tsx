@@ -110,7 +110,7 @@ export function ShopPage() {
     ...(data?.grenadeTrails ?? []).map((item) => ({ ...item, kind: "grenade_trail" as const })),
     ...(data?.grenadeLights ?? []).map((item) => ({ ...item, kind: "grenade_light" as const })),
     ...(data?.flashEffects ?? []).map((item) => ({ ...item, kind: "flash_effect" as const })),
-  ], [data])
+  ].filter((item) => !item.retired), [data])
   const worn = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null, grenade_light: data?.equippedGrenadeLight ?? null, flash_effect: data?.equippedFlashEffect ?? null }
   const balance = wallet?.balance ?? null
   const username = user?.username ?? "Player"

@@ -16,6 +16,8 @@ export interface FrameItem {
   nameMn: string
   /** free: everyone; coin: bought once with LX; achievement: earned, never sold. */
   unlock: "free" | "coin" | "achievement"
+  /** Staff switched it off after you bought it: still yours to wear, no longer sold. */
+  retired?: boolean
   /** The 30-day price. */
   price: number
   /** The price of each rental length (items sold with LX). */

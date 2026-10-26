@@ -1,13 +1,17 @@
 /**
- * The LEGACY-X Genesis pack on the Shop's Featured tab (owner decision 2026-10-23): numbered, limited, bought by an order that staff
- * confirm (30,000₮ as the API says). Every number comes from the API; with no Genesis product the card is not drawn.
+ * The LEGACY-X Genesis pack on the Shop's Featured tab (owner decision 2026-10-23): numbered, limited. Since 2026-10-26 it is bought with LX
+ * from the wallet (4,500 LX, the 30,000₮ it used to cost) and given at once. Every number comes from the API; with no Genesis product the card is not drawn.
  */
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 import { Check, Frame, Gem, Image as ImageIcon, Text } from "lucide-react"
 
+import { walletService, type Wallet } from "@/api"
+import { cosmeticsService, type Cosmetics } from "@/api/cosmetics"
 import { shopGoodsService, type GoodsOrder, type GoodsProduct } from "@/api/shop-goods"
 import { FramedAvatar } from "@/components/framed-avatar"
-import { OrderDialog } from "@/components/shop-goods"
+import { LxMark } from "@/components/lx-mark"
 import { FounderBadge } from "@/components/founder-badge"
 import { ProfileBanner } from "@/components/profile-banner"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -23,9 +27,12 @@ const CONTAINS = [
 
 export function FounderPack() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const { data: products, loading: productsLoading, refetch } = useApiQuery<GoodsProduct[]>((signal) => shopGoodsService.products({ signal }), { queryKey: "shop-goods" })
   const { data: orders, refetch: refetchOrders } = useApiQuery<GoodsOrder[]>((signal) => shopGoodsService.myOrders({ signal }), { enabled: Boolean(user), queryKey: user ? `shop-orders:${user.id}` : "shop-orders:guest" })
-  const [picked, setPicked] = useState<GoodsProduct | null>(null)
+  const { data: cosmetics, refetch: refetchCosmetics } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
+  const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
+  const [busy, setBusy] = useState(false)
   const pack = (products ?? []).find((product) => product.kind === "founder" && product.founder)
   // Same height as the card while the shop loads, so the items below do not jump down when it appears.
   if (!products && productsLoading) return <div aria-hidden="true" className="h-[460px] animate-pulse rounded-2xl border border-[var(--line-soft)] bg-[var(--card-surface)]" />
@@ -33,9 +40,25 @@ export function FounderPack() {
   const info = pack.founder
   const mine = (orders ?? []).find((order) => order.productKind === "founder" && order.status !== "cancelled")
   const confirmed = Boolean(mine && (mine.status === "paid" || mine.status === "shipped" || mine.status === "done"))
-  // "In Genesis" means the pack was really given (the player has a number), not only that staff moved the order along; an older API
-  // does not say, so it falls back to the status.
-  const owned = mine ? (mine.founderNumber !== undefined ? mine.founderNumber !== null : confirmed) : false
+  // "In Genesis" means the pack was really given: the player owns the Genesis frame (the pack's own cosmetic, never sold apart from it).
+  const owned = Boolean(cosmetics?.frames.find((frame) => frame.id === "founder")?.owned) || (mine ? (mine.founderNumber !== undefined ? mine.founderNumber !== null : confirmed) : false)
+  const balance = wallet?.balance ?? null
+  const afford = balance === null || balance >= info.priceLx
+  const buy = async () => {
+    if (!user) return
+    if (!afford) { navigate("/wallet/top-up"); return }
+    setBusy(true)
+    try {
+      const bought = await shopGoodsService.buyFounder()
+      window.dispatchEvent(new Event("legacyx:wallet-changed"))
+      toast.success(`You are Genesis ${bought.label}`, { description: "The frame, banner and title are yours. Wear them in Profile → Appearance." })
+      await Promise.all([refetch(), refetchOrders(), refetchCosmetics(), refetchWallet()])
+    } catch (caught) {
+      toast.error("Could not get the pack", { description: caught instanceof Error ? caught.message : "Try again in a moment." })
+    } finally {
+      setBusy(false)
+    }
+  }
   const ends = info.endsAt ? new Date(info.endsAt).toLocaleDateString("en-GB", { day: "numeric", month: "long" }) : null
 
   return (
@@ -61,7 +84,7 @@ export function FounderPack() {
             ))}
           </ul>
           <div className="mt-1 flex flex-wrap items-center gap-x-5 gap-y-2">
-            <span className="text-[22px] font-bold text-[var(--text)]">{pack.priceMnt.toLocaleString()}₮</span>
+            <span className="inline-flex items-center gap-1.5 text-[22px] font-bold text-[var(--text)]"><LxMark size={20} />{info.priceLx.toLocaleString()}</span>
             <span className="text-xs text-[var(--text-dim)]">{info.remaining.toLocaleString()} of {info.limit.toLocaleString()} left{ends ? ` · until ${ends}` : ""}</span>
             <span className="flex-1" />
             {owned ? (
@@ -71,17 +94,16 @@ export function FounderPack() {
             ) : (
               <button
                 type="button"
-                disabled={!info.open}
-                onClick={() => setPicked(pack)}
+                disabled={!info.open || busy || !user}
+                onClick={() => void buy()}
                 className={cn("lx-primary-button inline-flex h-10 items-center justify-center rounded-lg px-5 text-[13px] font-semibold", !info.open && "opacity-50")}
               >
-                {info.open ? "Order the Genesis pack" : info.remaining <= 0 ? "Sold out" : "Closed"}
+                {!info.open ? (info.remaining <= 0 ? "Sold out" : "Closed") : !user ? "Sign in to get it" : afford ? `Get the Genesis pack for ${info.priceLx.toLocaleString()} LX` : `Top up ${(info.priceLx - (balance ?? 0)).toLocaleString()} more LX`}
               </button>
             )}
           </div>
         </div>
       </div>
-      <OrderDialog product={picked} onClose={() => setPicked(null)} onDone={() => { setPicked(null); void refetch(); void refetchOrders() }} />
     </section>
   )
 }
