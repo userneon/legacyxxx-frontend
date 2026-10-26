@@ -98,6 +98,16 @@ function SteamAccounts({ report, targetSteamId }: { report: CheckReport; targetS
         })}
       </ul>
       {report.cs2 && <p className="text-[11px] text-[var(--text-dim)]">CS2 {report.cs2.installed ? `is installed${report.cs2.lastUpdated ? `, last updated ${formatDay(report.cs2.lastUpdated)}` : ""}.` : "is not installed on this PC."}</p>}
+      {report.antiCheats && report.antiCheats.length > 0 && (
+        <ul className="flex flex-col gap-0.5 text-[11px] text-[var(--text-dim)]">
+          {report.antiCheats.map((guard) => (
+            <li key={guard.name}>
+              <span className="font-medium text-[var(--text-2)]">{guard.name}</span>{" "}
+              {!guard.installed ? "is not installed." : `is installed, ${guard.running ? "running now" : "not running now"}${guard.load ? `, loads ${guard.load === "boot" ? "at boot" : guard.load === "automatic" ? "automatically" : guard.load === "manual" ? "only when its game starts" : "(switched off)"}` : ""}.`}
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   )
 }

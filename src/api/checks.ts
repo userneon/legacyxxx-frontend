@@ -67,6 +67,8 @@ export interface CheckReport extends CheckSummary {
   steamAccounts?: CheckSteamAccount[]
   steamBans?: CheckSteamBan[]
   cs2?: { installed: boolean; lastUpdated?: string }
+  /** FACEIT AC and Riot Vanguard on the PC: installed, how they load, running now. */
+  antiCheats?: Array<{ name: string; installed: boolean; load?: "boot" | "automatic" | "manual" | "disabled"; running: boolean }>
   filesScanned: number
   durationSeconds: number
   findings: CheckFinding[]
