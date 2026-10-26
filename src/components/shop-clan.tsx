@@ -1,5 +1,4 @@
-import { useNavigate } from "react-router-dom"
-import { Check, UserPlus, Users } from "lucide-react"
+import { Check } from "lucide-react"
 
 import { ColorRow, PICK_BASES, PICK_COLORS, demoColour } from "@/components/color-row"
 import { LxMark } from "@/components/lx-mark"
@@ -22,77 +21,12 @@ interface ShopClanProps {
   onChanged: () => void | Promise<unknown>
 }
 
-function Card({ icon, title, price, children }: { icon: React.ReactNode; title: string; price: number; children: React.ReactNode }) {
-  return (
-    <li className="lx-shop-tile flex flex-col gap-3 rounded-xl p-4">
-      <div className="flex items-center gap-2.5">
-        <span className="grid size-9 place-items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]">{icon}</span>
-        <span className="min-w-0 flex-1 text-[15px] font-semibold text-[var(--text)]">{title}</span>
-        <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-[var(--text)]"><LxMark size={14} />{price}</span>
-      </div>
-      {children}
-    </li>
-  )
-}
-
-const note = "text-[13px] leading-relaxed text-[var(--text-muted)]"
-const action = "lx-primary-button mt-auto inline-flex h-9 items-center justify-center rounded-lg px-3.5 text-[13px] font-semibold disabled:opacity-50"
-const secondary = "mt-auto inline-flex h-9 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3.5 text-[13px] hover:border-[var(--line-strong)] disabled:opacity-50"
-
-export function ShopClan({ prices, balance, mine, loading, onChanged }: ShopClanProps) {
-  const navigate = useNavigate()
-  const [busy, setBusy] = useState(false)
-
-  if (loading || !prices) return <Skeleton className="h-40 max-w-md rounded-xl" />
-
+/** Shop → Clan: the clan looks. Member slots are no longer sold here (owner request 2026-10-26): they come from the clan bank and levels. */
+export function ShopClan({ balance, mine, loading, onChanged }: ShopClanProps) {
+  if (loading) return <Skeleton className="h-40 max-w-md rounded-xl" />
   const membership = mine?.membership ?? null
   const clan = membership?.clan ?? null
-  const leader = membership?.role === "leader"
-  const short = (price: number) => (balance != null && balance < price ? `Need ${(price - balance).toLocaleString()} more LX` : null)
-
-  const nextSize = clan ? Math.min(prices.slotCap, clan.maxPlayers + prices.slotStep) : null
-  const atCap = clan ? clan.maxPlayers >= prices.slotCap : false
-
-  const buySlots = async () => {
-    if (!clan) return
-    setBusy(true)
-    try {
-      await clansService.buySlots(String(clan.id))
-      window.dispatchEvent(new Event("legacyx:wallet-changed"))
-      toast.success(`${clan.name} now holds ${nextSize} players`)
-      await onChanged()
-    } catch (caught) {
-      toast.error("Could not add the places", { description: caught instanceof Error ? caught.message : "Try again in a moment." })
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  return (
-    <ClanLooksShop clanId={clan ? String(clan.id) : null} canWear={leader} tag={clan?.tag ?? "TAG"} balance={balance} onChanged={onChanged} header={
-    <ul className="grid max-w-md gap-3" aria-label="Clan services">
-      <Card icon={<UserPlus className="size-4" />} title={`+${prices.slotStep} member places`} price={prices.slots}>
-        <p className={note}>Room for more players, up to {prices.slotCap}.</p>
-        {!clan ? (
-          <button type="button" onClick={() => navigate("/clans")} className={secondary}>Find or create a clan in Clans</button>
-        ) : (
-          <>
-            <p className="inline-flex items-center gap-1.5 text-xs text-[var(--text-2)]"><Users className="size-3.5" />{clan.currentPlayers} of {clan.maxPlayers} places used{!atCap && nextSize ? ` · next ${nextSize}` : ""}</p>
-            {!leader ? (
-              <p className="text-xs text-[var(--text-dim)]">Only the leader can do this.</p>
-            ) : atCap ? (
-              <p className="text-xs text-[var(--text-dim)]">The clan is at the largest size.</p>
-            ) : (
-              <>
-                {short(prices.slots) && <p className="text-xs text-[var(--text-dim)]">{short(prices.slots)}</p>}
-                <button type="button" disabled={busy || (balance != null && balance < prices.slots)} onClick={buySlots} className={action}>{busy ? "Adding…" : `Add ${prices.slotStep} places`}</button>
-              </>
-            )}
-          </>
-        )}
-      </Card>
-    </ul>} />
-  )
+  return <ClanLooksShop clanId={clan ? String(clan.id) : null} canWear={membership?.role === "leader"} tag={clan?.tag ?? "TAG"} balance={balance} onChanged={onChanged} />
 }
 
 const KINDS: Array<{ kind: ClanLookKind; label: string; hint: string }> = [
