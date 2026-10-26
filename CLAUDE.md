@@ -132,8 +132,8 @@ content (dialogs, `.lx-sheet`) stays solid (`--panel`) so text never sits on mov
 Home adds a soft violet light (`.lx-glass-page`). Stats and timers use `.lx-stat-grid` cells, not a box each.
 
 **Detail sheets (owner request 2026-10-26, "every detail comes up from the bottom and covers the screen").** Match details, a penalty, a server (Play), the skin picker and the
-Shop item on a phone all open in `DetailSheetContent` (`components/detail-sheet.tsx`) inside a `<Sheet>`: a solid `.lx-sheet` panel that slides up from the bottom and fills the screen
-but a thin strip at the top, with a grab handle (drag down to close), a close button, and the content in a readable centred column (`width`; `fill` when the content scrolls its own parts).
+Shop item on a phone all open in `DetailSheetContent` (`components/detail-sheet.tsx`) inside a `<Sheet>`: a solid `.lx-sheet` panel that slides up from the bottom and covers most of the screen,
+leaving room at the top (`max(56px, 9dvh)`), inset from the sides, with 24px rounded top corners (owner request, same day), with a grab handle (drag down to close), a close button, and the content in a readable centred column (`width`; `fill` when the content scrolls its own parts).
 Forms and confirmations (write a review, register a team, staff actions, alerts) stay small centred dialogs. A new detail view uses the same component.
 
 **Light sweep on cards (owner request 2026-10-11).** The glass and shine look tried the same day was taken back (owner, 2026-10-11): cards stay

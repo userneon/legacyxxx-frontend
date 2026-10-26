@@ -35,11 +35,11 @@ export function DetailSheetContent({ children, width = "max-w-5xl", fill = false
       side="bottom"
       showCloseButton={false}
       overlayClassName="lx-sheet-overlay bg-[rgba(10,10,10,0.6)] data-[state=open]:duration-300 data-[state=closed]:duration-200"
-      className="lx-detail-sheet inset-x-0 top-3 bottom-0 h-auto gap-0 border-0 bg-transparent p-0 shadow-none sm:top-5 data-[state=open]:duration-[480ms] data-[state=open]:ease-[cubic-bezier(0.22,1,0.36,1)] data-[state=closed]:duration-[260ms] data-[state=closed]:ease-[cubic-bezier(0.4,0,1,1)]"
+      className="lx-detail-sheet inset-x-0 top-[max(56px,9dvh)] bottom-0 h-auto gap-0 border-0 bg-transparent p-0 shadow-none data-[state=open]:duration-[480ms] data-[state=open]:ease-[cubic-bezier(0.22,1,0.36,1)] data-[state=closed]:duration-[260ms] data-[state=closed]:ease-[cubic-bezier(0.4,0,1,1)]"
       onOpenAutoFocus={onOpenAutoFocus}
       onCloseAutoFocus={onCloseAutoFocus}
     >
-      <div ref={panel} className="lx-sheet relative mx-auto flex h-full w-full max-w-[1600px] flex-col overflow-hidden rounded-t-2xl border border-b-0 border-[var(--line)] sm:w-[calc(100%-24px)]">
+      <div ref={panel} className="lx-sheet relative mx-auto flex h-full w-[calc(100%-16px)] max-w-[1480px] flex-col overflow-hidden rounded-t-[24px] border border-b-0 border-[var(--line)] sm:w-[calc(100%-48px)]">
         {/* Grab handle: drag down past 120px to close; a tap does nothing. */}
         <div
           className="flex h-6 shrink-0 cursor-grab touch-none items-center justify-center active:cursor-grabbing"
