@@ -4,10 +4,12 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { ArrowLeftRight, Download, Link2, LoaderCircle, RotateCcw, Search, X } from "lucide-react"
+import { ArrowLeftRight, Check, Download, HelpCircle, Link2, LoaderCircle, RotateCcw, Search, Server, Trophy, X } from "lucide-react"
 import { toast } from "sonner"
 
-import { competitiveService, searchService } from "@/api"
+import { clansService, competitiveService, searchService } from "@/api"
+import type { ClanCard, ClanDetail, ClanStats } from "@/api/types"
+import { ClanMark } from "@/components/clan-mark"
 import { compareService, profileOverviewService, type HeadToHead, type ProfileOverview } from "@/api/profile-overview"
 import type { CommunityPlayer } from "@/api/types"
 import { CompetitiveRankBadge, rankTierColor } from "@/components/competitive-rank-badge"
@@ -419,6 +421,179 @@ function SharedMaps({ a, b }: { a: ProfileOverview; b: ProfileOverview }) {
   )
 }
 
+type CompareTab = "players" | "clans" | "servers"
+const COMPARE_TABS: Array<{ value: CompareTab; label: string }> = [{ value: "players", label: "Players" }, { value: "clans", label: "Clans" }, { value: "servers", label: "Servers" }]
+
+/** One side of the clan compare: a clan search (name), or the picked clan with its level. */
+function ClanSide({ side, clan, loading, onPick, onClear }: { side: Side; clan: ClanDetail | null; loading: boolean; onPick: (id: string) => void; onClear: () => void }) {
+  const [query, setQuery] = useState("")
+  const { data } = useApiQuery<ClanCard[]>((signal) => clansService.getClans({ q: query.trim() || undefined, sort: "name", limit: 6 }, { signal }), { enabled: !clan && !loading, queryKey: `compare-clans:${side}:${query.trim()}` })
+  const panel = "relative flex min-h-[148px] flex-col items-center justify-center gap-3 p-5 text-center"
+  if (loading) return <div className={panel}><Skeleton className="size-16 rounded-2xl bg-[var(--line-soft)]" /><Skeleton className="h-4 w-32 rounded-full bg-[var(--line)]" /></div>
+  if (clan) {
+    return (
+      <div className={cn(panel, "lx-swap-in")}>
+        <button type="button" onClick={onClear} aria-label="Change clan" className="absolute right-3 top-3 flex size-8 items-center justify-center rounded-lg text-[var(--text-dim)] hover:bg-[var(--raised)] hover:text-[var(--text)]"><X className="size-4" /></button>
+        <ClanMark logo={clan.logo} tag={clan.tag} className="size-16 text-[13px]" />
+        <span className="flex items-center gap-2 text-[17px] font-semibold"><span aria-hidden="true" className={cn("size-2 rounded-full", TONE[side].dot)} /><span className="truncate">{clan.name}</span></span>
+        <span className="text-xs text-[var(--text-dim)]">[{clan.tag}] · Lv {clan.level ?? 1} · {clan.currentPlayers} members</span>
+      </div>
+    )
+  }
+  return (
+    <div className="flex flex-col gap-2.5 p-4">
+      <label className="flex h-11 items-center gap-2.5 rounded-[10px] border border-[var(--line)] bg-[var(--panel)]/80 px-3.5 focus-within:border-[var(--line-strong)]">
+        <Search className="size-4 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />
+        <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} aria-label={`Find clan ${side === "a" ? 1 : 2}`} placeholder={`Clan ${side === "a" ? 1 : 2}: name`} className="min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-[var(--text-dim)]" />
+      </label>
+      <ul className="flex flex-col gap-1">
+        {(data ?? []).map((entry) => (
+          <li key={entry.id}>
+            <button type="button" onClick={() => onPick(String(entry.number ?? entry.id))} className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-[13px] hover:bg-[var(--raised)]">
+              <ClanMark logo={entry.logo} tag={entry.tag} className="size-7 text-[9px]" />
+              <span className="min-w-0 flex-1 truncate">{entry.name} <span className="text-[var(--text-dim)]">[{entry.tag}]</span></span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function clanRows(a: { clan: ClanDetail; stats: ClanStats }, b: { clan: ClanDetail; stats: ClanStats }): Row[] {
+  const whole = (value: number) => Math.round(value).toLocaleString()
+  const pct = (value: number) => `${Math.round(value)}%`
+  const row = (key: string, label: string, pick: (side: { clan: ClanDetail; stats: ClanStats }) => number, show = whole, decimals = 0, suffix = "", gap = whole): Row => ({ key, label, a: pick(a), b: pick(b), show, decimals, suffix, gap })
+  return [
+    row("level", "Level", (side) => side.stats.progress.level),
+    row("war", "War rating", (side) => side.stats.progress.war.rating),
+    row("warWins", "Wars won", (side) => side.stats.progress.war.wins),
+    row("members", "Members", (side) => side.clan.currentPlayers),
+    row("matches", "Matches", (side) => side.stats.totals.matches),
+    row("winRate", "Win rate", (side) => side.stats.totals.winRate, pct, 0, "%", (value) => `${Math.round(value)} pts`),
+    row("kd", "K/D", (side) => side.stats.totals.kd, (value) => value.toFixed(2), 2, "", (value) => value.toFixed(2)),
+    row("hs", "Headshot %", (side) => side.stats.totals.headshotRate, pct, 0, "%", (value) => `${Math.round(value)} pts`),
+    row("aces", "Aces", (side) => side.stats.totals.aces),
+    row("clutches", "Clutches", (side) => side.stats.totals.clutches),
+  ]
+}
+
+/** Two clans side by side: level, Clan War record and the members' real ranked numbers (GET /clans/:id and /clans/:id/stats). */
+function ClanCompare({ params, setParams }: { params: URLSearchParams; setParams: ReturnType<typeof useViewParams>[1] }) {
+  const idA = params.get("ca"), idB = params.get("cb")
+  const load = (id: string | null) => async (signal: AbortSignal) => { const [clan, stats] = await Promise.all([clansService.getClan(id!, { signal }), clansService.getStats(id!, { signal })]); return { clan, stats } }
+  const first = useApiQuery(load(idA), { enabled: Boolean(idA), queryKey: `compare-clan:${idA}` })
+  const second = useApiQuery(load(idB), { enabled: Boolean(idB), queryKey: `compare-clan:${idB}` })
+  const set = (key: "ca" | "cb", value: string | null) => setParams((current) => { const next = new URLSearchParams(current); next.set("tab", "clans"); if (value) next.set(key, value); else next.delete(key); return next })
+  const a = idA ? first.data : null, b = idB ? second.data : null
+  const same = Boolean(a && b && a.clan.id === b.clan.id)
+  const rows = a && b && !same ? clanRows(a, b) : []
+  const leads = { a: rows.filter((row) => leader(row) === "a").length, b: rows.filter((row) => leader(row) === "b").length }
+  const overall: Side | null = leads.a === leads.b ? null : leads.a > leads.b ? "a" : "b"
+  return (
+    <>
+      <section aria-label="Clans" className="grid rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] md:grid-cols-[1fr_auto_1fr]">
+        <ClanSide side="a" clan={a?.clan ?? null} loading={Boolean(idA) && first.loading && !first.data} onPick={(id) => set("ca", id)} onClear={() => set("ca", null)} />
+        <div className="flex items-center justify-center border-y border-[var(--line-soft)] px-2 py-2 md:w-28 md:border-x md:border-y-0">
+          {rows.length ? (
+            <span className="flex flex-col items-center gap-1"><span className="flex items-baseline gap-2 text-[30px] font-black leading-none"><span className={OUTCOME[outcomeOf(overall, "a")].text}>{leads.a}</span><span className="text-lg text-[var(--text-faint)]">:</span><span className={OUTCOME[outcomeOf(overall, "b")].text}>{leads.b}</span></span><span className="text-[10px] uppercase tracking-wider text-[var(--text-dim)]">stats led</span></span>
+          ) : <span className="text-sm font-bold tracking-widest text-[var(--text-faint)]">VS</span>}
+        </div>
+        <ClanSide side="b" clan={b?.clan ?? null} loading={Boolean(idB) && second.loading && !second.data} onPick={(id) => set("cb", id)} onClear={() => set("cb", null)} />
+      </section>
+      {(first.error || second.error) && <p className="flex items-center justify-center gap-3 text-[13px] text-[var(--text-dim)]">A clan could not be loaded.<button type="button" onClick={() => { first.refetch(); second.refetch() }} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>}
+      {same ? <p className="py-10 text-center text-[13px] text-[var(--text-dim)]">Pick two different clans.</p>
+        : !idA || !idB ? <p className="py-10 text-center text-[13px] text-[var(--text-dim)]">Choose {idA || idB ? "one more clan" : "two clans"} to compare.</p>
+        : rows.length > 0 && a && b ? (
+          <section aria-label="Clan stats" className="lx-swap-in overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
+            <div className="stagger-in">{rows.map((row, index) => <StatRow key={row.key} row={row} index={index} names={{ a: a.clan.name, b: b.clan.name }} />)}</div>
+          </section>
+        ) : null}
+    </>
+  )
+}
+
+/** What LEGACY-X has, for the joke compare. Only true things about us; the other side is never given a number. */
+const OUR_THINGS = [
+  "Ranked EXP with daily and weekly limits",
+  "Clan Wars with a war rating",
+  "Kill, flash and explosion effects",
+  "Grenade trails that drop flares",
+  "Live CS2 scoreboard on the website",
+  "Premium animated frames",
+  "Head to head on this very page",
+  "Being LEGACY-X",
+]
+const SCAN_LINES = ["Pinging servers…", "Counting original ideas…", "Checking who came first…", "Asking the judges…"]
+
+/**
+ * Servers (owner request 2026-10-26, "a troll section"): type any server and LEGACY-X wins. It never shows a number or a claim about
+ * the other server, only what LEGACY-X has and a "?" on their side, and it says plainly that it is a joke.
+ */
+function ServerCompare() {
+  const [name, setName] = useState("")
+  const [phase, setPhase] = useState<"idle" | "scan" | "done">("idle")
+  const [line, setLine] = useState(0)
+  const [rival, setRival] = useState("")
+  useEffect(() => {
+    if (phase !== "scan") return
+    const timer = window.setInterval(() => setLine((current) => {
+      if (current >= SCAN_LINES.length - 1) { window.clearInterval(timer); window.setTimeout(() => setPhase("done"), 350); return current }
+      return current + 1
+    }), 450)
+    return () => window.clearInterval(timer)
+  }, [phase])
+  const start = (event: React.FormEvent) => {
+    event.preventDefault()
+    const clean = name.trim().slice(0, 40)
+    if (!clean) return
+    setRival(clean)
+    setLine(0)
+    setPhase("scan")
+  }
+  const itsUs = /legacy/i.test(rival)
+  return (
+    <>
+      <form onSubmit={start} className="lx-add-box flex flex-col gap-3 rounded-xl border p-4">
+        <h2 className="flex items-center gap-2 text-[15px] font-semibold"><span className="lx-add-icon"><Server className="size-4" aria-hidden="true" /></span>Server vs LEGACY-X</h2>
+        <div className="flex flex-wrap gap-2">
+          <input value={name} onChange={(event) => setName(event.target.value)} maxLength={40} placeholder="Any community server: name or address" aria-label="Server to compare" className="h-10 min-w-0 flex-1 rounded-lg border border-[var(--line)] bg-transparent px-3 text-[13px] outline-none placeholder:text-[var(--text-dim)] focus:border-[var(--brand)]" />
+          <button type="submit" disabled={!name.trim() || phase === "scan"} className="lx-primary-button inline-flex h-10 items-center gap-2 rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50"><Trophy className="size-4" aria-hidden="true" />Compare</button>
+        </div>
+        <p className="text-[11px] text-[var(--text-dim)]">Just for fun. We do not keep other servers' numbers, so they get a question mark, and LEGACY-X wins whatever you type.</p>
+      </form>
+      {phase === "scan" && (
+        <section aria-live="polite" className="flex flex-col gap-2 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4 font-mono text-[13px]">
+          {SCAN_LINES.slice(0, line + 1).map((text, index) => <span key={text} className={index === line ? "text-[var(--text)]" : "text-[var(--text-dim)]"}>{index === line ? <LoaderCircle className="mr-2 inline size-3.5 animate-spin" aria-hidden="true" /> : <Check className="mr-2 inline size-3.5 text-[var(--result-win)]" aria-hidden="true" />}{text}</span>)}
+        </section>
+      )}
+      {phase === "done" && (
+        itsUs ? (
+          <p className="lx-swap-in rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-6 text-center text-[15px] font-semibold">That is us. Pick a braver challenger.</p>
+        ) : (
+          <section aria-label="Result" className="lx-swap-in overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 border-b border-[var(--line-soft)] px-4 py-5">
+              <span className="text-right text-[17px] font-bold">LEGACY-<span className="text-[var(--brand-bright)]">X</span></span>
+              <span className="flex items-baseline gap-2 text-[30px] font-black leading-none"><span className="text-[var(--result-win)]">{OUR_THINGS.length}</span><span className="text-lg text-[var(--text-faint)]">:</span><span className="text-[var(--result-draw)]">?</span></span>
+              <span className="truncate text-[17px] font-bold text-[var(--text-2)]">{rival}</span>
+            </div>
+            <ul className="stagger-in">
+              {OUR_THINGS.map((thing) => (
+                <li key={thing} className="grid grid-cols-[1fr_minmax(0,220px)_1fr] items-center gap-3 border-b border-[var(--line-soft)] px-4 py-2.5 text-[13px] last:border-b-0">
+                  <span className="flex justify-end"><Check className="size-4 text-[var(--result-win)]" aria-label="Yes" /></span>
+                  <span className="text-center text-[var(--text-2)]">{thing}</span>
+                  <span title="No idea. Ask them." className="flex"><HelpCircle className="size-4 text-[var(--result-draw)]" aria-label="Unknown" /></span>
+                </li>
+              ))}
+            </ul>
+            <p className="border-t border-[var(--line-soft)] px-4 py-4 text-center text-[15px] font-semibold">Verdict: LEGACY-X wins. As always.</p>
+          </section>
+        )
+      )}
+    </>
+  )
+}
+
 export function ComparePage() {
   const { user } = useAuth()
   const [params, setParams] = useViewParams()
@@ -518,10 +693,28 @@ export function ComparePage() {
     }
   }
 
+  const tab = (["clans", "servers"].includes(params.get("tab") ?? "") ? params.get("tab") : "players") as CompareTab
+  const setTab = (next: CompareTab) => setParams(() => { const fresh = new URLSearchParams(); if (next !== "players") fresh.set("tab", next); return fresh })
+  if (tab !== "players") {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col">
+        <PageBar>
+          <PageTabs<CompareTab> ariaLabel="Compare" value={tab} onChange={setTab} options={COMPARE_TABS} />
+          <PageBarEnd><span className="text-[13px] text-[var(--text-dim)] max-lg:hidden">{tab === "clans" ? "Put two clans side by side" : "Just for fun"}</span></PageBarEnd>
+        </PageBar>
+        <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
+          <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-6 pb-8 pt-4">
+            {tab === "clans" ? <ClanCompare params={params} setParams={setParams} /> : <ServerCompare />}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <PageBar>
-        <PageTabs ariaLabel="Compare" value="players" onChange={() => undefined} options={[{ value: "players", label: "Players" }]} />
+        <PageTabs<CompareTab> ariaLabel="Compare" value="players" onChange={setTab} options={COMPARE_TABS} />
         <PageBarEnd>
           <span className="text-[13px] text-[var(--text-dim)] max-lg:hidden">Put two players side by side</span>
           <button type="button" onClick={swap} disabled={!idA && !idB} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text)] transition-colors enabled:hover:border-[var(--line-strong)] disabled:opacity-40"><ArrowLeftRight className="size-4" />Swap</button>
