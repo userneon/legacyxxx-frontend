@@ -3,7 +3,12 @@ import { useId } from "react"
 import { cn } from "@/lib/utils"
 
 const HEX = /^#[0-9a-f]{6}$/i
-const SHAPES = new Set(["line", "dash", "double", "helix", "comet", "rainbow", "zigzag", "flare", "sparks", "starfall", "inferno"])
+const SHAPES = new Set(["line", "dash", "double", "helix", "comet", "rainbow", "zigzag", "flare", "sparks", "starfall", "inferno", "ribbon", "lightning", "pulse", "stardust"])
+/** The premium shapes drawn in game by the Workshop addon's particle effects (owner request 2026-10-26); their preview gets a bounce burst at the grenade. */
+const PREMIUM = new Set(["ribbon", "lightning", "pulse", "stardust"])
+// Fixed jitter for the lightning bolt and fixed spots for the stardust, so the art never changes between renders.
+const BOLT = [0, 5, -6, 7, -4, 8, -7, 3, -8, 6, -5, 4, 0]
+const DUST = Array.from({ length: 22 }, (_, index) => ({ t: 0.3 + (index / 22) * 0.66, dx: ((index * 37) % 17) - 8, dy: ((index * 53) % 19) - 2, r: 0.8 + (index % 3) * 0.55 }))
 // Fixed spots along the arc (0 = hand, 1 = grenade) for the effects a trail leaves on its way, so the art never changes between renders.
 const ALONG = [0.38, 0.5, 0.62, 0.74, 0.86]
 // The thrown arc: a quadratic curve from the hand (left) to the grenade (right).
@@ -41,6 +46,7 @@ function strand(wave: (t: number) => number, r: number) {
 
 /**
  * A grenade's flight in the trail a player picked: the thrown arc in its colour and shape (line, dash, double, helix, comet, rainbow, zigzag;
+ * the Workshop addon's premium ribbon, lightning, pulse and stardust, with the spark burst they leave where the grenade bounces;
  * with effects on the way: flare drops glowing flares, sparks throws sparks, starfall scatters stars, inferno does all three),
  * fading out behind the grenade, which sits at its head. The line draws itself once (off for reduced motion). Colour and shape
  * come from the API as a plain #rrggbb and a short key (never a style string).
@@ -94,6 +100,39 @@ export function GrenadeTrail({ color, shape, className }: { color?: string | nul
         </>
       )}
       {kind === "comet" && <path d={ARC} {...common} strokeWidth="12" />}
+      {kind === "ribbon" && (
+        <>
+          <path d={strand((t) => Math.sin(t * Math.PI * 2.5), 3)} {...common} strokeWidth="15" opacity="0.55" />
+          <path d={strand((t) => Math.sin(t * Math.PI * 2.5), 3)} fill="none" stroke={`url(#core-${id})`} strokeWidth="3" strokeLinecap="round" pathLength={1} className="lx-trail-draw" />
+        </>
+      )}
+      {kind === "lightning" && (() => {
+        const bolt = BOLT.map((offset, index) => {
+          const t = 0.18 + (index / (BOLT.length - 1)) * 0.82
+          const p = point(t)
+          return `${index ? "L" : "M"}${p.x.toFixed(1)} ${(p.y + offset).toFixed(1)}`
+        }).join(" ")
+        return (
+          <g className="lx-trail-flicker">
+            <path d={bolt} fill="none" stroke={tint} strokeWidth="7" strokeLinejoin="miter" opacity="0.35" />
+            <path d={bolt} {...common} strokeWidth="2.6" strokeLinejoin="miter" />
+            <path d={bolt} fill="none" stroke="#ffffff" strokeWidth="1" strokeLinejoin="miter" opacity="0.9" />
+          </g>
+        )
+      })()}
+      {kind === "pulse" && ALONG.concat([0.26]).map((t, index) => {
+        const p = point(t)
+        return <circle key={t} cx={p.x} cy={p.y} r={4 + (t - 0.2) * 22} fill={`url(#glow-${id})`} opacity={0.35 + t * 0.6} className="lx-trail-pulse" style={{ animationDelay: `${index * 120}ms` }} />
+      })}
+      {kind === "stardust" && (
+        <>
+          <path d={ARC} {...common} strokeWidth="2" />
+          {DUST.map((dot, index) => {
+            const p = point(dot.t)
+            return <circle key={index} cx={p.x + dot.dx} cy={p.y + dot.dy * dot.t} r={dot.r} fill={index % 4 === 0 ? "#ffffff" : tint} className="lx-trail-twinkle" style={{ animationDelay: `${(index * 97) % 900}ms` }} />
+          })}
+        </>
+      )}
       {(kind === "line" || kind === "rainbow" || kind === "flare" || kind === "sparks" || kind === "starfall") && <path d={ARC} {...common} strokeWidth={kind === "starfall" ? 5 : 6.5} />}
       {kind === "inferno" && (
         <>
@@ -123,6 +162,10 @@ export function GrenadeTrail({ color, shape, className }: { color?: string | nul
           return <path key={t} d={`M${x - r} ${y} L${x + r} ${y} M${x} ${y - r} L${x} ${y + r}`} stroke={index % 2 ? "#ffffff" : tint} strokeWidth="1.4" strokeLinecap="round" />
         })}
       </g>
+      {PREMIUM.has(kind) && [0, 1, 2, 3, 4, 5].map((index) => {
+        const angle = (index / 6) * Math.PI * 2 + 0.4
+        return <line key={index} x1={P2.x + Math.cos(angle) * 9} y1={P2.y + Math.sin(angle) * 9} x2={P2.x + Math.cos(angle) * 17} y2={P2.y + Math.sin(angle) * 17} stroke={index % 2 ? "#ffffff" : tint} strokeWidth="1.4" strokeLinecap="round" opacity="0.8" />
+      })}
       <circle cx={P2.x} cy={P2.y} r={kind === "comet" ? 22 : 16} fill={`url(#glow-${id})`} />
       <circle cx={P2.x} cy={P2.y} r="5.5" fill="#d4d4d4" stroke="#525252" strokeWidth="1.2" />
     </svg>

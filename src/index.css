@@ -2088,3 +2088,12 @@ section[data-tone="red"] { --tone: var(--tone-red); } section[data-tone="sky"] {
 /* Detail sheets (owner request 2026-10-26): every detail view rises from the bottom and covers the screen (`components/detail-sheet.tsx`). */
 .lx-detail-sheet .lx-sheet { box-shadow: 0 -24px 60px rgba(0, 0, 0, 0.55), 0 0 0 1px color-mix(in oklab, var(--brand) 18%, transparent); }
 @media (prefers-reduced-motion: reduce) { .lx-detail-sheet { animation-duration: 1ms !important; } }
+
+/* Premium grenade trail previews (owner request 2026-10-26): the lightning flickers, the pulse puffs swell, the stardust twinkles. Off for reduced motion. */
+.lx-trail-flicker { animation: lx-trail-flicker 1.1s steps(1, end) infinite; }
+.lx-trail-pulse { transform-box: fill-box; transform-origin: center; animation: lx-trail-pulse 1.4s ease-in-out infinite; }
+.lx-trail-twinkle { animation: lx-trail-twinkle 1.2s ease-in-out infinite; }
+@keyframes lx-trail-flicker { 0%, 100% { opacity: 1; } 20% { opacity: 0.45; } 24% { opacity: 1; } 61% { opacity: 0.6; } 64% { opacity: 1; } }
+@keyframes lx-trail-pulse { 0%, 100% { transform: scale(0.85); } 50% { transform: scale(1.15); } }
+@keyframes lx-trail-twinkle { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .lx-trail-flicker, .lx-trail-pulse, .lx-trail-twinkle { animation: none; } }
