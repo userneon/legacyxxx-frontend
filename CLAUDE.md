@@ -145,14 +145,9 @@ reduced motion. `.lx-sweep` opts any other element in. No colour in the sweep.
 
 Four cards (5x5, Fun, Pro League, Tournaments), each with a pill, title, one line, a real status and a CS2 agent picture (`src/assets/home/mode-*.webp`, owner-supplied, transparent) at the right. The card under the pointer (5x5 by default) is the wide one: bright picture, a violet border and soft glow underneath, and a white "Play now"; the others keep their picture dim. No server counts or rank gates are shown, since the API has no per-mode figure for them.
 
-### Play (owner pick 2026-10-11, design "D"; servers as boxes since 2026-10-26)
+### Play (owner pick 2026-10-11, design "D")
 
-**Boxes (owner pick 2026-10-26, "a nice box with the map fading in", replaces the list + open server beside it):** the servers are boxes in a grid (`ServerBox`, `BOX_GRID`), grouped Live now /
-Waiting for players / Full or offline: the map fills the top of the box and fades into it, the state pill and favourite star sit on the picture with the live score (T gold, CT blue) at its
-bottom right, then the name, map (and round), one notch per place taken (a bar on big servers) and Scoreboard / Connect. A box opens the server in the detail sheet (scoreboard, Copy IP,
-Connect) at every width. The filters and Quick play are unchanged. The paragraph below describes the older layout; its rules (filters in the URL, scoreboard, Connect gate) still hold.
-
-
+(A boxes-in-a-grid layout was tried on 2026-10-26 and taken back the same day, owner request: the cards looked like other servers' sites.)
 Play is a list with the open server beside it (`src/pages/play.tsx`). The header holds the mode's name, one line, the live count and
 **Quick play** (white). The mode is chosen only in the sidebar: no mode tabs on the page. The left column (400px) has the map dropdown
 (mode on Fun) and a Filter dropdown (state, order, hide full, favourites; all in the URL: `filter`, `status`, `sort`, `full`, `fav`),
