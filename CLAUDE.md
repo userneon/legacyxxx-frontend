@@ -172,10 +172,11 @@ The Server Booster frame stays for every member who still boosts; the podium pla
 
 The sidebar's **Community** row opens like Play and holds Clans, Staff and Creators (`COMMUNITY_ITEMS` in `app-sidebar.tsx`); the staff site's own link is now "Staff panel".
 **Staff** (`/team`, `src/pages/team.tsx`, owner pick "1") shows the team as trading cards (`.lx-team-card`): a holo frame in the role's colour (the staff-site tones: Owner violet,
-Manager red, Admin sky, Developer green, Designer amber, palette-exempt), the role's numeral and name in the corners, the Steam avatar in a ring of that colour; the Owner's card is the largest and
-beside the rest (owner request 2026-10-26, "too empty"): a stat strip counts the team and each role, the Owner's card sits on the left (sticky) over "Need the staff?" (Discord) and Penalties,
-the others fill the right grouped by role, each group with its count and one line of what that role does. A card shows the rank emblem and name, clan tag, ranked Matches / Win / K/D and "Since <month>".
-Real data from `GET /public/staff` (active staff only, Owner first, with rank, ranked numbers, clan tag and staff start date); a card opens the profile.
+Manager red, Admin sky, Developer green, Designer amber, palette-exempt), the role's numeral and name in the corners, the Steam avatar in a ring of that colour. Layout (owner request 2026-10-26,
+"bad UX, empty space"): the page bar filters by role (Everyone, Managers, Admins, ... with counts), finds a member by name and has "Contact staff" (Discord); the Owner is one wide card across
+the top (rank, Matches / Win / K/D, since), and the rest fill the width in a grid (`.lx-team-grid`, two columns on a phone). A card shows the rank emblem and name, clan tag, ranked
+Matches / Win / K/D and "Since <month>"; a role filter adds one line of what that role does. Real data from `GET /public/staff` (active staff only, Owner first, with rank, ranked numbers,
+clan tag and staff start date); a card opens the profile.
 
 ### Public chat (owner request 2026-10-23)
 
