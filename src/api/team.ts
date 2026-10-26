@@ -8,6 +8,12 @@ export interface TeamMember {
   username: string
   avatar: string
   role: TeamRole
+  /** When they joined the team (ISO), or null. */
+  since?: string | null
+  clanTag?: string | null
+  rank?: { id: number; name: string; imageKey: string | null } | null
+  /** Their ranked numbers; null before their first ranked match. */
+  stats?: { matches: number; wins: number; kills: number; deaths: number } | null
 }
 
 export const teamService = {

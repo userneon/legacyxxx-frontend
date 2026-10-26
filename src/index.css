@@ -2053,16 +2053,19 @@ body::before {
 
 /* ---- Staff page (owner pick "1", 2026-10-26): the team as trading cards. A holo frame in the role's colour (data-tone, the staff-site tones),
    a faint diagonal sheen, the role's numeral and name in the corners, the avatar in a ring of the same colour. The Owner's card is the largest. ---- */
-.lx-team-card { --tone: var(--tone-violet); width: 170px; height: 250px; padding: 2px; border-radius: 16px; list-style: none;
+.lx-team-card { --tone: var(--tone-violet); width: 184px; padding: 2px; border-radius: 16px; list-style: none;
   background: conic-gradient(from 200deg, var(--tone), color-mix(in srgb, #ffffff 35%, transparent), color-mix(in srgb, var(--tone) 30%, transparent), var(--tone), color-mix(in srgb, #ffffff 20%, transparent), var(--tone)); /* palette-exempt: holo shine */
   box-shadow: 0 18px 50px -20px color-mix(in srgb, var(--tone) 70%, transparent);
   transition: translate 250ms var(--ease-out), box-shadow 250ms var(--ease-out); }
-.lx-team-card[data-tone="red"] { --tone: var(--tone-red); }
-.lx-team-card[data-tone="amber"] { --tone: var(--tone-amber); }
-.lx-team-card[data-tone="green"] { --tone: var(--tone-green); }
-.lx-team-card[data-tone="sky"] { --tone: var(--tone-sky); }
+.lx-team-card[data-tone="red"], .lx-stat-cell[data-tone="red"] { --tone: var(--tone-red); }
+.lx-team-card[data-tone="amber"], .lx-stat-cell[data-tone="amber"] { --tone: var(--tone-amber); }
+.lx-team-card[data-tone="green"], .lx-stat-cell[data-tone="green"] { --tone: var(--tone-green); }
+.lx-team-card[data-tone="sky"], .lx-stat-cell[data-tone="sky"] { --tone: var(--tone-sky); }
+.lx-stat-cell[data-tone="violet"], section[data-tone="violet"] { --tone: var(--tone-violet); }
+section[data-tone="red"] { --tone: var(--tone-red); } section[data-tone="sky"] { --tone: var(--tone-sky); } section[data-tone="green"] { --tone: var(--tone-green); } section[data-tone="amber"] { --tone: var(--tone-amber); }
+.lx-team-dot { background: var(--tone); }
 .lx-team-card:hover { translate: 0 -4px; box-shadow: 0 26px 60px -18px color-mix(in srgb, var(--tone) 85%, transparent); }
-.lx-team-card-owner { width: 210px; height: 300px; }
+.lx-team-card-owner { width: 228px; }
 .lx-team-inner { position: relative; display: flex; height: 100%; flex-direction: column; align-items: center; overflow: hidden; border-radius: 14px;
   background: linear-gradient(170deg, color-mix(in srgb, var(--tone) 24%, var(--card-surface)), var(--card-surface) 55%); }
 .lx-team-inner:focus-visible { outline: 2px solid var(--accent-solid); outline-offset: 2px; }
@@ -2071,8 +2074,8 @@ body::before {
 .lx-team-numeral { position: absolute; left: 12px; top: 10px; font-size: 22px; font-weight: 800; line-height: 1; color: var(--tone); }
 .lx-team-card-owner .lx-team-numeral { font-size: 26px; }
 .lx-team-role { position: absolute; right: 11px; top: 12px; writing-mode: vertical-rl; font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--tone); }
-.lx-team-face { margin-top: 32px; flex-shrink: 0; border-radius: 999px; object-fit: cover; background: radial-gradient(circle at 50% 35%, var(--line-strong), var(--raised) 70%);
+.lx-team-face { margin-top: 30px; flex-shrink: 0; border-radius: 999px; object-fit: cover; background: radial-gradient(circle at 50% 35%, var(--line-strong), var(--raised) 70%);
   box-shadow: 0 0 0 3px var(--tone), 0 0 30px color-mix(in srgb, var(--tone) 55%, transparent); }
-.lx-team-foot { margin-top: auto; width: 100%; padding: 12px; text-align: center; background: linear-gradient(0deg, color-mix(in srgb, #000000 70%, transparent), transparent); } /* palette-exempt: shade */
+.lx-team-foot { margin-top: 14px; width: 100%; padding: 12px; text-align: center; background: linear-gradient(0deg, color-mix(in srgb, #000000 70%, transparent), transparent); } /* palette-exempt: shade */
 .lx-team-bar { display: block; width: 40px; height: 2px; margin: 7px auto; background: var(--tone); }
 @media (prefers-reduced-motion: reduce) { .lx-team-card { transition: none; } .lx-team-card:hover { translate: none; } }

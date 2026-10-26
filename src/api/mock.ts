@@ -943,7 +943,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
     case "/api/v1/skinchanger/collections":
       return skinCollections(query)
     case "/api/v1/public/staff":
-      return { team: [["Owner", 0], ["Manager", 1], ["Manager", 2], ["Admin", 3], ["Admin", 4], ["Admin", 5], ["Developer", 6], ["Designer", 7]].map(([role, index]) => ({ steamId: `7656119800000010${index}`, username: NAMES[index as number], avatar: "", role })) }
+      return { team: [["Owner", 0], ["Manager", 1], ["Manager", 2], ["Admin", 3], ["Admin", 4], ["Admin", 5], ["Developer", 6], ["Designer", 7]].map(([role, index]) => ({ steamId: `7656119800000010${index}`, username: NAMES[index as number], avatar: "", role, since: new Date(Date.UTC(2026, 6 + ((index as number) % 4), 3)).toISOString(), clanTag: (index as number) % 3 === 0 ? "LX" : null, rank: { id: RANKS[index as number][0], name: RANKS[index as number][1], imageKey: null }, stats: index === 7 ? null : { matches: 40 + (index as number) * 17, wins: 22 + (index as number) * 8, kills: 600 + (index as number) * 90, deaths: 480 + (index as number) * 70 } })) }
     case "/api/v1/public/creators":
       return { creators: [
         { userId: "u1", steamId: "76561198000000001", username: "Temuulen", avatar: null, tier: "main", label: "Main Content Creator", bio: "CS2 streams every evening on LEGACY-X servers.", links: { twitch: "https://twitch.tv/temuulen", youtube: "https://youtube.com/@temuulen" }, rank: { id: 16, name: "Apex III", imageKey: null }, frame: null, nameStyle: null },
