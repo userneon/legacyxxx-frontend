@@ -133,20 +133,6 @@ function MapArt({ map, className, children, zoomOnHover }: { map: string; classN
   )
 }
 
-/** Status as plain text for a compact row: a live score with its dot, or the state's name. */
-function StatusText({ server }: { server: PlayServer }) {
-  if (server.status === "live") {
-    return (
-      <span className="inline-flex shrink-0 items-center gap-1.5 font-semibold text-[var(--text)]">
-        <span className="lx-live-dot size-1.5 rounded-full bg-[var(--status-green)]" />
-        Live
-      </span>
-    )
-  }
-  const label = { waiting: "Waiting", warmup: "Warmup", full: "Full", offline: "Offline" }[server.status]
-  return <span className={cn("shrink-0 font-medium", server.status === "full" || server.status === "offline" ? "text-[var(--text-dim)]" : "text-[var(--text)]/90")}>{label}</span>
-}
-
 /**
  * Favourite star: the fill and colour ease in, and turning it on gives the star a small pop plus a
  * soft yellow ring, so the change is felt rather than snapped.
@@ -407,56 +393,68 @@ function groupServers(servers: PlayServer[], grouped: boolean): { title: string 
   return groups.filter((group) => group.servers.length > 0)
 }
 
-/** Wide screens show the list and the open server side by side; narrower ones open the server in a sheet. */
-function useWide() {
-  const query = "(min-width: 1180px)"
-  const [wide, setWide] = useState(() => typeof window !== "undefined" && window.matchMedia(query).matches)
-  useEffect(() => {
-    const media = window.matchMedia(query)
-    const update = () => setWide(media.matches)
-    media.addEventListener("change", update)
-    return () => media.removeEventListener("change", update)
-  }, [])
-  return wide
-}
-
-/** One server in the list: map, name, state and players. Clicking it opens it on the right (or in a sheet on phones). */
-function ServerListItem({ server, selected, favourite, onFavourite, onSelect }: { server: PlayServer; selected: boolean; favourite: boolean; onFavourite: () => void; onSelect: () => void }) {
+/**
+ * One server as a box (owner pick 2026-10-26, "a nice box with the map fading in"): the map fills the top and fades into the box,
+ * its state and the live score sit on the picture, then the name, map and a bar of the places taken. The box opens the server's
+ * detail sheet; Connect works straight from it.
+ */
+function ServerBox({ server, favourite, onFavourite, onOpen, gate }: { server: PlayServer; favourite: boolean; onFavourite: () => void; onOpen: () => void; gate: PlayGate }) {
   const art = cs2MapArtwork(server.map)
-  const unavailable = server.status === "offline"
+  const connectable = Boolean(server.joinable && validAddress(server.connectAddress)) && gate.reason === null
+  const reason = gate.reason ?? (server.status === "offline" ? "Server is offline" : server.status === "full" || server.players >= server.maxPlayers ? "Server is full" : "No connection address")
+  const seats = Math.max(1, server.maxPlayers)
+  const segmented = seats <= 12
   return (
-    <div className={cn("group relative flex items-center gap-3 overflow-hidden rounded-[10px] border px-3 py-2.5 transition-[border-color] duration-150", selected ? "border-[var(--line-strong)]" : "border-transparent hover:border-[var(--line)]", unavailable && !selected && "opacity-60")}>
-      {/* The map fills the row and fades out from left to right. */}
-      {art && <img src={art} alt="" aria-hidden="true" className={cn("lx-map-img lx-list-art pointer-events-none absolute inset-0 size-full object-cover transition-opacity duration-300", selected ? "opacity-70" : "opacity-45 group-hover:opacity-60")} />}
-      <button type="button" onClick={onSelect} aria-current={selected ? "true" : undefined} className="relative flex min-w-0 flex-1 items-center gap-3 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="truncate text-[13px] font-semibold text-[var(--text)] [text-shadow:0_1px_2px_rgba(0,0,0,0.6)]" title={server.name}>{server.name}</span>
-          <span className="flex min-w-0 items-center gap-1.5 text-[11px] text-[var(--text)]/80 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
-            <StatusText server={server} />
-            <span aria-hidden="true" className="text-[var(--text-dim)]">·</span>
-            <span className="truncate">{cs2MapLabel(server.map)}{server.mode === "fun" ? ` · ${funModeLabel(server.modeLabel)}` : ""}</span>
+    <article className={cn("group relative flex flex-col overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--card-surface)] transition-[border-color,translate] duration-200 hover:-translate-y-0.5 hover:border-[var(--line-strong)] motion-reduce:hover:translate-y-0", server.status === "offline" && "opacity-60")}>
+      <button type="button" onClick={onOpen} aria-label={`Open ${server.name}`} className="absolute inset-0 z-[1] rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/60" />
+      <div className="relative h-[136px] shrink-0">
+        {art && <img src={art} alt="" aria-hidden="true" loading="lazy" className="lx-map-img absolute inset-0 size-full object-cover opacity-55 transition-opacity duration-500 group-hover:opacity-75" />}
+        {/* The map fades down into the box. */}
+        <span aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,20,20,0)_0%,rgba(20,20,20,0.35)_50%,var(--card-surface)_100%)]" />
+        <span className="absolute left-3 top-3"><StatusPill server={server} /></span>
+        <span className="absolute right-2 top-2 z-[2]"><FavouriteButton inline favourite={favourite} name={server.name} onToggle={onFavourite} /></span>
+        {server.status === "live" && server.score && (
+          <span className="absolute bottom-2 right-4 flex items-baseline gap-1.5 text-[22px] font-bold leading-none [text-shadow:0_2px_8px_rgba(0,0,0,0.7)]">
+            <span style={{ color: "var(--team-t)" }}>{server.score.t}</span>
+            <span className="text-[13px] text-[var(--text-dim)]">:</span>
+            <span style={{ color: "var(--team-ct)" }}>{server.score.ct}</span>
           </span>
-        </span>
-        <span className="shrink-0 text-xs text-[var(--text-2)]">{server.players}/{server.maxPlayers}</span>
-      </button>
-      <span className="relative"><FavouriteButton inline favourite={favourite} name={server.name} onToggle={onFavourite} /></span>
-    </div>
+        )}
+      </div>
+      <div className="relative -mt-3 flex flex-1 flex-col gap-3 px-4 pb-4">
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="truncate text-[15px] font-semibold text-[var(--text)]" title={server.name}>{server.name}</span>
+          <span className="truncate text-xs text-[var(--text-muted)]">{cs2MapLabel(server.map)}{server.mode === "fun" ? ` · ${funModeLabel(server.modeLabel)}` : ""}{server.status === "live" && server.round ? ` · Round ${server.round}` : ""}</span>
+        </div>
+        {/* Places taken: one notch per place on small servers, a bar on big ones. */}
+        <div className="flex items-center gap-2.5" aria-label={`${server.players} of ${server.maxPlayers} players`}>
+          {segmented ? (
+            <span aria-hidden="true" className="flex flex-1 gap-[3px]">{Array.from({ length: seats }, (_, index) => <span key={index} className={cn("h-1.5 flex-1 rounded-full", index < server.players ? "bg-[var(--status-green)]" : "bg-[var(--line)]")} />)}</span>
+          ) : (
+            <span aria-hidden="true" className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--line)]"><span className="block h-full rounded-full bg-[var(--status-green)]" style={{ width: `${Math.min(100, (server.players / seats) * 100)}%` }} /></span>
+          )}
+          <span className="shrink-0 text-xs text-[var(--text-2)]">{server.players}/{server.maxPlayers}</span>
+        </div>
+        <div className="relative z-[2] mt-auto flex gap-2">
+          <button type="button" onClick={onOpen} className={cn(secondary, "h-9 flex-1")}>Scoreboard</button>
+          {connectable ? (
+            <button type="button" onClick={() => connect(server.connectAddress, server.name)} className={cn(primary, "h-9 flex-1 text-[13px]")}><Play className="size-3.5 fill-current" />Connect</button>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger asChild><span className="flex flex-1" tabIndex={0}><button type="button" disabled className={cn(secondary, "h-9 w-full")}><Play className="size-3.5" />Connect</button></span></TooltipTrigger>
+              <TooltipContent>{reason}</TooltipContent>
+            </Tooltip>
+          )}
+        </div>
+      </div>
+    </article>
   )
 }
 
-function ListSkeleton() {
-  return (
-    <div className="flex flex-col gap-1" aria-hidden="true">
-      {Array.from({ length: 6 }, (_, index) => (
-        <div key={index} className="flex items-center gap-3 px-3 py-3">
-          <div className="flex flex-1 flex-col gap-2">
-            <Skeleton className="h-3 w-2/3 rounded-full bg-[var(--line)]" />
-            <Skeleton className="h-2.5 w-1/3 rounded-full bg-[var(--line-soft)]" />
-          </div>
-        </div>
-      ))}
-    </div>
-  )
+const BOX_GRID = "grid gap-3 grid-cols-[repeat(auto-fill,minmax(260px,1fr))]"
+
+function BoxSkeleton() {
+  return <div className={BOX_GRID} aria-hidden="true">{Array.from({ length: 6 }, (_, index) => <Skeleton key={index} className="h-[250px] rounded-xl bg-[var(--card-surface)]" />)}</div>
 }
 
 /** Says why Connect is inactive, in text (a tooltip does not show on a phone). */
@@ -470,68 +468,12 @@ function GateNote({ gate, className }: { gate: PlayGate; className?: string }) {
 }
 
 /** The open server on wide screens: its map with name and score, both teams, and Copy IP / Connect. */
-function ServerDetail({ server, gate }: { server: PlayServer; gate: PlayGate }) {
-  const liveMatch = useLiveMatch(server.id)
-  const { live } = liveMatch
-  const address = live?.connectAddress ?? server.connectAddress ?? null
-  const connectable = Boolean(server.joinable && validAddress(address))
-  const reason = server.status === "offline" ? "Server is offline" : server.status === "full" || server.players >= server.maxPlayers ? "Server is full" : "No connection address"
-  return (
-    <section aria-label={server.name} className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--card-surface)]">
-      <MapArt key={server.id} map={live?.map ?? server.map} className="h-[210px] shrink-0">
-        <span aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,10,10,0.05),rgba(10,10,10,0.35)_50%,var(--card-surface))]" />
-        <div className="absolute inset-x-[22px] bottom-4 z-10 flex items-end justify-between gap-3">
-          <div className="flex min-w-0 flex-col gap-1.5">
-            <span>
-              {server.status === "live" ? (
-                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--status-green)]">
-                  <span className="lx-live-dot size-1.5 rounded-full bg-[var(--status-green)]" />
-                  Live{live?.round ? ` · Round ${live.round}` : ""}
-                </span>
-              ) : <StatusText server={server} />}
-            </span>
-            <h2 className="truncate text-[26px] font-bold leading-tight tracking-[-0.4px] text-[var(--text)]" title={server.name}>{server.name}</h2>
-            <span className="text-[13px] text-[var(--text-2)]">{cs2MapLabel(live?.map ?? server.map)}{server.mode === "fun" ? ` · ${funModeLabel(server.modeLabel)}` : ""} · {server.players}/{server.maxPlayers} players</span>
-          </div>
-        </div>
-      </MapArt>
-      <div className="scrollbar-hidden flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-[22px] py-4">
-        <Scoreboard {...liveMatch} />
-      </div>
-      <div className="flex shrink-0 gap-2.5 border-t border-[var(--line-soft)] px-[22px] py-4">
-        <button type="button" disabled={!address} onClick={() => void copyAddress(address)} className={cn(secondary, "h-11 flex-1")}>
-          <Copy className="size-3.5" />
-          Copy IP
-        </button>
-        {connectable && gate.reason === null ? (
-          <button type="button" onClick={() => connect(address, server.name)} className={cn(primary, "h-11 flex-[2] text-[14px]")}>
-            <Play className="size-4 fill-current" />
-            Connect
-          </button>
-        ) : (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="flex flex-[2]" tabIndex={0}>
-                <button type="button" disabled className={cn(secondary, "h-11 w-full")}><Play className="size-4" />Connect</button>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>{gate.reason ?? reason}</TooltipContent>
-          </Tooltip>
-        )}
-      </div>
-      {gate.reason !== null && <GateNote gate={gate} className="border-t border-[var(--line-soft)] px-[22px] py-3" />}
-    </section>
-  )
-}
-
 /**
- * Play: the mode's servers as a list on the left and the open server on the right (map, both teams, Connect), with
- * Quick play in the header. The mode itself is picked in the sidebar. On narrower screens the list fills the page and a
- * server opens in a sheet.
+ * Play: the mode's servers as boxes grouped by state (live, waiting, full or offline), with Quick play in the header. A box
+ * opens the server's detail sheet (map, both teams, Connect). The mode itself is picked in the sidebar.
  */
 function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode; title: string; description: string; pickRule: string }) {
   const [params, setParams] = useViewParams()
-  const wide = useWide()
   const filter = params.get("filter") ?? "all"
   const hideFull = params.get("full") === "hide"
   const onlyFavourites = params.get("fav") === "1"
@@ -575,11 +517,8 @@ function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode;
     return true
   })
   const groups = groupServers(visible, statusFilter === "all" && sortOrder === "default")
-  const ordered = groups.flatMap((group) => group.servers)
   const favouriteMaps = Array.from(new Set(servers.filter((server) => favourites.includes(server.id)).map((server) => server.map)))
   const picked = selectedId ? servers.find((server) => server.id === selectedId) ?? null : null
-  // On wide screens something is always open: the picked server, else the first one a player can join, else the first one.
-  const shown = wide ? picked ?? ordered.find((server) => server.joinable) ?? ordered[0] ?? null : null
   const anyJoinable = servers.some((server) => server.joinable)
   const liveCount = servers.filter((server) => server.status === "live").length
 
@@ -598,7 +537,7 @@ function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode;
     }
   }
 
-  const list = !data && loading ? <ListSkeleton /> : error && !data ? (
+  const list = !data && loading ? <BoxSkeleton /> : error && !data ? (
     <p className="flex items-center justify-center gap-3 py-16 text-[13px] text-[var(--text-dim)]">
       Could not load servers.
       <button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] transition-colors hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button>
@@ -606,26 +545,28 @@ function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode;
   ) : visible.length === 0 ? (
     <p className="py-16 text-center text-[13px] text-[var(--text-dim)]">{servers.length === 0 ? "No servers online right now." : "No server matches these filters."}</p>
   ) : (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-6">
       {groups.map((group) => (
-        <div key={group.title ?? "all"} className="flex flex-col gap-0.5">
+        <section key={group.title ?? "all"} aria-label={group.title ?? "Servers"} className="flex flex-col gap-3">
           {group.title && (
-            <h2 className="flex items-center gap-2 px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--text-dim)]">
+            <h2 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-dim)] before:h-3 before:w-[3px] before:rounded-full before:bg-[var(--text-faint)]">
               {group.title}
               <span className="font-medium tracking-normal">{group.servers.length}</span>
             </h2>
           )}
-          {group.servers.map((server) => (
-            <ServerListItem key={server.id} server={server} selected={shown?.id === server.id} favourite={favourites.includes(server.id)} onFavourite={() => toggle(server.id)} onSelect={() => update({ server: server.id })} />
-          ))}
-        </div>
+          <div className={BOX_GRID}>
+            {group.servers.map((server) => (
+              <ServerBox key={server.id} server={server} gate={gate} favourite={favourites.includes(server.id)} onFavourite={() => toggle(server.id)} onOpen={() => update({ server: server.id })} />
+            ))}
+          </div>
+        </section>
       ))}
     </div>
   )
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className={cn("@container flex min-h-0 flex-1 flex-col gap-4 p-4 @2xl:p-6", wide ? "overflow-hidden" : "scrollbar-hidden overflow-y-auto")}>
+      <div className="@container scrollbar-hidden flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 @2xl:p-6">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-1">
             <h1 className="flex items-center gap-2.5 text-[26px] font-bold leading-tight tracking-[-0.5px] text-[var(--text)]">
@@ -655,9 +596,9 @@ function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode;
           </Tooltip>
         </header>
 
-        <div className={cn("grid gap-4", wide ? "min-h-0 flex-1 grid-cols-[400px_minmax(0,1fr)]" : "grid-cols-1")}>
-          <div className={cn("flex flex-col gap-2 rounded-xl border border-[var(--line)] bg-[var(--card-surface)] p-2", wide && "min-h-0")}>
-            <div className="flex items-center gap-2 p-1">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-5">
+            <div className="flex items-center gap-2">
               <Popover>
                 <PopoverTrigger asChild>
                   <button type="button" aria-label={mode === "fun" ? "Filter by mode" : "Filter by map"} className={cn(toggleItem, "group border border-[var(--line)]", filter !== "all" ? toggleOn : toggleOff)}>
@@ -715,13 +656,10 @@ function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode;
                 </PopoverContent>
               </Popover>
             </div>
-            <div className={cn(wide && "scrollbar-hidden min-h-0 flex-1 overflow-y-auto")}>{list}</div>
+            {list}
           </div>
-          {wide && (shown ? <ServerDetail server={shown} gate={gate} /> : (
-            <div className="flex items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--card-surface)] text-[13px] text-[var(--text-dim)]">{data ? "Pick a server on the left." : ""}</div>
-          ))}
         </div>
-        {!wide && <ServerSheet server={picked} gate={gate} onClose={() => update({ server: null })} />}
+        <ServerSheet server={picked} gate={gate} onClose={() => update({ server: null })} />
       </div>
     </TooltipProvider>
   )

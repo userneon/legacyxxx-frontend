@@ -220,16 +220,17 @@ export function ShopPage() {
   }
 
   /** A grid of cards, one per design. */
-  const grid = (list: ShopItem[]) => <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">{list.map((item, index) => card(item, index))}</ul>
+  const grid = (list: ShopItem[]) => <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">{list.map((item, index) => card(item, index))}</ul>
 
-  const buyBlock = (item: ShopItem) => {
+  const buyBlock = (item: ShopItem, inline = false) => {
     const isWorn = worn[item.kind] === item.id
     // Yours for good: nothing to buy. Anything sold with LX that is not (not owned, or only rented) can be bought or extended.
     const rentable = item.unlock === "coin" && !(item.owned && !item.expiresAt)
     const cost = priceFor(item)
     const afford = balance === null || balance >= cost
     return (
-      <div className="flex flex-col gap-2.5 border-t border-[var(--line-soft)] px-4 py-3.5">
+      <div className={cn(inline ? "grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_260px] items-center gap-x-6 px-5 py-4" : "flex flex-col gap-2.5 border-t border-[var(--line-soft)] px-4 py-3.5")}>
+        <div className="flex min-w-0 flex-col gap-2.5">
         <span className="flex items-baseline justify-between gap-2">
           <span className="min-w-0 truncate text-[15px] font-semibold text-[var(--text)]">{item.name}</span>
           {/* A real count from the API (players who own it now); nothing when nobody does yet. */}
@@ -245,6 +246,8 @@ export function ShopPage() {
               : <p className="text-[11px] text-[var(--text-dim)]">Pick any colour; it is kept when you buy it.</p>}
           </div>
         )}
+        </div>
+        <div className="flex min-w-0 flex-col gap-2.5">
         {item.owned && (
           <div key="owned" className={cn("flex flex-col gap-2.5", justBought === item.id && "lx-swap-in")}>
             <p className="text-xs text-[var(--text-dim)]">{isWorn ? "Worn" : "Owned"}{item.expiresAt ? ` · ${timeLeft(item.expiresAt)}` : ""}</p>
@@ -278,28 +281,39 @@ export function ShopPage() {
         ) : !item.owned ? (
           <p className="text-xs text-[var(--text-dim)]">{item.requirement || "Earned in game, not for sale."}</p>
         ) : null}
+        </div>
       </div>
+    )
+  }
+
+  /** What the picked item looks like on you: the in-game effect, or your picture and name wearing it. `compact` for the Spotlight bar. */
+  const previewStage = (compact = false) => {
+    const effect = compact ? "w-[170px]" : "w-[220px]"
+    return (
+      <>
+          {selected?.kind === "grenade_trail" ? (
+            <div className="relative flex items-center justify-center py-4"><GrenadeTrail key={`${selected.id}${tried(selected).fx}`} color={tried(selected).color} shape={tried(selected).fx} className={effect} /></div>
+          ) : selected?.kind === "flash_effect" ? (
+            <div className="relative flex items-center justify-center py-4"><FlashEffect key={`${selected.id}${tried(selected).fx}`} color={tried(selected).color} shape={tried(selected).fx} className={effect} /></div>
+          ) : selected?.kind === "grenade_light" ? (
+            <div className="relative flex items-center justify-center py-4"><GrenadeLight color={tried(selected).color} className={effect} /></div>
+          ) : selected?.kind === "smoke_color" ? (
+            <div className="relative flex items-center justify-center py-4"><span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} /><SmokePuff color={tried(selected).color} color2={tried(selected).color2} className={effect} /></div>
+          ) : (
+            <div className="relative flex flex-col items-center gap-3 py-4">
+              <span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} />
+              <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={compact ? 76 : 120} />
+              <span {...nameProps(previewLook, cn("max-w-full truncate font-bold text-[var(--text)]", compact ? "text-[15px]" : "text-[19px]"))}>{username}</span>
+            </div>
+          )}
+      </>
     )
   }
 
   const railBody = (
     <div className="lx-add-box relative flex min-h-0 flex-col overflow-hidden rounded-[14px] border lg:max-h-[calc(100dvh-11rem)]">
         <div className="scrollbar-hidden flex min-h-0 flex-col gap-3 overflow-y-auto p-3.5">
-          {selected?.kind === "grenade_trail" ? (
-            <div className="relative flex items-center justify-center py-4"><GrenadeTrail key={`${selected.id}${tried(selected).fx}`} color={tried(selected).color} shape={tried(selected).fx} className="w-[220px]" /></div>
-          ) : selected?.kind === "flash_effect" ? (
-            <div className="relative flex items-center justify-center py-4"><FlashEffect key={`${selected.id}${tried(selected).fx}`} color={tried(selected).color} shape={tried(selected).fx} className="w-[220px]" /></div>
-          ) : selected?.kind === "grenade_light" ? (
-            <div className="relative flex items-center justify-center py-4"><GrenadeLight color={tried(selected).color} className="w-[220px]" /></div>
-          ) : selected?.kind === "smoke_color" ? (
-            <div className="relative flex items-center justify-center py-4"><span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} /><SmokePuff color={tried(selected).color} color2={tried(selected).color2} className="w-[220px]" /></div>
-          ) : (
-            <div className="relative flex flex-col items-center gap-3 py-4">
-              <span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} />
-              <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={120} />
-              <span {...nameProps(previewLook, "max-w-full truncate text-[19px] font-bold text-[var(--text)]")}>{username}</span>
-            </div>
-          )}
+          {previewStage()}
         </div>
         {selected && (
           <div className="shrink-0">
@@ -311,18 +325,26 @@ export function ShopPage() {
       </div>
   )
 
-  const rail = (
-    <aside className="scrollbar-hidden hidden flex-col gap-3 self-start lg:sticky lg:top-6 lg:flex">
-      {railBody}
-    </aside>
-  )
+  /**
+   * The Spotlight bar (owner pick "S8", 2026-10-26): on a wide screen the picked item sits in one bar across the top of the list, stuck while the
+   * list scrolls under it: the item on you at the left, then its colours, length and Buy (the name colour and glow side by side when both are picked).
+   * Phones keep the bottom sheet.
+   */
+  const spotlight = selected ? (
+    <div className="lx-add-box sticky top-0 z-10 hidden items-stretch overflow-hidden rounded-[14px] border bg-[var(--panel)] lg:flex">
+      <div className="relative flex w-[240px] shrink-0 items-center justify-center border-r border-[var(--line-soft)] px-3 [&>div]:w-full">{previewStage(true)}</div>
+      {tab === "name" && combo.name_color && combo.name_glow
+        ? [combo.name_color, combo.name_glow].map((id) => all.find((item) => item.id === id)).filter((item): item is ShopItem => Boolean(item)).map((item, index) => <div key={item.id} className={cn("flex min-w-0 flex-1", index > 0 && "border-l border-[var(--line-soft)]")}>{buyBlock(item, true)}</div>)
+        : buyBlock(selected, true)}
+    </div>
+  ) : null
 
   return (
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
         <PageTabs<ShopTab> ariaLabel="Shop sections" value={tab} onChange={setTab} options={TABS} />
         {(tab === "featured" || tab === "frame" || tab === "name" || tab === "smoke_color") && (
-          <PageBarEnd>
+          <PageBarEnd className="max-md:hidden">
             <label className={cn(pageSearchClass, "max-md:hidden")}>
               <Search className="size-4 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />
               <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search items" aria-label="Search items" className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] focus:outline-none" />
@@ -336,14 +358,15 @@ export function ShopPage() {
         {tab === "goods" ? (
           <ShopGoods />
         ) : loading && !data ? (
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]"><Skeleton className="h-[480px] rounded-xl" /><Skeleton className="h-[480px] rounded-xl" /></div>
+          <div className="flex flex-col gap-5"><Skeleton className="h-[170px] rounded-[14px] max-lg:hidden" /><Skeleton className="h-[480px] rounded-xl" /></div>
         ) : error || !data ? (
           <p className="flex items-center justify-center gap-3 py-24 text-[13px] text-[var(--text-dim)]">Could not load the shop.<button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>
         ) : (
           tab === "clan" ? (
             <ShopClan prices={wallet?.clanPrices} balance={balance} mine={user ? myClan : null} loading={Boolean(user) && (clanLoading || !wallet)} onChanged={() => Promise.all([refetchClan(), refetchWallet()])} />
           ) : (
-          <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="flex min-w-0 flex-col gap-5">
+            {spotlight}
             <div className="flex min-w-0 flex-col gap-5">
               {tab === "featured" && <FounderPack />}
               {tab === "featured" && featured.length > 0 && (
@@ -393,7 +416,6 @@ export function ShopPage() {
                 ) : grid(shown)}
               </section>
             </div>
-            {rail}
           </div>
           )
         )}

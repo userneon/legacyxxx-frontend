@@ -41,7 +41,7 @@ The earlier orange `#ff5a1f` exception was dropped and no longer exists in `src/
   `#2e1065`, `--brand-on` `#f5f3ff`. Violet is used sparingly (owner request 2026-10-01: too much of it).
   It belongs to: the wordmark's "-X", the active sidebar item, the Home hero's accent word and the soft glow behind its art, the flagship "Players Online" figure, the #1 leader
   and the viewer's own row, the active sort column, the Pro League card, the rank/EXP progress fill, the "equipped" verified seal
-  on Skinchanger cards and the Owner badge, and **the Shop** (owner request 2026-10-24, whole-page violet look: `.lx-shop-tile` cards that light up and carry the brand border when picked, `.lx-shop-price` pills, `.lx-shop-heading` bars, the preview stage as an add-box, a soft violet light behind the page; buttons stay white). No other page has a glow or a hero banner (owner request 2026-10-06; Home keeps its hero): a page starts with
+  on Skinchanger cards and the Owner badge, and **the Shop** (owner request 2026-10-24; the picked item lives in the **Spotlight bar** across the top of the list since 2026-10-26, owner pick "S8": the item on you at the left, its colours, then length and Buy at the right, stuck while the list scrolls; phones keep the bottom sheet; whole-page violet look: `.lx-shop-tile` cards that light up and carry the brand border when picked, `.lx-shop-price` pills, `.lx-shop-heading` bars, the preview stage as an add-box, a soft violet light behind the page; buttons stay white). No other page has a glow or a hero banner (owner request 2026-10-06; Home keeps its hero): a page starts with
   `PageBar` (`components/page-tabs.tsx`: underlined tabs on the left, hint and controls on the right, one hairline) and the page
   name lives in the top bar. Everything else is neutral: section-heading bars
   (`--text-faint`), hover borders (`--line-strong`), hover fills (`--raised`), focus rings (`--accent-solid`),
@@ -145,7 +145,13 @@ reduced motion. `.lx-sweep` opts any other element in. No colour in the sweep.
 
 Four cards (5x5, Fun, Pro League, Tournaments), each with a pill, title, one line, a real status and a CS2 agent picture (`src/assets/home/mode-*.webp`, owner-supplied, transparent) at the right. The card under the pointer (5x5 by default) is the wide one: bright picture, a violet border and soft glow underneath, and a white "Play now"; the others keep their picture dim. No server counts or rank gates are shown, since the API has no per-mode figure for them.
 
-### Play (owner pick 2026-10-11, design "D")
+### Play (owner pick 2026-10-11, design "D"; servers as boxes since 2026-10-26)
+
+**Boxes (owner pick 2026-10-26, "a nice box with the map fading in", replaces the list + open server beside it):** the servers are boxes in a grid (`ServerBox`, `BOX_GRID`), grouped Live now /
+Waiting for players / Full or offline: the map fills the top of the box and fades into it, the state pill and favourite star sit on the picture with the live score (T gold, CT blue) at its
+bottom right, then the name, map (and round), one notch per place taken (a bar on big servers) and Scoreboard / Connect. A box opens the server in the detail sheet (scoreboard, Copy IP,
+Connect) at every width. The filters and Quick play are unchanged. The paragraph below describes the older layout; its rules (filters in the URL, scoreboard, Connect gate) still hold.
+
 
 Play is a list with the open server beside it (`src/pages/play.tsx`). The header holds the mode's name, one line, the live count and
 **Quick play** (white). The mode is chosen only in the sidebar: no mode tabs on the page. The left column (400px) has the map dropdown
