@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom"
 import { Check, UserPlus, Users } from "lucide-react"
 
-import { ColorRow, PICK_BASES, PICK_COLORS } from "@/components/color-row"
+import { ColorRow, PICK_BASES, PICK_COLORS, demoColour } from "@/components/color-row"
 import { LxMark } from "@/components/lx-mark"
 import { toast } from "sonner"
 import { useState } from "react"
@@ -170,6 +170,8 @@ export function ClanLooksShop({ clanId, canWear = true, tag, balance, onChanged,
     const { a, b } = coloursOf(item)
     return withColours(item, a, b)
   }
+  /** A tile shows a look the clan has not coloured in a sample colour, so the designs tell apart; the stage starts grey. */
+  const tileOf = (item: ClanLookItem, index: number) => (item.custom && !draft[item.id] && !data.custom?.[item.id] ? withColours(item, demoColour(index), item.kind === "page" || item.kind === "backdrop" ? (item.kind === "backdrop" ? demoColour(index + 3) : item.to ?? "#0a0a0a") : null) : shownOf(item))
 
   const sections = KINDS.map(({ kind, label }) => ({ kind, label, items: data.items.filter((item) => item.kind === kind).sort((x, y) => Number(Boolean(y.custom)) - Number(Boolean(x.custom)) || x.price - y.price) }))
   const selected = data.items.find((item) => item.id === pick) ?? sections[0]?.items[0] ?? null
@@ -226,11 +228,11 @@ export function ClanLooksShop({ clanId, canWear = true, tag, balance, onChanged,
           <section key={kind} aria-label={label}>
             <div className="lx-shop-heading mb-2.5">{label}</div>
             <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-4">
-              {items.map((item) => (
+              {items.map((item, index) => (
                 <li key={item.id}>
                   <button type="button" aria-pressed={selected?.id === item.id} data-worn={wearing(item)} aria-label={item.name} title={item.name} onClick={() => setPick(item.id)} className="lx-shop-tile flex w-full flex-col gap-2 rounded-xl p-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60">
                     <div className="relative">
-                      <Preview item={shownOf(item)} tag={tag} />
+                      <Preview item={tileOf(item, index)} tag={tag} />
                     </div>
                     <span className="flex items-center justify-between gap-2 px-1 pb-0.5">
                       {wearing(item) ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--status-green)]"><Check className="size-3" />Worn</span>

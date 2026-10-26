@@ -16,7 +16,7 @@ import { GrenadeLight, GrenadeTrail } from "@/components/grenade-trail"
 import { FlashEffect } from "@/components/flash-effect"
 import { ShopClan } from "@/components/shop-clan"
 import { ShopGoods } from "@/components/shop-goods"
-import { ColorRow, PICK_COLORS } from "@/components/color-row"
+import { ColorRow, PICK_COLORS, PICK_DEFAULT, demoColour } from "@/components/color-row"
 import { FramedAvatar } from "@/components/framed-avatar"
 import { LxMark } from "@/components/lx-mark"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
@@ -169,7 +169,16 @@ export function ShopPage() {
 
   const pill = (active: boolean) => cn("inline-flex h-[26px] items-center rounded-full border px-2.5 text-xs transition-colors", active ? "border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text)]" : "border-[var(--line)] text-[var(--text-dim)] hover:text-[var(--text)]")
 
-  const card = (item: ShopItem) => {
+  /** A tile shows a design nobody has coloured yet in a sample colour, so the designs tell apart; the preview starts grey. */
+  const onTile = (item: ShopItem, index: number): ShopItem => {
+    if (!item.custom) return item
+    const field = item.kind === "name_glow" ? "glow" : "color"
+    if ((item[field] ?? PICK_DEFAULT).toLowerCase() !== PICK_DEFAULT) return item
+    return { ...item, [field]: demoColour(index), ...(item.twoColours ? { color2: demoColour(index + 3) } : {}) }
+  }
+
+  const card = (item: ShopItem, index = 0) => {
+    const shown = onTile(item, index)
     const active = isPicked(item)
     const action = item.owned
       ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--status-green)]"><Check className="size-3" />{worn[item.kind] === item.id ? "Worn" : "Owned"}{item.expiresAt ? <span className="font-medium text-[var(--text-dim)]"> · {timeLeft(item.expiresAt)}</span> : null}</span>
@@ -187,7 +196,7 @@ export function ShopPage() {
           className="lx-shop-tile flex w-full flex-col overflow-hidden rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60"
         >
           <div className="relative">
-            <Spot accent={accentOf(item)} height={124}><ItemArt item={item} avatar={user?.avatar} username={username} size={70} /></Spot>
+            <Spot accent={accentOf(shown)} height={124}><ItemArt item={shown} avatar={user?.avatar} username={username} size={70} /></Spot>
           </div>
           <div className="flex items-center justify-between gap-2 px-3 pb-3 pt-1">{action}<span className="min-w-0 truncate text-[11px] font-medium text-[var(--text-dim)]">{item.name}</span></div>
         </button>
@@ -210,7 +219,7 @@ export function ShopPage() {
   }
 
   /** A grid of cards, one per design. */
-  const grid = (list: ShopItem[]) => <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">{list.map(card)}</ul>
+  const grid = (list: ShopItem[]) => <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">{list.map((item, index) => card(item, index))}</ul>
 
   const buyBlock = (item: ShopItem) => {
     const isWorn = worn[item.kind] === item.id
@@ -339,7 +348,7 @@ export function ShopPage() {
               {tab === "featured" && featured.length > 0 && (
                 <section aria-label="Featured">
                   <div className="lx-shop-heading mb-2.5">Featured</div>
-                  <ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 scrollbar-hidden sm:mx-0 sm:grid sm:snap-none sm:grid-cols-3 sm:overflow-visible sm:px-0 xl:grid-cols-5 [&>li]:w-[170px] [&>li]:shrink-0 [&>li]:snap-start sm:[&>li]:w-auto">{featured.map(card)}</ul>
+                  <ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 scrollbar-hidden sm:mx-0 sm:grid sm:snap-none sm:grid-cols-3 sm:overflow-visible sm:px-0 xl:grid-cols-5 [&>li]:w-[170px] [&>li]:shrink-0 [&>li]:snap-start sm:[&>li]:w-auto">{featured.map((item, index) => card(item, index))}</ul>
                 </section>
               )}
               <section aria-label="Items">
