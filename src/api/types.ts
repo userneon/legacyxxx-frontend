@@ -415,7 +415,7 @@ export type ModerationStatus = "Banned" | "Muted" | "Gag" | "Clear"
  * ------------------------------------------------------------------------- */
 
 /** What a clan wears: tag colour and glow, and a page backdrop (all from the shop). */
-export type ClanPageEffect = "slats" | "waves" | "dots" | "aurora" | "threads" | "particles" | "lightning" | "rays" | "lines" | "plasma"
+export type ClanPageEffect = "slats" | "waves" | "dots" | "aurora" | "threads" | "particles" | "lightning" | "rays" | "lines" | "plasma" | "starfield" | "matrix" | "orbs" | "grid" | "embers" | "vortex" | "hex"
 
 export interface ClanLook {
   tagColor: string | null

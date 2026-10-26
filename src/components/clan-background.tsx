@@ -12,6 +12,7 @@ const LightningBackground = lazy(() => import("@/components/reactbits/lightning"
 const RaysBackground = lazy(() => import("@/components/reactbits/light-rays"))
 const LinesBackground = lazy(() => import("@/components/reactbits/waves"))
 const PlasmaBackground = lazy(() => import("@/components/reactbits/plasma"))
+const CanvasScene = lazy(() => import("@/components/reactbits/canvas-scenes"))
 
 /** Hex to rgba, for the dot field's colours. Only called with values that already passed the #rrggbb check. */
 function rgba(hex: string, alpha: number) {
@@ -33,7 +34,7 @@ function hueOf(hex: string) {
 }
 
 /** How bright each animated background is: the busy ones are dimmed so text stays readable. */
-export const EFFECT_OPACITY: Record<ClanPageEffect, number> = { slats: 0.45, waves: 0.8, dots: 0.8, aurora: 0.7, threads: 0.7, particles: 0.8, lightning: 0.55, rays: 0.9, lines: 0.5, plasma: 0.4 }
+export const EFFECT_OPACITY: Record<ClanPageEffect, number> = { slats: 0.45, waves: 0.8, dots: 0.8, aurora: 0.7, threads: 0.7, particles: 0.8, lightning: 0.55, rays: 0.9, lines: 0.5, plasma: 0.4, starfield: 0.85, matrix: 0.6, orbs: 0.75, grid: 0.7, embers: 0.85, vortex: 0.8, hex: 0.65 }
 
 /** The live (WebGL) painting of one effect: the clan page runs it, and scripts/record-clan-effects.mjs records it once into public/clan-fx/<effect>.gif for the Shop previews. */
 export function EffectLayer({ effect, color, base }: { effect: ClanPageEffect; color: string; base: string }) {
@@ -49,6 +50,7 @@ export function EffectLayer({ effect, color, base }: { effect: ClanPageEffect; c
       {effect === "rays" && <RaysBackground raysColor={color} raysOrigin="top-center" followMouse={false} />}
       {effect === "lines" && <LinesBackground lineColor={rgba(color, 0.6)} backgroundColor="transparent" />}
       {effect === "plasma" && <PlasmaBackground color={color} mouseInteractive={false} />}
+      {(effect === "starfield" || effect === "matrix" || effect === "orbs" || effect === "grid" || effect === "embers" || effect === "vortex" || effect === "hex") && <CanvasScene scene={effect} color={color} base={base} />}
     </Suspense>
   )
 }

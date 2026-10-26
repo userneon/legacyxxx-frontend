@@ -1,5 +1,5 @@
 /**
- * Records the ten clan page effects into public/clan-fx/<effect>.gif (grey on black, ping-pong so the loop never jumps).
+ * Records the clan page effects into public/clan-fx/<effect>.gif (grey on black, ping-pong so the loop never jumps).
  * The site tints them with the clan's colour instead of running WebGL (owner request 2026-10-24: lighter pages).
  * Needs the dev server (`npm run dev`) and Playwright's Chromium; run again only when an effect's look changes.
  *   node scripts/record-clan-effects.mjs [effect…]     then     python3 scripts/make-clan-fx-gif.py
@@ -8,7 +8,7 @@ import { mkdirSync } from "node:fs"
 import { createRequire } from "node:module"
 const { chromium } = createRequire(import.meta.url)(process.env.PLAYWRIGHT_PATH ?? "playwright")
 
-const ALL = ["slats", "waves", "dots", "aurora", "threads", "particles", "lightning", "rays", "lines", "plasma"]
+const ALL = ["slats", "waves", "dots", "aurora", "threads", "particles", "lightning", "rays", "lines", "plasma", "starfield", "matrix", "orbs", "grid", "embers", "vortex", "hex"]
 const FRAMES = 36
 const STEP_MS = 110
 const base = process.env.CAPTURE_URL ?? "http://localhost:5173"
