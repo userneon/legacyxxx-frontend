@@ -54,6 +54,12 @@ export interface NameStyle {
   glowFx?: string | null
 }
 
+/** The five kinds of grenade a trail or light can be worn on separately (the molotov and the incendiary share "fire"). */
+export type Nade = "he" | "flash" | "smoke" | "fire" | "decoy"
+export type NadeSlotKind = "grenade_trail" | "grenade_light"
+/** Grenades that wear something other than the default; null means nothing on that grenade. A grenade that is absent follows the default. */
+export type NadeSlots = Partial<Record<Nade, Partial<Record<NadeSlotKind, string | null>>>>
+
 export interface Cosmetics {
   /** How many players there are (for "owned by" shares). */
   players?: number | null
@@ -66,6 +72,7 @@ export interface Cosmetics {
   equippedGrenadeTrail?: string | null
   equippedGrenadeLight?: string | null
   equippedFlashEffect?: string | null
+  nadeSlots?: NadeSlots
   frames: FrameItem[]
   nameColors?: FrameItem[]
   nameGlows?: FrameItem[]
@@ -90,6 +97,10 @@ export const cosmeticsService = {
   /** Pick the colour (and the dual smoke's second one) of a design you own. */
   async saveCustom(item: string, color: string, color2?: string | null, options?: CallOptions): Promise<{ kind: CosmeticKind; item: string; color: string }> {
     return put<{ kind: CosmeticKind; item: string; color: string }>("/api/v1/cosmetics/custom", color2 ? { item, color, color2 } : { item, color }, options)
+  },
+  /** Wear a trail or light on one kind of grenade: an item, null for nothing, or `inherit` to follow the default again. */
+  async setNadeSlot(nade: Nade, kind: NadeSlotKind, item: string | null | "inherit", options?: CallOptions): Promise<{ nade: Nade; kind: NadeSlotKind }> {
+    return put<{ nade: Nade; kind: NadeSlotKind }>("/api/v1/cosmetics/nade-slot", item === "inherit" ? { nade, kind, inherit: true } : { nade, kind, item }, options)
   },
   /** Wear one, or take it off with null. */
   async equip(kind: CosmeticKind, item: string | null, options?: CallOptions): Promise<{ kind: CosmeticKind; item: string | null }> {

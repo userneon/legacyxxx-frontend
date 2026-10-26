@@ -4,7 +4,8 @@ import { Bell, Check, CircleCheck, Frame, Link2, Lock, RotateCcw, MonitorSmartph
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
-import { cosmeticsService, type CosmeticKind, type Cosmetics, type FrameItem } from "@/api/cosmetics"
+import { cosmeticsService, type CosmeticKind, type Cosmetics, type FrameItem, type Nade, type NadeSlotKind } from "@/api/cosmetics"
+import { NadeSlots } from "@/components/nade-slots"
 import { bannerClass, nameProps, timeLeft } from "@/lib/cosmetics"
 import { Switch } from "@/components/switch"
 import { GrenadeLight, GrenadeTrail } from "@/components/grenade-trail"
@@ -225,6 +226,7 @@ function Appearance() {
     }
   }
   const wear = (item: string | null) => run(() => cosmeticsService.equip(kind, item), "Could not change it")
+  const wearOn = (nade: Nade, value: string | null | "default") => run(() => cosmeticsService.setNadeSlot(nade, kind as NadeSlotKind, value === "default" ? "inherit" : value), "Could not change it")
 
   const button = "inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] px-3.5 text-[13px] font-semibold transition-colors disabled:cursor-default disabled:opacity-60"
   const secondary = cn(button, "text-[var(--text-2)] hover:border-[var(--line-strong)] hover:bg-[var(--raised)]")
@@ -306,6 +308,7 @@ function Appearance() {
               />
             </div>
             <p className="text-xs text-[var(--text-dim)]">You can wear what you own here. <button type="button" onClick={() => navigate("/shop")} className="font-medium text-[var(--text-2)] underline-offset-2 hover:text-[var(--text)] hover:underline">Browse the Shop</button> for more.</p>
+            {(kind === "grenade_trail" || kind === "grenade_light") && <NadeSlots kind={kind} items={frames} defaultId={worn[kind]} slots={data.nadeSlots} busy={busy} onChange={(nade, value) => void wearOn(nade, value)} />}
             {shown.length === 0 ? (
               <p className="py-6 text-[13px] text-[var(--text-dim)]">{filter === "mine" ? `You do not own a ${noun} yet.` : "Nothing here."}</p>
             ) : (
