@@ -210,6 +210,8 @@ Colour it yourself (owner request 2026-10-26): every coloured player cosmetic (n
 
 Per grenade (owner request 2026-10-26, option "A"): a trail and a light are bought once and worn on one kind of grenade only if the player wants: Profile → Appearance → Trail / Light shows "For each grenade" (`components/nade-slots.tsx`): HE, Flashbang, Smoke, Fire (molotov and incendiary) and Decoy, each Default (the item worn in the list above), Nothing, or any trail/light they own. `GET /cosmetics` sends `nadeSlots` (only the grenades that differ), `PUT /cosmetics/nade-slot` sets one. The colour a player picked belongs to the item, so the same trail on two grenades has the same colour.
 
+Profile → Appearance lists only what the player owns (owner request 2026-10-26): no buying, no price, no LX balance, no link to the Shop, no locked items; the Shop is the only place to buy.
+
 Premium animated frames (owner request 2026-10-25, "very valuable profile decorations"): Dragon Ember, Frost Royale, Void Rift, Hologram, Celestial Crown and Diamond Prestige (2,500–5,000 LX) are looping animated WebPs in `public/frames/`, drawn by `scripts/premium-frames.html` (canvas, seamless loop, nothing drawn over the opening) via `scripts/render-premium-frames.mjs` + `scripts/make-premium-frames.py`. Change the art there and re-run both, never by hand.
 
 ### Genesis pack (owner decision 2026-10-23; first called Founder)

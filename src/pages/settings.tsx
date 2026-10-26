@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { Bell, Check, CircleCheck, Frame, Link2, Lock, RotateCcw, MonitorSmartphone, type LucideIcon } from "lucide-react"
+import { Link } from "react-router-dom"
+import { Bell, Check, CircleCheck, Frame, Link2, RotateCcw, MonitorSmartphone, type LucideIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -11,7 +11,6 @@ import { Switch } from "@/components/switch"
 import { GrenadeLight, GrenadeTrail } from "@/components/grenade-trail"
 import { FlashEffect } from "@/components/flash-effect"
 import { SmokePuff } from "@/components/smoke-puff"
-import { walletService, type Wallet } from "@/api"
 import { FramedAvatar } from "@/components/framed-avatar"
 import { discordService, type DiscordLinkState } from "@/api/discord"
 import { settingsService, type NotificationSettings } from "@/api/settings"
@@ -170,8 +169,6 @@ function Notifications() {
   )
 }
 
-type FrameFilter = "all" | "mine" | "earned"
-
 /** What can be worn, in two groups: what shows on the site, and what shows in game. The chips wrap, so every kind stays in reach. */
 const KINDS: Array<{ value: CosmeticKind; label: string; noun: string; group: "profile" | "game" }> = [
   { value: "frame", label: "Frame", noun: "frame", group: "profile" },
@@ -189,22 +186,17 @@ const KIND_GROUPS = [{ id: "profile", label: "Profile" }, { id: "game", label: "
 function Appearance() {
   const { user } = useAuth()
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
-  const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const [busy, setBusy] = useState(false)
   const [kind, setKind] = useState<CosmeticKind>("frame")
-  const [filter, setFilter] = useState<FrameFilter>("mine")
-  const navigate = useNavigate()
   const [picked, setPicked] = useState<Partial<Record<CosmeticKind, string>>>({})
   const saved = useSavedFlash()
 
   const lists: Record<CosmeticKind, FrameItem[]> = { frame: data?.frames ?? [], name_color: data?.nameColors ?? [], name_glow: data?.nameGlows ?? [], banner: data?.banners ?? [], title: data?.titles ?? [], smoke_color: data?.smokeColors ?? [], grenade_trail: data?.grenadeTrails ?? [], grenade_light: data?.grenadeLights ?? [], flash_effect: data?.flashEffects ?? [] }
   const worn: Record<CosmeticKind, string | null> = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, banner: data?.equippedBanner ?? null, title: data?.equippedTitle ?? null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null, grenade_light: data?.equippedGrenadeLight ?? null, flash_effect: data?.equippedFlashEffect ?? null }
   const noun = KINDS.find((entry) => entry.value === kind)?.noun ?? "item"
-  const frames = lists[kind]
+  const frames = lists[kind].filter((item) => item.owned)
   const selectedId = picked[kind] ?? worn[kind] ?? frames[0]?.id ?? null
   const selected = frames.find((item) => item.id === selectedId) ?? null
-  const shown = frames.filter((item) => filter === "all" || (filter === "mine" ? item.owned : item.unlock === "achievement"))
-  const balance = wallet?.balance ?? null
 
   // The preview shows what you would look like: the item you are looking at, plus whatever you already wear of the other kinds.
   const previewOf = (of: CosmeticKind) => (of === kind ? selected : lists[of].find((item) => item.id === worn[of])) ?? null
@@ -218,7 +210,7 @@ function Appearance() {
     try {
       await work()
       saved.flash()
-      await Promise.all([refetch(), refetchWallet()])
+      await refetch()
     } catch (caught) {
       toast.error(failure, { description: caught instanceof Error ? caught.message : "Try again in a moment." })
     } finally {
@@ -233,23 +225,15 @@ function Appearance() {
   const primary = cn(button, "lx-primary-button border-transparent")
   const action = (item: FrameItem) => {
     if (worn[kind] === item.id) return <button type="button" disabled={busy} onClick={() => void wear(null)} className={secondary}>Take off</button>
-    if (item.owned) return <button type="button" disabled={busy} onClick={() => void wear(item.id)} className={primary}>Wear</button>
-    if (item.unlock === "coin") return <button type="button" onClick={() => navigate(`/shop?item=${encodeURIComponent(item.id)}`)} className={primary}>Get it in the Shop</button>
-    return <button type="button" disabled className={secondary}>Locked</button>
+    return <button type="button" disabled={busy} onClick={() => void wear(item.id)} className={primary}>Wear</button>
   }
   const note = (item: FrameItem) => {
     if (worn[kind] === item.id) return `You are wearing this ${noun}.`
-    if (item.owned) return item.unlock === "free" ? "Free for everyone." : item.expiresAt ? `You have this ${noun}: ${timeLeft(item.expiresAt)}.` : `You own this ${noun}.`
-    if (item.unlock === "coin") {
-      return `${item.price.toLocaleString()} LX in the Shop.`
-    }
-    return item.requirement || "Earned in game, not for sale."
+    return item.unlock === "free" ? "Free for everyone." : item.expiresAt ? `You have this ${noun}: ${timeLeft(item.expiresAt)}.` : `You own this ${noun}.`
   }
   const badge = (item: FrameItem) => {
     if (worn[kind] === item.id) return <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[var(--status-green)]"><Check className="size-3" />Worn</span>
-    if (item.owned) return <span className="text-[10px] text-[var(--text-dim)]">{item.unlock === "free" ? "Free" : item.expiresAt ? timeLeft(item.expiresAt) : "Owned"}</span>
-    if (item.unlock === "coin") return <span className="text-[10px] font-medium text-[var(--text-2)]">from {(item.prices?.["1d"] ?? item.price).toLocaleString()} LX</span>
-    return <span className="inline-flex items-center gap-1 text-[10px] text-[var(--text-dim)]"><Lock className="size-3" />Earned</span>
+    return <span className="text-[10px] text-[var(--text-dim)]">{item.unlock === "free" ? "Free" : item.expiresAt ? timeLeft(item.expiresAt) : "Owned"}</span>
   }
   const sampleName = user?.username ?? "Player"
 
@@ -274,7 +258,6 @@ function Appearance() {
               {selected && <span className="text-xs text-[var(--text-dim)]">{note(selected)}</span>}
             </div>
             {selected && <div className="w-full">{action(selected)}</div>}
-            {balance !== null && <span className="text-[11px] text-[var(--text-dim)]">Your LX: <span className="font-semibold text-[var(--text-2)]">{balance.toLocaleString()}</span></span>}
           </div>
           <div className="flex min-w-0 flex-col gap-3">
             <div role="radiogroup" aria-label="What to change" className="flex flex-col gap-2 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] p-2.5">
@@ -287,7 +270,7 @@ function Appearance() {
                       type="button"
                       role="radio"
                       aria-checked={kind === entry.value}
-                      onClick={() => { setKind(entry.value); setFilter("all") }}
+                      onClick={() => setKind(entry.value)}
                       className={cn("inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors", kind === entry.value ? "border-[var(--text-2)] bg-[var(--raised)] text-[var(--text)]" : "border-[var(--line)] text-[var(--text-dim)] hover:border-[var(--line-strong)] hover:text-[var(--text)]")}
                     >
                       {entry.label}
@@ -298,22 +281,12 @@ function Appearance() {
                 </div>
               ))}
             </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <Segmented<FrameFilter>
-                ariaLabel="Filter"
-                size="sm"
-                value={filter}
-                onChange={setFilter}
-                options={[{ value: "mine", label: "Mine" }, { value: "all", label: "All" }, { value: "earned", label: "Earned" }]}
-              />
-            </div>
-            <p className="text-xs text-[var(--text-dim)]">You can wear what you own here. <button type="button" onClick={() => navigate("/shop")} className="font-medium text-[var(--text-2)] underline-offset-2 hover:text-[var(--text)] hover:underline">Browse the Shop</button> for more.</p>
             {(kind === "grenade_trail" || kind === "grenade_light") && <NadeSlots kind={kind} items={frames} defaultId={worn[kind]} slots={data.nadeSlots} busy={busy} onChange={(nade, value) => void wearOn(nade, value)} />}
-            {shown.length === 0 ? (
-              <p className="py-6 text-[13px] text-[var(--text-dim)]">{filter === "mine" ? `You do not own a ${noun} yet.` : "Nothing here."}</p>
+            {frames.length === 0 ? (
+              <p className="py-6 text-[13px] text-[var(--text-dim)]">You do not own a {noun} yet.</p>
             ) : (
               <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-                {shown.map((item) => (
+                {frames.map((item) => (
                   <li key={item.id}>
                     <button
                       type="button"
