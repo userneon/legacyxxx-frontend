@@ -8,7 +8,9 @@ import { Bomb, Clock3, Flag, Scissors, Skull, Circle, Zap, Target, Medal, Award 
 
 import { matchesService } from "@/api"
 import type { MatchDetail, MatchDetailPlayer, MatchDetailRound, MatchDetailTeam, MatchRoundOutcome } from "@/api/types"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Sheet } from "@/components/ui/sheet"
+import { DetailSheetContent } from "@/components/detail-sheet"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { nameProps } from "@/lib/cosmetics"
@@ -283,9 +285,9 @@ export function MatchDetailsDialog({ matchId, mapNumber, highlightSteamId, onOpe
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-5xl gap-0 overflow-hidden p-0 sm:max-w-5xl">
-        <div className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <DetailSheetContent width="max-w-5xl">
+        <div>
           {/* Header: map art, team names and the final score */}
           <div className="relative isolate overflow-hidden px-5 pb-5 pt-6">
             {art && <img src={art} alt="" aria-hidden="true" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-40" />}
@@ -341,8 +343,8 @@ export function MatchDetailsDialog({ matchId, mapNumber, highlightSteamId, onOpe
             )}
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </DetailSheetContent>
+    </Sheet>
   )
 }
 

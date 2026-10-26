@@ -1,6 +1,7 @@
+import { DetailSheetContent } from "@/components/detail-sheet"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
-import { ChevronDown, Clock, Copy, Gamepad2, LoaderCircle, Lock, Play, Map as MapIcon, RotateCcw, SlidersHorizontal, Star, X } from "lucide-react"
+import { ChevronDown, Clock, Copy, Gamepad2, LoaderCircle, Lock, Play, Map as MapIcon, RotateCcw, SlidersHorizontal, Star } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -18,7 +19,7 @@ import { PlayerAvatar } from "@/components/player-avatar"
 import { TeamIcon, type TeamSide } from "@/components/team-icon"
 import { SteamLoginGate } from "@/components/steam-login-gate"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
+import { Sheet, SheetDescription, SheetTitle } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
@@ -294,20 +295,12 @@ function ServerSheet({ server, onClose, gate }: { server: PlayServer | null; onC
   const connectable = Boolean(server?.joinable && validAddress(address))
   return (
     <Sheet open={server !== null} onOpenChange={(open) => { if (!open) onClose() }}>
-      <SheetContent
-        side="right"
-        showCloseButton={false}
-        overlayClassName="lx-sheet-overlay bg-[rgba(10,10,10,0.55)] data-[state=open]:duration-300 data-[state=closed]:duration-200"
-        className="lx-sheet inset-y-2 right-2 h-auto w-[460px] max-w-[calc(100%-16px)] gap-0 overflow-hidden rounded-2xl border border-[var(--line)] p-0 data-[state=open]:duration-[450ms] data-[state=open]:ease-[cubic-bezier(0.22,1,0.36,1)] data-[state=closed]:duration-[250ms] data-[state=closed]:ease-[cubic-bezier(0.4,0,1,1)] sm:max-w-[460px]"
-      >
+      <DetailSheetContent width="max-w-4xl">
         {server && (
           <>
-            <MapArt map={live?.map ?? server.map} className="h-[180px] shrink-0">
+            <MapArt map={live?.map ?? server.map} className="mx-3 h-[220px] shrink-0 overflow-hidden rounded-xl sm:mx-[18px]">
               <span aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,10,10,0.1),rgba(10,10,10,0.35)_45%,var(--panel))]" />
               <span aria-hidden="true" className="lx-hero-glow absolute -inset-10 opacity-60" />
-              <button type="button" onClick={onClose} aria-label="Close" className="absolute right-3 top-3 z-10 flex size-8 items-center justify-center rounded-lg border border-[var(--line)] bg-[rgba(15,15,15,0.7)] text-[var(--text-muted)] backdrop-blur transition-[color,border-color,rotate] duration-300 hover:rotate-90 hover:border-[var(--line-strong)] hover:text-[var(--text)]">
-                <X className="size-4" />
-              </button>
               <span className="absolute left-[18px] top-3.5 z-10">
                 {server.status === "live" ? (
                   <span className="inline-flex h-6 items-center gap-1.5 rounded-full border border-[var(--status-green)]/35 bg-[rgba(10,10,10,0.7)] px-2.5 text-xs font-semibold text-[var(--status-green)] backdrop-blur-sm">
@@ -323,7 +316,7 @@ function ServerSheet({ server, onClose, gate }: { server: PlayServer | null; onC
                 </div>
               </div>
             </MapArt>
-            <div className="scrollbar-hidden lx-sheet-rise flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-[18px] py-4">
+            <div className="lx-sheet-rise flex flex-col gap-3.5 px-[18px] py-4">
               <Scoreboard {...liveMatch} />
             </div>
             <div className="flex shrink-0 gap-2 border-t border-[var(--line-soft)] bg-[var(--panel)]/60 px-[18px] py-3.5">
@@ -339,7 +332,7 @@ function ServerSheet({ server, onClose, gate }: { server: PlayServer | null; onC
             {gate.reason !== null && <GateNote gate={gate} className="border-t border-[var(--line-soft)] px-[18px] py-2.5" />}
           </>
         )}
-      </SheetContent>
+      </DetailSheetContent>
     </Sheet>
   )
 }

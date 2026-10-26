@@ -20,7 +20,8 @@ import { ColorRow, PICK_COLORS, PICK_DEFAULT, demoColour } from "@/components/co
 import { FramedAvatar } from "@/components/framed-avatar"
 import { LxMark } from "@/components/lx-mark"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
+import { Sheet, SheetDescription, SheetTitle } from "@/components/ui/sheet"
+import { DetailSheetContent } from "@/components/detail-sheet"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -398,11 +399,11 @@ export function ShopPage() {
         )}
       </div>
       <Sheet open={sheetOpen && Boolean(selected)} onOpenChange={setSheetOpen}>
-        <SheetContent side="bottom" className="max-h-[88dvh] gap-0 overflow-y-auto rounded-t-2xl border-[var(--line)] bg-[var(--panel)] p-0 lg:hidden">
+        <DetailSheetContent width="max-w-xl">
           <SheetTitle className="sr-only">{selected?.name}</SheetTitle>
           <SheetDescription className="sr-only">Preview and buy this item</SheetDescription>
-          <div className="p-3 pt-11">{railBody}</div>
-        </SheetContent>
+          <div className="p-3 pt-9">{railBody}</div>
+        </DetailSheetContent>
       </Sheet>
     </div>
   )

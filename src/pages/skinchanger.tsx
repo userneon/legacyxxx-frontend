@@ -32,7 +32,9 @@ import {
 import { QueryState } from "@/components/query-state"
 import { CardGridSkeleton } from "@/components/skeletons"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
+import { DialogDescription, DialogTitle } from "@/components/ui/dialog"
+import { Sheet } from "@/components/ui/sheet"
+import { DetailSheetContent } from "@/components/detail-sheet"
 import { Checkbox } from "@/components/ui/checkbox"
 import { OptimizedImage } from "@/components/optimized-image"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -1263,10 +1265,10 @@ export function SkinchangerPage() {
         )}
       </div>
 
-      <Dialog open={pickerOpen} onOpenChange={(open) => { if (!open) closePicker() }}>
-        <DialogContent
-          overlayClassName="lx-blur-overlay bg-black/55 backdrop-blur-[10px]"
-          className="flex max-h-[92dvh] w-[calc(100%-1.5rem)] max-w-5xl flex-col gap-0 overflow-hidden rounded-[14px] border-[var(--line)] bg-[var(--panel)] p-0 lx-blur-panel sm:max-w-5xl"
+      <Sheet open={pickerOpen} onOpenChange={(open) => { if (!open) closePicker() }}>
+        <DetailSheetContent
+          fill
+          width="max-w-6xl"
           onOpenAutoFocus={(event) => { if (searchInputRef.current && searchInputRef.current.offsetParent !== null) { event.preventDefault(); searchInputRef.current.focus() } }}
           onCloseAutoFocus={() => resetPicker()}
         >
@@ -1524,8 +1526,8 @@ export function SkinchangerPage() {
               </div>
             </aside>
           </div>
-        </DialogContent>
-      </Dialog>
+        </DetailSheetContent>
+      </Sheet>
 
       <AlertDialog open={removeTarget !== null} onOpenChange={(open) => { if (!open && !saving) setRemoveTarget(null) }}>
         <AlertDialogContent size="sm" className="gap-0 rounded-2xl border-[var(--line)] bg-[var(--panel)] p-0 sm:max-w-[380px]">

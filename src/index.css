@@ -2084,3 +2084,7 @@ section[data-tone="red"] { --tone: var(--tone-red); } section[data-tone="sky"] {
 
 /* Creators page (owner request 2026-10-26, "like the other pages"): the Content Creators fill the width like the Staff page's team. */
 .lx-creator-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+
+/* Detail sheets (owner request 2026-10-26): every detail view rises from the bottom and covers the screen (`components/detail-sheet.tsx`). */
+.lx-detail-sheet .lx-sheet { box-shadow: 0 -24px 60px rgba(0, 0, 0, 0.55), 0 0 0 1px color-mix(in oklab, var(--brand) 18%, transparent); }
+@media (prefers-reduced-motion: reduce) { .lx-detail-sheet { animation-duration: 1ms !important; } }

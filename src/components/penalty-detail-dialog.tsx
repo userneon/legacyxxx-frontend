@@ -2,13 +2,14 @@
  * The penalty details drawer and the type/status vocabulary it shares with the Penalties page and
  * the profile's penalty history — one detail UI, not two.
  */
-import { Ban, MessageSquareOff, MicOff, X } from "lucide-react"
+import { DetailSheetContent } from "@/components/detail-sheet"
+import { Ban, MessageSquareOff, MicOff } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import type { PenaltyEntry, PenaltyType } from "@/api/types"
 import { LINKS } from "@/lib/links"
 import { PenaltyLiftButton, PenaltyStaffControls, useModerationAccess } from "@/components/penalty-staff"
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
+import { Sheet, SheetDescription, SheetTitle } from "@/components/ui/sheet"
 import { PlayerModerationAvatar } from "@/components/player-moderation-avatar"
 
 export type PenaltyStatus = "active" | "expired" | "unbanned"
@@ -158,12 +159,7 @@ export function PenaltyDetailSheet({
   const access = useModerationAccess()
   return (
     <Sheet open={penalty !== null} onOpenChange={(open) => { if (!open) onClose() }}>
-      <SheetContent
-        side="right"
-        showCloseButton={false}
-        overlayClassName="lx-sheet-overlay bg-[rgba(10,10,10,0.55)] data-[state=open]:duration-300 data-[state=closed]:duration-200"
-        className="lx-sheet inset-y-2 right-2 h-auto w-[420px] max-w-[calc(100%-16px)] gap-0 overflow-hidden rounded-2xl border border-[var(--line)] p-0 data-[state=open]:duration-[450ms] data-[state=open]:ease-[cubic-bezier(0.22,1,0.36,1)] data-[state=closed]:duration-[250ms] data-[state=closed]:ease-[cubic-bezier(0.4,0,1,1)] sm:max-w-[420px]"
-      >
+      <DetailSheetContent width="max-w-3xl">
         {penalty && (() => {
           const color = penaltyStatusColor(penalty)
           const meta = TYPE_META[penalty.type] ?? TYPE_META.ban
@@ -175,7 +171,7 @@ export function PenaltyDetailSheet({
           return (
           <>
             {/* Header tinted in the penalty's state colour (active red, permanent rose, lifted green). */}
-            <div className="relative shrink-0 overflow-hidden border-b border-[var(--line-soft)] px-[18px] pb-[18px] pt-5">
+            <div className="relative shrink-0 overflow-hidden border-b border-[var(--line-soft)] px-[18px] pb-[18px] pr-14 pt-3">
               <div aria-hidden="true" className="pointer-events-none absolute -inset-10" style={{ background: `radial-gradient(60% 90% at 85% 0%, color-mix(in oklab, ${color} 30%, transparent), transparent 70%)` }} />
               <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
               <meta.icon aria-hidden="true" strokeWidth={1.25} className="pointer-events-none absolute -right-4 -top-4 size-32 opacity-[0.08]" style={{ color }} />
@@ -186,12 +182,9 @@ export function PenaltyDetailSheet({
                   <SheetDescription className="truncate text-xs text-[var(--text-dim)]">{penalty.playerSteamId ?? "Steam ID unavailable"}</SheetDescription>
                   <span className="flex flex-wrap items-center gap-1.5"><TypePill type={penalty.type} /><StatusPill penalty={penalty} /></span>
                 </div>
-                <button type="button" onClick={onClose} aria-label="Close" className="flex size-8 shrink-0 items-center justify-center self-start rounded-lg border border-[var(--line)] bg-[var(--panel)]/70 text-[var(--text-muted)] backdrop-blur transition-[color,border-color,rotate] duration-300 hover:rotate-90 hover:border-[var(--line-strong)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
-                  <X className="size-4" />
-                </button>
               </div>
             </div>
-            <div className="lx-sheet-rise flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-[18px] py-4">
+            <div className="lx-sheet-rise flex flex-col gap-3 px-[18px] py-4">
               <div className="grid grid-cols-2 gap-2">
                 <Tile label="Term"><TermLabel penalty={penalty} /></Tile>
                 <Tile label="Issued by">{penalty.admin || "System"}</Tile>
@@ -250,7 +243,7 @@ export function PenaltyDetailSheet({
           </>
           )
         })()}
-      </SheetContent>
+      </DetailSheetContent>
     </Sheet>
   )
 }
