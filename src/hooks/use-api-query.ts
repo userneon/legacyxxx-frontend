@@ -86,7 +86,9 @@ export function useApiQuery<T>(
 
     const didQueryChange = previousQueryKeyRef.current !== queryKey
     previousQueryKeyRef.current = queryKey
-    setState((prev) => ({ data: didQueryChange && !keepPreviousData ? null : prev.data, loading: true, error: null }))
+    // Asking again for what is already on the screen (after a buy, a wear or an accept) keeps showing it: only a first load or another query is "loading",
+    // so the page does not drop to its skeleton and come back.
+    setState((prev) => ({ data: didQueryChange && !keepPreviousData ? null : prev.data, loading: didQueryChange || prev.data === null, error: null }))
 
     const run = async () => {
       for (let attempt = 0; ; attempt++) {
