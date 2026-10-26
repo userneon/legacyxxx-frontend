@@ -4,7 +4,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { ArrowLeftRight, Check, Download, HelpCircle, Link2, LoaderCircle, RotateCcw, Search, Server, Trophy, X } from "lucide-react"
+import { ArrowLeftRight, Download, Link2, LoaderCircle, RotateCcw, Search, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { clansService, competitiveService, searchService } from "@/api"
@@ -421,8 +421,8 @@ function SharedMaps({ a, b }: { a: ProfileOverview; b: ProfileOverview }) {
   )
 }
 
-type CompareTab = "players" | "clans" | "servers"
-const COMPARE_TABS: Array<{ value: CompareTab; label: string }> = [{ value: "players", label: "Players" }, { value: "clans", label: "Clans" }, { value: "servers", label: "Servers" }]
+type CompareTab = "players" | "clans"
+const COMPARE_TABS: Array<{ value: CompareTab; label: string }> = [{ value: "players", label: "Players" }, { value: "clans", label: "Clans" }]
 
 /** One side of the clan compare: a clan search (name), or the picked clan with its level. */
 function ClanSide({ side, clan, loading, onPick, onClear }: { side: Side; clan: ClanDetail | null; loading: boolean; onPick: (id: string) => void; onClear: () => void }) {
@@ -509,87 +509,6 @@ function ClanCompare({ params, setParams }: { params: URLSearchParams; setParams
             <div className="stagger-in">{rows.map((row, index) => <StatRow key={row.key} row={row} index={index} names={{ a: a.clan.name, b: b.clan.name }} />)}</div>
           </section>
         ) : null}
-    </>
-  )
-}
-
-/** What LEGACY-X has, for the joke compare. Only true things about us; the other side is never given a number. */
-const OUR_THINGS = [
-  "Ranked EXP with daily and weekly limits",
-  "Clan Wars with a war rating",
-  "Kill, flash and explosion effects",
-  "Grenade trails that drop flares",
-  "Live CS2 scoreboard on the website",
-  "Premium animated frames",
-  "Head to head on this very page",
-  "Being LEGACY-X",
-]
-const SCAN_LINES = ["Pinging servers…", "Counting original ideas…", "Checking who came first…", "Asking the judges…"]
-
-/**
- * Servers (owner request 2026-10-26, "a troll section"): type any server and LEGACY-X wins. It never shows a number or a claim about
- * the other server, only what LEGACY-X has and a "?" on their side, and it says plainly that it is a joke.
- */
-function ServerCompare() {
-  const [name, setName] = useState("")
-  const [phase, setPhase] = useState<"idle" | "scan" | "done">("idle")
-  const [line, setLine] = useState(0)
-  const [rival, setRival] = useState("")
-  useEffect(() => {
-    if (phase !== "scan") return
-    const timer = window.setInterval(() => setLine((current) => {
-      if (current >= SCAN_LINES.length - 1) { window.clearInterval(timer); window.setTimeout(() => setPhase("done"), 350); return current }
-      return current + 1
-    }), 450)
-    return () => window.clearInterval(timer)
-  }, [phase])
-  const start = (event: React.FormEvent) => {
-    event.preventDefault()
-    const clean = name.trim().slice(0, 40)
-    if (!clean) return
-    setRival(clean)
-    setLine(0)
-    setPhase("scan")
-  }
-  const itsUs = /legacy/i.test(rival)
-  return (
-    <>
-      <form onSubmit={start} className="lx-add-box flex flex-col gap-3 rounded-xl border p-4">
-        <h2 className="flex items-center gap-2 text-[15px] font-semibold"><span className="lx-add-icon"><Server className="size-4" aria-hidden="true" /></span>Server vs LEGACY-X</h2>
-        <div className="flex flex-wrap gap-2">
-          <input value={name} onChange={(event) => setName(event.target.value)} maxLength={40} placeholder="Any community server: name or address" aria-label="Server to compare" className="h-10 min-w-0 flex-1 rounded-lg border border-[var(--line)] bg-transparent px-3 text-[13px] outline-none placeholder:text-[var(--text-dim)] focus:border-[var(--brand)]" />
-          <button type="submit" disabled={!name.trim() || phase === "scan"} className="lx-primary-button inline-flex h-10 items-center gap-2 rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50"><Trophy className="size-4" aria-hidden="true" />Compare</button>
-        </div>
-        <p className="text-[11px] text-[var(--text-dim)]">Just for fun. We do not keep other servers' numbers, so they get a question mark, and LEGACY-X wins whatever you type.</p>
-      </form>
-      {phase === "scan" && (
-        <section aria-live="polite" className="flex flex-col gap-2 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4 font-mono text-[13px]">
-          {SCAN_LINES.slice(0, line + 1).map((text, index) => <span key={text} className={index === line ? "text-[var(--text)]" : "text-[var(--text-dim)]"}>{index === line ? <LoaderCircle className="mr-2 inline size-3.5 animate-spin" aria-hidden="true" /> : <Check className="mr-2 inline size-3.5 text-[var(--result-win)]" aria-hidden="true" />}{text}</span>)}
-        </section>
-      )}
-      {phase === "done" && (
-        itsUs ? (
-          <p className="lx-swap-in rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-6 text-center text-[15px] font-semibold">That is us. Pick a braver challenger.</p>
-        ) : (
-          <section aria-label="Result" className="lx-swap-in overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 border-b border-[var(--line-soft)] px-4 py-5">
-              <span className="text-right text-[17px] font-bold">LEGACY-<span className="text-[var(--brand-bright)]">X</span></span>
-              <span className="flex items-baseline gap-2 text-[30px] font-black leading-none"><span className="text-[var(--result-win)]">{OUR_THINGS.length}</span><span className="text-lg text-[var(--text-faint)]">:</span><span className="text-[var(--result-draw)]">?</span></span>
-              <span className="truncate text-[17px] font-bold text-[var(--text-2)]">{rival}</span>
-            </div>
-            <ul className="stagger-in">
-              {OUR_THINGS.map((thing) => (
-                <li key={thing} className="grid grid-cols-[1fr_minmax(0,220px)_1fr] items-center gap-3 border-b border-[var(--line-soft)] px-4 py-2.5 text-[13px] last:border-b-0">
-                  <span className="flex justify-end"><Check className="size-4 text-[var(--result-win)]" aria-label="Yes" /></span>
-                  <span className="text-center text-[var(--text-2)]">{thing}</span>
-                  <span title="No idea. Ask them." className="flex"><HelpCircle className="size-4 text-[var(--result-draw)]" aria-label="Unknown" /></span>
-                </li>
-              ))}
-            </ul>
-            <p className="border-t border-[var(--line-soft)] px-4 py-4 text-center text-[15px] font-semibold">Verdict: LEGACY-X wins. As always.</p>
-          </section>
-        )
-      )}
     </>
   )
 }
@@ -693,18 +612,18 @@ export function ComparePage() {
     }
   }
 
-  const tab = (["clans", "servers"].includes(params.get("tab") ?? "") ? params.get("tab") : "players") as CompareTab
+  const tab = (params.get("tab") === "clans" ? "clans" : "players") as CompareTab
   const setTab = (next: CompareTab) => setParams(() => { const fresh = new URLSearchParams(); if (next !== "players") fresh.set("tab", next); return fresh })
   if (tab !== "players") {
     return (
       <div className="flex min-h-0 flex-1 flex-col">
         <PageBar>
           <PageTabs<CompareTab> ariaLabel="Compare" value={tab} onChange={setTab} options={COMPARE_TABS} />
-          <PageBarEnd><span className="text-[13px] text-[var(--text-dim)] max-lg:hidden">{tab === "clans" ? "Put two clans side by side" : "Just for fun"}</span></PageBarEnd>
+          <PageBarEnd><span className="text-[13px] text-[var(--text-dim)] max-lg:hidden">Put two clans side by side</span></PageBarEnd>
         </PageBar>
         <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
           <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-6 pb-8 pt-4">
-            {tab === "clans" ? <ClanCompare params={params} setParams={setParams} /> : <ServerCompare />}
+            <ClanCompare params={params} setParams={setParams} />
           </div>
         </div>
       </div>

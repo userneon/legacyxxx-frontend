@@ -88,7 +88,7 @@ Home's Top players (owner request 2026-10-11): a player's EXP figure and bar are
 (within two days) added EXP, red (`--status-red`) with "−N" when it took some away, and neutral otherwise. The number is the real `exp_change` from the API,
 never made up. Status colours only, not a general accent.
 
-Compare tabs (owner request 2026-10-26): **Players** adds Head to head (`GET /compare/head-to-head`: against each other and together, hidden when either hides matches), Recent form, Ladder place (lower wins), EXP this week and Last 10 wins. **Clans** puts two clans side by side from `/clans/:id` and `/clans/:id/stats`. **Servers** is a labelled joke ("Just for fun"): any server typed loses to LEGACY-X, but the other side only ever gets a "?", never a number or a claim, since the site keeps no data about other servers.
+Compare tabs (owner request 2026-10-26): **Players** adds Head to head (`GET /compare/head-to-head`: against each other and together, hidden when either hides matches), Recent form, Ladder place (lower wins), EXP this week and Last 10 wins. **Clans** puts two clans side by side from `/clans/:id` and `/clans/:id/stats`. (A joke "Servers" tab was tried and removed the same day, owner request.)
 
 ### Checks page (owner request 2026-10-09)
 
