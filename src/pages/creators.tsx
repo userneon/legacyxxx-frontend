@@ -1,4 +1,5 @@
 /** LEGACY-X Creators: the community's content creators, Main Content Creators first, each with their channels. */
+import { BrandIcon } from "@/components/brand-icons"
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { Clapperboard, ExternalLink, RotateCcw, Search, Star, X } from "lucide-react"
@@ -68,6 +69,7 @@ export function CreatorLinks({ links, className }: { links: Creator["links"]; cl
     <div className={cn("flex flex-wrap gap-1.5", className)}>
       {present.map((platform) => platform.id === "tiktok" ? <TikTokButton key="tiktok" url={links.tiktok!} /> : (
         <a key={platform.id} href={links[platform.id]} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[var(--line)] px-2.5 text-xs font-medium text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)] hover:text-[var(--text)]">
+          <BrandIcon platform={platform.id} className="size-3.5 shrink-0" />
           {platform.label}
           <ExternalLink className="size-3" />
         </a>
@@ -144,7 +146,7 @@ export function CreatorsPage() {
             <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Find a creator" aria-label="Find a creator" className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] focus:outline-none" />
             {search && <button type="button" aria-label="Clear search" onClick={() => setSearch("")} className="text-[var(--text-dim)] hover:text-[var(--text)]"><X className="size-3.5" /></button>}
           </label>
-          <CreatorApply />
+          <CreatorApply onAboutSaved={refetch} />
         </PageBarEnd>
       </PageBar>
       <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 py-6 max-md:px-4">

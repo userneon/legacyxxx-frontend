@@ -651,6 +651,8 @@ const mockChat: Array<{ id: string; body: string; createdAt: string; author: { s
 ]
 let notificationPrefs = { tournaments: true, rankChanges: false, penalties: true }
 
+let mockCreatorAbout = "CS2 streams every evening, Mongolian commentary"
+
 /** Design preview only: the links a clan leader saved on the mock clan page. */
 let mockClanLinks: Record<string, string> = { discord: "https://discord.gg/legacyx", youtube: "https://www.youtube.com/@legacyx" }
 
@@ -661,7 +663,12 @@ export async function mockResponse(method: string, path: string, query: Query, b
     try { window.localStorage.removeItem("legacyx_access_token") } catch { /* storage blocked */ }
     return undefined
   }
-  if (path === "/api/v1/creators/applications/me") return { isCreator: false, application: mockCreatorApplication, canApplyAgainAt: null }
+  if (path === "/api/v1/creators/me/about" && method === "PUT") { mockCreatorAbout = String((body as { bio: string }).bio); return { about: mockCreatorAbout } }
+  if (path === "/api/v1/creators/applications/me") {
+    // Design preview only: set localStorage legacyx_mock_creator=1 to see a creator's "Edit my about".
+    const creator = (() => { try { return typeof localStorage !== "undefined" && localStorage.getItem("legacyx_mock_creator") === "1" } catch { return false } })()
+    return { isCreator: creator, about: creator ? mockCreatorAbout : null, application: mockCreatorApplication, canApplyAgainAt: null }
+  }
   if (path === "/api/v1/creators/applications" && method === "POST") { mockCreatorApplication = { status: "pending", note: "", createdAt: new Date().toISOString(), decidedAt: null }; return { id: "ca1", status: "pending" } }
   if (path === "/api/v1/staff/creators/applications" && method === "GET") return { applications: mockCreatorApplication ? [] : [{ id: "ca2", bio: "Mirage and Dust II clips with Mongolian commentary.", links: { youtube: "https://youtube.com/@clips", tiktok: "https://tiktok.com/@clips" }, createdAt: new Date(Date.now() - 3 * HOUR).toISOString(), player: { steamId: "76561198000000009", username: "ClipMaker", avatar: null } }] }
   if (path.startsWith("/api/v1/staff/creators/applications/") && method === "PUT") return { id: path.split("/").pop(), status: (body as { decision: string }).decision === "approve" ? "approved" : "declined" }

@@ -76,6 +76,8 @@ export interface CreatorApplicationInput {
 /** Where the signed-in player stands: already a creator, waiting, or turned down (and when they may ask again). */
 export interface MyCreatorApplication {
   isCreator: boolean
+  /** A creator's own line about themselves, to edit; null for everyone else. */
+  about?: string | null
   application: { status: "pending" | "approved" | "declined"; note: string; createdAt: string; decidedAt: string | null } | null
   canApplyAgainAt: string | null
 }
@@ -93,6 +95,8 @@ export const creatorsService = {
   /** Owners and Managers only (the API checks). */
   save: (steamId: string, input: CreatorInput, options?: CallOptions) => put<{ ok: true; label: string }>(`/api/v1/staffpanel/creators/${encodeURIComponent(steamId)}`, input, options),
   apply: (input: CreatorApplicationInput, options?: CallOptions) => post<{ id: string; status: "pending" }>("/api/v1/creators/applications", input, options),
+  /** A creator changes their own About line. */
+  saveAbout: (bio: string, options?: CallOptions) => put<{ about: string }>("/api/v1/creators/me/about", { bio }, options),
   myApplication: (options?: CallOptions) => get<MyCreatorApplication>("/api/v1/creators/applications/me", undefined, options),
   /** Owners and Managers only (the API checks). */
   applications: (options?: CallOptions) => get<{ applications: StaffCreatorApplication[] }>("/api/v1/staff/creators/applications", undefined, options),

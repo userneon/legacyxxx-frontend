@@ -5,6 +5,7 @@
 import { ExternalLink } from "lucide-react"
 
 import type { ClanLinkPlatform, ClanLinks } from "@/api/types"
+import { BrandIcon } from "@/components/brand-icons"
 import { Label } from "@/components/ui/label"
 
 export const CLAN_LINK_PLATFORMS: Array<{ id: ClanLinkPlatform; label: string; placeholder: string }> = [
@@ -32,6 +33,7 @@ export function ClanLinksRow({ links }: { links?: ClanLinks }) {
             rel="noopener noreferrer nofollow"
             className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] font-medium text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)] hover:text-[var(--text)]"
           >
+            <BrandIcon platform={platform.id} className="size-4 shrink-0" />
             {platform.label}
             <ExternalLink className="size-3.5 text-[var(--text-dim)]" aria-hidden="true" />
           </a>
