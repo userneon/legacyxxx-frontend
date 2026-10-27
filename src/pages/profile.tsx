@@ -815,7 +815,6 @@ export function ProfilePage({ userId }: { userId?: string }) {
             {hidden.has("matches") ? <HiddenCard section="matches" /> : (
               <>
                 <RecentMatches matches={data.recentMatches ?? []} kdAverage={data.stats?.find((tile) => tile.key === "kd")?.average ?? null} onOpen={setOpenMatch} />
-                {data.maps && <MapsCard maps={data.maps} />}
               </>
             )}
           </div>
@@ -823,6 +822,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
             {hidden.has("faceit") ? <HiddenCard section="faceit" /> : showFaceit && faceit && <FaceitCard faceit={faceit} />}
             <PenaltyHistory penalties={data.penalties} total={data.penaltyCount} steamId={data.user.steamId} onOpen={setOpenPenalty} />
             {hidden.has("loadout") ? <HiddenCard section="loadout" /> : data.loadout && <LoadoutCard loadout={data.loadout} />}
+            {!hidden.has("matches") && data.maps && <MapsCard maps={data.maps} />}
           </div>
         </div>
       </div>
