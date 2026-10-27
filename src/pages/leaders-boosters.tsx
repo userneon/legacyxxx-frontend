@@ -7,6 +7,7 @@ import { PlayerAvatar } from "@/components/player-avatar"
 import { SteamIcon } from "@/components/steam-login-gate"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
+import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
 import boostGem from "@/assets/boosters/boost-gem.webp"
 import boostSquare from "@/assets/boosters/boost-square.webp"
@@ -88,12 +89,12 @@ function TopCard({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen:
   )
 }
 
-function Row({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen: () => void }) {
+function Row({ entry, by, onOpen, you }: { entry: CommunityEntry; by: By; onOpen: () => void; you?: boolean }) {
   return (
-    <div className={cn(GRID, "lx-boost-row lx-layer group relative h-14 w-full overflow-hidden border-b border-[var(--raised)] text-left transition-colors", entry.boosting && "lx-boost-row-on")}>
+    <div className={cn(GRID, "lx-boost-row lx-layer group relative w-full overflow-hidden text-left transition-colors", you ? "h-[60px] shrink-0 border-t border-[var(--brand)]/40 bg-[linear-gradient(90deg,color-mix(in_oklab,var(--brand)_16%,var(--card-surface)),var(--card-surface)_45%)]" : "h-14 border-b border-[var(--raised)]", entry.boosting && "lx-boost-row-on")} aria-label={you ? "Your position" : undefined}>
       {entry.boosting && <span aria-hidden="true" className="lx-boost-star left-[78px] top-[10px]" style={{ animationDelay: "0.4s", width: 8, height: 8 }} />}
       {entry.boosting && <span aria-hidden="true" className="lx-boost-star left-[228px] top-[38px]" style={{ animationDelay: "1.6s", width: 7, height: 7 }} />}
-      <span className="text-sm font-semibold text-[var(--text-muted)] group-hover:text-[var(--text)]">{entry.position}</span>
+      <span className={cn("text-sm font-semibold", you ? "text-[var(--brand-bright)]" : "text-[var(--text-muted)] group-hover:text-[var(--text)]")}>{entry.position}</span>
       <span className="flex min-w-0 items-center gap-3">
         {entry.boosts > 0 && entry.boosting ? (
           <FramedAvatar avatar={entry.avatar || undefined} name={entry.name} frame="server-booster" size={42} />
@@ -101,7 +102,7 @@ function Row({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen: () 
           <PlayerAvatar avatar={entry.avatar || undefined} name={entry.name} className="size-8 shrink-0 rounded-[9px] text-[10px]" />
         )}
         <span className="flex min-w-0 items-baseline gap-2">
-          <span className={cn("min-w-0 truncate text-[13px] font-medium text-[var(--text)]", entry.boosting && "lx-boost-name")} title={entry.name}>{entry.name}</span>
+          <span className={cn("min-w-0 truncate text-[13px] font-medium text-[var(--text)]", entry.boosting && "lx-boost-name")} title={entry.name}>{you ? "You" : entry.name}</span>
           {entry.username && <span className="shrink-0 text-xs text-[var(--text-dim)] max-sm:hidden">@{entry.username}</span>}
         </span>
       </span>
@@ -119,6 +120,7 @@ function Row({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen: () 
 
 /** Leaders → Boosters: Discord members ranked by boosts of the Discord server or by the people they invited. */
 export function BoosterLadder({ search, onProfileNavigate }: { search: string; onProfileNavigate: (userId: string) => void }) {
+  const { user } = useAuth()
   const [by, setBy] = useState<By>("boosts")
   const { data, loading, error, refetch } = useApiQuery<CommunityEntry[]>((signal) => discordService.getCommunity(by, { signal }), { queryKey: `community:${by}`, keepPreviousData: true })
   const all = data ?? []
@@ -128,8 +130,11 @@ export function BoosterLadder({ search, onProfileNavigate }: { search: string; o
   const rows = search ? all.filter((entry) => entry.name.toLowerCase().includes(search) || entry.username.toLowerCase().includes(search)) : all.slice(topThree.length)
   const firstLoad = loading && !data
   const open = (entry: CommunityEntry) => () => onProfileNavigate(entry.steamId)
+  // Your own place on this ladder, pinned under the list like the player and clan ladders (only when you linked Discord and are on it).
+  const you = user ? all.find((entry) => entry.steamId === user.steamId) : undefined
 
   return (
+    <>
     <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
       <div className="flex flex-wrap items-center gap-3 px-4 pb-1 pt-3 md:px-6">
         <div className="flex items-center gap-1 text-[13px]" role="group" aria-label="Rank by">
@@ -171,5 +176,7 @@ export function BoosterLadder({ search, onProfileNavigate }: { search: string; o
       )}
       <div className="h-4" />
     </div>
+    {you && <Row entry={you} by={by} you onOpen={open(you)} />}
+    </>
   )
 }

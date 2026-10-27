@@ -130,7 +130,8 @@ export function App() {
         </header>
 
         <div ref={panelRef} className="lx-glass-shell scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-clip rounded-[14px]">
-          <div key={shownSection} className={cn("page-enter flex min-h-full flex-col", leaving && "page-leave")}>
+          {/* Leaders scrolls its table inside the panel (sticky header, your row pinned under it), so it gets the panel's height instead of growing past it. */}
+          <div key={shownSection} className={cn("page-enter flex flex-col", shownSection === "/leaders" ? "h-full" : "min-h-full", leaving && "page-leave")}>
             <RouteErrorBoundary resetKey={shownLocation.pathname}>
             <Suspense fallback={<div className="min-h-[40vh]" aria-hidden="true" />}>
             <Routes location={shownLocation}>

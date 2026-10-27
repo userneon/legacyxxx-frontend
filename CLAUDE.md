@@ -162,6 +162,8 @@ the sheet. Pro League needs a sign-in; a player below the rank sees the rank loc
 Connect and Quick play are inactive (with the reason in a tooltip and as a line of text) for a visitor who is not signed in and for a player blocked for leaving ranked matches too often (owner request 2026-10-18: within 24 hours the 1st and 2nd leave cost EXP, the 3rd blocks 30 minutes and each later one 30 more; `usePlayGate`, `GET /play/status`). The game servers enforce the same rules, so typing the address does not get a player in.
 Notifications in the bell have an icon each: by kind (penalty, match, clan, system) and, for system ones, by `metadata.kind`.
 
+Leaders keeps your own place pinned (owner request 2026-10-27): the Leaders page takes the panel's height (`h-full` in `App.tsx`) so the table scrolls inside it, under a sticky header, and your row ("You", with your real position; players, clans and Boosters ladders) stays at the bottom of the panel whatever the scroll. It shows only when you are on that ladder.
+
 ### Leaders → Boosters (owner request 2026-10-16)
 
 A fifth Leaders tab, `Boosters` (`src/pages/leaders-boosters.tsx`): Members who linked Discord, ranked by server boosts or by the people they invited (a switch inside the tab),
