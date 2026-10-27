@@ -1,13 +1,18 @@
-/** LEGACY-X Home: the hero slider with the live stats, the play modes and the top of the ladder. Reviews and Discord have their own pages. */
+/** LEGACY-X Home: hero, live stats, play modes, the top of the ladder, reviews and Discord. */
 import { useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { serversService } from "@/api"
 import { tournamentsService } from "@/api/tournaments"
 import type { HomeStats, PageId } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
-import { HomeHeroSlider } from "@/components/home-hero-slider"
+import { OptimizedImage } from "@/components/optimized-image"
+import homeHeroGif from "@/assets/skinchanger/hero.webp"
+import { HomeReviews } from "@/components/home-reviews"
+import { DiscordStrip } from "@/components/discord-strip"
 import { TopPlayers } from "@/components/home-top-players"
 import { useNavigate } from "react-router-dom"
+import { AnimatedNumber } from "@/components/animated-number"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Play } from "lucide-react"
 import { formatDate } from "@/lib/preferences"
 import rankedArt from "@/assets/home/mode-ranked.webp"
@@ -65,13 +70,48 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
   return (
     <div className="lx-glass-page @container flex flex-col gap-5 p-4 @2xl:p-6">
-      <HomeHeroSlider
-        onNavigate={onNavigate}
-        stats={heroStats}
-        statsLoading={statsLoading}
-        rankedText={modeStatus("5x5")?.live ? modeStatus("5x5")!.text : null}
-        tournamentText={modeStatus("tournaments")?.text ?? null}
-      />
+      {/* Hero */}
+      <div className="lx-glass relative flex flex-col gap-4 overflow-hidden rounded-xl p-8 @2xl:p-10">
+        <picture className="pointer-events-none absolute inset-0">
+          <OptimizedImage src={homeHeroGif} width={480} height={268} priority alt="" aria-hidden="true" className="h-full w-full object-cover opacity-35" />
+        </picture>
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--card-surface)]/85 via-[var(--card-surface)]/60 to-transparent" />
+        <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
+        <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
+
+        <div className="relative z-10 flex w-fit items-center gap-2">
+          <span className="size-1.5 rounded-full bg-[var(--brand-bright)]" />
+          <span className="text-xs font-medium text-[var(--text-muted)]">Mongolian CS2 community</span>
+        </div>
+        <div className="relative z-10 flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between @3xl:gap-10">
+        <div className="flex shrink-0 flex-col gap-4">
+        <h1 className="whitespace-nowrap text-[30px] font-bold leading-[1.05] tracking-normal text-[var(--text)] min-[420px]:text-4xl md:text-5xl min-[1440px]:text-6xl">
+          Play ranked.<br />
+          Climb to <span className="lx-brand-text">Legacy.</span>
+        </h1>
+        <p className="max-w-md text-[15px] leading-relaxed text-[var(--text-2)]">
+          Every match on our servers counts toward your rank.
+        </p>
+        </div>
+        <dl className="mt-3 grid grid-cols-3 @3xl:mt-0 @3xl:flex">
+          {heroStats.map((stat, index) => (
+            <div
+              key={stat.label}
+              className={cn("flex min-w-0 flex-col-reverse justify-end gap-1.5 pr-2 @sm:pr-5 @3xl:pr-8", index > 0 && "border-l border-[var(--line)] pl-3 @sm:pl-5 @3xl:pl-8")}
+            >
+              <dt className="flex items-center gap-1.5 text-[10px] @sm:whitespace-nowrap @sm:text-[11px] font-medium uppercase leading-tight tracking-wide text-[var(--text-muted)] @2xl:text-xs">
+                {stat.flagship && Boolean(stat.value) && <span className="lx-live-dot size-1.5 shrink-0 rounded-full bg-[var(--status-green)]" />}
+                {stat.label}
+              </dt>
+              <dd className={cn("text-xl font-semibold leading-none @2xl:text-[28px]", stat.flagship ? "text-[var(--brand-bright)]" : "text-[var(--text)]")}>
+                {statsLoading && stat.value === undefined ? <Skeleton className="h-5 w-10 @2xl:h-7 @2xl:w-12" /> : <AnimatedNumber value={stat.value} />}
+              </dd>
+            </div>
+          ))}
+        </dl>
+        </div>
+      </div>
 
       {/* Mode cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:flex" onMouseLeave={() => { window.clearTimeout(hoverTimer.current); setActiveMode(null) }}>
@@ -134,6 +174,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
       <TopPlayers onOpenProfile={(steamId) => navigate(`/profile/${encodeURIComponent(steamId)}`)} onViewAll={() => onNavigate("leaders")} />
 
+      <HomeReviews onWriteReview={() => onNavigate("feedback")} />
+      <DiscordStrip />
     </div>
   )
 }

@@ -66,12 +66,12 @@ function Position({ position }: { position: number }) {
 /** Top five of the competitive ladder. */
 export function TopPlayers({ onOpenProfile, onViewAll }: { onOpenProfile: (steamId: string) => void; onViewAll: () => void }) {
   const { data, loading } = useApiQuery<CompetitiveLeaderboardEntry[]>((signal) => competitiveService.getLeaderboard({ signal }), { queryKey: "home-top-players" })
-  const top = [...(data ?? [])].sort((a, b) => a.position - b.position).slice(0, 3)
+  const top = [...(data ?? [])].sort((a, b) => a.position - b.position).slice(0, 5)
   const topExp = Math.max(1, ...top.map((player) => player.current_exp))
   return (
     <section className="glass @container rounded-2xl p-4">
       <SectionHeader title="Top players" subtitle="by EXP" action="Leaders" onAction={onViewAll} />
-      {loading && !data ? <RowsPlaceholder rows={3} /> : top.length === 0 ? <EmptyLine>No ranked players yet.</EmptyLine> : (
+      {loading && !data ? <RowsPlaceholder rows={5} /> : top.length === 0 ? <EmptyLine>No ranked players yet.</EmptyLine> : (
         <>
           <div className={cn(ROW, "mb-1 hidden px-2 text-[11px] font-medium text-[var(--text-dim)] @xl:grid")} aria-hidden="true">
             <span className="text-center">#</span>
