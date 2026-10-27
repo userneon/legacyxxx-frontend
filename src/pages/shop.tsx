@@ -19,6 +19,7 @@ import { ShopGoods } from "@/components/shop-goods"
 import { ColorRow, PICK_COLORS, PICK_DEFAULT, demoColour } from "@/components/color-row"
 import { FramedAvatar } from "@/components/framed-avatar"
 import { LxMark } from "@/components/lx-mark"
+import { ShopCards } from "@/components/shop-cards"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
 import { Sheet, SheetDescription, SheetTitle } from "@/components/ui/sheet"
 import { DetailSheetContent } from "@/components/detail-sheet"
@@ -33,13 +34,14 @@ const SORTS = [
 
 /** The kinds the Shop sells (banners and titles are earned: they live in Profile → Appearance). */
 type ShopKind = Exclude<CosmeticKind, "banner" | "title">
-type ShopTab = "featured" | "frame" | "name" | "smoke_color" | "clan" | "goods"
+type ShopTab = "featured" | "frame" | "name" | "smoke_color" | "clan" | "cards" | "goods"
 const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "featured", label: "Featured" },
   { value: "frame", label: "Frames" },
   { value: "name", label: "Name" },
   { value: "smoke_color", label: "Grenades" },
   { value: "clan", label: "Clan" },
+  { value: "cards", label: "Cards" },
   { value: "goods", label: "Goods" },
 ]
 
@@ -81,7 +83,7 @@ export function ShopPage() {
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
-  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name: "name", smoke_color: "smoke", clan: "clan", goods: "goods" }, "featured")
+  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name: "name", smoke_color: "smoke", clan: "clan", cards: "cards", goods: "goods" }, "featured")
   const [sort, setSort] = useState<"price-up" | "price-down" | "rarity">("price-up")
   const [busy, setBusy] = useState(false)
   const [picked, setPicked] = useState<string | null>(params.get("item"))
@@ -357,6 +359,8 @@ export function ShopPage() {
       <div className="lx-glass-page min-h-0 flex-1 px-6 py-5 max-md:px-4">
         {tab === "goods" ? (
           <ShopGoods />
+        ) : tab === "cards" ? (
+          <ShopCards balance={balance} onChanged={() => void refetchWallet()} />
         ) : loading && !data ? (
           <div className="flex flex-col gap-5"><Skeleton className="h-[170px] rounded-[14px] max-lg:hidden" /><Skeleton className="h-[480px] rounded-xl" /></div>
         ) : error || !data ? (

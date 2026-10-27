@@ -1,6 +1,7 @@
 import { DiscordIcon } from "@/components/discord-strip"
 import { BoosterBadge } from "@/components/booster-badge"
 import { FounderBadge } from "@/components/founder-badge"
+import { ProfileCards } from "@/components/profile-cards"
 import { ProfileConfigs } from "@/components/profile-config"
 import { ProfileBanner } from "@/components/profile-banner"
 import { PlayerNameText } from "@/components/player-name-text"
@@ -736,7 +737,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
     return () => setProfileScene(null)
   }, [sceneStill, sceneWebm, sceneMp4])
   const [openMatch, setOpenMatch] = useState<ProfileMatchRow | null>(null)
-  const [view, setView] = useState<"stats" | "configs">("stats")
+  const [view, setView] = useState<"stats" | "cards" | "configs">("stats")
   const [openPenalty, setOpenPenalty] = useState<PenaltyEntry | null>(null)
   const topRef = useRef<HTMLDivElement>(null)
 
@@ -788,10 +789,12 @@ export function ProfilePage({ userId }: { userId?: string }) {
       {/* The Owner's Respect and links come first; the rank, stats, matches and FACEIT below are the same as everyone's. */}
       {tab === "profile" && (
         <PageBar className="mt-4 max-md:px-4">
-          <PageTabs<"stats" | "configs"> ariaLabel="Profile views" value={view} onChange={setView} options={[{ value: "stats", label: "Stats" }, { value: "configs", label: "Configs" }]} />
+          <PageTabs<"stats" | "cards" | "configs"> ariaLabel="Profile views" value={view} onChange={setView} options={[{ value: "stats", label: "Stats" }, { value: "cards", label: "Cards" }, { value: "configs", label: "Configs" }]} />
         </PageBar>
       )}
-      {tab === "profile" && view === "configs" ? (
+      {tab === "profile" && view === "cards" ? (
+        <div className="px-6 pb-8 pt-5 max-md:px-4"><ProfileCards userId={data.user.steamId || data.user.id} isOwner={data.viewer.isOwner} /></div>
+      ) : tab === "profile" && view === "configs" ? (
         <div className="px-6 pb-8 pt-5 max-md:px-4"><ProfileConfigs userId={data.user.steamId || data.user.id} isOwner={data.viewer.isOwner} /></div>
       ) : tab !== "profile" ? (
         <div className="px-6 pb-8 pt-6 max-md:px-4 max-md:pt-4"><div className="mx-auto w-full max-w-4xl">{tab === "appearance" ? <AppearanceSettings /> : <AccountSettings />}</div></div>

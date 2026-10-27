@@ -676,6 +676,21 @@ let mockCreatorAbout = "CS2 streams every evening, Mongolian commentary"
 /** Design preview only: the links a clan leader saved on the mock clan page. */
 let mockClanLinks: Record<string, string> = { discord: "https://discord.gg/legacyx", youtube: "https://www.youtube.com/@legacyx" }
 
+const mockCards = [
+  { id: "dust2", name: "Dust II", mapKey: "de_dust2", rarity: "standard", base: 60, held: 31, qty: 0 },
+  { id: "mirage", name: "Mirage", mapKey: "de_mirage", rarity: "standard", base: 60, held: 24, qty: 2 },
+  { id: "inferno", name: "Inferno", mapKey: "de_inferno", rarity: "select", base: 120, held: 12, qty: 1 },
+  { id: "cache", name: "Cache", mapKey: "de_cache", rarity: "select", base: 120, held: 9, qty: 0 },
+  { id: "train", name: "Train", mapKey: "de_train", rarity: "select", base: 120, held: 7, qty: 0 },
+  { id: "overpass", name: "Overpass", mapKey: "de_overpass", rarity: "elite", base: 250, held: 5, qty: 1 },
+  { id: "nuke", name: "Nuke", mapKey: "de_nuke", rarity: "elite", base: 250, held: 4, qty: 0 },
+  { id: "vertigo", name: "Vertigo", mapKey: "de_vertigo", rarity: "prime", base: 500, held: 3, qty: 0 },
+  { id: "ancient", name: "Ancient", mapKey: "de_ancient", rarity: "prime", base: 500, held: 2, qty: 1 },
+  { id: "anubis", name: "Anubis", mapKey: "de_anubis", rarity: "apex", base: 1000, held: 1, qty: 0 },
+]
+const mockCardPrice = (base: number, held: number) => Math.ceil(base * (1 + held / 25) ** 2 - 1e-9)
+const mockCardView = (card: (typeof mockCards)[number]) => ({ id: card.id, name: card.name, mapKey: card.mapKey, rarity: card.rarity, enabled: true, held: card.held, price: mockCardPrice(card.base, card.held), sellPrice: card.held > 0 ? Math.max(1, Math.floor(0.9 * mockCardPrice(card.base, card.held - 1))) : 0, qty: card.qty })
+
 let mockPlayerConfig: Record<string, unknown> | null = { crosshair: "CSGO-aB3dE-fG4hI-jK5lM-nO6pQ-rS7tU", mouse: { model: "Logitech G Pro X Superlight", dpi: 800, sensitivity: 1.2, zoomSensitivity: 1, pollingRate: 1000 }, keyboard: { model: "Wooting 60HE" }, monitor: { resolution: "1920x1080", refreshRate: 240, aspect: "16:9" }, viewmodel: { fov: 68, offsetX: 2.5, offsetY: 0, offsetZ: -1.5 }, other: [{ label: "Launch options", value: "-novid -high" }] }
 
 export async function mockResponse(method: string, path: string, query: Query, body?: unknown): Promise<unknown> {
@@ -932,6 +947,16 @@ export async function mockResponse(method: string, path: string, query: Query, b
     if (!signedIn()) throw unauthorized()
     ownerRespect = { given: method === "POST", count: OWNER_RESPECT_BASE + (method === "POST" ? 1 : 0) }
     return ownerRespect
+  }
+  if (path === "/api/v1/cards" && method === "GET") return { cards: mockCards.map(mockCardView), sellShare: 0.9 }
+  if (/^\/api\/v1\/profile\/[^/]+\/cards$/.test(path) && method === "GET") return { cards: mockCards.filter((card) => card.qty > 0).map(mockCardView) }
+  const cardTrade = /^\/api\/v1\/cards\/([^/]+)\/(buy|sell)$/.exec(path)
+  if (cardTrade && method === "POST") {
+    const card = mockCards.find((entry) => entry.id === cardTrade[1])
+    if (!card) throw notFound()
+    const price = cardTrade[2] === "buy" ? mockCardPrice(card.base, card.held) : Math.max(1, Math.floor(0.9 * mockCardPrice(card.base, card.held - 1)))
+    if (cardTrade[2] === "buy") { card.held += 1; card.qty += 1 } else if (card.qty > 0) { card.held -= 1; card.qty -= 1 }
+    return { price, held: card.held, qty: card.qty, balance: 600 }
   }
   if (path === "/api/v1/profile/me/config" && method === "PUT") { const cleaned = JSON.parse(JSON.stringify(body ?? {}), (_key, value) => (value === "" ? undefined : value)); mockPlayerConfig = Object.keys(cleaned).length ? cleaned : null; return { config: mockPlayerConfig } }
   if (method !== "GET") throw notFound()
