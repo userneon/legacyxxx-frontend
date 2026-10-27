@@ -68,8 +68,8 @@ function ItemCard({ item, index }: { item: SkinCollectionDetailItem; index: numb
       {/* Hover the weapon and its details open: what it is, how it is set up and what is on it. */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <div tabIndex={0} className="relative flex h-[88px] items-center justify-center bg-[radial-gradient(ellipse_at_50%_90%,var(--raised),var(--card-surface)_72%)] px-3 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)] sm:h-[100px]">
-            <OptimizedImage src={item.imageUrl ?? ""} width={320} height={200} alt="" className="max-h-[68px] w-full object-contain transition-[rotate,translate] duration-300 ease-out group-hover:-translate-y-1 group-hover:-rotate-[5deg] sm:max-h-[78px] motion-reduce:transition-none motion-reduce:group-hover:rotate-0 motion-reduce:group-hover:translate-y-0" />
+          <div tabIndex={0} className="relative flex h-[64px] items-center justify-center bg-[radial-gradient(ellipse_at_50%_90%,var(--raised),var(--card-surface)_72%)] px-3 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)] sm:h-[72px]">
+            <OptimizedImage src={item.imageUrl ?? ""} width={320} height={200} alt="" className="max-h-[46px] w-full object-contain transition-[rotate,translate] duration-300 ease-out group-hover:-translate-y-1 group-hover:-rotate-[5deg] sm:max-h-[54px] motion-reduce:transition-none motion-reduce:group-hover:rotate-0 motion-reduce:group-hover:translate-y-0" />
             {accent && <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: accent }} />}
             {(item.teamScope === "t" || item.teamScope === "ct") && <TeamIcon side={item.teamScope} className="absolute right-2.5 top-2.5 size-4" />}
           </div>
@@ -303,8 +303,8 @@ export function SkinCollectionPage() {
               {showcase.length > 0 && (
                 <div aria-hidden="true" className="flex shrink-0 items-end gap-3 max-xl:hidden">
                   {[showcase[1], showcase[0], showcase[2]].map((item, index) => item ? (
-                    <div key={`${item.name}:${index}`} className={cn("relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border border-[var(--line-soft)] bg-[radial-gradient(ellipse_at_50%_90%,var(--raised),var(--card-surface)_72%)] p-4", index === 1 ? "h-[190px] w-[200px]" : "h-[136px] w-[136px]")}>
-                      <OptimizedImage src={item.imageUrl ?? ""} width={320} height={200} alt="" className={cn("w-full object-contain", index === 1 ? "max-h-[118px]" : "max-h-[78px]")} />
+                    <div key={`${item.name}:${index}`} className={cn("relative flex flex-col items-center justify-center overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[radial-gradient(ellipse_at_50%_90%,var(--raised),var(--card-surface)_72%)] p-3", index === 1 ? "h-[150px] w-[160px]" : "h-[104px] w-[104px]")}>
+                      <OptimizedImage src={item.imageUrl ?? ""} width={320} height={200} alt="" className={cn("w-full object-contain", index === 1 ? "max-h-[88px]" : "max-h-[56px]")} />
                       <span className="mt-2 max-w-full truncate text-[11px] font-medium text-[var(--text-dim)]">{splitName(item.name).finish}</span>
                       {item.rarity && rarityStyles[item.rarity] && <span className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: rarityStyles[item.rarity].accent }} />}
                     </div>
@@ -314,7 +314,7 @@ export function SkinCollectionPage() {
             </header>
 
             <TooltipProvider delayDuration={120}>
-            <ul key={shownSide} className={cn("grid grid-cols-2 gap-3 transition-[opacity,scale] duration-[180ms] ease-out sm:grid-cols-[repeat(auto-fill,minmax(152px,1fr))] motion-reduce:transition-none", leaving && "scale-[0.97] opacity-0")}>
+            <ul key={shownSide} className={cn("grid grid-cols-2 gap-3 transition-[opacity,scale] duration-[180ms] ease-out sm:grid-cols-[repeat(auto-fill,minmax(140px,1fr))] motion-reduce:transition-none", leaving && "scale-[0.97] opacity-0")}>
               {shown.map((item, index) => <ItemCard key={`${item.name}:${item.teamScope}:${index}`} item={item} index={index} />)}
             </ul>
             </TooltipProvider>
