@@ -187,6 +187,8 @@ clan tag and staff start date); a card opens the profile.
 
 Notifications in the bell open the page they are about when clicked (`notificationTarget` in `notifications-menu.tsx`; a staff message has none). `useApiQuery` keeps what is on screen while it asks again, so a page does not drop to its skeleton after a buy, wear or accept.
 
+The **Tutorial** button in the top bar (owner request 2026-10-26, `components/site-tour.tsx`) starts a walk through the site: one step per sidebar entry and top-bar control, lit by its aria-label, with Back / Next, arrow keys and Esc. A control that is not on screen (signed out, a hidden feature) is skipped; on a phone the sidebar steps are told in the middle. Plain text, no numbers from the API.
+
 ### Public chat (owner request 2026-10-23)
 
 A round button bottom right on every page of the website (`components/public-chat.tsx`) opens the community chat in a solid `--panel` panel (it floats over content). Everyone reads; a signed-in player writes

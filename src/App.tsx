@@ -9,6 +9,7 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/s
 import { AppSidebar } from "@/components/app-sidebar"
 import { ProfileBlock } from "@/components/profile-block"
 import { DiscordTopLink } from "@/components/discord-strip"
+import { SiteTourButton } from "@/components/site-tour"
 import { PublicChat } from "@/components/public-chat"
 import { HomePage } from "@/pages/home"
 import { PlayPage } from "@/pages/play"
@@ -122,6 +123,7 @@ export function App() {
             <span aria-hidden="true" className="text-[var(--text-faint)] max-sm:hidden">/</span>
             <span className="truncate font-semibold text-[var(--text)]">{PAGE_TITLES[currentPage]}</span>
           </div>
+          <SiteTourButton />
           <DiscordTopLink />
           <span aria-hidden="true" className="h-6 w-px shrink-0 bg-[var(--line)]" />
           <ProfileBlock onNavigate={handleNavigate} />
