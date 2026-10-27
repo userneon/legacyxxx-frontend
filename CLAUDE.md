@@ -234,7 +234,7 @@ its opening), the **Gold Foil banner** (profile banner, effect key `goldfoil`, `
 (`components/founder-pack.tsx`). The card shows the API's real numbers (remaining of limit, deadline); nothing is invented. The code keeps the word "founder" (ids, `FounderPack`, `--founder-*`) because "Founder" is also a staff role and only the displayed name changed. Banners and titles are earned cosmetics: they
 are worn in Profile → Appearance, not sold in the Shop tabs. Frames can have a `mask` entry in `lib/cosmetics.ts`; `FramedAvatar` then fills the opening exactly.
 
-Profile header (owner request 2026-10-27, "layout is bad, title"): on desktop the avatar sits at the left and the identity at its right: name (with the Discord mark), the earned title directly under it, then one row of badges (role, creator, Genesis, Booster, clan, rank), the meta line and the buttons, all left-aligned; on a phone it stays centred and stacked.
+Profile header (owner request 2026-10-27, "layout is bad, title"; the avatar stays centred): avatar centred, then the name with the Discord mark, the earned title directly under it, one row of badges (role, creator, Genesis, Booster, clan, rank), the meta line and the buttons, all centred.
 
 Profile stats (owner request 2026-10-23): under each number a thin bar shows how many ranked players the player beats, with "Avg …" (the community average) and "Top N%" / "Beats N%". Above the
 community average is green (`--result-win`), below is red (`--result-loss`), equal is grey, the same outcome colours as the Compare page (owner request 2026-10-23); still not a general accent. Both come from the API (players with 5+ ranked matches; nothing is shown while fewer than 10 players qualify) and are never computed or guessed on the site.
