@@ -49,6 +49,27 @@ const FRAMES: Record<string, FrameArt> = {
   "frost-royale": { opening: 0.78, dx: 0.000, dy: 0.000 },
   "hologram": { opening: 0.76, dx: 0.000, dy: 0.000 },
   "diamond-prestige": { opening: 0.77, dx: 0.000, dy: 0.000 },
+  // Painted frames from the owner's sheet (2026-10-27); `python3 scripts/measure-frame-openings.py` measures these.
+  "royal-drape": { opening: 0.63, dx: 0.016, dy: 0.027 },
+  "sapphire-shards": { opening: 0.72, dx: 0.004, dy: 0.010 },
+  "obsidian-dragon": { opening: 0.74, dx: 0.010, dy: 0.004 },
+  "gold-circuit": { opening: 0.74, dx: -0.008, dy: 0.012 },
+  "blossom-branch": { opening: 0.72, dx: -0.006, dy: 0.000 },
+  "hellfire-thorns": { opening: 0.66, dx: 0.006, dy: 0.004 },
+  "marble-angel": { opening: 0.61, dx: -0.012, dy: 0.012 },
+  "amethyst-spire": { opening: 0.70, dx: -0.008, dy: 0.014 },
+  "jasmine-vine": { opening: 0.71, dx: 0.004, dy: 0.008 },
+  "black-regalia": { opening: 0.64, dx: 0.006, dy: 0.006 },
+  "water-surge": { opening: 0.69, dx: 0.016, dy: 0.006 },
+  "gilded-thorns": { opening: 0.73, dx: 0.000, dy: 0.002 },
+  "opal-prism": { opening: 0.69, dx: 0.004, dy: -0.008 },
+  "iron-chains": { opening: 0.66, dx: 0.014, dy: 0.006 },
+  "blood-talons": { opening: 0.68, dx: -0.010, dy: 0.010 },
+  "golden-blossom": { opening: 0.70, dx: 0.008, dy: 0.000 },
+  "void-orb": { opening: 0.71, dx: 0.000, dy: 0.033 },
+  "seraph-wings": { opening: 0.70, dx: -0.002, dy: 0.004 },
+  "cyber-cyan": { opening: 0.69, dx: 0.006, dy: 0.006 },
+  "rose-thorn": { opening: 0.70, dx: 0.018, dy: 0.002 },
 }
 
 export function frameArt(id: string | null | undefined): ({ src: string; maskSrc?: string } & FrameArt) | null {
@@ -124,6 +145,26 @@ const ACCENTS: Record<string, string> = {
   "frost-royale": "#7dd3fc", // palette-exempt: the frame's own light
   "hologram": "#00d4ff", // palette-exempt: the frame's own light
   "diamond-prestige": "#e5e7eb", // palette-exempt: the frame's own light
+  "royal-drape": "#e8c766", // palette-exempt: the frame's own light
+  "sapphire-shards": "#60a5fa", // palette-exempt: the frame's own light
+  "obsidian-dragon": "#d4a017", // palette-exempt: the frame's own light
+  "gold-circuit": "#e8b84a", // palette-exempt: the frame's own light
+  "blossom-branch": "#f9a8d4", // palette-exempt: the frame's own light
+  "hellfire-thorns": "#ef4444", // palette-exempt: the frame's own light
+  "marble-angel": "#f5f0e6", // palette-exempt: the frame's own light
+  "amethyst-spire": "#a78bfa", // palette-exempt: the frame's own light
+  "jasmine-vine": "#86efac", // palette-exempt: the frame's own light
+  "black-regalia": "#d4a017", // palette-exempt: the frame's own light
+  "water-surge": "#38bdf8", // palette-exempt: the frame's own light
+  "gilded-thorns": "#d4a017", // palette-exempt: the frame's own light
+  "opal-prism": "#c4b5fd", // palette-exempt: the frame's own light
+  "iron-chains": "#a3a3a3", // palette-exempt: the frame's own light
+  "blood-talons": "#dc2626", // palette-exempt: the frame's own light
+  "golden-blossom": "#f5d36b", // palette-exempt: the frame's own light
+  "void-orb": "#a855f7", // palette-exempt: the frame's own light
+  "seraph-wings": "#fde68a", // palette-exempt: the frame's own light
+  "cyber-cyan": "#22d3ee", // palette-exempt: the frame's own light
+  "rose-thorn": "#e11d48", // palette-exempt: the frame's own light
   "server-booster": "#ff73fa", // palette-exempt: Discord Boost brand
 }
 
@@ -136,41 +177,61 @@ export function frameAccent(id: string): string {
  * (the two colours of the art where it has two), `r` how far the halo reaches in px. The premium and special frames reach furthest.
  */
 const FRAME_GLOW: Record<string, { a: string; b: string; r: number }> = { // palette-exempt: the frames' own light
-  "angel-wings": { a: "#f5f5f5", b: "#a1a1aa", r: 10 }, // palette-exempt: the frame\'s own light
-  "barbed-wire": { a: "#d4d4d4", b: "#525252", r: 8 }, // palette-exempt: the frame\'s own light
-  "blood-vine": { a: "#f87171", b: "#7f1d1d", r: 10 }, // palette-exempt: the frame\'s own light
-  "blue-lightning": { a: "#60a5fa", b: "#1d4ed8", r: 11 }, // palette-exempt: the frame\'s own light
-  "chain-and-tag": { a: "#d4d4d4", b: "#525252", r: 8 }, // palette-exempt: the frame\'s own light
-  "charcoal-ring": { a: "#e5e5e5", b: "#404040", r: 9 }, // palette-exempt: the frame\'s own light
-  "crimson-lightning": { a: "#f87171", b: "#b91c1c", r: 11 }, // palette-exempt: the frame\'s own light
-  "eclipse-clouds": { a: "#cbd5e1", b: "#475569", r: 10 }, // palette-exempt: the frame\'s own light
-  "film-and-butterflies": { a: "#e5e5e5", b: "#737373", r: 9 }, // palette-exempt: the frame\'s own light
-  "glitch": { a: "#22d3ee", b: "#d946ef", r: 11 }, // palette-exempt: the frame\'s own light
-  "golden-moon": { a: "#fde68a", b: "#d97706", r: 10 }, // palette-exempt: the frame\'s own light
-  "graffiti": { a: "#e5e5e5", b: "#737373", r: 8 }, // palette-exempt: the frame\'s own light
-  "ice-crystals": { a: "#bae6fd", b: "#3b82f6", r: 11 }, // palette-exempt: the frame\'s own light
-  "liquid-metal": { a: "#f1f5f9", b: "#64748b", r: 9 }, // palette-exempt: the frame\'s own light
-  "neon-violet": { a: "#d8b4fe", b: "#7e22ce", r: 12 }, // palette-exempt: the frame\'s own light
-  "planet-orbit": { a: "#c4b5fd", b: "#7c3aed", r: 10 }, // palette-exempt: the frame\'s own light
-  "prism-glass": { a: "#a5f3fc", b: "#c4b5fd", r: 10 }, // palette-exempt: the frame\'s own light
-  "red-circuit": { a: "#fca5a5", b: "#dc2626", r: 11 }, // palette-exempt: the frame\'s own light
-  "sakura-blossom": { a: "#fbcfe8", b: "#f472b6", r: 10 }, // palette-exempt: the frame\'s own light
-  "shattered-crystal": { a: "#f5f5f5", b: "#94a3b8", r: 9 }, // palette-exempt: the frame\'s own light
-  "silent-waves": { a: "#cbd5e1", b: "#334155", r: 10 }, // palette-exempt: the frame\'s own light
-  "starlight-corners": { a: "#ffffff", b: "#a1a1aa", r: 9 }, // palette-exempt: the frame\'s own light
-  "torn-tape": { a: "#e5e5e5", b: "#737373", r: 8 }, // palette-exempt: the frame\'s own light
-  "toxic-lightning": { a: "#d9f99d", b: "#4d7c0f", r: 11 }, // palette-exempt: the frame\'s own light
-  "server-booster": { a: "#ff9cfb", b: "#a21caf", r: 11 }, // palette-exempt: the frame\'s own light
-  "booster-gold": { a: "#fde68a", b: "#a16207", r: 12 }, // palette-exempt: the frame\'s own light
-  "booster-silver": { a: "#f1f5f9", b: "#64748b", r: 12 }, // palette-exempt: the frame\'s own light
-  "booster-bronze": { a: "#fdba74", b: "#9a3412", r: 12 }, // palette-exempt: the frame\'s own light
-  "founder": { a: "#fde68a", b: "#b45309", r: 14 }, // palette-exempt: the frame\'s own light
-  "dragon-ember": { a: "#fdba74", b: "#dc2626", r: 13 }, // palette-exempt: the frame\'s own light
-  "frost-royale": { a: "#e0f2fe", b: "#0ea5e9", r: 13 }, // palette-exempt: the frame\'s own light
-  "void-rift": { a: "#e9d5ff", b: "#6d28d9", r: 13 }, // palette-exempt: the frame\'s own light
-  "hologram": { a: "#a5f3fc", b: "#e879f9", r: 13 }, // palette-exempt: the frame\'s own light
-  "celestial-crown": { a: "#fde68a", b: "#b45309", r: 13 }, // palette-exempt: the frame\'s own light
-  "diamond-prestige": { a: "#ffffff", b: "#94a3b8", r: 13 }, // palette-exempt: the frame\'s own light
+  "angel-wings": { a: "#f5f5f5", b: "#a1a1aa", r: 10 }, // palette-exempt: the frame's own light
+  "barbed-wire": { a: "#d4d4d4", b: "#525252", r: 8 }, // palette-exempt: the frame's own light
+  "blood-vine": { a: "#f87171", b: "#7f1d1d", r: 10 }, // palette-exempt: the frame's own light
+  "blue-lightning": { a: "#60a5fa", b: "#1d4ed8", r: 11 }, // palette-exempt: the frame's own light
+  "chain-and-tag": { a: "#d4d4d4", b: "#525252", r: 8 }, // palette-exempt: the frame's own light
+  "charcoal-ring": { a: "#e5e5e5", b: "#404040", r: 9 }, // palette-exempt: the frame's own light
+  "crimson-lightning": { a: "#f87171", b: "#b91c1c", r: 11 }, // palette-exempt: the frame's own light
+  "eclipse-clouds": { a: "#cbd5e1", b: "#475569", r: 10 }, // palette-exempt: the frame's own light
+  "film-and-butterflies": { a: "#e5e5e5", b: "#737373", r: 9 }, // palette-exempt: the frame's own light
+  "glitch": { a: "#22d3ee", b: "#d946ef", r: 11 }, // palette-exempt: the frame's own light
+  "golden-moon": { a: "#fde68a", b: "#d97706", r: 10 }, // palette-exempt: the frame's own light
+  "graffiti": { a: "#e5e5e5", b: "#737373", r: 8 }, // palette-exempt: the frame's own light
+  "ice-crystals": { a: "#bae6fd", b: "#3b82f6", r: 11 }, // palette-exempt: the frame's own light
+  "liquid-metal": { a: "#f1f5f9", b: "#64748b", r: 9 }, // palette-exempt: the frame's own light
+  "neon-violet": { a: "#d8b4fe", b: "#7e22ce", r: 12 }, // palette-exempt: the frame's own light
+  "planet-orbit": { a: "#c4b5fd", b: "#7c3aed", r: 10 }, // palette-exempt: the frame's own light
+  "prism-glass": { a: "#a5f3fc", b: "#c4b5fd", r: 10 }, // palette-exempt: the frame's own light
+  "red-circuit": { a: "#fca5a5", b: "#dc2626", r: 11 }, // palette-exempt: the frame's own light
+  "sakura-blossom": { a: "#fbcfe8", b: "#f472b6", r: 10 }, // palette-exempt: the frame's own light
+  "shattered-crystal": { a: "#f5f5f5", b: "#94a3b8", r: 9 }, // palette-exempt: the frame's own light
+  "silent-waves": { a: "#cbd5e1", b: "#334155", r: 10 }, // palette-exempt: the frame's own light
+  "starlight-corners": { a: "#ffffff", b: "#a1a1aa", r: 9 }, // palette-exempt: the frame's own light
+  "torn-tape": { a: "#e5e5e5", b: "#737373", r: 8 }, // palette-exempt: the frame's own light
+  "toxic-lightning": { a: "#d9f99d", b: "#4d7c0f", r: 11 }, // palette-exempt: the frame's own light
+  "server-booster": { a: "#ff9cfb", b: "#a21caf", r: 11 }, // palette-exempt: the frame's own light
+  "booster-gold": { a: "#fde68a", b: "#a16207", r: 12 }, // palette-exempt: the frame's own light
+  "booster-silver": { a: "#f1f5f9", b: "#64748b", r: 12 }, // palette-exempt: the frame's own light
+  "booster-bronze": { a: "#fdba74", b: "#9a3412", r: 12 }, // palette-exempt: the frame's own light
+  "founder": { a: "#fde68a", b: "#b45309", r: 14 }, // palette-exempt: the frame's own light
+  "dragon-ember": { a: "#fdba74", b: "#dc2626", r: 13 }, // palette-exempt: the frame's own light
+  "frost-royale": { a: "#e0f2fe", b: "#0ea5e9", r: 13 }, // palette-exempt: the frame's own light
+  "void-rift": { a: "#e9d5ff", b: "#6d28d9", r: 13 }, // palette-exempt: the frame's own light
+  "hologram": { a: "#a5f3fc", b: "#e879f9", r: 13 }, // palette-exempt: the frame's own light
+  "celestial-crown": { a: "#fde68a", b: "#b45309", r: 13 }, // palette-exempt: the frame's own light
+  "diamond-prestige": { a: "#ffffff", b: "#94a3b8", r: 13 }, // palette-exempt: the frame's own light
+  "royal-drape": { a: "#fde68a", b: "#b45309", r: 12 }, // palette-exempt: the frame's own light
+  "sapphire-shards": { a: "#93c5fd", b: "#2563eb", r: 12 }, // palette-exempt: the frame's own light
+  "obsidian-dragon": { a: "#fcd34d", b: "#92400e", r: 12 }, // palette-exempt: the frame's own light
+  "gold-circuit": { a: "#fde68a", b: "#a16207", r: 11 }, // palette-exempt: the frame's own light
+  "blossom-branch": { a: "#fbcfe8", b: "#ec4899", r: 11 }, // palette-exempt: the frame's own light
+  "hellfire-thorns": { a: "#fca5a5", b: "#dc2626", r: 13 }, // palette-exempt: the frame's own light
+  "marble-angel": { a: "#fffbeb", b: "#d6c8a5", r: 12 }, // palette-exempt: the frame's own light
+  "amethyst-spire": { a: "#ddd6fe", b: "#7c3aed", r: 12 }, // palette-exempt: the frame's own light
+  "jasmine-vine": { a: "#bbf7d0", b: "#16a34a", r: 11 }, // palette-exempt: the frame's own light
+  "black-regalia": { a: "#fde68a", b: "#78350f", r: 12 }, // palette-exempt: the frame's own light
+  "water-surge": { a: "#bae6fd", b: "#0284c7", r: 12 }, // palette-exempt: the frame's own light
+  "gilded-thorns": { a: "#fde68a", b: "#92400e", r: 11 }, // palette-exempt: the frame's own light
+  "opal-prism": { a: "#e9d5ff", b: "#38bdf8", r: 12 }, // palette-exempt: the frame's own light
+  "iron-chains": { a: "#d4d4d8", b: "#52525b", r: 10 }, // palette-exempt: the frame's own light
+  "blood-talons": { a: "#fecaca", b: "#b91c1c", r: 12 }, // palette-exempt: the frame's own light
+  "golden-blossom": { a: "#fef3c7", b: "#ca8a04", r: 12 }, // palette-exempt: the frame's own light
+  "void-orb": { a: "#d8b4fe", b: "#581c87", r: 13 }, // palette-exempt: the frame's own light
+  "seraph-wings": { a: "#fffbeb", b: "#f59e0b", r: 13 }, // palette-exempt: the frame's own light
+  "cyber-cyan": { a: "#a5f3fc", b: "#0891b2", r: 12 }, // palette-exempt: the frame's own light
+  "rose-thorn": { a: "#fda4af", b: "#be123c", r: 12 }, // palette-exempt: the frame's own light
 }
 
 /** The soft light round a frame (frames stand still and glow instead of moving): a close rim in one colour and a wide halo in the other. */
