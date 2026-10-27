@@ -232,8 +232,8 @@ export function SkinCollectionPage() {
           </div>
         ) : (
           <>
-            <header className="lx-layer lx-swap-in flex flex-col gap-8 overflow-hidden rounded-2xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-6 sm:p-9">
-              <div className="flex min-w-0 flex-col gap-5">
+            <header className="lx-layer lx-swap-in flex flex-wrap items-center gap-x-12 gap-y-8 overflow-hidden rounded-2xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-6 sm:p-9">
+              <div className="flex min-w-[280px] flex-1 flex-col gap-5">
                 <div className="flex flex-col gap-3">
                   <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-dim)]">Collection</span>
                   <h1 className="font-display text-[34px] font-bold leading-[1.05] tracking-[-0.5px] text-[var(--text)] [overflow-wrap:anywhere] sm:text-[40px]">{collection.name}</h1>
@@ -265,14 +265,14 @@ export function SkinCollectionPage() {
                 </div>
               </div>
               {showcase.length > 0 && (
-                <div aria-hidden="true" className="grid grid-cols-3 items-end gap-3 sm:gap-4">
+                <div aria-hidden="true" className="flex shrink-0 items-end gap-3 max-xl:hidden">
                   {[showcase[1], showcase[0], showcase[2]].map((item, index) => item ? (
-                    <div key={`${item.name}:${index}`} className={cn("relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border border-[var(--line-soft)] bg-[radial-gradient(ellipse_at_50%_90%,var(--raised),var(--card-surface)_72%)] p-3 sm:p-4", index === 1 ? "h-[150px] sm:h-[210px]" : "h-[120px] sm:h-[170px]")}>
-                      <OptimizedImage src={item.imageUrl ?? ""} width={400} height={240} alt="" className={cn("w-full object-contain", index === 1 ? "max-h-[96px] sm:max-h-[140px]" : "max-h-[70px] sm:max-h-[100px]")} />
+                    <div key={`${item.name}:${index}`} className={cn("relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border border-[var(--line-soft)] bg-[radial-gradient(ellipse_at_50%_90%,var(--raised),var(--card-surface)_72%)] p-4", index === 1 ? "h-[190px] w-[200px]" : "h-[136px] w-[136px]")}>
+                      <OptimizedImage src={item.imageUrl ?? ""} width={320} height={200} alt="" className={cn("w-full object-contain", index === 1 ? "max-h-[118px]" : "max-h-[78px]")} />
                       <span className="mt-2 max-w-full truncate text-[11px] font-medium text-[var(--text-dim)]">{splitName(item.name).finish}</span>
                       {item.rarity && rarityStyles[item.rarity] && <span className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: rarityStyles[item.rarity].accent }} />}
                     </div>
-                  ) : <div key={index} />)}
+                  ) : null)}
                 </div>
               )}
             </header>
