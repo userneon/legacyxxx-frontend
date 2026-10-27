@@ -1,6 +1,7 @@
 import { DiscordIcon } from "@/components/discord-strip"
 import { BoosterBadge } from "@/components/booster-badge"
 import { FounderBadge } from "@/components/founder-badge"
+import { ProfileConfigs } from "@/components/profile-config"
 import { ProfileBanner } from "@/components/profile-banner"
 import { PlayerNameText } from "@/components/player-name-text"
 import { DiscordLinkedMark } from "@/components/discord-linked-mark"
@@ -735,6 +736,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
     return () => setProfileScene(null)
   }, [sceneStill, sceneWebm, sceneMp4])
   const [openMatch, setOpenMatch] = useState<ProfileMatchRow | null>(null)
+  const [view, setView] = useState<"stats" | "configs">("stats")
   const [openPenalty, setOpenPenalty] = useState<PenaltyEntry | null>(null)
   const topRef = useRef<HTMLDivElement>(null)
 
@@ -784,7 +786,14 @@ export function ProfilePage({ userId }: { userId?: string }) {
       </div>
       )}
       {/* The Owner's Respect and links come first; the rank, stats, matches and FACEIT below are the same as everyone's. */}
-      {tab !== "profile" ? (
+      {tab === "profile" && (
+        <PageBar className="mt-4 max-md:px-4">
+          <PageTabs<"stats" | "configs"> ariaLabel="Profile views" value={view} onChange={setView} options={[{ value: "stats", label: "Stats" }, { value: "configs", label: "Configs" }]} />
+        </PageBar>
+      )}
+      {tab === "profile" && view === "configs" ? (
+        <div className="px-6 pb-8 pt-5 max-md:px-4"><ProfileConfigs userId={data.user.steamId || data.user.id} isOwner={data.viewer.isOwner} /></div>
+      ) : tab !== "profile" ? (
         <div className="px-6 pb-8 pt-6 max-md:px-4 max-md:pt-4"><div className="mx-auto w-full max-w-4xl">{tab === "appearance" ? <AppearanceSettings /> : <AccountSettings />}</div></div>
       ) : (<>
       {data.user.role === "Owner" && <div className="px-6 pt-4 max-md:px-4"><div className="mx-auto flex w-full max-w-3xl flex-col gap-4"><OwnerPanel overview={data} /><OwnerSections overview={data} /></div></div>}

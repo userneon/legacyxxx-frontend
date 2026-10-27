@@ -236,6 +236,8 @@ are worn in Profile → Appearance, not sold in the Shop tabs. Frames can have a
 
 Profile header (owner request 2026-10-27, "layout is bad, title"; the avatar stays centred): avatar centred, then the name with the Discord mark, the earned title directly under it, one row of badges (role, creator, Genesis, Booster, clan, rank), the meta line and the buttons, all centred.
 
+Profile tabs (owner request 2026-10-27): under the header a row of underlined tabs, **Stats** (rank, trust, stats, matches, maps, FACEIT, loadout) and **Configs** (`components/profile-config.tsx`): crosshair share code, mouse (model, DPI, sensitivity, zoom, polling), keyboard, monitor, viewmodel (with a copy-as-console-commands button) and up to ten free lines, **typed by the player** (`PUT /profile/me/config`, `GET /profile/:id/config`, table `player_configs`, rules in the API's `playerConfig.ts`); nothing is read from the game. An empty tab says so in `--text-dim`. Achievements and Cards tabs are not built until their data exists.
+
 Profile stats (owner request 2026-10-23): under each number a thin bar shows how many ranked players the player beats, with "Avg …" (the community average) and "Top N%" / "Beats N%". Above the
 community average is green (`--result-win`), below is red (`--result-loss`), equal is grey, the same outcome colours as the Compare page (owner request 2026-10-23); still not a general accent. Both come from the API (players with 5+ ranked matches; nothing is shown while fewer than 10 players qualify) and are never computed or guessed on the site.
 

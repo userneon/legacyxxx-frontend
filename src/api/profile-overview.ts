@@ -108,7 +108,25 @@ export const compareService = {
   },
 }
 
+/** What a player typed about their setup (Configs tab). Every part is optional; the API leaves empty ones out. */
+export interface PlayerConfig {
+  crosshair?: string
+  mouse?: { model?: string; dpi?: number; sensitivity?: number; zoomSensitivity?: number; pollingRate?: number }
+  keyboard?: { model?: string }
+  monitor?: { resolution?: string; refreshRate?: number; aspect?: string }
+  viewmodel?: { fov?: number; offsetX?: number; offsetY?: number; offsetZ?: number }
+  other?: Array<{ label: string; value: string }>
+}
+
 export const profileOverviewService = {
+  async getConfig(userId: string, options?: CallOptions): Promise<{ config: PlayerConfig | null; updatedAt: string | null }> {
+    return get(`/api/v1/profile/${encodeURIComponent(userId)}/config`, undefined, options)
+  },
+
+  async saveConfig(config: PlayerConfig, options?: CallOptions): Promise<{ config: PlayerConfig | null }> {
+    return put("/api/v1/profile/me/config", config, options)
+  },
+
   async get(userId: string, options?: CallOptions): Promise<ProfileOverview> {
     return get<ProfileOverview>(`/api/v1/profile/${encodeURIComponent(userId)}/overview`, undefined, options)
   },

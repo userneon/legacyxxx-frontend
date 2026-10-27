@@ -676,6 +676,8 @@ let mockCreatorAbout = "CS2 streams every evening, Mongolian commentary"
 /** Design preview only: the links a clan leader saved on the mock clan page. */
 let mockClanLinks: Record<string, string> = { discord: "https://discord.gg/legacyx", youtube: "https://www.youtube.com/@legacyx" }
 
+let mockPlayerConfig: Record<string, unknown> | null = { crosshair: "CSGO-aB3dE-fG4hI-jK5lM-nO6pQ-rS7tU", mouse: { model: "Logitech G Pro X Superlight", dpi: 800, sensitivity: 1.2, zoomSensitivity: 1, pollingRate: 1000 }, keyboard: { model: "Wooting 60HE" }, monitor: { resolution: "1920x1080", refreshRate: 240, aspect: "16:9" }, viewmodel: { fov: 68, offsetX: 2.5, offsetY: 0, offsetZ: -1.5 }, other: [{ label: "Launch options", value: "-novid -high" }] }
+
 export async function mockResponse(method: string, path: string, query: Query, body?: unknown): Promise<unknown> {
   // A short, realistic delay so loading states and entrance animations show.
   await new Promise((resolve) => window.setTimeout(resolve, 250 + Math.random() * 250))
@@ -955,6 +957,8 @@ export async function mockResponse(method: string, path: string, query: Query, b
     }
   }
 
+  if (/^\/api\/v1\/profile\/[^/]+\/config$/.test(path) && method === "GET") return { config: mockPlayerConfig, updatedAt: mockPlayerConfig ? new Date().toISOString() : null }
+  if (path === "/api/v1/profile/me/config" && method === "PUT") { const cleaned = JSON.parse(JSON.stringify(body ?? {}), (_key, value) => (value === "" ? undefined : value)); mockPlayerConfig = Object.keys(cleaned).length ? cleaned : null; return { config: mockPlayerConfig } }
   const profile = /^\/api\/v1\/profile\/([^/]+)\/(overview|faceit)$/.exec(path)
   if (profile) return profile[2] === "overview" ? profileOverview(decodeURIComponent(profile[1])) : faceit(decodeURIComponent(profile[1]))
 
