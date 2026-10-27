@@ -761,7 +761,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
     const found = skinCollections({ sort: "popular" }).collections.find((entry) => path.endsWith(entry.id))
     if (!found) throw notFound()
     const full = collectionItems(Number(found.id.slice(4)) * 2 - 2, found.itemCount)
-    return { collection: { ...found, items: full.map((entry, index) => ({ ...entry, teamScope: entry.slot === "knife" ? "all" : index % 2 ? "ct" : "t", wear: [0.01, 0.07, 0.18, 0.4][index % 4], statTrak: index === 0, stickers: entry.slot === "weapon" ? index % 3 : 0, hasCharm: index === 1 })) } }
+    return { collection: { ...found, items: full.map((entry, index) => ({ ...entry, teamScope: entry.slot === "knife" ? "all" : index % 2 ? "ct" : "t", wear: [0.01, 0.07, 0.18, 0.4][index % 4], statTrak: index === 0, stickers: entry.slot === "weapon" ? index % 3 : 0, hasCharm: index === 1, stickerItems: entry.slot === "weapon" ? ["Crown (Foil)", "Headshot Guarantee", "Nelu the Bear"].slice(0, index % 3).map((name) => ({ name, imageUrl: null })) : [], charm: index === 1 ? { name: "Lil' Ava", imageUrl: null } : null })) } }
   }
   if (/^\/api\/v1\/skinchanger\/collections\/[^/]+\/apply$/.test(path)) return { version: 2, applied: 6, skipped: 0 }
   if (/^\/api\/v1\/skinchanger\/collections\/[^/]+\/like$/.test(path)) return { likes: 1, liked: true }

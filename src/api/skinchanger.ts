@@ -20,7 +20,9 @@ export interface SkinchangerEntryRemovalInput { expectedVersion: number; slotKey
 /** One skin in a community collection. */
 export interface SkinCollectionItem { slot: SkinchangerSlot; weaponClass: string | null; name: string; imageUrl: string | null; rarity: string | null }
 /** One item of a collection in the detail view. */
-export interface SkinCollectionDetailItem extends SkinCollectionItem { teamScope: TeamScope; wear: number | null; statTrak: boolean; stickers: number; hasCharm: boolean }
+export interface SkinCollectionDetailItem extends SkinCollectionItem { teamScope: TeamScope; wear: number | null; statTrak: boolean; stickers: number; hasCharm: boolean; stickerItems?: SkinAccessory[]; charm?: SkinAccessory | null }
+/** A sticker or charm on a weapon: its name and picture (the picture can be missing). */
+export interface SkinAccessory { name: string; imageUrl: string | null }
 /** A loadout a player shared with the community; anyone can apply it to their own loadout. */
 export interface SkinCollection {
   id: string

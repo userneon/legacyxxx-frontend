@@ -4,6 +4,7 @@ import { ArrowLeft, ThumbsUp, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
 import { skinchangerService, type SkinCollectionDetail, type SkinCollectionDetailItem } from "@/api"
+import type { SkinAccessory } from "@/api/skinchanger"
 import type { ApiError } from "@/api/types"
 import { QueryState } from "@/components/query-state"
 import { OptimizedImage } from "@/components/optimized-image"
@@ -31,27 +32,49 @@ function splitName(name: string) {
 
 const chipClass = "inline-flex h-5 items-center rounded-md border border-[var(--line)] px-1.5 text-[11px] font-medium text-[var(--text-muted)]"
 
-/** One item as a card: a large picture on a lit floor, the finish as the title, then rarity and how it is set up. */
+/** A sticker or charm on a weapon: its picture when there is one, always its name (in the tooltip and, for a charm, beside it). */
+function AccessoryThumb({ accessory, label }: { accessory: SkinAccessory; label: string }) {
+  return (
+    <span title={`${label}: ${accessory.name}`} className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-md border border-[var(--line)] bg-[var(--card-surface)]">
+      {accessory.imageUrl ? <OptimizedImage src={accessory.imageUrl} width={64} height={64} alt={accessory.name} className="size-7 object-contain" /> : <span aria-hidden="true" className="text-[10px] font-semibold text-[var(--text-dim)]">{accessory.name.slice(0, 2).toUpperCase()}</span>}
+    </span>
+  )
+}
+
+/** One item as a compact card: the picture on a lit floor, the finish as the title, its set-up, and exactly which stickers and charm it carries. */
 function ItemCard({ item, index }: { item: SkinCollectionDetailItem; index: number }) {
   const accent = item.rarity ? rarityStyles[item.rarity]?.accent : undefined
   const { weapon, finish } = splitName(item.name)
+  const stickers = item.stickerItems ?? []
   return (
-    <li style={{ animationDelay: `${Math.min(index, 10) * 45}ms` }} className="lx-layer lx-row-in group flex flex-col overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] transition-[translate,border-color,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:border-[var(--line-strong)] hover:shadow-[0_14px_30px_-18px_rgb(0_0_0/0.8)] motion-reduce:transition-none motion-reduce:hover:translate-y-0">
-      <div className="relative flex h-[120px] items-center justify-center bg-[radial-gradient(ellipse_at_50%_90%,var(--raised),var(--card-surface)_72%)] px-4 sm:h-[148px]">
-        <OptimizedImage src={item.imageUrl ?? ""} width={360} height={220} alt="" className="max-h-[92px] w-full object-contain transition-[rotate,translate] duration-300 ease-out group-hover:-translate-y-1 group-hover:-rotate-[5deg] sm:max-h-[116px] motion-reduce:transition-none motion-reduce:group-hover:rotate-0 motion-reduce:group-hover:translate-y-0" />
+    <li style={{ animationDelay: `${Math.min(index, 10) * 40}ms` }} className="lx-layer lx-row-in group flex flex-col overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] transition-[translate,border-color,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:border-[var(--line-strong)] hover:shadow-[0_14px_30px_-18px_rgb(0_0_0/0.8)] motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+      <div className="relative flex h-[88px] items-center justify-center bg-[radial-gradient(ellipse_at_50%_90%,var(--raised),var(--card-surface)_72%)] px-3 sm:h-[100px]">
+        <OptimizedImage src={item.imageUrl ?? ""} width={320} height={200} alt="" className="max-h-[68px] w-full object-contain transition-[rotate,translate] duration-300 ease-out group-hover:-translate-y-1 group-hover:-rotate-[5deg] sm:max-h-[78px] motion-reduce:transition-none motion-reduce:group-hover:rotate-0 motion-reduce:group-hover:translate-y-0" />
         {accent && <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: accent }} />}
-        {(item.teamScope === "t" || item.teamScope === "ct") && <TeamIcon side={item.teamScope} className="absolute right-3 top-3 size-5" />}
+        {(item.teamScope === "t" || item.teamScope === "ct") && <TeamIcon side={item.teamScope} className="absolute right-2.5 top-2.5 size-4" />}
       </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-2.5 p-3.5">
+      <div className="flex min-w-0 flex-1 flex-col gap-2 p-3">
         <div className="min-w-0">
-          <p className="truncate text-[11px] font-medium uppercase tracking-[1px] text-[var(--text-dim)]">{weapon}{item.slot !== "weapon" && item.slot !== "knife" ? ` · ${SLOT_LABEL[item.slot] ?? item.slot}` : ""}</p>
-          <p className="truncate text-[15px] font-semibold text-[var(--text)]" title={item.name}>{finish}</p>
+          <p className="truncate text-[10px] font-medium uppercase tracking-[1px] text-[var(--text-dim)]">{weapon}{item.slot !== "weapon" && item.slot !== "knife" ? ` · ${SLOT_LABEL[item.slot] ?? item.slot}` : ""}</p>
+          <p className="truncate text-[13px] font-semibold text-[var(--text)]" title={item.name}>{finish}</p>
         </div>
-        <div className="mt-auto flex flex-wrap gap-1.5">
+        {(stickers.length > 0 || item.charm) && (
+          <div className="flex flex-col gap-1.5">
+            <div className="flex flex-wrap items-center gap-1">
+              {stickers.map((sticker, n) => <AccessoryThumb key={`${sticker.name}:${n}`} accessory={sticker} label="Sticker" />)}
+              {item.charm && <AccessoryThumb accessory={item.charm} label="Charm" />}
+            </div>
+            <p className="line-clamp-2 text-[11px] leading-snug text-[var(--text-muted)]">
+              {[...stickers.map((sticker) => sticker.name), ...(item.charm ? [`Charm: ${item.charm.name}`] : [])].join(" · ")}
+            </p>
+          </div>
+        )}
+        <div className="mt-auto flex flex-wrap gap-1">
           {item.wear !== null && <span className={chipClass}>{wearLabel(item.wear)}</span>}
           {item.statTrak && <span className={chipClass}>StatTrak™</span>}
-          {item.stickers > 0 && <span className={chipClass}>{item.stickers} sticker{item.stickers > 1 ? "s" : ""}</span>}
-          {item.hasCharm && <span className={chipClass}>Charm</span>}
+          {/* An older server sends only how many: say that much when it does not name them. */}
+          {stickers.length === 0 && item.stickers > 0 && <span className={chipClass}>{item.stickers} sticker{item.stickers > 1 ? "s" : ""}</span>}
+          {!item.charm && item.hasCharm && <span className={chipClass}>Charm</span>}
           {item.wear === null && !item.statTrak && item.stickers === 0 && !item.hasCharm && <span className="text-[11px] text-[var(--text-faint)]">Default settings</span>}
         </div>
       </div>
@@ -176,14 +199,6 @@ export function SkinCollectionPage() {
     window.setTimeout(() => { setShownSide(next); setLeaving(false) }, 180)
   }
   const shown = shownSide === "all" ? items : items.filter((item) => sideOf(item) === shownSide)
-  // Items are sorted rarest first, so each rarity is one run: a heading over its cards.
-  const groups = shown.reduce<Array<{ name: string; accent?: string; items: SkinCollectionDetailItem[] }>>((list, item) => {
-    const name = item.rarity ? item.rarity.replace(/ Grade$/, "") : "Other"
-    const last = list[list.length - 1]
-    if (last && last.name === name) last.items.push(item)
-    else list.push({ name, accent: item.rarity ? rarityStyles[item.rarity]?.accent : undefined, items: [item] })
-    return list
-  }, [])
   const sideLabel = (value: SideFilter) => (value === "all" ? "All items" : value === "t" ? "T side" : value === "ct" ? "CT side" : "Both teams")
   const sideOptions: SegmentOption<SideFilter>[] = [
     { value: "all", label: "All items", count: items.length },
@@ -262,21 +277,9 @@ export function SkinCollectionPage() {
               )}
             </header>
 
-            <div key={shownSide} className={cn("flex flex-col gap-8 transition-[opacity,scale] duration-[180ms] ease-out motion-reduce:transition-none", leaving && "scale-[0.97] opacity-0")}>
-              {groups.map((group) => (
-                <section key={group.name} aria-label={group.name}>
-                  <div className="mb-3 flex items-center gap-3">
-                    {group.accent && <span aria-hidden="true" className="size-2 rounded-full" style={{ background: group.accent }} />}
-                    <h2 className="text-[13px] font-semibold text-[var(--text-2)]">{group.name}</h2>
-                    <span className="text-[12px] text-[var(--text-dim)]">{group.items.length}</span>
-                    <span aria-hidden="true" className="h-px flex-1 bg-[var(--line-soft)]" />
-                  </div>
-                  <ul className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(184px,1fr))] sm:gap-4">
-                    {group.items.map((item, index) => <ItemCard key={`${item.name}:${item.teamScope}:${index}`} item={item} index={index} />)}
-                  </ul>
-                </section>
-              ))}
-            </div>
+            <ul key={shownSide} className={cn("grid grid-cols-2 gap-3 transition-[opacity,scale] duration-[180ms] ease-out sm:grid-cols-[repeat(auto-fill,minmax(152px,1fr))] motion-reduce:transition-none", leaving && "scale-[0.97] opacity-0")}>
+              {shown.map((item, index) => <ItemCard key={`${item.name}:${item.teamScope}:${index}`} item={item} index={index} />)}
+            </ul>
           </>
         )}
       </div>
