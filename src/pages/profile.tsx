@@ -169,15 +169,19 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
     if (await copyText(url, "Profile link")) toast.success("Profile link copied")
   }
   return (
-    <header className="lx-swap-in flex flex-col items-center gap-4 text-center">
+    <header className="lx-swap-in flex flex-col items-center gap-4 text-center md:flex-row md:items-end md:gap-6 md:text-left">
       <Avatar user={user} />
-      <div className="flex min-w-0 max-w-full flex-col items-center gap-2.5">
-        {user.title && <span className={cn("text-[11px] font-semibold uppercase tracking-[3px]", user.title === "Genesis" ? "lx-profile-title-founder" : "text-[var(--text-dim)]")}>{user.title}</span>}
-        <div className="flex flex-wrap items-center justify-center gap-2.5">
-          <h1 {...nameProps(user.nameStyle, "truncate text-[30px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]")} title={user.username}><PlayerNameText name={user.username} /></h1>
+      <div className="flex min-w-0 max-w-full flex-1 flex-col items-center gap-3 md:items-start">
+        <div className="flex min-w-0 max-w-full flex-col items-center gap-1 md:items-start">
+          <div className="flex min-w-0 max-w-full items-center justify-center gap-2.5 md:justify-start">
+            <h1 {...nameProps(user.nameStyle, "truncate text-[30px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]")} title={user.username}><PlayerNameText name={user.username} /></h1>
+            <DiscordLinkedMark linked={overview.discordLinked} focusable className="shrink-0 [&_svg]:size-[18px]" />
+          </div>
+          {user.title && <span className={cn("text-[11px] font-semibold uppercase tracking-[3px]", user.title === "Genesis" ? "lx-profile-title-founder" : "text-[var(--text-dim)]")}>{user.title}</span>}
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
           <RoleBadge role={user.role} />
           {overview.creator && <CreatorBadge tier={overview.creator.tier} label={overview.creator.label} />}
-          <DiscordLinkedMark linked={overview.discordLinked} focusable className="[&_svg]:size-[18px]" />
           {user.founder ? <FounderBadge number={user.founder} /> : null}
           {(overview.discordBoosting || overview.boosterPlace) && <BoosterBadge place={overview.boosterPlace} />}
           {overview.clan && (
@@ -193,13 +197,12 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
             </span>
           )}
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-3.5 text-[13px] text-[var(--text-muted)]">
+        <div className="flex flex-wrap items-center justify-center gap-3.5 text-[13px] text-[var(--text-muted)] md:justify-start">
           {competitive?.position && <><span title="Leaderboard position" className="font-semibold text-[var(--text-2)]">#{competitive.position}</span><span className="text-[var(--line-strong)]">·</span></>}
           {user.memberSince && <><span title="Member since">Since {formatDate(user.memberSince)}</span><span className="text-[var(--line-strong)]">·</span></>}
           <span title="Last played">{overview.lastPlayedAt ? <>Active <RelativeTime value={overview.lastPlayedAt} /></> : "No matches yet"}</span>
         </div>
-      </div>
-      <div className="flex flex-wrap items-center justify-center gap-2">
+        <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
         {presence?.connectAddress && (
           <a href={`steam://connect/${presence.connectAddress}`} className="lx-primary-button inline-flex h-[34px] items-center gap-1.5 rounded-lg px-3.5 text-[13px] font-semibold">
             <Play className="size-3.5 fill-current" />
@@ -228,6 +231,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
             </PopoverContent>
           </Popover>
         )}
+        </div>
       </div>
     </header>
   )
