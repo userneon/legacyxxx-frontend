@@ -13,6 +13,7 @@ import { TeamIcon } from "@/components/team-icon"
 import { PageBar, PageTabs } from "@/components/page-tabs"
 import type { SegmentOption } from "@/components/segmented"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { SLOT_LABEL, daysAgo, loadFailure, wearLabel } from "@/components/skin-collections"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -32,41 +33,76 @@ function splitName(name: string) {
 
 const chipClass = "inline-flex h-5 items-center rounded-md border border-[var(--line)] px-1.5 text-[11px] font-medium text-[var(--text-muted)]"
 
-/** A sticker or charm on a weapon: its picture when there is one, always its name (in the tooltip and, for a charm, beside it). */
-function AccessoryThumb({ accessory, label }: { accessory: SkinAccessory; label: string }) {
+const tipClass = "rounded-xl border border-[var(--line)] px-3 py-2.5 text-[var(--text)] shadow-[0_18px_44px_rgba(0,0,0,0.55)]"
+const tipStyle = { "--tooltip-bg": "var(--panel)" } as React.CSSProperties
+
+/** A sticker or charm on a weapon: its picture in the card; hover (or focus) opens it large with its name. */
+function AccessoryThumb({ accessory, label }: { accessory: SkinAccessory; label: "Sticker" | "Charm" }) {
   return (
-    <span title={`${label}: ${accessory.name}`} className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-md border border-[var(--line)] bg-[var(--card-surface)]">
-      {accessory.imageUrl ? <OptimizedImage src={accessory.imageUrl} width={64} height={64} alt={accessory.name} className="size-7 object-contain" /> : <span aria-hidden="true" className="text-[10px] font-semibold text-[var(--text-dim)]">{accessory.name.slice(0, 2).toUpperCase()}</span>}
-    </span>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span tabIndex={0} aria-label={`${label}: ${accessory.name}`} className="grid size-9 shrink-0 cursor-default place-items-center overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--card-surface)] transition-colors hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]">
+          {accessory.imageUrl ? <OptimizedImage src={accessory.imageUrl} width={72} height={72} alt="" className="size-8 object-contain" /> : <span aria-hidden="true" className="text-[10px] font-semibold text-[var(--text-dim)]">{accessory.name.slice(0, 2).toUpperCase()}</span>}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent side="top" sideOffset={8} style={tipStyle} className={cn(tipClass, "flex w-[156px] flex-col items-center gap-2")}>
+        <span className="grid size-[112px] place-items-center rounded-lg bg-[var(--card-surface)]">
+          {accessory.imageUrl ? <OptimizedImage src={accessory.imageUrl} width={224} height={224} alt="" className="size-[104px] object-contain" /> : <span aria-hidden="true" className="text-[22px] font-semibold text-[var(--text-dim)]">{accessory.name.slice(0, 2).toUpperCase()}</span>}
+        </span>
+        <span className="text-center">
+          <span className="block text-[10px] font-medium uppercase tracking-[1px] text-[var(--text-dim)]">{label}</span>
+          <span className="block text-[13px] font-semibold leading-snug">{accessory.name}</span>
+        </span>
+      </TooltipContent>
+    </Tooltip>
   )
 }
 
-/** One item as a compact card: the picture on a lit floor, the finish as the title, its set-up, and exactly which stickers and charm it carries. */
+/** One item as a compact card: the picture on a lit floor, the finish as the title, its set-up, and the stickers and charm it carries as pictures. */
 function ItemCard({ item, index }: { item: SkinCollectionDetailItem; index: number }) {
   const accent = item.rarity ? rarityStyles[item.rarity]?.accent : undefined
   const { weapon, finish } = splitName(item.name)
   const stickers = item.stickerItems ?? []
   return (
     <li style={{ animationDelay: `${Math.min(index, 10) * 40}ms` }} className="lx-layer lx-row-in group flex flex-col overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] transition-[translate,border-color,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:border-[var(--line-strong)] hover:shadow-[0_14px_30px_-18px_rgb(0_0_0/0.8)] motion-reduce:transition-none motion-reduce:hover:translate-y-0">
-      <div className="relative flex h-[88px] items-center justify-center bg-[radial-gradient(ellipse_at_50%_90%,var(--raised),var(--card-surface)_72%)] px-3 sm:h-[100px]">
-        <OptimizedImage src={item.imageUrl ?? ""} width={320} height={200} alt="" className="max-h-[68px] w-full object-contain transition-[rotate,translate] duration-300 ease-out group-hover:-translate-y-1 group-hover:-rotate-[5deg] sm:max-h-[78px] motion-reduce:transition-none motion-reduce:group-hover:rotate-0 motion-reduce:group-hover:translate-y-0" />
-        {accent && <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: accent }} />}
-        {(item.teamScope === "t" || item.teamScope === "ct") && <TeamIcon side={item.teamScope} className="absolute right-2.5 top-2.5 size-4" />}
-      </div>
+      {/* Hover the weapon and its details open: what it is, how it is set up and what is on it. */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div tabIndex={0} className="relative flex h-[88px] items-center justify-center bg-[radial-gradient(ellipse_at_50%_90%,var(--raised),var(--card-surface)_72%)] px-3 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)] sm:h-[100px]">
+            <OptimizedImage src={item.imageUrl ?? ""} width={320} height={200} alt="" className="max-h-[68px] w-full object-contain transition-[rotate,translate] duration-300 ease-out group-hover:-translate-y-1 group-hover:-rotate-[5deg] sm:max-h-[78px] motion-reduce:transition-none motion-reduce:group-hover:rotate-0 motion-reduce:group-hover:translate-y-0" />
+            {accent && <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: accent }} />}
+            {(item.teamScope === "t" || item.teamScope === "ct") && <TeamIcon side={item.teamScope} className="absolute right-2.5 top-2.5 size-4" />}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="top" sideOffset={8} style={tipStyle} className={cn(tipClass, "flex w-[232px] flex-col gap-2.5")}>
+          <span className="flex flex-col gap-0.5">
+            <span className="text-[10px] font-medium uppercase tracking-[1px] text-[var(--text-dim)]">{weapon}</span>
+            <span className="text-[15px] font-semibold leading-snug">{finish}</span>
+          </span>
+          {item.rarity && (
+            <span className="flex items-center gap-1.5 text-[12px] text-[var(--text-muted)]">
+              <span aria-hidden="true" className="size-2 rounded-full" style={{ background: accent }} />
+              {item.rarity.replace(/ Grade$/, "")}
+            </span>
+          )}
+          <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[12px]">
+            <dt className="text-[var(--text-dim)]">Side</dt><dd>{item.teamScope === "t" ? "Terrorists" : item.teamScope === "ct" ? "Counter-Terrorists" : "Both teams"}</dd>
+            <dt className="text-[var(--text-dim)]">Wear</dt><dd>{item.wear !== null ? `${wearLabel(item.wear)} (${item.wear.toFixed(2)})` : "Default"}</dd>
+            {item.statTrak && <><dt className="text-[var(--text-dim)]">Counter</dt><dd>StatTrak™</dd></>}
+            <dt className="text-[var(--text-dim)]">Stickers</dt><dd>{stickers.length > 0 ? stickers.map((sticker) => sticker.name).join(", ") : item.stickers > 0 ? `${item.stickers}` : "None"}</dd>
+            <dt className="text-[var(--text-dim)]">Charm</dt><dd>{item.charm ? item.charm.name : item.hasCharm ? "Yes" : "None"}</dd>
+          </dl>
+        </TooltipContent>
+      </Tooltip>
       <div className="flex min-w-0 flex-1 flex-col gap-2 p-3">
         <div className="min-w-0">
           <p className="truncate text-[10px] font-medium uppercase tracking-[1px] text-[var(--text-dim)]">{weapon}{item.slot !== "weapon" && item.slot !== "knife" ? ` · ${SLOT_LABEL[item.slot] ?? item.slot}` : ""}</p>
           <p className="truncate text-[13px] font-semibold text-[var(--text)]" title={item.name}>{finish}</p>
         </div>
         {(stickers.length > 0 || item.charm) && (
-          <div className="flex flex-col gap-1.5">
-            <div className="flex flex-wrap items-center gap-1">
-              {stickers.map((sticker, n) => <AccessoryThumb key={`${sticker.name}:${n}`} accessory={sticker} label="Sticker" />)}
-              {item.charm && <AccessoryThumb accessory={item.charm} label="Charm" />}
-            </div>
-            <p className="line-clamp-2 text-[11px] leading-snug text-[var(--text-muted)]">
-              {[...stickers.map((sticker) => sticker.name), ...(item.charm ? [`Charm: ${item.charm.name}`] : [])].join(" · ")}
-            </p>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {stickers.map((sticker, n) => <AccessoryThumb key={`${sticker.name}:${n}`} accessory={sticker} label="Sticker" />)}
+            {item.charm && <AccessoryThumb accessory={item.charm} label="Charm" />}
           </div>
         )}
         <div className="mt-auto flex flex-wrap gap-1">
@@ -277,9 +313,11 @@ export function SkinCollectionPage() {
               )}
             </header>
 
+            <TooltipProvider delayDuration={120}>
             <ul key={shownSide} className={cn("grid grid-cols-2 gap-3 transition-[opacity,scale] duration-[180ms] ease-out sm:grid-cols-[repeat(auto-fill,minmax(152px,1fr))] motion-reduce:transition-none", leaving && "scale-[0.97] opacity-0")}>
               {shown.map((item, index) => <ItemCard key={`${item.name}:${item.teamScope}:${index}`} item={item} index={index} />)}
             </ul>
+            </TooltipProvider>
           </>
         )}
       </div>
