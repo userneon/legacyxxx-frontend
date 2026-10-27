@@ -142,6 +142,8 @@ flat outline. A card that is an article, link, button or list item (or already h
 gliding across it when the pointer enters; it fades in and out, is a pseudo-element (the card's own transitions are untouched) and is off for
 reduced motion. `.lx-sweep` opts any other element in. No colour in the sweep.
 
+Skin collection page (owner request 2026-10-27, `src/pages/skin-collection.tsx`): a header with the name, author chip, stat cells, a thin rarity bar (a share per rarity from the real item counts) and the three rarest items as a showcase; then the items grouped under a heading per rarity. Cards lift 4px and the picture leans on hover like the skin picker tiles. Rarity colours stay thin indicators (the bar, a dot, the card's bottom line), never surfaces.
+
 ### Home mode cards (owner request 2026-10-11)
 
 Four cards (5x5, Fun, Pro League, Tournaments), each with a pill, title, one line, a real status and a CS2 agent picture (`src/assets/home/mode-*.webp`, owner-supplied, transparent) at the right. The card under the pointer (5x5 by default) is the wide one: bright picture, a violet border and soft glow underneath, and a white "Play now"; the others keep their picture dim. No server counts or rank gates are shown, since the API has no per-mode figure for them.

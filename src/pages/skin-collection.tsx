@@ -36,23 +36,17 @@ function ItemCard({ item, index }: { item: SkinCollectionDetailItem; index: numb
   const accent = item.rarity ? rarityStyles[item.rarity]?.accent : undefined
   const { weapon, finish } = splitName(item.name)
   return (
-    <li style={{ animationDelay: `${Math.min(index, 10) * 45}ms` }} className="lx-layer lx-row-in group flex flex-col overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] transition-[border-color,translate] duration-300 hover:-translate-y-0.5 hover:border-[var(--line-strong)] motion-reduce:transition-none">
-      <div className="relative flex h-[96px] items-center justify-center sm:h-[116px] bg-[radial-gradient(ellipse_at_50%_85%,var(--raised),var(--card-surface)_70%)] px-4">
-        <OptimizedImage src={item.imageUrl ?? ""} width={360} height={220} alt="" className="max-h-[72px] w-full object-contain sm:max-h-[88px] transition-transform duration-300 group-hover:scale-[1.03] motion-reduce:transition-none" />
+    <li style={{ animationDelay: `${Math.min(index, 10) * 45}ms` }} className="lx-layer lx-row-in group flex flex-col overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] transition-[translate,border-color,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:border-[var(--line-strong)] hover:shadow-[0_14px_30px_-18px_rgb(0_0_0/0.8)] motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+      <div className="relative flex h-[120px] items-center justify-center bg-[radial-gradient(ellipse_at_50%_90%,var(--raised),var(--card-surface)_72%)] px-4 sm:h-[148px]">
+        <OptimizedImage src={item.imageUrl ?? ""} width={360} height={220} alt="" className="max-h-[92px] w-full object-contain transition-[rotate,translate] duration-300 ease-out group-hover:-translate-y-1 group-hover:-rotate-[5deg] sm:max-h-[116px] motion-reduce:transition-none motion-reduce:group-hover:rotate-0 motion-reduce:group-hover:translate-y-0" />
         {accent && <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: accent }} />}
         {(item.teamScope === "t" || item.teamScope === "ct") && <TeamIcon side={item.teamScope} className="absolute right-3 top-3 size-5" />}
       </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-2 p-3">
+      <div className="flex min-w-0 flex-1 flex-col gap-2.5 p-3.5">
         <div className="min-w-0">
           <p className="truncate text-[11px] font-medium uppercase tracking-[1px] text-[var(--text-dim)]">{weapon}{item.slot !== "weapon" && item.slot !== "knife" ? ` · ${SLOT_LABEL[item.slot] ?? item.slot}` : ""}</p>
-          <p className="truncate text-[14px] font-semibold text-[var(--text)]" title={item.name}>{finish}</p>
+          <p className="truncate text-[15px] font-semibold text-[var(--text)]" title={item.name}>{finish}</p>
         </div>
-        {item.rarity && (
-          <p className="flex items-center gap-1.5 text-[13px] text-[var(--text-muted)]">
-            <span aria-hidden="true" className="size-2 rounded-full" style={{ background: accent }} />
-            {item.rarity.replace(/ Grade$/, "")}
-          </p>
-        )}
         <div className="mt-auto flex flex-wrap gap-1.5">
           {item.wear !== null && <span className={chipClass}>{wearLabel(item.wear)}</span>}
           {item.statTrak && <span className={chipClass}>StatTrak™</span>}
@@ -65,11 +59,31 @@ function ItemCard({ item, index }: { item: SkinCollectionDetailItem; index: numb
   )
 }
 
+/** The rarities in this collection as one thin bar (a share per rarity, from the real item counts) with a line of names under it. */
+function RarityBar({ items }: { items: SkinCollectionDetailItem[] }) {
+  const counts = new Map<string, number>()
+  for (const item of items) if (item.rarity && rarityStyles[item.rarity]) counts.set(item.rarity, (counts.get(item.rarity) ?? 0) + 1)
+  const rows = [...counts.entries()].sort((x, y) => rarityStyles[x[0]].rank - rarityStyles[y[0]].rank)
+  if (rows.length === 0) return null
+  return (
+    <div className="flex max-w-[460px] flex-col gap-2" aria-label="Rarity of the items">
+      <div className="flex h-1 w-full gap-0.5 overflow-hidden rounded-full">
+        {rows.map(([name, count]) => <span key={name} aria-hidden="true" className="h-full rounded-full" style={{ flexGrow: count, flexBasis: 0, background: rarityStyles[name].accent }} />)}
+      </div>
+      <p className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-[var(--text-dim)]">
+        {rows.map(([name, count]) => (
+          <span key={name} className="inline-flex items-center gap-1.5"><span aria-hidden="true" className="size-1.5 rounded-full" style={{ background: rarityStyles[name].accent }} />{count} {name.replace(/ Grade$/, "")}</span>
+        ))}
+      </p>
+    </div>
+  )
+}
+
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="flex items-baseline gap-1.5">
-      <span key={value} className="lx-count-in text-[17px] font-semibold text-[var(--text)]">{value}</span>
-      <span className="text-[13px] text-[var(--text-dim)]">{label}</span>
+    <div className="flex min-w-0 flex-col-reverse gap-1 pr-6 [&:not(:first-child)]:border-l [&:not(:first-child)]:border-[var(--line)] [&:not(:first-child)]:pl-6">
+      <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--text-dim)]">{label}</span>
+      <span key={value} className="lx-count-in text-[24px] font-semibold leading-none text-[var(--text)]">{value}</span>
     </div>
   )
 }
@@ -162,6 +176,14 @@ export function SkinCollectionPage() {
     window.setTimeout(() => { setShownSide(next); setLeaving(false) }, 180)
   }
   const shown = shownSide === "all" ? items : items.filter((item) => sideOf(item) === shownSide)
+  // Items are sorted rarest first, so each rarity is one run: a heading over its cards.
+  const groups = shown.reduce<Array<{ name: string; accent?: string; items: SkinCollectionDetailItem[] }>>((list, item) => {
+    const name = item.rarity ? item.rarity.replace(/ Grade$/, "") : "Other"
+    const last = list[list.length - 1]
+    if (last && last.name === name) last.items.push(item)
+    else list.push({ name, accent: item.rarity ? rarityStyles[item.rarity]?.accent : undefined, items: [item] })
+    return list
+  }, [])
   const sideLabel = (value: SideFilter) => (value === "all" ? "All items" : value === "t" ? "T side" : value === "ct" ? "CT side" : "Both teams")
   const sideOptions: SegmentOption<SideFilter>[] = [
     { value: "all", label: "All items", count: items.length },
@@ -195,50 +217,66 @@ export function SkinCollectionPage() {
           </div>
         ) : (
           <>
-            <header className="lx-layer lx-swap-in flex flex-wrap items-center gap-x-10 gap-y-6 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-6 sm:p-8">
-              <div className="flex min-w-[260px] flex-1 flex-col gap-4">
-                <div className="flex flex-col gap-2">
-                  <h1 className="font-display text-[30px] font-bold leading-tight tracking-[-0.4px] text-[var(--text)] [overflow-wrap:anywhere]">{collection.name}</h1>
+            <header className="lx-layer lx-swap-in flex flex-wrap items-center gap-x-12 gap-y-8 overflow-hidden rounded-2xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-6 sm:p-9">
+              <div className="flex min-w-[280px] flex-1 flex-col gap-5">
+                <div className="flex flex-col gap-3">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-dim)]">Collection</span>
+                  <h1 className="font-display text-[34px] font-bold leading-[1.05] tracking-[-0.5px] text-[var(--text)] [overflow-wrap:anywhere] sm:text-[40px]">{collection.name}</h1>
                   <p className="max-w-[56ch] text-[15px] leading-relaxed text-[var(--text-muted)]">{collection.description || "No description."}</p>
                 </div>
-                <Link to={`/profile/${encodeURIComponent(collection.author.steamId)}`} className="flex w-fit items-center gap-2.5 rounded-lg text-[13px] text-[var(--text-dim)] transition-colors hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-                  <PlayerAvatar avatar={collection.author.avatar} name={collection.author.username} className="size-8 rounded-full" />
+                <Link to={`/profile/${encodeURIComponent(collection.author.steamId)}`} className="flex w-fit items-center gap-2.5 rounded-full border border-[var(--line)] py-1 pl-1 pr-3.5 text-[13px] text-[var(--text-dim)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]">
+                  <PlayerAvatar avatar={collection.author.avatar} name={collection.author.username} className="size-7 rounded-full" />
                   <span>by <span className="font-semibold text-[var(--text-2)]">{collection.author.username}</span> · {daysAgo(collection.createdAt)}</span>
                 </Link>
-                <div className="flex flex-wrap gap-x-6 gap-y-1">
+                <div className="flex flex-wrap gap-y-3">
                   <Stat label="items" value={collection.itemCount} />
                   <Stat label="likes" value={likes} />
                   <Stat label="applied" value={collection.applies} />
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <button type="button" onClick={() => setTarget(true)} className="lx-primary-button inline-flex h-11 items-center rounded-lg px-6 text-[14px] font-semibold">
+                <RarityBar items={items} />
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <button type="button" onClick={() => setTarget(true)} className="lx-primary-button inline-flex h-12 items-center rounded-lg px-7 text-[14px] font-semibold">
                     Apply to my loadout
                   </button>
-                  <button type="button" disabled={collection.mine} onClick={() => void toggleLike()} aria-pressed={liked} className={cn("inline-flex h-11 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-4 text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 disabled:cursor-default", liked ? "text-[var(--text)]" : "text-[var(--text-muted)] enabled:hover:text-[var(--text)]")}>
+                  <button type="button" disabled={collection.mine} onClick={() => void toggleLike()} aria-pressed={liked} className={cn("inline-flex h-12 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-5 text-[13px] font-medium transition-colors hover:border-[var(--line-strong)] disabled:cursor-default disabled:opacity-60", liked ? "text-[var(--text)]" : "text-[var(--text-2)]")}>
                     <ThumbsUp className={cn("size-4", liked && "fill-current", popped && liked && "lx-like-pop")} />
                     {liked ? "Liked" : "Like"}
                   </button>
                   {collection.mine && (
-                    <button type="button" onClick={() => setRemoving(true)} aria-label={`Remove ${collection.name}`} className="inline-flex size-11 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[var(--text-muted)] transition-colors hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
+                    <button type="button" onClick={() => setRemoving(true)} aria-label={`Remove ${collection.name}`} className="inline-flex size-12 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[var(--text-muted)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]">
                       <Trash2 className="size-4" />
                     </button>
                   )}
                 </div>
               </div>
               {showcase.length > 0 && (
-                <div aria-hidden="true" className="flex shrink-0 items-center max-lg:hidden">
-                  {showcase.map((item, index) => (
-                    <div key={`${item.name}:${index}`} className={cn("flex h-[150px] w-[190px] items-center justify-center rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-3", index > 0 && "-ml-8")} style={{ zIndex: showcase.length - index, rotate: `${(index - 1) * 3}deg` }}>
-                      <OptimizedImage src={item.imageUrl ?? ""} width={260} height={160} alt="" className="max-h-[118px] w-full object-contain" />
+                <div aria-hidden="true" className="flex shrink-0 items-end gap-3 max-xl:hidden">
+                  {[showcase[1], showcase[0], showcase[2]].map((item, index) => item ? (
+                    <div key={`${item.name}:${index}`} className={cn("relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border border-[var(--line-soft)] bg-[radial-gradient(ellipse_at_50%_90%,var(--raised),var(--card-surface)_72%)] p-4", index === 1 ? "h-[190px] w-[200px]" : "h-[136px] w-[136px]")}>
+                      <OptimizedImage src={item.imageUrl ?? ""} width={320} height={200} alt="" className={cn("w-full object-contain", index === 1 ? "max-h-[118px]" : "max-h-[78px]")} />
+                      <span className="mt-2 max-w-full truncate text-[11px] font-medium text-[var(--text-dim)]">{splitName(item.name).finish}</span>
+                      {item.rarity && rarityStyles[item.rarity] && <span className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: rarityStyles[item.rarity].accent }} />}
                     </div>
-                  ))}
+                  ) : null)}
                 </div>
               )}
             </header>
 
-            <ul key={shownSide} className={cn("grid grid-cols-2 gap-3 transition-[opacity,scale] duration-[180ms] ease-out sm:grid-cols-[repeat(auto-fill,minmax(168px,1fr))] sm:gap-4 motion-reduce:transition-none", leaving && "scale-[0.97] opacity-0")}>
-              {shown.map((item, index) => <ItemCard key={`${item.name}:${item.teamScope}:${index}`} item={item} index={index} />)}
-            </ul>
+            <div key={shownSide} className={cn("flex flex-col gap-8 transition-[opacity,scale] duration-[180ms] ease-out motion-reduce:transition-none", leaving && "scale-[0.97] opacity-0")}>
+              {groups.map((group) => (
+                <section key={group.name} aria-label={group.name}>
+                  <div className="mb-3 flex items-center gap-3">
+                    {group.accent && <span aria-hidden="true" className="size-2 rounded-full" style={{ background: group.accent }} />}
+                    <h2 className="text-[13px] font-semibold text-[var(--text-2)]">{group.name}</h2>
+                    <span className="text-[12px] text-[var(--text-dim)]">{group.items.length}</span>
+                    <span aria-hidden="true" className="h-px flex-1 bg-[var(--line-soft)]" />
+                  </div>
+                  <ul className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(184px,1fr))] sm:gap-4">
+                    {group.items.map((item, index) => <ItemCard key={`${item.name}:${item.teamScope}:${index}`} item={item} index={index} />)}
+                  </ul>
+                </section>
+              ))}
+            </div>
           </>
         )}
       </div>
