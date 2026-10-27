@@ -1,3 +1,4 @@
+import { ClanLinksEditor, ClanLinksRow, clanLinkFields, clanLinksFromFields } from "@/components/clan-links"
 import { Reveal } from "@/components/reveal"
 import { createPortal } from "react-dom"
 import { useEffect, useState } from "react"
@@ -510,6 +511,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                   <h1 className="flex min-w-0 items-center gap-2 text-[22px] font-semibold leading-tight"><span className="truncate">{clan.name} <span className="text-[13px] font-medium text-[var(--text-dim)]">[{clan.tag}]</span></span>{clan.level ? <span title="Clan level" className="shrink-0 rounded-full border border-[var(--line-strong)] px-2 py-0.5 text-[11px] font-semibold text-[var(--text-2)]">Lv {clan.level}</span> : null}</h1>
                   <p className="flex flex-wrap items-center gap-x-3 text-[13px] text-[var(--text-dim)]"><span>{clan.region} · {clan.currentPlayers}/{clan.maxPlayers} members</span><JoinModeLabel mode={clan.joinMode} /></p>
                   {clan.description && <p className="max-w-2xl text-[13px] text-[var(--text-dim)]">{clan.description}</p>}
+                  <ClanLinksRow links={clan.links} />
                 </div>
                 {isLeader && <button type="button" onClick={() => setEditing(true)} className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] hover:border-[var(--line-strong)]"><Pencil className="size-4" aria-hidden="true" /> Edit clan</button>}
               </div>
@@ -767,6 +769,7 @@ function EditLook({ clan, isLeader, onChanged }: { clan: ClanDetail; isLeader: b
   const [description, setDescription] = useState(clan.description ?? "")
   const [joinMode, setJoinMode] = useState(clan.joinMode)
   const [maxPlayers, setMaxPlayers] = useState(clan.maxPlayers)
+  const [linkFields, setLinkFields] = useState(() => clanLinkFields(clan.links))
   const run = async (action: () => Promise<unknown>, done: string) => {
     setBusy(true)
     try {
@@ -780,7 +783,7 @@ function EditLook({ clan, isLeader, onChanged }: { clan: ClanDetail; isLeader: b
     }
   }
   const tooFew = maxPlayers < Math.max(2, clan.currentPlayers)
-  const unchanged = joinMode === clan.joinMode && maxPlayers === clan.maxPlayers && description.trim() === (clan.description ?? "")
+  const unchanged = joinMode === clan.joinMode && maxPlayers === clan.maxPlayers && description.trim() === (clan.description ?? "") && JSON.stringify(clanLinksFromFields(linkFields)) === JSON.stringify(clanLinksFromFields(clanLinkFields(clan.links)))
   return (
     <div className="mt-2 flex max-h-[70vh] flex-col gap-5 overflow-y-auto pr-1">
       <div className="flex flex-col gap-2">
@@ -789,8 +792,9 @@ function EditLook({ clan, isLeader, onChanged }: { clan: ClanDetail; isLeader: b
         <span className="text-right text-[11px] text-[var(--text-dim)]">{description.length}/200</span>
       </div>
       <JoinSettings joinMode={joinMode} maxPlayers={maxPlayers} onMode={setJoinMode} onMax={setMaxPlayers} />
+      <ClanLinksEditor value={linkFields} onChange={setLinkFields} />
       <div>
-        <button type="button" disabled={busy || tooFew || unchanged} onClick={() => void run(() => clansService.updateClan(clan.id, { description: description.trim(), joinMode, maxPlayers }), "Settings saved")} className="lx-primary-button inline-flex h-9 items-center rounded-lg px-3.5 text-[13px] font-semibold disabled:opacity-50">Save settings</button>
+        <button type="button" disabled={busy || tooFew || unchanged} onClick={() => void run(() => clansService.updateClan(clan.id, { description: description.trim(), joinMode, maxPlayers, links: clanLinksFromFields(linkFields) }), "Settings saved")} className="lx-primary-button inline-flex h-9 items-center rounded-lg px-3.5 text-[13px] font-semibold disabled:opacity-50">Save settings</button>
         {tooFew && <p className="mt-2 text-[13px] text-[var(--status-red)]">The clan already has {clan.currentPlayers} members.</p>}
       </div>
       {isLeader && <RecruitmentSettings key={`${clan.recruitment?.enabled}:${(clan.recruitment?.questions ?? []).join("|")}`} clan={clan} onChanged={onChanged} />}

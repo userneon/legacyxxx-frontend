@@ -475,8 +475,13 @@ export interface ClanCard {
   level?: number
 }
 
+/** Where a clan is found outside the site; each link is https on the platform's own host (the API checks it). */
+export type ClanLinkPlatform = "discord" | "facebook" | "youtube" | "twitch" | "kick" | "instagram" | "tiktok" | "steam"
+export type ClanLinks = Partial<Record<ClanLinkPlatform, string>>
+
 export interface ClanDetail extends ClanCard {
   description?: string
+  links?: ClanLinks
   members?: ClanMember[]
   /** The viewer's role in this clan (null: not a member) and whether they are staff who can moderate it. */
   viewer?: { role: ClanRole | null; canModerate: boolean }

@@ -3,6 +3,7 @@ import type {
   ClanCard,
   ClanLookKind,
   ClanLooks,
+  ClanLinks,
   ClanDetail,
   ClanMember,
   CreateClanRequest,
@@ -171,7 +172,7 @@ export const clansService = {
 
   async updateClan(
     clanId: string,
-    payload: { description?: string; joinMode?: "open" | "request"; maxPlayers?: number },
+    payload: { description?: string; joinMode?: "open" | "request"; maxPlayers?: number; links?: ClanLinks },
     options?: CallOptions,
   ): Promise<ClanDetail> {
     return put<ClanDetail>(`/api/v1/clans/${clanId}`, payload, options)

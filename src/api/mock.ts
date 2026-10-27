@@ -651,6 +651,9 @@ const mockChat: Array<{ id: string; body: string; createdAt: string; author: { s
 ]
 let notificationPrefs = { tournaments: true, rankChanges: false, penalties: true }
 
+/** Design preview only: the links a clan leader saved on the mock clan page. */
+let mockClanLinks: Record<string, string> = { discord: "https://discord.gg/legacyx", youtube: "https://www.youtube.com/@legacyx" }
+
 export async function mockResponse(method: string, path: string, query: Query, body?: unknown): Promise<unknown> {
   // A short, realistic delay so loading states and entrance animations show.
   await new Promise((resolve) => window.setTimeout(resolve, 250 + Math.random() * 250))
@@ -804,7 +807,8 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path.startsWith("/api/v1/clans/")) {
     const clan = MOCK_CLANS.find((entry) => path === `/api/v1/clans/${entry.id}` || path === `/api/v1/clans/${entry.number}`)
     if (!clan) throw notFound()
-    return { ...clan, level: 4, description: "Ranked five-stack. Evenings, Ulaanbaatar time.", members: Array.from({ length: clan.currentPlayers }, (_, index) => ({ id: `m${index}`, name: index === 0 ? "Leader" : `Member ${index}`, role: index === 0 ? "leader" : index === 1 ? "co-leader" : "member", avatar: "", description: "", ...mockLook(index) })), viewer: { role: "leader", canModerate: true } }
+    if (method === "PUT" && path === `/api/v1/clans/${clan.id}` && (body as { links?: Record<string, string> } | undefined)?.links) mockClanLinks = Object.fromEntries(Object.entries((body as { links: Record<string, string> }).links).map(([id, url]) => [id, /^https:\/\//.test(url) ? url : `https://${url}`]))
+    return { ...clan, links: mockClanLinks, level: 4, description: "Ranked five-stack. Evenings, Ulaanbaatar time.", members: Array.from({ length: clan.currentPlayers }, (_, index) => ({ id: `m${index}`, name: index === 0 ? "Leader" : `Member ${index}`, role: index === 0 ? "leader" : index === 1 ? "co-leader" : "member", avatar: "", description: "", ...mockLook(index) })), viewer: { role: "leader", canModerate: true } }
   }
   if (path === "/api/v1/staffpanel/staff" && method === "GET") return [
     { id: "s1", userId: "u0", username: "Owner", steamId: "76561198000000000", avatar: "", role: "OWNER", status: "active", stamina: 1000, immunity: 1000, expiresAt: null, createdAt: "2026-09-01T00:00:00Z" },
