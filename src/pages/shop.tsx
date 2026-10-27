@@ -366,7 +366,8 @@ export function ShopPage() {
             <ShopClan prices={wallet?.clanPrices} balance={balance} mine={user ? myClan : null} loading={Boolean(user) && (clanLoading || !wallet)} onChanged={() => Promise.all([refetchClan(), refetchWallet()])} />
           ) : (
           <div className="flex min-w-0 flex-col gap-5">
-            {spotlight}
+            {/* On Featured the Genesis card comes first: the bar waits until an item below it is picked. */}
+            {(tab !== "featured" || picked !== null) && spotlight}
             <div className="flex min-w-0 flex-col gap-5">
               {tab === "featured" && <FounderPack />}
               {tab === "featured" && featured.length > 0 && (
