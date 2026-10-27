@@ -223,7 +223,7 @@ Per grenade (owner request 2026-10-26, option "A"): a trail and a light are boug
 
 Profile → Appearance lists only what the player owns, also what staff switched off after they bought it (`retired`: still wearable, not shown in the Shop) (owner request 2026-10-26): no buying, no price, no LX balance, no link to the Shop, no locked items; the Shop is the only place to buy.
 
-Premium animated frames (owner request 2026-10-25, "very valuable profile decorations"): Dragon Ember, Frost Royale, Void Rift, Hologram, Celestial Crown and Diamond Prestige (2,500–5,000 LX) are looping animated WebPs in `public/frames/`, drawn by `scripts/premium-frames.html` (canvas, seamless loop, nothing drawn over the opening) via `scripts/render-premium-frames.mjs` + `scripts/make-premium-frames.py`. Change the art there and re-run both, never by hand.
+Premium animated frames (owner request 2026-10-25, "very valuable profile decorations"): Dragon Ember, Frost Royale, Void Rift, Hologram, Celestial Crown and Diamond Prestige (2,500–5,000 LX) are drawn by `scripts/premium-frames.html` (canvas, nothing drawn over the opening) via `scripts/render-premium-frames.mjs` + `scripts/make-premium-frames.py`, which keeps one still picture per frame in `public/frames/` (`--animated` writes the looping WebP instead). Change the art there and re-run both, never by hand. **No frame moves** (owner request 2026-10-27, "do not animate the frames, add a glow"): every frame, premium or not, gets a soft light in its own colour (`frameGlow` in `src/lib/cosmetics.ts`, a static `drop-shadow` from `frameAccent`) in `FramedAvatar` and `FrameOverlay`.
 
 ### Genesis pack (owner decision 2026-10-23; first called Founder)
 

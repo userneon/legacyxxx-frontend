@@ -1,4 +1,4 @@
-import { frameArt } from "@/lib/cosmetics"
+import { frameArt, frameGlow } from "@/lib/cosmetics"
 
 /**
  * The frame alone, drawn around an avatar the page already shows: it overflows the avatar's box (which must be `relative`)
@@ -7,5 +7,5 @@ import { frameArt } from "@/lib/cosmetics"
 export function FrameOverlay({ frame }: { frame: string | null | undefined }) {
   const art = frameArt(frame)
   if (!art) return null
-  return <img src={art.src} alt="" aria-hidden="true" draggable={false} className="pointer-events-none absolute left-1/2 top-1/2 z-10 max-w-none select-none" style={{ width: `${100 / art.opening}%`, height: `${100 / art.opening}%`, translate: `${(-0.5 - art.dx) * 100}% ${(-0.5 - art.dy) * 100}%` }} />
+  return <img src={art.src} alt="" aria-hidden="true" draggable={false} className="pointer-events-none absolute left-1/2 top-1/2 z-10 max-w-none select-none" style={{ width: `${100 / art.opening}%`, height: `${100 / art.opening}%`, translate: `${(-0.5 - art.dx) * 100}% ${(-0.5 - art.dy) * 100}%`, filter: frameGlow(frame) }} />
 }

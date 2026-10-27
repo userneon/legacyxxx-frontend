@@ -131,6 +131,13 @@ export function frameAccent(id: string): string {
   return ACCENTS[id] ?? "#d4d4d4" // palette-exempt: neutral light
 }
 
+/** The soft light round a frame, in the frame's own colour (owner request 2026-10-27: frames stand still and glow instead of moving). */
+export function frameGlow(id: string | null | undefined): string | undefined {
+  if (!id || !(id in FRAMES)) return undefined
+  const colour = frameAccent(id)
+  return `drop-shadow(0 0 2px ${colour}) drop-shadow(0 0 9px color-mix(in oklab, ${colour} 60%, transparent))`
+}
+
 /** Profile banners the site can draw: the API sends only an effect key, mapped to a CSS class here (anything else draws nothing). */
 const BANNER_CLASSES: Record<string, string> = { goldfoil: "lx-banner-goldfoil" }
 export function bannerClass(fx: string | null | undefined): string | null {
