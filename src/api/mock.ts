@@ -933,6 +933,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
     ownerRespect = { given: method === "POST", count: OWNER_RESPECT_BASE + (method === "POST" ? 1 : 0) }
     return ownerRespect
   }
+  if (path === "/api/v1/profile/me/config" && method === "PUT") { const cleaned = JSON.parse(JSON.stringify(body ?? {}), (_key, value) => (value === "" ? undefined : value)); mockPlayerConfig = Object.keys(cleaned).length ? cleaned : null; return { config: mockPlayerConfig } }
   if (method !== "GET") throw notFound()
 
   const liveMatch = /^\/api\/v1\/public\/servers\/([^/]+)\/live-match$/.exec(path)
@@ -958,7 +959,6 @@ export async function mockResponse(method: string, path: string, query: Query, b
   }
 
   if (/^\/api\/v1\/profile\/[^/]+\/config$/.test(path) && method === "GET") return { config: mockPlayerConfig, updatedAt: mockPlayerConfig ? new Date().toISOString() : null }
-  if (path === "/api/v1/profile/me/config" && method === "PUT") { const cleaned = JSON.parse(JSON.stringify(body ?? {}), (_key, value) => (value === "" ? undefined : value)); mockPlayerConfig = Object.keys(cleaned).length ? cleaned : null; return { config: mockPlayerConfig } }
   const profile = /^\/api\/v1\/profile\/([^/]+)\/(overview|faceit)$/.exec(path)
   if (profile) return profile[2] === "overview" ? profileOverview(decodeURIComponent(profile[1])) : faceit(decodeURIComponent(profile[1]))
 
