@@ -1,4 +1,4 @@
-/** LEGACY-X Home: the hero slider, live stats, play modes, the top of the ladder, reviews and Discord. */
+/** LEGACY-X Home: the hero slider with the live stats, the play modes and the top of the ladder. Reviews and Discord have their own pages. */
 import { useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { serversService } from "@/api"
@@ -6,8 +6,6 @@ import { tournamentsService } from "@/api/tournaments"
 import type { HomeStats, PageId } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { HomeHeroSlider } from "@/components/home-hero-slider"
-import { HomeReviews } from "@/components/home-reviews"
-import { DiscordStrip } from "@/components/discord-strip"
 import { TopPlayers } from "@/components/home-top-players"
 import { useNavigate } from "react-router-dom"
 import { Play } from "lucide-react"
@@ -136,8 +134,6 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
       <TopPlayers onOpenProfile={(steamId) => navigate(`/profile/${encodeURIComponent(steamId)}`)} onViewAll={() => onNavigate("leaders")} />
 
-      <HomeReviews onWriteReview={() => onNavigate("feedback")} />
-      <DiscordStrip />
     </div>
   )
 }

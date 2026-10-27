@@ -146,6 +146,8 @@ reduced motion. `.lx-sweep` opts any other element in. No colour in the sweep.
 
 The Home hero is a slider (`components/home-hero-slider.tsx`): six slides (Ranked, Skinchanger, Shop, Clans, Tournaments, Fair play), each a map picture behind one headline with its accent word in violet, one line, a button and, where the API has it, a real status line (players on 5x5 now, the tournament state). The live stats row (Players Online, Live Servers, Matches Today) and the progress bars sit under the slides. Only transforms and opacity move (the slides, the progress bar is a `scaleX` animation), so it stays on the compositor at 60 fps; it plays by itself every 7 s, pauses on hover, focus or a hidden tab, never plays for `prefers-reduced-motion`, and moves with the arrows, the bars, the arrow keys or a swipe. No slide shows a number that is not from the API.
 
+Home is kept short (owner request 2026-10-27, "too much information"): the slider with its live stats, the four mode cards and the top three players. The reviews strip and the Discord strip left it: Reviews and Discord are one click away in the sidebar and the top bar.
+
 ### Home mode cards (owner request 2026-10-11)
 
 Four cards (5x5, Fun, Pro League, Tournaments), each with a pill, title, one line, a real status and a CS2 agent picture (`src/assets/home/mode-*.webp`, owner-supplied, transparent) at the right. The card under the pointer (5x5 by default) is the wide one: bright picture, a violet border and soft glow underneath, and a white "Play now"; the others keep their picture dim. No server counts or rank gates are shown, since the API has no per-mode figure for them.
