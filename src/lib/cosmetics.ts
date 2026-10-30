@@ -70,6 +70,45 @@ const FRAMES: Record<string, FrameArt> = {
   "seraph-wings": { opening: 0.70, dx: -0.002, dy: 0.004 },
   "cyber-cyan": { opening: 0.69, dx: 0.006, dy: 0.006 },
   "rose-thorn": { opening: 0.70, dx: 0.018, dy: 0.002 },
+  // Rank frames (owner sheet 2026-10-30, one per rank, earned) and twenty frog frames; `python3 scripts/measure-frame-openings.py` measures these.
+  "rank-1": { opening: 0.70, dx: 0.000, dy: 0.064 },
+  "rank-2": { opening: 0.71, dx: 0.002, dy: 0.064 },
+  "rank-3": { opening: 0.71, dx: 0.000, dy: 0.066 },
+  "rank-4": { opening: 0.70, dx: -0.010, dy: 0.070 },
+  "rank-5": { opening: 0.70, dx: -0.004, dy: 0.066 },
+  "rank-6": { opening: 0.70, dx: 0.006, dy: 0.064 },
+  "rank-7": { opening: 0.71, dx: 0.004, dy: 0.057 },
+  "rank-8": { opening: 0.71, dx: 0.004, dy: 0.059 },
+  "rank-9": { opening: 0.70, dx: 0.008, dy: 0.057 },
+  "rank-10": { opening: 0.71, dx: 0.000, dy: 0.059 },
+  "rank-11": { opening: 0.71, dx: 0.000, dy: 0.053 },
+  "rank-12": { opening: 0.70, dx: 0.004, dy: 0.053 },
+  "rank-13": { opening: 0.70, dx: 0.006, dy: 0.059 },
+  "rank-14": { opening: 0.71, dx: 0.004, dy: 0.057 },
+  "rank-15": { opening: 0.68, dx: 0.004, dy: 0.064 },
+  "rank-16": { opening: 0.68, dx: 0.000, dy: 0.064 },
+  "rank-17": { opening: 0.69, dx: 0.006, dy: 0.059 },
+  "rank-18": { opening: 0.69, dx: -0.004, dy: 0.059 },
+  "frog-jungle": { opening: 0.61, dx: 0.025, dy: 0.074 },
+  "frog-boss": { opening: 0.63, dx: 0.023, dy: 0.057 },
+  "frog-tears": { opening: 0.64, dx: 0.014, dy: 0.082 },
+  "frog-hearts": { opening: 0.66, dx: 0.014, dy: 0.068 },
+  "frog-wizard": { opening: 0.67, dx: 0.020, dy: 0.086 },
+  "frog-gamer": { opening: 0.64, dx: 0.016, dy: 0.053 },
+  "frog-rage": { opening: 0.64, dx: 0.008, dy: 0.039 },
+  "frog-storm": { opening: 0.64, dx: 0.018, dy: 0.062 },
+  "frog-money": { opening: 0.62, dx: 0.031, dy: 0.041 },
+  "frog-hood": { opening: 0.63, dx: 0.020, dy: 0.061 },
+  "frog-sleepy": { opening: 0.63, dx: 0.029, dy: 0.062 },
+  "frog-angel": { opening: 0.68, dx: 0.018, dy: 0.068 },
+  "frog-devil": { opening: 0.60, dx: 0.033, dy: 0.057 },
+  "frog-explorer": { opening: 0.65, dx: 0.023, dy: 0.068 },
+  "frog-sakura": { opening: 0.66, dx: 0.020, dy: 0.059 },
+  "frog-samurai": { opening: 0.67, dx: 0.018, dy: 0.051 },
+  "frog-astronaut": { opening: 0.61, dx: 0.012, dy: 0.041 },
+  "frog-christmas": { opening: 0.65, dx: 0.008, dy: 0.051 },
+  "frog-pumpkin": { opening: 0.63, dx: 0.021, dy: 0.057 },
+  "frog-glitch": { opening: 0.65, dx: 0.010, dy: 0.037 },
 }
 
 export function frameArt(id: string | null | undefined): ({ src: string; maskSrc?: string } & FrameArt) | null {
@@ -165,6 +204,44 @@ const ACCENTS: Record<string, string> = {
   "seraph-wings": "#fde68a", // palette-exempt: the frame's own light
   "cyber-cyan": "#22d3ee", // palette-exempt: the frame's own light
   "rose-thorn": "#e11d48", // palette-exempt: the frame's own light
+  "rank-1": "#cbd5e1", // palette-exempt: the frame's own light
+  "rank-2": "#6e92cd", // palette-exempt: the frame's own light
+  "rank-3": "#6993d4", // palette-exempt: the frame's own light
+  "rank-4": "#0c9ae6", // palette-exempt: the frame's own light
+  "rank-5": "#0c84e7", // palette-exempt: the frame's own light
+  "rank-6": "#097ae9", // palette-exempt: the frame's own light
+  "rank-7": "#13c3ed", // palette-exempt: the frame's own light
+  "rank-8": "#0fafea", // palette-exempt: the frame's own light
+  "rank-9": "#0c8feb", // palette-exempt: the frame's own light
+  "rank-10": "#0a7aea", // palette-exempt: the frame's own light
+  "rank-11": "#6e2fe8", // palette-exempt: the frame's own light
+  "rank-12": "#6f31eb", // palette-exempt: the frame's own light
+  "rank-13": "#922be9", // palette-exempt: the frame's own light
+  "rank-14": "#9c26ea", // palette-exempt: the frame's own light
+  "rank-15": "#ea21d0", // palette-exempt: the frame's own light
+  "rank-16": "#ea20cd", // palette-exempt: the frame's own light
+  "rank-17": "#e92527", // palette-exempt: the frame's own light
+  "rank-18": "#ebc230", // palette-exempt: the frame's own light
+  "frog-jungle": "#799229", // palette-exempt: the frame's own light
+  "frog-boss": "#d69d26", // palette-exempt: the frame's own light
+  "frog-tears": "#1a89ce", // palette-exempt: the frame's own light
+  "frog-hearts": "#f1567e", // palette-exempt: the frame's own light
+  "frog-wizard": "#9f2dda", // palette-exempt: the frame's own light
+  "frog-gamer": "#389bb7", // palette-exempt: the frame's own light
+  "frog-rage": "#c51b13", // palette-exempt: the frame's own light
+  "frog-storm": "#9ca3af", // palette-exempt: the frame's own light
+  "frog-money": "#a8b133", // palette-exempt: the frame's own light
+  "frog-hood": "#11b1c9", // palette-exempt: the frame's own light
+  "frog-sleepy": "#738284", // palette-exempt: the frame's own light
+  "frog-angel": "#d49f3c", // palette-exempt: the frame's own light
+  "frog-devil": "#cc2514", // palette-exempt: the frame's own light
+  "frog-explorer": "#c89a5f", // palette-exempt: the frame's own light
+  "frog-sakura": "#df6468", // palette-exempt: the frame's own light
+  "frog-samurai": "#ce6850", // palette-exempt: the frame's own light
+  "frog-astronaut": "#857b8d", // palette-exempt: the frame's own light
+  "frog-christmas": "#97454b", // palette-exempt: the frame's own light
+  "frog-pumpkin": "#d16407", // palette-exempt: the frame's own light
+  "frog-glitch": "#5f4cc9", // palette-exempt: the frame's own light
   "server-booster": "#ff73fa", // palette-exempt: Discord Boost brand
 }
 
@@ -232,6 +309,44 @@ const FRAME_GLOW: Record<string, { a: string; b: string; r: number }> = { // pal
   "seraph-wings": { a: "#fffbeb", b: "#f59e0b", r: 13 }, // palette-exempt: the frame's own light
   "cyber-cyan": { a: "#a5f3fc", b: "#0891b2", r: 12 }, // palette-exempt: the frame's own light
   "rose-thorn": { a: "#fda4af", b: "#be123c", r: 12 }, // palette-exempt: the frame's own light
+  "rank-1": { a: "#e5eaf0", b: "#848a92", r: 12 }, // palette-exempt: the frame's own light
+  "rank-2": { a: "#b6c8e6", b: "#485f85", r: 12 }, // palette-exempt: the frame's own light
+  "rank-3": { a: "#b4c9ea", b: "#44608a", r: 12 }, // palette-exempt: the frame's own light
+  "rank-4": { a: "#86ccf2", b: "#086496", r: 12 }, // palette-exempt: the frame's own light
+  "rank-5": { a: "#86c2f3", b: "#085696", r: 12 }, // palette-exempt: the frame's own light
+  "rank-6": { a: "#84bcf4", b: "#064f97", r: 12 }, // palette-exempt: the frame's own light
+  "rank-7": { a: "#89e1f6", b: "#0c7f9a", r: 12 }, // palette-exempt: the frame's own light
+  "rank-8": { a: "#87d7f4", b: "#0a7298", r: 12 }, // palette-exempt: the frame's own light
+  "rank-9": { a: "#86c7f5", b: "#085d99", r: 12 }, // palette-exempt: the frame's own light
+  "rank-10": { a: "#84bcf4", b: "#064f98", r: 12 }, // palette-exempt: the frame's own light
+  "rank-11": { a: "#b697f4", b: "#481f97", r: 12 }, // palette-exempt: the frame's own light
+  "rank-12": { a: "#b798f5", b: "#482099", r: 12 }, // palette-exempt: the frame's own light
+  "rank-13": { a: "#c895f4", b: "#5f1c97", r: 12 }, // palette-exempt: the frame's own light
+  "rank-14": { a: "#ce92f4", b: "#651998", r: 12 }, // palette-exempt: the frame's own light
+  "rank-15": { a: "#f490e8", b: "#981587", r: 12 }, // palette-exempt: the frame's own light
+  "rank-16": { a: "#f490e6", b: "#981585", r: 12 }, // palette-exempt: the frame's own light
+  "rank-17": { a: "#f49293", b: "#971819", r: 12 }, // palette-exempt: the frame's own light
+  "rank-18": { a: "#f5e098", b: "#997e1f", r: 12 }, // palette-exempt: the frame's own light
+  "frog-jungle": { a: "#bcc894", b: "#4f5f1b", r: 12 }, // palette-exempt: the frame's own light
+  "frog-boss": { a: "#eace92", b: "#8b6619", r: 12 }, // palette-exempt: the frame's own light
+  "frog-tears": { a: "#8cc4e6", b: "#115986", r: 12 }, // palette-exempt: the frame's own light
+  "frog-hearts": { a: "#f8aabe", b: "#9d3852", r: 12 }, // palette-exempt: the frame's own light
+  "frog-wizard": { a: "#cf96ec", b: "#671d8e", r: 12 }, // palette-exempt: the frame's own light
+  "frog-gamer": { a: "#9ccddb", b: "#246577", r: 12 }, // palette-exempt: the frame's own light
+  "frog-rage": { a: "#e28d89", b: "#80120c", r: 12 }, // palette-exempt: the frame's own light
+  "frog-storm": { a: "#ced1d7", b: "#656a72", r: 12 }, // palette-exempt: the frame's own light
+  "frog-money": { a: "#d4d899", b: "#6d7321", r: 12 }, // palette-exempt: the frame's own light
+  "frog-hood": { a: "#88d8e4", b: "#0b7383", r: 12 }, // palette-exempt: the frame's own light
+  "frog-sleepy": { a: "#b9c0c2", b: "#4b5456", r: 12 }, // palette-exempt: the frame's own light
+  "frog-angel": { a: "#eacf9e", b: "#8a6727", r: 12 }, // palette-exempt: the frame's own light
+  "frog-devil": { a: "#e6928a", b: "#85180d", r: 12 }, // palette-exempt: the frame's own light
+  "frog-explorer": { a: "#e4ccaf", b: "#82643e", r: 12 }, // palette-exempt: the frame's own light
+  "frog-sakura": { a: "#efb2b4", b: "#914144", r: 12 }, // palette-exempt: the frame's own light
+  "frog-samurai": { a: "#e6b4a8", b: "#864434", r: 12 }, // palette-exempt: the frame's own light
+  "frog-astronaut": { a: "#c2bdc6", b: "#56505c", r: 12 }, // palette-exempt: the frame's own light
+  "frog-christmas": { a: "#cba2a5", b: "#622d31", r: 12 }, // palette-exempt: the frame's own light
+  "frog-pumpkin": { a: "#e8b283", b: "#884105", r: 12 }, // palette-exempt: the frame's own light
+  "frog-glitch": { a: "#afa6e4", b: "#3e3183", r: 12 }, // palette-exempt: the frame's own light
 }
 
 /** The soft light round a frame (frames stand still and glow instead of moving): a close rim in one colour and a wide halo in the other. */
