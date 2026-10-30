@@ -250,7 +250,7 @@ function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () =
 
   return (
     <Sheet open={open} onOpenChange={(next) => { if (!next) onClose() }}>
-      <DetailSheetContent width="max-w-xl">
+      <DetailSheetContent width="max-w-xl" backdrop={<div className="size-full" style={{ background: "radial-gradient(70% 100% at 50% 0%, color-mix(in oklab, var(--brand) 22%, transparent), transparent 75%)" }} />}>
         <div className="px-1 pb-2 pt-1 sm:px-0">
         <div className="flex h-14 items-center justify-between pl-5 pr-14">
           <SheetTitle className="flex items-center gap-2.5 text-base font-semibold text-[var(--text)]"><span className="lx-add-icon"><MessageSquarePlus className="size-4" /></span>Write a review</SheetTitle>
