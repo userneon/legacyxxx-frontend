@@ -12,8 +12,6 @@ import type {
   ClanRankEntry,
   ClanBank,
   ClanStats,
-  ClanWar,
-  ClanWarLadderEntry,
   MyClanState,
 } from "./types"
 
@@ -87,23 +85,6 @@ export const clansService = {
     return post<{ balance: number }>(`/api/v1/clans/${clanId}/bank/donate`, { amount }, options)
   },
 
-  async getWars(clanId: string, options?: CallOptions): Promise<{ wars: ClanWar[]; war: ClanStats["progress"]["war"] }> {
-    return get<{ wars: ClanWar[]; war: ClanStats["progress"]["war"] }>(`/api/v1/clans/${clanId}/wars`, undefined, options)
-  },
-
-  /** Leader or co-leader: challenge another clan (by id or number) for a time and map. */
-  async challenge(clanId: string, payload: { opponent: string; map: string; scheduledAt: string; note?: string }, options?: CallOptions): Promise<{ id: string }> {
-    return post<{ id: string }>(`/api/v1/clans/${clanId}/wars`, payload, options)
-  },
-
-  async answerWar(clanId: string, warId: string, action: "accept" | "decline" | "cancel", options?: CallOptions): Promise<{ status: ClanWar["status"] }> {
-    return post<{ status: ClanWar["status"] }>(`/api/v1/clans/${clanId}/wars/${warId}/${action}`, {}, options)
-  },
-
-  async getWarLadder(options?: CallOptions): Promise<ClanWarLadderEntry[]> {
-    const response = await get<{ clans: ClanWarLadderEntry[] }>("/api/v1/clans/war-ladder", undefined, options)
-    return response.clans
-  },
 
   /** Any player: the look items and which ones they own (buying needs no clan; wearing needs a clan you lead). */
   async getMyLooks(options?: CallOptions): Promise<ClanLooks> {

@@ -466,8 +466,6 @@ function clanRows(a: { clan: ClanDetail; stats: ClanStats }, b: { clan: ClanDeta
   const row = (key: string, label: string, pick: (side: { clan: ClanDetail; stats: ClanStats }) => number, show = whole, decimals = 0, suffix = "", gap = whole): Row => ({ key, label, a: pick(a), b: pick(b), show, decimals, suffix, gap })
   return [
     row("level", "Level", (side) => side.stats.progress.level),
-    row("war", "War rating", (side) => side.stats.progress.war.rating),
-    row("warWins", "Wars won", (side) => side.stats.progress.war.wins),
     row("members", "Members", (side) => side.clan.currentPlayers),
     row("matches", "Matches", (side) => side.stats.totals.matches),
     row("winRate", "Win rate", (side) => side.stats.totals.winRate, pct, 0, "%", (value) => `${Math.round(value)} pts`),
@@ -478,7 +476,7 @@ function clanRows(a: { clan: ClanDetail; stats: ClanStats }, b: { clan: ClanDeta
   ]
 }
 
-/** Two clans side by side: level, Clan War record and the members' real ranked numbers (GET /clans/:id and /clans/:id/stats). */
+/** Two clans side by side: level and the members' real ranked numbers (GET /clans/:id and /clans/:id/stats). */
 function ClanCompare({ params, setParams }: { params: URLSearchParams; setParams: ReturnType<typeof useViewParams>[1] }) {
   const idA = params.get("ca"), idB = params.get("cb")
   const load = (id: string | null) => async (signal: AbortSignal) => { const [clan, stats] = await Promise.all([clansService.getClan(id!, { signal }), clansService.getStats(id!, { signal })]); return { clan, stats } }

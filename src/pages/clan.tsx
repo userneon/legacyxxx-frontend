@@ -16,7 +16,7 @@ import { ClanAppearancePanel } from "@/components/shop-clan"
 import { CLAN_ART_RULES, clanArtProblem, clanArtSrc, type ClanArtKind } from "@/api/clans"
 import type { ClanCard, ClanDetail, ClanJoinRequest, ClanRole, MyClanState } from "@/api/types"
 import { ClanMark } from "@/components/clan-mark"
-import { ClanBankPanel, ClanSectionTabs, ClanStatsPanel, ClanWarsPanel, type ClanSection } from "@/components/clan-extras"
+import { ClanBankPanel, ClanSectionTabs, ClanStatsPanel, type ClanSection } from "@/components/clan-extras"
 import { ActivityPanel, ManagersSection, useClanFee, InvitePanel, MemberControls, RenameForm, clanFailure, roleLabel } from "@/components/clan-manage"
 import { Button } from "@/components/ui/button"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
@@ -546,7 +546,6 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
 
               <ClanSectionTabs value={shown} onChange={setSection} member={Boolean(role)} />
               {shown === "stats" && <ClanStatsPanel clanId={clanId} onProfileNavigate={onProfileNavigate} />}
-              {shown === "wars" && <ClanWarsPanel clanId={clanId} role={role} onClanNavigate={(id) => navigate(`/clans/${id}`)} />}
               {shown === "bank" && <ClanBankPanel clan={clan} role={role} onChanged={() => void refetch()} onProfileNavigate={onProfileNavigate} />}
               {shown === "roster" && <>
               {isManager && <JoinRequests clanId={clanId} onAccepted={() => void refetch()} />}

@@ -1,20 +1,18 @@
-import { useMemo, useState } from "react"
-import { Check, Coins, Crosshair, Flame, Medal, RotateCcw, Shield, Swords, Trophy, Users, X } from "lucide-react"
+import { useState } from "react"
+import { Check, Coins, Crosshair, Flame, Medal, RotateCcw, Trophy, Users } from "lucide-react"
 import { toast } from "sonner"
 
 import { clansService } from "@/api"
-import type { ClanCard, ClanDetail, ClanRole, ClanStatPerson, ClanStats, ClanWar } from "@/api/types"
-import { ClanMark } from "@/components/clan-mark"
+import type { ClanDetail, ClanRole, ClanStatPerson, ClanStats } from "@/api/types"
 import { clanFailure } from "@/components/clan-manage"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useApiQuery } from "@/hooks/use-api-query"
-import { CS2_MAP_KEYS, cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { cn } from "@/lib/utils"
 
-export type ClanSection = "roster" | "stats" | "wars" | "bank"
+export type ClanSection = "roster" | "stats" | "bank"
 
 /** The staff-site kind colours, used on the clan sections so each kind of number reads apart at a glance (`.lx-tone`). */
 type Tone = "red" | "amber" | "green" | "sky" | "violet" | "grey"
@@ -25,13 +23,12 @@ function ToneCell({ label, value, tone }: { label: string; value: string; tone: 
   return <div data-tone={tone} className="lx-tone lx-stat-cell"><span className="lx-stat-label lx-tone-text">{label}</span><span className="text-[22px] font-semibold leading-none">{value}</span></div>
 }
 
-/** The clan page's own sections under its header: Roster, Stats, Wars, and the Bank for members. */
+/** The clan page's own sections under its header: Roster, Stats, and the Bank for members. */
 export function ClanSectionTabs({ value, onChange, member }: { value: ClanSection; onChange: (next: ClanSection) => void; member: boolean }) {
   // Each section has its own colour (owner request 2026-10-25, "tell them apart by colour"): the icon, and the underline when open.
   const options: Array<{ value: ClanSection; label: string; Icon: typeof Users; tone: Tone }> = [
     { value: "roster", label: "Roster", Icon: Users, tone: "violet" },
     { value: "stats", label: "Stats", Icon: Trophy, tone: "amber" },
-    { value: "wars", label: "Wars", Icon: Swords, tone: "red" },
     ...(member ? [{ value: "bank" as const, label: "Bank", Icon: Coins, tone: "green" as const }] : []),
   ]
   return (
@@ -65,7 +62,7 @@ function LevelCard({ progress }: { progress: ClanStats["progress"] }) {
             <span className="text-[11px] text-[var(--text-dim)]">{progress.next === null ? `${progress.xp.toLocaleString()} XP · top level` : `${progress.xp.toLocaleString()} / ${progress.next.toLocaleString()} XP`}</span>
           </span>
           <span className="h-2 overflow-hidden rounded-full bg-[var(--raised)]"><span className="block h-full rounded-full bg-[var(--brand)]" style={{ width: `${Math.round(Math.min(1, Math.max(0, done)) * 100)}%` }} /></span>
-          <span className="text-[11px] text-[var(--text-dim)]">Members earn XP for the clan in ranked matches (win 25, draw 15, loss 10) and Clan Wars (win 100, played 40).</span>
+          <span className="text-[11px] text-[var(--text-dim)]">Members earn XP for the clan in ranked matches (win 25, draw 15, loss 10).</span>
         </div>
       </div>
       <ul className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
@@ -142,174 +139,7 @@ export function ClanStatsPanel({ clanId, onProfileNavigate }: { clanId: string; 
 }
 
 /** Achievement colours by ladder; one not started yet stays grey. */
-const ACHIEVEMENT_TONE: Record<string, Tone> = { wins: "green", matches: "sky", aces: "amber", clutches: "amber", wars: "red", level: "violet", members: "violet" }
-
-/** A war's colour: its result once played (green won, red lost, grey drawn), amber while waiting, sky once accepted, grey when off. */
-const WAR_TONE = (war: ClanWar): Tone => war.status === "finished" ? (war.result === "win" ? "green" : war.result === "loss" ? "red" : "grey") : war.status === "pending" ? "amber" : war.status === "accepted" ? "sky" : "grey"
-
-const STATUS_LABEL: Record<ClanWar["status"], string> = { pending: "Waiting for an answer", accepted: "Accepted", declined: "Declined", cancelled: "Called off", finished: "Played", expired: "Expired" }
-
-function localInput(date: Date) {
-  const pad = (value: number) => String(value).padStart(2, "0")
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
-}
-
-/** A leader or co-leader picks the clan, the map and the time. */
-function ChallengeForm({ clanId, onSent }: { clanId: string; onSent: () => void }) {
-  const [query, setQuery] = useState("")
-  const [opponent, setOpponent] = useState<ClanCard | null>(null)
-  const [map, setMap] = useState("de_mirage")
-  const [when, setWhen] = useState(() => localInput(new Date(Date.now() + 24 * 3600_000)))
-  const [note, setNote] = useState("")
-  const [busy, setBusy] = useState(false)
-  const { data: found } = useApiQuery<ClanCard[]>((signal) => clansService.getClans({ q: query.trim() || undefined, limit: 6 }, { signal }), { queryKey: `clan-war-search:${query.trim()}` })
-  const choices = (found ?? []).filter((clan) => clan.id !== clanId && String(clan.number) !== clanId)
-  const send = async () => {
-    if (!opponent) return
-    setBusy(true)
-    try {
-      await clansService.challenge(clanId, { opponent: opponent.id, map, scheduledAt: new Date(when).toISOString(), ...(note.trim() ? { note: note.trim() } : {}) })
-      toast.success(`Challenge sent to ${opponent.name}`)
-      setOpponent(null)
-      setNote("")
-      onSent()
-    } catch (failure) {
-      toast.error("Could not send it", { description: clanFailure(failure, "Try again in a moment.") })
-    } finally {
-      setBusy(false)
-    }
-  }
-  return (
-    <section className="lx-add-box flex flex-col gap-4 rounded-xl border p-4">
-      <h2 className="flex items-center gap-2 text-[15px] font-semibold"><span className="lx-add-icon"><Swords className="size-4" aria-hidden="true" /></span>Challenge a clan</h2>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="war-clan">Clan</Label>
-        {opponent ? (
-          <div className="flex items-center gap-3 rounded-lg border border-[var(--line-strong)] p-2">
-            <ClanMark logo={opponent.logo} tag={opponent.tag} className="size-9 text-[11px]" />
-            <span className="min-w-0 flex-1 truncate text-[13px] font-semibold">{opponent.name} <span className="text-[var(--text-dim)]">[{opponent.tag}]</span></span>
-            <button type="button" aria-label="Pick another clan" onClick={() => setOpponent(null)} className="grid size-8 place-items-center rounded-lg text-[var(--text-dim)] hover:bg-[var(--raised)] hover:text-[var(--text)]"><X className="size-4" aria-hidden="true" /></button>
-          </div>
-        ) : (
-          <>
-            <Input id="war-clan" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search a clan by name" autoComplete="off" />
-            <ul className="grid gap-1.5 sm:grid-cols-2">
-              {choices.map((clan) => (
-                <li key={clan.id}>
-                  <button type="button" onClick={() => setOpponent(clan)} className="flex w-full items-center gap-2.5 rounded-lg border border-[var(--line)] p-2 text-left transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)]">
-                    <ClanMark logo={clan.logo} tag={clan.tag} className="size-8 text-[10px]" />
-                    <span className="min-w-0 flex-1 truncate text-[13px]">{clan.name} <span className="text-[var(--text-dim)]">[{clan.tag}]</span></span>
-                    <span className="text-[11px] text-[var(--text-dim)]">{clan.currentPlayers} members</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-      </div>
-      <div className="flex flex-col gap-2">
-        <Label>Map</Label>
-        <div role="radiogroup" aria-label="Map" className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
-          {CS2_MAP_KEYS.map((key) => (
-            <button key={key} type="button" role="radio" aria-checked={map === key} onClick={() => setMap(key)} className={cn("relative h-14 overflow-hidden rounded-lg border text-left transition-colors", map === key ? "border-[var(--brand)]" : "border-[var(--line)] hover:border-[var(--line-strong)]")}>
-              {cs2MapArtwork(key) && <img src={cs2MapArtwork(key) ?? ""} alt="" loading="lazy" className={cn("absolute inset-0 size-full object-cover", map === key ? "opacity-70" : "opacity-35")} />}
-              <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[var(--card-surface)] px-2 py-1 text-[11px] font-semibold">{cs2MapLabel(key)}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="war-when">When</Label>
-          <Input id="war-when" type="datetime-local" value={when} min={localInput(new Date(Date.now() + 15 * 60_000))} onChange={(event) => setWhen(event.target.value)} />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="war-note">Note (optional)</Label>
-          <Input id="war-note" maxLength={140} value={note} onChange={(event) => setNote(event.target.value)} placeholder="e.g. Best of one, server 5x5 #1" autoComplete="off" />
-        </div>
-      </div>
-      <p className="text-[11px] text-[var(--text-dim)]">The result is not typed in: when at least three players of each clan (or the whole team, if smaller) play a ranked match against each other from an hour before to six hours after the time, that match settles the war.</p>
-      <button type="button" disabled={!opponent || busy} onClick={() => void send()} className="lx-primary-button inline-flex h-10 items-center justify-center gap-2 self-start rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50"><Swords className="size-4" aria-hidden="true" />Send challenge</button>
-    </section>
-  )
-}
-
-/** Wars of the clan: its record and rating, what waits for an answer, what is coming and what was played. */
-export function ClanWarsPanel({ clanId, role, onClanNavigate }: { clanId: string; role: ClanRole | null; onClanNavigate: (id: string) => void }) {
-  const { data, loading, error, refetch } = useApiQuery((signal) => clansService.getWars(clanId, { signal }), { queryKey: `clan-wars:${clanId}` })
-  const [busy, setBusy] = useState("")
-  const manager = role === "leader" || role === "co-leader"
-  const groups = useMemo(() => {
-    const wars = data?.wars ?? []
-    return {
-      open: wars.filter((war) => war.status === "pending" || war.status === "accepted").sort((a, b) => Date.parse(a.scheduledAt) - Date.parse(b.scheduledAt)),
-      past: wars.filter((war) => war.status !== "pending" && war.status !== "accepted"),
-    }
-  }, [data])
-  const answer = async (war: ClanWar, action: "accept" | "decline" | "cancel") => {
-    setBusy(war.id)
-    try {
-      await clansService.answerWar(clanId, war.id, action)
-      toast.success(action === "accept" ? "War accepted" : action === "decline" ? "Challenge declined" : "War called off")
-      void refetch()
-    } catch (failure) {
-      toast.error("That did not work", { description: clanFailure(failure, "Try again in a moment.") })
-    } finally {
-      setBusy("")
-    }
-  }
-  if (loading && !data) return <div className="flex flex-col gap-3"><Skeleton className="h-[86px] rounded-xl" /><Skeleton className="h-[120px] rounded-xl" /></div>
-  if (error || !data) return <Retry onRetry={refetch} text="Could not load the clan's wars." />
-  const record = data.war
-  const row = (war: ClanWar) => {
-    const resultTone = war.result === "win" ? "text-[var(--result-win)]" : war.result === "loss" ? "text-[var(--result-loss)]" : "text-[var(--result-draw)]"
-    return (
-      <li key={war.id} data-tone={WAR_TONE(war)} className="lx-tone flex flex-wrap items-center gap-3 overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3">
-        <button type="button" disabled={!war.opponent} onClick={() => war.opponent && onClanNavigate(String(war.opponent.number ?? war.opponent.id))} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-          {war.opponent ? <ClanMark logo={war.opponent.logo} tag={war.opponent.tag} className="size-10 text-[11px]" /> : <span className="grid size-10 place-items-center rounded-[10px] border border-[var(--line)]"><Shield className="size-4 text-[var(--text-faint)]" aria-hidden="true" /></span>}
-          <span className="flex min-w-0 flex-col">
-            <span className="truncate text-[13px] font-semibold">{war.side === "challenger" ? "vs " : "From "}{war.opponent?.name ?? "A clan that is gone"}{war.opponent && <span className="text-[var(--text-dim)]"> [{war.opponent.tag}]</span>}</span>
-            <span className="text-[11px] text-[var(--text-dim)]">{cs2MapLabel(war.map)} · {new Date(war.scheduledAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}{war.note ? ` · ${war.note}` : ""}</span>
-          </span>
-        </button>
-        {war.status === "finished" ? (
-          <span className="flex items-center gap-3">
-            {war.score && <span className="text-[15px] font-semibold">{war.score.us} : {war.score.them}</span>}
-            <span className={cn("text-[13px] font-semibold capitalize", resultTone)}>{war.result}</span>
-            {war.ratingChange !== null && <span className={cn("text-[11px]", war.ratingChange > 0 ? "text-[var(--result-win)]" : war.ratingChange < 0 ? "text-[var(--result-loss)]" : "text-[var(--result-draw)]")}>{war.ratingChange > 0 ? "+" : war.ratingChange < 0 ? "−" : "±"}{Math.abs(war.ratingChange)}</span>}
-          </span>
-        ) : (
-          <span className="lx-tone-text text-[11px] font-semibold">{STATUS_LABEL[war.status]}</span>
-        )}
-        {manager && war.status === "pending" && war.side === "opponent" && (
-          <span className="flex gap-1.5">
-            <button type="button" disabled={busy === war.id} onClick={() => void answer(war, "accept")} className="lx-primary-button inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold disabled:opacity-50"><Check className="size-3.5" aria-hidden="true" />Accept</button>
-            <button type="button" disabled={busy === war.id} onClick={() => void answer(war, "decline")} className="inline-flex h-8 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-xs hover:border-[var(--line-strong)] disabled:opacity-50">Decline</button>
-          </span>
-        )}
-        {manager && (war.status === "accepted" || (war.status === "pending" && war.side === "challenger")) && Date.parse(war.scheduledAt) > Date.now() && (
-          <button type="button" disabled={busy === war.id} onClick={() => void answer(war, "cancel")} className="inline-flex h-8 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-xs text-[var(--text-2)] hover:border-[var(--line-strong)] disabled:opacity-50">Call off</button>
-        )}
-      </li>
-    )
-  }
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="lx-stat-grid grid-cols-2 sm:grid-cols-4">
-        {([["War rating", record.rating.toLocaleString(), "violet"], ["Wins", record.wins.toLocaleString(), "green"], ["Losses", record.losses.toLocaleString(), "red"], ["Draws", record.draws.toLocaleString(), "grey"]] as const).map(([label, value, tone]) => <ToneCell key={label} label={label} value={value} tone={tone} />)}
-      </div>
-      {manager && <ChallengeForm clanId={clanId} onSent={() => void refetch()} />}
-      <section className="flex flex-col gap-2.5">
-        <h2 className="lx-shop-heading">Coming up</h2>
-        {groups.open.length ? <ul className="flex flex-col gap-2">{groups.open.map(row)}</ul> : <p className="text-[13px] text-[var(--text-dim)]">No open challenges.</p>}
-      </section>
-      <section className="flex flex-col gap-2.5">
-        <h2 className="lx-shop-heading">History</h2>
-        {groups.past.length ? <ul className="flex flex-col gap-2">{groups.past.map(row)}</ul> : <p className="text-[13px] text-[var(--text-dim)]">No wars yet.</p>}
-      </section>
-    </div>
-  )
-}
+const ACHIEVEMENT_TONE: Record<string, Tone> = { wins: "green", matches: "sky", aces: "amber", clutches: "amber", level: "violet", members: "violet" }
 
 /** Members give LX to the clan; the leader spends it on member slots. */
 export function ClanBankPanel({ clan, role, onChanged, onProfileNavigate }: { clan: ClanDetail; role: ClanRole | null; onChanged: () => void; onProfileNavigate: (id: string) => void }) {

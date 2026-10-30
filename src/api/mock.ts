@@ -861,28 +861,14 @@ export async function mockResponse(method: string, path: string, query: Query, b
       { matchId: "h4", map: "de_ancient", at: at(6), together: true, outcome: "loss", aKills: 12, bKills: 14 },
     ] }
   }
-  if (path === "/api/v1/clans/war-ladder") return { clans: MOCK_CLANS.map((clan, index) => ({ ...clan, rank: index + 1, war: { rating: 1064 - index * 40, wins: 5 - index, losses: 1 + index, draws: 0 } })) }
   if (/^\/api\/v1\/clans\/[^/]+\/stats$/.test(path)) {
     const person = (index: number, value: number) => ({ id: `m${index}`, steamId: "", name: index === 0 ? "Leader" : `Member ${index}`, avatar: "", value })
     return {
       totals: { matches: 64, wins: 38, draws: 3, losses: 23, kills: 3120, deaths: 2710, assists: 980, headshots: 1490, aces: 4, clutches: 37, rounds: 1490, kd: 1.15, winRate: 59.4, headshotRate: 47.8 },
       leaders: { kills: person(1, 912), kd: person(0, 1.34), wins: person(1, 31), weekMvp: person(2, 184) },
-      achievements: [["wins", "Wins", 1, 4, 38, 50], ["matches", "Matches played", 1, 3, 64, 250], ["aces", "Aces", 1, 3, 4, 10], ["clutches", "Clutches", 1, 3, 37, 50], ["wars", "Clan Wars won", 1, 3, 3, 10], ["level", "Clan level", 0, 3, 4, 5], ["members", "Members", 0, 2, 5, 10]].map(([id, title, tier, tiers, value, goal]) => ({ id, title, tier, tiers, value, goal, complete: false })),
-      progress: { level: 4, xp: 1310, floor: 1050, next: 1600, perks: [[2, 0, "Level badge on the clan card"], [3, 1, "+1 member slot"], [5, 1, "+1 member slot, silver level ring"], [7, 1, "+1 member slot"], [10, 2, "+2 member slots, gold level ring"], [15, 2, "+2 member slots, violet level ring"]].map(([level, slots, perk]) => ({ level, slots, perk, unlocked: Number(level) <= 4 })), war: { rating: 1048, wins: 3, losses: 1, draws: 0 } },
+      achievements: [["wins", "Wins", 1, 4, 38, 50], ["matches", "Matches played", 1, 3, 64, 250], ["aces", "Aces", 1, 3, 4, 10], ["clutches", "Clutches", 1, 3, 37, 50], ["level", "Clan level", 0, 3, 4, 5], ["members", "Members", 0, 2, 5, 10]].map(([id, title, tier, tiers, value, goal]) => ({ id, title, tier, tiers, value, goal, complete: false })),
+      progress: { level: 4, xp: 1310, floor: 1050, next: 1600, perks: [[2, 0, "Level badge on the clan card"], [3, 1, "+1 member slot"], [5, 1, "+1 member slot, silver level ring"], [7, 1, "+1 member slot"], [10, 2, "+2 member slots, gold level ring"], [15, 2, "+2 member slots, violet level ring"]].map(([level, slots, perk]) => ({ level, slots, perk, unlocked: Number(level) <= 4 })) },
     }
-  }
-  if (/^\/api\/v1\/clans\/[^/]+\/wars\/[^/]+\/(accept|decline|cancel)$/.test(path)) return { status: path.endsWith("accept") ? "accepted" : path.endsWith("decline") ? "declined" : "cancelled" }
-  if (/^\/api\/v1\/clans\/[^/]+\/wars$/.test(path)) {
-    if (method === "POST") return { id: "w-new" }
-    const at = (hours: number) => new Date(Date.now() + hours * HOUR).toISOString()
-    const war = (id: string, other: number, status: string, side: string, map: string, hours: number, extra: Record<string, unknown> = {}) => ({ id, status, side, map, scheduledAt: at(hours), note: null, opponent: MOCK_CLANS[other], result: null, score: null, ratingChange: null, matchId: null, ...extra })
-    return { war: { rating: 1048, wins: 3, losses: 1, draws: 0 }, wars: [
-      war("w1", 1, "pending", "opponent", "de_inferno", 20, { note: "Best of one, server 5x5 #1" }),
-      war("w2", 2, "accepted", "challenger", "de_mirage", 46),
-      war("w3", 1, "finished", "challenger", "de_ancient", -30, { result: "win", score: { us: 13, them: 9 }, ratingChange: 18 }),
-      war("w4", 2, "finished", "opponent", "de_nuke", -80, { result: "loss", score: { us: 10, them: 13 }, ratingChange: -14 }),
-      war("w5", 1, "declined", "challenger", "de_dust2", -120),
-    ] }
   }
   if (/^\/api\/v1\/clans\/[^/]+\/bank\/donate$/.test(path)) return { balance: 2450 }
   if (/^\/api\/v1\/clans\/[^/]+\/bank$/.test(path)) return { balance: 2350, slotPrice: 300, donors: [["Member 1", 1200], ["Leader", 800], ["Member 3", 650]].map(([name, total], index) => ({ id: `m${index}`, steamId: "", name, avatar: "", total })), log: [{ amount: 500, reason: "gift", at: new Date(Date.now() - 2 * HOUR).toISOString(), name: "Member 1" }, { amount: -300, reason: "member slots 8 to 10", at: new Date(Date.now() - 26 * HOUR).toISOString(), name: "Leader" }, { amount: 800, reason: "gift", at: new Date(Date.now() - 50 * HOUR).toISOString(), name: "Leader" }] }
