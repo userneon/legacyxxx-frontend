@@ -73,7 +73,7 @@ function Scoreboard({ team, highlightSteamId, onPlayer }: { team: MatchDetailTea
               ))}
             </tr>
           </thead>
-          <tbody className="stagger-in">
+          <tbody>
             {team.players.map((player) => {
               const highlighted = Boolean(highlightSteamId) && player.steamId === highlightSteamId
               return (
@@ -89,7 +89,7 @@ function Scoreboard({ team, highlightSteamId, onPlayer }: { team: MatchDetailTea
                       onClick={() => onPlayer(player.steamId)}
                       className="group flex min-w-0 items-center gap-2.5 text-left disabled:cursor-default"
                     >
-                      <PlayerAvatar avatar={player.avatar} name={player.username} frame={player.frame} className={cn("size-7 rounded-md text-[10px]", highlighted && !player.frame && "ring-2 ring-white/60")} />
+                      <PlayerAvatar avatar={player.avatar} name={player.username} frame={player.frame} className={cn("size-7 shrink-0 rounded-md text-[10px]", highlighted && !player.frame && "ring-2 ring-white/60")} />
                       <span {...nameProps(player.nameStyle, "truncate font-medium group-enabled:group-hover:underline")}>{player.username}</span>
                     </button>
                   </td>
