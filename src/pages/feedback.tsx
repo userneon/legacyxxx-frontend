@@ -1,6 +1,6 @@
 import { PageBar, PageBarEnd, PageTabs } from "@/components/page-tabs"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
-import { Clock, Heart, Laugh, LoaderCircle, PenLine, RotateCcw, ShieldCheck, Star, ThumbsUp, X, MessageSquarePlus } from "lucide-react"
+import { Clock, Heart, Laugh, LoaderCircle, PenLine, RotateCcw, ShieldCheck, Star, ThumbsUp, MessageSquarePlus } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { feedbackService } from "@/api"
@@ -13,7 +13,8 @@ import { nameProps } from "@/lib/cosmetics"
 import { formatRelativeTime } from "@/components/relative-time"
 import { SteamLoginButton } from "@/components/steam-login-gate"
 import { Segmented } from "@/components/segmented"
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
+import { DetailSheetContent } from "@/components/detail-sheet"
+import { Sheet, SheetDescription, SheetTitle } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 
 type SortKey = "newest" | "highest" | "lowest"
@@ -237,19 +238,13 @@ function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () =
   }
 
   return (
-    <Dialog open={open} onOpenChange={(next) => { if (!next) onClose() }}>
-      <DialogContent
-        showCloseButton={false}
-        overlayClassName="lx-blur-overlay bg-black/55 backdrop-blur-[10px]"
-        className="lx-add-box w-[520px] max-w-[calc(100%-2rem)] gap-0 rounded-2xl border p-0 lx-blur-panel sm:max-w-[520px]"
-      >
+    <Sheet open={open} onOpenChange={(next) => { if (!next) onClose() }}>
+      <DetailSheetContent width="max-w-xl">
+        <div className="lx-add-box mx-3 mb-2 mt-1 overflow-hidden rounded-2xl border sm:mx-0">
         <div className="flex h-14 items-center justify-between border-b border-[var(--line-soft)] pl-5 pr-3">
-          <DialogTitle className="flex items-center gap-2.5 text-base font-semibold text-[var(--text)]"><span className="lx-add-icon"><MessageSquarePlus className="size-4" /></span>Write a review</DialogTitle>
-          <button type="button" onClick={onClose} aria-label="Close" className="flex size-8 items-center justify-center rounded-lg text-[var(--text-muted)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-            <X className="size-4" />
-          </button>
+          <SheetTitle className="flex items-center gap-2.5 text-base font-semibold text-[var(--text)]"><span className="lx-add-icon"><MessageSquarePlus className="size-4" /></span>Write a review</SheetTitle>
         </div>
-        <DialogDescription className="sr-only">Rate LEGACY-X and describe your experience.</DialogDescription>
+        <SheetDescription className="sr-only">Rate LEGACY-X and describe your experience.</SheetDescription>
         <div className="flex flex-col gap-[18px] p-5">
           <div className="flex flex-col gap-2">
             <span className="text-xs text-[var(--text-muted)]">Your rating</span>
@@ -310,8 +305,9 @@ function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () =
             Post review
           </button>
         </div>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </DetailSheetContent>
+    </Sheet>
   )
 }
 
