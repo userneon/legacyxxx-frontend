@@ -290,8 +290,9 @@ export function MatchDetailsDialog({ matchId, mapNumber, highlightSteamId, onOpe
         <div>
           {/* Header: map art, team names and the final score */}
           <div className="relative isolate overflow-hidden px-5 pb-5 pt-6">
-            {art && <img src={art} alt="" aria-hidden="true" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-40" />}
-            <div className="absolute inset-0 -z-10 bg-gradient-to-b from-black/30 via-background/70 to-background" />
+            {art && <img src={art} alt="" aria-hidden="true" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-70 [mask-image:linear-gradient(to_bottom,#000_35%,transparent)]" />}
+            <div className="absolute inset-0 -z-10 bg-gradient-to-r from-background via-transparent to-background" />
+            <div className="absolute inset-0 -z-10 bg-gradient-to-b from-transparent via-transparent to-background" />
             <DialogHeader className="items-center text-center sm:text-center">
               <DialogTitle className="font-display text-xl tracking-wide">{detail ? cs2MapLabel(detail.mapName) : "Match details"}</DialogTitle>
               <DialogDescription className="flex items-center justify-center gap-1.5 text-xs">
