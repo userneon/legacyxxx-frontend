@@ -291,12 +291,10 @@ export function MatchDetailsDialog({ matchId, mapNumber, highlightSteamId, onOpe
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <DetailSheetContent width="max-w-5xl">
+      <DetailSheetContent width="max-w-5xl" backdrop={art ? <img src={art} alt="" className="size-full object-cover opacity-60" /> : undefined}>
         <div>
           {/* Header: map art, team names and the final score */}
-          <div className="relative isolate overflow-hidden px-5 pb-5 pt-6">
-            {art && <img src={art} alt="" aria-hidden="true" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-80 [mask-image:linear-gradient(to_bottom,#000_45%,transparent)]" />}
-            <div className="absolute inset-0 -z-10 bg-gradient-to-b from-transparent via-transparent to-background" />
+          <div className="relative px-5 pb-5 pt-6">
             <DialogHeader className="items-center text-center sm:text-center">
               <DialogTitle className="font-display text-xl tracking-wide">{detail ? cs2MapLabel(detail.mapName) : "Match details"}</DialogTitle>
               <DialogDescription className="flex items-center justify-center gap-1.5 text-xs">

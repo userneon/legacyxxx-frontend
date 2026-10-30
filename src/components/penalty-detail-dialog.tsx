@@ -159,7 +159,10 @@ export function PenaltyDetailSheet({
   const access = useModerationAccess()
   return (
     <Sheet open={penalty !== null} onOpenChange={(open) => { if (!open) onClose() }}>
-      <DetailSheetContent width="max-w-3xl">
+      <DetailSheetContent
+        width="max-w-3xl"
+        backdrop={penalty ? <div className="size-full" style={{ background: `radial-gradient(70% 100% at 50% 0%, color-mix(in oklab, ${penaltyStatusColor(penalty)} 32%, transparent), transparent 75%)` }} /> : undefined}
+      >
         {penalty && (() => {
           const color = penaltyStatusColor(penalty)
           const meta = TYPE_META[penalty.type] ?? TYPE_META.ban

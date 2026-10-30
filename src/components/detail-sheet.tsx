@@ -9,8 +9,10 @@ import { cn } from "@/lib/utils"
  * bottom and fills the screen but a thin strip at the top, with a grab handle (drag it down to close) and a close button. Use it inside a <Sheet>;
  * `width` keeps the content to a readable column in the middle of the wide panel. The caller still gives it a title (SheetTitle / DialogTitle).
  */
-export function DetailSheetContent({ children, width = "max-w-5xl", fill = false, className, onOpenAutoFocus, onCloseAutoFocus }: {
+export function DetailSheetContent({ children, backdrop, width = "max-w-5xl", fill = false, className, onOpenAutoFocus, onCloseAutoFocus }: {
   children: ReactNode
+  /** What the view is about as the panel's backdrop (a map picture, a state colour): drawn across the full width at the top and fading out downwards. */
+  backdrop?: ReactNode
   /** The content scrolls its own parts (a list beside a preview): it gets the full height instead of one scroll for everything. */
   fill?: boolean
   /** The content column's max width class. */
@@ -40,9 +42,12 @@ export function DetailSheetContent({ children, width = "max-w-5xl", fill = false
       onCloseAutoFocus={onCloseAutoFocus}
     >
       <div ref={panel} className="lx-sheet relative mx-auto flex h-full w-[calc(100%-16px)] max-w-[1480px] flex-col overflow-hidden rounded-t-[24px] border border-b-0 border-[var(--line)] sm:w-[calc(100%-48px)]">
+        {backdrop && (
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-[460px] overflow-hidden [mask-image:linear-gradient(to_bottom,#000_40%,transparent)]">{backdrop}</div>
+        )}
         {/* Grab handle: drag down past 120px to close; a tap does nothing. */}
         <div
-          className="flex h-6 shrink-0 cursor-grab touch-none items-center justify-center active:cursor-grabbing"
+          className="relative flex h-6 shrink-0 cursor-grab touch-none items-center justify-center active:cursor-grabbing"
           onPointerDown={(event) => { drag.current = { y: event.clientY, dy: 0 }; event.currentTarget.setPointerCapture(event.pointerId) }}
           onPointerMove={(event) => { if (!drag.current) return; drag.current.dy = Math.max(0, event.clientY - drag.current.y); move(drag.current.dy, false) }}
           onPointerUp={() => { const dy = drag.current?.dy ?? 0; drag.current = null; if (dy > 120) close.current?.click(); else move(0, true) }}
@@ -55,9 +60,9 @@ export function DetailSheetContent({ children, width = "max-w-5xl", fill = false
           <X className="size-4" />
         </SheetClose>
         {fill ? (
-          <div className={cn("mx-auto flex min-h-0 w-full flex-1 flex-col", width, className)}>{children}</div>
+          <div className={cn("relative mx-auto flex min-h-0 w-full flex-1 flex-col", width, className)}>{children}</div>
         ) : (
-          <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <div className="scrollbar-hidden relative min-h-0 flex-1 overflow-y-auto overscroll-contain">
             <div className={cn("mx-auto w-full pb-8", width, className)}>{children}</div>
           </div>
         )}
