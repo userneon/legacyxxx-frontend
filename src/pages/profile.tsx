@@ -503,12 +503,12 @@ function RecentMatches({ matches, kdAverage, onOpen }: { matches: ProfileMatchRo
                 disabled={!clickable}
                 onClick={() => onOpen(match)}
                 style={{ animationDelay: `${Math.min(index, 12) * 35}ms` }}
-                className={cn(grid, "lx-row-in group relative h-[52px] w-full border-t border-[var(--raised)] text-left text-[13px] transition-[background-color] duration-500 enabled:hover:bg-[var(--raised)] enabled:hover:duration-200 disabled:cursor-default")}
+                className={cn(grid, "lx-row-in group relative isolate h-[52px] w-full overflow-hidden border-t border-[var(--raised)] text-left text-[13px] transition-[background-color] duration-500 enabled:hover:bg-[var(--raised)] enabled:hover:duration-200 disabled:cursor-default")}
               >
                 <span aria-hidden="true" className="absolute bottom-2 left-0 top-2 w-[3px] scale-y-0 rounded-r-full bg-[var(--text-2)] opacity-0 transition-[scale,opacity] duration-500 group-enabled:group-hover:scale-y-100 group-enabled:group-hover:opacity-100 group-hover:duration-300" />
+                {art && <img src={art} alt="" aria-hidden="true" className="lx-list-art pointer-events-none absolute inset-0 -z-10 size-full object-cover opacity-45 transition-opacity duration-300 group-enabled:group-hover:opacity-60" />}
                 <span className="flex min-w-0 items-center gap-2.5">
-                  <span className="h-[40px] w-[112px] shrink-0 overflow-hidden [mask-image:linear-gradient(to_right,#000_35%,transparent)]">{art && <img src={art} alt="" className="lx-layer size-full object-cover transition-[scale] duration-700 group-hover:scale-110 group-hover:duration-500" />}</span>
-                  <span className="truncate text-[var(--text)]">{cs2MapLabel(match.map)}</span>
+                  <span className="truncate font-medium text-[var(--text)]">{cs2MapLabel(match.map)}</span>
                 </span>
                 <span className={cn("font-medium", match.result === "Win" ? "text-[var(--result-win)]" : match.result === "Loss" ? "text-[var(--result-loss)]" : "text-[var(--text-muted)]")}>{match.result}</span>
                 <span className="text-[var(--text-2)]">{match.score}</span>
