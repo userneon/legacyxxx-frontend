@@ -59,7 +59,12 @@ function Scoreboard({ team, highlightSteamId, onPlayer }: { team: MatchDetailTea
         </span>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] text-sm">
+        <table className="w-full min-w-[720px] table-fixed text-sm">
+          {/* Same column widths in every team's table, so the numbers line up from one team to the other. */}
+          <colgroup>
+            <col className="w-[220px]" />
+            {Array.from({ length: 9 }, (_, index) => <col key={index} className="w-[56px]" />)}
+          </colgroup>
           <thead>
             <tr className="text-[11px] uppercase tracking-wider text-muted-foreground">
               <th className="sticky left-0 z-[1] bg-background px-3 py-2 text-left font-medium">Player</th>
