@@ -58,7 +58,7 @@ Performance = clamp( round(8 × z) , −8 , +8 )
 
 | Case | Rule |
 |---|---|
-| Player leaves and doesn't return within the Match Core rejoin window | ΔEXP = **−25** plus the `Performance` term for the rounds they played (−8 … +8, against the same lobby), so −33 … −17; counted as a loss. In a match that does not count, or with no rounds played, just −25 |
+| Player leaves and doesn't return within the Match Core rejoin window | ΔEXP = **−10**, flat, counted as a loss (owner decision 2026-10-30: it was −25 plus the `Performance` term). A registered player the server has no stats for counts as a leaver too. Nobody else's match is touched by it |
 | Your team played ≥ 3 rounds short-handed because of a leaver | Your Result loss is **halved**; gains unchanged |
 | Match not valid (see 3) | ΔEXP = 0 for everyone; match still saved in history |
 | EXP would go below 0 | Floor at 0 |
@@ -82,7 +82,7 @@ All must be true:
 2. **Each team has at least 2 human players who played**, leavers included. Any team sizes count (4v5, 3v3, 2v2, 2v5);
    a **1v1 never counts**, nor a match where a side never had two humans. (Owner decision 2026-10-18;
    it was "at least 8 human players" before.) When the other side walks out, the team that stayed still
-   gets its EXP and the leavers take their −25 (owner decision 2026-10-30: it used to be a match with ΔEXP = 0 for the winners.) Teams of different sizes use the same formula: the
+   gets its EXP and the leavers take their −10 (owner decision 2026-10-30: it used to be a match with ΔEXP = 0 for the winners.) Teams of different sizes use the same formula: the
    Elo term compares the average EXP of each team, and `Performance` is relative to the whole lobby.
 3. At least **13 rounds** were played.
 4. For each player: present for **≥ 50 % of rounds**, otherwise ΔEXP = 0 for that player
