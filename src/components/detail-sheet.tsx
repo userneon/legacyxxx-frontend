@@ -9,10 +9,12 @@ import { cn } from "@/lib/utils"
  * bottom and fills the screen but a thin strip at the top, with a grab handle (drag it down to close) and a close button. Use it inside a <Sheet>;
  * `width` keeps the content to a readable column in the middle of the wide panel. The caller still gives it a title (SheetTitle / DialogTitle).
  */
-export function DetailSheetContent({ children, backdrop, width = "max-w-5xl", fill = false, className, onOpenAutoFocus, onCloseAutoFocus }: {
+export function DetailSheetContent({ children, backdrop, instantClose = false, width = "max-w-5xl", fill = false, className, onOpenAutoFocus, onCloseAutoFocus }: {
   children: ReactNode
   /** What the view is about as the panel's backdrop (a map picture, a state colour): drawn across the full width at the top and fading out downwards. */
   backdrop?: ReactNode
+  /** Closing shows no slide-down: the view is gone at once (opening still slides up). */
+  instantClose?: boolean
   /** The content scrolls its own parts (a list beside a preview): it gets the full height instead of one scroll for everything. */
   fill?: boolean
   /** The content column's max width class. */
@@ -36,8 +38,8 @@ export function DetailSheetContent({ children, backdrop, width = "max-w-5xl", fi
     <SheetContent
       side="bottom"
       showCloseButton={false}
-      overlayClassName="lx-sheet-overlay bg-[rgba(10,10,10,0.6)] data-[state=open]:duration-300 data-[state=closed]:duration-200"
-      className="lx-detail-sheet inset-x-0 top-[max(56px,9dvh)] bottom-0 h-auto gap-0 border-0 bg-transparent p-0 shadow-none data-[state=open]:duration-[480ms] data-[state=open]:ease-[cubic-bezier(0.22,1,0.36,1)] data-[state=closed]:duration-[260ms] data-[state=closed]:ease-[cubic-bezier(0.4,0,1,1)]"
+      overlayClassName={cn("lx-sheet-overlay bg-[rgba(10,10,10,0.6)] data-[state=open]:duration-300 data-[state=closed]:duration-200", instantClose && "data-[state=closed]:animate-none data-[state=closed]:duration-0")}
+      className={cn("lx-detail-sheet inset-x-0 top-[max(56px,9dvh)] bottom-0 h-auto gap-0 border-0 bg-transparent p-0 shadow-none data-[state=open]:duration-[480ms] data-[state=open]:ease-[cubic-bezier(0.22,1,0.36,1)] data-[state=closed]:duration-[260ms] data-[state=closed]:ease-[cubic-bezier(0.4,0,1,1)]", instantClose && "data-[state=closed]:animate-none data-[state=closed]:duration-0")}
       onOpenAutoFocus={onOpenAutoFocus}
       onCloseAutoFocus={onCloseAutoFocus}
     >

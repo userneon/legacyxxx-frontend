@@ -291,7 +291,7 @@ export function MatchDetailsDialog({ matchId, mapNumber, highlightSteamId, onOpe
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <DetailSheetContent width="max-w-5xl" backdrop={art ? <img src={art} alt="" className="size-full object-cover opacity-30" /> : undefined}>
+      <DetailSheetContent instantClose width="max-w-5xl" backdrop={art ? <img src={art} alt="" className="size-full object-cover opacity-30" /> : undefined}>
         <div>
           {/* Header: map art, team names and the final score */}
           <div className="relative px-5 pb-5 pt-6">
