@@ -174,10 +174,8 @@ export function PenaltyDetailSheet({
           return (
           <>
             {/* Header tinted in the penalty's state colour (active red, permanent rose, lifted green). */}
-            <div className="relative shrink-0 overflow-hidden border-b border-[var(--line-soft)] px-[18px] pb-[18px] pr-14 pt-3">
-              <div aria-hidden="true" className="pointer-events-none absolute -inset-10" style={{ background: `radial-gradient(60% 90% at 85% 0%, color-mix(in oklab, ${color} 14%, transparent), transparent 70%)` }} />
-              <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
-              <meta.icon aria-hidden="true" strokeWidth={1.25} className="pointer-events-none absolute -right-4 -top-4 size-32 opacity-[0.08]" style={{ color }} />
+            <div className="relative shrink-0 px-[18px] pb-[18px] pr-14 pt-3">
+              <meta.icon aria-hidden="true" strokeWidth={1.25} className="pointer-events-none absolute right-10 top-2 size-28 opacity-[0.06]" style={{ color }} />
               <div className="relative flex items-center gap-3.5">
                 <PlayerModerationAvatar avatar={penalty.avatar} name={penalty.player} status={penalty.moderationStatus} className="size-14 shrink-0 rounded-2xl text-base" />
                 <div className="flex min-w-0 flex-1 flex-col gap-1.5">
