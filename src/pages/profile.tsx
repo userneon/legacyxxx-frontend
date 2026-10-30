@@ -478,7 +478,7 @@ function RecentMatches({ matches, kdAverage, onOpen }: { matches: ProfileMatchRo
             <span className="text-xs text-[var(--text-dim)]">Form</span>
             <div aria-label="Last 10 results" className="flex gap-1">
               {form.map((match, index) => (
-                <span key={index} title={match.result} style={{ animationDelay: `${index * 40}ms` }} className={cn("lx-row-in flex size-[22px] items-center justify-center rounded-md border text-[10px] font-bold", match.result === "Win" ? "border-[var(--result-win)]/45 bg-[var(--result-win)]/20 text-[var(--result-win)]" : match.result === "Loss" ? "border-[var(--result-loss)]/40 bg-[var(--result-loss)]/10 text-[var(--result-loss)]" : "border-[var(--line-strong)] text-[var(--text-dim)]")}>
+                <span key={index} title={match.result} className={cn("flex size-[22px] items-center justify-center rounded-md border text-[10px] font-bold", match.result === "Win" ? "border-[var(--result-win)]/45 bg-[var(--result-win)]/20 text-[var(--result-win)]" : match.result === "Loss" ? "border-[var(--result-loss)]/40 bg-[var(--result-loss)]/10 text-[var(--result-loss)]" : "border-[var(--line-strong)] text-[var(--text-dim)]")}>
                   {match.result === "Win" ? "W" : match.result === "Loss" ? "L" : "D"}
                 </span>
               ))}
@@ -502,8 +502,7 @@ function RecentMatches({ matches, kdAverage, onOpen }: { matches: ProfileMatchRo
                 type="button"
                 disabled={!clickable}
                 onClick={() => onOpen(match)}
-                style={{ animationDelay: `${Math.min(index, 12) * 35}ms` }}
-                className={cn(grid, "lx-row-in group relative isolate h-[52px] w-full overflow-hidden border-t border-[var(--raised)] text-left text-[13px] transition-[background-color] duration-500 enabled:hover:bg-[var(--raised)] enabled:hover:duration-200 disabled:cursor-default")}
+                className={cn(grid, "group relative isolate h-[52px] w-full overflow-hidden border-t border-[var(--raised)] text-left text-[13px] transition-[background-color] duration-500 enabled:hover:bg-[var(--raised)] enabled:hover:duration-200 disabled:cursor-default")}
               >
                 <span aria-hidden="true" className="absolute bottom-2 left-0 top-2 w-[3px] scale-y-0 rounded-r-full bg-[var(--text-2)] opacity-0 transition-[scale,opacity] duration-500 group-enabled:group-hover:scale-y-100 group-enabled:group-hover:opacity-100 group-hover:duration-300" />
                 {art && <img src={art} alt="" aria-hidden="true" className="lx-list-art pointer-events-none absolute inset-0 -z-10 size-full object-cover opacity-45 transition-opacity duration-300 group-enabled:group-hover:opacity-60" />}
