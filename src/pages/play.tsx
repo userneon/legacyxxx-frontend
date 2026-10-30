@@ -295,7 +295,7 @@ function ServerSheet({ server, onClose, gate }: { server: PlayServer | null; onC
   const connectable = Boolean(server?.joinable && validAddress(address))
   return (
     <Sheet open={server !== null} onOpenChange={(open) => { if (!open) onClose() }}>
-      <DetailSheetContent width="max-w-4xl" backdrop={server && cs2MapArtwork(live?.map ?? server.map) ? <img src={cs2MapArtwork(live?.map ?? server.map)!} alt="" className="size-full object-cover opacity-50" /> : undefined}>
+      <DetailSheetContent width="max-w-4xl" backdrop={server && cs2MapArtwork(live?.map ?? server.map) ? <img src={cs2MapArtwork(live?.map ?? server.map)!} alt="" className="size-full object-cover opacity-30" /> : undefined}>
         {server && (
           <>
             <MapArt map={live?.map ?? server.map} className="mx-3 h-[220px] shrink-0 overflow-hidden rounded-xl sm:mx-[18px]">

@@ -43,7 +43,7 @@ export function DetailSheetContent({ children, backdrop, width = "max-w-5xl", fi
     >
       <div ref={panel} className="lx-sheet relative mx-auto flex h-full w-[calc(100%-16px)] max-w-[1480px] flex-col overflow-hidden rounded-t-[24px] border border-b-0 border-[var(--line)] sm:w-[calc(100%-48px)]">
         {backdrop && (
-          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-[460px] overflow-hidden [mask-image:linear-gradient(to_bottom,#000_40%,transparent)]">{backdrop}</div>
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-[460px] overflow-hidden [mask-image:linear-gradient(to_bottom,#000_20%,transparent)]">{backdrop}</div>
         )}
         {/* Grab handle: drag down past 120px to close; a tap does nothing. */}
         <div
