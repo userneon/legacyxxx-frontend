@@ -251,8 +251,8 @@ function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () =
   return (
     <Sheet open={open} onOpenChange={(next) => { if (!next) onClose() }}>
       <DetailSheetContent width="max-w-xl">
-        <div className="lx-add-box mx-3 mb-2 mt-1 overflow-hidden rounded-2xl border sm:mx-0">
-        <div className="flex h-14 items-center justify-between border-b border-[var(--line-soft)] pl-5 pr-3">
+        <div className="px-1 pb-2 pt-1 sm:px-0">
+        <div className="flex h-14 items-center justify-between pl-5 pr-14">
           <SheetTitle className="flex items-center gap-2.5 text-base font-semibold text-[var(--text)]"><span className="lx-add-icon"><MessageSquarePlus className="size-4" /></span>Write a review</SheetTitle>
         </div>
         <SheetDescription className="sr-only">Rate LEGACY-X and describe your experience.</SheetDescription>
@@ -308,7 +308,7 @@ function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () =
           <span className="text-xs text-[var(--text-dim)]">Posted publicly with your Steam name. One review per week.</span>
           {error && <p role="alert" className="text-xs text-[var(--text-2)]">{error}</p>}
         </div>
-        <div className="flex justify-end gap-2 border-t border-[var(--line-soft)] px-5 py-3.5">
+        <div className="flex justify-end gap-2 px-5 py-3.5">
           <button type="button" onClick={onClose} className="h-9 rounded-lg border border-[var(--line)] px-4 text-[13px] font-medium text-[var(--text)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
             Cancel
           </button>
