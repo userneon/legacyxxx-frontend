@@ -24,6 +24,7 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { QueryState } from "@/components/query-state"
 import { AnimatedNumber } from "@/components/animated-number"
+import { RankLabel } from "@/components/competitive-rank-badge"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { nameProps } from "@/lib/cosmetics"
 import {
@@ -556,6 +557,10 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                   <p className="text-[13px] text-[var(--text-dim)]">No members to show.</p>
                 ) : (
                   <ul className="overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
+                    <li aria-hidden="true" className="flex h-9 items-center gap-1 border-b border-[var(--raised)] text-[11px] font-medium text-[var(--text-dim)] max-md:hidden">
+                      <span className="flex min-w-0 flex-1 items-center gap-3 px-4"><span className="w-5 shrink-0">#</span><span>Player</span><span className="flex-1" /><span className="w-[150px] shrink-0 max-lg:hidden">Rank</span><span className="w-[70px] shrink-0 text-right">Matches</span><span className="w-[64px] shrink-0 text-right">Win rate</span><span className="w-[56px] shrink-0 text-right">K/D</span><span className="w-[96px] shrink-0 text-right max-xl:hidden">FACEIT</span></span>
+                      <span className="w-[96px] shrink-0" />
+                    </li>
                     {[...members].sort((x, y) => ROLE_ORDER.indexOf(x.role) - ROLE_ORDER.indexOf(y.role)).map((member, index) => {
                       const ranked = member.role === "leader" || member.role === "co-leader"
                       return (
@@ -568,9 +573,14 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                             {ranked
                               ? <span className="inline-flex w-fit shrink-0 items-center gap-1 rounded-full border border-[color-mix(in_oklch,var(--brand-bright)_35%,transparent)] bg-[color-mix(in_oklch,var(--brand)_14%,transparent)] px-2 py-px text-[11px] font-semibold text-[var(--brand-bright)]">{member.role === "leader" && <Crown className="size-3" aria-hidden="true" />}{roleLabel(member.role)}</span>
                               : <span className="shrink-0 text-[11px] text-[var(--text-dim)]">{roleLabel(member.role)}</span>}
-                            {member.description && <span className="min-w-0 flex-1 truncate text-[11px] text-[var(--text-faint)] max-md:hidden">{member.description}</span>}
+                            <span className="min-w-0 flex-1" />
+                            <span className="w-[150px] shrink-0 max-lg:hidden">{member.stats ? <RankLabel rankId={member.stats.rankId} rankName={member.stats.rankName} imageKey={member.stats.rankImageKey} currentExp={member.stats.currentExp} size={20} nameClassName="text-xs font-medium" /> : <span className="text-xs text-[var(--text-dim)]">Unranked</span>}</span>
+                            <span className="w-[70px] shrink-0 text-right text-[13px] text-[var(--text-muted)] max-md:hidden" title="Ranked matches">{member.stats ? member.stats.matches.toLocaleString() : "—"}</span>
+                            <span className="w-[64px] shrink-0 text-right text-[13px] text-[var(--text-muted)] max-md:hidden" title="Win rate">{member.stats?.winRate != null ? `${member.stats.winRate}%` : "—"}</span>
+                            <span className="w-[56px] shrink-0 text-right text-[13px] text-[var(--text-muted)] max-md:hidden" title="K/D">{member.stats?.kd != null ? member.stats.kd.toFixed(2) : "—"}</span>
+                            <span className="w-[96px] shrink-0 text-right text-[13px] text-[var(--text-muted)] max-xl:hidden" title={member.faceit ? `FACEIT ${member.faceit.username}` : "No FACEIT linked"}>{member.faceit ? `Lv ${member.faceit.level} · ${member.faceit.elo.toLocaleString()}` : "—"}</span>
                           </button>
-                          {member.id !== user?.id && <MemberControls clanId={clanId} clanName={clan.name} member={member} viewerRole={role} onChanged={() => void refetch()} />}
+                          <span className="flex w-[96px] shrink-0 justify-end">{member.id !== user?.id && <MemberControls clanId={clanId} clanName={clan.name} member={member} viewerRole={role} onChanged={() => void refetch()} />}</span>
                         </li>
                       )
                     })}

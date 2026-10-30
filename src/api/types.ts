@@ -547,6 +547,9 @@ export interface ClanMember {
   /** Avatar frame (id) and name look the player wears. Absent from an older API. */
   frame?: string | null
   nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
+  /** The member's real ranked numbers (null: no ranked profile) and linked FACEIT (null: none). Absent from an older API. */
+  stats?: { rankId: number; rankName: string; rankImageKey: string; currentExp: number; matches: number; winRate: number | null; kd: number | null } | null
+  faceit?: { username: string; elo: number; level: number } | null
 }
 
 export interface CreateClanRequest {
