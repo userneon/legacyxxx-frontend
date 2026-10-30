@@ -76,6 +76,34 @@ function Spot({ accent, height, children }: { accent: string; height: number; ch
 const group = (item: ShopItem) => (item.unlock === "coin" && !item.owned ? 0 : item.owned ? 1 : 2)
 
 
+/** Items shown at first in a list; the rest comes with "Show more", so a long list stays light and quick to scroll. */
+const FIRST_BATCH = 30
+
+/** A grid of cards: tight columns once a list is long, and only the first batch drawn until asked for more. */
+function ShopGrid({ list, card, tight = false }: { list: ShopItem[]; tight?: boolean; card: (item: ShopItem, index: number, dense: boolean) => React.ReactNode }) {
+  const [limit, setLimit] = useState(FIRST_BATCH)
+  const visible = list.slice(0, limit)
+  const dense = tight || list.length > 12
+  return (
+    <>
+      <ul className={cn("grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4", dense ? "xl:grid-cols-6 2xl:grid-cols-7" : "xl:grid-cols-5 2xl:grid-cols-6")}>{visible.map((item, index) => card(item, index, dense))}</ul>
+      {list.length > limit && (
+        <button type="button" onClick={() => setLimit((current) => current + FIRST_BATCH)} className="mx-auto mt-4 flex h-9 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-4 text-[13px] text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]">
+          Show {Math.min(FIRST_BATCH, list.length - limit)} more · {list.length - limit} left
+        </button>
+      )}
+    </>
+  )
+}
+
+/** The Frames tab is cut into price steps so many frames read as a few shelves, not one long list (earned frames last). */
+const FRAME_SHELVES: Array<{ key: string; label: string; has: (item: ShopItem) => boolean }> = [
+  { key: "classic", label: "Classic", has: (item) => item.unlock === "coin" && item.price <= 400 },
+  { key: "rare", label: "Rare", has: (item) => item.unlock === "coin" && item.price > 400 && item.price <= 1000 },
+  { key: "premium", label: "Premium", has: (item) => item.unlock === "coin" && item.price > 1000 },
+  { key: "earned", label: "Earned", has: (item) => item.unlock !== "coin" },
+]
+
 export function ShopPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -85,6 +113,7 @@ export function ShopPage() {
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
   const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name: "name", smoke_color: "smoke", clan: "clan", cards: "cards", goods: "goods" }, "featured")
   const [sort, setSort] = useState<"price-up" | "price-down" | "rarity">("price-up")
+  const [show, setShow] = useState<"all" | "available" | "owned">("all")
   const [busy, setBusy] = useState(false)
   const [picked, setPicked] = useState<string | null>(params.get("item"))
   const [search, setSearch] = useState("")
@@ -121,6 +150,7 @@ export function ShopPage() {
   const inTab = all.filter((item) => tab === "featured" || item.kind === tab || (tab === "name" && (item.kind === "name_color" || item.kind === "name_glow")) || (tab === "smoke_color" && (item.kind === "grenade_trail" || item.kind === "grenade_light" || item.kind === "flash_effect")))
   const shown = inTab
     .filter((item) => (!search.trim() || item.name.toLowerCase().includes(search.trim().toLowerCase())))
+    .filter((item) => show === "all" || (show === "owned" ? item.owned : !item.owned && item.unlock === "coin"))
     // What you can still buy comes first, then what you own, then what is only earned.
     .sort((a, b) => group(a) - group(b) || (sort === "rarity" ? (b.rarity ?? 0) - (a.rarity ?? 0) || a.price - b.price : sort === "price-up" ? a.price - b.price : b.price - a.price))
 
@@ -180,7 +210,7 @@ export function ShopPage() {
     return { ...item, [field]: demoColour(index), ...(item.twoColours ? { color2: demoColour(index + 3) } : {}) }
   }
 
-  const card = (item: ShopItem, index = 0) => {
+  const card = (item: ShopItem, index = 0, dense = false) => {
     const shown = onTile(item, index)
     const active = isPicked(item)
     const action = item.owned
@@ -199,9 +229,12 @@ export function ShopPage() {
           className="lx-shop-tile flex w-full flex-col overflow-hidden rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60"
         >
           <div className="relative">
-            <Spot accent={accentOf(shown)} height={124}><ItemArt item={shown} avatar={user?.avatar} username={username} size={70} /></Spot>
+            <Spot accent={accentOf(shown)} height={dense ? 96 : 124}><ItemArt item={shown} avatar={user?.avatar} username={username} size={dense ? 56 : 70} /></Spot>
           </div>
-          <div className="flex items-center justify-between gap-2 px-3 pb-3 pt-1">{action}<span className="min-w-0 truncate text-[11px] font-medium text-[var(--text-dim)]">{item.name}</span></div>
+          <div className="flex flex-col items-start gap-1 px-3 pb-2.5 pt-0.5">
+            <span className="line-clamp-2 w-full text-[11px] font-medium leading-[1.25] text-[var(--text-2)]">{item.name}</span>
+            {action}
+          </div>
         </button>
       </li>
     )
@@ -222,7 +255,7 @@ export function ShopPage() {
   }
 
   /** A grid of cards, one per design. */
-  const grid = (list: ShopItem[]) => <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">{list.map((item, index) => card(item, index))}</ul>
+  const grid = (list: ShopItem[], tight = false) => <ShopGrid list={list} card={card} tight={tight} />
 
   const buyBlock = (item: ShopItem, inline = false) => {
     const isWorn = worn[item.kind] === item.id
@@ -385,6 +418,11 @@ export function ShopPage() {
                   {/* Name and Grenades head each of their sections instead, so they get no empty heading here. */}
                   {tab !== "name" && tab !== "smoke_color" && <span className="lx-shop-heading">{tab === "featured" ? "All items" : TABS.find((entry) => entry.value === tab)?.label}</span>}
                   <span className="flex-1" />
+                  <div role="radiogroup" aria-label="Show" className="flex items-center gap-1.5">
+                    {([["all", "All"], ["available", "Not owned"], ["owned", "Owned"]] as const).map(([value, label]) => (
+                      <button key={value} type="button" role="radio" aria-checked={show === value} onClick={() => setShow(value)} className={pill(show === value)}>{label}</button>
+                    ))}
+                  </div>
                   <Popover>
                     <PopoverTrigger asChild>
                       <button type="button" aria-label="Sort" className={cn(pill(false), "group gap-1.5 text-[var(--text-2)]")}>
@@ -416,6 +454,13 @@ export function ShopPage() {
                     {([["smoke_color", "Smoke"], ["grenade_trail", "Trail"], ["grenade_light", "Light"], ["flash_effect", "Flash"]] as const).map(([kind, heading]) => {
                       const list = shown.filter((item) => item.kind === kind)
                       return list.length ? <div key={kind}><div className="lx-shop-heading mb-2.5">{heading}</div>{grid(list)}</div> : null
+                    })}
+                  </div>
+                ) : tab === "frame" && shown.length > 12 ? (
+                  <div className="flex flex-col gap-6">
+                    {FRAME_SHELVES.map((shelf) => {
+                      const list = shown.filter(shelf.has)
+                      return list.length ? <div key={shelf.key}><div className="lx-shop-heading mb-2.5">{shelf.label} <span className="ml-1 font-normal text-[var(--text-faint)]">{list.length}</span></div>{grid(list, true)}</div> : null
                     })}
                   </div>
                 ) : grid(shown)}
