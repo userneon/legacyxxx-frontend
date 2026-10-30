@@ -147,7 +147,7 @@ export function ShopPage() {
   const username = user?.username ?? "Player"
 
   const featured = all.filter((item) => item.featured && item.unlock === "coin")
-  const inTab = all.filter((item) => tab === "featured" || item.kind === tab || (tab === "name" && (item.kind === "name_color" || item.kind === "name_glow")) || (tab === "smoke_color" && (item.kind === "grenade_trail" || item.kind === "grenade_light" || item.kind === "flash_effect")))
+  const inTab = all.filter((item) => tab === "featured" || item.kind === tab || (tab === "name" && (item.kind === "name_color" || item.kind === "name_glow")) || (tab === "smoke_color" && (item.kind === "grenade_trail")))
   const shown = inTab
     .filter((item) => (!search.trim() || item.name.toLowerCase().includes(search.trim().toLowerCase())))
     .filter((item) => show === "all" || (show === "owned" ? item.owned : !item.owned && item.unlock === "coin"))
@@ -451,7 +451,7 @@ export function ShopPage() {
                   </div>
                 ) : tab === "smoke_color" ? (
                   <div className="flex flex-col gap-6">
-                    {([["smoke_color", "Smoke"], ["grenade_trail", "Trail"], ["grenade_light", "Light"], ["flash_effect", "Flash"]] as const).map(([kind, heading]) => {
+                    {([["smoke_color", "Smoke"], ["grenade_trail", "Trail"]] as const).map(([kind, heading]) => {
                       const list = shown.filter((item) => item.kind === kind)
                       return list.length ? <div key={kind}><div className="lx-shop-heading mb-2.5">{heading}</div>{grid(list)}</div> : null
                     })}

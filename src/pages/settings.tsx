@@ -178,8 +178,6 @@ const KINDS: Array<{ value: CosmeticKind; label: string; noun: string; group: "p
   { value: "title", label: "Title", noun: "title", group: "profile" },
   { value: "smoke_color", label: "Smoke", noun: "smoke colour", group: "game" },
   { value: "grenade_trail", label: "Trail", noun: "trail", group: "game" },
-  { value: "grenade_light", label: "Light", noun: "light", group: "game" },
-  { value: "flash_effect", label: "Flash", noun: "flash effect", group: "game" },
 ]
 const KIND_GROUPS = [{ id: "profile", label: "Profile" }, { id: "game", label: "In game" }] as const
 
