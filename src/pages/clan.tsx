@@ -556,28 +556,29 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                 {members.length === 0 ? (
                   <p className="text-[13px] text-[var(--text-dim)]">No members to show.</p>
                 ) : (
-                  <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {[...members].sort((x, y) => ROLE_ORDER.indexOf(x.role) - ROLE_ORDER.indexOf(y.role)).map((member) => {
+                  <ul className="overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
+                    {[...members].sort((x, y) => ROLE_ORDER.indexOf(x.role) - ROLE_ORDER.indexOf(y.role)).map((member, index) => {
                       const ranked = member.role === "leader" || member.role === "co-leader"
                       return (
-                        <li key={member.id} data-worn={ranked} className="lx-shop-tile flex items-center gap-1 rounded-xl">
-                          <button type="button" onClick={() => onProfileNavigate(member.steamId || member.id)} className="flex min-w-0 flex-1 items-center gap-3.5 rounded-xl p-3.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60">
-                            <PlayerAvatar avatar={member.avatar} name={member.name} frame={member.frame} className={cn("shrink-0 rounded-xl", ranked ? "size-14 text-base" : "size-12 text-sm")} />
-                            <span className="flex min-w-0 flex-col gap-1">
-                              <span {...nameProps(member.nameStyle, cn("block truncate font-semibold", ranked ? "text-[15px]" : "text-[13px]"))}>{member.name}{member.id === user?.id ? " (you)" : ""}</span>
-                              {ranked
-                                ? <span className="inline-flex w-fit items-center gap-1 rounded-full border border-[color-mix(in_oklch,var(--brand-bright)_35%,transparent)] bg-[color-mix(in_oklch,var(--brand)_14%,transparent)] px-2 py-px text-[11px] font-semibold text-[var(--brand-bright)]">{member.role === "leader" && <Crown className="size-3" aria-hidden="true" />}{roleLabel(member.role)}</span>
-                                : <span className="text-[11px] text-[var(--text-dim)]">{roleLabel(member.role)}</span>}
-                              {member.description && <span className="line-clamp-1 text-[11px] text-[var(--text-faint)]">{member.description}</span>}
-                            </span>
+                        <li key={member.id} className="group relative flex h-14 items-center gap-1 border-b border-[var(--raised)] transition-[background-color] duration-500 last:border-b-0 hover:bg-[var(--raised)] hover:duration-200">
+                          <span aria-hidden="true" className="absolute bottom-2 left-0 top-2 w-[3px] origin-center scale-y-0 rounded-r-full bg-[var(--brand-bright)] opacity-0 transition-[scale,opacity] duration-500 group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300" />
+                          <button type="button" onClick={() => onProfileNavigate(member.steamId || member.id)} className="flex h-full min-w-0 flex-1 items-center gap-3 px-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--brand)]/60">
+                            <span className="w-5 shrink-0 text-sm font-semibold text-[var(--text-muted)] transition-colors duration-300 group-hover:text-[var(--text)]">{index + 1}</span>
+                            <PlayerAvatar avatar={member.avatar} name={member.name} frame={member.frame} className="size-8 shrink-0 rounded-[9px] text-xs" />
+                            <span {...nameProps(member.nameStyle, "min-w-0 truncate text-[13px] font-medium")}>{member.name}{member.id === user?.id ? " (you)" : ""}</span>
+                            {ranked
+                              ? <span className="inline-flex w-fit shrink-0 items-center gap-1 rounded-full border border-[color-mix(in_oklch,var(--brand-bright)_35%,transparent)] bg-[color-mix(in_oklch,var(--brand)_14%,transparent)] px-2 py-px text-[11px] font-semibold text-[var(--brand-bright)]">{member.role === "leader" && <Crown className="size-3" aria-hidden="true" />}{roleLabel(member.role)}</span>
+                              : <span className="shrink-0 text-[11px] text-[var(--text-dim)]">{roleLabel(member.role)}</span>}
+                            {member.description && <span className="min-w-0 flex-1 truncate text-[11px] text-[var(--text-faint)] max-md:hidden">{member.description}</span>}
                           </button>
                           {member.id !== user?.id && <MemberControls clanId={clanId} clanName={clan.name} member={member} viewerRole={role} onChanged={() => void refetch()} />}
                         </li>
                       )
                     })}
                     {Array.from({ length: Math.min(Math.max(clan.maxPlayers - members.length, 0), 3) }, (_, index) => (
-                      <li key={`open-${index}`} className="flex items-center gap-3.5 rounded-xl border border-dashed border-[var(--line)] p-3.5 text-[var(--text-faint)]">
-                        <span className="grid size-12 place-items-center rounded-xl border border-dashed border-[var(--line)]"><UserPlus className="size-4" aria-hidden="true" /></span>
+                      <li key={`open-${index}`} className="flex h-14 items-center gap-3 border-b border-[var(--raised)] px-4 text-[var(--text-faint)] last:border-b-0">
+                        <span className="w-5 shrink-0 text-sm">{members.length + index + 1}</span>
+                        <span className="grid size-8 place-items-center rounded-[9px] border border-dashed border-[var(--line)]"><UserPlus className="size-3.5" aria-hidden="true" /></span>
                         <span className="text-[13px]">{index === 2 && clan.maxPlayers - members.length > 3 ? `+${clan.maxPlayers - members.length - 2} open slots` : "Open slot"}</span>
                       </li>
                     ))}
