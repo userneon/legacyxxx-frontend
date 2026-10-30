@@ -79,9 +79,10 @@ never reset. This makes farming with friends (win-trading, feeding kills) slow.
 
 All must be true:
 1. The match finished normally (not cancelled / server crash).
-2. **Each team has at least 2 human players** at the end. Any team sizes count (4v5, 3v3, 2v2, 2v5);
-   a **1v1 never counts**, nor a match where one side is down to a single human. (Owner decision 2026-10-18;
-   it was "at least 8 human players" before.) Teams of different sizes use the same formula: the
+2. **Each team has at least 2 human players who played**, leavers included. Any team sizes count (4v5, 3v3, 2v2, 2v5);
+   a **1v1 never counts**, nor a match where a side never had two humans. (Owner decision 2026-10-18;
+   it was "at least 8 human players" before.) When the other side walks out, the team that stayed still
+   gets its EXP and the leavers take their −25 (owner decision 2026-10-30: it used to be a match with ΔEXP = 0 for the winners.) Teams of different sizes use the same formula: the
    Elo term compares the average EXP of each team, and `Performance` is relative to the whole lobby.
 3. At least **13 rounds** were played.
 4. For each player: present for **≥ 50 % of rounds**, otherwise ΔEXP = 0 for that player
