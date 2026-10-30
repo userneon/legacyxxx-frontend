@@ -58,7 +58,7 @@ function Scoreboard({ team, highlightSteamId, onPlayer }: { team: MatchDetailTea
           {team.won ? "Win" : "Loss"} · {team.score}
         </span>
       </div>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto overflow-y-hidden">
         <table className="w-full min-w-[720px] table-fixed text-sm">
           {/* Same column widths in every team's table, so the numbers line up from one team to the other. */}
           <colgroup>
@@ -295,8 +295,7 @@ export function MatchDetailsDialog({ matchId, mapNumber, highlightSteamId, onOpe
         <div>
           {/* Header: map art, team names and the final score */}
           <div className="relative isolate overflow-hidden px-5 pb-5 pt-6">
-            {art && <img src={art} alt="" aria-hidden="true" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-70 [mask-image:linear-gradient(to_bottom,#000_35%,transparent)]" />}
-            <div className="absolute inset-0 -z-10 bg-gradient-to-r from-background via-transparent to-background" />
+            {art && <img src={art} alt="" aria-hidden="true" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-80 [mask-image:linear-gradient(to_bottom,#000_45%,transparent)]" />}
             <div className="absolute inset-0 -z-10 bg-gradient-to-b from-transparent via-transparent to-background" />
             <DialogHeader className="items-center text-center sm:text-center">
               <DialogTitle className="font-display text-xl tracking-wide">{detail ? cs2MapLabel(detail.mapName) : "Match details"}</DialogTitle>
