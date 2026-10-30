@@ -752,6 +752,8 @@ export interface FeedbackEntry {
   avatar?: string
   name: string
   rating: number
+  /** Absent from an older API. */
+  category?: FeedbackCategory
   message: string
   date: string
   /** Avatar frame (id) and name look the player wears. Absent from an older API. */
@@ -764,8 +766,13 @@ export interface FeedbackEntry {
 
 export type FeedbackReaction = "like" | "love" | "funny"
 
+/** What a review is about; reviews from before the categories are "general". */
+export type FeedbackCategory = "general" | "servers" | "matches" | "skinchanger" | "shop" | "website"
+
 export interface CreateFeedbackRequest {
+  /** 1.0 to 5.0 in steps of 0.1. */
   rating: number
+  category: FeedbackCategory
   message: string
 }
 

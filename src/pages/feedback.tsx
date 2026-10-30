@@ -4,7 +4,7 @@ import { Clock, Heart, Laugh, LoaderCircle, PenLine, RotateCcw, ShieldCheck, Sta
 
 import { cn } from "@/lib/utils"
 import { feedbackService } from "@/api"
-import type { ApiError, FeedbackEntry, FeedbackReaction } from "@/api/types"
+import type { ApiError, FeedbackCategory, FeedbackEntry, FeedbackReaction } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useViewParams } from "@/hooks/use-view-params"
 import { useAuth } from "@/hooks/use-auth"
@@ -23,6 +23,16 @@ type RatingFilter = "all" | "5" | "4" | "3" | "2" | "1"
 const WEEK = 7 * 24 * 60 * 60 * 1000
 const MAX_LENGTH = 500
 const MIN_LENGTH = 10
+
+/** What a review can be about; "general" only holds reviews written before the categories. */
+const CATEGORIES: { key: FeedbackCategory; label: string }[] = [
+  { key: "servers", label: "Servers" },
+  { key: "matches", label: "Matches & ranking" },
+  { key: "skinchanger", label: "Skinchanger" },
+  { key: "shop", label: "Shop" },
+  { key: "website", label: "Website" },
+]
+const categoryLabel = (key: FeedbackCategory | undefined) => CATEGORIES.find((entry) => entry.key === key)?.label ?? null
 const RATING_WORDS = ["", "Bad", "Poor", "Okay", "Good", "Great"]
 
 const readSort = (value: string | null): SortKey => (value === "highest" || value === "lowest" ? value : "newest")
@@ -139,6 +149,8 @@ function ReviewCard({ entry, own, fresh, index, onOpenProfile }: { entry: Feedba
         </span>
         <span className="flex items-center gap-2">
           <Stars value={entry.rating} size={13} />
+          <span className="text-xs font-medium text-[var(--text-2)]">{entry.rating.toFixed(1)}</span>
+          {categoryLabel(entry.category) && <span className="rounded-full border border-[var(--line)] px-2 py-px text-[10px] text-[var(--text-muted)]">{categoryLabel(entry.category)}</span>}
           <span className="text-xs text-[var(--text-dim)]" title={fullDate(entry.date)}>{formatRelativeTime(new Date(entry.date))}</span>
         </span>
       </span>
@@ -200,18 +212,17 @@ function CardSkeleton() {
 }
 
 function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () => void; onPosted: (entry: FeedbackEntry) => void }) {
-  const [rating, setRating] = useState(0)
-  const [hover, setHover] = useState(0)
+  const [rating, setRating] = useState(4)
+  const [category, setCategory] = useState<FeedbackCategory | null>(null)
   const [message, setMessage] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
-  const shown = hover || rating
-  const canPost = rating > 0 && message.trim().length >= MIN_LENGTH && !submitting
+  const canPost = category !== null && message.trim().length >= MIN_LENGTH && !submitting
 
   useEffect(() => {
     if (open) return
     // Reset after the close animation, so the dialog never visibly empties while it fades.
-    const timer = window.setTimeout(() => { setRating(0); setHover(0); setMessage(""); setError("") }, 200)
+    const timer = window.setTimeout(() => { setRating(4); setCategory(null); setMessage(""); setError("") }, 200)
     return () => window.clearTimeout(timer)
   }, [open])
 
@@ -220,7 +231,7 @@ function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () =
     setSubmitting(true)
     setError("")
     try {
-      const entry = await feedbackService.submitFeedback({ rating, message: message.trim() })
+      const entry = await feedbackService.submitFeedback({ rating, category: category!, message: message.trim() })
       onPosted(entry)
     } catch (caught) {
       const apiError = caught as Partial<ApiError>
@@ -247,32 +258,38 @@ function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () =
         <SheetDescription className="sr-only">Rate LEGACY-X and describe your experience.</SheetDescription>
         <div className="flex flex-col gap-[18px] p-5">
           <div className="flex flex-col gap-2">
-            <span className="text-xs text-[var(--text-muted)]">Your rating</span>
-            <div role="radiogroup" aria-label="Rating" className="flex items-center gap-1" onMouseLeave={() => setHover(0)}>
-              {[1, 2, 3, 4, 5].map((star) => (
+            <span className="text-xs text-[var(--text-muted)]">What is it about?</span>
+            <div role="group" aria-label="Category" className="flex flex-wrap gap-1.5">
+              {CATEGORIES.map((entry) => (
                 <button
-                  key={star}
+                  key={entry.key}
                   type="button"
-                  role="radio"
-                  aria-checked={rating === star}
-                  aria-label={star === 1 ? "1 star" : `${star} stars`}
-                  onMouseEnter={() => setHover(star)}
-                  onFocus={() => setHover(star)}
-                  onBlur={() => setHover(0)}
-                  onClick={() => setRating(star)}
-                  className="flex size-9 items-center justify-center rounded-lg transition-colors hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
+                  aria-pressed={category === entry.key}
+                  onClick={() => setCategory(entry.key)}
+                  className="h-8 rounded-lg border border-[var(--line)] px-3 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 aria-pressed:border-[var(--brand)] aria-pressed:bg-[var(--brand)]/15 aria-pressed:text-[var(--text)]"
                 >
-                  <Star
-                    className={cn(
-                      "size-6 transition-[color,fill,scale] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
-                      shown >= star ? "scale-110 fill-[var(--star)] text-[var(--star)]" : "scale-100 fill-transparent text-[var(--text-faint)]",
-                    )}
-                    style={{ transitionDelay: shown >= star ? `${star * 25}ms` : "0ms" }}
-                  />
+                  {entry.label}
                 </button>
               ))}
-              <span key={shown} className="lx-swap-in ml-2 text-[13px] font-medium text-[var(--text-2)]">{RATING_WORDS[shown]}</span>
             </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <span className="flex items-baseline justify-between text-xs text-[var(--text-muted)]">
+              <span>Your score</span>
+              <span className="flex items-baseline gap-2"><span className="text-[22px] font-semibold leading-none text-[var(--text)]">{rating.toFixed(1)}</span><span>/ 5.0 · {RATING_WORDS[Math.round(rating)]}</span></span>
+            </span>
+            <input
+              aria-label="Score"
+              type="range"
+              min={1}
+              max={5}
+              step={0.1}
+              value={rating}
+              onChange={(event) => setRating(Math.round(Number(event.target.value) * 10) / 10)}
+              className="wear-range h-2 w-full cursor-pointer"
+              style={{ background: `linear-gradient(to right, var(--accent-solid) ${((rating - 1) / 4) * 100}%, var(--line) ${((rating - 1) / 4) * 100}%)` }}
+            />
+            <div className="flex justify-between text-[10px] text-[var(--text-dim)]"><span>Poor</span><span>Excellent</span></div>
           </div>
           <label className="flex flex-col gap-2">
             <span className="flex justify-between text-xs text-[var(--text-muted)]">
