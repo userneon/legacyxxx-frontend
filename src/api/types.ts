@@ -754,6 +754,16 @@ export interface FeedbackEntry {
   rating: number
   /** Absent from an older API. */
   category?: FeedbackCategory
+  /** Set when the author changed the review after posting it. */
+  editedAt?: string
+  /** The staff answer under the review, if there is one. */
+  reply?: { message: string; by: string; role: string; date?: string }
+  /** The reviewer's real ranked profile; absent when they have not played ranked. */
+  player?: { rankId: number; rankName: string; rankImageKey: string; currentExp: number; matches: number }
+  /** What the signed-in viewer may do with this review. */
+  mine?: boolean
+  canReply?: boolean
+  canDelete?: boolean
   message: string
   date: string
   /** Avatar frame (id) and name look the player wears. Absent from an older API. */

@@ -247,6 +247,8 @@ Cards (owner request 2026-10-27): collectible map cards, one per CS2 map (the ma
 Profile stats (owner request 2026-10-23): under each number a thin bar shows how many ranked players the player beats, with "Avg …" (the community average) and "Top N%" / "Beats N%". Above the
 community average is green (`--result-win`), below is red (`--result-loss`), equal is grey, the same outcome colours as the Compare page (owner request 2026-10-23); still not a general accent. Both come from the API (players with 5+ ranked matches; nothing is shown while fewer than 10 players qualify) and are never computed or guessed on the site.
 
+Reviews (owner request 2026-10-30, `src/pages/feedback.tsx`): writing and editing a review is a detail sheet that comes up from the bottom (`DetailSheetContent`, soft violet backdrop), the one exception to "forms stay small dialogs". A review has a category (Servers, Matches & ranking, Skinchanger, Shop, Website; older ones are "general") and a score from a slider, 1.0 to 5.0 in steps of 0.1 (same slider as the skin wear). The summary lists each category with its count and real average and filters by it; sort has Helpful (reactions). A card shows the reviewer's real rank and ranked matches from `competitive_player_profiles`; the author can Edit ("edited" shows) or Delete their review, Owner and Manager can delete any, and Admin and above answer with one staff reply under it (role pill). Nothing here is invented: no rank line when the player has no ranked profile.
+
 ## Icons and assets
 
 lucide-react only, stroke 2, no emoji, no placeholder icons. Sizes: 18px nav/top bar,

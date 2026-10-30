@@ -1,6 +1,6 @@
 import { PageBar, PageBarEnd, PageTabs } from "@/components/page-tabs"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
-import { Clock, Heart, Laugh, LoaderCircle, PenLine, RotateCcw, ShieldCheck, Star, ThumbsUp, MessageSquarePlus } from "lucide-react"
+import { Clock, CornerDownRight, Heart, Laugh, LoaderCircle, MessageSquarePlus, Pencil, PenLine, Reply, RotateCcw, ShieldCheck, Star, ThumbsUp, Trash2 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { feedbackService } from "@/api"
@@ -9,6 +9,7 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { useViewParams } from "@/hooks/use-view-params"
 import { useAuth } from "@/hooks/use-auth"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { RankLabel } from "@/components/competitive-rank-badge"
 import { nameProps } from "@/lib/cosmetics"
 import { formatRelativeTime } from "@/components/relative-time"
 import { SteamLoginButton } from "@/components/steam-login-gate"
@@ -17,7 +18,7 @@ import { DetailSheetContent } from "@/components/detail-sheet"
 import { Sheet, SheetDescription, SheetTitle } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 
-type SortKey = "newest" | "highest" | "lowest"
+type SortKey = "newest" | "helpful" | "highest" | "lowest"
 type RatingFilter = "all" | "5" | "4" | "3" | "2" | "1"
 
 const WEEK = 7 * 24 * 60 * 60 * 1000
@@ -33,9 +34,12 @@ const CATEGORIES: { key: FeedbackCategory; label: string }[] = [
   { key: "website", label: "Website" },
 ]
 const categoryLabel = (key: FeedbackCategory | undefined) => CATEGORIES.find((entry) => entry.key === key)?.label ?? null
+const readCategory = (value: string | null): FeedbackCategory | "all" => (CATEGORIES.some((entry) => entry.key === value) ? (value as FeedbackCategory) : "all")
+const reactionTotal = (entry: FeedbackEntry) => Object.values(entry.reactions ?? {}).reduce((sum, count) => sum + count, 0)
+const ROLE_LABEL: Record<string, string> = { OWNER: "Owner", MANAGER: "Manager", ADMIN: "Admin" }
 const RATING_WORDS = ["", "Bad", "Poor", "Okay", "Good", "Great"]
 
-const readSort = (value: string | null): SortKey => (value === "highest" || value === "lowest" ? value : "newest")
+const readSort = (value: string | null): SortKey => (value === "helpful" || value === "highest" || value === "lowest" ? value : "newest")
 const readRating = (value: string | null): RatingFilter => (value && ["1", "2", "3", "4", "5"].includes(value) ? (value as RatingFilter) : "all")
 
 function fullDate(value: string) {
@@ -125,10 +129,30 @@ function ReactionBar({ entry }: { entry: FeedbackEntry }) {
   )
 }
 
-function ReviewCard({ entry, own, fresh, index, onOpenProfile }: { entry: FeedbackEntry; own: boolean; fresh: boolean; index: number; onOpenProfile: (steamId: string) => void }) {
+function ReviewCard({ entry, own, fresh, index, onOpenProfile, onEdit, onChanged }: { entry: FeedbackEntry; own: boolean; fresh: boolean; index: number; onOpenProfile: (steamId: string) => void; onEdit: (entry: FeedbackEntry) => void; onChanged: () => void }) {
   const message = useRef<HTMLParagraphElement>(null)
   const [expanded, setExpanded] = useState(false)
   const [clamped, setClamped] = useState(false)
+  const [replying, setReplying] = useState(false)
+  const [draft, setDraft] = useState("")
+  const [confirmRemove, setConfirmRemove] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [actionError, setActionError] = useState("")
+  // Every action ends in a refetch; a failure says so on the card instead of failing silently.
+  const act = async (run: () => Promise<unknown>) => {
+    setBusy(true)
+    setActionError("")
+    try {
+      await run()
+      setReplying(false)
+      setConfirmRemove(false)
+      onChanged()
+    } catch {
+      setActionError("That did not go through. Please try again.")
+    } finally {
+      setBusy(false)
+    }
+  }
   useLayoutEffect(() => {
     const node = message.current
     if (node && !expanded) setClamped(node.scrollHeight > node.clientHeight + 1)
@@ -147,11 +171,17 @@ function ReviewCard({ entry, own, fresh, index, onOpenProfile }: { entry: Feedba
             </span>
           )}
         </span>
+        {entry.player && (
+          <span className="flex min-w-0 items-center gap-2 text-[11px] text-[var(--text-dim)]">
+            <RankLabel rankId={entry.player.rankId} rankName={entry.player.rankName} imageKey={entry.player.rankImageKey} currentExp={entry.player.currentExp} size={16} nameClassName="text-[11px]" />
+            <span className="shrink-0">· {entry.player.matches.toLocaleString()} ranked match{entry.player.matches === 1 ? "" : "es"}</span>
+          </span>
+        )}
         <span className="flex items-center gap-2">
           <Stars value={entry.rating} size={13} />
           <span className="text-xs font-medium text-[var(--text-2)]">{entry.rating.toFixed(1)}</span>
           {categoryLabel(entry.category) && <span className="rounded-full border border-[var(--line)] px-2 py-px text-[10px] text-[var(--text-muted)]">{categoryLabel(entry.category)}</span>}
-          <span className="text-xs text-[var(--text-dim)]" title={fullDate(entry.date)}>{formatRelativeTime(new Date(entry.date))}</span>
+          <span className="text-xs text-[var(--text-dim)]" title={fullDate(entry.date)}>{formatRelativeTime(new Date(entry.date))}{entry.editedAt ? " · edited" : ""}</span>
         </span>
       </span>
     </>
@@ -187,7 +217,68 @@ function ReviewCard({ entry, own, fresh, index, onOpenProfile }: { entry: Feedba
           </button>
         )}
       </div>
-      <ReactionBar entry={entry} />
+      {entry.reply && (
+        <div className="relative flex gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 py-2.5">
+          <CornerDownRight aria-hidden="true" className="mt-0.5 size-3.5 shrink-0 text-[var(--text-dim)]" />
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <span className="flex flex-wrap items-center gap-2 text-[11px] text-[var(--text-dim)]">
+              <span className="font-semibold text-[var(--text)]">{entry.reply.by}</span>
+              <span className={cn("rounded-full border px-1.5 py-px text-[10px] font-semibold", entry.reply.role === "OWNER" ? "border-[var(--brand)]/40 text-[var(--brand-bright)]" : "border-[var(--line-strong)] text-[var(--text-2)]")}>{ROLE_LABEL[entry.reply.role] ?? "Staff"}</span>
+              {entry.reply.date && <span title={fullDate(entry.reply.date)}>{formatRelativeTime(new Date(entry.reply.date))}</span>}
+            </span>
+            <p className="whitespace-pre-wrap break-words text-[13px] leading-6 text-[var(--text-2)]">{entry.reply.message}</p>
+          </div>
+        </div>
+      )}
+      {replying && (
+        <div className="relative flex flex-col gap-2">
+          <textarea
+            value={draft}
+            onChange={(event) => setDraft(event.target.value.slice(0, 1000))}
+            rows={3}
+            placeholder="Answer this review as staff…"
+            aria-label="Reply to this review"
+            className="resize-none rounded-[10px] border border-[var(--line)] bg-[var(--glass-fill)] p-3 text-[13px] leading-6 text-[var(--text)] outline-none transition-[border-color] duration-300 placeholder:text-[var(--text-faint)] focus-visible:border-[var(--line-strong)]"
+          />
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={() => setReplying(false)} className="h-8 rounded-lg border border-[var(--line)] px-3 text-xs font-medium text-[var(--text)] transition-colors hover:bg-[var(--raised)]">Cancel</button>
+            <button type="button" disabled={busy || draft.trim().length === 0} onClick={() => void act(() => feedbackService.setReply(entry.id, draft.trim()))} className="lx-primary-button inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold disabled:opacity-50">
+              {busy && <LoaderCircle className="size-3 animate-spin" />}Send reply
+            </button>
+          </div>
+        </div>
+      )}
+      <div className="relative flex flex-wrap items-center gap-x-3 gap-y-2">
+        <ReactionBar entry={entry} />
+        <span className="ml-auto flex items-center gap-1">
+          {entry.canReply && !replying && (
+            <button type="button" onClick={() => { setDraft(entry.reply?.message ?? ""); setReplying(true) }} className="inline-flex h-7 items-center gap-1 rounded-md px-2 text-xs text-[var(--text-muted)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)]">
+              <Reply className="size-3.5" />{entry.reply ? "Edit reply" : "Reply"}
+            </button>
+          )}
+          {entry.canReply && entry.reply && !replying && (
+            <button type="button" disabled={busy} onClick={() => void act(() => feedbackService.removeReply(entry.id))} className="inline-flex h-7 items-center gap-1 rounded-md px-2 text-xs text-[var(--text-muted)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)]">Remove reply</button>
+          )}
+          {own && (
+            <button type="button" onClick={() => onEdit(entry)} className="inline-flex h-7 items-center gap-1 rounded-md px-2 text-xs text-[var(--text-muted)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)]">
+              <Pencil className="size-3.5" />Edit
+            </button>
+          )}
+          {entry.canDelete && (confirmRemove ? (
+            <>
+              <button type="button" disabled={busy} onClick={() => void act(() => feedbackService.removeFeedback(entry.id))} className="inline-flex h-7 items-center gap-1 rounded-md border border-[var(--status-red)]/40 px-2 text-xs font-medium text-[var(--status-red)] transition-colors hover:bg-[var(--raised)]">
+                {busy && <LoaderCircle className="size-3 animate-spin" />}Delete review
+              </button>
+              <button type="button" onClick={() => setConfirmRemove(false)} className="inline-flex h-7 items-center rounded-md px-2 text-xs text-[var(--text-muted)] transition-colors hover:bg-[var(--raised)]">Keep</button>
+            </>
+          ) : (
+            <button type="button" onClick={() => setConfirmRemove(true)} aria-label="Delete review" className="inline-flex h-7 items-center gap-1 rounded-md px-2 text-xs text-[var(--text-muted)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)]">
+              <Trash2 className="size-3.5" />Delete
+            </button>
+          ))}
+        </span>
+      </div>
+      {actionError && <p role="alert" className="relative text-xs text-[var(--text-2)]">{actionError}</p>}
     </article>
   )
 }
@@ -211,13 +302,23 @@ function CardSkeleton() {
   )
 }
 
-function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () => void; onPosted: (entry: FeedbackEntry) => void }) {
+function WriteDialog({ open, editing, onClose, onPosted }: { open: boolean; editing: FeedbackEntry | null; onClose: () => void; onPosted: (entry: FeedbackEntry) => void }) {
   const [rating, setRating] = useState(4)
   const [category, setCategory] = useState<FeedbackCategory | null>(null)
   const [message, setMessage] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
   const canPost = category !== null && message.trim().length >= MIN_LENGTH && !submitting
+
+  useEffect(() => {
+    // Editing starts from the review as it is now.
+    if (open && editing) {
+      setRating(editing.rating)
+      setCategory(editing.category && editing.category !== "general" ? editing.category : null)
+      setMessage(editing.message)
+      setError("")
+    }
+  }, [open, editing])
 
   useEffect(() => {
     if (open) return
@@ -231,7 +332,8 @@ function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () =
     setSubmitting(true)
     setError("")
     try {
-      const entry = await feedbackService.submitFeedback({ rating, category: category!, message: message.trim() })
+      const payload = { rating, category: category!, message: message.trim() }
+      const entry = editing ? await feedbackService.updateFeedback(editing.id, payload) : await feedbackService.submitFeedback(payload)
       onPosted(entry)
     } catch (caught) {
       const apiError = caught as Partial<ApiError>
@@ -253,7 +355,7 @@ function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () =
       <DetailSheetContent width="max-w-xl" backdrop={<div className="size-full" style={{ background: "radial-gradient(70% 100% at 50% 0%, color-mix(in oklab, var(--brand) 22%, transparent), transparent 75%)" }} />}>
         <div className="px-1 pb-2 pt-1 sm:px-0">
         <div className="flex h-14 items-center justify-between pl-5 pr-14">
-          <SheetTitle className="flex items-center gap-2.5 text-base font-semibold text-[var(--text)]"><span className="lx-add-icon"><MessageSquarePlus className="size-4" /></span>Write a review</SheetTitle>
+          <SheetTitle className="flex items-center gap-2.5 text-base font-semibold text-[var(--text)]"><span className="lx-add-icon"><MessageSquarePlus className="size-4" /></span>{editing ? "Edit your review" : "Write a review"}</SheetTitle>
         </div>
         <SheetDescription className="sr-only">Rate LEGACY-X and describe your experience.</SheetDescription>
         <div className="flex flex-col gap-[18px] p-5">
@@ -305,7 +407,7 @@ function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () =
               className="resize-none rounded-[10px] border border-[var(--line)] bg-[var(--glass-fill)] p-3 text-sm leading-6 text-[var(--text)] outline-none transition-[border-color,box-shadow] duration-300 placeholder:text-[var(--text-dim)] focus:border-[var(--text-dim)] focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_18%,transparent)]"
             />
           </label>
-          <span className="text-xs text-[var(--text-dim)]">Posted publicly with your Steam name. One review per week.</span>
+          <span className="text-xs text-[var(--text-dim)]">{editing ? "Your review keeps its place and shows that it was edited." : "Posted publicly with your Steam name. One review per week."}</span>
           {error && <p role="alert" className="text-xs text-[var(--text-2)]">{error}</p>}
         </div>
         <div className="flex justify-end gap-2 px-5 py-3.5">
@@ -319,7 +421,7 @@ function WriteDialog({ open, onClose, onPosted }: { open: boolean; onClose: () =
             className="lx-primary-button inline-flex h-9 items-center gap-1.5 rounded-lg px-[18px] text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 disabled:pointer-events-none disabled:opacity-40 disabled:saturate-50"
           >
             {submitting && <LoaderCircle className="size-3.5 animate-spin" />}
-            Post review
+            {editing ? "Save changes" : "Post review"}
           </button>
         </div>
         </div>
@@ -333,7 +435,9 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
   const [params, setParams] = useViewParams()
   const sort = readSort(params.get("sort"))
   const rating = readRating(params.get("rating"))
+  const category = readCategory(params.get("category"))
   const [writing, setWriting] = useState(false)
+  const [editing, setEditing] = useState<FeedbackEntry | null>(null)
   const [freshId, setFreshId] = useState<string | null>(null)
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
@@ -365,6 +469,11 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
   // Average and distribution always come from the full list, not the filtered one.
   const total = reviews.length
   const average = total ? reviews.reduce((sum, entry) => sum + entry.rating, 0) / total : 0
+  // Per category: how many reviews and their average (the older "general" ones count in the overall figure only).
+  const byCategory = CATEGORIES.map((entry) => {
+    const list = reviews.filter((review) => review.category === entry.key)
+    return { ...entry, count: list.length, average: list.length ? list.reduce((sum, review) => sum + review.rating, 0) / list.length : 0 }
+  })
   const distribution = [5, 4, 3, 2, 1].map((score) => {
     const count = reviews.filter((entry) => Math.round(entry.rating) === score).length
     return { score, count, share: total ? (count / total) * 100 : 0 }
@@ -376,8 +485,9 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
   const onCooldown = cooldownsActive !== false && nextAllowed !== null && nextAllowed > now
 
   const visible = useMemo(() => {
-    const list = reviews.filter((entry) => rating === "all" || Math.round(entry.rating) === Number(rating))
+    const list = reviews.filter((entry) => (rating === "all" || Math.round(entry.rating) === Number(rating)) && (category === "all" || entry.category === category))
     list.sort((a, b) => {
+      if (sort === "helpful") return reactionTotal(b) - reactionTotal(a) || Date.parse(b.date) - Date.parse(a.date)
       if (sort === "highest") return b.rating - a.rating || Date.parse(b.date) - Date.parse(a.date)
       if (sort === "lowest") return a.rating - b.rating || Date.parse(b.date) - Date.parse(a.date)
       return Date.parse(b.date) - Date.parse(a.date)
@@ -385,9 +495,16 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
     // Your own review is pinned first.
     return [...list.filter(isMine), ...list.filter((entry) => !isMine(entry))]
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reviews, rating, sort, user?.steamId])
+  }, [reviews, rating, category, sort, user?.steamId])
 
   const onPosted = (entry: FeedbackEntry) => {
+    if (editing) {
+      setEditing(null)
+      setWriting(false)
+      setPosted([])
+      refetch()
+      return
+    }
     setPosted((current) => [...current, { ...entry, steamId: entry.steamId ?? user?.steamId, avatar: entry.avatar ?? user?.avatar, name: entry.name || user?.username || "You" }])
     setFreshId(entry.id)
     setWriting(false)
@@ -417,6 +534,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
               onChange={(value) => update({ sort: value === "newest" ? null : value })}
               options={[
                 { value: "newest", label: "Newest" },
+                { value: "helpful", label: "Helpful" },
                 { value: "highest", label: "Highest" },
                 { value: "lowest", label: "Lowest" },
               ]}
@@ -441,13 +559,13 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
                 </button>
               </p>
             ) : visible.length === 0 ? (
-              <p className="py-10 text-center text-[13px] text-[var(--text-dim)]">{total === 0 ? "No reviews yet." : "No review with this rating yet."}</p>
+              <p className="py-10 text-center text-[13px] text-[var(--text-dim)]">{total === 0 ? "No reviews yet." : "No review matches these filters yet."}</p>
             ) : (
               // Keyed on the filters so the cards cascade in again after every change.
-              <div key={`${rating}:${sort}`} className="columns-1 gap-3 md:columns-2">
+              <div key={`${rating}:${category}:${sort}`} className="columns-1 gap-3 md:columns-2">
                 {visible.map((entry, index) => (
                   <div key={entry.id} className="mb-3 break-inside-avoid">
-                    <ReviewCard entry={entry} index={index} own={isMine(entry)} fresh={entry.id === freshId} onOpenProfile={onProfileNavigate} />
+                    <ReviewCard entry={entry} index={index} own={isMine(entry)} fresh={entry.id === freshId} onOpenProfile={onProfileNavigate} onEdit={(review) => { setEditing(review); setWriting(true) }} onChanged={() => { setPosted([]); refetch() }} />
                   </div>
                 ))}
               </div>
@@ -463,6 +581,29 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
             <Stars value={average} size={17} />
             <span className="text-xs text-[var(--text-muted)]">{total.toLocaleString()} review{total === 1 ? "" : "s"}</span>
           </span>
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <span className="mb-1.5 text-xs text-[var(--text-dim)]">By category</span>
+          {byCategory.map((entry) => {
+            const pressed = category === entry.key
+            return (
+              <button
+                key={entry.key}
+                type="button"
+                aria-pressed={pressed}
+                disabled={entry.count === 0}
+                onClick={() => update({ category: pressed ? null : entry.key })}
+                className={cn(
+                  "flex h-8 items-center gap-2.5 rounded-lg px-2 text-[13px] transition-colors duration-300 hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 disabled:opacity-40 disabled:hover:bg-transparent",
+                  pressed && "bg-[var(--raised)] ring-1 ring-inset ring-[var(--line-strong)]",
+                )}
+              >
+                <span className="min-w-0 flex-1 truncate text-left text-[var(--text-2)]">{entry.label}</span>
+                <span className="text-[11px] text-[var(--text-dim)]">{entry.count}</span>
+                <span className="w-8 text-right font-semibold text-[var(--text)]">{entry.count ? entry.average.toFixed(1) : "—"}</span>
+              </button>
+            )
+          })}
         </div>
         <div className="flex flex-col gap-0.5">
           <span className="mb-1.5 text-xs text-[var(--text-dim)]">Tap a row to filter</span>
@@ -524,7 +665,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
         </div>
       </aside>
 
-      <WriteDialog open={writing} onClose={() => setWriting(false)} onPosted={onPosted} />
+      <WriteDialog open={writing} editing={editing} onClose={() => { setWriting(false); setEditing(null) }} onPosted={onPosted} />
     </div>
   )
 }

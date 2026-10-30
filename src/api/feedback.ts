@@ -1,4 +1,4 @@
-import { get, post, put, type CallOptions } from "./client"
+import { del, get, post, put, type CallOptions } from "./client"
 import type { CreateFeedbackRequest, FeedbackEntry, FeedbackReaction } from "./types"
 
 /**
@@ -32,5 +32,24 @@ export const feedbackService = {
     if ("id" in response) return response
     if (response.feedback?.id) return response.feedback
     throw { status: 500, code: "invalid_response", message: "The review could not be confirmed. Please refresh and try again." }
+  },
+
+  /** The author changes their own review. */
+  async updateFeedback(feedbackId: string, payload: CreateFeedbackRequest, options?: CallOptions): Promise<FeedbackEntry> {
+    return put<FeedbackEntry>(`/api/v1/feedback/${feedbackId}`, payload, options)
+  },
+
+  /** The author (or an Owner or Manager) removes a review. */
+  async removeFeedback(feedbackId: string, options?: CallOptions): Promise<void> {
+    await del<void>(`/api/v1/feedback/${feedbackId}`, options)
+  },
+
+  /** Staff (Admin and above) answer a review; writing again changes the answer. */
+  async setReply(feedbackId: string, message: string, options?: CallOptions): Promise<FeedbackEntry> {
+    return put<FeedbackEntry>(`/api/v1/feedback/${feedbackId}/reply`, { message }, options)
+  },
+
+  async removeReply(feedbackId: string, options?: CallOptions): Promise<FeedbackEntry> {
+    return del<FeedbackEntry>(`/api/v1/feedback/${feedbackId}/reply`, options)
   },
 }
