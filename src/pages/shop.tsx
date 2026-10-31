@@ -25,6 +25,7 @@ import { Sheet, SheetDescription, SheetTitle } from "@/components/ui/sheet"
 import { DetailSheetContent } from "@/components/detail-sheet"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 const SORTS = [
   { value: "price-up", label: "Price: low to high" },
@@ -220,22 +221,33 @@ export function ShopPage() {
         : <span className="inline-flex items-center gap-1 text-xs text-[var(--text-dim)]"><Lock className="size-3" />Earned</span>
     return (
       <li key={item.id} className={cn("rounded-xl", justBought === item.id && "lx-bought")}>
-        <button
-          type="button"
-          onClick={() => choose(item)}
-          aria-pressed={active}
-          aria-label={item.name}
-          title={item.name}
-          className="lx-shop-tile flex w-full flex-col overflow-hidden rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60"
-        >
-          <div className="relative">
-            <Spot accent={accentOf(shown)} height={dense ? 96 : 124}><ItemArt item={shown} avatar={user?.avatar} username={username} size={dense ? 56 : 70} /></Spot>
-          </div>
-          <div className="flex flex-col items-start gap-1 px-3 pb-2.5 pt-0.5">
-            <span className="line-clamp-2 w-full text-[11px] font-medium leading-[1.25] text-[var(--text-2)]">{item.name}</span>
-            {action}
-          </div>
-        </button>
+        <TooltipProvider delayDuration={150}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={() => choose(item)}
+                aria-pressed={active}
+                aria-label={item.name}
+                className="lx-shop-tile flex w-full flex-col overflow-hidden rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60"
+              >
+                <div className="relative">
+                  <Spot accent={accentOf(shown)} height={dense ? 96 : 124}><ItemArt item={shown} avatar={user?.avatar} username={username} size={dense ? 56 : 70} /></Spot>
+                </div>
+                <div className="flex flex-col items-start gap-1 px-3 pb-2.5 pt-0.5">
+                  <span className="line-clamp-2 w-full text-[11px] font-medium leading-[1.25] text-[var(--text-2)]">{item.name}</span>
+                  {action}
+                </div>
+              </button>
+            </TooltipTrigger>
+            {/* A big look at it on your own picture, with its name and what it costs. */}
+            <TooltipContent side="top" sideOffset={8} className="flex flex-col items-center gap-2 rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] px-5 py-4 text-[var(--text)] [--tooltip-bg:var(--panel)]">
+              <Spot accent={accentOf(shown)} height={190}><div className="px-6"><ItemArt item={shown} avatar={user?.avatar} username={username} size={150} /></div></Spot>
+              <span className="text-[13px] font-semibold">{item.name}</span>
+              <span className="text-[11px] text-[var(--text-dim)]">{item.owned ? (worn[item.kind] === item.id ? "Worn" : "Owned") : item.unlock === "coin" ? `${priceFor(item, "30d").toLocaleString()} LX · 30 days` : "Earned"}</span>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </li>
     )
   }
@@ -337,7 +349,7 @@ export function ShopPage() {
           ) : (
             <div className="relative flex flex-col items-center gap-3 py-4">
               <span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} />
-              <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={compact ? 76 : 120} />
+              <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={compact ? 120 : 176} />
               <span {...nameProps(previewLook, cn("max-w-full truncate font-bold text-[var(--text)]", compact ? "text-[15px]" : "text-[19px]"))}>{username}</span>
             </div>
           )}
