@@ -243,7 +243,7 @@ function Appearance() {
       ) : (
         <div className="grid gap-4 md:grid-cols-[210px_minmax(0,1fr)]">
           <div className="flex flex-col items-center gap-3 self-start rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] p-4 md:sticky md:top-6">
-            <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={150} />
+            <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={108} />
             <span {...nameProps(previewLook, "max-w-full truncate text-[15px] font-bold text-[var(--text)]")}>{sampleName}</span>
             {kind === "smoke_color" && selected && <SmokePuff color={selected.color} color2={selected.color2} className="w-[150px]" />}
             {kind === "grenade_trail" && selected && <GrenadeTrail key={selected.id} color={selected.color} shape={selected.fx} className="w-[150px]" />}

@@ -378,7 +378,7 @@ export function ShopPage() {
           ) : (
             <div className="relative flex flex-col items-center gap-3 py-4">
               <span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} />
-              <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={compact ? 120 : 176} />
+              <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={compact ? 88 : 120} />
               <span {...nameProps(previewLook, cn("max-w-full truncate font-bold text-[var(--text)]", compact ? "text-[15px]" : "text-[19px]"))}>{username}</span>
             </div>
           )}

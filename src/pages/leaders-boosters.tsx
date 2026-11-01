@@ -69,7 +69,7 @@ function TopCard({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen:
       <span aria-hidden="true" className="lx-boost-star right-[60px] top-[50px]" style={{ animationDelay: "2.1s", width: 8, height: 8 }} />
       <span className="flex min-w-0 items-center gap-3">
         {podiumFrame ? (
-          <span className={cn("shrink-0", by === "boosts" ? "-mb-5 -ml-3 -mt-2" : "-my-1 -ml-1")}><FramedAvatar avatar={entry.avatar || undefined} name={entry.name} frame={podiumFrame} size={by === "boosts" ? (first ? 112 : 98) : first ? 78 : 70} /></span>
+          <span className={cn("shrink-0", "")}><FramedAvatar avatar={entry.avatar || undefined} name={entry.name} frame={podiumFrame} size={by === "boosts" ? (first ? 78 : 68) : first ? 56 : 48} /></span>
         ) : (
           <PlayerAvatar avatar={entry.avatar || undefined} name={entry.name} className={cn("shrink-0 text-base", first ? "size-[60px] rounded-[15px] ring-2 ring-[var(--boost)]/70 ring-offset-2 ring-offset-[var(--card-surface)]" : "size-[52px] rounded-[13px]")} />
         )}
@@ -97,7 +97,7 @@ function Row({ entry, by, onOpen, you }: { entry: CommunityEntry; by: By; onOpen
       <span className={cn("text-sm font-semibold", you ? "text-[var(--brand-bright)]" : "text-[var(--text-muted)] group-hover:text-[var(--text)]")}>{entry.position}</span>
       <span className="flex min-w-0 items-center gap-3">
         {entry.boosts > 0 && entry.boosting ? (
-          <FramedAvatar avatar={entry.avatar || undefined} name={entry.name} frame="server-booster" size={42} />
+          <FramedAvatar avatar={entry.avatar || undefined} name={entry.name} frame="server-booster" size={32} />
         ) : (
           <PlayerAvatar avatar={entry.avatar || undefined} name={entry.name} className="size-8 shrink-0 rounded-[9px] text-[10px]" />
         )}

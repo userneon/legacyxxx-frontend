@@ -143,7 +143,7 @@ export function PublicChat() {
             ) : (
               messages.map((message) => (
                 <article key={message.id} className={cn("group/msg flex gap-2.5", introIds.current && !introIds.current.has(message.id) && "animate-[lx-chat-in_200ms_ease-out_both] motion-reduce:animate-none")}>
-                  <FramedAvatar avatar={message.author.avatar ?? undefined} name={message.author.name} frame={message.author.frame} size={32} />
+                  <FramedAvatar avatar={message.author.avatar ?? undefined} name={message.author.name} frame={message.author.frame} size={28} />
                   <div className="min-w-0 flex-1">
                     <p className="flex items-center gap-1.5 text-xs">
                       <span {...nameProps(message.author.nameStyle, "truncate font-semibold text-[var(--text)]")} title={message.author.name}>{message.author.name}</span>
