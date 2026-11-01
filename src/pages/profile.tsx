@@ -1,6 +1,5 @@
 import { DiscordIcon } from "@/components/discord-strip"
 import { BoosterBadge } from "@/components/booster-badge"
-import { FounderBadge } from "@/components/founder-badge"
 import { ProfileCards } from "@/components/profile-cards"
 import { ProfileConfigs } from "@/components/profile-config"
 import { ProfileBanner } from "@/components/profile-banner"
@@ -184,7 +183,6 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
         <div className="flex flex-wrap items-center justify-center gap-2">
           <RoleBadge role={user.role} />
           {overview.creator && <CreatorBadge tier={overview.creator.tier} label={overview.creator.label} />}
-          {user.founder ? <FounderBadge number={user.founder} /> : null}
           {(overview.discordBoosting || overview.boosterPlace) && <BoosterBadge place={overview.boosterPlace} />}
           {overview.clan && (
             <Link to={`/clans/${overview.clan.number ?? overview.clan.id}`} title={overview.clan.name} className="inline-flex h-6 items-center gap-1 rounded-full border border-[var(--line)] px-2 text-[11px] font-semibold text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]">

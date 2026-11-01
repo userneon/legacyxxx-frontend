@@ -1,4 +1,3 @@
-import { FounderPack } from "@/components/founder-pack"
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
@@ -448,7 +447,6 @@ export function ShopPage() {
             {/* On Featured the Genesis card comes first: the bar waits until an item below it is picked. */}
             {(tab !== "featured" || picked !== null) && spotlight}
             <div className="flex min-w-0 flex-col gap-5">
-              {tab === "featured" && <FounderPack />}
               {tab === "featured" && featured.length > 0 && (
                 <section aria-label="Featured">
                   <div className="lx-shop-heading mb-2.5">Featured</div>
