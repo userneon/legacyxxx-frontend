@@ -1,8 +1,8 @@
 import { FounderPack } from "@/components/founder-pack"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
-import { Check, ChevronDown, Lock, RotateCcw, Search, X } from "lucide-react"
+import { Check, ChevronDown, Lock, RotateCcw, Search, Undo2, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -130,6 +130,19 @@ export function ShopPage() {
   }
   // The item bought a moment ago: its card rings once and the buy block turns into "Worn" with a fade.
   const [justBought, setJustBought] = useState<string | null>(null)
+  // For a few seconds after a purchase its Buy button is an Undo (the API gives the window in seconds and takes the LX back whole).
+  const [undo, setUndo] = useState<{ id: string; until: number } | null>(null)
+  const [undoLeft, setUndoLeft] = useState(0)
+  useEffect(() => {
+    if (!undo) return
+    const tick = () => {
+      const left = Math.ceil((undo.until - Date.now()) / 1000)
+      if (left <= 0) { setUndo(null); setUndoLeft(0) } else setUndoLeft(left)
+    }
+    tick()
+    const timer = window.setInterval(tick, 250)
+    return () => window.clearInterval(timer)
+  }, [undo])
   // How long the next purchase rents the item for; the price of each length is the API's.
   const [duration, setDuration] = useState<CosmeticDuration>("30d")
   const priceFor = (item: ShopItem, length: CosmeticDuration = duration) => item.prices?.[length] ?? item.price
@@ -192,10 +205,26 @@ export function ShopPage() {
       await cosmeticsService.equip(item.kind, item.id)
       toast.success(bought.expiresAt ? `${item.name} is yours for ${COSMETIC_DURATIONS.find((entry) => entry.value === duration)?.label.toLowerCase()} and now worn` : `${item.name} is yours for good and now worn`)
       await Promise.all([refetch(), refetchWallet()])
+      setUndo({ id: item.id, until: Date.now() + (bought.undoSeconds ?? 7) * 1000 })
       setJustBought(item.id)
       window.setTimeout(() => setJustBought((current) => (current === item.id ? null : current)), 1400)
     } catch (caught) {
       toast.error("Could not buy it", { description: caught instanceof Error ? caught.message : "Try again in a moment." })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const undoBuy = async (item: ShopItem) => {
+    setUndo(null)
+    setBusy(true)
+    try {
+      await cosmeticsService.undoBuy(item.id)
+      window.dispatchEvent(new Event("legacyx:wallet-changed"))
+      toast.success(`${item.name} purchase undone, your LX are back`)
+      await Promise.all([refetch(), refetchWallet()])
+    } catch (caught) {
+      toast.error("Could not undo it", { description: caught instanceof Error ? caught.message : "Try again in a moment." })
     } finally {
       setBusy(false)
     }
@@ -272,7 +301,8 @@ export function ShopPage() {
   const buyBlock = (item: ShopItem, inline = false) => {
     const isWorn = worn[item.kind] === item.id
     // Yours for good: nothing to buy. Anything sold with LX that is not (not owned, or only rented) can be bought or extended.
-    const rentable = item.unlock === "coin" && !(item.owned && !item.expiresAt)
+    const undoing = undo?.id === item.id && undoLeft > 0
+    const rentable = item.unlock === "coin" && (undoing || !(item.owned && !item.expiresAt))
     const cost = priceFor(item)
     const afford = balance === null || balance >= cost
     return (
@@ -321,9 +351,18 @@ export function ShopPage() {
                 </div>
               </PopoverContent>
             </Popover>
-            <button type="button" disabled={busy} onClick={() => (afford ? void buy(item) : (setSheetOpen(false), navigate("/wallet/top-up")))} className="lx-primary-button inline-flex h-10 w-full items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-60">
-              {afford ? `${item.owned ? "Extend" : "Buy"} for ${cost.toLocaleString()} LX` : `Top up ${(cost - (balance ?? 0)).toLocaleString()} more LX`}
-            </button>
+            {undoing
+              ? (
+                <button type="button" disabled={busy} onClick={() => void undoBuy(item)} className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-[var(--line-strong)] bg-[var(--raised)] text-[13px] font-semibold text-[var(--text)] transition-colors hover:bg-[var(--card-surface)] disabled:opacity-60">
+                  <Undo2 className="size-4" />
+                  Undo ({undoLeft}s)
+                </button>
+              )
+              : (
+                <button type="button" disabled={busy} onClick={() => (afford ? void buy(item) : (setSheetOpen(false), navigate("/wallet/top-up")))} className="lx-primary-button inline-flex h-10 w-full items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-60">
+                  {afford ? `${item.owned ? "Extend" : "Buy"} for ${cost.toLocaleString()} LX` : `Top up ${(cost - (balance ?? 0)).toLocaleString()} more LX`}
+                </button>
+              )}
           </>
         ) : !item.owned ? (
           <p className="text-xs text-[var(--text-dim)]">{item.requirement || "Earned in game, not for sale."}</p>

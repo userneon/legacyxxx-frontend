@@ -93,8 +93,12 @@ export const cosmeticsService = {
   async getMine(options?: CallOptions): Promise<Cosmetics> {
     return get<Cosmetics>("/api/v1/cosmetics", undefined, options)
   },
-  async buy(id: string, duration: CosmeticDuration = "30d", options?: CallOptions): Promise<{ owned: boolean; expiresAt: string | null }> {
-    return post<{ owned: boolean; expiresAt: string | null }>(`/api/v1/cosmetics/${encodeURIComponent(id)}/buy`, { duration }, options)
+  async buy(id: string, duration: CosmeticDuration = "30d", options?: CallOptions): Promise<{ owned: boolean; expiresAt: string | null; undoSeconds?: number }> {
+    return post<{ owned: boolean; expiresAt: string | null; undoSeconds?: number }>(`/api/v1/cosmetics/${encodeURIComponent(id)}/buy`, { duration }, options)
+  },
+  /** Take back a purchase made a few seconds ago: the LX return whole (the API refuses it once the window has passed). */
+  async undoBuy(id: string, options?: CallOptions): Promise<{ undone: boolean }> {
+    return post<{ undone: boolean }>(`/api/v1/cosmetics/${encodeURIComponent(id)}/undo-buy`, {}, options)
   },
   /** Pick the colour (and the dual smoke's second one) of a design you own. */
   async saveCustom(item: string, color: string, color2?: string | null, options?: CallOptions): Promise<{ kind: CosmeticKind; item: string; color: string }> {
