@@ -355,8 +355,9 @@ const FRAME_GLOW: Record<string, { a: string; b: string; r: number }> = { // pal
 export function frameGlow(id: string | null | undefined): string | undefined {
   if (!id || !(id in FRAMES)) return undefined
   const glow = FRAME_GLOW[id] ?? { a: frameAccent(id), b: frameAccent(id), r: 9 }
-  const halo = `color-mix(in oklab, ${glow.b} 75%, transparent)`
-  return `drop-shadow(0 0 1.5px ${glow.a}) drop-shadow(0 0 ${Math.round(glow.r / 2)}px ${glow.a}) drop-shadow(0 0 ${glow.r}px ${halo})`
+  // Kept small (owner request 2026-11-01, "make the glow smaller"): a thin rim and a short halo, about half the reach it had.
+  const halo = `color-mix(in oklab, ${glow.b} 60%, transparent)`
+  return `drop-shadow(0 0 1px ${glow.a}) drop-shadow(0 0 ${Math.max(1, Math.round(glow.r / 4))}px ${glow.a}) drop-shadow(0 0 ${Math.round(glow.r / 2)}px ${halo})`
 }
 
 /** Profile banners the site can draw: the API sends only an effect key, mapped to a CSS class here (anything else draws nothing). */
