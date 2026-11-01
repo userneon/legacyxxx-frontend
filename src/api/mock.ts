@@ -780,6 +780,8 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path.startsWith("/api/v1/staff/cosmetics/") && method === "PUT") return { id: path.split("/").pop() }
   if (path.startsWith("/api/v1/staff/clans/") && path.endsWith("/transfer") && method === "POST") return undefined
   if (path === "/api/v1/public/chat") return { messages: mockChat }
+  if (path === "/api/v1/chat/rooms") return { rooms: [{ room: "global", kind: "global", name: "Community" }, { room: "clan:2c3f6a52-5f1d-4d5b-9d6e-2f8c1a7b9e10", kind: "clan", name: "[WOLF] Wolf Pack" }] }
+  if (path === "/api/v1/chat/room") return { messages: [] }
   if (path === "/api/v1/chat" && method === "POST") {
     const message = { id: `c${mockChat.length + 1}`, body: String((body as { body: string }).body), createdAt: new Date().toISOString(), author: { steamId: "76561198000000000", name: "LegacyTester", avatar: null, frame: null, nameStyle: null, staffRole: "OWNER" as const } }
     mockChat.push(message)

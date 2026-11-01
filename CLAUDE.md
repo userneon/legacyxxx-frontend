@@ -199,6 +199,8 @@ A round button bottom right on every page of the website (`components/public-cha
 (300 characters, no links, one message per `chat.cooldown_seconds`, refused while they have an active gag); staff who can ban see a Remove icon on each message; staff roles show a small pill (Owner violet, others neutral).
 Real data from `/public/chat`, refreshed every 4 s while open and every 30 s shut (a white dot on the button says something new was written). The staff site has no chat. Neutral palette, white send button.
 
+Chat rooms (owner request 2026-11-01): the community chat has a second room for each clan, "clan:<clan id>", which only the clan's members read and write (`GET /chat/rooms`, `GET /chat/room?room=`, `POST /chat` with `room`; `ChatRoom` in `src/api/chat.ts`). A signed-in player in a clan sees a Community / Clan switch under the chat header; everyone else sees the community chat alone, as before. The same filters apply in every room (no links, a wait between messages, gags, staff removal). Real messages from the API; the clan room is not public, so it is read with the sign-in, never from `/public/*`.
+
 ### Creators (owner request 2026-10-12)
 
 Two creator roles, **Main Content Creator** and **Content Creator**, kept apart from staff (`legacy_x.content_creators`; no

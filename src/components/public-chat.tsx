@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { MessageCircle, Send, Trash2, X } from "lucide-react"
 import { toast } from "sonner"
 
-import { chatService, type ChatMessage } from "@/api/chat"
+import { chatService, type ChatMessage, type ChatRoom } from "@/api/chat"
 import { FramedAvatar } from "@/components/framed-avatar"
 import { useModerationAccess } from "@/components/penalty-staff"
 import { formatRelativeTime } from "@/components/relative-time"
@@ -34,7 +34,12 @@ export function PublicChat() {
   const stick = useRef(true)
   const introIds = useRef<Set<string> | null>(null)
   const prevCount = useRef(0)
-  const { data, loading, error, refetch } = useApiQuery<ChatMessage[]>((signal) => chatService.list({ signal }), { queryKey: "public-chat", keepPreviousData: true })
+  // The room on screen: the community chat, or the clan's own (only shown to a clan member, who sees a tab for each).
+  const [room, setRoom] = useState("global")
+  const rooms = useApiQuery<ChatRoom[]>((signal) => chatService.rooms({ signal }), { queryKey: `chat-rooms:${isAuthenticated ? "in" : "out"}`, enabled: isAuthenticated })
+  const roomList = isAuthenticated ? rooms.data ?? [] : []
+  const roomName = roomList.find((entry) => entry.room === room)?.name ?? "Community"
+  const { data, loading, error, refetch } = useApiQuery<ChatMessage[]>((signal) => chatService.list({ signal }, room), { queryKey: `chat:${room}`, keepPreviousData: false })
   // Messages just removed disappear at once, even while the list on screen is a few seconds old.
   const [gone, setGone] = useState<Set<string>>(new Set())
   const messages = (data ?? []).filter((message) => !gone.has(message.id))
@@ -80,7 +85,7 @@ export function PublicChat() {
     if (!body || busy) return
     setBusy(true)
     try {
-      await chatService.send(body)
+      await chatService.send(body, undefined, room)
       setText("")
       stick.current = true
       refetch()
@@ -89,7 +94,7 @@ export function PublicChat() {
     } finally {
       setBusy(false)
     }
-  }, [text, busy, refetch])
+  }, [text, busy, refetch, room])
 
   const remove = async (message: ChatMessage) => {
     setGone((current) => new Set(current).add(message.id))
@@ -113,9 +118,16 @@ export function PublicChat() {
         <section aria-label="Community chat" aria-hidden={!open} className={cn("flex h-[480px] max-h-[calc(100dvh-6rem)] w-[360px] max-w-[calc(100vw-1.5rem)] origin-bottom-right flex-col overflow-hidden rounded-2xl border border-[var(--glass-line)] bg-[var(--panel)] shadow-[0_24px_48px_-20px_rgb(0_0_0/0.8)] transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none", shown && open ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none translate-y-2 scale-[0.97] opacity-0")}>
           <header className="flex h-12 shrink-0 items-center gap-2 border-b border-[var(--line-soft)] px-4">
             <span aria-hidden="true" className="size-2 rounded-full bg-[var(--status-green)]" />
-            <h2 className="flex-1 text-[13px] font-semibold text-[var(--text)]">Community chat</h2>
+            <h2 className="flex-1 truncate text-[13px] font-semibold text-[var(--text)]">{roomList.length > 1 ? roomName : "Community chat"}</h2>
             <button type="button" onClick={() => setOpen(false)} aria-label="Close the chat" className="grid size-8 place-items-center rounded-lg text-[var(--text-muted)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)]"><X className="size-4" /></button>
           </header>
+          {roomList.length > 1 && (
+            <nav aria-label="Chat rooms" className="flex shrink-0 gap-1 border-b border-[var(--line-soft)] px-3 py-2">
+              {roomList.map((entry) => (
+                <button key={entry.room} type="button" onClick={() => { setRoom(entry.room); introIds.current = null; stick.current = true }} aria-pressed={entry.room === room} className={cn("h-7 min-w-0 truncate rounded-lg px-3 text-[12px] transition-colors", entry.room === room ? "bg-[var(--raised)] text-[var(--text)]" : "text-[var(--text-dim)] hover:bg-[var(--raised)] hover:text-[var(--text)]")}>{entry.kind === "global" ? "Community" : "Clan"}</button>
+              ))}
+            </nav>
+          )}
           <div
             ref={list}
             onScroll={(event) => { const el = event.currentTarget; stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80 }}
