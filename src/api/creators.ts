@@ -90,6 +90,22 @@ export interface StaffCreatorApplication {
   player: { steamId: string; username: string; avatar: string | null }
 }
 
+/** A creator's own code, what it earned and who used it (the API makes the code the first time it is asked for). */
+export interface MyReferral {
+  code: string
+  count: number
+  earned: number
+  recent: Array<{ id: string; name: string; steamId: string; avatar: string | null; at: string }>
+}
+/** Whether a signed-in player can enter a creator's code now, and if not, why. */
+export interface ReferralStatus {
+  canRedeem: boolean
+  reason: "own_code" | "already_used" | "too_old" | "not_played" | "creator" | null
+  used: boolean
+  rewardNew: number
+  windowDays: number
+}
+
 export const creatorsService = {
   list: (options?: CallOptions) => get<{ creators: Creator[] }>("/api/v1/public/creators", undefined, options),
   /** Owners and Managers only (the API checks). */
@@ -97,6 +113,9 @@ export const creatorsService = {
   apply: (input: CreatorApplicationInput, options?: CallOptions) => post<{ id: string; status: "pending" }>("/api/v1/creators/applications", input, options),
   /** A creator changes their own About line. */
   saveAbout: (bio: string, options?: CallOptions) => put<{ about: string }>("/api/v1/creators/me/about", { bio }, options),
+  myReferral: (options?: CallOptions) => get<MyReferral>("/api/v1/creators/me/referral", undefined, options),
+  referralStatus: (options?: CallOptions) => get<ReferralStatus>("/api/v1/referral/status", undefined, options),
+  redeemReferral: (code: string, options?: CallOptions) => post<{ redeemed: true; reward: number }>("/api/v1/referral/redeem", { code }, options),
   myApplication: (options?: CallOptions) => get<MyCreatorApplication>("/api/v1/creators/applications/me", undefined, options),
   /** Owners and Managers only (the API checks). */
   applications: (options?: CallOptions) => get<{ applications: StaffCreatorApplication[] }>("/api/v1/staff/creators/applications", undefined, options),
