@@ -355,9 +355,11 @@ const FRAME_GLOW: Record<string, { a: string; b: string; r: number }> = { // pal
 export function frameGlow(id: string | null | undefined): string | undefined {
   if (!id || !(id in FRAMES)) return undefined
   const glow = FRAME_GLOW[id] ?? { a: frameAccent(id), b: frameAccent(id), r: 9 }
-  // Kept small (owner request 2026-11-01, "make the glow smaller"): a thin rim and a short halo, about half the reach it had.
-  const halo = `color-mix(in oklab, ${glow.b} 60%, transparent)`
-  return `drop-shadow(0 0 1px ${glow.a}) drop-shadow(0 0 ${Math.max(1, Math.round(glow.r / 4))}px ${glow.a}) drop-shadow(0 0 ${Math.round(glow.r / 2)}px ${halo})`
+  // Even all round (owner request 2026-11-01, "make the glow even"): no hard bright rim hugging the ornaments, only two soft halos of one reach
+  // that blend, so the light is the same on every side of the frame instead of flaring at its corners and spikes.
+  const near = `color-mix(in oklab, ${glow.a} 55%, transparent)`
+  const far = `color-mix(in oklab, ${glow.b} 45%, transparent)`
+  return `drop-shadow(0 0 ${Math.round(glow.r * 0.6)}px ${near}) drop-shadow(0 0 ${glow.r}px ${far})`
 }
 
 /** Profile banners the site can draw: the API sends only an effect key, mapped to a CSS class here (anything else draws nothing). */
