@@ -32,9 +32,8 @@ import { OwnerPanel } from "@/components/owner-panel"
 import { OwnerSections } from "@/components/owner-sections"
 import { PenaltyDetailSheet, StatusPill, TypeIcon, TYPE_META, formatPenaltyDate } from "@/components/penalty-detail-dialog"
 import { PlayerAvatar } from "@/components/player-avatar"
-import { FrameOverlay } from "@/components/framed-avatar"
 import { CreatorBadge, CreatorLinks } from "@/pages/creators"
-import { frameArt, nameProps } from "@/lib/cosmetics"
+import { nameProps } from "@/lib/cosmetics"
 import { PageBar, PageTabs } from "@/components/page-tabs"
 import { AccountSettings, AppearanceSettings } from "@/pages/settings"
 import { copyText, steamProfileUrl } from "@/components/profile-ids"
@@ -74,15 +73,12 @@ function yearsSince(value: string) {
 function Avatar({ user }: { user: ProfileOverview["user"] }) {
   const animated = user.steamMedia?.animatedAvatar
   const [ready, setReady] = useState(false)
-  // The picture keeps its usual size; a frame grows around it, and the header makes room for it.
-  const art = frameArt(user.frame)
-  const room = art ? Math.max(0, Math.round((108 / art.opening - 116) / 2)) : 0
+  // A round picture (avatar frames are gone, owner request 2026-11-01); the Steam animated avatar, when there is one, fades in over it.
   return (
-    <span className="relative flex size-[116px] shrink-0 items-center justify-center" style={room ? { margin: room } : undefined}>
-      <span className={cn("relative size-[108px] border-[var(--card-surface)] bg-[var(--line)]", art ? "z-0 rounded-[17px]" : "overflow-hidden rounded-[27px] border-4")}>
-        <PlayerAvatar avatar={user.avatar} name={user.username} className={cn("size-full rounded-none text-2xl", art && "rounded-[17px]")} />
-        {animated && <img src={animated} alt="" aria-hidden="true" onLoad={() => setReady(true)} className={cn("absolute inset-0 size-full object-cover transition-opacity duration-300", art && "rounded-[17px]", ready ? "opacity-100" : "opacity-0")} />}
-        <FrameOverlay frame={user.frame} />
+    <span className="relative flex size-[116px] shrink-0 items-center justify-center">
+      <span className="relative size-[108px] overflow-hidden rounded-full border-4 border-[var(--card-surface)] bg-[var(--line)]">
+        <PlayerAvatar avatar={user.avatar} name={user.username} className="size-full text-2xl" />
+        {animated && <img src={animated} alt="" aria-hidden="true" onLoad={() => setReady(true)} className={cn("absolute inset-0 size-full rounded-full object-cover transition-opacity duration-300", ready ? "opacity-100" : "opacity-0")} />}
       </span>
     </span>
   )
