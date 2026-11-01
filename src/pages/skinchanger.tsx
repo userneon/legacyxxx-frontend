@@ -1432,8 +1432,9 @@ export function SkinchangerPage() {
               {canCustomizeAccessories && (previewStickerItems.length > 0 || previewCharmItem) && <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-2"><div className="flex -space-x-1.5">{previewStickerItems.slice(0, 5).map((item) => catalogImageUrl(item) && <OptimizedImage key={item.id} src={catalogImageUrl(item) ?? ""} width={28} height={28} alt={`${item.display_name} selected sticker`} data-catalog-item-id={item.id} className="size-7 rounded-full border border-background bg-card object-contain p-0.5" />)}</div>{previewCharmItem && catalogImageUrl(previewCharmItem) && <OptimizedImage src={catalogImageUrl(previewCharmItem) ?? ""} width={32} height={32} alt={`${previewCharmItem.display_name} selected charm`} data-catalog-item-id={previewCharmItem.id} className="size-8 rounded-md border border-background bg-card object-contain p-0.5" />}</div>}
             </div>
             {selected && activeWeapon && (
-              <div className="mt-3 grid grid-rows-[1fr] overflow-hidden">
-              <div className="min-h-0 overflow-hidden">
+              <div className="-mx-1.5 mt-3 grid grid-rows-[1fr] overflow-hidden px-1.5">
+              {/* The side padding keeps the focus ring and the hover outline of the fields from being clipped at the left and right edges. */}
+              <div className="-mx-1.5 min-h-0 overflow-hidden px-1.5">
               <div className="space-y-4 border-t border-border pt-4">
                 <div>
                   <div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Wear</span><span className="text-xs font-medium" style={{ color: wearColor(customOptions.wear ?? defaultWear) }}>{wearName(customOptions.wear ?? defaultWear)} · {(customOptions.wear ?? defaultWear).toFixed(4)}</span></div>
