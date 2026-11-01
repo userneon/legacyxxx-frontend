@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils"
 
 /* Our own colour picker (owner request 2026-11-01, replaces the browser's): a square for saturation and brightness, a hue strip and a hex field. */
 
+const HUE_STRIP = "linear-gradient(to right, hsl(0 100% 50%), hsl(60 100% 50%), hsl(120 100% 50%), hsl(180 100% 50%), hsl(240 100% 50%), hsl(300 100% 50%), hsl(360 100% 50%))" // palette-exempt: the hue strip
+
 type Hsv = { h: number; s: number; v: number }
 
 const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value))
@@ -84,8 +86,7 @@ export function ColorPicker({ value, onChange }: { value: string; onChange: (nex
       <Surface label="Saturation and brightness" onMove={(x, y) => apply({ ...hsv, s: x, v: 1 - y })} className="h-[140px] cursor-crosshair rounded-lg" style={{ backgroundColor: `hsl(${hsv.h} 100% 50%)`, backgroundImage: "linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent)" }}>
         <span aria-hidden="true" className="pointer-events-none absolute size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_0_0_1px_rgb(0_0_0/0.5)]" style={{ left: `${hsv.s * 100}%`, top: `${(1 - hsv.v) * 100}%`, background: hsvToHex(hsv) }} />
       </Surface>
-      {/* palette-exempt: the hue strip */}
-      <Surface label="Hue" onMove={(x) => apply({ ...hsv, h: x * 360 })} className="h-3 cursor-pointer rounded-full" style={{ backgroundImage: "linear-gradient(to right, hsl(0 100% 50%), hsl(60 100% 50%), hsl(120 100% 50%), hsl(180 100% 50%), hsl(240 100% 50%), hsl(300 100% 50%), hsl(360 100% 50%))" }}>
+      <Surface label="Hue" onMove={(x) => apply({ ...hsv, h: x * 360 })} className="h-3 cursor-pointer rounded-full" style={{ backgroundImage: HUE_STRIP }}>
         <span aria-hidden="true" className="pointer-events-none absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_0_0_1px_rgb(0_0_0/0.5)]" style={{ left: `${(hsv.h / 360) * 100}%`, background: `hsl(${hsv.h} 100% 50%)` }} />
       </Surface>
       <label className="flex items-center gap-2 text-[12px] text-[var(--text-dim)]">
