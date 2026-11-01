@@ -9,7 +9,7 @@ import { resolveLook, type FrameLook } from "@/lib/frame-look"
  */
 export function OrbAvatar({ avatar, name, size, look, paused = false }: { avatar?: string; name?: string; size: number; look?: FrameLook | null; paused?: boolean }) {
   const resolved = resolveLook(look)
-  const inner = Math.round(size * 0.68)
+  const inner = Math.round(size * 0.92)
   return (
     <span className="relative inline-flex shrink-0 items-center justify-center" style={{ width: size, height: size }}>
       <span aria-hidden="true" className="pointer-events-none absolute inset-0 z-10 block">
