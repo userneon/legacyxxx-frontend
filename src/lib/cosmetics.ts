@@ -115,7 +115,7 @@ const FRAMES: Record<string, FrameArt> = {
 
 export function frameArt(id: string | null | undefined): ({ src: string; maskSrc?: string } & FrameArt) | null {
   if (!id || !(id in FRAMES)) return null
-  return { src: `/frames/${id}.webp`, ...(FRAMES[id].mask ? { maskSrc: `/frames/${id}-mask.webp` } : {}), ...FRAMES[id] }
+  return { src: `/frames/${id}.webp?v=2`, ...(FRAMES[id].mask ? { maskSrc: `/frames/${id}-mask.webp?v=2` } : {}), ...FRAMES[id] }
 }
 
 /** Designs coloured with the player's own pick (--name-color); fire and chrome have a fixed-colour look too, used when no colour comes. */
