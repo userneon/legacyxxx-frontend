@@ -1,4 +1,5 @@
 import { BackgroundBeams } from "@/components/background-beams"
+import Aurora from "@/components/ui/aurora"
 import { ProfileBackdrop } from "@/components/profile-backdrop"
 import { ProfileScene } from "@/components/profile-scene"
 import { useProfileScene } from "@/lib/profile-scene"
@@ -109,6 +110,8 @@ export function App() {
   return (
     <SidebarProvider defaultOpen={typeof window === "undefined" || (!getWebsitePreferences().sidebarCollapsed && window.innerWidth >= 1280)} style={{ "--sidebar-width": "264px", "--sidebar-width-icon": "62px" } as CSSProperties}>
       {/* On a profile the whole backdrop is the Grid Scan; the beams come back when the visitor leaves. */}
+      {/* A slow grey light drifting over the near-black base, behind the beams (owner request 2026-11-01: keep the base background, add the Aurora in its own greys). */}
+      {!profileGrid && !profileScene && <Aurora aria-hidden="true" intensity={0.14} className="pointer-events-none fixed inset-0 -z-[2] overflow-hidden" />}
       {!profileGrid && !profileScene && <BackgroundBeams />}
       <ProfileScene scene={currentPage === "profile" ? profileScene : null} />
       <ProfileBackdrop active={profileGrid} />
