@@ -587,7 +587,7 @@ export function SkinchangerPage() {
    * The saved look a card shows for the team selected at the top. Team-locked firearms always show
    * their own side; a "Both" look counts for either side.
    */
-  const gridEntryFor = (item: SkinchangerCatalogItem, kind: ModelKind, team: TeamScope = teamScope) => {
+  const gridEntryFor = (item: SkinchangerCatalogItem, kind: ModelKind, team: TeamScope = teamScope === "ct" ? "ct" : "t") => {
     const slotKey = slotKeyForCatalogItem(item, kind)
     const lockedTeam = teamScopeFromMetadata(item)
     const viewTeam: TeamScope = lockedTeam !== "all" ? lockedTeam : team
@@ -750,7 +750,8 @@ export function SkinchangerPage() {
 
   const showsForTeam = (item: SkinchangerCatalogItem) => {
     const locked = teamScopeFromMetadata(item)
-    return locked === "all" || locked === teamScope
+    // The team tab decides, even while the picker has set the page to "both teams" for a skin both can wear (otherwise every team-locked gun vanishes behind the sheet).
+    return locked === "all" || locked === (teamScope === "ct" ? "ct" : "t")
   }
   const modelSections = weaponGridGroups.map((group) => {
     const items = (firearmModels?.data ?? [])
