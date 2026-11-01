@@ -90,6 +90,7 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
             avatar={player.avatar}
             name={player.username}
             frame={player.frame}
+            frameLook={player.frame_look}
             className={cn(
               "lx-layer relative z-0 shrink-0 text-base transition-[scale] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-105 group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
               first ? "size-[60px] rounded-[15px]" : "size-[52px] rounded-[13px]",
@@ -160,6 +161,7 @@ function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: Competiti
             avatar={player.avatar}
             name={player.username}
             frame={player.frame}
+            frameLook={player.frame_look}
             className={cn("relative z-0 size-8 shrink-0 rounded-[9px] text-xs", you && !player.frame && "ring-2 ring-[var(--brand)]/80")}
           />
         </span>

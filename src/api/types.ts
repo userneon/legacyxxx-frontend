@@ -192,6 +192,7 @@ export interface CompetitiveLeaderboardEntry extends CompetitiveProfile {
   clan_tag?: string | null
   /** Avatar frame the player wears (id). Absent from an older API. */
   frame?: string | null
+  frame_look?: import("@/lib/frame-look").FrameLook | null
   /** Name colour and glow the player wears. Absent from an older API. */
   name_style?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   deaths: number
@@ -258,6 +259,7 @@ export interface MatchDetailPlayer {
   userId: string | null
   /** Avatar frame (id) and name look the player wears. Absent from an older API. */
   frame?: string | null
+  frameLook?: import("@/lib/frame-look").FrameLook | null
   nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   steamId: string
   username: string
@@ -406,6 +408,7 @@ export interface CommunityPlayer {
   moderationStatus: ModerationStatus
   /** Avatar frame (id) and name look the player wears. Absent from an older API. */
   frame?: string | null
+  frameLook?: import("@/lib/frame-look").FrameLook | null
   nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
 }
 
@@ -546,6 +549,7 @@ export interface ClanMember {
   description: string
   /** Avatar frame (id) and name look the player wears. Absent from an older API. */
   frame?: string | null
+  frameLook?: import("@/lib/frame-look").FrameLook | null
   nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   /** The member's real ranked numbers (null: no ranked profile) and linked FACEIT (null: none). Absent from an older API. */
   stats?: { rankId: number; rankName: string; rankImageKey: string; currentExp: number; matches: number; winRate: number | null; kd: number | null } | null
@@ -750,6 +754,7 @@ export interface FeedbackEntry {
   date: string
   /** Avatar frame (id) and name look the player wears. Absent from an older API. */
   frame?: string | null
+  frameLook?: import("@/lib/frame-look").FrameLook | null
   nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   /** How many players picked each reaction, and the signed-in viewer's own pick. Absent from an older API. */
   reactions?: Record<FeedbackReaction, number>

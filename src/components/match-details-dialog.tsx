@@ -89,7 +89,7 @@ function Scoreboard({ team, highlightSteamId, onPlayer }: { team: MatchDetailTea
                       onClick={() => onPlayer(player.steamId)}
                       className="group flex min-w-0 items-center gap-2.5 text-left disabled:cursor-default"
                     >
-                      <PlayerAvatar avatar={player.avatar} name={player.username} frame={player.frame} className={cn("size-7 shrink-0 rounded-md text-[10px]", highlighted && !player.frame && "ring-2 ring-white/60")} />
+                      <PlayerAvatar avatar={player.avatar} name={player.username} frame={player.frame} frameLook={player.frameLook} className={cn("size-7 shrink-0 rounded-md text-[10px]", highlighted && !player.frame && "ring-2 ring-white/60")} />
                       <span {...nameProps(player.nameStyle, "truncate font-medium group-enabled:group-hover:underline")}>{player.username}</span>
                     </button>
                   </td>
@@ -254,7 +254,7 @@ function TeamComparison({ detail, onPlayer }: { detail: MatchDetail; onPlayer: (
             onClick={() => onPlayer(entry!.player.steamId)}
             className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.03] p-2.5 text-left transition-colors enabled:hover:bg-white/[0.06]"
           >
-            <PlayerAvatar avatar={entry!.player.avatar} name={entry!.player.username} frame={entry!.player.frame} className="size-9 rounded-lg text-xs" />
+            <PlayerAvatar avatar={entry!.player.avatar} name={entry!.player.username} frame={entry!.player.frame} frameLook={entry!.player.frameLook} className="size-9 rounded-lg text-xs" />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground"><Icon className="size-3" />{label}</div>
               <div {...nameProps(entry!.player.nameStyle, cn("truncate text-sm font-semibold", TEAM_TONE[entry!.team].text))}>{entry!.player.username}</div>

@@ -83,7 +83,7 @@ export function CreatorLinks({ links, className }: { links: Creator["links"]; cl
 function CreatorHead({ creator, size }: { creator: Creator; size: number }) {
   return (
     <Link to={`/profile/${creator.steamId}`} className="group flex min-w-0 items-center gap-3">
-      <FramedAvatar avatar={creator.avatar ?? undefined} name={creator.username} frame={creator.frame} size={size} />
+      <FramedAvatar avatar={creator.avatar ?? undefined} name={creator.username} frame={creator.frame} look={creator.frameLook} size={size} />
       <span className="flex min-w-0 flex-col gap-1">
         <span {...nameProps(creator.nameStyle as NameLook | null, cn("truncate font-bold text-[var(--text)] underline-offset-4 group-hover:underline", size > 60 ? "text-[22px] leading-tight" : "text-[15px]"))} title={creator.username}>{creator.username}</span>
         {creator.rank && (

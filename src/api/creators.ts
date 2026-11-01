@@ -58,6 +58,7 @@ export interface Creator {
   links: CreatorLinks
   rank: { id: number; name: string; imageKey: string | null } | null
   frame: string | null
+  frameLook?: import("@/lib/frame-look").FrameLook | null
   nameStyle: unknown
 }
 

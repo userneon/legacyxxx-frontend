@@ -50,7 +50,7 @@ type ShopItem = FrameItem & { kind: ShopKind }
 
 /** What the item looks like: a frame around your picture, or your name painted with it. */
 function ItemArt({ item, avatar, username, size, orb }: { item: ShopItem; avatar?: string; username: string; size: number; orb?: FrameLook | null }) {
-  if (item.kind === "frame") return <FramedAvatar avatar={avatar} name={username} frame={item.id} look={orb} size={size} />
+  if (item.kind === "frame") return <FramedAvatar avatar={avatar} name={username} frame={item.id} look={orb} live size={size} />
   if (item.kind === "smoke_color") return <SmokePuff color={item.color} color2={item.color2} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "grenade_trail") return <GrenadeTrail color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "flash_effect") return <FlashEffect color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
@@ -380,7 +380,7 @@ export function ShopPage() {
           ) : (
             <div className="relative flex flex-col items-center gap-3 py-4">
               <span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} />
-              <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} look={data?.frameLook} size={compact ? 88 : 120} />
+              <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} look={data?.frameLook} live size={compact ? 88 : 120} />
               <span {...nameProps(previewLook, cn("max-w-full truncate font-bold text-[var(--text)]", compact ? "text-[15px]" : "text-[19px]"))}>{username}</span>
             </div>
           )}

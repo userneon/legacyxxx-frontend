@@ -37,6 +37,8 @@ export interface CrystalizedBallProps extends Partial<PresetValues> {
   interactive?: boolean;
   hoverStrength?: number;
   intro?: boolean;
+  /** Keep the picture after it is drawn, so the canvas can be copied to an image (used for the frozen orbs). */
+  keepBuffer?: boolean;
   paused?: boolean;
   className?: string;
   style?: CSSProperties;
@@ -923,6 +925,7 @@ const CrystalizedBall = ({
   hoverStrength = 0.7,
   intro = true,
   paused = false,
+  keepBuffer = false,
   className = '',
   style
 }: CrystalizedBallProps) => {
@@ -971,7 +974,7 @@ const CrystalizedBall = ({
     const container = containerRef.current;
     if (!container) return undefined;
 
-    const renderer = new Renderer({ alpha: true, premultipliedAlpha: true, antialias: false, depth: false });
+    const renderer = new Renderer({ alpha: true, premultipliedAlpha: true, antialias: false, depth: false, preserveDrawingBuffer: keepBuffer });
     const gl = renderer.gl;
     const gl2 = gl as unknown as WebGL2RenderingContext;
     if (!renderer.isWebgl2) {

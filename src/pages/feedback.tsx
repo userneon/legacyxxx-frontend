@@ -160,7 +160,7 @@ function ReviewCard({ entry, own, fresh, index, onOpenProfile, onEdit, onChanged
 
   const author = (
     <>
-      <PlayerAvatar avatar={entry.avatar} name={entry.name} frame={entry.frame} className="size-9 shrink-0 rounded-[10px] text-xs" />
+      <PlayerAvatar avatar={entry.avatar} name={entry.name} frame={entry.frame} frameLook={entry.frameLook} className="size-9 shrink-0 rounded-[10px] text-xs" />
       <span className="flex min-w-0 flex-1 flex-col gap-1.5 text-left">
         <span className="flex min-w-0 items-center gap-2">
           <span {...nameProps(entry.nameStyle, "truncate text-[13px] font-medium text-[var(--text)]")}>{entry.name}</span>
