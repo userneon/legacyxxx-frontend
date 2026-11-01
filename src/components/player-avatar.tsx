@@ -1,9 +1,8 @@
-/** LEGACY-X dark glass UI: safe Steam avatar image that always fills its allocated box, with an identity fallback. */
+/** Safe Steam avatar image: always a circle that fills its allocated box, with an identity fallback. */
 import { useState } from "react"
 
 import { cn } from "@/lib/utils"
 import { OptimizedImage } from "@/components/optimized-image"
-import { frameArt, frameGlow } from "@/lib/cosmetics"
 
 function validAvatarUrl(value?: string) {
   if (!value) return false
@@ -35,17 +34,11 @@ export function PlayerAvatar({
   const initials = (name?.trim() || "?").slice(0, 2).toUpperCase()
   const showImage = !failed && validAvatarUrl(avatar)
 
-  const art = frame ? frameArt(frame) : null
-  const picture = (
-    <div style={art ? { ...style, scale: String(art.opening), translate: `${art.dx * 100}% ${art.dy * 100}%` } : style} className={cn("relative flex shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br from-secondary to-muted font-bold", art && "z-0", className)}>
+  // Every avatar is a circle (owner request 2026-11-01); `frame` is accepted and ignored now that frames are gone.
+  void frame
+  return (
+    <div style={style} className={cn("relative flex shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br from-secondary to-muted font-bold", className, "rounded-full")}>
       {showImage ? <OptimizedImage src={avatar!} width={96} height={96} alt="" className={cn("absolute inset-0 h-full w-full max-w-none object-cover object-center", imageClassName)} onError={() => setFailed(true)} /> : initials}
     </div>
-  )
-  if (!art) return picture
-  return (
-    <span className="relative inline-flex shrink-0">
-      {picture}
-      <img src={art.src} alt="" aria-hidden="true" draggable={false} className="pointer-events-none absolute inset-0 z-10 size-full max-w-none select-none" style={{ filter: frameGlow(frame) }} />
-    </span>
   )
 }

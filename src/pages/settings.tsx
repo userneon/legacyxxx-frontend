@@ -171,7 +171,6 @@ function Notifications() {
 
 /** What can be worn, in two groups: what shows on the site, and what shows in game. The chips wrap, so every kind stays in reach. */
 const KINDS: Array<{ value: CosmeticKind; label: string; noun: string; group: "profile" | "game" }> = [
-  { value: "frame", label: "Frame", noun: "frame", group: "profile" },
   { value: "name_color", label: "Name colour", noun: "colour", group: "profile" },
   { value: "name_glow", label: "Name glow", noun: "glow", group: "profile" },
   { value: "banner", label: "Banner", noun: "banner", group: "profile" },
@@ -185,7 +184,7 @@ function Appearance() {
   const { user } = useAuth()
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const [busy, setBusy] = useState(false)
-  const [kind, setKind] = useState<CosmeticKind>("frame")
+  const [kind, setKind] = useState<CosmeticKind>("name_color")
   const [picked, setPicked] = useState<Partial<Record<CosmeticKind, string>>>({})
   const saved = useSavedFlash()
 

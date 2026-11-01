@@ -5,7 +5,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
-import { Check, Frame, Gem, Image as ImageIcon, Text } from "lucide-react"
+import { Check, Gem, Image as ImageIcon, Text } from "lucide-react"
 
 import { walletService, type Wallet } from "@/api"
 import { cosmeticsService, type Cosmetics } from "@/api/cosmetics"
@@ -19,7 +19,6 @@ import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
 
 const CONTAINS = [
-  { icon: Frame, label: "Genesis frame" },
   { icon: Gem, label: "Genesis badge with your number" },
   { icon: Text, label: "Genesis title" },
   { icon: ImageIcon, label: "Gold Foil banner" },
@@ -51,7 +50,7 @@ export function FounderPack() {
     try {
       const bought = await shopGoodsService.buyFounder()
       window.dispatchEvent(new Event("legacyx:wallet-changed"))
-      toast.success(`You are Genesis ${bought.label}`, { description: "The frame, banner and title are yours. Wear them in Profile → Appearance." })
+      toast.success(`You are Genesis ${bought.label}`, { description: "The badge, banner and title are yours. Wear them in Profile → Appearance." })
       await Promise.all([refetch(), refetchOrders(), refetchCosmetics(), refetchWallet()])
     } catch (caught) {
       toast.error("Could not get the pack", { description: caught instanceof Error ? caught.message : "Try again in a moment." })

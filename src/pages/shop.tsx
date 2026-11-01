@@ -35,10 +35,9 @@ const SORTS = [
 
 /** The kinds the Shop sells (banners and titles are earned: they live in Profile → Appearance). */
 type ShopKind = Exclude<CosmeticKind, "banner" | "title">
-type ShopTab = "featured" | "frame" | "name" | "smoke_color" | "clan" | "cards" | "goods"
+type ShopTab = "featured" | "name" | "smoke_color" | "clan" | "cards" | "goods"
 const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "featured", label: "Featured" },
-  { value: "frame", label: "Frames" },
   { value: "name", label: "Name" },
   { value: "smoke_color", label: "Grenades" },
   { value: "clan", label: "Clan" },
@@ -97,14 +96,6 @@ function ShopGrid({ list, card, tight = false }: { list: ShopItem[]; tight?: boo
   )
 }
 
-/** The Frames tab is cut into price steps so many frames read as a few shelves, not one long list (earned frames last). */
-const FRAME_SHELVES: Array<{ key: string; label: string; has: (item: ShopItem) => boolean }> = [
-  { key: "classic", label: "Classic", has: (item) => item.unlock === "coin" && item.price <= 400 },
-  { key: "rare", label: "Rare", has: (item) => item.unlock === "coin" && item.price > 400 && item.price <= 1000 },
-  { key: "premium", label: "Premium", has: (item) => item.unlock === "coin" && item.price > 1000 },
-  { key: "earned", label: "Earned", has: (item) => item.unlock !== "coin" },
-]
-
 export function ShopPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -112,7 +103,7 @@ export function ShopPage() {
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
-  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name: "name", smoke_color: "smoke", clan: "clan", cards: "cards", goods: "goods" }, "featured")
+  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", name: "name", smoke_color: "smoke", clan: "clan", cards: "cards", goods: "goods" }, "featured")
   const [sort, setSort] = useState<"price-up" | "price-down" | "rarity">("price-up")
   const [show, setShow] = useState<"all" | "available" | "owned">("all")
   const [busy, setBusy] = useState(false)
@@ -148,7 +139,7 @@ export function ShopPage() {
   const priceFor = (item: ShopItem, length: CosmeticDuration = duration) => item.prices?.[length] ?? item.price
 
   const all: ShopItem[] = useMemo(() => [
-    ...(data?.frames ?? []).map((item) => ({ ...item, kind: "frame" as const })),
+    // Avatar frames were taken out of the site (owner request 2026-11-01): they are not listed, whatever the API still sends.
     ...(data?.nameColors ?? []).map((item) => ({ ...item, kind: "name_color" as const })),
     ...(data?.nameGlows ?? []).map((item) => ({ ...item, kind: "name_glow" as const })),
     ...(data?.smokeColors ?? []).map((item) => ({ ...item, kind: "smoke_color" as const })),
@@ -429,7 +420,7 @@ export function ShopPage() {
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
         <PageTabs<ShopTab> ariaLabel="Shop sections" value={tab} onChange={setTab} options={TABS} />
-        {(tab === "featured" || tab === "frame" || tab === "name" || tab === "smoke_color") && (
+        {(tab === "featured" || tab === "name" || tab === "smoke_color") && (
           <PageBarEnd className="max-md:hidden">
             <label className={cn(pageSearchClass, "max-md:hidden")}>
               <Search className="size-4 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />
@@ -505,13 +496,6 @@ export function ShopPage() {
                     {([["smoke_color", "Smoke"], ["grenade_trail", "Trail"]] as const).map(([kind, heading]) => {
                       const list = shown.filter((item) => item.kind === kind)
                       return list.length ? <div key={kind}><div className="lx-shop-heading mb-2.5">{heading}</div>{grid(list)}</div> : null
-                    })}
-                  </div>
-                ) : tab === "frame" && shown.length > 12 ? (
-                  <div className="flex flex-col gap-6">
-                    {FRAME_SHELVES.map((shelf) => {
-                      const list = shown.filter(shelf.has)
-                      return list.length ? <div key={shelf.key}><div className="lx-shop-heading mb-2.5">{shelf.label} <span className="ml-1 font-normal text-[var(--text-faint)]">{list.length}</span></div>{grid(list, true)}</div> : null
                     })}
                   </div>
                 ) : grid(shown)}
