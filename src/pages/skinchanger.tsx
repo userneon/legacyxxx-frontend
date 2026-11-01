@@ -6,6 +6,8 @@ import {
   BadgeCheck,
   ImageOff,
   Loader2,
+  Minus,
+  Plus,
   RotateCcw,
   Search,
   SlidersHorizontal,
@@ -1465,10 +1467,18 @@ export function SkinchangerPage() {
                 </div>
                 <div>
                   <div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Pattern seed</span><span className="text-xs text-muted-foreground">{customOptions.seed ?? 0}</span></div>
-                  <Input aria-label="Skin pattern seed" type="number" min={0} max={1000} step={1} value={customOptions.seed ?? 0} onChange={(event) => {
-                    const seed = Math.max(0, Math.min(1000, Math.round(Number(event.target.value) || 0)))
-                    setCustomOptions((current) => ({ ...current, seed }))
-                  }} className="h-9 text-xs" />
+                  {(() => {
+                    const seed = customOptions.seed ?? 0
+                    const setSeed = (next: number) => setCustomOptions((current) => ({ ...current, seed: Math.max(0, Math.min(1000, Math.round(next || 0))) }))
+                    const stepClass = "inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] disabled:opacity-40"
+                    return (
+                      <div className="flex items-center gap-2">
+                        <button type="button" aria-label="Lower pattern seed" disabled={seed <= 0} onClick={() => setSeed(seed - 1)} className={stepClass}><Minus className="size-4" /></button>
+                        <Input aria-label="Skin pattern seed" type="number" min={0} max={1000} step={1} value={seed} onChange={(event) => setSeed(Number(event.target.value))} className="h-9 text-center text-xs" />
+                        <button type="button" aria-label="Raise pattern seed" disabled={seed >= 1000} onClick={() => setSeed(seed + 1)} className={stepClass}><Plus className="size-4" /></button>
+                      </div>
+                    )
+                  })()}
                   <p className="mt-1 text-[10px] text-muted-foreground">0–1000</p>
                 </div>
                 {canCustomizeAccessories && <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 py-2">

@@ -2097,3 +2097,8 @@ section[data-tone="red"] { --tone: var(--tone-red); } section[data-tone="sky"] {
 @keyframes lx-trail-pulse { 0%, 100% { transform: scale(0.85); } 50% { transform: scale(1.15); } }
 @keyframes lx-trail-twinkle { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .lx-trail-flicker, .lx-trail-pulse, .lx-trail-twinkle { animation: none; } }
+
+/* Number fields: no browser spin arrows (they ignore the theme); fields that need steps draw their own − / + buttons. */
+input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
