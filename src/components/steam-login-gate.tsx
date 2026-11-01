@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button"
+import { Hero } from "@/components/ui/tailwind-css-background-snippet"
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
 import fbiAgents from "@/assets/fbi-agents.webp"
@@ -17,10 +18,10 @@ export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
   // the card, faint, rising from its bottom edge and fading out towards the top so the text stays readable.
   // Scaled so the two outer agents' bodies (x 94-549 of the 609px art) meet the card's side edges.
   return (
-    <div className="relative flex min-h-[calc(100dvh-5rem)] flex-1 items-center justify-center overflow-hidden px-4 py-10 sm:px-6">
-      {/* Wrapped: the page's section stagger animates direct children to full opacity. */}
+    <div className="relative isolate flex min-h-[calc(100dvh-5rem)] flex-1 items-center justify-center overflow-hidden px-4 py-10 sm:px-6">
+      {/* The sign-in screen's own backdrop (owner request 2026-11-01): black fading into the brand violet. Wrapped: the page's section stagger animates direct children to full opacity. */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-        <div className="size-full bg-[radial-gradient(50%_48%_at_50%_50%,rgb(255_255_255/0.06),transparent_70%)]" />
+        <Hero className="absolute inset-0 h-full" />
       </div>
 
       <section className="lx-swap-in relative w-full max-w-[380px] overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[rgb(255_255_255/0.06)] p-7 text-center shadow-[inset_0_1px_0_rgb(255_255_255/0.08),0_24px_48px_-20px_rgb(0_0_0/0.7)] sm:p-8">

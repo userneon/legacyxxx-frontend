@@ -72,7 +72,7 @@ The earlier orange `#ff5a1f` exception was dropped and no longer exists in `src/
 The boxes that create something (New penalty, Add staff, Add creator, Create a clan, Write a review) use `.lx-add-box`: a violet
 hairline along the top, a soft violet light in the top-right corner and under the box, a violet icon tile (`.lx-add-icon`) next to
 the title, and violet for the field being typed in and the picked option (`aria-pressed` / `aria-checked`). The main button stays
-white. These are the only other places violet appears; the Checks dialog keeps its console look.
+white. These are the only other places violet appears; the Checks dialog keeps its console look. The **sign-in screen** (`SteamLoginGate`, owner request 2026-11-01) has its own backdrop too: black fading into the brand violet at the bottom (`components/ui/tailwind-css-background-snippet.tsx`).
 
 ### Limit red (owner request 2026-09-30)
 
