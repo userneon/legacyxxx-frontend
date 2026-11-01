@@ -8,6 +8,7 @@
 @custom-variant motion-reduce (&:where(.lx-motion-reduce-never *));
 
 @theme inline {
+  --animate-aurora: aurora 20s ease-in-out infinite;
   --font-display: "Black Ops One", system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -2102,3 +2103,17 @@ section[data-tone="red"] { --tone: var(--tone-red); } section[data-tone="sky"] {
 input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* Aurora (components/ui/aurora.tsx): three soft lights drifting with transforms only. */
+@keyframes aurora {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  33% {
+    transform: translate3d(8%, 6%, 0) rotate(12deg) scale(1.08);
+  }
+  66% {
+    transform: translate3d(-6%, 10%, 0) rotate(-8deg) scale(0.96);
+  }
+}
