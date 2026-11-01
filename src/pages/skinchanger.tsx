@@ -267,6 +267,9 @@ export function SkinchangerPage() {
   const [selectedAccessories, setSelectedAccessories] = useState<Record<string, SkinchangerCatalogItem>>({})
   const [accessoryPicker, setAccessoryPicker] = useState<"sticker" | "charm" | null>(null)
   const [accessoryQuery, setAccessoryQuery] = useState("")
+  const [accessoryOffset, setAccessoryOffset] = useState(0)
+  // A new search or the other picker starts again from the first page.
+  useEffect(() => { setAccessoryOffset(0) }, [accessoryQuery])
   const [editingStickerSlot, setEditingStickerSlot] = useState<number | null>(null)
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
   // The trash button asks first ("Remove" / "Keep it"); nothing is deleted until it is confirmed.
@@ -308,12 +311,12 @@ export function SkinchangerPage() {
   const { data: loadoutResponse, loading: loadoutLoading, error: loadoutError, refetch: refetchLoadout } =
     useApiQuery((signal) => skinchangerService.getLoadout({ signal }))
   const { data: stickerCatalog, loading: stickersLoading, error: stickerCatalogError, refetch: refetchStickers } = useApiQuery(
-    (signal) => skinchangerService.getCatalog({ category: "sticker", query: accessoryQuery || undefined, limit: 60, offset: 0 }, { signal }),
-    { enabled: Boolean(selected && accessoryPicker === "sticker"), queryKey: `sticker:${accessoryQuery.trim()}` },
+    (signal) => skinchangerService.getCatalog({ category: "sticker", query: accessoryQuery || undefined, limit: 100, offset: accessoryOffset }, { signal }),
+    { enabled: Boolean(selected && accessoryPicker === "sticker"), queryKey: `sticker:${accessoryQuery.trim()}:${accessoryOffset}` },
   )
   const { data: charmCatalog, loading: charmsLoading, error: charmCatalogError, refetch: refetchCharms } = useApiQuery(
-    (signal) => skinchangerService.getCatalog({ category: "charm", query: accessoryQuery || undefined, limit: 60, offset: 0 }, { signal }),
-    { enabled: Boolean(selected && accessoryPicker === "charm"), queryKey: `charm:${accessoryQuery.trim()}` },
+    (signal) => skinchangerService.getCatalog({ category: "charm", query: accessoryQuery || undefined, limit: 100, offset: accessoryOffset }, { signal }),
+    { enabled: Boolean(selected && accessoryPicker === "charm"), queryKey: `charm:${accessoryQuery.trim()}:${accessoryOffset}` },
   )
 
   const catalogItems = catalog?.data ?? []
@@ -788,6 +791,7 @@ export function SkinchangerPage() {
     setEditingStickerSlot(slot)
     setAccessoryPicker("sticker")
     setAccessoryQuery("")
+    setAccessoryOffset(0)
   }
 
   const chooseAccessory = (item: SkinchangerCatalogItem) => {
@@ -878,6 +882,15 @@ export function SkinchangerPage() {
             </div>
           )}
         </div>
+        {(accessoryCatalog?.pagination.total ?? 0) > 100 && (
+          <div className="flex items-center justify-between border-t border-[var(--line-soft)] p-3 text-xs text-[var(--text-dim)]">
+            <span>{accessoryOffset + 1}–{Math.min(accessoryOffset + 100, accessoryCatalog?.pagination.total ?? 0)} of {(accessoryCatalog?.pagination.total ?? 0).toLocaleString()}</span>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" disabled={accessoryOffset === 0} onClick={() => setAccessoryOffset(Math.max(0, accessoryOffset - 100))}>Previous</Button>
+              <Button size="sm" variant="outline" disabled={accessoryOffset + 100 >= (accessoryCatalog?.pagination.total ?? 0)} onClick={() => setAccessoryOffset(accessoryOffset + 100)}>Next</Button>
+            </div>
+          </div>
+        )}
       </div>
     )
   }
@@ -1508,13 +1521,13 @@ export function SkinchangerPage() {
                     {Array.from({ length: 5 }, (_, slot) => {
                       const sticker = customOptions.stickers?.find((entry) => entry.slot === slot)
                       const stickerItem = sticker ? selectedAccessories[sticker.catalogItemId] : null
-                      return <button key={slot} onClick={() => openStickerPicker(slot)} className={cn("relative flex h-10 items-center justify-center rounded-md border text-[10px] transition-colors", sticker ? "border-foreground bg-secondary text-foreground" : "border-border bg-background text-muted-foreground hover:bg-secondary", accessoryPicker === "sticker" && editingStickerSlot === slot && "ring-2 ring-[var(--line-strong)]")} aria-label={sticker ? `Change sticker slot ${slot + 1}` : `Add sticker to slot ${slot + 1}`}>{stickerItem && catalogImageUrl(stickerItem) ? <img src={catalogImageUrl(stickerItem) ?? undefined} alt={`${stickerItem.display_name} in slot ${slot + 1}`} data-catalog-item-id={stickerItem.id} className="size-7 object-contain" /> : <><Sticker className="size-3.5" /><span className="ml-1">{slot + 1}</span></>}{sticker && <span className="absolute -right-1 -top-1 size-2 rounded-full bg-foreground" />}</button>
+                      return <button key={slot} onClick={() => openStickerPicker(slot)} className={cn("group/slot relative flex h-10 items-center justify-center rounded-md border text-[10px] transition-colors", sticker ? "border-foreground bg-secondary text-foreground" : "border-border bg-background text-muted-foreground hover:bg-secondary", accessoryPicker === "sticker" && editingStickerSlot === slot && "ring-2 ring-[var(--line-strong)]")} aria-label={sticker ? `Change sticker slot ${slot + 1}` : `Add sticker to slot ${slot + 1}`}>{stickerItem && catalogImageUrl(stickerItem) ? <img src={catalogImageUrl(stickerItem) ?? undefined} alt={`${stickerItem.display_name} in slot ${slot + 1}`} data-catalog-item-id={stickerItem.id} className="size-7 object-contain" /> : <><Sticker className="size-3.5 transition-opacity group-hover/slot:opacity-0" /><span className="ml-1 transition-opacity group-hover/slot:opacity-0">{slot + 1}</span></>}<Plus aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 text-[var(--text)] opacity-0 transition-opacity group-hover/slot:opacity-100" />{sticker && <span className="absolute -right-1 -top-1 size-2 rounded-full bg-foreground" />}</button>
                     })}
                   </div>
                 </div>}
                 {canCustomizeAccessories && <div>
                   <div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Charm</span>{customOptions.charm && <button onClick={() => setCustomOptions((current) => ({ ...current, charm: undefined }))} className="text-[10px] text-muted-foreground hover:text-foreground">Remove</button>}</div>
-                  <button onClick={() => { setAccessoryPicker("charm"); setEditingStickerSlot(null); setAccessoryQuery("") }} className={cn("flex h-10 w-full items-center justify-center gap-2 rounded-md border text-xs transition-colors", customOptions.charm ? "border-foreground bg-secondary text-foreground" : "border-border bg-background text-muted-foreground hover:bg-secondary", accessoryPicker === "charm" && "ring-2 ring-[var(--line-strong)]")}>{selectedCharmItem && catalogImageUrl(selectedCharmItem) ? <img src={catalogImageUrl(selectedCharmItem) ?? undefined} alt={`${selectedCharmItem.display_name} selected charm`} data-catalog-item-id={selectedCharmItem.id} className="size-6 object-contain" /> : <Tag className="size-3.5" />} {customOptions.charm ? "Change charm" : "Choose charm"}</button>
+                  <button onClick={() => { setAccessoryPicker("charm"); setEditingStickerSlot(null); setAccessoryQuery(""); setAccessoryOffset(0) }} className={cn("flex h-10 w-full items-center justify-center gap-2 rounded-md border text-xs transition-colors", customOptions.charm ? "border-foreground bg-secondary text-foreground" : "border-border bg-background text-muted-foreground hover:bg-secondary", accessoryPicker === "charm" && "ring-2 ring-[var(--line-strong)]")}>{selectedCharmItem && catalogImageUrl(selectedCharmItem) ? <img src={catalogImageUrl(selectedCharmItem) ?? undefined} alt={`${selectedCharmItem.display_name} selected charm`} data-catalog-item-id={selectedCharmItem.id} className="size-6 object-contain" /> : <Tag className="size-3.5" />} {customOptions.charm ? "Change charm" : "Choose charm"}</button>
                 </div>}
                 <button onClick={() => setResetConfirmOpen(true)} className="flex w-full items-center justify-center gap-2 text-xs text-muted-foreground hover:text-foreground"><RotateCcw className="size-3.5" /> Reset customization</button>
               </div>
