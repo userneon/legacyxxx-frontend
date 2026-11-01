@@ -31,7 +31,9 @@ import { ProfileStaffMenu } from "@/components/profile-staff"
 import { OwnerPanel } from "@/components/owner-panel"
 import { OwnerSections } from "@/components/owner-sections"
 import { PenaltyDetailSheet, StatusPill, TypeIcon, TYPE_META, formatPenaltyDate } from "@/components/penalty-detail-dialog"
+import { OrbAvatar } from "@/components/orb-avatar"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { ORB_ID } from "@/lib/frame-look"
 import { CreatorBadge, CreatorLinks } from "@/pages/creators"
 import { nameProps } from "@/lib/cosmetics"
 import { PageBar, PageTabs } from "@/components/page-tabs"
@@ -73,7 +75,14 @@ function yearsSince(value: string) {
 function Avatar({ user }: { user: ProfileOverview["user"] }) {
   const animated = user.steamMedia?.animatedAvatar
   const [ready, setReady] = useState(false)
-  // A round picture (avatar frames are gone, owner request 2026-11-01); the Steam animated avatar, when there is one, fades in over it.
+  // A round picture; the Steam animated avatar, when there is one, fades in over it. Wearing the Crystal Orb, the picture sits in the live orb (it overflows, so the header makes room).
+  if (user.frame === ORB_ID) {
+    return (
+      <span className="relative flex size-[180px] shrink-0 items-center justify-center">
+        <OrbAvatar avatar={user.avatar} name={user.username} size={180} look={user.frameLook} />
+      </span>
+    )
+  }
   return (
     <span className="relative flex size-[116px] shrink-0 items-center justify-center">
       <span className="relative size-[108px] overflow-hidden rounded-full border-4 border-[var(--card-surface)] bg-[var(--line)]">

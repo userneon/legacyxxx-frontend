@@ -10,6 +10,7 @@ import { clansService, walletService, type MyClanState, type Wallet } from "@/ap
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { frameAccent, nameProps, timeLeft } from "@/lib/cosmetics"
+import type { FrameLook } from "@/lib/frame-look"
 import { SmokePuff } from "@/components/smoke-puff"
 import { GrenadeLight, GrenadeTrail } from "@/components/grenade-trail"
 import { FlashEffect } from "@/components/flash-effect"
@@ -34,9 +35,10 @@ const SORTS = [
 
 /** The kinds the Shop sells (banners and titles are earned: they live in Profile → Appearance). */
 type ShopKind = Exclude<CosmeticKind, "banner" | "title">
-type ShopTab = "featured" | "name" | "smoke_color" | "clan" | "cards" | "goods"
+type ShopTab = "featured" | "frame" | "name" | "smoke_color" | "clan" | "cards" | "goods"
 const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "featured", label: "Featured" },
+  { value: "frame", label: "Frames" },
   { value: "name", label: "Name" },
   { value: "smoke_color", label: "Grenades" },
   { value: "clan", label: "Clan" },
@@ -47,8 +49,8 @@ const TABS: Array<{ value: ShopTab; label: string }> = [
 type ShopItem = FrameItem & { kind: ShopKind }
 
 /** What the item looks like: a frame around your picture, or your name painted with it. */
-function ItemArt({ item, avatar, username, size }: { item: ShopItem; avatar?: string; username: string; size: number }) {
-  if (item.kind === "frame") return <FramedAvatar avatar={avatar} name={username} frame={item.id} size={size} />
+function ItemArt({ item, avatar, username, size, orb }: { item: ShopItem; avatar?: string; username: string; size: number; orb?: FrameLook | null }) {
+  if (item.kind === "frame") return <FramedAvatar avatar={avatar} name={username} frame={item.id} look={orb} size={size} />
   if (item.kind === "smoke_color") return <SmokePuff color={item.color} color2={item.color2} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "grenade_trail") return <GrenadeTrail color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "flash_effect") return <FlashEffect color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
@@ -102,7 +104,7 @@ export function ShopPage() {
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
-  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", name: "name", smoke_color: "smoke", clan: "clan", cards: "cards", goods: "goods" }, "featured")
+  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name: "name", smoke_color: "smoke", clan: "clan", cards: "cards", goods: "goods" }, "featured")
   const [sort, setSort] = useState<"price-up" | "price-down" | "rarity">("price-up")
   const [show, setShow] = useState<"all" | "available" | "owned">("all")
   const [busy, setBusy] = useState(false)
@@ -138,7 +140,7 @@ export function ShopPage() {
   const priceFor = (item: ShopItem, length: CosmeticDuration = duration) => item.prices?.[length] ?? item.price
 
   const all: ShopItem[] = useMemo(() => [
-    // Avatar frames were taken out of the site (owner request 2026-11-01): they are not listed, whatever the API still sends.
+    ...(data?.frames ?? []).map((item) => ({ ...item, kind: "frame" as const })),
     ...(data?.nameColors ?? []).map((item) => ({ ...item, kind: "name_color" as const })),
     ...(data?.nameGlows ?? []).map((item) => ({ ...item, kind: "name_glow" as const })),
     ...(data?.smokeColors ?? []).map((item) => ({ ...item, kind: "smoke_color" as const })),
@@ -251,7 +253,7 @@ export function ShopPage() {
                 className="lx-shop-tile flex w-full flex-col overflow-hidden rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60"
               >
                 <div className="relative">
-                  <Spot accent={accentOf(shown)} height={dense ? 96 : 124}><ItemArt item={shown} avatar={user?.avatar} username={username} size={dense ? 56 : 70} /></Spot>
+                  <Spot accent={accentOf(shown)} height={dense ? 96 : 124}><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={dense ? 56 : 70} /></Spot>
                 </div>
                 <div className="flex flex-col items-start gap-1 px-3 pb-2.5 pt-0.5">
                   <span className="line-clamp-2 w-full text-[11px] font-medium leading-[1.25] text-[var(--text-2)]">{item.name}</span>
@@ -261,7 +263,7 @@ export function ShopPage() {
             </TooltipTrigger>
             {/* A big look at it on your own picture, with its name and what it costs. */}
             <TooltipContent side="top" sideOffset={8} className="flex flex-col items-center gap-2 rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] px-5 py-4 text-[var(--text)] [--tooltip-bg:var(--panel)]">
-              <Spot accent={accentOf(shown)} height={190}><div className="px-6"><ItemArt item={shown} avatar={user?.avatar} username={username} size={150} /></div></Spot>
+              <Spot accent={accentOf(shown)} height={190}><div className="px-6"><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={150} /></div></Spot>
               <span className="text-[13px] font-semibold">{item.name}</span>
               <span className="text-[11px] text-[var(--text-dim)]">{item.owned ? (worn[item.kind] === item.id ? "Worn" : "Owned") : item.unlock === "coin" ? `${priceFor(item, "30d").toLocaleString()} LX · 30 days` : "Earned"}</span>
             </TooltipContent>
@@ -378,7 +380,7 @@ export function ShopPage() {
           ) : (
             <div className="relative flex flex-col items-center gap-3 py-4">
               <span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} />
-              <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={compact ? 88 : 120} />
+              <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} look={data?.frameLook} size={compact ? 88 : 120} />
               <span {...nameProps(previewLook, cn("max-w-full truncate font-bold text-[var(--text)]", compact ? "text-[15px]" : "text-[19px]"))}>{username}</span>
             </div>
           )}
@@ -419,7 +421,7 @@ export function ShopPage() {
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
         <PageTabs<ShopTab> ariaLabel="Shop sections" value={tab} onChange={setTab} options={TABS} />
-        {(tab === "featured" || tab === "name" || tab === "smoke_color") && (
+        {(tab === "featured" || tab === "frame" || tab === "name" || tab === "smoke_color") && (
           <PageBarEnd className="max-md:hidden">
             <label className={cn(pageSearchClass, "max-md:hidden")}>
               <Search className="size-4 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />

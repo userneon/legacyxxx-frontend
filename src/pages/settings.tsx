@@ -12,6 +12,7 @@ import { GrenadeLight, GrenadeTrail } from "@/components/grenade-trail"
 import { FlashEffect } from "@/components/flash-effect"
 import { SmokePuff } from "@/components/smoke-puff"
 import { FramedAvatar } from "@/components/framed-avatar"
+import { OrbCustomizer } from "@/components/orb-customizer"
 import { discordService, type DiscordLinkState } from "@/api/discord"
 import { settingsService, type NotificationSettings } from "@/api/settings"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -171,6 +172,7 @@ function Notifications() {
 
 /** What can be worn, in two groups: what shows on the site, and what shows in game. The chips wrap, so every kind stays in reach. */
 const KINDS: Array<{ value: CosmeticKind; label: string; noun: string; group: "profile" | "game" }> = [
+  { value: "frame", label: "Frame", noun: "frame", group: "profile" },
   { value: "name_color", label: "Name colour", noun: "colour", group: "profile" },
   { value: "name_glow", label: "Name glow", noun: "glow", group: "profile" },
   { value: "banner", label: "Banner", noun: "banner", group: "profile" },
@@ -243,7 +245,7 @@ function Appearance() {
       ) : (
         <div className="grid gap-4 md:grid-cols-[210px_minmax(0,1fr)]">
           <div className="flex flex-col items-center gap-3 self-start rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] p-4 md:sticky md:top-6">
-            <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} size={108} />
+            <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} look={data.frameLook} size={108} />
             <span {...nameProps(previewLook, "max-w-full truncate text-[15px] font-bold text-[var(--text)]")}>{sampleName}</span>
             {kind === "smoke_color" && selected && <SmokePuff color={selected.color} color2={selected.color2} className="w-[150px]" />}
             {kind === "grenade_trail" && selected && <GrenadeTrail key={selected.id} color={selected.color} shape={selected.fx} className="w-[150px]" />}
@@ -279,6 +281,7 @@ function Appearance() {
               ))}
             </div>
             {(kind === "grenade_trail" || kind === "grenade_light") && <NadeSlots kind={kind} items={frames} defaultId={worn[kind]} slots={data.nadeSlots} busy={busy} onChange={(nade, value) => void wearOn(nade, value)} />}
+            {kind === "frame" && <OrbCustomizer avatar={user?.avatar} name={user?.username} owned={lists.frame.some((item) => item.id === "crystal-orb" && item.owned)} saved={data.frameLook ?? null} busy={busy} onSave={(look) => void run(() => cosmeticsService.saveFrameLook(look), "Could not save your orb")} />}
             {frames.length === 0 ? (
               <p className="py-6 text-[13px] text-[var(--text-dim)]">You do not own a {noun} yet.</p>
             ) : (
@@ -295,7 +298,7 @@ function Appearance() {
                       )}
                     >
                       {kind === "frame" ? (
-                        <FramedAvatar avatar={user?.avatar} name={user?.username} frame={item.id} size={76} />
+                        <FramedAvatar avatar={user?.avatar} name={user?.username} frame={item.id} look={data.frameLook} size={76} />
                       ) : kind === "banner" ? (
                         <span className="relative flex h-[76px] w-full items-center justify-center overflow-hidden rounded-lg"><span aria-hidden="true" className={cn("absolute inset-0", bannerClass(item.fx))} /></span>
                       ) : kind === "grenade_trail" ? (
