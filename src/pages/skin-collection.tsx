@@ -301,9 +301,9 @@ export function SkinCollectionPage() {
                 </div>
               </div>
               {showcase.length > 0 && (
-                <div aria-hidden="true" className="flex shrink-0 items-end gap-3 max-xl:hidden">
+                <div aria-hidden="true" className="flex shrink-0 items-end max-xl:hidden">
                   {[showcase[1], showcase[0], showcase[2]].map((item, index) => item ? (
-                    <div key={`${item.name}:${index}`} className={cn("relative flex flex-col items-center justify-center overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[radial-gradient(ellipse_at_50%_90%,var(--raised),var(--card-surface)_72%)] p-3", index === 1 ? "h-[150px] w-[160px]" : "h-[104px] w-[104px]")}>
+                    <div key={`${item.name}:${index}`} className={cn("relative flex flex-col items-center justify-center overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[radial-gradient(ellipse_at_50%_90%,var(--raised),var(--card-surface)_72%)] p-3", index === 1 ? "z-10 h-[150px] w-[160px]" : "h-[104px] w-[104px]", index > 0 && "-ml-6")}>
                       <OptimizedImage src={item.imageUrl ?? ""} width={320} height={200} alt="" className={cn("w-full object-contain", index === 1 ? "max-h-[88px]" : "max-h-[56px]")} />
                       <span className="mt-2 max-w-full truncate text-[11px] font-medium text-[var(--text-dim)]">{splitName(item.name).finish}</span>
                       {item.rarity && rarityStyles[item.rarity] && <span className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: rarityStyles[item.rarity].accent }} />}

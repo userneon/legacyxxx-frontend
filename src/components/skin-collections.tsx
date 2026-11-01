@@ -155,18 +155,19 @@ export function SkinCollections({ onApplied }: { onApplied: () => void }) {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {collections.map((collection, index) => (
             <article key={collection.id} style={{ animationDelay: `${Math.min(index, 8) * 55}ms` }} onClick={() => openCollection(collection)} className="lx-layer lx-row-in group flex cursor-pointer flex-col gap-3 rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3 transition-colors duration-300 hover:border-[var(--line-strong)]">
-              <button type="button" onClick={() => openCollection(collection)} aria-label={`See everything in ${collection.name}`} className="grid grid-cols-4 gap-1.5 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
-                {(collection.itemCount > 4 ? collection.items.slice(0, 3) : collection.items).map((item, index) => {
+              {/* The first skins sit one behind another, so more of the set shows in the same room; the rest is a count. */}
+              <button type="button" onClick={() => openCollection(collection)} aria-label={`See everything in ${collection.name}`} className="flex h-[84px] items-center rounded-lg pl-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
+                {collection.items.slice(0, 5).map((item, index, list) => {
                   const accent = item.rarity ? rarityStyles[item.rarity]?.accent : undefined
                   return (
-                    <div key={`${item.name}:${index}`} title={item.name} className="relative flex h-[58px] items-center justify-center overflow-hidden rounded-lg border border-[var(--line-soft)] bg-[var(--card-surface)]">
-                      <OptimizedImage src={item.imageUrl ?? ""} width={120} height={64} alt={item.name} className="max-h-[46px] w-[88%] object-contain" />
+                    <div key={`${item.name}:${index}`} title={item.name} style={{ zIndex: list.length - index }} className={cn("relative flex h-[76px] w-[96px] shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--card-surface)] shadow-[4px_0_12px_-4px_rgb(0_0_0/0.7)] transition-[translate] duration-300 ease-out group-hover:-translate-y-0.5", index > 0 && "-ml-7")}>
+                      <OptimizedImage src={item.imageUrl ?? ""} width={160} height={90} alt={item.name} className="max-h-[56px] w-[86%] object-contain" />
                       {accent && <span aria-hidden="true" className="absolute bottom-0 left-0 h-[2px] w-full" style={{ background: accent }} />}
                     </div>
                   )
                 })}
-                {collection.itemCount > 4 && (
-                  <div className="flex h-[58px] items-center justify-center rounded-lg border border-[var(--line-soft)] text-[13px] font-semibold text-[var(--text-dim)]">+{collection.itemCount - 3}</div>
+                {collection.itemCount > 5 && (
+                  <span className="ml-3 shrink-0 text-[13px] font-semibold text-[var(--text-dim)]">+{collection.itemCount - 5}</span>
                 )}
               </button>
               <div className="min-w-0">
