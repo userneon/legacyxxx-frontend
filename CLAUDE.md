@@ -201,6 +201,10 @@ Real data from `/public/chat`, refreshed every 4 s while open and every 30 s shu
 
 Chat rooms (owner request 2026-11-01): the community chat has a second room for each clan, "clan:<clan id>", which only the clan's members read and write (`GET /chat/rooms`, `GET /chat/room?room=`, `POST /chat` with `room`; `ChatRoom` in `src/api/chat.ts`). A signed-in player in a clan sees a Community / Clan switch under the chat header; everyone else sees the community chat alone, as before. The same filters apply in every room (no links, a wait between messages, gags, staff removal). Real messages from the API; the clan room is not public, so it is read with the sign-in, never from `/public/*`.
 
+### Desktop app (owner request 2026-11-01)
+
+`desktop/` is an Electron app (Windows) that opens the live website in its own window (`LEGACYX_DESKTOP_URL` to point it elsewhere) and adds what a browser cannot: join a server in one click (`window.legacyxDesktop.connect("ip:port")` opens `steam://connect`), a tray icon, Windows notifications. It never touches the game (no overlay, no injection, no memory reading: VAC and FACEIT AC forbid that), it shows only the website, and links to other sites open in the browser. Not code signed yet (SmartScreen asks "Run anyway"). Its own `package.json`; see `desktop/README.md`.
+
 ### Creators (owner request 2026-10-12)
 
 Two creator roles, **Main Content Creator** and **Content Creator**, kept apart from staff (`legacy_x.content_creators`; no

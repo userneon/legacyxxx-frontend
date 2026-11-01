@@ -42,3 +42,7 @@ dist-ssr
 .claude/settings.local.json
 dist-admin
 .fx-frames/
+
+# The desktop app (desktop/)
+desktop/node_modules
+desktop/dist

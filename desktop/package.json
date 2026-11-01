@@ -1,0 +1,26 @@
+{
+  "name": "legacyx-desktop",
+  "version": "0.1.0",
+  "description": "LEGACY-X desktop app: the website in its own window, with a button to join a server, tray and notifications",
+  "private": true,
+  "main": "main.cjs",
+  "author": "LEGACY-X",
+  "scripts": {
+    "start": "electron .",
+    "start:dev": "LEGACYX_DESKTOP_URL=http://localhost:5173 electron .",
+    "build": "electron-builder --win --x64",
+    "build:dir": "electron-builder --win --x64 --dir"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "cc.legacyx.desktop",
+    "productName": "LEGACY-X",
+    "directories": { "output": "dist" },
+    "files": ["main.cjs", "preload.cjs", "build/**/*", "package.json"],
+    "win": { "target": [{ "target": "nsis", "arch": ["x64"] }], "icon": "build/icon.ico" },
+    "nsis": { "oneClick": true, "perMachine": false, "deleteAppDataOnUninstall": false }
+  }
+}
