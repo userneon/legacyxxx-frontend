@@ -10,10 +10,12 @@ interface FrameArt {
   dy: number
   /** The art has a mask (public/frames/<id>-mask.webp, the shape of its opening): FramedAvatar cuts the picture to it, so it fills an opening that is not a square. */
   mask?: boolean
+  /** With a mask: the opening's bounding box as fractions of the frame box [left, top, width, height] (from the mask's own picture); the avatar is fitted to it, so it is seen whole instead of cut to the middle of the box. */
+  box?: [number, number, number, number]
 }
 
 const FRAMES: Record<string, FrameArt> = {
-  "founder": { opening: 0.6, dx: 0.002, dy: -0.014, mask: true },
+  "founder": { opening: 0.6, dx: 0.002, dy: -0.014, mask: true, box: [0.191, 0.191, 0.625, 0.59] },
   "starlight-corners": { opening: 0.8, dx: -0.002, dy: -0.002 },
   "torn-tape": { opening: 0.80, dx: 0.000, dy: -0.006 },
   "red-circuit": { opening: 0.78, dx: 0.000, dy: -0.002 },
@@ -38,9 +40,9 @@ const FRAMES: Record<string, FrameArt> = {
   "eclipse-clouds": { opening: 0.76, dx: -0.004, dy: 0.010 },
   "film-and-butterflies": { opening: 0.75, dx: 0.008, dy: -0.014 },
   "glitch": { opening: 0.65, dx: -0.008, dy: -0.031 },
-  "booster-gold": { opening: 0.589, dx: -0.002, dy: -0.014, mask: true },
-  "booster-silver": { opening: 0.606, dx: 0, dy: -0.002, mask: true },
-  "booster-bronze": { opening: 0.602, dx: 0, dy: -0.016, mask: true },
+  "booster-gold": { opening: 0.589, dx: -0.002, dy: -0.014, mask: true, box: [0.168, 0.211, 0.66, 0.551] },
+  "booster-silver": { opening: 0.606, dx: 0, dy: -0.002, mask: true, box: [0.184, 0.215, 0.633, 0.566] },
+  "booster-bronze": { opening: 0.602, dx: 0, dy: -0.016, mask: true, box: [0.168, 0.203, 0.664, 0.563] },
   "server-booster": { opening: 0.68, dx: 0.000, dy: 0.000 },
   // Premium animated frames (owner request 2026-10-25), drawn by scripts/premium-frames.html: the opening is the middle 380 of 512.
   "dragon-ember": { opening: 0.77, dx: 0.000, dy: 0.000 },
