@@ -314,7 +314,7 @@ export function SkinCollectionPage() {
             </header>
 
             <TooltipProvider delayDuration={120}>
-            <ul key={shownSide} className={cn("grid grid-cols-2 gap-3 transition-[opacity,scale] duration-[180ms] ease-out sm:grid-cols-[repeat(auto-fill,minmax(140px,1fr))] motion-reduce:transition-none", leaving && "scale-[0.97] opacity-0")}>
+            <ul key={shownSide} className={cn("grid grid-cols-2 items-start gap-3 transition-[opacity,scale] duration-[180ms] ease-out sm:grid-cols-[repeat(auto-fill,minmax(140px,1fr))] motion-reduce:transition-none", leaving && "scale-[0.97] opacity-0")}>
               {shown.map((item, index) => <ItemCard key={`${item.name}:${item.teamScope}:${index}`} item={item} index={index} />)}
             </ul>
             </TooltipProvider>
