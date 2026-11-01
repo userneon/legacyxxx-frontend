@@ -1015,7 +1015,7 @@ export function SkinchangerPage() {
           )
           : <span aria-hidden="true" className="pointer-events-none absolute bottom-[26px] left-2 h-4 w-3 rounded border border-dashed border-[var(--line-strong)]" />}
         <span className="pointer-events-none absolute bottom-[7px] left-2 truncate text-[11px] font-semibold uppercase tracking-[0.4px] text-[var(--text-2)]" style={{ right: accessories.length > 0 ? `${accessories.length * 24 + 16}px` : "8px" }}>{title}</span>
-        {rarity && <span aria-hidden="true" className="pointer-events-none absolute right-2.5 top-2.5 size-[7px] rounded-full transition-opacity duration-300 group-hover:opacity-0" style={{ backgroundColor: rarity.accent }} />}
+        {rarity && <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px]" style={{ backgroundColor: rarity.accent }} />}
 
         <button
           type="button"
