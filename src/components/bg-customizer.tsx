@@ -70,7 +70,7 @@ function Knob({ control, value, onChange }: { control: BgControl; value: BgLook[
   }
   if (control.type === "color") {
     const current = typeof value === "string" ? value : control.default ?? "#8b5cf6"
-    return <ColorRow label={control.label} value={current.toLowerCase().slice(0, 7)} colors={PICK_COLORS} onChange={onChange} />
+    return <ColorRow label={control.label} value={current.toLowerCase().slice(0, 7)} colors={PICK_COLORS} original={control.default} onChange={onChange} />
   }
   if (control.type === "select") {
     const current = typeof value === "string" ? value : control.default

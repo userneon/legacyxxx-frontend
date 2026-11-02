@@ -1,3 +1,4 @@
+import { BALL_PRESETS } from "@/components/reactbits/crystalized-ball"
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { Check, RotateCcw } from "lucide-react"
@@ -43,7 +44,7 @@ export function OrbCustomizer({ avatar, name, owned, saved, busy, onSave, draft:
         <Group label="Particle shape">
           {ORB_SHAPES.map((particleShape) => <button key={particleShape} type="button" aria-pressed={shown.particleShape === particleShape} onClick={() => set({ particleShape })} className={chip(shown.particleShape === particleShape)}>{particleShape}</button>)}
         </Group>
-        <ColorRow label="Color" value={shown.color.toLowerCase()} colors={PICK_COLORS} onChange={(color) => set({ color })} />
+        <ColorRow label="Color" value={shown.color.toLowerCase()} colors={PICK_COLORS} original={BALL_PRESETS[shown.preset]?.color} onChange={(color) => set({ color })} />
       </div>
 
       <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">

@@ -15,14 +15,17 @@ export const PICK_DEFAULT = "#d4d4d4" // palette-exempt
 export const PICK_BASES = ["#0a0a0a", "#171717", "#262626"]
 
 /** A short row of clearly different colours, and our own picker (`ColorPicker`) for any other. */
-export function ColorRow({ label, value, colors, onChange }: { label: string; value: string; colors: string[]; onChange: (next: string) => void }) {
-  const custom = !colors.includes(value)
+export function ColorRow({ label, value, colors, onChange, original }: { label: string; value: string; colors: string[]; onChange: (next: string) => void; original?: string | null }) {
+  // The thing's own colour comes first in the row, so it is always one tap away (not only the generic palette).
+  const own = original && /^#[0-9a-f]{6}$/i.test(original) ? original.toLowerCase() : null
+  const swatches = own && !colors.includes(own) ? [own, ...colors] : colors
+  const custom = !swatches.includes(value)
   return (
     <div role="group" aria-label={label} className="flex items-center gap-3">
       <span className="w-12 shrink-0 text-[12px] text-[var(--text-dim)]">{label}</span>
       <div className="flex flex-wrap items-center gap-2">
-        {colors.map((color) => (
-          <button key={color} type="button" aria-label={color} aria-pressed={value === color} onClick={() => onChange(color)} style={{ background: color }} className="lx-shop-swatch size-7 rounded-full border border-[var(--line-strong)] transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60" />
+        {swatches.map((color) => (
+          <button key={color} type="button" aria-label={color === own ? `Original ${color}` : color} title={color === own ? "Original colour" : undefined} aria-pressed={value === color} onClick={() => onChange(color)} style={{ background: color }} className="lx-shop-swatch size-7 rounded-full border border-[var(--line-strong)] transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60" />
         ))}
         <Popover>
           <PopoverTrigger asChild>
