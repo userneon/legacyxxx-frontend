@@ -480,6 +480,16 @@ export interface ClanCard {
   recruit?: { questions: string[] } | null
   /** Clan level (from XP its members earn in ranked matches). Absent from an older API. */
   level?: number
+  /** What the clan's card shows: its leader, a few members and its members' real ranked totals. Absent from an older API and on cards other than the Clans list. */
+  preview?: {
+    leader: { name: string; avatar: string } | null
+    members: Array<{ name: string; avatar: string }>
+    totalExp: number
+    matches: number
+    wins: number
+    topPlayer: { name: string; exp: number } | null
+    blurb: string
+  } | null
 }
 
 /** Where a clan is found outside the site; each link is https on the platform's own host (the API checks it). */

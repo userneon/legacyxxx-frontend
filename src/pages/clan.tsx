@@ -323,6 +323,41 @@ function clanAccent(clan: ClanCard): string {
   return `hsl(${CLAN_HUES[hash % CLAN_HUES.length]} 70% 58%)`
 }
 
+/** What a clan's card tells besides its name, all from the API: a line about it, its numbers, and who is in it. Left out piece by piece when the API has nothing. */
+function ClanCardPreview({ clan, accent, tint }: { clan: ClanCard; accent: string; tint: (percent: number) => string }) {
+  const preview = clan.preview
+  if (!preview) return null
+  const winRate = preview.matches > 0 ? Math.round((preview.wins / preview.matches) * 100) : null
+  const stats: Array<{ label: string; value: string }> = [
+    { label: "Level", value: clan.level != null ? String(clan.level) : "–" },
+    { label: "Total EXP", value: preview.totalExp > 0 ? preview.totalExp.toLocaleString() : "–" },
+    { label: "Win rate", value: winRate != null ? `${winRate}%` : "–" },
+  ]
+  const more = Math.max(0, clan.currentPlayers - preview.members.length)
+  return (
+    <div className="flex flex-col gap-3">
+      {preview.blurb && <p className="line-clamp-2 text-[12px] leading-snug text-[var(--text-muted)]">{preview.blurb}</p>}
+      <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-lg" style={{ background: tint(18) }}>
+        {stats.map((stat) => (
+          <div key={stat.label} className="flex flex-col gap-0.5 bg-[var(--card-surface)]/85 px-2.5 py-2">
+            <dt className="text-[10px] uppercase tracking-wide text-[var(--text-dim)]">{stat.label}</dt>
+            <dd className="text-[15px] font-semibold leading-none text-[var(--text)]">{stat.value}</dd>
+          </div>
+        ))}
+      </dl>
+      <div className="flex items-center justify-between gap-3">
+        <span className="flex items-center" aria-label={`${preview.members.length} of ${clan.currentPlayers} members shown`}>
+          {preview.members.map((member, index) => (
+            <PlayerAvatar key={`${member.name}${index}`} avatar={member.avatar} name={member.name} style={{ width: 26, height: 26, fontSize: 10, marginLeft: index === 0 ? 0 : -8, boxShadow: `0 0 0 2px var(--card-surface)` }} className="relative shrink-0" />
+          ))}
+          {more > 0 && <span className="ml-1.5 text-[11px] text-[var(--text-dim)]">+{more}</span>}
+        </span>
+        {preview.leader && <span className="min-w-0 truncate text-[11px] text-[var(--text-dim)]" title={`Led by ${preview.leader.name}`}>Led by <span style={{ color: accent }}>{preview.leader.name}</span></span>}
+      </div>
+    </div>
+  )
+}
+
 function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged }: { clan: ClanCard; mine: MyClanState["membership"]; pending: boolean; canJoin: boolean; onClanNavigate: (clanId: string) => void; onChanged: () => void }) {
   const { isAuthenticated, loginWithSteam } = useAuth()
   const isFull = clan.currentPlayers >= clan.maxPlayers
@@ -400,6 +435,8 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
             <span {...tagProps}>[{clan.tag}]</span>
           </span>
         </button>
+
+        {clan.preview && <ClanCardPreview clan={clan} accent={accent} tint={tint} />}
 
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between text-[11px] text-[var(--text-dim)]">
