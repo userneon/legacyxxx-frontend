@@ -348,7 +348,7 @@ export function ShopPage() {
         )}
         </div>
         <div className="flex min-w-0 flex-col gap-2.5">
-        {item.owned && (
+        {item.owned && !undoing && (
           <div key="owned" className={cn("flex flex-col gap-2.5", justBought === item.id && "lx-swap-in")}>
             <p className="text-xs text-[var(--text-dim)]">{isWorn ? "Worn" : "Owned"}{item.expiresAt ? ` · ${timeLeft(item.expiresAt)}` : ""}</p>
             <button type="button" disabled={busy} onClick={() => void wearHere(item, !isWorn)} className="inline-flex h-10 w-full items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-semibold text-[var(--text-2)] hover:border-[var(--line-strong)] disabled:opacity-60">{isWorn ? "Take it off" : "Wear it"}</button>
@@ -381,18 +381,19 @@ export function ShopPage() {
               </PopoverContent>
             </Popover>
             )}
-            {undoing
-              ? (
-                <button type="button" disabled={busy} onClick={() => void undoBuy(item)} className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-[var(--line-strong)] bg-[var(--raised)] text-[13px] font-semibold text-[var(--text)] transition-colors hover:bg-[var(--card-surface)] disabled:opacity-60">
-                  <Undo2 className="size-4" />
-                  Undo ({undoLeft}s)
-                </button>
-              )
-              : (
-                <button type="button" disabled={busy} onClick={() => (afford ? void buy(item) : (setSheetOpen(false), navigate("/wallet/top-up")))} className="lx-primary-button inline-flex h-10 w-full items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-60">
-                  {afford ? `${item.owned ? "Extend" : "Buy"} for ${cost.toLocaleString()} LX` : `Top up ${(cost - (balance ?? 0)).toLocaleString()} more LX`}
-                </button>
-              )}
+            {/* One button for both: Buy turns into Undo in the same place, and Wear it only comes once the Undo time is over. */}
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => (undoing ? void undoBuy(item) : afford ? void buy(item) : (setSheetOpen(false), navigate("/wallet/top-up")))}
+              className={cn("inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg text-[13px] font-semibold transition-[background-color,border-color,color] duration-300 disabled:opacity-60", undoing ? "border border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text)] hover:bg-[var(--card-surface)]" : "lx-primary-button")}
+            >
+              <span key={undoing ? "undo" : "buy"} className="lx-swap-in inline-flex items-center gap-2">
+                {undoing
+                  ? <><Undo2 className="size-4" />Undo ({undoLeft}s)</>
+                  : afford ? `${item.owned ? "Extend" : "Buy"} for ${cost.toLocaleString()} LX` : `Top up ${(cost - (balance ?? 0)).toLocaleString()} more LX`}
+              </span>
+            </button>
           </>
         ) : !item.owned ? (
           <p className="text-xs text-[var(--text-dim)]">{item.requirement || "Earned in game, not for sale."}</p>
