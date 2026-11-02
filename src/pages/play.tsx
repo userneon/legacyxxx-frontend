@@ -1,3 +1,4 @@
+import { isServerAddress, steamConnect } from "@/lib/steam-connect"
 import { DetailSheetContent } from "@/components/detail-sheet"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
@@ -44,15 +45,14 @@ const toggleItem = "inline-flex h-[30px] items-center gap-1.5 rounded-[7px] px-3
 const toggleOn = "bg-[var(--line)] text-[var(--text)]"
 const toggleOff = "text-[var(--text-muted)] hover:text-[var(--text)]"
 
-const validAddress = (address: string | null | undefined) => Boolean(address && /^[a-zA-Z0-9.-]+:\d{1,5}$/.test(address.trim()))
 
 function connect(address: string | null | undefined, name: string) {
-  if (!address || !validAddress(address)) {
+  if (!steamConnect(address)) {
     toast.error("Server address unavailable", { description: `${name} does not expose a connection address right now.` })
     return
   }
-  toast("Opening Steam…", { description: `Connecting to ${name}` })
-  window.location.assign(`steam://connect/${address.trim()}`)
+  // A browser cannot tell whether Steam answered, so say what to do if nothing opens.
+  toast(`Opening Steam to join ${name}…`, { description: "If nothing opens, start Steam first or copy the address.", duration: 6000, action: { label: "Copy IP", onClick: () => void copyAddress(address) } })
 }
 
 async function copyAddress(address: string | null | undefined) {
@@ -292,7 +292,7 @@ function ServerSheet({ server, onClose, gate }: { server: PlayServer | null; onC
   const liveMatch = useLiveMatch(serverId)
   const { live } = liveMatch
   const address = live?.connectAddress ?? server?.connectAddress ?? null
-  const connectable = Boolean(server?.joinable && validAddress(address))
+  const connectable = Boolean(server?.joinable && isServerAddress(address))
   return (
     <Sheet open={server !== null} onOpenChange={(open) => { if (!open) onClose() }}>
       <DetailSheetContent width="max-w-4xl" backdrop={server && cs2MapArtwork(live?.map ?? server.map) ? <img src={cs2MapArtwork(live?.map ?? server.map)!} alt="" className="size-full object-cover opacity-30" /> : undefined}>
@@ -474,7 +474,7 @@ function ServerDetail({ server, gate }: { server: PlayServer; gate: PlayGate }) 
   const liveMatch = useLiveMatch(server.id)
   const { live } = liveMatch
   const address = live?.connectAddress ?? server.connectAddress ?? null
-  const connectable = Boolean(server.joinable && validAddress(address))
+  const connectable = Boolean(server.joinable && isServerAddress(address))
   const reason = server.status === "offline" ? "Server is offline" : server.status === "full" || server.players >= server.maxPlayers ? "Server is full" : "No connection address"
   return (
     <section aria-label={server.name} className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--card-surface)]">

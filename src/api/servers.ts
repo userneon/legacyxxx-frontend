@@ -1,3 +1,4 @@
+import { steamConnect } from "@/lib/steam-connect"
 import { get, type CallOptions } from "./client"
 import type { HomeStats, ReconnectMatch, ServerFilters, ServerInfo, ServerLiveMatch } from "./types"
 
@@ -33,7 +34,7 @@ export const serversService = {
   async joinServer(serverId: string, options?: CallOptions): Promise<void> {
     const server = await this.getServer(serverId, options)
     if (!server.connectAddress) throw { status: 404, code: "not_found", message: "A connection address is not available for this server." }
-    window.location.assign(`steam://connect/${server.connectAddress}`)
+    if (!steamConnect(server.connectAddress)) throw { status: 404, code: "not_found", message: "A connection address is not available for this server." }
   },
 
   async getHomeStats(options?: CallOptions): Promise<HomeStats> {
