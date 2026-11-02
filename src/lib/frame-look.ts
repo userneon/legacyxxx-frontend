@@ -28,7 +28,7 @@ export const ORB_ID = "crystal-orb"
 /** The ball is this share of the orb's box (the rest is room for its glow, which the canvas would cut flat at the box edge), and the avatar fills this share of the ball. */
 export const ORB_BALL = 0.78
 export const ORB_AVATAR = 0.92 * ORB_BALL
-export const ORB_DEFAULT_PARTICLES = 6000
+export const ORB_DEFAULT_PARTICLES = 1000
 /** The most particles an orb draws (owner request 2026-11-02, the API holds the same limit); an older look with more is drawn with this many. */
 export const ORB_MAX_PARTICLES = 8000
 export const ORB_PRESETS: Preset[] = ["plasma", "aurora", "nebula", "ember", "frost", "solar", "eclipse", "abyss"]
@@ -40,7 +40,7 @@ export function resolveLook(look: FrameLook | null | undefined): PresetValues & 
   const preset = look?.preset ?? "plasma"
   const base = BALL_PRESETS[preset]
   const own = Object.fromEntries(Object.entries(look ?? {}).filter(([, value]) => value !== undefined))
-  // 6,000 particles unless the player picks more (the presets use 15,000 to 18,000, which is heavy for a profile; owner request 2026-11-02).
+  // 1,000 particles unless the player picks more (owner request 2026-11-02; was 6,000) (the presets use 15,000 to 18,000, which is heavy for a profile; owner request 2026-11-02).
   return { ...base, speed: 1, interactive: true, hoverStrength: 0.7, intro: true, ...own, preset, particleCount: Math.min(ORB_MAX_PARTICLES, typeof (own as { particleCount?: unknown }).particleCount === "number" ? (own as { particleCount: number }).particleCount : ORB_DEFAULT_PARTICLES) } as PresetValues & { preset: Preset; speed: number; interactive: boolean; hoverStrength: number; intro: boolean }
 }
 
@@ -52,7 +52,7 @@ export const ORB_SLIDERS: Array<{ key: keyof FrameLook; label: string; min: numb
   { key: "crackle", label: "Crackle", min: 0, max: 1, step: 0.05 },
   { key: "flares", label: "Flares", min: 0, max: 1, step: 0.05 },
   { key: "sparks", label: "Sparks", min: 0, max: 1, step: 0.05 },
-  { key: "particleCount", label: "Particles", min: 2000, max: ORB_MAX_PARTICLES, step: 1000 },
+  { key: "particleCount", label: "Particles", min: 1000, max: ORB_MAX_PARTICLES, step: 1000 },
   { key: "fill", label: "Fill", min: 0, max: 1, step: 0.05 },
   { key: "depth", label: "Depth", min: 0, max: 1, step: 0.05 },
   { key: "twinkle", label: "Twinkle", min: 0, max: 1, step: 0.05 },
