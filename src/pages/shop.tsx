@@ -198,30 +198,37 @@ export function ShopPage() {
 
   const buy = async (item: ShopItem) => {
     setBusy(true)
+    let bought: Awaited<ReturnType<typeof cosmeticsService.buy>>
     try {
-      const bought = await cosmeticsService.buy(item.id, durationFor(item))
-      window.dispatchEvent(new Event("legacyx:wallet-changed"))
-      if (item.custom && (customDraft[item.id] || customDraft2[item.id])) {
-        await cosmeticsService.saveCustom(item.id, customDraft[item.id] ?? (item.kind === "name_glow" ? item.glow : item.color) ?? "#d4d4d4", item.twoColours ? customDraft2[item.id] ?? item.color2 : null)
-        dropDrafts(item.id)
-      }
-      // What was tried before buying is kept: the orb's or the background's settings are saved the moment it is yours.
-      if (item.id === ORB_ID && orbDraft) { await cosmeticsService.saveFrameLook(orbDraft); setOrbDraft(null) }
-      if (item.kind === "background" && bgDrafts[item.id]) {
-        await cosmeticsService.saveBackgroundLook(item.id, bgDrafts[item.id])
-        setBgDrafts((current) => { const { [item.id]: _kept, ...rest } = current; return rest })
-      }
-      await cosmeticsService.equip(item.kind, item.id)
-      toast.success(bought.expiresAt ? `${item.name} is yours for ${COSMETIC_DURATIONS.find((entry) => entry.value === durationFor(item))?.label.toLowerCase()} and now worn` : `${item.name} is yours for good and now worn`)
-      await Promise.all([refetch(), refetchWallet()])
-      setUndo({ id: item.id, until: Date.now() + (bought.undoSeconds ?? 7) * 1000 })
-      setJustBought(item.id)
-      window.setTimeout(() => setJustBought((current) => (current === item.id ? null : current)), 1400)
+      bought = await cosmeticsService.buy(item.id, durationFor(item))
     } catch (caught) {
       toast.error("Could not buy it", { description: caught instanceof Error ? caught.message : "Try again in a moment." })
-    } finally {
       setBusy(false)
+      return
     }
+    // The purchase is made: show Undo and free the button at once; wearing it, keeping what was tried and refreshing run alongside.
+    window.dispatchEvent(new Event("legacyx:wallet-changed"))
+    setUndo({ id: item.id, until: Date.now() + (bought.undoSeconds ?? 7) * 1000 })
+    setJustBought(item.id)
+    window.setTimeout(() => setJustBought((current) => (current === item.id ? null : current)), 1400)
+    setBusy(false)
+    toast.success(bought.expiresAt ? `${item.name} is yours for ${COSMETIC_DURATIONS.find((entry) => entry.value === durationFor(item))?.label.toLowerCase()} and now worn` : `${item.name} is yours for good and now worn`)
+    try {
+      const keep: Array<Promise<unknown>> = []
+      if (item.custom && (customDraft[item.id] || customDraft2[item.id])) {
+        keep.push(cosmeticsService.saveCustom(item.id, customDraft[item.id] ?? (item.kind === "name_glow" ? item.glow : item.color) ?? "#d4d4d4", item.twoColours ? customDraft2[item.id] ?? item.color2 : null).then(() => dropDrafts(item.id)))
+      }
+      // What was tried before buying is kept: the orb's or the background's settings are saved the moment it is yours.
+      if (item.id === ORB_ID && orbDraft) keep.push(cosmeticsService.saveFrameLook(orbDraft).then(() => setOrbDraft(null)))
+      if (item.kind === "background" && bgDrafts[item.id]) {
+        keep.push(cosmeticsService.saveBackgroundLook(item.id, bgDrafts[item.id]).then(() => setBgDrafts((current) => { const { [item.id]: _kept, ...rest } = current; return rest })))
+      }
+      keep.push(cosmeticsService.equip(item.kind, item.id))
+      await Promise.all(keep)
+    } catch (caught) {
+      toast.error("It is yours, but it could not be set up", { description: caught instanceof Error ? caught.message : "Wear it from the Shop in a moment." })
+    }
+    await Promise.all([refetch(), refetchWallet()])
   }
 
   /** Wear or take off an item you own, right here (the Shop used to send you to your profile for this). */
