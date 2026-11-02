@@ -11,6 +11,7 @@ export interface TeamMember {
   /** When they joined the team (ISO), or null. */
   since?: string | null
   clanTag?: string | null
+  clanLook?: import("@/api/types").ClanLook | null
   rank?: { id: number; name: string; imageKey: string | null } | null
   /** Their ranked numbers; null before their first ranked match. */
   stats?: { matches: number; wins: number; kills: number; deaths: number } | null

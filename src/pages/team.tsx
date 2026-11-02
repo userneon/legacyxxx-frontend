@@ -2,6 +2,7 @@
  * The website's Staff page (owner pick "1", 2026-10-26; laid out again the same day, "bad UX, empty space"): the Owner across the top, then the
  * rest of the team as trading cards in a grid that fills the width, filtered by role in the page bar and found by name. One colour per role.
  */
+import { clanTagProps } from "@/lib/cosmetics"
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { MessageCircle, RotateCcw, Search, X } from "lucide-react"
@@ -53,7 +54,7 @@ function RankLine({ member }: { member: TeamMember }) {
 function Name({ member, className }: { member: TeamMember; className: string }) {
   return (
     <span className={cn("flex min-w-0 items-baseline gap-1.5 font-bold text-[var(--text)]", className)}>
-      {member.clanTag && <span className="shrink-0 text-[11px] font-semibold text-[var(--text-dim)]">[{member.clanTag}]</span>}
+      {member.clanTag && <span {...clanTagProps(member.clanLook, "shrink-0 text-[11px] font-semibold text-[var(--text-dim)]")}>[{member.clanTag}]</span>}
       <span className="truncate">{member.username}</span>
     </span>
   )

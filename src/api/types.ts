@@ -143,6 +143,8 @@ export interface UserProfile {
     id: string
     name: string
     tag: string
+    /** The clan's colour and glow for its tag. Absent from an older API. */
+    look?: ClanLook | null
   } | null
   steamBackground?: string | null
   /** Equipped Steam Points Shop items; steamBackground is the still image / video poster. */
@@ -190,6 +192,8 @@ export interface CompetitiveLeaderboardEntry extends CompetitiveProfile {
   discord_linked?: boolean
   /** Tag of the clan the player is in. Absent when the clan feature is off or they have none. */
   clan_tag?: string | null
+  /** The clan's tag colour and glow. Absent from an older API. */
+  clan_look?: ClanLook | null
   /** Avatar frame the player wears (id). Absent from an older API. */
   frame?: string | null
   frame_look?: import("@/lib/frame-look").FrameLook | null

@@ -1,3 +1,4 @@
+import { clanTagProps } from "@/lib/cosmetics"
 import { BoosterLadder } from "@/pages/leaders-boosters"
 import { PlayerNameText } from "@/components/player-name-text"
 import { ClanLadder } from "@/pages/leaders-clans"
@@ -101,7 +102,7 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
         <span className="flex min-w-0 flex-col gap-1.5">
           <span className="flex min-w-0 items-center gap-1.5">
             <span {...nameProps(player.name_style, cn("truncate font-semibold text-[var(--text)]", first ? "text-base" : "text-sm"))} title={player.username}><PlayerNameText name={player.username} /></span>
-            {player.clan_tag && <span className="shrink-0 text-[11px] font-semibold text-[var(--text-dim)]">[{player.clan_tag}]</span>}
+            {player.clan_tag && <span {...clanTagProps(player.clan_look, "shrink-0 text-[11px] font-semibold text-[var(--text-dim)]")}>[{player.clan_tag}]</span>}
             <DiscordLinkedMark linked={player.discord_linked} />
           </span>
           <span className="truncate text-xs font-medium" style={{ color: rankTierColor(player.rank_id) }}>{player.rank_name}</span>
@@ -166,7 +167,7 @@ function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: Competiti
           />
         </span>
         <span {...nameProps(you ? null : player.name_style, "min-w-0 truncate text-[13px] font-medium text-[var(--text)]")} title={player.username}>{you ? "You" : <PlayerNameText name={player.username} />}</span>
-        {player.clan_tag && <span className="shrink-0 text-[11px] font-semibold text-[var(--text-dim)]">[{player.clan_tag}]</span>}
+        {player.clan_tag && <span {...clanTagProps(player.clan_look, "shrink-0 text-[11px] font-semibold text-[var(--text-dim)]")}>[{player.clan_tag}]</span>}
         <DiscordLinkedMark linked={player.discord_linked} />
       </span>
       <span className="max-md:hidden"><RankLabel rankId={player.rank_id} rankName={player.rank_name} imageKey={player.rank_image_key} currentExp={player.current_exp} size={22} nameClassName="font-medium" /></span>

@@ -35,7 +35,7 @@ import { OrbAvatar } from "@/components/orb-avatar"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { ORB_ID } from "@/lib/frame-look"
 import { CreatorBadge, CreatorLinks } from "@/pages/creators"
-import { nameProps } from "@/lib/cosmetics"
+import { clanTagProps, nameProps } from "@/lib/cosmetics"
 import { PageBar, PageTabs } from "@/components/page-tabs"
 import { AccountSettings, AppearanceSettings } from "@/pages/settings"
 import { copyText, steamProfileUrl } from "@/components/profile-ids"
@@ -191,7 +191,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
           {(overview.discordBoosting || overview.boosterPlace) && <BoosterBadge place={overview.boosterPlace} />}
           {overview.clan && (
             <Link to={`/clans/${overview.clan.number ?? overview.clan.id}`} title={overview.clan.name} className="inline-flex h-6 items-center gap-1 rounded-full border border-[var(--line)] px-2 text-[11px] font-semibold text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]">
-              [{overview.clan.tag}] <span className="max-w-[140px] truncate font-medium">{overview.clan.name}</span>
+              <span {...clanTagProps(overview.clan.look)}>[{overview.clan.tag}]</span> <span className="max-w-[140px] truncate font-medium">{overview.clan.name}</span>
             </Link>
           )}
           {competitive && <RankPill rankId={competitive.rankId} rankName={competitive.rankName} imageKey={competitive.rankImageKey} currentExp={competitive.exp} />}
