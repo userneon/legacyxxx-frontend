@@ -14,18 +14,23 @@ const chip = (active: boolean) => cn("inline-flex h-8 items-center rounded-full 
  * colour, the sliders and the switches. Anyone can play with it; saving needs the frame. What is picked is kept as the player's own
  * values on top of the preset's, and changing the preset starts again from that preset.
  */
-export function OrbCustomizer({ avatar, name, owned, saved, busy, onSave }: { avatar?: string; name?: string; owned: boolean; saved: FrameLook | null; busy: boolean; onSave: (look: FrameLook) => void }) {
-  const [draft, setDraft] = useState<FrameLook>(saved ?? {})
+export function OrbCustomizer({ avatar, name, owned, saved, busy, onSave, draft: controlled, onDraft, showPreview = true }: { avatar?: string; name?: string; owned: boolean; saved: FrameLook | null; busy: boolean; onSave: (look: FrameLook) => void; draft?: FrameLook; onDraft?: (look: FrameLook) => void; showPreview?: boolean }) {
+  // Alone it keeps its own draft; the Shop hands it the draft its preview already shows (controlled), so what is changed moves in that preview.
+  const [own, setOwn] = useState<FrameLook>(saved ?? {})
+  const draft = controlled ?? own
+  const setDraft = (next: FrameLook) => (onDraft ?? setOwn)(next)
   const shown = resolveLook(draft)
-  const set = (patch: FrameLook) => setDraft((current) => ({ ...current, ...patch }))
+  const set = (patch: FrameLook) => setDraft({ ...draft, ...patch })
   const changed = JSON.stringify(draft) !== JSON.stringify(saved ?? {})
 
   return (
     <div className="flex flex-col gap-4 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] p-4">
-      <div className="flex flex-col items-center gap-2">
-        <OrbAvatar avatar={avatar} name={name} size={200} look={draft} />
-        <p className="text-[11px] text-[var(--text-dim)]">Move the pointer over it. Everything below changes it live.</p>
-      </div>
+      {showPreview && (
+        <div className="flex flex-col items-center gap-2">
+          <OrbAvatar avatar={avatar} name={name} size={200} look={draft} />
+          <p className="text-[11px] text-[var(--text-dim)]">Move the pointer over it. Everything below changes it live.</p>
+        </div>
+      )}
 
       <div className="flex flex-col gap-3">
         <Group label="Preset">

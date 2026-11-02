@@ -10,7 +10,8 @@ import { clansService, walletService, type MyClanState, type Wallet } from "@/ap
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { frameAccent, nameProps, timeLeft } from "@/lib/cosmetics"
-import type { FrameLook } from "@/lib/frame-look"
+import { ORB_ID, type FrameLook } from "@/lib/frame-look"
+import { OrbCustomizer } from "@/components/orb-customizer"
 import { SmokePuff } from "@/components/smoke-puff"
 import { GrenadeLight, GrenadeTrail } from "@/components/grenade-trail"
 import { FlashEffect } from "@/components/flash-effect"
@@ -122,6 +123,8 @@ export function ShopPage() {
   }
   // The item bought a moment ago: its card rings once and the buy block turns into "Worn" with a fade.
   const [justBought, setJustBought] = useState<string | null>(null)
+  // The Crystal Orb being tried in the preview (null: the one you saved). It is what the preview draws, live, while you change it.
+  const [orbDraft, setOrbDraft] = useState<FrameLook | null>(null)
   // For a few seconds after a purchase its Buy button is an Undo (the API gives the window in seconds and takes the LX back whole).
   const [undo, setUndo] = useState<{ id: string; until: number } | null>(null)
   const [undoLeft, setUndoLeft] = useState(0)
@@ -390,7 +393,7 @@ export function ShopPage() {
           ) : (
             <div className="relative flex flex-col items-center gap-3 py-4">
               <span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} />
-              <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} look={data?.frameLook} live size={compact ? 88 : 120} />
+              <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} look={orbDraft ?? data?.frameLook} live size={compact ? 88 : 120} />
               <span {...nameProps(previewLook, cn("max-w-full truncate font-bold text-[var(--text)]", compact ? "text-[15px]" : "text-[19px]"))}>{username}</span>
             </div>
           )}
@@ -398,10 +401,32 @@ export function ShopPage() {
     )
   }
 
+  /** Every knob of the Crystal Orb, under the preview, before and after buying (saving needs it). The preview above moves with each change. */
+  const orbPanel = selected?.id === ORB_ID && selected.kind === "frame" ? (
+    <OrbCustomizer
+      showPreview={false}
+      avatar={user?.avatar}
+      name={user?.username}
+      owned={Boolean(selected.owned)}
+      saved={data?.frameLook ?? null}
+      draft={orbDraft ?? data?.frameLook ?? {}}
+      onDraft={setOrbDraft}
+      busy={busy}
+      onSave={(look) => {
+        setBusy(true)
+        cosmeticsService.saveFrameLook(look)
+          .then(() => { setOrbDraft(null); return refetch() })
+          .catch((caught) => toast.error("Could not save your orb", { description: caught instanceof Error ? caught.message : "Try again in a moment." }))
+          .finally(() => setBusy(false))
+      }}
+    />
+  ) : null
+
   const railBody = (
     <div className="lx-add-box relative flex min-h-0 flex-col overflow-hidden rounded-[14px] border lg:max-h-[calc(100dvh-11rem)]">
         <div className="scrollbar-hidden flex min-h-0 flex-col gap-3 overflow-y-auto p-3.5">
           {previewStage()}
+          {orbPanel}
         </div>
         {selected && (
           <div className="shrink-0">
@@ -458,6 +483,7 @@ export function ShopPage() {
           <div className="flex min-w-0 flex-col gap-5">
             {/* On Featured the Genesis card comes first: the bar waits until an item below it is picked. */}
             {(tab !== "featured" || picked !== null) && spotlight}
+            {(tab !== "featured" || picked !== null) && orbPanel && <div className="hidden lg:block">{orbPanel}</div>}
             <div className="flex min-w-0 flex-col gap-5">
               {tab === "featured" && featured.length > 0 && (
                 <section aria-label="Featured">
