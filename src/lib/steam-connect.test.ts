@@ -15,6 +15,6 @@ describe("isServerAddress", () => {
 
 describe("steamRunUrl", () => {
   it("starts CS2 with +connect in its launch options", () => {
-    expect(steamRunUrl("1.2.3.4:27015")).toBe("steam://run/730//+connect%201.2.3.4:27015")
+    expect(steamRunUrl("1.2.3.4:27015")).toBe("steam://rungameid/730//+connect%201.2.3.4:27015")
   })
 })
