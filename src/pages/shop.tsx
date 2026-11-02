@@ -65,7 +65,7 @@ type ShopItem = FrameItem & { kind: ShopKind }
 
 /** What the item looks like: a frame around your picture, or your name painted with it. */
 function ItemArt({ item, avatar, username, size, orb }: { item: ShopItem; avatar?: string; username: string; size: number; orb?: FrameLook | null }) {
-  if (item.kind === "background") return <BgThumb id={item.id} className="w-[120px]" />
+  if (item.kind === "background") return <BgThumb id={item.id} className="w-[176px] max-w-[92%]" />
   if (item.kind === "frame") return <FramedAvatar avatar={avatar} name={username} frame={item.id} look={orb} live={size >= 120} size={size} />
   if (item.kind === "smoke_color") return <SmokePuff color={item.color} color2={item.color2} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "grenade_trail") return <GrenadeTrail color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
@@ -431,7 +431,11 @@ export function ShopPage() {
     return (
       <>
           {selected?.kind === "background" ? (
-            <div className="relative h-[150px] w-full overflow-hidden rounded-lg bg-[var(--card-surface)] [&>div]:size-full"><BackgroundScene key={selected.id} id={selected.id} look={bgLookNow} /></div>
+            <div className="relative h-[150px] w-full overflow-hidden rounded-lg bg-[var(--card-surface)] [&>div]:size-full">
+              {/* The still picture shows at once; the live background loads over it (it is a heavy script and a canvas). */}
+              <BgThumb id={selected.id} fill />
+              <div className="absolute inset-0"><BackgroundScene key={selected.id} id={selected.id} look={bgLookNow} /></div>
+            </div>
           ) : selected?.kind === "grenade_trail" ? (
             <div className="relative flex items-center justify-center py-4"><GrenadeTrail key={`${selected.id}${tried(selected).fx}`} color={tried(selected).color} shape={tried(selected).fx} className={effect} /></div>
           ) : selected?.kind === "flash_effect" ? (
