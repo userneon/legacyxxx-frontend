@@ -120,8 +120,8 @@ export function frameArt(id: string | null | undefined): ({ src: string; maskSrc
 
 /** Designs coloured with the player's own pick (--name-color); fire and chrome have a fixed-colour look too, used when no colour comes. */
 const TINT_FX: Record<string, string> = { gradient: "gradient", foil: "foil", drift: "drift", fire: "tint-fire", chrome: "tint-chrome" }
-const COLOR_FX = new Set(["gradient", "foil", "drift", "chrome", "gold", "ice", "sakura", "emerald", "aurora", "holo", "fire", "void", "sunrise", "ocean", "lava", "candy", "toxic", "midnight", "rosegold", "platinum", "spectrum", "galaxy"])
-const GLOW_FX = new Set(["neon", "pulse", "flame", "electric", "aura", "halo", "breathe", "spark"])
+const COLOR_FX = new Set(["gradient", "foil", "drift", "chrome", "gold", "ice", "sakura", "emerald", "aurora", "holo", "fire", "void", "sunrise", "ocean", "lava", "candy", "toxic", "midnight", "rosegold", "platinum", "spectrum", "galaxy", "split", "pastel", "stripes", "wave", "duo", "gloss", "frost"])
+const GLOW_FX = new Set(["neon", "pulse", "flame", "electric", "aura", "halo", "breathe", "spark", "ring", "bloom", "drop", "twinkle", "strobe", "ripple", "heartbeat", "sway"])
 const HEX = /^#[0-9a-f]{6}$/i
 
 /** What a name is painted with: plain colours and short effect keys from the API, never a style string. */

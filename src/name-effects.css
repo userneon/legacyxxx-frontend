@@ -182,3 +182,79 @@
 @media (prefers-reduced-motion: reduce) {
   .lx-fx-tint-fire, .lx-fx-foil, .lx-fx-drift { animation: none; }
 }
+
+/*
+ * ---- more colour designs and glows (owner request 2026-11-02: "more like these") ----
+ * Same rule as above: each design is built from the one colour the player picks (--name-color) mixed with white and black, and each glow is
+ * tinted by the one --name-glow, so any pick works. Split, Pastel, Stripes, Wave, Duo, Gloss and Frost; Ring, Bloom, Drop, Twinkle, Strobe,
+ * Ripple, Heartbeat and Sway.
+ */
+.lx-fx-split, .lx-fx-pastel, .lx-fx-stripes, .lx-fx-wave, .lx-fx-duo, .lx-fx-gloss, .lx-fx-frost {
+  --c: var(--name-color, #d4d4d4); /* palette-exempt */
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+/* Split: the top half light, the bottom half dark, with a hard line between. */
+.lx-fx-split { background-image: linear-gradient(180deg, color-mix(in srgb, var(--c) 70%, #ffffff) 0 50%, color-mix(in srgb, var(--c) 62%, #000000) 50% 100%); } /* palette-exempt */
+/* Pastel: the colour softened towards white. */
+.lx-fx-pastel { background-image: linear-gradient(180deg, color-mix(in srgb, var(--c) 28%, #ffffff) 0%, color-mix(in srgb, var(--c) 52%, #ffffff) 100%); } /* palette-exempt */
+/* Stripes: slanted bands of the colour and a lighter one. */
+.lx-fx-stripes { background-image: repeating-linear-gradient(110deg, var(--c) 0 6px, color-mix(in srgb, var(--c) 38%, #ffffff) 6px 12px); } /* palette-exempt */
+/* Wave: light rolls through the colour from left to right and loops without a seam. */
+.lx-fx-wave {
+  background-image: linear-gradient(90deg, var(--c), color-mix(in srgb, var(--c) 40%, #ffffff), var(--c)); /* palette-exempt */
+  background-size: 200% 100%;
+  animation: lx-name-wave 3.6s linear infinite;
+}
+/* Duo: the colour turning into its neighbour on the colour wheel. */
+.lx-fx-duo {
+  background-image: linear-gradient(90deg, var(--c), color-mix(in srgb, var(--c) 40%, #ffffff)); /* palette-exempt */
+  background-image: linear-gradient(90deg, var(--c), oklch(from var(--c) calc(l + 0.06) c calc(h + 70)));
+}
+/* Gloss: a glassy top over the colour, a darker base. */
+.lx-fx-gloss { background-image: linear-gradient(180deg, color-mix(in srgb, var(--c) 45%, #ffffff) 0%, color-mix(in srgb, var(--c) 18%, #ffffff) 46%, var(--c) 50%, color-mix(in srgb, var(--c) 66%, #000000) 100%); } /* palette-exempt */
+/* Frost: white at the top, the colour as ice below. */
+.lx-fx-frost { background-image: linear-gradient(180deg, #ffffff 0%, color-mix(in srgb, var(--c) 22%, #e6f7ff) 38%, color-mix(in srgb, var(--c) 72%, #7dd3fc) 100%); } /* palette-exempt */
+@keyframes lx-name-wave { to { background-position: 200% 0; } }
+
+.lx-glow-ring, .lx-glow-bloom, .lx-glow-drop, .lx-glow-twinkle, .lx-glow-strobe, .lx-glow-ripple, .lx-glow-heartbeat, .lx-glow-sway {
+  color: color-mix(in srgb, #ffffff 82%, var(--name-glow)); /* palette-exempt */
+}
+.lx-glow-ring { filter: drop-shadow(0 0 1px var(--name-glow)) drop-shadow(0 0 2px var(--name-glow)) drop-shadow(0 0 3px var(--name-glow)); }
+.lx-glow-bloom { filter: drop-shadow(0 0 14px color-mix(in srgb, var(--name-glow) 80%, transparent)) drop-shadow(0 0 34px color-mix(in srgb, var(--name-glow) 55%, transparent)); }
+.lx-glow-drop { filter: drop-shadow(0 3px 2px var(--name-glow)) drop-shadow(0 8px 10px color-mix(in srgb, var(--name-glow) 55%, transparent)); }
+.lx-glow-twinkle { animation: lx-glow-twinkle 3.2s steps(1, end) infinite; }
+.lx-glow-strobe { animation: lx-glow-strobe 1.2s steps(1, end) infinite; }
+.lx-glow-ripple { animation: lx-glow-ripple 2.6s ease-out infinite; }
+.lx-glow-heartbeat { animation: lx-glow-heartbeat 1.8s ease-in-out infinite; }
+.lx-glow-sway { animation: lx-glow-sway 4s ease-in-out infinite; }
+@keyframes lx-glow-twinkle {
+  0%, 100% { filter: drop-shadow(0 0 2px var(--name-glow)) drop-shadow(0 0 8px color-mix(in srgb, var(--name-glow) 70%, transparent)); }
+  20% { filter: drop-shadow(0 0 1px var(--name-glow)) drop-shadow(0 0 3px color-mix(in srgb, var(--name-glow) 50%, transparent)); }
+  45% { filter: drop-shadow(0 0 3px var(--name-glow)) drop-shadow(0 0 14px var(--name-glow)); }
+  60% { filter: drop-shadow(0 0 1px var(--name-glow)) drop-shadow(0 0 4px color-mix(in srgb, var(--name-glow) 55%, transparent)); }
+  80% { filter: drop-shadow(0 0 3px var(--name-glow)) drop-shadow(0 0 10px color-mix(in srgb, var(--name-glow) 85%, transparent)); }
+}
+@keyframes lx-glow-strobe {
+  0%, 100% { filter: drop-shadow(0 0 2px var(--name-glow)) drop-shadow(0 0 12px var(--name-glow)); }
+  50% { filter: drop-shadow(0 0 1px color-mix(in srgb, var(--name-glow) 40%, transparent)); }
+}
+@keyframes lx-glow-ripple {
+  0% { filter: drop-shadow(0 0 1px var(--name-glow)) drop-shadow(0 0 3px var(--name-glow)); }
+  70%, 100% { filter: drop-shadow(0 0 2px color-mix(in srgb, var(--name-glow) 10%, transparent)) drop-shadow(0 0 26px color-mix(in srgb, var(--name-glow) 5%, transparent)); }
+}
+@keyframes lx-glow-heartbeat {
+  0%, 40%, 100% { filter: drop-shadow(0 0 2px var(--name-glow)) drop-shadow(0 0 6px color-mix(in srgb, var(--name-glow) 60%, transparent)); }
+  12% { filter: drop-shadow(0 0 3px var(--name-glow)) drop-shadow(0 0 16px var(--name-glow)); }
+  24% { filter: drop-shadow(0 0 2px var(--name-glow)) drop-shadow(0 0 8px color-mix(in srgb, var(--name-glow) 70%, transparent)); }
+  32% { filter: drop-shadow(0 0 3px var(--name-glow)) drop-shadow(0 0 14px var(--name-glow)); }
+}
+@keyframes lx-glow-sway {
+  0%, 100% { filter: drop-shadow(-4px 0 3px var(--name-glow)) drop-shadow(-9px 0 12px color-mix(in srgb, var(--name-glow) 55%, transparent)); }
+  50% { filter: drop-shadow(4px 0 3px var(--name-glow)) drop-shadow(9px 0 12px color-mix(in srgb, var(--name-glow) 55%, transparent)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lx-fx-wave, .lx-glow-twinkle, .lx-glow-strobe, .lx-glow-ripple, .lx-glow-heartbeat, .lx-glow-sway { animation: none; }
+}
