@@ -244,6 +244,7 @@ export function ShopPage() {
       toast.error("It is yours, but it could not be set up", { description: caught instanceof Error ? caught.message : "Wear it from the Shop in a moment." })
     }
     await Promise.all([refetch(), refetchWallet()])
+    window.dispatchEvent(new Event("legacyx:appearance-changed"))
   }
 
   /** Wear or take off an item you own, right here (the Shop used to send you to your profile for this). */
@@ -253,6 +254,7 @@ export function ShopPage() {
       await cosmeticsService.equip(item.kind, on ? item.id : null)
       toast.success(on ? `${item.name} is on you now` : `${item.name} taken off`)
       await refetch()
+      window.dispatchEvent(new Event("legacyx:appearance-changed"))
     } catch (caught) {
       toast.error("Could not change it", { description: caught instanceof Error ? caught.message : "Try again in a moment." })
     } finally {
@@ -469,7 +471,7 @@ export function ShopPage() {
       onSave={(look) => {
         setBusy(true)
         cosmeticsService.saveFrameLook(look)
-          .then(() => { setOrbDraft(null); return refetch() })
+          .then(() => { setOrbDraft(null); window.dispatchEvent(new Event("legacyx:appearance-changed")); return refetch() })
           .catch((caught) => toast.error("Could not save your orb", { description: caught instanceof Error ? caught.message : "Try again in a moment." }))
           .finally(() => setBusy(false))
       }}
@@ -508,7 +510,7 @@ export function ShopPage() {
       onSave={(look) => {
         setBusy(true)
         cosmeticsService.saveBackgroundLook(pickedBg.id, look)
-          .then(() => { setBgDrafts((current) => { const { [pickedBg.id]: _saved, ...rest } = current; return rest }); return refetch() })
+          .then(() => { setBgDrafts((current) => { const { [pickedBg.id]: _saved, ...rest } = current; return rest }); window.dispatchEvent(new Event("legacyx:appearance-changed")); return refetch() })
           .catch((caught) => toast.error("Could not save your background", { description: caught instanceof Error ? caught.message : "Try again in a moment." }))
           .finally(() => setBusy(false))
       }}

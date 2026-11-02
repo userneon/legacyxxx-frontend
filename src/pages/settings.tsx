@@ -215,6 +215,7 @@ function Appearance() {
       await work()
       saved.flash()
       await refetch()
+      window.dispatchEvent(new Event("legacyx:appearance-changed"))
     } catch (caught) {
       toast.error(failure, { description: caught instanceof Error ? caught.message : "Try again in a moment." })
     } finally {

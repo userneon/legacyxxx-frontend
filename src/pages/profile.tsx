@@ -723,10 +723,16 @@ type ProfileTab = "profile" | "appearance" | "settings"
 export function ProfilePage({ userId }: { userId?: string }) {
   const params = useParams()
   const navigate = useNavigate()
-  const { user: me } = useAuth()
+  const { user: me, refreshUser } = useAuth()
   const identity = userId ?? params.steamId ?? "me"
   const [pathTab, setPathTab] = usePathTab<ProfileTab>("/profile", { profile: "", appearance: "appearance", settings: "settings" }, "profile")
   const { data, loading, error, refetch } = useApiQuery<ProfileOverview>((signal) => profileOverviewService.get(identity, { signal }), { queryKey: `profile:${identity}`, keepPreviousData: true })
+  // Wearing something in Appearance (or the Shop) changes how this page looks, so it reloads itself: no manual refresh.
+  useEffect(() => {
+    const onChange = () => { refetch(); void refreshUser() }
+    window.addEventListener("legacyx:appearance-changed", onChange)
+    return () => window.removeEventListener("legacyx:appearance-changed", onChange)
+  }, [refetch, refreshUser])
   const faceitHidden = data?.hidden.includes("faceit") ?? true
   const { data: faceit } = useApiQuery<FaceitProfileData>((signal) => profileService.getFaceitProfile(data!.user.id, { signal }), { enabled: Boolean(data) && !faceitHidden, queryKey: `profile-faceit:${data?.user.id ?? ""}` })
   // The player's Steam background is drawn by the app shell behind the whole window; it goes away with the page.
