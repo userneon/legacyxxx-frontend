@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
-import { Check, ChevronDown, Lock, RotateCcw, Search, SlidersHorizontal, Undo2, X } from "lucide-react"
+import { Bomb, Check, ChevronDown, CircleUserRound, Image as ImageIcon, Lock, RotateCcw, Search, SlidersHorizontal, Sparkles, Type, Undo2, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -51,15 +51,15 @@ const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "goods", label: "Goods" },
 ]
 
-/** The Shop's top row is grouped: what you wear on your profile (frames, backgrounds, name, grenades) sits under one Profile tab with its own row below. */
-const PROFILE_TABS: ShopTab[] = ["frame", "background", "name", "smoke_color"]
-const TOP_TABS: Array<{ value: "featured" | "profile" | "clan" | "cards" | "goods"; label: string }> = [
-  { value: "featured", label: "Featured" },
-  { value: "profile", label: "Profile" },
+/** The Shop's top row: everything you wear is one "Cosmetics" tab, and its slots (Featured, Frames, Backgrounds, Name, Grenades) are the cards under the bar. */
+const COSMETIC_TABS: ShopTab[] = ["featured", "frame", "background", "name", "smoke_color"]
+const TOP_TABS: Array<{ value: "cosmetics" | "clan" | "cards" | "goods"; label: string }> = [
+  { value: "cosmetics", label: "Cosmetics" },
   { value: "clan", label: "Clan" },
   { value: "cards", label: "Cards" },
   { value: "goods", label: "Goods" },
 ]
+const SLOT_ICONS: Record<string, typeof Sparkles> = { featured: Sparkles, frame: CircleUserRound, background: ImageIcon, name: Type, smoke_color: Bomb }
 
 type ShopItem = FrameItem & { kind: ShopKind }
 
@@ -104,7 +104,7 @@ function ShopGrid({ list, card, tight = false }: { list: ShopItem[]; tight?: boo
   const dense = tight || list.length > 12
   return (
     <>
-      <ul className={cn("grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4", dense ? "xl:grid-cols-6 2xl:grid-cols-7" : "xl:grid-cols-5 2xl:grid-cols-6")}>{visible.map((item, index) => card(item, index, dense))}</ul>
+      <ul className={cn("grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-3", dense ? "xl:grid-cols-4 2xl:grid-cols-5" : "xl:grid-cols-4 2xl:grid-cols-4")}>{visible.map((item, index) => card(item, index, dense))}</ul>
       {list.length > limit && (
         <button type="button" onClick={() => setLimit((current) => current + FIRST_BATCH)} className="mx-auto mt-4 flex h-9 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-4 text-[13px] text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]">
           Show {Math.min(FIRST_BATCH, list.length - limit)} more · {list.length - limit} left
@@ -123,8 +123,8 @@ export function ShopPage() {
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
   const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", background: "backgrounds", name: "name", smoke_color: "smoke", clan: "clan", cards: "cards", goods: "goods" }, "featured")
   // Which Profile sub-tab to return to when the Profile tab is tapped again.
-  const [lastProfileTab, setLastProfileTab] = useState<ShopTab>("frame")
-  useEffect(() => { if (PROFILE_TABS.includes(tab)) setLastProfileTab(tab) }, [tab])
+  const [lastProfileTab, setLastProfileTab] = useState<ShopTab>("featured")
+  useEffect(() => { if (COSMETIC_TABS.includes(tab)) setLastProfileTab(tab) }, [tab])
   const [sort, setSort] = useState<"price-up" | "price-down" | "rarity">("price-up")
   const [show, setShow] = useState<"all" | "available" | "owned">("all")
   const [busy, setBusy] = useState(false)
@@ -549,26 +549,40 @@ export function ShopPage() {
   )
 
   /**
-   * The Spotlight bar (owner pick "S8", 2026-10-26): on a wide screen the picked item sits in one bar across the top of the list, stuck while the
-   * list scrolls under it: the item on you at the left, then its colours, length and Buy (the name colour and glow side by side when both are picked).
-   * Phones keep the bottom sheet.
+   * The slots: one card per kind of thing you wear, each saying what is on you now and when it runs out. They are also how you move between
+   * the kinds (one level, no tabs inside tabs). Real data only: what is worn comes from the API, a slot with nothing says "Nothing worn".
    */
-  const spotlight = selected ? (
-    <div className="lx-add-box sticky top-0 z-10 hidden overflow-hidden rounded-[14px] border bg-[var(--panel)] lg:block">
-      <div className="flex items-stretch">
-      <div className={cn("relative flex w-[240px] shrink-0 items-center justify-center border-r border-[var(--line-soft)] [&>div]:w-full", selected.kind === "background" ? "min-h-[150px]" : "px-3")}>{previewStage(true)}</div>
-      {tab === "name" && combo.name_color && combo.name_glow
-        ? [combo.name_color, combo.name_glow].map((id) => all.find((item) => item.id === id)).filter((item): item is ShopItem => Boolean(item)).map((item, index) => <div key={item.id} className={cn("flex min-w-0 flex-1", index > 0 && "border-l border-[var(--line-soft)]")}>{buyBlock(item, true)}</div>)
-        : buyBlock(selected, true)}
-      </div>
-      {customizerBlock(true)}
+  const slotInfo = (value: ShopTab) => {
+    const wornOf = (...kinds: ShopKind[]) => kinds.map((kind) => all.find((item) => item.kind === kind && item.id === worn[kind])).filter((item): item is ShopItem => Boolean(item))
+    if (value === "featured") return { names: [`${featured.length} to look at`], ends: null as string | null }
+    const list = value === "frame" ? wornOf("frame") : value === "background" ? wornOf("background") : value === "name" ? wornOf("name_color", "name_glow") : wornOf("smoke_color", "grenade_trail")
+    const soonest = list.map((item) => item.expiresAt).filter((value): value is string => Boolean(value)).sort()[0] ?? null
+    return { names: list.map((item) => item.name), ends: soonest }
+  }
+  const slotsRow = (
+    <div role="tablist" aria-label="What to look at" className="grid grid-cols-2 gap-2 max-md:-mx-4 max-md:flex max-md:overflow-x-auto max-md:px-4 max-md:pb-1 max-md:scrollbar-hidden sm:grid-cols-3 xl:grid-cols-5 [&>button]:max-md:w-[168px] [&>button]:max-md:shrink-0">
+      {TABS.filter((entry) => COSMETIC_TABS.includes(entry.value)).map((entry) => {
+        const Icon = SLOT_ICONS[entry.value] ?? Sparkles
+        const info = slotInfo(entry.value)
+        const on = tab === entry.value
+        return (
+          <button key={entry.value} type="button" role="tab" aria-selected={on} onClick={() => setTab(entry.value)} className={cn("lx-slot group flex items-center gap-2.5 rounded-[10px] border px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60", on ? "border-[var(--brand)] bg-[var(--brand)]/[0.08]" : "border-[var(--line)] bg-[var(--card-surface)] hover:border-[var(--line-strong)]")}>
+            <span className={cn("grid size-8 shrink-0 place-items-center rounded-lg border transition-colors", on ? "border-[var(--brand)]/50 text-[var(--brand-bright)]" : "border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]")}><Icon className="size-4" aria-hidden="true" /></span>
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="text-[13px] font-semibold text-[var(--text)]">{entry.label}</span>
+              <span className="truncate text-[11px] text-[var(--text-dim)]">{info.names.length ? info.names.join(" · ") : "Nothing worn"}</span>
+            </span>
+            {info.ends && <span className="shrink-0 rounded-full border border-[var(--line)] px-2 py-0.5 text-[10px] text-[var(--text-dim)]">{timeLeft(info.ends)}</span>}
+          </button>
+        )
+      })}
     </div>
-  ) : null
+  )
 
   return (
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
-        <PageTabs<(typeof TOP_TABS)[number]["value"]> ariaLabel="Shop sections" value={PROFILE_TABS.includes(tab) ? "profile" : (tab as "featured" | "clan" | "cards" | "goods")} onChange={(next) => setTab(next === "profile" ? lastProfileTab : next)} options={TOP_TABS} />
+        <PageTabs<(typeof TOP_TABS)[number]["value"]> ariaLabel="Shop sections" value={COSMETIC_TABS.includes(tab) ? "cosmetics" : (tab as "clan" | "cards" | "goods")} onChange={(next) => setTab(next === "cosmetics" ? lastProfileTab : next)} options={TOP_TABS} />
         {(tab === "featured" || tab === "frame" || tab === "background" || tab === "name" || tab === "smoke_color") && (
           <PageBarEnd className="max-md:hidden">
             <label className={cn(pageSearchClass, "max-md:hidden")}>
@@ -579,11 +593,6 @@ export function ShopPage() {
           </PageBarEnd>
         )}
       </PageBar>
-      {PROFILE_TABS.includes(tab) && (
-        <PageBar>
-          <PageTabs<ShopTab> ariaLabel="Profile items" value={tab} onChange={setTab} options={TABS.filter((entry) => PROFILE_TABS.includes(entry.value))} />
-        </PageBar>
-      )}
       {/* Not a scroller itself: the page panel around it scrolls, and a sticky rail sticks to the nearest scroller (an inner overflow-y-auto that never scrolled kept it from sticking). */}
       <div className="lx-glass-page min-h-0 flex-1 px-6 py-5 max-md:px-4">
         {tab === "goods" ? (
@@ -598,10 +607,11 @@ export function ShopPage() {
           tab === "clan" ? (
             <ShopClan prices={wallet?.clanPrices} balance={balance} mine={user ? myClan : null} loading={Boolean(user) && (clanLoading || !wallet)} onChanged={() => Promise.all([refetchClan(), refetchWallet()])} />
           ) : (
-          <div className="flex min-w-0 flex-col gap-5">
-            {/* On Featured the Genesis card comes first: the bar waits until an item below it is picked. */}
-            {(tab !== "featured" || picked !== null) && spotlight}
+          <div className="grid min-w-0 gap-5 lg:grid-cols-[380px_minmax(0,1fr)] lg:items-start">
+            {/* Wide screens: you, wearing what you look at, with its Buy block, stay in view while the list scrolls. Phones use the bottom sheet. */}
+            <aside aria-label="Preview" className="hidden lg:sticky lg:top-4 lg:block">{railBody}</aside>
             <div className="flex min-w-0 flex-col gap-5">
+              {slotsRow}
               {tab === "featured" && featured.length > 0 && (
                 <section aria-label="Featured">
                   <div className="lx-shop-heading mb-2.5">Featured</div>
