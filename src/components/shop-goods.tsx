@@ -128,7 +128,7 @@ export function OrderDialog({ product, onClose, onDone }: { product: GoodsProduc
       <DialogContent className="rounded-2xl">
         <DialogHeader>
           <DialogTitle>{product?.kind === "lx" ? "Top up" : "Order"} {product?.name}</DialogTitle>
-          <DialogDescription>We call to confirm. You pay by bank transfer or QPay.</DialogDescription>
+          <DialogDescription>We call to confirm. You pay with QPay.</DialogDescription>
         </DialogHeader>
         {product && (
           <div className="flex flex-col gap-3">
