@@ -522,7 +522,7 @@ export function ShopPage() {
                 type="button"
                 disabled={busy}
                 onClick={() => (afford ? void buy(item) : (setSheetOpen(false), navigate("/wallet/top-up")))}
-                className="lx-swap-in h-10 w-full text-[13px] font-semibold"
+                className="lx-swap-in h-12 w-full text-[15px] font-bold"
                 radius={8}
                 thickness={1}
                 duration={5}
