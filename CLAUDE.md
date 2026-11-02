@@ -298,3 +298,5 @@ npm run check:colors                     # palette lint — must pass before com
 - `docs/design/PROMPT.md` — the original full build prompt (git workflow, phased
   rebuild plan, per-page component/icon mapping)
 - `docs/design/RANK-SYSTEM.md` — EXP/rank calculation spec
+
+The LX coin (owner request 2026-11-02): `LxMark` draws the owner-supplied gold coin, `public/lx-coin.webp` (256px, round, transparent corners), everywhere an LX amount has a mark. It is a picture, so the neutral palette rules do not apply to it.
