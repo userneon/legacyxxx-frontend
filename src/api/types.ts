@@ -506,7 +506,7 @@ export interface ClanDetail extends ClanCard {
   recruitment?: { enabled: boolean; questions: string[] }
 }
 
-export type ClanRole = "leader" | "co-leader" | "member"
+export type ClanRole = "leader" | "co-leader" | "captain" | "member"
 
 /** A clan's level and what levels unlock (GET /clans/:id/stats). */
 export interface ClanProgress {

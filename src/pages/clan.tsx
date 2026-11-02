@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { usePathTab } from "@/hooks/use-url-tab"
 import { useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft, Check, Coins, Crown, Globe, Lock, Pencil, Plus, Search, Trophy, Upload, UserPlus, Users, X } from "lucide-react"
+import { ArrowLeft, Check, Coins, Crown, Flag, Globe, Lock, Pencil, Plus, Search, Trophy, Upload, UserPlus, Users, X } from "lucide-react"
 import { toast } from "sonner"
 
 
@@ -116,7 +116,7 @@ export function ClanPage({ onProfileNavigate, onClanNavigate }: { onProfileNavig
 const PAGE_SIZE = 24
 
 /** The stat row and the card grid of the clan list, in the places the real ones appear. */
-const ROLE_ORDER = ["leader", "co-leader", "member"]
+const ROLE_ORDER = ["leader", "co-leader", "captain", "member"]
 
 function ClanListSkeleton() {
   return (
@@ -650,7 +650,9 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                             </span>
                             {ranked
                               ? <span className="inline-flex w-fit shrink-0 items-center gap-1 rounded-full border border-[color-mix(in_oklch,var(--brand-bright)_35%,transparent)] bg-[color-mix(in_oklch,var(--brand)_14%,transparent)] px-2 py-px text-[11px] font-semibold text-[var(--brand-bright)]">{member.role === "leader" && <Crown className="size-3" aria-hidden="true" />}{roleLabel(member.role)}</span>
-                              : <span className="shrink-0 text-[11px] text-[var(--text-dim)]">{roleLabel(member.role)}</span>}
+                              : member.role === "captain"
+                                ? <span className="inline-flex w-fit shrink-0 items-center gap-1 rounded-full border border-[var(--line-strong)] bg-[var(--raised)] px-2 py-px text-[11px] font-semibold text-[var(--text-2)]"><Flag className="size-3" aria-hidden="true" />Captain</span>
+                                : <span className="shrink-0 text-[11px] text-[var(--text-dim)]">{roleLabel(member.role)}</span>}
                             <span className="min-w-0 flex-1" />
                             <span className="w-[150px] shrink-0 max-lg:hidden">{member.stats ? <RankLabel rankId={member.stats.rankId} rankName={member.stats.rankName} imageKey={member.stats.rankImageKey} currentExp={member.stats.currentExp} size={20} nameClassName="text-xs font-medium" /> : <span className="text-xs text-[var(--text-dim)]">Unranked</span>}</span>
                             <span className="w-[70px] shrink-0 text-right text-[13px] text-[var(--text-muted)] max-md:hidden" title="Ranked matches">{member.stats ? member.stats.matches.toLocaleString() : "—"}</span>

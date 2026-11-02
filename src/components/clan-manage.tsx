@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { ArrowRight, Coins, Crown, Send, ShieldAlert, Trash2, UserMinus, X } from "lucide-react"
+import { ArrowRight, Coins, Crown, Flag, Send, ShieldAlert, Trash2, UserMinus, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { clansService, walletService, type Wallet } from "@/api"
@@ -50,7 +50,7 @@ export function clanFailure(error: unknown, fallback: string) {
   return fallback
 }
 
-const ROLE_LABEL: Record<ClanRole, string> = { leader: "Leader", "co-leader": "Manager", member: "Member" }
+const ROLE_LABEL: Record<ClanRole, string> = { leader: "Leader", "co-leader": "Manager", captain: "Captain", member: "Member" }
 export function roleLabel(role: string) {
   return ROLE_LABEL[role as ClanRole] ?? role
 }
@@ -168,7 +168,7 @@ export function MemberControls({ clanId, clanName, member, viewerRole, onChanged
   const [handing, setHanding] = useState(false)
   const target = member.role as ClanRole
   if (target === "leader" || !viewerRole || viewerRole === "member") return null
-  const mayRemove = viewerRole === "leader" || target === "member"
+  const mayRemove = viewerRole === "leader" || target === "member" || target === "captain"
   const run = async (action: () => Promise<unknown>, done: string) => {
     setBusy(true)
     try {
@@ -188,6 +188,11 @@ export function MemberControls({ clanId, clanName, member, viewerRole, onChanged
           <button type="button" disabled={busy} aria-label={target === "co-leader" ? `Make ${member.name} a member` : `Make ${member.name} a manager`} title={target === "co-leader" ? "Remove manager" : "Make manager"} onClick={() => void run(() => clansService.setRole(clanId, member.id, target === "co-leader" ? "member" : "co-leader"), target === "co-leader" ? `${member.name} is a member again` : `${member.name} is a manager`)} className={iconButton}>
             <Crown className="size-4" aria-hidden="true" />
           </button>
+          {target !== "co-leader" && (
+            <button type="button" disabled={busy} aria-label={target === "captain" ? `Make ${member.name} a member` : `Make ${member.name} a captain`} title={target === "captain" ? "Remove captain" : "Make captain"} onClick={() => void run(() => clansService.setRole(clanId, member.id, target === "captain" ? "member" : "captain"), target === "captain" ? `${member.name} is a member again` : `${member.name} is a captain`)} className={iconButton}>
+              <Flag className="size-4" aria-hidden="true" />
+            </button>
+          )}
           <button type="button" disabled={busy} aria-label={`Hand the clan to ${member.name}`} title="Make leader" onClick={() => setHanding(true)} className={iconButton}>
             <Send className="size-4" aria-hidden="true" />
           </button>
@@ -203,16 +208,16 @@ export function MemberControls({ clanId, clanName, member, viewerRole, onChanged
   )
 }
 
-/** Edit clan: the leader picks which members are managers (they handle requests, invitations and members). */
+/** Edit clan: the leader gives each member a role: Manager (handles requests, invitations and members), Captain (a title, no powers) or plain Member. */
 export function ManagersSection({ clan, onChanged }: { clan: ClanDetail; onChanged: () => void }) {
   const [busy, setBusy] = useState("")
   const others = (clan.members ?? []).filter((member) => member.role !== "leader")
-  const toggle = async (member: ClanMember) => {
-    const makeManager = member.role !== "co-leader"
+  const set = async (member: ClanMember, role: "co-leader" | "captain" | "member") => {
+    if (member.role === role) return
     setBusy(member.id)
     try {
-      await clansService.setRole(clan.id, member.id, makeManager ? "co-leader" : "member")
-      toast.success(makeManager ? `${member.name} is a manager` : `${member.name} is a member again`)
+      await clansService.setRole(clan.id, member.id, role)
+      toast.success(role === "co-leader" ? `${member.name} is a manager` : role === "captain" ? `${member.name} is a captain` : `${member.name} is a member again`)
       onChanged()
     } catch (error) {
       toast.error("That did not work", { description: clanFailure(error, "Try again in a moment.") })
@@ -220,18 +225,24 @@ export function ManagersSection({ clan, onChanged }: { clan: ClanDetail; onChang
       setBusy("")
     }
   }
+  const choices = [["member", "Member"], ["captain", "Captain"], ["co-leader", "Manager"]] as const
   return (
     <div className="flex flex-col gap-2">
-      <Label>Managers</Label>
+      <Label>Roles</Label>
+      <p className="text-[12px] leading-snug text-[var(--text-dim)]"><b className="font-semibold text-[var(--text-2)]">Manager</b> handles requests, invitations and removes members. <b className="font-semibold text-[var(--text-2)]">Captain</b> is a title on the roster with no powers. Only you change roles.</p>
       {others.length === 0 ? (
         <p className="text-[13px] text-[var(--text-dim)]">No other members yet.</p>
       ) : (
         <ul className="flex flex-col rounded-lg border border-[var(--line)]">
           {others.map((member) => (
-            <li key={member.id} className="flex items-center gap-3 border-b border-[var(--line-soft)] px-3 py-2 last:border-b-0">
+            <li key={member.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-[var(--line-soft)] px-3 py-2 last:border-b-0">
               <PlayerAvatar avatar={member.avatar} name={member.name} className="size-7 rounded-lg text-[10px]" />
               <span className="min-w-0 flex-1 truncate text-[13px]">{member.name}</span>
-              <Button type="button" size="sm" variant={member.role === "co-leader" ? "default" : "outline"} disabled={busy === member.id} onClick={() => void toggle(member)}>{member.role === "co-leader" ? "Manager ✓" : "Make manager"}</Button>
+              <span role="radiogroup" aria-label={`Role of ${member.name}`} className="inline-flex rounded-lg border border-[var(--line)] p-0.5">
+                {choices.map(([value, label]) => (
+                  <button key={value} type="button" role="radio" aria-checked={member.role === value} disabled={busy === member.id} onClick={() => void set(member, value)} className="h-7 rounded-md px-2.5 text-[12px] text-[var(--text-dim)] transition-colors hover:text-[var(--text)] aria-checked:bg-[var(--raised)] aria-checked:font-semibold aria-checked:text-[var(--text)] disabled:opacity-50">{label}</button>
+                ))}
+              </span>
             </li>
           ))}
         </ul>

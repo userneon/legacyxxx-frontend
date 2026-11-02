@@ -54,7 +54,7 @@ export const clansService = {
     await del<void>(`/api/v1/clans/${clanId}/invite`, options)
   },
 
-  async setRole(clanId: string, userId: string, role: "co-leader" | "member", options?: CallOptions): Promise<void> {
+  async setRole(clanId: string, userId: string, role: "co-leader" | "captain" | "member", options?: CallOptions): Promise<void> {
     await put<void>(`/api/v1/clans/${clanId}/members/${userId}/role`, { role }, options)
   },
 
