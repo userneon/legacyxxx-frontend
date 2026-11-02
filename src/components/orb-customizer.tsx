@@ -67,9 +67,10 @@ export function OrbCustomizer({ avatar, name, owned, saved, busy, onSave, draft:
       )}
       <button type="button" onClick={() => setMore(!more)} className="self-start text-xs text-[var(--text-dim)] underline underline-offset-2 hover:text-[var(--text)]">{more ? "Fewer settings" : `All ${ORB_SLIDERS.length + 2} settings`}</button>
 
-      <div className="flex flex-wrap items-center gap-2 border-t border-[var(--line-soft)] pt-3">
+      <div className="sticky bottom-0 z-10 -mx-4 -mb-4 flex flex-wrap items-center gap-2 rounded-b-[10px] border-t border-[var(--line-soft)] bg-[var(--panel)] px-4 py-3">
         <button type="button" disabled={busy || !owned || !changed} onClick={() => onSave(draft)} className="lx-primary-button inline-flex h-9 items-center gap-1.5 rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50"><Check className="size-4" aria-hidden="true" />Save my orb</button>
         <button type="button" disabled={busy} onClick={() => setDraft(saved ?? {})} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text-2)] hover:border-[var(--line-strong)] disabled:opacity-50"><RotateCcw className="size-4" aria-hidden="true" />Undo changes</button>
+        {owned && changed && <span className="inline-flex items-center gap-1.5 text-xs text-[var(--text-2)]"><span aria-hidden="true" className="size-1.5 rounded-full bg-[var(--accent-solid)]" />Not saved yet</span>}
         {!owned && <span className="text-xs text-[var(--text-dim)]">Try everything now. Your settings are saved the moment you buy the orb in the <Link to="/shop/frames" className="text-[var(--text-2)] underline underline-offset-2">Shop</Link>.</span>}
       </div>
     </div>
