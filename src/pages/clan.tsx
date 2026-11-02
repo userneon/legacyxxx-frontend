@@ -53,7 +53,7 @@ function BannerArt({ src, alt = "", className, eager }: { src: string; alt?: str
 
 /**
  * The clan's banner, whole and unfaded above the header, at the picture's own shape. It used to sit in a fixed 5:1 strip, which on a phone
- * was a sliver (about 70px tall at 360px wide) and made any other shape tiny. A very tall picture is capped and sits over its own blurred copy.
+ * was a sliver (about 70px tall at 360px wide) and made any other shape tiny. A very tall picture is capped (520px) and sits over its own blurred copy.
  */
 function ClanBannerStrip({ banner, name }: { banner?: string | null; name: string }) {
   const src = clanArtSrc(banner)
@@ -61,7 +61,7 @@ function ClanBannerStrip({ banner, name }: { banner?: string | null; name: strin
   return (
     <div className="relative overflow-hidden border-b border-[var(--glass-line)] bg-[var(--raised)]">
       <img src={src} alt="" aria-hidden="true" loading="eager" decoding="async" className="absolute inset-0 size-full scale-125 object-cover opacity-60 blur-2xl" />
-      <img src={src} alt={`${name} banner`} loading="eager" decoding="async" className="relative mx-auto block h-auto max-h-[min(360px,50vh)] w-full object-contain" />
+      <img src={src} alt={`${name} banner`} loading="eager" decoding="async" className="relative mx-auto block h-auto max-h-[min(520px,70vh)] w-full object-contain" />
     </div>
   )
 }
