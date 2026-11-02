@@ -190,9 +190,11 @@ export function ShopPage() {
     // What you can still buy comes first, then what you own, then what is only earned.
     .sort((a, b) => group(a) - group(b) || (sort === "rarity" ? (b.rarity ?? 0) - (a.rarity ?? 0) || a.price - b.price : sort === "price-up" ? a.price - b.price : b.price - a.price))
 
-  const selected = all.find((item) => item.id === picked) ?? (tab === "featured" ? featured[0] : null) ?? shown[0] ?? featured[0] ?? null
+  // The picked item counts only on the tab it belongs to: moving to another tab shows that tab's own first item, not the last one you looked at.
+  const selected = inTab.find((item) => item.id === picked) ?? (tab === "featured" ? featured[0] : null) ?? shown[0] ?? featured[0] ?? null
   // The name colour and the name glow being tried together: the preview wears both, and each is bought on its own.
   const [combo, setCombo] = useState<{ name_color?: string; name_glow?: string }>({})
+  useEffect(() => { setCombo({}) }, [tab])
   const isPicked = (item: ShopItem) => selected?.id === item.id || (item.kind === "name_color" || item.kind === "name_glow" ? combo[item.kind] === item.id : false)
   const choose = (item: ShopItem) => {
     setPicked(item.id)
