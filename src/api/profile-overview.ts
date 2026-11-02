@@ -44,6 +44,8 @@ export interface ProfileOverview {
     title?: string | null
     /** The player's number in the Genesis pack, if they bought it. */
     founder?: number | null
+    /** The profile background worn (an item id) and the knobs its owner saved. */
+    background?: { id: string; look: import("@/lib/backgrounds").BgLook | null } | null
     /** The settings of the Crystal Orb when that is the frame worn. */
     frameLook?: import("@/lib/frame-look").FrameLook | null
     /** The name colour and glow the player wears. */

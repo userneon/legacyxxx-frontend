@@ -733,11 +733,14 @@ export function ProfilePage({ userId }: { userId?: string }) {
   const sceneStill = data?.user.steamBackground ?? null
   const sceneWebm = data?.user.steamMedia?.backgroundVideo?.webm ?? null
   const sceneMp4 = data?.user.steamMedia?.backgroundVideo?.mp4 ?? null
+  const sceneBackground = data?.user.background ?? null
+  const sceneBackgroundKey = sceneBackground ? JSON.stringify(sceneBackground) : ""
   useEffect(() => {
-    if (!sceneStill && !sceneWebm && !sceneMp4) { setProfileScene(null); return }
-    setProfileScene({ still: sceneStill, video: sceneWebm || sceneMp4 ? { webm: sceneWebm, mp4: sceneMp4 } : null })
+    if (!sceneStill && !sceneWebm && !sceneMp4 && !sceneBackground) { setProfileScene(null); return }
+    setProfileScene({ still: sceneStill, video: sceneWebm || sceneMp4 ? { webm: sceneWebm, mp4: sceneMp4 } : null, background: sceneBackground })
     return () => setProfileScene(null)
-  }, [sceneStill, sceneWebm, sceneMp4])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sceneStill, sceneWebm, sceneMp4, sceneBackgroundKey])
   const [openMatch, setOpenMatch] = useState<ProfileMatchRow | null>(null)
   const [view, setView] = useState<"stats" | "cards" | "configs">("stats")
   const [openPenalty, setOpenPenalty] = useState<PenaltyEntry | null>(null)

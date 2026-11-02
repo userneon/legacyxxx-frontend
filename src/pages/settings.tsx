@@ -13,6 +13,9 @@ import { FlashEffect } from "@/components/flash-effect"
 import { SmokePuff } from "@/components/smoke-puff"
 import { FramedAvatar } from "@/components/framed-avatar"
 import { OrbCustomizer } from "@/components/orb-customizer"
+import { BgCustomizer } from "@/components/bg-customizer"
+import { BgThumb } from "@/components/bg-thumb"
+import { BackgroundScene, bgById, type BgLook } from "@/lib/backgrounds"
 import { discordService, type DiscordLinkState } from "@/api/discord"
 import { settingsService, type NotificationSettings } from "@/api/settings"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -173,6 +176,7 @@ function Notifications() {
 /** What can be worn, in two groups: what shows on the site, and what shows in game. The chips wrap, so every kind stays in reach. */
 const KINDS: Array<{ value: CosmeticKind; label: string; noun: string; group: "profile" | "game" }> = [
   { value: "frame", label: "Frame", noun: "frame", group: "profile" },
+  { value: "background", label: "Background", noun: "background", group: "profile" },
   { value: "name_color", label: "Name colour", noun: "colour", group: "profile" },
   { value: "name_glow", label: "Name glow", noun: "glow", group: "profile" },
   { value: "banner", label: "Banner", noun: "banner", group: "profile" },
@@ -188,10 +192,11 @@ function Appearance() {
   const [busy, setBusy] = useState(false)
   const [kind, setKind] = useState<CosmeticKind>("name_color")
   const [picked, setPicked] = useState<Partial<Record<CosmeticKind, string>>>({})
+  const [bgDrafts, setBgDrafts] = useState<Record<string, BgLook>>({})
   const saved = useSavedFlash()
 
-  const lists: Record<CosmeticKind, FrameItem[]> = { frame: data?.frames ?? [], name_color: data?.nameColors ?? [], name_glow: data?.nameGlows ?? [], banner: data?.banners ?? [], title: data?.titles ?? [], smoke_color: data?.smokeColors ?? [], grenade_trail: data?.grenadeTrails ?? [], grenade_light: data?.grenadeLights ?? [], flash_effect: data?.flashEffects ?? [] }
-  const worn: Record<CosmeticKind, string | null> = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, banner: data?.equippedBanner ?? null, title: data?.equippedTitle ?? null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null, grenade_light: data?.equippedGrenadeLight ?? null, flash_effect: data?.equippedFlashEffect ?? null }
+  const lists: Record<CosmeticKind, FrameItem[]> = { frame: data?.frames ?? [], background: data?.backgrounds ?? [], name_color: data?.nameColors ?? [], name_glow: data?.nameGlows ?? [], banner: data?.banners ?? [], title: data?.titles ?? [], smoke_color: data?.smokeColors ?? [], grenade_trail: data?.grenadeTrails ?? [], grenade_light: data?.grenadeLights ?? [], flash_effect: data?.flashEffects ?? [] }
+  const worn: Record<CosmeticKind, string | null> = { frame: data?.equippedFrame ?? null, background: data?.equippedBackground ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, banner: data?.equippedBanner ?? null, title: data?.equippedTitle ?? null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null, grenade_light: data?.equippedGrenadeLight ?? null, flash_effect: data?.equippedFlashEffect ?? null }
   const noun = KINDS.find((entry) => entry.value === kind)?.noun ?? "item"
   const frames = lists[kind].filter((item) => item.owned)
   const selectedId = picked[kind] ?? worn[kind] ?? frames[0]?.id ?? null
@@ -247,6 +252,7 @@ function Appearance() {
           <div className="flex flex-col items-center gap-3 self-start rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] p-4 md:sticky md:top-6">
             <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} look={data.frameLook} size={108} />
             <span {...nameProps(previewLook, "max-w-full truncate text-[15px] font-bold text-[var(--text)]")}>{sampleName}</span>
+            {kind === "background" && selected && <div className="relative h-[110px] w-full overflow-hidden rounded-lg bg-[var(--card-surface)] [&>div]:size-full"><BackgroundScene key={selected.id} id={selected.id} look={bgDrafts[selected.id] ?? data.backgroundLooks?.[selected.id] ?? {}} /></div>}
             {kind === "smoke_color" && selected && <SmokePuff color={selected.color} color2={selected.color2} className="w-[150px]" />}
             {kind === "grenade_trail" && selected && <GrenadeTrail key={selected.id} color={selected.color} shape={selected.fx} className="w-[150px]" />}
             {kind === "flash_effect" && selected && <FlashEffect key={selected.id} color={selected.color} shape={selected.fx} className="w-[150px]" />}
@@ -281,6 +287,17 @@ function Appearance() {
               ))}
             </div>
             {(kind === "grenade_trail" || kind === "grenade_light") && <NadeSlots kind={kind} items={frames} defaultId={worn[kind]} slots={data.nadeSlots} busy={busy} onChange={(nade, value) => void wearOn(nade, value)} />}
+            {kind === "background" && selected && bgById(selected.id) && (
+              <BgCustomizer
+                def={bgById(selected.id)!}
+                draft={bgDrafts[selected.id] ?? data.backgroundLooks?.[selected.id] ?? {}}
+                onDraft={(next) => setBgDrafts((current) => ({ ...current, [selected.id]: next }))}
+                saved={data.backgroundLooks?.[selected.id] ?? null}
+                owned
+                busy={busy}
+                onSave={(look) => void run(async () => { await cosmeticsService.saveBackgroundLook(selected.id, look); setBgDrafts((current) => { const { [selected.id]: _saved, ...rest } = current; return rest }) }, "Could not save your background")}
+              />
+            )}
             {kind === "frame" && <OrbCustomizer avatar={user?.avatar} name={user?.username} owned={lists.frame.some((item) => item.id === "crystal-orb" && item.owned)} saved={data.frameLook ?? null} busy={busy} onSave={(look) => void run(() => cosmeticsService.saveFrameLook(look), "Could not save your orb")} />}
             {frames.length === 0 ? (
               <p className="py-6 text-[13px] text-[var(--text-dim)]">You do not own a {noun} yet.</p>
@@ -297,7 +314,9 @@ function Appearance() {
                         selectedId === item.id ? "border-[var(--text-2)] bg-[var(--raised)]" : "border-[var(--line-soft)] hover:border-[var(--line-strong)]",
                       )}
                     >
-                      {kind === "frame" ? (
+                      {kind === "background" ? (
+                        <BgThumb id={item.id} />
+                      ) : kind === "frame" ? (
                         <FramedAvatar avatar={user?.avatar} name={user?.username} frame={item.id} look={data.frameLook} size={76} />
                       ) : kind === "banner" ? (
                         <span className="relative flex h-[76px] w-full items-center justify-center overflow-hidden rounded-lg"><span aria-hidden="true" className={cn("absolute inset-0", bannerClass(item.fx))} /></span>

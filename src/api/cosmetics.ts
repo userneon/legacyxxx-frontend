@@ -46,7 +46,7 @@ export interface FrameItem {
   owners?: number | null
 }
 
-export type CosmeticKind = "frame" | "name_color" | "name_glow" | "banner" | "title" | "smoke_color" | "grenade_trail" | "grenade_light" | "flash_effect"
+export type CosmeticKind = "frame" | "background" | "name_color" | "name_glow" | "banner" | "title" | "smoke_color" | "grenade_trail" | "grenade_light" | "flash_effect"
 
 /** How a player's name is painted: plain colours from the API, never a style string. */
 export interface NameStyle {
@@ -78,6 +78,10 @@ export interface Cosmetics {
   equippedFlashEffect?: string | null
   nadeSlots?: NadeSlots
   frames: FrameItem[]
+  /** The React Bits backgrounds for profiles, and the knobs this player saved for each (keyed by item id). */
+  backgrounds?: FrameItem[]
+  equippedBackground?: string | null
+  backgroundLooks?: Record<string, import("@/lib/backgrounds").BgLook>
   nameColors?: FrameItem[]
   nameGlows?: FrameItem[]
   /** Profile banners and titles (the Genesis pack's are earned, never sold). */
@@ -114,6 +118,10 @@ export const cosmeticsService = {
   /** Save the settings of the Crystal Orb (you must own it). */
   async saveFrameLook(look: import("@/lib/frame-look").FrameLook, options?: CallOptions): Promise<{ look: import("@/lib/frame-look").FrameLook | null }> {
     return put<{ look: import("@/lib/frame-look").FrameLook | null }>("/api/v1/cosmetics/frame-look", look, options)
+  },
+  /** Save the knobs of a background you own. */
+  async saveBackgroundLook(item: string, look: import("@/lib/backgrounds").BgLook, options?: CallOptions): Promise<{ item: string; look: import("@/lib/backgrounds").BgLook | null }> {
+    return put<{ item: string; look: import("@/lib/backgrounds").BgLook | null }>("/api/v1/cosmetics/background-look", { item, look }, options)
   },
   async equip(kind: CosmeticKind, item: string | null, options?: CallOptions): Promise<{ kind: CosmeticKind; item: string | null }> {
     return put<{ kind: CosmeticKind; item: string | null }>("/api/v1/cosmetics/equip", { kind, item }, options)

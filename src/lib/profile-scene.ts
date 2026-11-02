@@ -4,13 +4,16 @@ import { useSyncExternalStore } from "react"
 export interface ProfileSceneMedia {
   still: string | null
   video: { webm?: string | null; mp4?: string | null } | null
+  /** A bought React Bits background (item id and saved knobs): it is drawn instead of the Steam one. */
+  background?: { id: string; look: unknown } | null
 }
 
 let current: ProfileSceneMedia | null = null
 const listeners = new Set<() => void>()
 
 export function setProfileScene(next: ProfileSceneMedia | null) {
-  const same = (current?.still ?? null) === (next?.still ?? null) && (current?.video?.mp4 ?? null) === (next?.video?.mp4 ?? null) && (current?.video?.webm ?? null) === (next?.video?.webm ?? null)
+  const sameBackground = JSON.stringify(current?.background ?? null) === JSON.stringify(next?.background ?? null)
+  const same = sameBackground && (current?.still ?? null) === (next?.still ?? null) && (current?.video?.mp4 ?? null) === (next?.video?.mp4 ?? null) && (current?.video?.webm ?? null) === (next?.video?.webm ?? null)
   if (same) return
   current = next
   listeners.forEach((notify) => notify())

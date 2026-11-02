@@ -12,6 +12,9 @@ import { useAuth } from "@/hooks/use-auth"
 import { frameAccent, nameProps, timeLeft } from "@/lib/cosmetics"
 import { ORB_ID, type FrameLook } from "@/lib/frame-look"
 import { OrbCustomizer } from "@/components/orb-customizer"
+import { BgCustomizer } from "@/components/bg-customizer"
+import { BgThumb } from "@/components/bg-thumb"
+import { BackgroundScene, bgById, type BgLook } from "@/lib/backgrounds"
 import { SmokePuff } from "@/components/smoke-puff"
 import { GrenadeLight, GrenadeTrail } from "@/components/grenade-trail"
 import { FlashEffect } from "@/components/flash-effect"
@@ -36,10 +39,11 @@ const SORTS = [
 
 /** The kinds the Shop sells (banners and titles are earned: they live in Profile → Appearance). */
 type ShopKind = Exclude<CosmeticKind, "banner" | "title">
-type ShopTab = "featured" | "frame" | "name" | "smoke_color" | "clan" | "cards" | "goods"
+type ShopTab = "featured" | "frame" | "background" | "name" | "smoke_color" | "clan" | "cards" | "goods"
 const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "featured", label: "Featured" },
   { value: "frame", label: "Frames" },
+  { value: "background", label: "Backgrounds" },
   { value: "name", label: "Name" },
   { value: "smoke_color", label: "Grenades" },
   { value: "clan", label: "Clan" },
@@ -51,6 +55,7 @@ type ShopItem = FrameItem & { kind: ShopKind }
 
 /** What the item looks like: a frame around your picture, or your name painted with it. */
 function ItemArt({ item, avatar, username, size, orb }: { item: ShopItem; avatar?: string; username: string; size: number; orb?: FrameLook | null }) {
+  if (item.kind === "background") return <BgThumb id={item.id} className="w-[120px]" />
   if (item.kind === "frame") return <FramedAvatar avatar={avatar} name={username} frame={item.id} look={orb} live size={size} />
   if (item.kind === "smoke_color") return <SmokePuff color={item.color} color2={item.color2} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "grenade_trail") return <GrenadeTrail color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
@@ -105,7 +110,7 @@ export function ShopPage() {
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
-  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", name: "name", smoke_color: "smoke", clan: "clan", cards: "cards", goods: "goods" }, "featured")
+  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", background: "backgrounds", name: "name", smoke_color: "smoke", clan: "clan", cards: "cards", goods: "goods" }, "featured")
   const [sort, setSort] = useState<"price-up" | "price-down" | "rarity">("price-up")
   const [show, setShow] = useState<"all" | "available" | "owned">("all")
   const [busy, setBusy] = useState(false)
@@ -125,6 +130,8 @@ export function ShopPage() {
   const [justBought, setJustBought] = useState<string | null>(null)
   // The Crystal Orb being tried in the preview (null: the one you saved). It is what the preview draws, live, while you change it.
   const [orbDraft, setOrbDraft] = useState<FrameLook | null>(null)
+  // The knobs being tried on the picked background, per background (what the preview draws, live, while you change them).
+  const [bgDrafts, setBgDrafts] = useState<Record<string, BgLook>>({})
   // For a few seconds after a purchase its Buy button is an Undo (the API gives the window in seconds and takes the LX back whole).
   const [undo, setUndo] = useState<{ id: string; until: number } | null>(null)
   const [undoLeft, setUndoLeft] = useState(0)
@@ -147,6 +154,7 @@ export function ShopPage() {
 
   const all: ShopItem[] = useMemo(() => [
     ...(data?.frames ?? []).map((item) => ({ ...item, kind: "frame" as const })),
+    ...(data?.backgrounds ?? []).map((item) => ({ ...item, kind: "background" as const })),
     ...(data?.nameColors ?? []).map((item) => ({ ...item, kind: "name_color" as const })),
     ...(data?.nameGlows ?? []).map((item) => ({ ...item, kind: "name_glow" as const })),
     ...(data?.smokeColors ?? []).map((item) => ({ ...item, kind: "smoke_color" as const })),
@@ -154,7 +162,7 @@ export function ShopPage() {
     ...(data?.grenadeLights ?? []).map((item) => ({ ...item, kind: "grenade_light" as const })),
     ...(data?.flashEffects ?? []).map((item) => ({ ...item, kind: "flash_effect" as const })),
   ].filter((item) => !item.retired), [data])
-  const worn = { frame: data?.equippedFrame ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null, grenade_light: data?.equippedGrenadeLight ?? null, flash_effect: data?.equippedFlashEffect ?? null }
+  const worn = { frame: data?.equippedFrame ?? null, background: data?.equippedBackground ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null, grenade_light: data?.equippedGrenadeLight ?? null, flash_effect: data?.equippedFlashEffect ?? null }
   const balance = wallet?.balance ?? null
   const username = user?.username ?? "Player"
 
@@ -382,7 +390,9 @@ export function ShopPage() {
     const effect = compact ? "w-[170px]" : "w-[220px]"
     return (
       <>
-          {selected?.kind === "grenade_trail" ? (
+          {selected?.kind === "background" ? (
+            <div className="relative h-[150px] w-full overflow-hidden rounded-lg bg-[var(--card-surface)] [&>div]:size-full"><BackgroundScene key={selected.id} id={selected.id} look={bgLookNow} /></div>
+          ) : selected?.kind === "grenade_trail" ? (
             <div className="relative flex items-center justify-center py-4"><GrenadeTrail key={`${selected.id}${tried(selected).fx}`} color={tried(selected).color} shape={tried(selected).fx} className={effect} /></div>
           ) : selected?.kind === "flash_effect" ? (
             <div className="relative flex items-center justify-center py-4"><FlashEffect key={`${selected.id}${tried(selected).fx}`} color={tried(selected).color} shape={tried(selected).fx} className={effect} /></div>
@@ -422,11 +432,33 @@ export function ShopPage() {
     />
   ) : null
 
+  /** Every knob of the picked background, under its preview, before and after buying (saving needs it). */
+  const pickedBg = selected?.kind === "background" ? bgById(selected.id) : null
+  const bgLookNow = pickedBg ? bgDrafts[pickedBg.id] ?? data?.backgroundLooks?.[pickedBg.id] ?? {} : {}
+  const bgPanel = pickedBg && selected ? (
+    <BgCustomizer
+      def={pickedBg}
+      draft={bgLookNow}
+      onDraft={(next) => setBgDrafts((current) => ({ ...current, [pickedBg.id]: next }))}
+      saved={data?.backgroundLooks?.[pickedBg.id] ?? null}
+      owned={Boolean(selected.owned)}
+      busy={busy}
+      onSave={(look) => {
+        setBusy(true)
+        cosmeticsService.saveBackgroundLook(pickedBg.id, look)
+          .then(() => { setBgDrafts((current) => { const { [pickedBg.id]: _saved, ...rest } = current; return rest }); return refetch() })
+          .catch((caught) => toast.error("Could not save your background", { description: caught instanceof Error ? caught.message : "Try again in a moment." }))
+          .finally(() => setBusy(false))
+      }}
+    />
+  ) : null
+
   const railBody = (
     <div className="lx-add-box relative flex min-h-0 flex-col overflow-hidden rounded-[14px] border lg:max-h-[calc(100dvh-11rem)]">
         <div className="scrollbar-hidden flex min-h-0 flex-col gap-3 overflow-y-auto p-3.5">
           {previewStage()}
           {orbPanel}
+          {bgPanel}
         </div>
         {selected && (
           <div className="shrink-0">
@@ -456,7 +488,7 @@ export function ShopPage() {
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
         <PageTabs<ShopTab> ariaLabel="Shop sections" value={tab} onChange={setTab} options={TABS} />
-        {(tab === "featured" || tab === "frame" || tab === "name" || tab === "smoke_color") && (
+        {(tab === "featured" || tab === "frame" || tab === "background" || tab === "name" || tab === "smoke_color") && (
           <PageBarEnd className="max-md:hidden">
             <label className={cn(pageSearchClass, "max-md:hidden")}>
               <Search className="size-4 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />
@@ -484,6 +516,7 @@ export function ShopPage() {
             {/* On Featured the Genesis card comes first: the bar waits until an item below it is picked. */}
             {(tab !== "featured" || picked !== null) && spotlight}
             {(tab !== "featured" || picked !== null) && orbPanel && <div className="hidden lg:block">{orbPanel}</div>}
+            {(tab !== "featured" || picked !== null) && bgPanel && <div className="hidden lg:block">{bgPanel}</div>}
             <div className="flex min-w-0 flex-col gap-5">
               {tab === "featured" && featured.length > 0 && (
                 <section aria-label="Featured">

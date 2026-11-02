@@ -46,7 +46,7 @@ const forbiddenHue = (hue) => ((hue >= 180 && hue <= 340) && !(hue >= 248 && hue
 const EXEMPT = /palette-exempt|rarity/i
 
 /** A file whose whole job is a game palette (e.g. lib/cs2-rarity.ts). */
-const EXEMPT_FILE = /rarity/i
+const EXEMPT_FILE = /rarity|reactbits[\\/]bg[\\/]|backgrounds\.generated/i // the React Bits backgrounds carry their own palettes (third-party defaults)
 
 const problems = []
 for (const file of files(ROOT)) {

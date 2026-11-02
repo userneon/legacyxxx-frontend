@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 
+import { BackgroundScene } from "@/lib/backgrounds"
 import type { ProfileSceneMedia } from "@/lib/profile-scene"
 
 const FADE_MS = 600
@@ -30,7 +31,9 @@ export function ProfileScene({ scene }: { scene: ProfileSceneMedia | null }) {
   const video = shown.video
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-[1] overflow-hidden bg-[var(--bg)] transition-opacity ease-out" style={{ opacity: visible ? 1 : 0, transitionDuration: `${FADE_MS}ms` }}>
-      {video && !videoFailed ? (
+      {shown.background ? (
+        <div className="absolute inset-0"><BackgroundScene id={shown.background.id} look={shown.background.look} /></div>
+      ) : video && !videoFailed ? (
         <video className="absolute inset-0 size-full object-cover opacity-50" autoPlay muted loop playsInline poster={shown.still ?? undefined} onError={() => setVideoFailed(true)}>
           {video.webm && <source src={video.webm} type="video/webm" />}
           {video.mp4 && <source src={video.mp4} type="video/mp4" />}
