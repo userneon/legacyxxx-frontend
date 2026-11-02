@@ -738,6 +738,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
     try { window.localStorage.removeItem("legacyx_access_token") } catch { /* storage blocked */ }
     return undefined
   }
+  if (path === "/api/v1/creators/me/links" && method === "PUT") return { links: (body as { links: Record<string, string> }).links }
   if (path === "/api/v1/creators/me/about" && method === "PUT") { mockCreatorAbout = String((body as { bio: string }).bio); return { about: mockCreatorAbout } }
   if (path === "/api/v1/creators/applications/me") {
     // Design preview only: set localStorage legacyx_mock_creator=1 to see a creator's "Edit my about".

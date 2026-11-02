@@ -25,7 +25,7 @@ export function CreatorApply({ onAboutSaved }: { onAboutSaved?: () => void }) {
   }
   const mine = status.data
   if (!mine) return null
-  if (mine.isCreator) return <EditAbout about={mine.about ?? ""} onSaved={() => { status.refetch(); onAboutSaved?.() }} />
+  if (mine.isCreator) return <EditAbout about={mine.about ?? ""} links={mine.links ?? {}} onSaved={() => { status.refetch(); onAboutSaved?.() }} />
   const last = mine.application
   if (last?.status === "pending") {
     return <span className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] text-[var(--text-muted)]"><Clock className="size-4" />Application sent {dateText(last.createdAt)}</span>
@@ -42,16 +42,28 @@ export function CreatorApply({ onAboutSaved }: { onAboutSaved?: () => void }) {
   )
 }
 
-/** A creator's own About line: a button on the Creators page and a small box to change it. */
-function EditAbout({ about, onSaved }: { about: string; onSaved: () => void }) {
+/** A creator's own page: the About line and the channel links, in one small box (the tier stays with staff). */
+function EditAbout({ about, links, onSaved }: { about: string; links: CreatorLinks; onSaved: () => void }) {
   const [open, setOpen] = useState(false)
   const [text, setText] = useState(about)
+  const [fields, setFields] = useState<CreatorLinks>(links)
   const [busy, setBusy] = useState(false)
+  const cleaned = Object.fromEntries(Object.entries(fields).filter(([, url]) => url?.trim()).map(([key, url]) => [key, withHttps(url!)])) as CreatorLinks
+  const same = (a: CreatorLinks, b: CreatorLinks) => JSON.stringify(CREATOR_PLATFORMS.map((platform) => a[platform.id] ?? "")) === JSON.stringify(CREATOR_PLATFORMS.map((platform) => b[platform.id] ?? ""))
+  const aboutChanged = text.trim() !== about
+  const linksChanged = !same(cleaned, links)
+  const noLink = Object.keys(cleaned).length === 0
+  const whyNot = !text.trim() ? "Write a line about your content first." : noLink ? "Keep at least one channel link." : !aboutChanged && !linksChanged ? "Change something to save it." : ""
   const save = async () => {
+    for (const [platform, url] of Object.entries(cleaned) as Array<[CreatorPlatform, string]>) {
+      const problem = creatorLinkProblem(platform, url)
+      if (problem) { toast.error(problem); return }
+    }
     setBusy(true)
     try {
-      await creatorsService.saveAbout(text.trim())
-      toast.success("Your About line is saved")
+      if (aboutChanged) await creatorsService.saveAbout(text.trim())
+      if (linksChanged) await creatorsService.saveLinks(cleaned)
+      toast.success("Your page is saved")
       setOpen(false)
       onSaved()
     } catch (caught) {
@@ -62,20 +74,28 @@ function EditAbout({ about, onSaved }: { about: string; onSaved: () => void }) {
   }
   return (
     <>
-      <button type="button" onClick={() => { setText(about); setOpen(true) }} className={secondary}><Pencil className="size-4" aria-hidden="true" />Edit my about</button>
+      <button type="button" onClick={() => { setText(about); setFields(links); setOpen(true) }} className={secondary}><Pencil className="size-4" aria-hidden="true" />Edit my page</button>
       <Dialog open={open} onOpenChange={(next) => { if (!busy) setOpen(next) }}>
-        <DialogContent className="bg-[var(--panel)] sm:max-w-md">
+        <DialogContent className="max-h-[90dvh] overflow-y-auto bg-[var(--panel)] sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle>Your About line</DialogTitle>
-            <DialogDescription>The line under your name on the Creators page and your profile.</DialogDescription>
+            <DialogTitle>Your creator page</DialogTitle>
+            <DialogDescription>The line under your name and your channels, on the Creators page and your profile. Your tier stays with staff.</DialogDescription>
           </DialogHeader>
           <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">About your content ({200 - text.length} left)
-            <textarea className={`${field} h-24 resize-none py-2`} maxLength={200} value={text} onChange={(event) => setText(event.target.value)} placeholder="CS2 streams every evening, Mongolian commentary" />
+            <textarea className={`${field} h-20 resize-none py-2`} maxLength={200} value={text} onChange={(event) => setText(event.target.value)} placeholder="CS2 streams every evening, Mongolian commentary" />
           </label>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {CREATOR_PLATFORMS.map((platform) => (
+              <label key={platform.id} className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">{platform.label}
+                <input className={field} value={fields[platform.id] ?? ""} onChange={(event) => setFields({ ...fields, [platform.id]: event.target.value })} placeholder={platform.example} inputMode="url" />
+              </label>
+            ))}
+          </div>
+          <p className="text-xs text-[var(--text-dim)]">Only links on each platform's own site are kept (https). Leave a box empty to remove that channel.</p>
           <div className="flex items-center justify-end gap-2">
-            {!busy && (!text.trim() || text.trim() === about) && <span role="status" className="mr-auto text-xs text-[var(--text-dim)]">{!text.trim() ? "Write a line about your content first." : "Change the line to save it."}</span>}
+            {!busy && whyNot && <span role="status" className="mr-auto text-xs text-[var(--text-dim)]">{whyNot}</span>}
             <button type="button" onClick={() => setOpen(false)} disabled={busy} className={secondary}>Cancel</button>
-            <button type="button" disabled={busy || !text.trim() || text.trim() === about} onClick={() => void save()} className="lx-primary-button inline-flex h-9 items-center gap-1.5 rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50"><Check className="size-4" aria-hidden="true" />Save</button>
+            <button type="button" disabled={busy || Boolean(whyNot)} onClick={() => void save()} className="lx-primary-button inline-flex h-9 items-center gap-1.5 rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50"><Check className="size-4" aria-hidden="true" />{busy ? "Saving…" : "Save"}</button>
           </div>
         </DialogContent>
       </Dialog>

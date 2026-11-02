@@ -79,6 +79,8 @@ export interface MyCreatorApplication {
   isCreator: boolean
   /** A creator's own line about themselves, to edit; null for everyone else. */
   about?: string | null
+  /** A creator's own channel links, to edit; null for everyone else. */
+  links?: CreatorLinks | null
   application: { status: "pending" | "approved" | "declined"; note: string; createdAt: string; decidedAt: string | null } | null
   canApplyAgainAt: string | null
 }
@@ -114,6 +116,8 @@ export const creatorsService = {
   apply: (input: CreatorApplicationInput, options?: CallOptions) => post<{ id: string; status: "pending" }>("/api/v1/creators/applications", input, options),
   /** A creator changes their own About line. */
   saveAbout: (bio: string, options?: CallOptions) => put<{ about: string }>("/api/v1/creators/me/about", { bio }, options),
+  /** A creator changes their own channel links (at least one). */
+  saveLinks: (links: CreatorLinks, options?: CallOptions) => put<{ links: CreatorLinks }>("/api/v1/creators/me/links", { links }, options),
   myReferral: (options?: CallOptions) => get<MyReferral>("/api/v1/creators/me/referral", undefined, options),
   referralStatus: (options?: CallOptions) => get<ReferralStatus>("/api/v1/referral/status", undefined, options),
   redeemReferral: (code: string, options?: CallOptions) => post<{ redeemed: true; reward: number }>("/api/v1/referral/redeem", { code }, options),
