@@ -35,12 +35,15 @@ const KINDS: Array<{ kind: ClanLookKind; label: string; hint: string }> = [
   { kind: "page", label: "Page background", hint: "" },
 ]
 
-function Preview({ item, tag, big }: { item: ClanLookItem; tag: string; big?: boolean }) {
+function Preview({ item, tag, big, also }: { item: ClanLookItem; tag: string; big?: boolean; also?: ClanLookItem | null }) {
+  // A tag colour and a tag glow are worn together, so the stage shows the picked one with the other kind's pick (or what the clan wears).
+  const color = item.kind === "tag_color" ? item : also?.kind === "tag_color" ? also : null
+  const glow = item.kind === "tag_glow" ? item : also?.kind === "tag_glow" ? also : null
   const look = {
-    tagColor: item.kind === "tag_color" ? item.color ?? null : null,
-    tagColorFx: item.kind === "tag_color" ? item.fx ?? null : null,
-    tagGlow: item.kind === "tag_glow" ? item.glow ?? null : null,
-    tagGlowFx: item.kind === "tag_glow" ? item.fx ?? null : null,
+    tagColor: color?.color ?? null,
+    tagColorFx: color?.fx ?? null,
+    tagGlow: glow?.glow ?? null,
+    tagGlowFx: glow?.fx ?? null,
   }
   const colors = item.from && item.to ? { from: item.from, to: item.to } : null
   const isPage = item.kind === "page" && colors !== null
@@ -75,6 +78,8 @@ export function ClanLooksShop({ clanId, canWear = true, tag, balance, onChanged,
   const { data, loading, error, refetch } = useApiQuery<ClanLooks>((signal) => (wear && clanId ? clansService.getLooks(clanId, { signal }) : clansService.getMyLooks({ signal })), { queryKey: `clan-looks:${wear ? clanId : "mine"}` })
   const [busy, setBusy] = useState<string | null>(null)
   const [pick, setPick] = useState<string | null>(null)
+  // The last tag colour and tag glow looked at, so the stage can show them together.
+  const [mix, setMix] = useState<{ tag_color?: string; tag_glow?: string }>({})
   // Colours being tried on a custom look before they are saved.
   const [draft, setDraft] = useState<Record<string, { a: string; b: string | null }>>({})
   if (loading) return <Skeleton className="h-64 rounded-xl" />
@@ -113,6 +118,19 @@ export function ClanLooksShop({ clanId, canWear = true, tag, balance, onChanged,
   const cost = selected?.price ?? 0
   const short = Boolean(selected && !selected.owned && balance != null && balance < cost)
 
+  /** The other half of the tag for the stage: the one looked at last, else the one the clan wears. */
+  const partnerOf = (item: ClanLookItem) => {
+    if (item.kind !== "tag_color" && item.kind !== "tag_glow") return null
+    const other = item.kind === "tag_color" ? "tag_glow" : "tag_color"
+    const id = mix[other] ?? data.equipped[other]
+    const found = id ? data.items.find((entry) => entry.id === id && entry.kind === other) : null
+    return found ? shownOf(found) : null
+  }
+  const choose = (item: ClanLookItem) => {
+    setPick(item.id)
+    if (item.kind === "tag_color" || item.kind === "tag_glow") setMix((current) => ({ ...current, [item.kind]: item.id }))
+  }
+
   const stage = selected && (() => {
     const parts = coloursOf(selected)
     const worn = wearing(selected)
@@ -120,7 +138,7 @@ export function ClanLooksShop({ clanId, canWear = true, tag, balance, onChanged,
       <aside className="lx-add-box relative flex flex-col overflow-hidden rounded-[14px] border lg:sticky lg:top-6 lg:self-start">
         <div className="relative p-3.5">
           <span aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 aspect-square w-[120%] -translate-x-1/2 -translate-y-1/2 opacity-20" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} />
-          <div className="relative"><Preview item={shownOf(selected)} tag={tag} big /></div>
+          <div className="relative"><Preview item={shownOf(selected)} also={partnerOf(selected)} tag={tag} big /></div>
         </div>
         <div className="flex flex-col gap-3 border-t border-[var(--line-soft)] px-4 py-3.5">
           <div className="flex items-baseline justify-between gap-2">
@@ -164,7 +182,7 @@ export function ClanLooksShop({ clanId, canWear = true, tag, balance, onChanged,
             <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-4">
               {items.map((item, index) => (
                 <li key={item.id}>
-                  <button type="button" aria-pressed={selected?.id === item.id} data-worn={wearing(item)} aria-label={item.name} title={item.name} onClick={() => setPick(item.id)} className="lx-shop-tile flex w-full flex-col gap-2 rounded-xl p-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60">
+                  <button type="button" aria-pressed={selected?.id === item.id} data-worn={wearing(item)} aria-label={item.name} title={item.name} onClick={() => choose(item)} className="lx-shop-tile flex w-full flex-col gap-2 rounded-xl p-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60">
                     <div className="relative">
                       <Preview item={tileOf(item, index)} tag={tag} />
                     </div>
