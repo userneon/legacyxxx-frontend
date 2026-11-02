@@ -10,7 +10,7 @@ import { BackgroundScene, bgById, cleanBgLook } from "@/lib/backgrounds"
  */
 const W = 320
 const H = 180
-const SETTLE_MS = 2600
+const SETTLE_MS = 1800
 
 const done = new Map<string, string>()
 const waiting = new Map<string, Promise<string | null>>()
@@ -18,6 +18,24 @@ let queue: Promise<unknown> = Promise.resolve()
 
 export const bgKey = (id: string, look?: unknown) => id + JSON.stringify(look ?? {})
 export const bgSnapshotNow = (id: string, look?: unknown) => done.get(bgKey(id, look)) ?? null
+
+/** True when a picture has nothing drawn (all black or clear): such a copy is thrown away rather than kept as the tile's picture. */
+function isBlank(canvas: HTMLCanvasElement): boolean {
+  try {
+    const probe = document.createElement("canvas")
+    probe.width = 16
+    probe.height = 9
+    const context = probe.getContext("2d", { willReadFrequently: true })
+    if (!context) return false
+    context.drawImage(canvas, 0, 0, 16, 9)
+    const data = context.getImageData(0, 0, 16, 9).data
+    let lit = 0
+    for (let i = 0; i < data.length; i += 4) lit += data[i] + data[i + 1] + data[i + 2]
+    return lit < 16 * 9 * 3 * 3
+  } catch {
+    return false
+  }
+}
 
 function render(id: string, look?: unknown): Promise<string | null> {
   return new Promise((resolve) => {
@@ -30,7 +48,8 @@ function render(id: string, look?: unknown): Promise<string | null> {
     } as typeof original
     const host = document.createElement("div")
     host.setAttribute("aria-hidden", "true")
-    host.style.cssText = `position:fixed;left:-9999px;top:0;width:${W}px;height:${H}px;pointer-events:none`
+    // On screen but invisible: these components stop drawing when they are not in view, so a box parked far off screen would stay black.
+    host.style.cssText = `position:fixed;left:0;top:0;width:${W}px;height:${H}px;pointer-events:none;opacity:0;z-index:-1`
     document.body.appendChild(host)
     const root = createRoot(host)
     const finish = (url: string | null) => {
@@ -47,7 +66,7 @@ function render(id: string, look?: unknown): Promise<string | null> {
     window.setTimeout(() => {
       try {
         const canvas = host.querySelector("canvas")
-        finish(canvas ? canvas.toDataURL("image/jpeg", 0.8) : null)
+        finish(canvas && !isBlank(canvas) ? canvas.toDataURL("image/jpeg", 0.8) : null)
       } catch {
         finish(null)
       }

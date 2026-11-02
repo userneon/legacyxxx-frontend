@@ -23,7 +23,7 @@ function render(look: FrameLook | null | undefined): Promise<string | null> {
     if (typeof document === "undefined") return resolve(null)
     const host = document.createElement("div")
     host.setAttribute("aria-hidden", "true")
-    host.style.cssText = `position:fixed;left:-9999px;top:0;width:${SIZE}px;height:${SIZE}px;pointer-events:none`
+    host.style.cssText = `position:fixed;left:0;top:0;width:${SIZE}px;height:${SIZE}px;pointer-events:none;opacity:0;z-index:-1`
     document.body.appendChild(host)
     const root = createRoot(host)
     const finish = (url: string | null) => {
