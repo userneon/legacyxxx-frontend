@@ -17,7 +17,7 @@ import { CLAN_ART_RULES, clanArtProblem, clanArtSrc, type ClanArtKind } from "@/
 import type { ClanCard, ClanDetail, ClanJoinRequest, ClanRole, MyClanState } from "@/api/types"
 import { ClanMark } from "@/components/clan-mark"
 import { ClanBankPanel, ClanSectionTabs, ClanStatsPanel, type ClanSection } from "@/components/clan-extras"
-import { ActivityPanel, ManagersSection, useClanFee, InvitePanel, MemberControls, RenameForm, clanFailure, roleLabel } from "@/components/clan-manage"
+import { ActivityPanel, ManagersSection, TransferSection, useClanFee, InvitePanel, MemberControls, RenameForm, clanFailure, roleLabel } from "@/components/clan-manage"
 import { Button } from "@/components/ui/button"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -887,6 +887,7 @@ function EditLook({ clan, isLeader, onChanged }: { clan: ClanDetail; isLeader: b
       </div>
       {isLeader && <RecruitmentSettings key={`${clan.recruitment?.enabled}:${(clan.recruitment?.questions ?? []).join("|")}`} clan={clan} onChanged={onChanged} />}
       {isLeader && <ManagersSection clan={clan} onChanged={onChanged} />}
+      {isLeader && <TransferSection clan={clan} onChanged={onChanged} />}
       {isLeader && <RenameForm clan={clan} onChanged={onChanged} />}
       <ArtSlot kind="logo" busy={busy} preview={clanArtSrc(clan.logo)} onPick={(file) => void run(() => clansService.uploadArt(clan.id, "logo", file), "Logo saved")} onRemove={() => void run(() => clansService.removeArt(clan.id, "logo"), "Logo removed")} />
       <ArtSlot kind="banner" busy={busy} preview={clanArtSrc(clan.thumbnail)} onPick={(file) => void run(() => clansService.uploadArt(clan.id, "banner", file), "Banner saved")} onRemove={() => void run(() => clansService.removeArt(clan.id, "banner"), "Banner removed")} />

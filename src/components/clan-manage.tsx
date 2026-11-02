@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Coins, Crown, Send, ShieldAlert, Trash2, UserMinus, X } from "lucide-react"
+import { ArrowRight, Coins, Crown, Send, ShieldAlert, Trash2, UserMinus, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { clansService, walletService, type Wallet } from "@/api"
@@ -8,6 +8,7 @@ import { PlayerPicker } from "@/components/player-picker"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { formatRelativeTime } from "@/components/relative-time"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -57,11 +58,114 @@ export function roleLabel(role: string) {
 const iconButton = "flex size-8 items-center justify-center rounded-lg text-[var(--text-dim)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)] disabled:opacity-50"
 
 /** The buttons next to a member: make or unmake a manager, hand the clan over, remove. Only what the viewer may do shows. */
+/**
+ * Handing the clan to another member, with a confirmation that cannot be clicked through: it shows you and them, says in plain words what
+ * changes and what cannot be undone, asks for a tick and for the clan's name typed out, and only then enables the button.
+ */
+export function HandOverDialog({ clanId, clanName, member, open, onOpenChange, onDone }: { clanId: string; clanName: string; member: ClanMember | null; open: boolean; onOpenChange: (open: boolean) => void; onDone: () => void }) {
+  const { user } = useAuth()
+  const [typed, setTyped] = useState("")
+  const [understood, setUnderstood] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const ready = Boolean(member) && understood && typed.trim().toLowerCase() === clanName.trim().toLowerCase()
+  const close = (next: boolean) => { if (busy) return; if (!next) { setTyped(""); setUnderstood(false) } onOpenChange(next) }
+  const submit = async () => {
+    if (!member || !ready) return
+    setBusy(true)
+    try {
+      await clansService.transfer(clanId, member.id)
+      toast.success(`${member.name} leads ${clanName} now`, { description: "You are a manager." })
+      setTyped(""); setUnderstood(false)
+      onOpenChange(false)
+      onDone()
+    } catch (error) {
+      toast.error("The clan was not handed over", { description: clanFailure(error, "Try again in a moment.") })
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <Dialog open={open && Boolean(member)} onOpenChange={close}>
+      <DialogContent className="rounded-2xl">
+        <DialogHeader>
+          <DialogTitle>Hand {clanName} to {member?.name}?</DialogTitle>
+          <DialogDescription>Read this before you confirm. The leader decides who is in the clan.</DialogDescription>
+        </DialogHeader>
+        <div className="flex items-center justify-center gap-4 rounded-xl border border-[var(--line)] bg-[var(--card-surface)] px-4 py-3.5">
+          <span className="flex min-w-0 flex-col items-center gap-1.5 text-center">
+            <PlayerAvatar avatar={user?.avatar} name={user?.username} className="size-11 rounded-xl text-sm" />
+            <span className="max-w-[110px] truncate text-[12px] font-medium">{user?.username ?? "You"}</span>
+            <span className="text-[10px] text-[var(--text-dim)]">Leader → Manager</span>
+          </span>
+          <ArrowRight className="size-5 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />
+          <span className="flex min-w-0 flex-col items-center gap-1.5 text-center">
+            <PlayerAvatar avatar={member?.avatar} name={member?.name} className="size-11 rounded-xl text-sm" />
+            <span className="max-w-[110px] truncate text-[12px] font-medium">{member?.name}</span>
+            <span className="text-[10px] text-[var(--text-dim)]">{roleLabel(member?.role ?? "member")} → Leader</span>
+          </span>
+        </div>
+        <ul className="flex list-disc flex-col gap-1.5 pl-5 text-[12px] leading-snug text-[var(--text-muted)]">
+          <li><b className="text-[var(--text)]">{member?.name}</b> gets every leader power: edit the clan, spend the bank, change managers, remove members and delete the clan.</li>
+          <li>You stay in the clan as a <b className="text-[var(--text)]">manager</b>. They can take that away from you.</li>
+          <li><b className="text-[var(--text)]">Only {member?.name} can give it back.</b> You cannot undo this yourself.</li>
+          <li>{member?.name} gets a notification that they lead the clan now.</li>
+        </ul>
+        <form className="flex flex-col gap-3" onSubmit={(event) => { event.preventDefault(); void submit() }}>
+          <label className="flex cursor-pointer items-start gap-2.5 text-[12px] text-[var(--text-2)]">
+            <Checkbox checked={understood} onCheckedChange={(value) => setUnderstood(value === true)} className="mt-0.5" aria-label="I understand" />
+            I understand that {member?.name} becomes the leader and I cannot take it back.
+          </label>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="handover-name" className="text-[12px] font-normal text-[var(--text-dim)]">Type <b className="text-[var(--text)]">{clanName}</b> to confirm</Label>
+            <Input id="handover-name" value={typed} onChange={(event) => setTyped(event.target.value)} placeholder={clanName} autoComplete="off" />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => close(false)} disabled={busy}>Cancel</Button>
+            <Button type="submit" disabled={!ready || busy}>{busy ? "Handing over…" : `Hand over to ${member?.name ?? ""}`}</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+/** Edit clan: a clearly named place to hand the clan over, so it is not only a small arrow on a roster row. */
+export function TransferSection({ clan, onChanged }: { clan: ClanDetail; onChanged: () => void }) {
+  const others = (clan.members ?? []).filter((member) => member.role !== "leader")
+  const [pick, setPick] = useState<ClanMember | null>(null)
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="flex flex-col gap-2 rounded-xl border border-[var(--line)] p-3">
+      <Label>Hand over leadership</Label>
+      <p className="text-[12px] leading-snug text-[var(--text-dim)]">Give the clan to another member. You stay as a manager. You will be asked to confirm.</p>
+      {others.length === 0 ? (
+        <p className="text-[13px] text-[var(--text-dim)]">No other members yet.</p>
+      ) : (
+        <>
+          <ul role="radiogroup" aria-label="New leader" className="flex max-h-48 flex-col overflow-y-auto rounded-lg border border-[var(--line)]">
+            {others.map((member) => (
+              <li key={member.id}>
+                <button type="button" role="radio" aria-checked={pick?.id === member.id} onClick={() => setPick(member)} className="flex w-full items-center gap-3 border-b border-[var(--line-soft)] px-3 py-2 text-left last:border-b-0 hover:bg-[var(--raised)] aria-checked:bg-[var(--raised)]">
+                  <PlayerAvatar avatar={member.avatar} name={member.name} className="size-7 rounded-lg text-[10px]" />
+                  <span className="min-w-0 flex-1 truncate text-[13px]">{member.name}</span>
+                  <span className="text-[11px] text-[var(--text-dim)]">{roleLabel(member.role)}</span>
+                  <span aria-hidden="true" className={`size-3.5 rounded-full border ${pick?.id === member.id ? "border-[var(--text)] bg-[var(--text)]" : "border-[var(--line-strong)]"}`} />
+                </button>
+              </li>
+            ))}
+          </ul>
+          <Button type="button" variant="outline" className="self-start" disabled={!pick} onClick={() => setOpen(true)}><Send className="size-4" aria-hidden="true" />{pick ? `Hand over to ${pick.name}…` : "Pick a member"}</Button>
+        </>
+      )}
+      <HandOverDialog clanId={clan.id} clanName={clan.name} member={pick} open={open} onOpenChange={setOpen} onDone={() => { setPick(null); onChanged() }} />
+    </div>
+  )
+}
+
 export function MemberControls({ clanId, clanName, member, viewerRole, onChanged }: { clanId: string; clanName: string; member: ClanMember; viewerRole: ClanRole | null; onChanged: () => void }) {
   const [busy, setBusy] = useState(false)
-  // Handing the clan over is only allowed after typing the clan's name.
+  // Handing the clan over opens the same confirmation as Edit clan → Hand over leadership.
   const [handing, setHanding] = useState(false)
-  const [typed, setTyped] = useState("")
   const target = member.role as ClanRole
   if (target === "leader" || !viewerRole || viewerRole === "member") return null
   const mayRemove = viewerRole === "leader" || target === "member"
@@ -84,24 +188,10 @@ export function MemberControls({ clanId, clanName, member, viewerRole, onChanged
           <button type="button" disabled={busy} aria-label={target === "co-leader" ? `Make ${member.name} a member` : `Make ${member.name} a manager`} title={target === "co-leader" ? "Remove manager" : "Make manager"} onClick={() => void run(() => clansService.setRole(clanId, member.id, target === "co-leader" ? "member" : "co-leader"), target === "co-leader" ? `${member.name} is a member again` : `${member.name} is a manager`)} className={iconButton}>
             <Crown className="size-4" aria-hidden="true" />
           </button>
-          <button type="button" disabled={busy} aria-label={`Hand the clan to ${member.name}`} title="Make leader" onClick={() => { setTyped(""); setHanding(true) }} className={iconButton}>
+          <button type="button" disabled={busy} aria-label={`Hand the clan to ${member.name}`} title="Make leader" onClick={() => setHanding(true)} className={iconButton}>
             <Send className="size-4" aria-hidden="true" />
           </button>
-          <Dialog open={handing} onOpenChange={setHanding}>
-            <DialogContent className="rounded-2xl">
-              <DialogHeader>
-                <DialogTitle>Hand the clan to {member.name}?</DialogTitle>
-                <DialogDescription>{member.name} becomes the leader and you become a manager. Type <b className="text-[var(--text)]">{clanName}</b> to confirm.</DialogDescription>
-              </DialogHeader>
-              <form className="flex flex-col gap-3" onSubmit={(event) => { event.preventDefault(); if (typed.trim().toLowerCase() === clanName.trim().toLowerCase()) { setHanding(false); void run(() => clansService.transfer(clanId, member.id), `${member.name} leads the clan now`) } }}>
-                <Input value={typed} onChange={(event) => setTyped(event.target.value)} placeholder={clanName} aria-label="Clan name" autoComplete="off" autoFocus />
-                <div className="flex justify-end gap-2">
-                  <Button type="button" variant="outline" onClick={() => setHanding(false)}>Cancel</Button>
-                  <Button type="submit" disabled={busy || typed.trim().toLowerCase() !== clanName.trim().toLowerCase()}>Hand over</Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <HandOverDialog clanId={clanId} clanName={clanName} member={member} open={handing} onOpenChange={setHanding} onDone={onChanged} />
         </>
       )}
       {mayRemove && (
