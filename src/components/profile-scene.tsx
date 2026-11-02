@@ -41,7 +41,8 @@ export function ProfileScene({ scene }: { scene: ProfileSceneMedia | null }) {
       ) : shown.still ? (
         <div className="absolute inset-0 bg-cover bg-center opacity-50" style={{ backgroundImage: `url("${shown.still}")` }} />
       ) : null}
-      <div className="absolute inset-0 bg-gradient-to-b from-[var(--bg)]/50 via-[var(--bg)]/65 to-[var(--bg)]/90" />
+      {/* A bought background is meant to be seen, so its veil is light (only the bottom darkens for text); a Steam picture keeps the heavy one. */}
+      <div className={shown.background ? "absolute inset-0 bg-gradient-to-b from-transparent via-[var(--bg)]/10 to-[var(--bg)]/55" : "absolute inset-0 bg-gradient-to-b from-[var(--bg)]/50 via-[var(--bg)]/65 to-[var(--bg)]/90"} />
     </div>
   )
 }
