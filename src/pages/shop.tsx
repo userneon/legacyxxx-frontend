@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
 import { Check, ChevronDown, Heart, Lock, RotateCcw, Search, SlidersHorizontal, Undo2, X } from "lucide-react"
@@ -18,6 +18,7 @@ import { BgThumb } from "@/components/bg-thumb"
 import { BackgroundScene, bgById, type BgLook } from "@/lib/backgrounds"
 import StarBorder from "@/components/reactbits/star-border"
 import ShinyText from "@/components/reactbits/shiny-text"
+import { CountNumber } from "@/components/count-number"
 import { SmokePuff } from "@/components/smoke-puff"
 import { GrenadeLight, GrenadeTrail } from "@/components/grenade-trail"
 import { FlashEffect } from "@/components/flash-effect"
@@ -182,6 +183,7 @@ export function ShopPage() {
   // For a few seconds after a purchase its Buy button is an Undo (the API gives the window in seconds and takes the LX back whole).
   const [undo, setUndo] = useState<{ id: string; until: number } | null>(null)
   const [undoLeft, setUndoLeft] = useState(0)
+  const pendingToasts = useRef<Record<string, number>>({})
   useEffect(() => {
     if (!undo) return
     const tick = () => {
@@ -278,7 +280,10 @@ export function ShopPage() {
     setJustBought(item.id)
     window.setTimeout(() => setJustBought((current) => (current === item.id ? null : current)), 1400)
     setBusy(false)
-    toast.success(bought.expiresAt ? `${item.name} is yours for ${COSMETIC_DURATIONS.find((entry) => entry.value === durationFor(item))?.label.toLowerCase()} and now worn` : `${item.name} is yours for good and now worn`)
+    // The "yours" message waits until the Undo window is over (and never comes if it was undone), so it does not say "yours" while Undo is still offered.
+    const message = bought.expiresAt ? `${item.name} is yours for ${COSMETIC_DURATIONS.find((entry) => entry.value === durationFor(item))?.label.toLowerCase()} and now worn` : `${item.name} is yours for good and now worn`
+    window.clearTimeout(pendingToasts.current[item.id])
+    pendingToasts.current[item.id] = window.setTimeout(() => { delete pendingToasts.current[item.id]; toast.success(message) }, (bought.undoSeconds ?? 7) * 1000 + 300)
     await settle(item)
     await Promise.all([refetch(), refetchWallet()])
     window.dispatchEvent(new Event("legacyx:appearance-changed"))
@@ -338,6 +343,8 @@ export function ShopPage() {
   }
 
   const undoBuy = async (item: ShopItem) => {
+    window.clearTimeout(pendingToasts.current[item.id])
+    delete pendingToasts.current[item.id]
     setUndo(null)
     setBusy(true)
     try {
@@ -485,14 +492,14 @@ export function ShopPage() {
             {lengthsOf(item).length === 1 ? (
               <div className="flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px]">
                 <span className="flex items-center gap-2"><span className="text-[var(--text-dim)]">For</span><span className="font-semibold text-[var(--text)]">{lengthsOf(item)[0].label}</span></span>
-                <span className="flex items-center gap-1 font-semibold text-[var(--text)]"><LxMark size={12} />{priceFor(item).toLocaleString()}</span>
+                <span className="flex items-center gap-1 font-semibold text-[var(--text)]"><LxMark size={12} /><CountNumber value={priceFor(item)} /></span>
               </div>
             ) : (
             <Popover>
               <PopoverTrigger asChild>
                 <button type="button" aria-label="How long" className="group flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-left text-[13px] transition-colors hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
                   <span className="flex min-w-0 items-center gap-2"><span className="text-[var(--text-dim)]">For</span><span className="font-semibold text-[var(--text)]">{COSMETIC_DURATIONS.find((length) => length.value === durationFor(item))?.label}</span></span>
-                  <span className="flex items-center gap-2"><span className="flex items-center gap-1 font-semibold text-[var(--text)]"><LxMark size={12} />{priceFor(item).toLocaleString()}</span><ChevronDown className="size-3.5 text-[var(--text-dim)] transition-transform duration-200 group-data-[state=open]:rotate-180" /></span>
+                  <span className="flex items-center gap-2"><span className="flex items-center gap-1 font-semibold text-[var(--text)]"><LxMark size={12} /><CountNumber value={priceFor(item)} /></span><ChevronDown className="size-3.5 text-[var(--text-dim)] transition-transform duration-200 group-data-[state=open]:rotate-180" /></span>
                 </button>
               </PopoverTrigger>
               <PopoverContent align="end" side="top" sideOffset={8} className="w-[var(--radix-popover-trigger-width)] min-w-[220px] rounded-xl border-[var(--line)] bg-[var(--panel)] p-1.5 shadow-[0_18px_44px_rgba(0,0,0,0.55)]">
@@ -529,7 +536,7 @@ export function ShopPage() {
                 borderColor="#404040"
                 textColor="#fafafa"
               >
-                <ShinyText text={afford ? `${item.owned ? "Extend" : "Buy"} for ${cost.toLocaleString()} LX` : `Top up ${(cost - (balance ?? 0)).toLocaleString()} more LX`} speed={3.2} delay={1.4} shineWidth={0.35} color="#fafafa" shineColor="#a78bfa" />
+                <ShinyText speed={3.2} delay={1.4} shineWidth={0.35} color="#fafafa" shineColor="#a78bfa">{afford ? <>{item.owned ? "Extend" : "Buy"} for <CountNumber value={cost} /> LX</> : <>Top up <CountNumber value={cost - (balance ?? 0)} /> more LX</>}</ShinyText>
               </StarBorder>
             )}
             {!undoing && !item.owned && item.unlock === "coin" && (
