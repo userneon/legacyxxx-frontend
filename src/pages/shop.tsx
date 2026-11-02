@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
-import { Bomb, Check, ChevronDown, CircleUserRound, Image as ImageIcon, Lock, RotateCcw, Search, SlidersHorizontal, Sparkles, Type, Undo2, X } from "lucide-react"
+import { Bomb, Check, ChevronDown, CircleUserRound, Heart, Image as ImageIcon, Lock, RotateCcw, Search, SlidersHorizontal, Sparkles, Type, Undo2, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -10,6 +10,7 @@ import { clansService, walletService, type MyClanState, type Wallet } from "@/ap
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { frameAccent, nameProps, timeLeft } from "@/lib/cosmetics"
+import { SAVED_KEY, daysLeft, endingSoon, rarityOf, readSaved } from "@/lib/shop-logic"
 import { ORB_ID, type FrameLook } from "@/lib/frame-look"
 import { OrbCustomizer } from "@/components/orb-customizer"
 import { BgCustomizer } from "@/components/bg-customizer"
@@ -126,7 +127,14 @@ export function ShopPage() {
   const [lastProfileTab, setLastProfileTab] = useState<ShopTab>("featured")
   useEffect(() => { if (COSMETIC_TABS.includes(tab)) setLastProfileTab(tab) }, [tab])
   const [sort, setSort] = useState<"price-up" | "price-down" | "rarity">("price-up")
-  const [show, setShow] = useState<"all" | "available" | "owned">("all")
+  const [show, setShow] = useState<"all" | "available" | "owned" | "saved">("all")
+  // Items you marked to come back to; kept in this browser only.
+  const [saved, setSaved] = useState<string[]>(() => readSaved(typeof localStorage === "undefined" ? null : localStorage))
+  const toggleSaved = (id: string) => setSaved((current) => {
+    const next = current.includes(id) ? current.filter((entry) => entry !== id) : [id, ...current].slice(0, 200)
+    try { localStorage.setItem(SAVED_KEY, JSON.stringify(next)) } catch { /* storage blocked: it lasts until the page closes */ }
+    return next
+  })
   const [busy, setBusy] = useState(false)
   const [picked, setPicked] = useState<string | null>(params.get("item"))
   const [search, setSearch] = useState("")
@@ -187,7 +195,7 @@ export function ShopPage() {
   const inTab = all.filter((item) => tab === "featured" || item.kind === tab || (tab === "name" && (item.kind === "name_color" || item.kind === "name_glow")) || (tab === "smoke_color" && (item.kind === "grenade_trail")))
   const shown = inTab
     .filter((item) => (!search.trim() || item.name.toLowerCase().includes(search.trim().toLowerCase())))
-    .filter((item) => show === "all" || (show === "owned" ? item.owned : !item.owned && item.unlock === "coin"))
+    .filter((item) => show === "all" || (show === "saved" ? saved.includes(item.id) : show === "owned" ? item.owned : !item.owned && item.unlock === "coin"))
     // What you can still buy comes first, then what you own, then what is only earned.
     .sort((a, b) => group(a) - group(b) || (sort === "rarity" ? (b.rarity ?? 0) - (a.rarity ?? 0) || a.price - b.price : sort === "price-up" ? a.price - b.price : b.price - a.price))
 
@@ -298,7 +306,7 @@ export function ShopPage() {
         ? <span className="lx-shop-price"><LxMark size={14} />{priceFor(item, "30d").toLocaleString()}</span>
         : <span className="inline-flex items-center gap-1 text-xs text-[var(--text-dim)]"><Lock className="size-3" />Earned</span>
     return (
-      <li key={item.id} className={cn("rounded-xl", justBought === item.id && "lx-bought")}>
+      <li key={item.id} className={cn("group/tile relative rounded-xl [content-visibility:auto] [contain-intrinsic-size:auto_190px]", justBought === item.id && "lx-bought")}>
         <TooltipProvider delayDuration={150}>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -307,8 +315,10 @@ export function ShopPage() {
                 onClick={() => choose(item)}
                 aria-pressed={active}
                 aria-label={item.name}
-                className="lx-shop-tile flex w-full flex-col overflow-hidden rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60"
+                className="lx-shop-tile relative flex w-full flex-col overflow-hidden rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60"
               >
+                {/* The rarity as a thin line along the bottom, never a surface. */}
+                <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: rarityOf(item.rarity).color }} />
                 <div className="relative">
                   <Spot accent={accentOf(shown)} height={dense ? 96 : 124} fill={shown.kind === "background"}><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={dense ? 56 : 70} /></Spot>
                 </div>
@@ -318,11 +328,12 @@ export function ShopPage() {
                 </div>
               </button>
             </TooltipTrigger>
+            <button type="button" onClick={() => toggleSaved(item.id)} aria-pressed={saved.includes(item.id)} aria-label={saved.includes(item.id) ? `Remove ${item.name} from saved` : `Save ${item.name} for later`} className={cn("absolute right-1.5 top-1.5 z-[2] grid size-7 place-items-center rounded-full border border-[var(--line)] bg-[var(--card-surface)]/80 text-[var(--text-dim)] transition-opacity hover:text-[var(--text)] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60", saved.includes(item.id) ? "text-[var(--brand-bright)] opacity-100" : "opacity-0 group-hover/tile:opacity-100")}><Heart className={cn("size-3.5", saved.includes(item.id) && "fill-current")} aria-hidden="true" /></button>
             {/* A big look at it on your own picture, with its name and what it costs. */}
             <TooltipContent side="top" sideOffset={8} className="flex flex-col items-center gap-2 rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] px-5 py-4 text-[var(--text)] [--tooltip-bg:var(--panel)]">
               <Spot accent={accentOf(shown)} height={190} fill={shown.kind === "background"}><div className="px-6"><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={150} /></div></Spot>
               <span className="text-[13px] font-semibold">{item.name}</span>
-              <span className="text-[11px] text-[var(--text-dim)]">{item.owned ? (worn[item.kind] === item.id ? "Worn" : "Owned") : item.unlock === "coin" ? `${priceFor(item, "30d").toLocaleString()} LX · 30 days` : "Earned"}</span>
+              <span className="text-[11px] text-[var(--text-dim)]">{rarityOf(item.rarity).label} · {item.owned ? (worn[item.kind] === item.id ? "Worn" : "Owned") : item.unlock === "coin" ? `${priceFor(item, "30d").toLocaleString()} LX · 30 days` : "Earned"}</span>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -559,6 +570,8 @@ export function ShopPage() {
     const soonest = list.map((item) => item.expiresAt).filter((value): value is string => Boolean(value)).sort()[0] ?? null
     return { names: list.map((item) => item.name), ends: soonest }
   }
+  const soon = endingSoon(all)
+  const tabOfKind = (kind: ShopKind): ShopTab => (kind === "name_color" || kind === "name_glow" ? "name" : kind === "smoke_color" || kind === "grenade_trail" ? "smoke_color" : kind === "frame" ? "frame" : kind === "background" ? "background" : "featured")
   const slotsRow = (
     <div role="tablist" aria-label="What to look at" className="grid grid-cols-2 gap-2 max-md:-mx-4 max-md:flex max-md:overflow-x-auto max-md:px-4 max-md:pb-1 max-md:scrollbar-hidden sm:grid-cols-3 xl:grid-cols-5 [&>button]:max-md:w-[168px] [&>button]:max-md:shrink-0">
       {TABS.filter((entry) => COSMETIC_TABS.includes(entry.value)).map((entry) => {
@@ -612,6 +625,16 @@ export function ShopPage() {
             <aside aria-label="Preview" className="hidden lg:sticky lg:top-4 lg:block">{railBody}</aside>
             <div className="flex min-w-0 flex-col gap-5">
               {slotsRow}
+              {soon.length > 0 && (
+                <div role="status" aria-label="Ending soon" className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[10px] border border-[var(--brand)]/30 bg-[var(--brand)]/[0.06] px-3.5 py-2.5 text-[12px]">
+                  <span className="font-semibold text-[var(--text)]">Ending soon</span>
+                  {soon.slice(0, 3).map((item) => (
+                    <button key={item.id} type="button" onClick={() => { setTab(tabOfKind(item.kind)); choose(item) }} className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--card-surface)] px-2.5 py-1 text-[var(--text-2)] hover:border-[var(--line-strong)] hover:text-[var(--text)]">
+                      {item.name}<span className="text-[var(--text-dim)]">{daysLeft(item.expiresAt) === 0 ? "ends today" : `${daysLeft(item.expiresAt)} d left`}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
               {tab === "featured" && featured.length > 0 && (
                 <section aria-label="Featured">
                   <div className="lx-shop-heading mb-2.5">Featured</div>
@@ -624,7 +647,7 @@ export function ShopPage() {
                   {tab !== "name" && tab !== "smoke_color" && <span className="lx-shop-heading">{tab === "featured" ? "All items" : TABS.find((entry) => entry.value === tab)?.label}</span>}
                   <span className="flex-1" />
                   <div role="radiogroup" aria-label="Show" className="flex items-center gap-1.5">
-                    {([["all", "All"], ["available", "Not owned"], ["owned", "Owned"]] as const).map(([value, label]) => (
+                    {([["all", "All"], ["available", "Not owned"], ["owned", "Owned"], ["saved", "Saved"]] as const).map(([value, label]) => (
                       <button key={value} type="button" role="radio" aria-checked={show === value} onClick={() => setShow(value)} className={pill(show === value)}>{label}</button>
                     ))}
                   </div>
