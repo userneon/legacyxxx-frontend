@@ -13,7 +13,8 @@
     "preview": "vite preview",
     "preview:mock": "vite build --mode mock && vite preview",
     "images:webp": "node scripts/convert-static-images-to-webp.mjs",
-    "check:colors": "node scripts/check-no-blue.mjs"
+    "check:colors": "node scripts/check-no-blue.mjs",
+    "test": "vitest run"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.1",
@@ -40,6 +41,7 @@
     "@types/three": "^0.186.0",
     "@vitejs/plugin-react": "^5.2.0",
     "typescript": "~5.9.3",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "vitest": "^3.2.4"
   }
 }
