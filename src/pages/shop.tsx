@@ -65,7 +65,7 @@ type ShopItem = FrameItem & { kind: ShopKind }
 
 /** What the item looks like: a frame around your picture, or your name painted with it. */
 function ItemArt({ item, avatar, username, size, orb }: { item: ShopItem; avatar?: string; username: string; size: number; orb?: FrameLook | null }) {
-  if (item.kind === "background") return <BgThumb id={item.id} className="w-[176px] max-w-[92%]" />
+  if (item.kind === "background") return <BgThumb id={item.id} fill />
   if (item.kind === "frame") return <FramedAvatar avatar={avatar} name={username} frame={item.id} look={orb} live={size >= 120} size={size} />
   if (item.kind === "smoke_color") return <SmokePuff color={item.color} color2={item.color2} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "grenade_trail") return <GrenadeTrail color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
@@ -79,8 +79,9 @@ function accentOf(item: ShopItem) {
   return item.kind === "frame" ? frameAccent(item.id) : item.color ?? item.glow ?? "var(--text-2)"
 }
 
-/** A soft light in the item's own colour behind the art, and a shadow on the floor under it. */
-function Spot({ accent, height, children }: { accent: string; height: number; children: React.ReactNode }) {
+/** A soft light in the item's own colour behind the art, and a shadow on the floor under it. A background's picture fills the whole box instead. */
+function Spot({ accent, height, children, fill }: { accent: string; height: number; children: React.ReactNode; fill?: boolean }) {
+  if (fill) return <div className="relative overflow-hidden rounded-lg" style={{ height }}>{children}</div>
   return (
     <div className="relative flex items-center justify-center overflow-hidden" style={{ height }}>
       <span aria-hidden="true" className="absolute inset-0 opacity-40" style={{ background: `radial-gradient(closest-side ellipse at 50% 46%, ${accent} 0%, transparent 100%)` }} />
@@ -308,7 +309,7 @@ export function ShopPage() {
                 className="lx-shop-tile flex w-full flex-col overflow-hidden rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60"
               >
                 <div className="relative">
-                  <Spot accent={accentOf(shown)} height={dense ? 96 : 124}><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={dense ? 56 : 70} /></Spot>
+                  <Spot accent={accentOf(shown)} height={dense ? 96 : 124} fill={shown.kind === "background"}><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={dense ? 56 : 70} /></Spot>
                 </div>
                 <div className="flex flex-col items-start gap-1 px-3 pb-2.5 pt-0.5">
                   <span className="line-clamp-2 w-full text-[11px] font-medium leading-[1.25] text-[var(--text-2)]">{item.name}</span>
@@ -318,7 +319,7 @@ export function ShopPage() {
             </TooltipTrigger>
             {/* A big look at it on your own picture, with its name and what it costs. */}
             <TooltipContent side="top" sideOffset={8} className="flex flex-col items-center gap-2 rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] px-5 py-4 text-[var(--text)] [--tooltip-bg:var(--panel)]">
-              <Spot accent={accentOf(shown)} height={190}><div className="px-6"><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={150} /></div></Spot>
+              <Spot accent={accentOf(shown)} height={190} fill={shown.kind === "background"}><div className="px-6"><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={150} /></div></Spot>
               <span className="text-[13px] font-semibold">{item.name}</span>
               <span className="text-[11px] text-[var(--text-dim)]">{item.owned ? (worn[item.kind] === item.id ? "Worn" : "Owned") : item.unlock === "coin" ? `${priceFor(item, "30d").toLocaleString()} LX · 30 days` : "Earned"}</span>
             </TooltipContent>
@@ -433,8 +434,8 @@ export function ShopPage() {
     return (
       <>
           {selected?.kind === "background" ? (
-            <div className="relative h-[150px] w-full overflow-hidden rounded-lg bg-[var(--card-surface)] [&>div]:size-full">
-              {/* The still picture shows at once; the live background loads over it (it is a heavy script and a canvas). */}
+            <div className={cn("overflow-hidden bg-[var(--card-surface)] [&>div]:size-full", compact ? "absolute inset-0" : "relative h-[150px] w-full rounded-lg")}>
+              {/* In the Spotlight bar it fills the whole box beside the details. The still picture shows at once; the live background loads over it (it is a heavy script and a canvas). */}
               <BgThumb id={selected.id} fill />
               <div className="absolute inset-0"><BackgroundScene key={selected.id} id={selected.id} look={bgLookNow} /></div>
             </div>
@@ -541,7 +542,7 @@ export function ShopPage() {
   const spotlight = selected ? (
     <div className="lx-add-box sticky top-0 z-10 hidden overflow-hidden rounded-[14px] border bg-[var(--panel)] lg:block">
       <div className="flex items-stretch">
-      <div className="relative flex w-[240px] shrink-0 items-center justify-center border-r border-[var(--line-soft)] px-3 [&>div]:w-full">{previewStage(true)}</div>
+      <div className={cn("relative flex w-[240px] shrink-0 items-center justify-center border-r border-[var(--line-soft)] [&>div]:w-full", selected.kind === "background" ? "min-h-[150px]" : "px-3")}>{previewStage(true)}</div>
       {tab === "name" && combo.name_color && combo.name_glow
         ? [combo.name_color, combo.name_glow].map((id) => all.find((item) => item.id === id)).filter((item): item is ShopItem => Boolean(item)).map((item, index) => <div key={item.id} className={cn("flex min-w-0 flex-1", index > 0 && "border-l border-[var(--line-soft)]")}>{buyBlock(item, true)}</div>)
         : buyBlock(selected, true)}
