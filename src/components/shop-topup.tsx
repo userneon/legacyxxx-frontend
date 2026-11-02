@@ -3,12 +3,12 @@
  * 2026-11-02). The server makes the QPay invoice and adds the LX once QPay says it is paid. Everything comes from the API.
  */
 import { useEffect, useMemo, useState } from "react"
-import { Check, RotateCcw } from "lucide-react"
+import { Check, Minus, Plus, RotateCcw, SlidersHorizontal } from "lucide-react"
 import { toast } from "sonner"
 
 import { walletService, type Wallet } from "@/api"
 import { shopGoodsService, type GoodsProduct } from "@/api/shop-goods"
-import type { TopUp, TopUpInvoice } from "@/api/wallet"
+import type { TopUp, TopUpAvailability, TopUpInvoice } from "@/api/wallet"
 import qpayLogo from "@/assets/payments/qpay.svg"
 import { AnimatedNumber } from "@/components/animated-number"
 import { LxMark } from "@/components/lx-mark"
@@ -34,11 +34,12 @@ export function ShopTopUp() {
   const { user } = useAuth()
   const products = useApiQuery<GoodsProduct[]>((signal) => shopGoodsService.products({ signal }), { queryKey: "shop-goods" })
   const topUpsQuery = useApiQuery<TopUp[]>((signal) => walletService.myTopUps({ signal }), { enabled: Boolean(user), queryKey: user ? `topups:${user.id}` : "topups:guest" })
-  const availability = useApiQuery<boolean>((signal) => walletService.topUpAvailable({ signal }), { queryKey: "topup-available" })
+  const availability = useApiQuery<TopUpAvailability>((signal) => walletService.topUpAvailable({ signal }), { queryKey: "topup-available" })
   const wallet = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const [picked, setPicked] = useState<string | null>(null)
   const [invoice, setInvoice] = useState<TopUpInvoice | null>(null)
   const [starting, setStarting] = useState(false)
+  const [customMnt, setCustomMnt] = useState(10000)
 
   const packages = useMemo(() => (products.data ?? []).filter((product) => product.kind === "lx" && product.grantsLx > 0).sort((a, b) => a.priceMnt - b.priceMnt), [products.data])
   const balance = wallet.data?.balance ?? null
@@ -57,14 +58,20 @@ export function ShopTopUp() {
 
   const selected = packages.find((pack) => pack.id === picked) ?? null
   const topUps = topUpsQuery.data ?? []
-  const qpayReady = availability.data !== false
+  const qpayReady = availability.data?.available !== false
+  const range = availability.data?.custom ?? null
+  // Any amount is paid at the smallest package's rate (the API works it out the same way), so a bigger package is the better deal.
+  const base = packages[0] ?? null
+  const customLx = base ? Math.floor((customMnt * base.grantsLx) / base.priceMnt) : 0
+  const offer = picked === "custom" && range && base ? { grantsLx: customLx, priceMnt: customMnt } : selected
+  const setAmount = (value: number) => { if (range) setCustomMnt(Math.min(range.maxMnt, Math.max(range.minMnt, Math.round(value / range.stepMnt) * range.stepMnt))) }
 
   const start = async () => {
-    if (!selected || starting) return
+    if (!offer || starting) return
     if (!user) { toast.error("Sign in with Steam to top up."); return }
     setStarting(true)
     try {
-      setInvoice(await walletService.startTopUp(selected.id))
+      setInvoice(await walletService.startTopUp(picked === "custom" ? { amountMnt: customMnt } : { productId: selected!.id }))
     } catch (caught) {
       toast.error(caught instanceof Error ? caught.message : "Could not start the payment. Try again.")
     } finally {
@@ -89,21 +96,21 @@ export function ShopTopUp() {
           <span className={label}>Your LX</span>
           <span className="flex items-center gap-2 text-[26px] font-bold leading-none text-[var(--text)]"><LxMark size={24} />{balance != null ? <AnimatedNumber value={balance} durationMs={500} /> : "—"}</span>
         </div>
-        {selected && (
+        {offer && (
           <>
             <div className="flex flex-col gap-2 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] p-3.5">
-              <span className="flex justify-between text-[13px]"><span className="text-[var(--text-muted)]">Package</span><b className="text-[var(--text)]">+{selected.grantsLx.toLocaleString()} LX</b></span>
-              <span className="flex justify-between text-[13px]"><span className="text-[var(--text-muted)]">You pay</span><b className="text-[var(--text)]">{mnt(selected.priceMnt)}</b></span>
+              <span className="flex justify-between text-[13px]"><span className="text-[var(--text-muted)]">Package</span><b className="text-[var(--text)]">+{offer.grantsLx.toLocaleString()} LX</b></span>
+              <span className="flex justify-between text-[13px]"><span className="text-[var(--text-muted)]">You pay</span><b className="text-[var(--text)]">{mnt(offer.priceMnt)}</b></span>
               <span className="flex justify-between text-[13px]"><span className="text-[var(--text-muted)]">Pay with</span><img src={qpayLogo} alt="QPay" className="h-4 w-10 shrink-0" draggable={false} /></span>
-              {balance != null && <span className="flex justify-between border-t border-[var(--line-soft)] pt-2 text-[13px]"><span className="text-[var(--text-muted)]">New balance</span><b className="text-[var(--text)]">{(balance + selected.grantsLx).toLocaleString()} LX</b></span>}
+              {balance != null && <span className="flex justify-between border-t border-[var(--line-soft)] pt-2 text-[13px]"><span className="text-[var(--text-muted)]">New balance</span><b className="text-[var(--text)]">{(balance + offer.grantsLx).toLocaleString()} LX</b></span>}
             </div>
             {clanPrice != null && balance != null && (
               <p className="text-xs leading-relaxed text-[var(--text-muted)]">
-                {balance + selected.grantsLx >= clanPrice ? "Enough for a clan." : `${(clanPrice - balance - selected.grantsLx).toLocaleString()} LX short of a clan.`}
+                {balance + offer.grantsLx >= clanPrice ? "Enough for a clan." : `${(clanPrice - balance - offer.grantsLx).toLocaleString()} LX short of a clan.`}
               </p>
             )}
             <button type="button" disabled={starting || (Boolean(user) && !qpayReady)} onClick={() => void start()} className="lx-primary-button inline-flex h-11 items-center justify-center rounded-lg px-4 text-[14px] font-semibold disabled:opacity-50">
-              {!user ? "Sign in to top up" : starting ? "Making the invoice…" : `Pay ${mnt(selected.priceMnt)} with QPay`}
+              {!user ? "Sign in to top up" : starting ? "Making the invoice…" : `Pay ${mnt(offer.priceMnt)} with QPay`}
             </button>
             {user && !qpayReady && <p className="text-xs leading-relaxed text-[var(--text-dim)]">QPay is not set up yet. Top-ups open soon.</p>}
           </>
@@ -151,8 +158,43 @@ export function ShopTopUp() {
                 </button>
               )
             })}
+            {range && base && (
+              <div role="radio" aria-checked={picked === "custom"} tabIndex={0} onClick={() => setPicked("custom")} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setPicked("custom") } }} className={cn("relative col-span-2 flex h-[210px] cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border bg-[var(--card-surface)] p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 max-sm:h-[230px]", picked === "custom" ? "border-[var(--text)]" : "border-dashed border-[var(--line)] hover:border-[var(--line-strong)]")}>
+                <span className="flex items-center gap-2 text-[13px] font-semibold text-[var(--text)]"><SlidersHorizontal className="size-4 text-[var(--text-2)]" aria-hidden="true" />Your own amount</span>
+                {picked === "custom" && <span className="absolute right-3 top-3 grid size-6 place-items-center rounded-full bg-[var(--text)] text-[var(--bg)]"><Check className="size-4" aria-hidden="true" /></span>}
+                <span className="flex items-center gap-2" onClick={(event) => event.stopPropagation()}>
+                  <button type="button" aria-label="Less" onClick={() => { setPicked("custom"); setAmount(customMnt - range.stepMnt * 5) }} className="grid size-8 shrink-0 place-items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)] hover:border-[var(--line-strong)]"><Minus className="size-4" /></button>
+                  <input type="number" inputMode="numeric" aria-label="Amount in tugrik" min={range.minMnt} max={range.maxMnt} step={range.stepMnt} value={customMnt} onFocus={() => setPicked("custom")} onChange={(event) => setCustomMnt(Number(event.target.value) || 0)} onBlur={() => setAmount(customMnt)} className="h-8 min-w-0 flex-1 rounded-lg border border-[var(--line)] bg-[var(--panel)] px-2 text-center text-[15px] font-bold text-[var(--text)] focus:border-[var(--text-2)] focus:outline-none" />
+                  <button type="button" aria-label="More" onClick={() => { setPicked("custom"); setAmount(customMnt + range.stepMnt * 5) }} className="grid size-8 shrink-0 place-items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)] hover:border-[var(--line-strong)]"><Plus className="size-4" /></button>
+                </span>
+                <span className="flex flex-wrap gap-1.5" onClick={(event) => event.stopPropagation()}>
+                  {[5000, 10000, 20000, 50000].filter((value) => value >= range.minMnt && value <= range.maxMnt).map((value) => <button key={value} type="button" onClick={() => { setPicked("custom"); setAmount(value) }} className={cn("rounded-full border px-2.5 py-0.5 text-[11px] hover:border-[var(--line-strong)]", customMnt === value ? "border-[var(--text-2)] text-[var(--text)]" : "border-[var(--line)] text-[var(--text-dim)]")}>{mnt(value)}</button>)}
+                </span>
+                <span className="flex items-baseline justify-between gap-2"><span className="flex items-baseline gap-1.5"><b className="text-[22px] leading-none text-[var(--text)]">{customLx.toLocaleString()}</b><span className="text-[12px] font-semibold text-[var(--text-muted)]">LX</span></span><span className="text-[11px] text-[var(--text-dim)]">{mnt(range.minMnt)} – {mnt(range.maxMnt)}</span></span>
+              </div>
+            )}
           </div>
         </section>
+
+        {clanPrice != null && balance != null && offer && wallet.data?.clanPrices && (
+          <section aria-label="What it buys" className="flex flex-col gap-3">
+            <span className={label}>What your new balance buys</span>
+            <ul className="grid gap-3 sm:grid-cols-3">
+              {[{ name: "Create a clan", price: wallet.data.clanPrices.create }, { name: "Rename a clan", price: wallet.data.clanPrices.rename }, { name: "More clan member slots", price: wallet.data.clanPrices.slots }].map((item) => {
+                const after = balance + offer.grantsLx
+                const enough = after >= item.price
+                return (
+                  <li key={item.name} className="flex flex-col gap-2 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-3.5">
+                    <span className="text-[13px] font-semibold text-[var(--text)]">{item.name}</span>
+                    <span className="flex items-center gap-1.5 text-[12px] text-[var(--text-muted)]"><LxMark size={14} />{item.price.toLocaleString()} LX</span>
+                    <span className="h-1 overflow-hidden rounded-full bg-[var(--line)]"><span className="block h-full rounded-full bg-[var(--accent-solid)] transition-[width] duration-500" style={{ width: `${Math.min(100, Math.round((after / item.price) * 100))}%` }} /></span>
+                    <span className={cn("text-[11px]", enough ? "text-[var(--status-green)]" : "text-[var(--text-dim)]")}>{enough ? "Enough" : `${(item.price - after).toLocaleString()} LX short`}</span>
+                  </li>
+                )
+              })}
+            </ul>
+          </section>
+        )}
 
         <section aria-label="Payment method" className="flex flex-col gap-3">
           <span className={label}>Pay with</span>

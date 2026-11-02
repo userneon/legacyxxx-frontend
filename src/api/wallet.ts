@@ -74,13 +74,20 @@ export interface TopUpInvoice extends TopUp {
   expiresInMinutes: number
 }
 
+export interface TopUpAvailability {
+  available: boolean
+  /** The range for a top-up of any amount, from the API. */
+  custom?: { minMnt: number; maxMnt: number; stepMnt: number }
+}
+
 export const walletService = {
   /** Whether the site can take QPay payments right now (the merchant is set up). */
-  async topUpAvailable(options?: CallOptions): Promise<boolean> {
-    return (await get<{ available: boolean }>("/api/v1/wallet/topup/status", undefined, options)).available
+  async topUpAvailable(options?: CallOptions): Promise<TopUpAvailability> {
+    return get<TopUpAvailability>("/api/v1/wallet/topup/status", undefined, options)
   },
-  async startTopUp(productId: string): Promise<TopUpInvoice> {
-    return post<TopUpInvoice>("/api/v1/wallet/topup", { productId })
+  /** A package (`productId`) or any amount in tugrik (`amountMnt`, at the smallest package's rate). */
+  async startTopUp(input: { productId: string } | { amountMnt: number }): Promise<TopUpInvoice> {
+    return post<TopUpInvoice>("/api/v1/wallet/topup", input)
   },
   /** Asks QPay about the invoice; the LX are added by the server the moment it is paid. */
   async topUp(id: string, options?: CallOptions): Promise<TopUp> {

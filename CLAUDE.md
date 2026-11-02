@@ -152,7 +152,7 @@ Four cards (5x5, Fun, Pro League, Tournaments), each with a pill, title, one lin
 
 Wallet → Top up pays an LX package with **QPay only**, fully automatic; the staff-call orders for LX packages are gone (`POST /shop/orders` refuses `kind: lx`, staff can no longer credit LX by hand). The page asks `POST /wallet/topup`
 for an invoice and opens `QpayPayDialog` (`components/qpay-pay-dialog.tsx`): QR code and bank-app links from QPay, a 30-minute clock, a check every 4 s (`GET /wallet/topup/:id`). The server asks QPay itself and adds the LX once, when QPay says PAID for the whole price
-(`wallet_apply` ref `qpay:<id>`); a callback (`/public/qpay/callback/:id`) only nudges that check. Merchant credentials are API environment variables (`QPAY_CLIENT_ID`, `QPAY_CLIENT_SECRET`, `QPAY_INVOICE_CODE`), never in this repo; without them the page says QPay is not set up. Real data only.
+(`wallet_apply` ref `qpay:<id>`); a callback (`/public/qpay/callback/:id`) only nudges that check. Besides the packages the page has **Your own amount** (1,000₮–500,000₮ in steps of 1,000₮, from `GET /wallet/topup/status`, paid at the smallest package's rate; the API works out the same LX) and a strip of what the new balance buys (clan prices from `GET /wallet/me`). Merchant credentials are API environment variables (`QPAY_CLIENT_ID`, `QPAY_CLIENT_SECRET`, `QPAY_INVOICE_CODE`), never in this repo; without them the page says QPay is not set up. Real data only.
 
 ### Play (owner pick 2026-10-11, design "D")
 
