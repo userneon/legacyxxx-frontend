@@ -309,6 +309,9 @@ function WriteDialog({ open, editing, onClose, onPosted }: { open: boolean; edit
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
   const canPost = category !== null && message.trim().length >= MIN_LENGTH && !submitting
+  // Why Post is not ready yet, said in words instead of a silently greyed button.
+  const short = Math.max(0, MIN_LENGTH - message.trim().length)
+  const whyNot = category === null ? "Pick a category first." : short > 0 ? `Write ${short} more character${short === 1 ? "" : "s"} (at least ${MIN_LENGTH}).` : ""
 
   useEffect(() => {
     // Editing starts from the review as it is now.
@@ -410,7 +413,8 @@ function WriteDialog({ open, editing, onClose, onPosted }: { open: boolean; edit
           <span className="text-xs text-[var(--text-dim)]">{editing ? "Your review keeps its place and shows that it was edited." : "Posted publicly with your Steam name. One review per week."}</span>
           {error && <p role="alert" className="text-xs text-[var(--text-2)]">{error}</p>}
         </div>
-        <div className="flex justify-end gap-2 px-5 py-3.5">
+        <div className="flex items-center justify-end gap-2 px-5 py-3.5">
+          {!canPost && whyNot && <span role="status" className="mr-auto text-xs text-[var(--text-dim)]">{whyNot}</span>}
           <button type="button" onClick={onClose} className="h-9 rounded-lg border border-[var(--line)] px-4 text-[13px] font-medium text-[var(--text)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
             Cancel
           </button>

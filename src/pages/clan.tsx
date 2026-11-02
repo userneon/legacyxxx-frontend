@@ -408,7 +408,8 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
                 <Input id={`recruit-${clan.id}-${index}`} maxLength={300} value={answers[index] ?? ""} onChange={(event) => setAnswers((current) => current.map((entry, at) => (at === index ? event.target.value : entry)))} autoComplete="off" />
               </div>
             ))}
-            <div className="flex justify-end gap-2">
+            <div className="flex items-center justify-end gap-2">
+              {answers.some((entry) => !entry.trim()) && <span role="status" className="mr-auto text-xs text-[var(--text-dim)]">Answer every question to send.</span>}
               <Button type="button" variant="outline" onClick={() => setAsking(false)}>Cancel</Button>
               <Button type="submit" disabled={busy || answers.length !== questions.length || answers.some((entry) => !entry.trim())}>Send request</Button>
             </div>

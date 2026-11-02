@@ -72,7 +72,8 @@ function EditAbout({ about, onSaved }: { about: string; onSaved: () => void }) {
           <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">About your content ({200 - text.length} left)
             <textarea className={`${field} h-24 resize-none py-2`} maxLength={200} value={text} onChange={(event) => setText(event.target.value)} placeholder="CS2 streams every evening, Mongolian commentary" />
           </label>
-          <div className="flex justify-end gap-2">
+          <div className="flex items-center justify-end gap-2">
+            {!busy && (!text.trim() || text.trim() === about) && <span role="status" className="mr-auto text-xs text-[var(--text-dim)]">{!text.trim() ? "Write a line about your content first." : "Change the line to save it."}</span>}
             <button type="button" onClick={() => setOpen(false)} disabled={busy} className={secondary}>Cancel</button>
             <button type="button" disabled={busy || !text.trim() || text.trim() === about} onClick={() => void save()} className="lx-primary-button inline-flex h-9 items-center gap-1.5 rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50"><Check className="size-4" aria-hidden="true" />Save</button>
           </div>
@@ -88,6 +89,8 @@ function ApplyDialog({ open, onOpenChange, onSent }: { open: boolean; onOpenChan
   const [busy, setBusy] = useState(false)
   const cleaned = Object.fromEntries(Object.entries(links).filter(([, url]) => url?.trim()).map(([key, url]) => [key, withHttps(url!)])) as CreatorLinks
   const ready = bio.trim().length >= BIO_MIN && Object.keys(cleaned).length > 0
+  const bioShort = Math.max(0, BIO_MIN - bio.trim().length)
+  const whyNot = bioShort > 0 ? `Write ${bioShort} more character${bioShort === 1 ? "" : "s"} about your content (at least ${BIO_MIN}).` : Object.keys(cleaned).length === 0 ? "Add at least one channel link." : ""
 
   const send = async () => {
     // Say which link is wrong before asking the server, whose answer is only "Validation failed".
@@ -126,7 +129,8 @@ function ApplyDialog({ open, onOpenChange, onSent }: { open: boolean; onOpenChan
           ))}
         </div>
         <p className="text-xs text-[var(--text-dim)]">Add at least one channel (https links only). If we decline, you can apply again after 7 days.</p>
-        <div className="flex justify-end gap-2">
+        <div className="flex items-center justify-end gap-2">
+          {!ready && whyNot && <span role="status" className="mr-auto text-xs text-[var(--text-dim)]">{whyNot}</span>}
           <button type="button" onClick={() => onOpenChange(false)} disabled={busy} className={secondary}>Cancel</button>
           <button type="button" disabled={!ready || busy} onClick={() => void send()} className="lx-primary-button inline-flex h-9 items-center gap-1.5 rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50"><Check className="size-4" />Send application</button>
         </div>

@@ -241,6 +241,7 @@ export function SkinCollections({ onApplied }: { onApplied: () => void }) {
             <span className="text-right text-[11px] text-[var(--text-faint)]">{shareNote.length}/120</span>
           </div>
           <AlertDialogFooter>
+            {shareName.trim().length < 3 && <span role="status" className="mr-auto self-center text-xs text-[var(--text-dim)]">Name it with at least 3 characters ({3 - shareName.trim().length} more).</span>}
             <AlertDialogCancel disabled={busy}>Cancel</AlertDialogCancel>
             <AlertDialogAction disabled={busy || shareName.trim().length < 3} onClick={(event) => { event.preventDefault(); void share() }}>Share</AlertDialogAction>
           </AlertDialogFooter>
