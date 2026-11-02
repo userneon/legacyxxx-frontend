@@ -63,6 +63,8 @@ function openLink(url) {
   try {
     const parsed = new URL(url)
     if (parsed.protocol === "https:" || parsed.protocol === "http:") void shell.openExternal(parsed.toString())
+    // A "Connect" link on the site: only steam://connect/<ip:port>, nothing else Steam can do.
+    else if (parsed.protocol === "steam:" && /^steam:\/\/connect\/[A-Za-z0-9.-]{1,253}:\d{2,5}(\/[A-Za-z0-9_-]{1,32})?$/.test(parsed.toString())) void shell.openExternal(parsed.toString())
   } catch { /* not a link */ }
 }
 
