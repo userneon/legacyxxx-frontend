@@ -1267,8 +1267,15 @@ const CrystalizedBall = ({
       });
     };
 
+    // At most 30 drawings a second (owner request 2026-11-02): the orb is heavy, and half the frames are not seen on an avatar.
+    let lastDraw = 0;
     const frame = (now: number) => {
       raf = 0;
+      if (now - lastDraw < 31 && lastDraw !== 0) {
+        if (visible && alive) raf = requestAnimationFrame(frame);
+        return;
+      }
+      lastDraw = now;
       if (!alive) return;
       const s = settingsRef.current;
       const dt = Math.min(0.05, Math.max(1 / 240, (now - last) / 1000));
