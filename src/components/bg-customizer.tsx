@@ -43,7 +43,7 @@ export function BgCustomizer({ def, draft, onDraft, saved, owned, busy, onSave }
         <button type="button" disabled={busy || !owned || !changed} onClick={() => onSave(clean)} className="lx-primary-button inline-flex h-9 items-center gap-1.5 rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50"><Check className="size-4" aria-hidden="true" />Save my background</button>
         <button type="button" disabled={busy} onClick={() => onDraft(cleanBgLook(def, saved ?? {}))} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text-2)] hover:border-[var(--line-strong)] disabled:opacity-50"><RotateCcw className="size-4" aria-hidden="true" />Undo changes</button>
         <button type="button" disabled={busy} onClick={() => onDraft({})} className="inline-flex h-9 items-center rounded-lg px-3 text-[13px] text-[var(--text-dim)] hover:text-[var(--text)] disabled:opacity-50">Defaults</button>
-        {!owned && <span className="text-xs text-[var(--text-dim)]">You can try everything. Saving needs the background.</span>}
+        {!owned && <span className="text-xs text-[var(--text-dim)]">Try everything now. Your settings are saved the moment you buy it.</span>}
       </div>
     </div>
   )

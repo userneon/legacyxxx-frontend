@@ -69,7 +69,7 @@ export function OrbCustomizer({ avatar, name, owned, saved, busy, onSave, draft:
       <div className="flex flex-wrap items-center gap-2 border-t border-[var(--line-soft)] pt-3">
         <button type="button" disabled={busy || !owned || !changed} onClick={() => onSave(draft)} className="lx-primary-button inline-flex h-9 items-center gap-1.5 rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50"><Check className="size-4" aria-hidden="true" />Save my orb</button>
         <button type="button" disabled={busy} onClick={() => setDraft(saved ?? {})} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text-2)] hover:border-[var(--line-strong)] disabled:opacity-50"><RotateCcw className="size-4" aria-hidden="true" />Undo changes</button>
-        {!owned && <span className="text-xs text-[var(--text-dim)]">You can try everything. To keep it, get the Crystal Orb in the <Link to="/shop/frames" className="text-[var(--text-2)] underline underline-offset-2">Shop</Link>.</span>}
+        {!owned && <span className="text-xs text-[var(--text-dim)]">Try everything now. Your settings are saved the moment you buy the orb in the <Link to="/shop/frames" className="text-[var(--text-2)] underline underline-offset-2">Shop</Link>.</span>}
       </div>
     </div>
   )

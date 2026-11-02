@@ -205,6 +205,12 @@ export function ShopPage() {
         await cosmeticsService.saveCustom(item.id, customDraft[item.id] ?? (item.kind === "name_glow" ? item.glow : item.color) ?? "#d4d4d4", item.twoColours ? customDraft2[item.id] ?? item.color2 : null)
         dropDrafts(item.id)
       }
+      // What was tried before buying is kept: the orb's or the background's settings are saved the moment it is yours.
+      if (item.id === ORB_ID && orbDraft) { await cosmeticsService.saveFrameLook(orbDraft); setOrbDraft(null) }
+      if (item.kind === "background" && bgDrafts[item.id]) {
+        await cosmeticsService.saveBackgroundLook(item.id, bgDrafts[item.id])
+        setBgDrafts((current) => { const { [item.id]: _kept, ...rest } = current; return rest })
+      }
       await cosmeticsService.equip(item.kind, item.id)
       toast.success(bought.expiresAt ? `${item.name} is yours for ${COSMETIC_DURATIONS.find((entry) => entry.value === durationFor(item))?.label.toLowerCase()} and now worn` : `${item.name} is yours for good and now worn`)
       await Promise.all([refetch(), refetchWallet()])
@@ -213,6 +219,20 @@ export function ShopPage() {
       window.setTimeout(() => setJustBought((current) => (current === item.id ? null : current)), 1400)
     } catch (caught) {
       toast.error("Could not buy it", { description: caught instanceof Error ? caught.message : "Try again in a moment." })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  /** Wear or take off an item you own, right here (the Shop used to send you to your profile for this). */
+  const wearHere = async (item: ShopItem, on: boolean) => {
+    setBusy(true)
+    try {
+      await cosmeticsService.equip(item.kind, on ? item.id : null)
+      toast.success(on ? `${item.name} is on you now` : `${item.name} taken off`)
+      await refetch()
+    } catch (caught) {
+      toast.error("Could not change it", { description: caught instanceof Error ? caught.message : "Try again in a moment." })
     } finally {
       setBusy(false)
     }
@@ -331,7 +351,7 @@ export function ShopPage() {
         {item.owned && (
           <div key="owned" className={cn("flex flex-col gap-2.5", justBought === item.id && "lx-swap-in")}>
             <p className="text-xs text-[var(--text-dim)]">{isWorn ? "Worn" : "Owned"}{item.expiresAt ? ` · ${timeLeft(item.expiresAt)}` : ""}</p>
-            <button type="button" onClick={() => navigate("/profile", { state: { tab: "appearance" } })} className="inline-flex h-10 w-full items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-semibold text-[var(--text-2)] hover:border-[var(--line-strong)]">Wear it</button>
+            <button type="button" disabled={busy} onClick={() => void wearHere(item, !isWorn)} className="inline-flex h-10 w-full items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-semibold text-[var(--text-2)] hover:border-[var(--line-strong)] disabled:opacity-60">{isWorn ? "Take it off" : "Wear it"}</button>
           </div>
         )}
         {rentable ? (
@@ -435,8 +455,11 @@ export function ShopPage() {
     if (!panel) return null
     return (
       <div className="border-t border-[var(--line-soft)]">
-        <button type="button" aria-expanded={customizeOpen} onClick={() => setCustomizeOpen(!customizeOpen)} className="flex h-9 w-full items-center justify-between px-4 text-[12px] font-semibold uppercase tracking-wide text-[var(--text-2)] hover:text-[var(--text)]">
-          Customize
+        <button type="button" aria-expanded={customizeOpen} onClick={() => setCustomizeOpen(!customizeOpen)} className="flex min-h-11 w-full items-center justify-between px-4 py-1.5 text-[12px] font-semibold uppercase tracking-wide text-[var(--text-2)] hover:text-[var(--text)]">
+          <span className="flex flex-col items-start gap-0.5 text-left">
+            Customize
+            <span className="text-[11px] font-normal normal-case tracking-normal text-[var(--text-dim)]">{selected?.owned ? "Change every setting, then save" : "Try every setting now; it is kept when you buy"}</span>
+          </span>
           <ChevronDown className={cn("size-4 transition-transform duration-200", customizeOpen && "rotate-180")} aria-hidden="true" />
         </button>
         {customizeOpen && <div className={cn("p-3 pt-0", scroll && "max-h-[min(52vh,480px)] overflow-y-auto")}>{panel}</div>}
