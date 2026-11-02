@@ -106,7 +106,7 @@ function ShopGrid({ list, card, tight = false }: { list: ShopItem[]; tight?: boo
 export function ShopPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [params, setParams] = useSearchParams()
+  const [params] = useSearchParams() // an old ?item= link still opens that item; picking one no longer writes it to the address
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
@@ -186,12 +186,6 @@ export function ShopPage() {
     if (item.kind === "name_color" || item.kind === "name_glow") setCombo((current) => ({ ...current, [item.kind]: item.id }))
     // On a phone the preview and the buy button live in a sheet, so choosing an item never sends you down the page.
     if (typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches) setSheetOpen(true)
-    setParams((current) => {
-      const updated = new URLSearchParams(current)
-      if (item.id) updated.set("item", item.id)
-      else updated.delete("item")
-      return updated
-    }, { replace: true, state: { tab } }) // keep the tab: it lives in the history entry, which a bare search change would drop
   }
 
   // The preview wears the item you look at, and whatever you already wear of the other kinds.
