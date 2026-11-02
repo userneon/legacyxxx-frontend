@@ -1,22 +1,18 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Image as ImageIcon } from "lucide-react"
 
-import { bgSnapshot, bgSnapshotNow } from "@/lib/bg-snapshot"
-
-/** A background's picture for a Shop tile: made once in the background of the page (a grey tile with an icon until it is ready). */
-export function BgThumb({ id, look, className }: { id: string; look?: unknown; className?: string }) {
-  const [url, setUrl] = useState<string | null>(() => bgSnapshotNow(id, look))
-  useEffect(() => {
-    let live = true
-    const known = bgSnapshotNow(id, look)
-    if (known) setUrl(known)
-    else bgSnapshot(id, look).then((made) => { if (live) setUrl(made) })
-    return () => { live = false }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id])
+/**
+ * A background's picture for a Shop tile or a list: the still kept with the site (public/bg/<id>.jpg, one per background, drawn once with its default
+ * settings), because a page of dozens of live canvases cannot be made and the copy made in the visitor's own browser came out blank on real screens.
+ * A background without a picture shows a quiet icon.
+ */
+export function BgThumb({ id, className }: { id: string; className?: string }) {
+  const [missing, setMissing] = useState(false)
   return (
     <span className={`relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-lg bg-[var(--card-surface)] ${className ?? ""}`}>
-      {url ? <img src={url} alt="" aria-hidden="true" draggable={false} className="absolute inset-0 size-full object-cover" /> : <ImageIcon className="size-5 text-[var(--text-faint)]" aria-hidden="true" />}
+      {missing
+        ? <ImageIcon className="size-5 text-[var(--text-faint)]" aria-hidden="true" />
+        : <img src={`/bg/${id}.jpg`} alt="" aria-hidden="true" draggable={false} loading="lazy" onError={() => setMissing(true)} className="absolute inset-0 size-full object-cover" />}
     </span>
   )
 }
