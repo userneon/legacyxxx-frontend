@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
-import { Check, ChevronDown, Lock, RotateCcw, Search, Undo2, X } from "lucide-react"
+import { Check, ChevronDown, Lock, RotateCcw, Search, SlidersHorizontal, Undo2, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -146,7 +146,7 @@ export function ShopPage() {
   const [orbDraft, setOrbDraft] = useState<FrameLook | null>(null)
   // The Crystal Orb and background settings are long: they sit behind a "Customize" strip, closed until asked for, and scroll inside their own box.
   const [customizeOpen, setCustomizeOpen] = useState(false)
-  useEffect(() => { setCustomizeOpen(false) }, [picked])
+  const [customizeMounted, setCustomizeMounted] = useState(false)
   // The knobs being tried on the picked background, per background (what the preview draws, live, while you change them).
   const [bgDrafts, setBgDrafts] = useState<Record<string, BgLook>>({})
   // For a few seconds after a purchase its Buy button is an Undo (the API gives the window in seconds and takes the LX back whole).
@@ -193,6 +193,7 @@ export function ShopPage() {
 
   // The picked item counts only on the tab it belongs to: moving to another tab shows that tab's own first item, not the last one you looked at.
   const selected = inTab.find((item) => item.id === picked) ?? (tab === "featured" ? featured[0] : null) ?? shown[0] ?? featured[0] ?? null
+  useEffect(() => { setCustomizeOpen(false); setCustomizeMounted(false) }, [selected?.id])
   // The name colour and the name glow being tried together: the preview wears both, and each is bought on its own.
   const [combo, setCombo] = useState<{ name_color?: string; name_glow?: string }>({})
   useEffect(() => { setCombo({}) }, [tab])
@@ -485,14 +486,27 @@ export function ShopPage() {
     if (!panel) return null
     return (
       <div className="border-t border-[var(--line-soft)]">
-        <button type="button" aria-expanded={customizeOpen} onClick={() => setCustomizeOpen(!customizeOpen)} className="flex min-h-11 w-full items-center justify-between px-4 py-1.5 text-[12px] font-semibold uppercase tracking-wide text-[var(--text-2)] hover:text-[var(--text)]">
-          <span className="flex flex-col items-start gap-0.5 text-left">
-            Customize
-            <span className="text-[11px] font-normal normal-case tracking-normal text-[var(--text-dim)]">{selected?.owned ? "Change every setting, then save" : "Try every setting now; it is kept when you buy"}</span>
+        <button
+          type="button"
+          aria-expanded={customizeOpen}
+          onClick={() => { setCustomizeOpen(!customizeOpen); setCustomizeMounted(true) }}
+          className="group flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-[var(--raised)]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/60"
+        >
+          <span className={cn("grid size-8 shrink-0 place-items-center rounded-lg border transition-colors duration-300", customizeOpen ? "border-[var(--line-strong)] bg-[var(--card-surface)] text-[var(--text)]" : "border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]")}>
+            <SlidersHorizontal className="size-4" aria-hidden="true" />
           </span>
-          <ChevronDown className={cn("size-4 transition-transform duration-200", customizeOpen && "rotate-180")} aria-hidden="true" />
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span className="text-[13px] font-semibold text-[var(--text)]">Customize</span>
+            <span className="truncate text-[11px] text-[var(--text-dim)]">{selected?.owned ? "Change every setting, then save" : "Try every setting now; it is kept when you buy"}</span>
+          </span>
+          <ChevronDown className={cn("size-4 shrink-0 text-[var(--text-dim)] transition-transform duration-300 group-hover:text-[var(--text)]", customizeOpen && "rotate-180")} aria-hidden="true" />
         </button>
-        {customizeOpen && <div className={cn("p-3 pt-0", scroll && "max-h-[min(52vh,480px)] overflow-y-auto")}>{panel}</div>}
+        {/* Opens and closes by growing from zero height (a grid row going 0fr to 1fr), so nothing jumps; the settings mount on the first open. */}
+        <div className={cn("grid transition-[grid-template-rows,opacity] duration-300 ease-out motion-reduce:transition-none", customizeOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")} aria-hidden={!customizeOpen} inert={!customizeOpen}>
+          <div className="min-h-0 overflow-hidden">
+            {customizeMounted && <div className={cn("p-3 pt-1", scroll && "max-h-[min(52vh,480px)] overflow-y-auto")}>{panel}</div>}
+          </div>
+        </div>
       </div>
     )
   }
