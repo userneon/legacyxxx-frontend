@@ -51,6 +51,16 @@ const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "goods", label: "Goods" },
 ]
 
+/** The Shop's top row is grouped: what you wear on your profile (frames, backgrounds, name, grenades) sits under one Profile tab with its own row below. */
+const PROFILE_TABS: ShopTab[] = ["frame", "background", "name", "smoke_color"]
+const TOP_TABS: Array<{ value: "featured" | "profile" | "clan" | "cards" | "goods"; label: string }> = [
+  { value: "featured", label: "Featured" },
+  { value: "profile", label: "Profile" },
+  { value: "clan", label: "Clan" },
+  { value: "cards", label: "Cards" },
+  { value: "goods", label: "Goods" },
+]
+
 type ShopItem = FrameItem & { kind: ShopKind }
 
 /** What the item looks like: a frame around your picture, or your name painted with it. */
@@ -111,6 +121,9 @@ export function ShopPage() {
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
   const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", background: "backgrounds", name: "name", smoke_color: "smoke", clan: "clan", cards: "cards", goods: "goods" }, "featured")
+  // Which Profile sub-tab to return to when the Profile tab is tapped again.
+  const [lastProfileTab, setLastProfileTab] = useState<ShopTab>("frame")
+  useEffect(() => { if (PROFILE_TABS.includes(tab)) setLastProfileTab(tab) }, [tab])
   const [sort, setSort] = useState<"price-up" | "price-down" | "rarity">("price-up")
   const [show, setShow] = useState<"all" | "available" | "owned">("all")
   const [busy, setBusy] = useState(false)
@@ -532,7 +545,7 @@ export function ShopPage() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
-        <PageTabs<ShopTab> ariaLabel="Shop sections" value={tab} onChange={setTab} options={TABS} />
+        <PageTabs<(typeof TOP_TABS)[number]["value"]> ariaLabel="Shop sections" value={PROFILE_TABS.includes(tab) ? "profile" : (tab as "featured" | "clan" | "cards" | "goods")} onChange={(next) => setTab(next === "profile" ? lastProfileTab : next)} options={TOP_TABS} />
         {(tab === "featured" || tab === "frame" || tab === "background" || tab === "name" || tab === "smoke_color") && (
           <PageBarEnd className="max-md:hidden">
             <label className={cn(pageSearchClass, "max-md:hidden")}>
@@ -543,6 +556,11 @@ export function ShopPage() {
           </PageBarEnd>
         )}
       </PageBar>
+      {PROFILE_TABS.includes(tab) && (
+        <PageBar>
+          <PageTabs<ShopTab> ariaLabel="Profile items" value={tab} onChange={setTab} options={TABS.filter((entry) => PROFILE_TABS.includes(entry.value))} />
+        </PageBar>
+      )}
       {/* Not a scroller itself: the page panel around it scrolls, and a sticky rail sticks to the nearest scroller (an inner overflow-y-auto that never scrolled kept it from sticking). */}
       <div className="lx-glass-page min-h-0 flex-1 px-6 py-5 max-md:px-4">
         {tab === "goods" ? (
