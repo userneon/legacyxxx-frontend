@@ -1,6 +1,6 @@
 import CrystalizedBall from "@/components/reactbits/crystalized-ball"
 import { PlayerAvatar } from "@/components/player-avatar"
-import { resolveLook, type FrameLook } from "@/lib/frame-look"
+import { ORB_AVATAR, ORB_BALL, resolveLook, type FrameLook } from "@/lib/frame-look"
 
 /**
  * A round avatar inside the Crystal Orb: the picture sits in the middle and the glass ball, with its crackling rim and swirling dust,
@@ -9,11 +9,11 @@ import { resolveLook, type FrameLook } from "@/lib/frame-look"
  */
 export function OrbAvatar({ avatar, name, size, look, paused = false }: { avatar?: string; name?: string; size: number; look?: FrameLook | null; paused?: boolean }) {
   const resolved = resolveLook(look)
-  const inner = Math.round(size * 0.92)
+  const inner = Math.round(size * ORB_AVATAR)
   return (
     <span className="relative inline-flex shrink-0 items-center justify-center" style={{ width: size, height: size }}>
       <span aria-hidden="true" className="pointer-events-none absolute inset-0 z-10 block">
-        <CrystalizedBall size={0.98} {...resolved} theme="dark" paused={paused} />
+        <CrystalizedBall size={ORB_BALL} {...resolved} theme="dark" paused={paused} />
       </span>
       <PlayerAvatar avatar={avatar} name={name} style={{ width: inner, height: inner, fontSize: Math.round(inner * 0.34) }} className="relative z-0 text-[var(--text-2)]" />
     </span>

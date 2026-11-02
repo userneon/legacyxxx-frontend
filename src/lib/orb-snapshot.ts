@@ -2,7 +2,7 @@ import { createElement } from "react"
 import { createRoot } from "react-dom/client"
 
 import CrystalizedBall from "@/components/reactbits/crystalized-ball"
-import { resolveLook, type FrameLook } from "@/lib/frame-look"
+import { ORB_BALL, resolveLook, type FrameLook } from "@/lib/frame-look"
 
 /**
  * A still picture of a Crystal Orb. A page may hold only a handful of live WebGL canvases, so every orb that is not on a profile or in
@@ -32,7 +32,7 @@ function render(look: FrameLook | null | undefined): Promise<string | null> {
       resolve(url)
     }
     try {
-      root.render(createElement(CrystalizedBall, { ...resolveLook(look), size: 0.98, theme: "dark", interactive: false, intro: false, keepBuffer: true }))
+      root.render(createElement(CrystalizedBall, { ...resolveLook(look), size: ORB_BALL, theme: "dark", interactive: false, intro: false, keepBuffer: true }))
     } catch {
       return finish(null)
     }

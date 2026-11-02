@@ -25,6 +25,9 @@ export interface FrameLook {
 }
 
 export const ORB_ID = "crystal-orb"
+/** The ball is this share of the orb's box (the rest is room for its glow, which the canvas would cut flat at the box edge), and the avatar fills this share of the ball. */
+export const ORB_BALL = 0.78
+export const ORB_AVATAR = 0.92 * ORB_BALL
 export const ORB_DEFAULT_PARTICLES = 6000
 export const ORB_PRESETS: Preset[] = ["plasma", "aurora", "nebula", "ember", "frost", "solar", "eclipse", "abyss"]
 export const ORB_MOTIONS: Motion[] = ["rise", "fall", "drift", "orbit"]

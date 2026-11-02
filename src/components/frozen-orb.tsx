@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react"
 
-import type { FrameLook } from "@/lib/frame-look"
+import { ORB_AVATAR, type FrameLook } from "@/lib/frame-look"
 import { orbKey, orbSnapshot, orbSnapshotNow } from "@/lib/orb-snapshot"
 
-/** The orb's own diameter against the avatar's: the avatar fills 92% of it. */
-export const ORB_OVERFLOW = 1 / 0.92
+/** The orb's box against the avatar's: the avatar fills ORB_AVATAR of the box (the rest is the ball's rim and glow). */
+export const ORB_OVERFLOW = 1 / ORB_AVATAR
 
 /** A still orb drawn over a picture the page already shows: it overflows the box (which must be `relative`) and takes no room. */
 export function FrozenOrb({ look }: { look?: FrameLook | null }) {

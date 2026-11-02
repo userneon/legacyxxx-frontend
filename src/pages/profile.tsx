@@ -78,8 +78,8 @@ function Avatar({ user }: { user: ProfileOverview["user"] }) {
   // A round picture; the Steam animated avatar, when there is one, fades in over it. Wearing the Crystal Orb, the picture sits in the live orb (it overflows, so the header makes room).
   if (user.frame === ORB_ID) {
     return (
-      <span className="relative flex size-[180px] shrink-0 items-center justify-center">
-        <OrbAvatar avatar={user.avatar} name={user.username} size={180} look={user.frameLook} />
+      <span className="relative flex size-[160px] shrink-0 items-center justify-center">
+        <OrbAvatar avatar={user.avatar} name={user.username} size={160} look={user.frameLook} />
       </span>
     )
   }
