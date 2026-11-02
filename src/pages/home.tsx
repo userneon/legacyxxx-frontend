@@ -128,7 +128,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
               onBlur={() => setActiveMode(null)}
               style={{ animationDelay: `${120 + index * 80}ms`, flexGrow: isWide ? 2 : 1 }}
               className={cn(
-                "lx-fx-card lx-glass [--lx-grow-duration:1400ms] [--lx-grow-ease:cubic-bezier(0.45,0,0.25,1)] group relative flex min-h-[236px] min-w-0 basis-0 flex-col justify-end overflow-hidden rounded-xl p-5 text-left transition-[flex-grow,border-color,box-shadow] duration-[1400ms] ease-[cubic-bezier(0.45,0,0.25,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
+                "lx-fx-card lx-glass [--lx-grow-duration:1400ms] [--lx-grow-ease:cubic-bezier(0.45,0,0.25,1)] group relative flex h-[236px] min-w-0 basis-0 flex-col justify-end overflow-hidden rounded-xl p-5 text-left transition-[flex-grow,border-color,box-shadow] duration-[1400ms] ease-[cubic-bezier(0.45,0,0.25,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
                 isWide && "border-[var(--brand)]/60 shadow-[0_18px_40px_-20px_var(--brand)]",
               )}
             >
@@ -138,7 +138,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 aria-hidden="true"
                 loading="lazy"
                 className={cn(
-                  "pointer-events-none absolute bottom-0 right-0 h-[118%] w-auto max-w-none object-contain object-bottom transition-[opacity,translate] duration-[1400ms] ease-[cubic-bezier(0.45,0,0.25,1)]",
+                  "pointer-events-none absolute bottom-0 right-0 h-[278px] w-auto max-w-none transform-gpu object-contain object-bottom will-change-[translate,opacity] transition-[opacity,translate] duration-[1400ms] ease-[cubic-bezier(0.45,0,0.25,1)]",
                   isWide ? "translate-x-0 opacity-100" : "translate-x-2 opacity-25",
                 )}
               />
