@@ -137,7 +137,10 @@ export function ShopPage() {
   }, [undo])
   // How long the next purchase rents the item for; the price of each length is the API's.
   const [duration, setDuration] = useState<CosmeticDuration>("30d")
-  const priceFor = (item: ShopItem, length: CosmeticDuration = duration) => item.prices?.[length] ?? item.price
+  // Some items are rented for one length only (the Crystal Orb: 30 days); the API lists just the lengths it sells.
+  const lengthsOf = (item: ShopItem) => { const sold = COSMETIC_DURATIONS.filter((length) => item.prices?.[length.value] !== undefined); return sold.length ? sold : COSMETIC_DURATIONS }
+  const durationFor = (item: ShopItem): CosmeticDuration => (lengthsOf(item).some((length) => length.value === duration) ? duration : lengthsOf(item)[0].value)
+  const priceFor = (item: ShopItem, length: CosmeticDuration = durationFor(item)) => item.prices?.[length] ?? item.price
 
   const all: ShopItem[] = useMemo(() => [
     ...(data?.frames ?? []).map((item) => ({ ...item, kind: "frame" as const })),
@@ -188,14 +191,14 @@ export function ShopPage() {
   const buy = async (item: ShopItem) => {
     setBusy(true)
     try {
-      const bought = await cosmeticsService.buy(item.id, duration)
+      const bought = await cosmeticsService.buy(item.id, durationFor(item))
       window.dispatchEvent(new Event("legacyx:wallet-changed"))
       if (item.custom && (customDraft[item.id] || customDraft2[item.id])) {
         await cosmeticsService.saveCustom(item.id, customDraft[item.id] ?? (item.kind === "name_glow" ? item.glow : item.color) ?? "#d4d4d4", item.twoColours ? customDraft2[item.id] ?? item.color2 : null)
         dropDrafts(item.id)
       }
       await cosmeticsService.equip(item.kind, item.id)
-      toast.success(bought.expiresAt ? `${item.name} is yours for ${COSMETIC_DURATIONS.find((entry) => entry.value === duration)?.label.toLowerCase()} and now worn` : `${item.name} is yours for good and now worn`)
+      toast.success(bought.expiresAt ? `${item.name} is yours for ${COSMETIC_DURATIONS.find((entry) => entry.value === durationFor(item))?.label.toLowerCase()} and now worn` : `${item.name} is yours for good and now worn`)
       await Promise.all([refetch(), refetchWallet()])
       setUndo({ id: item.id, until: Date.now() + (bought.undoSeconds ?? 7) * 1000 })
       setJustBought(item.id)
@@ -325,24 +328,31 @@ export function ShopPage() {
         )}
         {rentable ? (
           <>
+            {lengthsOf(item).length === 1 ? (
+              <div className="flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px]">
+                <span className="flex items-center gap-2"><span className="text-[var(--text-dim)]">For</span><span className="font-semibold text-[var(--text)]">{lengthsOf(item)[0].label}</span></span>
+                <span className="flex items-center gap-1 font-semibold text-[var(--text)]"><LxMark size={12} />{priceFor(item).toLocaleString()}</span>
+              </div>
+            ) : (
             <Popover>
               <PopoverTrigger asChild>
                 <button type="button" aria-label="How long" className="group flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-left text-[13px] transition-colors hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-                  <span className="flex min-w-0 items-center gap-2"><span className="text-[var(--text-dim)]">For</span><span className="font-semibold text-[var(--text)]">{COSMETIC_DURATIONS.find((length) => length.value === duration)?.label}</span></span>
+                  <span className="flex min-w-0 items-center gap-2"><span className="text-[var(--text-dim)]">For</span><span className="font-semibold text-[var(--text)]">{COSMETIC_DURATIONS.find((length) => length.value === durationFor(item))?.label}</span></span>
                   <span className="flex items-center gap-2"><span className="flex items-center gap-1 font-semibold text-[var(--text)]"><LxMark size={12} />{priceFor(item).toLocaleString()}</span><ChevronDown className="size-3.5 text-[var(--text-dim)] transition-transform duration-200 group-data-[state=open]:rotate-180" /></span>
                 </button>
               </PopoverTrigger>
               <PopoverContent align="end" side="top" sideOffset={8} className="w-[var(--radix-popover-trigger-width)] min-w-[220px] rounded-xl border-[var(--line)] bg-[var(--panel)] p-1.5 shadow-[0_18px_44px_rgba(0,0,0,0.55)]">
                 <div role="radiogroup" aria-label="How long" className="flex flex-col">
-                  {COSMETIC_DURATIONS.map((length) => (
-                    <button key={length.value} type="button" role="radio" aria-checked={duration === length.value} onClick={() => setDuration(length.value)} className="flex h-9 items-center justify-between gap-3 rounded-lg px-2.5 text-left text-[13px] text-[var(--text-2)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)] aria-checked:text-[var(--text)]">
-                      <span className="flex items-center gap-2">{duration === length.value ? <Check className="size-3.5" aria-hidden="true" /> : <span className="size-3.5" aria-hidden="true" />}{length.label}</span>
+                  {lengthsOf(item).map((length) => (
+                    <button key={length.value} type="button" role="radio" aria-checked={durationFor(item) === length.value} onClick={() => setDuration(length.value)} className="flex h-9 items-center justify-between gap-3 rounded-lg px-2.5 text-left text-[13px] text-[var(--text-2)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)] aria-checked:text-[var(--text)]">
+                      <span className="flex items-center gap-2">{durationFor(item) === length.value ? <Check className="size-3.5" aria-hidden="true" /> : <span className="size-3.5" aria-hidden="true" />}{length.label}</span>
                       <span className="flex items-center gap-1 font-semibold"><LxMark size={12} />{priceFor(item, length.value).toLocaleString()}</span>
                     </button>
                   ))}
                 </div>
               </PopoverContent>
             </Popover>
+            )}
             {undoing
               ? (
                 <button type="button" disabled={busy} onClick={() => void undoBuy(item)} className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-[var(--line-strong)] bg-[var(--raised)] text-[13px] font-semibold text-[var(--text)] transition-colors hover:bg-[var(--card-surface)] disabled:opacity-60">

@@ -25,6 +25,7 @@ export interface FrameLook {
 }
 
 export const ORB_ID = "crystal-orb"
+export const ORB_DEFAULT_PARTICLES = 6000
 export const ORB_PRESETS: Preset[] = ["plasma", "aurora", "nebula", "ember", "frost", "solar", "eclipse", "abyss"]
 export const ORB_MOTIONS: Motion[] = ["rise", "fall", "drift", "orbit"]
 export const ORB_SHAPES: ParticleShape[] = ["square", "round"]
@@ -34,7 +35,8 @@ export function resolveLook(look: FrameLook | null | undefined): PresetValues & 
   const preset = look?.preset ?? "plasma"
   const base = BALL_PRESETS[preset]
   const own = Object.fromEntries(Object.entries(look ?? {}).filter(([, value]) => value !== undefined))
-  return { ...base, speed: 1, interactive: true, hoverStrength: 0.7, intro: true, ...own, preset } as PresetValues & { preset: Preset; speed: number; interactive: boolean; hoverStrength: number; intro: boolean }
+  // 6,000 particles unless the player picks more (the presets use 15,000 to 18,000, which is heavy for a profile; owner request 2026-11-02).
+  return { ...base, particleCount: ORB_DEFAULT_PARTICLES, speed: 1, interactive: true, hoverStrength: 0.7, intro: true, ...own, preset } as PresetValues & { preset: Preset; speed: number; interactive: boolean; hoverStrength: number; intro: boolean }
 }
 
 /** The knobs that are plain numbers: label, range and step, as the React Bits page has them. */
@@ -45,7 +47,7 @@ export const ORB_SLIDERS: Array<{ key: keyof FrameLook; label: string; min: numb
   { key: "crackle", label: "Crackle", min: 0, max: 1, step: 0.05 },
   { key: "flares", label: "Flares", min: 0, max: 1, step: 0.05 },
   { key: "sparks", label: "Sparks", min: 0, max: 1, step: 0.05 },
-  { key: "particleCount", label: "Particles", min: 2000, max: 30000, step: 1000 },
+  { key: "particleCount", label: "Particles", min: 2000, max: 15000, step: 1000 },
   { key: "fill", label: "Fill", min: 0, max: 1, step: 0.05 },
   { key: "depth", label: "Depth", min: 0, max: 1, step: 0.05 },
   { key: "twinkle", label: "Twinkle", min: 0, max: 1, step: 0.05 },
