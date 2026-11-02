@@ -565,6 +565,8 @@ export interface ClanMember {
   frame?: string | null
   frameLook?: import("@/lib/frame-look").FrameLook | null
   nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
+  /** When the member joined the clan. Absent from an older API. */
+  joinedAt?: string | null
   /** The member's real ranked numbers (null: no ranked profile) and linked FACEIT (null: none). Absent from an older API. */
   stats?: { rankId: number; rankName: string; rankImageKey: string; currentExp: number; matches: number; winRate: number | null; kd: number | null } | null
   faceit?: { username: string; elo: number; level: number } | null

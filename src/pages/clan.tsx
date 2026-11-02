@@ -323,6 +323,23 @@ function clanAccent(clan: ClanCard): string {
   return `hsl(${CLAN_HUES[hash % CLAN_HUES.length]} 70% 58%)`
 }
 
+/** Under a member's name in the roster: when they joined, and their share of the clan's EXP as a thin bar (both from the API's real numbers; left out when unknown). */
+function RosterSub({ joinedAt, exp, total }: { joinedAt?: string | null; exp: number | null; total: number }) {
+  const when = joinedAt && !Number.isNaN(Date.parse(joinedAt)) ? new Date(joinedAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : null
+  const share = exp !== null && total > 0 && exp > 0 ? Math.round((exp / total) * 100) : null
+  if (!when && share === null) return null
+  return (
+    <span className="flex items-center gap-2 text-[10px] leading-none text-[var(--text-dim)]">
+      {when && <span title="Joined the clan">Joined {when}</span>}
+      {share !== null && (
+        <span className="inline-flex items-center gap-1.5 max-md:hidden" title={`${share}% of the clan's EXP`}>
+          <span className="h-[3px] w-12 overflow-hidden rounded-full bg-[var(--raised)]"><span className="block h-full rounded-full bg-[var(--text-2)]" style={{ width: `${Math.max(4, share)}%` }} /></span>{share}%
+        </span>
+      )}
+    </span>
+  )
+}
+
 /** What a clan's card tells besides its name, all from the API: a line about it, its numbers, and who is in it. Left out piece by piece when the API has nothing. */
 function ClanCardPreview({ clan, accent, tint }: { clan: ClanCard; accent: string; tint: (percent: number) => string }) {
   const preview = clan.preview
@@ -618,14 +635,19 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                       <span className="w-[96px] shrink-0" />
                     </li>
                     {[...members].sort((x, y) => ROLE_ORDER.indexOf(x.role) - ROLE_ORDER.indexOf(y.role)).map((member, index) => {
+                      const totalExp = members.reduce((sum, entry) => sum + (entry.stats?.currentExp ?? 0), 0)
                       const ranked = member.role === "leader" || member.role === "co-leader"
                       return (
                         <li key={member.id} className="group relative flex h-14 items-center gap-1 border-b border-[var(--raised)] transition-[background-color] duration-500 last:border-b-0 hover:bg-[var(--raised)] hover:duration-200">
                           <span aria-hidden="true" className="absolute bottom-2 left-0 top-2 w-[3px] origin-center scale-y-0 rounded-r-full bg-[var(--brand-bright)] opacity-0 transition-[scale,opacity] duration-500 group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300" />
                           <button type="button" onClick={() => onProfileNavigate(member.steamId || member.id)} className="flex h-full min-w-0 flex-1 items-center gap-3 px-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--brand)]/60">
                             <span className="w-5 shrink-0 text-sm font-semibold text-[var(--text-muted)] transition-colors duration-300 group-hover:text-[var(--text)]">{index + 1}</span>
-                            <PlayerAvatar avatar={member.avatar} name={member.name} frame={member.frame} frameLook={member.frameLook} className="size-8 shrink-0 rounded-[9px] text-xs" />
-                            <span {...nameProps(member.nameStyle, "min-w-0 truncate text-[13px] font-medium")}>{member.name}{member.id === user?.id ? " (you)" : ""}</span>
+                            {/* A roster is a plain list: no frame light and no name glow (owner request 2026-11-02); the name keeps its colour. */}
+                            <PlayerAvatar avatar={member.avatar} name={member.name} className="size-8 shrink-0 rounded-[9px] text-xs" />
+                            <span className="flex min-w-0 flex-col gap-0.5">
+                              <span {...nameProps(member.nameStyle ? { ...member.nameStyle, glow: null, glowFx: null } : null, "min-w-0 truncate text-[13px] font-medium leading-tight")}>{member.name}{member.id === user?.id ? " (you)" : ""}</span>
+                              <RosterSub joinedAt={member.joinedAt} exp={member.stats?.currentExp ?? null} total={totalExp} />
+                            </span>
                             {ranked
                               ? <span className="inline-flex w-fit shrink-0 items-center gap-1 rounded-full border border-[color-mix(in_oklch,var(--brand-bright)_35%,transparent)] bg-[color-mix(in_oklch,var(--brand)_14%,transparent)] px-2 py-px text-[11px] font-semibold text-[var(--brand-bright)]">{member.role === "leader" && <Crown className="size-3" aria-hidden="true" />}{roleLabel(member.role)}</span>
                               : <span className="shrink-0 text-[11px] text-[var(--text-dim)]">{roleLabel(member.role)}</span>}
