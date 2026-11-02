@@ -56,7 +56,7 @@ type ShopItem = FrameItem & { kind: ShopKind }
 /** What the item looks like: a frame around your picture, or your name painted with it. */
 function ItemArt({ item, avatar, username, size, orb }: { item: ShopItem; avatar?: string; username: string; size: number; orb?: FrameLook | null }) {
   if (item.kind === "background") return <BgThumb id={item.id} className="w-[120px]" />
-  if (item.kind === "frame") return <FramedAvatar avatar={avatar} name={username} frame={item.id} look={orb} live size={size} />
+  if (item.kind === "frame") return <FramedAvatar avatar={avatar} name={username} frame={item.id} look={orb} live={size >= 120} size={size} />
   if (item.kind === "smoke_color") return <SmokePuff color={item.color} color2={item.color2} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "grenade_trail") return <GrenadeTrail color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "flash_effect") return <FlashEffect color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
@@ -130,6 +130,9 @@ export function ShopPage() {
   const [justBought, setJustBought] = useState<string | null>(null)
   // The Crystal Orb being tried in the preview (null: the one you saved). It is what the preview draws, live, while you change it.
   const [orbDraft, setOrbDraft] = useState<FrameLook | null>(null)
+  // The Crystal Orb and background settings are long: they sit behind a "Customize" strip, closed until asked for, and scroll inside their own box.
+  const [customizeOpen, setCustomizeOpen] = useState(false)
+  useEffect(() => { setCustomizeOpen(false) }, [picked])
   // The knobs being tried on the picked background, per background (what the preview draws, live, while you change them).
   const [bgDrafts, setBgDrafts] = useState<Record<string, BgLook>>({})
   // For a few seconds after a purchase its Buy button is an Undo (the API gives the window in seconds and takes the LX back whole).
@@ -403,7 +406,7 @@ export function ShopPage() {
           ) : (
             <div className="relative flex flex-col items-center gap-3 py-4">
               <span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} />
-              <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} look={orbDraft ?? data?.frameLook} live size={compact ? 88 : 120} />
+              <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} look={orbDraft ?? data?.frameLook} live={selected?.id === ORB_ID} size={compact ? 88 : 120} />
               <span {...nameProps(previewLook, cn("max-w-full truncate font-bold text-[var(--text)]", compact ? "text-[15px]" : "text-[19px]"))}>{username}</span>
             </div>
           )}
@@ -432,6 +435,21 @@ export function ShopPage() {
     />
   ) : null
 
+  /** The strip that opens the settings of the picked orb or background (they are long, so they never push the list down). */
+  const customizerBlock = (scroll: boolean) => {
+    const panel = orbPanel ?? bgPanel
+    if (!panel) return null
+    return (
+      <div className="border-t border-[var(--line-soft)]">
+        <button type="button" aria-expanded={customizeOpen} onClick={() => setCustomizeOpen(!customizeOpen)} className="flex h-9 w-full items-center justify-between px-4 text-[12px] font-semibold uppercase tracking-wide text-[var(--text-2)] hover:text-[var(--text)]">
+          Customize
+          <ChevronDown className={cn("size-4 transition-transform duration-200", customizeOpen && "rotate-180")} aria-hidden="true" />
+        </button>
+        {customizeOpen && <div className={cn("p-3 pt-0", scroll && "max-h-[min(52vh,480px)] overflow-y-auto")}>{panel}</div>}
+      </div>
+    )
+  }
+
   /** Every knob of the picked background, under its preview, before and after buying (saving needs it). */
   const pickedBg = selected?.kind === "background" ? bgById(selected.id) : null
   const bgLookNow = pickedBg ? bgDrafts[pickedBg.id] ?? data?.backgroundLooks?.[pickedBg.id] ?? {} : {}
@@ -457,8 +475,7 @@ export function ShopPage() {
     <div className="lx-add-box relative flex min-h-0 flex-col overflow-hidden rounded-[14px] border lg:max-h-[calc(100dvh-11rem)]">
         <div className="scrollbar-hidden flex min-h-0 flex-col gap-3 overflow-y-auto p-3.5">
           {previewStage()}
-          {orbPanel}
-          {bgPanel}
+          {customizerBlock(false)}
         </div>
         {selected && (
           <div className="shrink-0">
@@ -476,11 +493,14 @@ export function ShopPage() {
    * Phones keep the bottom sheet.
    */
   const spotlight = selected ? (
-    <div className="lx-add-box sticky top-0 z-10 hidden items-stretch overflow-hidden rounded-[14px] border bg-[var(--panel)] lg:flex">
+    <div className="lx-add-box sticky top-0 z-10 hidden overflow-hidden rounded-[14px] border bg-[var(--panel)] lg:block">
+      <div className="flex items-stretch">
       <div className="relative flex w-[240px] shrink-0 items-center justify-center border-r border-[var(--line-soft)] px-3 [&>div]:w-full">{previewStage(true)}</div>
       {tab === "name" && combo.name_color && combo.name_glow
         ? [combo.name_color, combo.name_glow].map((id) => all.find((item) => item.id === id)).filter((item): item is ShopItem => Boolean(item)).map((item, index) => <div key={item.id} className={cn("flex min-w-0 flex-1", index > 0 && "border-l border-[var(--line-soft)]")}>{buyBlock(item, true)}</div>)
         : buyBlock(selected, true)}
+      </div>
+      {customizerBlock(true)}
     </div>
   ) : null
 
@@ -515,8 +535,6 @@ export function ShopPage() {
           <div className="flex min-w-0 flex-col gap-5">
             {/* On Featured the Genesis card comes first: the bar waits until an item below it is picked. */}
             {(tab !== "featured" || picked !== null) && spotlight}
-            {(tab !== "featured" || picked !== null) && orbPanel && <div className="hidden lg:block">{orbPanel}</div>}
-            {(tab !== "featured" || picked !== null) && bgPanel && <div className="hidden lg:block">{bgPanel}</div>}
             <div className="flex min-w-0 flex-col gap-5">
               {tab === "featured" && featured.length > 0 && (
                 <section aria-label="Featured">

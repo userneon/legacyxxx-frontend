@@ -17,6 +17,7 @@ const chip = (active: boolean) => cn("inline-flex h-8 items-center rounded-full 
 export function OrbCustomizer({ avatar, name, owned, saved, busy, onSave, draft: controlled, onDraft, showPreview = true }: { avatar?: string; name?: string; owned: boolean; saved: FrameLook | null; busy: boolean; onSave: (look: FrameLook) => void; draft?: FrameLook; onDraft?: (look: FrameLook) => void; showPreview?: boolean }) {
   // Alone it keeps its own draft; the Shop hands it the draft its preview already shows (controlled), so what is changed moves in that preview.
   const [own, setOwn] = useState<FrameLook>(saved ?? {})
+  const [more, setMore] = useState(false)
   const draft = controlled ?? own
   const setDraft = (next: FrameLook) => (onDraft ?? setOwn)(next)
   const shown = resolveLook(draft)
@@ -46,7 +47,7 @@ export function OrbCustomizer({ avatar, name, owned, saved, busy, onSave, draft:
       </div>
 
       <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
-        {ORB_SLIDERS.map((slider) => {
+        {(more ? ORB_SLIDERS : ORB_SLIDERS.slice(0, 6)).map((slider) => {
           const value = shown[slider.key as keyof typeof shown] as number
           return (
             <label key={slider.key} className="flex flex-col gap-1">
@@ -57,10 +58,13 @@ export function OrbCustomizer({ avatar, name, owned, saved, busy, onSave, draft:
         })}
       </div>
 
-      <div className="flex flex-wrap gap-x-6 gap-y-2">
-        <Toggle label="Interactive" checked={shown.interactive} onChange={(interactive) => set({ interactive })} />
-        <Toggle label="Intro" checked={shown.intro} onChange={(intro) => set({ intro })} />
-      </div>
+      {more && (
+        <div className="flex flex-wrap gap-x-6 gap-y-2">
+          <Toggle label="Interactive" checked={shown.interactive} onChange={(interactive) => set({ interactive })} />
+          <Toggle label="Intro" checked={shown.intro} onChange={(intro) => set({ intro })} />
+        </div>
+      )}
+      <button type="button" onClick={() => setMore(!more)} className="self-start text-xs text-[var(--text-dim)] underline underline-offset-2 hover:text-[var(--text)]">{more ? "Fewer settings" : `All ${ORB_SLIDERS.length + 2} settings`}</button>
 
       <div className="flex flex-wrap items-center gap-2 border-t border-[var(--line-soft)] pt-3">
         <button type="button" disabled={busy || !owned || !changed} onClick={() => onSave(draft)} className="lx-primary-button inline-flex h-9 items-center gap-1.5 rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50"><Check className="size-4" aria-hidden="true" />Save my orb</button>
