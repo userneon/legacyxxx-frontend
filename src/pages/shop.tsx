@@ -73,7 +73,7 @@ function accentOf(item: ShopItem) {
 function Spot({ accent, height, children }: { accent: string; height: number; children: React.ReactNode }) {
   return (
     <div className="relative flex items-center justify-center overflow-hidden" style={{ height }}>
-      <span aria-hidden="true" className="absolute left-1/2 top-[46%] aspect-square w-[150%] -translate-x-1/2 -translate-y-1/2 opacity-35" style={{ background: `radial-gradient(circle, ${accent} 0%, transparent 58%)` }} />
+      <span aria-hidden="true" className="absolute inset-0 opacity-40" style={{ background: `radial-gradient(closest-side ellipse at 50% 46%, ${accent} 0%, transparent 100%)` }} />
       <span aria-hidden="true" className="absolute bottom-2.5 left-1/2 h-2.5 w-[56%] -translate-x-1/2" style={{ background: "radial-gradient(ellipse, rgba(0,0,0,.65), transparent 70%)" }} />
       <div className="relative z-[1] flex max-w-full items-center justify-center">{children}</div>
     </div>
