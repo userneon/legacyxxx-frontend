@@ -10,7 +10,7 @@ import { clansService, walletService, type MyClanState, type Wallet } from "@/ap
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { frameAccent, nameProps, timeLeft } from "@/lib/cosmetics"
-import { SAVED_KEY, daysLeft, endingSoon, rarityOf, readSaved } from "@/lib/shop-logic"
+import { SAVED_KEY, daysLeft, endingSoon, outfitTotal, rarityOf, readSaved } from "@/lib/shop-logic"
 import { ORB_ID, type FrameLook } from "@/lib/frame-look"
 import { OrbCustomizer } from "@/components/orb-customizer"
 import { BgCustomizer } from "@/components/bg-customizer"
@@ -129,6 +129,8 @@ export function ShopPage() {
   const [sort, setSort] = useState<"price-up" | "price-down" | "rarity">("price-up")
   const [show, setShow] = useState<"all" | "available" | "owned" | "saved">("all")
   // Items you marked to come back to; kept in this browser only.
+  // Items put aside to buy together as one outfit (one per kind at a time); only what is not owned yet counts.
+  const [tray, setTray] = useState<string[]>([])
   const [saved, setSaved] = useState<string[]>(() => readSaved(typeof localStorage === "undefined" ? null : localStorage))
   const toggleSaved = (id: string) => setSaved((current) => {
     const next = current.includes(id) ? current.filter((entry) => entry !== id) : [id, ...current].slice(0, 200)
@@ -214,12 +216,31 @@ export function ShopPage() {
   }
 
   // The preview wears the item you look at, and whatever you already wear of the other kinds.
-  const previewOf = (kind: ShopKind) => (kind === "name_color" || kind === "name_glow" ? all.find((item) => item.id === combo[kind]) : undefined) ?? (selected?.kind === kind ? selected : all.find((item) => item.kind === kind && item.id === worn[kind])) ?? null
+  const previewOf = (kind: ShopKind) => (kind === "name_color" || kind === "name_glow" ? all.find((item) => item.id === combo[kind]) : undefined) ?? (selected?.kind === kind ? selected : all.find((item) => item.kind === kind && tray.includes(item.id)) ?? all.find((item) => item.kind === kind && item.id === worn[kind])) ?? null
   const previewFrame = previewOf("frame")
   const previewColor = previewOf("name_color")
   const previewGlow = previewOf("name_glow")
   const previewLook = { color: (previewColor && customDraft[previewColor.id]) || previewColor?.color || null, colorFx: previewColor?.fx ?? null, glow: (previewGlow && customDraft[previewGlow.id]) || previewGlow?.glow || null, glowFx: previewGlow?.fx ?? null }
 
+
+  /** After a purchase: keep what was tried on the item (colours, orb or background settings) and wear it. */
+  const settle = async (item: ShopItem) => {
+    try {
+      const keep: Array<Promise<unknown>> = []
+      if (item.custom && (customDraft[item.id] || customDraft2[item.id])) {
+        keep.push(cosmeticsService.saveCustom(item.id, customDraft[item.id] ?? (item.kind === "name_glow" ? item.glow : item.color) ?? "#d4d4d4", item.twoColours ? customDraft2[item.id] ?? item.color2 : null).then(() => dropDrafts(item.id)))
+      }
+      // What was tried before buying is kept: the orb's or the background's settings are saved the moment it is yours.
+      if (item.id === ORB_ID && orbDraft) keep.push(cosmeticsService.saveFrameLook(orbDraft).then(() => setOrbDraft(null)))
+      if (item.kind === "background" && bgDrafts[item.id]) {
+        keep.push(cosmeticsService.saveBackgroundLook(item.id, bgDrafts[item.id]).then(() => setBgDrafts((current) => { const { [item.id]: _kept, ...rest } = current; return rest })))
+      }
+      keep.push(cosmeticsService.equip(item.kind, item.id))
+      await Promise.all(keep)
+    } catch (caught) {
+      toast.error("It is yours, but it could not be set up", { description: caught instanceof Error ? caught.message : "Wear it from the Shop in a moment." })
+    }
+  }
 
   const buy = async (item: ShopItem) => {
     setBusy(true)
@@ -238,21 +259,7 @@ export function ShopPage() {
     window.setTimeout(() => setJustBought((current) => (current === item.id ? null : current)), 1400)
     setBusy(false)
     toast.success(bought.expiresAt ? `${item.name} is yours for ${COSMETIC_DURATIONS.find((entry) => entry.value === durationFor(item))?.label.toLowerCase()} and now worn` : `${item.name} is yours for good and now worn`)
-    try {
-      const keep: Array<Promise<unknown>> = []
-      if (item.custom && (customDraft[item.id] || customDraft2[item.id])) {
-        keep.push(cosmeticsService.saveCustom(item.id, customDraft[item.id] ?? (item.kind === "name_glow" ? item.glow : item.color) ?? "#d4d4d4", item.twoColours ? customDraft2[item.id] ?? item.color2 : null).then(() => dropDrafts(item.id)))
-      }
-      // What was tried before buying is kept: the orb's or the background's settings are saved the moment it is yours.
-      if (item.id === ORB_ID && orbDraft) keep.push(cosmeticsService.saveFrameLook(orbDraft).then(() => setOrbDraft(null)))
-      if (item.kind === "background" && bgDrafts[item.id]) {
-        keep.push(cosmeticsService.saveBackgroundLook(item.id, bgDrafts[item.id]).then(() => setBgDrafts((current) => { const { [item.id]: _kept, ...rest } = current; return rest })))
-      }
-      keep.push(cosmeticsService.equip(item.kind, item.id))
-      await Promise.all(keep)
-    } catch (caught) {
-      toast.error("It is yours, but it could not be set up", { description: caught instanceof Error ? caught.message : "Wear it from the Shop in a moment." })
-    }
+    await settle(item)
     await Promise.all([refetch(), refetchWallet()])
     window.dispatchEvent(new Event("legacyx:appearance-changed"))
   }
@@ -267,6 +274,44 @@ export function ShopPage() {
       window.dispatchEvent(new Event("legacyx:appearance-changed"))
     } catch (caught) {
       toast.error("Could not change it", { description: caught instanceof Error ? caught.message : "Try again in a moment." })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  /** Buy the whole outfit one item after another: it stops at the first that fails, and says what was bought. */
+  const buyMany = async (items: ShopItem[]) => {
+    setBusy(true)
+    const done: ShopItem[] = []
+    for (const item of items) {
+      try {
+        await cosmeticsService.buy(item.id, durationFor(item))
+        done.push(item)
+      } catch (caught) {
+        toast.error(`Stopped at ${item.name}`, { description: caught instanceof Error ? caught.message : "Try again in a moment." })
+        break
+      }
+    }
+    setBusy(false)
+    if (!done.length) return
+    window.dispatchEvent(new Event("legacyx:wallet-changed"))
+    setTray((current) => current.filter((id) => !done.some((item) => item.id === id)))
+    toast.success(done.length === 1 ? `${done[0].name} is yours and now worn` : `${done.length} items are yours and now worn`, { duration: 7000, action: { label: "Undo all", onClick: () => void undoMany(done) } })
+    for (const item of done) await settle(item)
+    await Promise.all([refetch(), refetchWallet()])
+    window.dispatchEvent(new Event("legacyx:appearance-changed"))
+  }
+
+  const undoMany = async (items: ShopItem[]) => {
+    setBusy(true)
+    try {
+      for (const item of items) await cosmeticsService.undoBuy(item.id)
+      window.dispatchEvent(new Event("legacyx:wallet-changed"))
+      toast.success("Purchases undone, your LX are back")
+      await Promise.all([refetch(), refetchWallet()])
+      window.dispatchEvent(new Event("legacyx:appearance-changed"))
+    } catch (caught) {
+      toast.error("Could not undo it", { description: caught instanceof Error ? caught.message : "Try again in a moment." })
     } finally {
       setBusy(false)
     }
@@ -358,6 +403,30 @@ export function ShopPage() {
   /** A grid of cards, one per design. */
   const grid = (list: ShopItem[], tight = false) => <ShopGrid list={list} card={card} tight={tight} />
 
+  /** One item per kind in the outfit: adding a second background replaces the first. */
+  const toggleTray = (item: ShopItem) => setTray((current) => (current.includes(item.id) ? current.filter((id) => id !== item.id) : [...current.filter((id) => all.find((other) => other.id === id)?.kind !== item.kind), item.id]))
+  const trayItems = tray.map((id) => all.find((item) => item.id === id)).filter((item): item is ShopItem => Boolean(item) && !item!.owned && item!.unlock === "coin")
+  const outfit = outfitTotal(trayItems.map((item) => ({ owned: item.owned, price: priceFor(item) })), balance)
+  const outfitPanel = trayItems.length > 0 ? (
+    <section aria-label="Outfit" className="flex flex-col gap-2.5 border-t border-[var(--line-soft)] px-4 py-3.5">
+      <div className="flex items-baseline justify-between"><span className="text-[13px] font-semibold text-[var(--text)]">Outfit</span><span className="text-[11px] text-[var(--text-dim)]">{trayItems.length} {trayItems.length === 1 ? "item" : "items"}</span></div>
+      <ul className="flex flex-col gap-1.5">
+        {trayItems.map((item) => (
+          <li key={item.id} className="flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--card-surface)] py-1.5 pl-2.5 pr-1.5 text-[12px]">
+            <span className="min-w-0 flex-1 truncate text-[var(--text)]">{item.name}</span>
+            <span className="inline-flex items-center gap-1 font-semibold text-[var(--text-2)]"><LxMark size={12} />{priceFor(item).toLocaleString()}</span>
+            <button type="button" aria-label={`Take ${item.name} out of the outfit`} onClick={() => toggleTray(item)} className="grid size-6 place-items-center rounded-md text-[var(--text-dim)] hover:bg-[var(--raised)] hover:text-[var(--text)]"><X className="size-3.5" /></button>
+          </li>
+        ))}
+      </ul>
+      <div className="flex items-baseline justify-between text-[12px]"><span className="text-[var(--text-dim)]">Total</span><span className="text-[15px] font-semibold text-[var(--text)]">{outfit.total.toLocaleString()} LX</span></div>
+      {!outfit.affordable && balance !== null && <p className="text-[11px] text-[var(--text-dim)]">You need {(outfit.total - balance).toLocaleString()} more LX.</p>}
+      <button type="button" disabled={busy} onClick={() => (outfit.affordable ? void buyMany(trayItems) : (setSheetOpen(false), navigate("/wallet/top-up")))} className="lx-primary-button inline-flex h-10 w-full items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-60">
+        {outfit.affordable ? `Buy outfit for ${outfit.total.toLocaleString()} LX` : "Top up"}
+      </button>
+    </section>
+  ) : null
+
   const buyBlock = (item: ShopItem, inline = false) => {
     const isWorn = worn[item.kind] === item.id
     // Yours for good: nothing to buy. Anything sold with LX that is not (not owned, or only rented) can be bought or extended.
@@ -431,6 +500,11 @@ export function ShopPage() {
                   : afford ? `${item.owned ? "Extend" : "Buy"} for ${cost.toLocaleString()} LX` : `Top up ${(cost - (balance ?? 0)).toLocaleString()} more LX`}
               </span>
             </button>
+            {!undoing && !item.owned && item.unlock === "coin" && (
+              <button type="button" onClick={() => toggleTray(item)} aria-pressed={tray.includes(item.id)} className="inline-flex h-9 w-full items-center justify-center rounded-lg border border-[var(--line)] text-[12px] font-semibold text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)]">
+                {tray.includes(item.id) ? "Remove from outfit" : "Add to outfit"}
+              </button>
+            )}
           </>
         ) : !item.owned ? (
           <p className="text-xs text-[var(--text-dim)]">{item.requirement || "Earned in game, not for sale."}</p>
@@ -554,6 +628,7 @@ export function ShopPage() {
             {tab === "name" && combo.name_color && combo.name_glow
               ? [combo.name_color, combo.name_glow].map((id) => all.find((item) => item.id === id)).filter((item): item is ShopItem => Boolean(item)).map((item) => <div key={item.id}>{buyBlock(item)}</div>)
               : buyBlock(selected)}
+            {outfitPanel}
           </div>
         )}
       </div>

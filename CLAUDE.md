@@ -41,7 +41,7 @@ The earlier orange `#ff5a1f` exception was dropped and no longer exists in `src/
   `#2e1065`, `--brand-on` `#f5f3ff`. Violet is used sparingly (owner request 2026-10-01: too much of it).
   It belongs to: the wordmark's "-X", the active sidebar item, the Home hero's accent word and the soft glow behind its art, the flagship "Players Online" figure, the #1 leader
   and the viewer's own row, the active sort column, the Pro League card, the rank/EXP progress fill, the "equipped" verified seal
-  on Skinchanger cards and the Owner badge, and **the Shop** (owner request 2026-10-24; the picked item lives in the **Spotlight bar** across the top of the list since 2026-10-26, owner pick "S8": the item on you at the left, its colours, then length and Buy at the right, stuck while the list scrolls; on the Featured tab it appears only once an item is picked, so the Genesis card is the first thing there; phones keep the bottom sheet; whole-page violet look: `.lx-shop-tile` cards that light up and carry the brand border when picked, `.lx-shop-price` pills, `.lx-shop-heading` bars, the preview stage as an add-box, a soft violet light behind the page; buttons stay white). No other page has a glow or a hero banner (owner request 2026-10-06; Home keeps its hero): a page starts with
+  on Skinchanger cards and the Owner badge, and **the Shop** (owner request 2026-10-24; since 2026-11-02 (owner request: "the shop looks bad, make it premium and its own") the page is one level deep: the top bar is Cosmetics, Clan, Cards, Goods, and under Cosmetics five **slot cards** (Featured, Frames, Backgrounds, Name, Grenades) say what you wear now and when it ends; on a wide screen you, wearing what you look at, with its Buy block, Customize and the **Outfit** (items put aside with "Add to outfit", bought together, with "Undo all") stay in view beside the list, and phones keep the bottom sheet; tiles carry a thin rarity line on the site's own ladder (Standard, Select, Elite, Prime; `lib/shop-logic.ts`), a heart to save an item for later (kept in this browser only) and an **Ending soon** strip lists what runs out within the week; whole-page violet look: `.lx-shop-tile` cards that light up and carry the brand border when picked, `.lx-shop-price` pills, `.lx-shop-heading` bars, the preview stage as an add-box, a soft violet light behind the page; buttons stay white). No other page has a glow or a hero banner (owner request 2026-10-06; Home keeps its hero): a page starts with
   `PageBar` (`components/page-tabs.tsx`: underlined tabs on the left, hint and controls on the right, one hairline) and the page
   name lives in the top bar. Everything else is neutral: section-heading bars
   (`--text-faint`), hover borders (`--line-strong`), hover fills (`--raised`), focus rings (`--accent-solid`),
@@ -280,6 +280,7 @@ only as a thin indicator on skin tiles/equipped weapon cards, never as backgroun
 
 ```bash
 npm ci                                   # install from the checked-in lockfile
+npm test                                 # vitest (the pure rules in `src/lib/*.test.ts`)
 VITE_API_URL=<api origin> npm run dev    # dev server
 npm run build                            # production bundle
 npm run check:colors                     # palette lint — must pass before commit
