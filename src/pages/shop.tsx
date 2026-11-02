@@ -82,6 +82,24 @@ function accentOf(item: ShopItem) {
   return item.kind === "frame" ? frameAccent(item.id) : item.color ?? item.glow ?? "var(--text-2)"
 }
 
+/**
+ * The picked background in the preview: its still picture shows at once while the live one loads, then the picture fades away so the two are never
+ * seen on top of each other (a live background can be see-through, and its picture would show behind it).
+ */
+function BgPreview({ id, look }: { id: string; look: BgLook }) {
+  const [still, setStill] = useState(true)
+  useEffect(() => {
+    const timer = window.setTimeout(() => setStill(false), 1100)
+    return () => window.clearTimeout(timer)
+  }, [])
+  return (
+    <>
+      <div aria-hidden="true" className={cn("pointer-events-none absolute inset-0 transition-opacity duration-500", still ? "opacity-100" : "opacity-0")}><BgThumb id={id} fill /></div>
+      <div className="absolute inset-0"><BackgroundScene id={id} look={look} /></div>
+    </>
+  )
+}
+
 /** A soft light in the item's own colour behind the art, and a shadow on the floor under it. A background's picture fills the whole box instead. */
 function Spot({ accent, height, children, fill }: { accent: string; height: number; children: React.ReactNode; fill?: boolean }) {
   if (fill) return <div className="relative overflow-hidden rounded-lg" style={{ height }}>{children}</div>
@@ -535,9 +553,7 @@ export function ShopPage() {
       <>
           {selected?.kind === "background" ? (
             <div className={cn("overflow-hidden bg-[var(--card-surface)] [&>div]:size-full", compact ? "absolute inset-0" : "relative h-[150px] w-full rounded-lg")}>
-              {/* In the Spotlight bar it fills the whole box beside the details. The still picture shows at once; the live background loads over it (it is a heavy script and a canvas). */}
-              <BgThumb id={selected.id} fill />
-              <div className="absolute inset-0"><BackgroundScene key={selected.id} id={selected.id} look={bgLookNow} /></div>
+              <BgPreview key={selected.id} id={selected.id} look={bgLookNow} />
             </div>
           ) : selected?.kind === "grenade_trail" ? (
             <div className="relative flex items-center justify-center py-4"><GrenadeTrail key={`${selected.id}${tried(selected).fx}`} color={tried(selected).color} shape={tried(selected).fx} className={effect} /></div>
