@@ -1,12 +1,11 @@
 import { get, post, put, type CallOptions } from "./client"
 
-/** How long a bought cosmetic is rented for; "forever" is yours for good. */
-export type CosmeticDuration = "1d" | "7d" | "30d" | "forever"
+/** How long a bought cosmetic is rented for (owner request 2026-11-02: 1, 7 or 30 days for every item, nothing for good). */
+export type CosmeticDuration = "1d" | "7d" | "30d"
 export const COSMETIC_DURATIONS: Array<{ value: CosmeticDuration; label: string }> = [
   { value: "1d", label: "1 day" },
   { value: "7d", label: "7 days" },
   { value: "30d", label: "30 days" },
-  { value: "forever", label: "Forever" },
 ]
 
 /** Avatar frames, name colours and name glows (backend GET /cosmetics). Purely visual: nothing here changes gameplay or EXP. */

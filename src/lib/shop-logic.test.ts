@@ -15,7 +15,7 @@ describe("rarityOf", () => {
 })
 
 describe("daysLeft", () => {
-  it("counts whole days up, none for forever, 0 once past", () => {
+  it("counts whole days up, none when there is no end, 0 once past", () => {
     expect(daysLeft("2026-11-05T12:00:00Z", NOW)).toBe(3)
     expect(daysLeft("2026-11-02T13:00:00Z", NOW)).toBe(1)
     expect(daysLeft("2026-11-01T12:00:00Z", NOW)).toBe(0)

@@ -26,7 +26,7 @@ function withRentals<T extends Record<string, unknown>>(cosmetics: T): T {
   const rent = (list: unknown) => (Array.isArray(list) ? list.map((item) => {
     const entry = item as { id: string; unlock: string; price: number; owned: boolean }
     if (entry.unlock !== "coin") return item
-    const prices = { "1d": Math.round(entry.price * 0.25), "7d": Math.round(entry.price * 0.6), "30d": entry.price, forever: entry.price * 3 }
+    const prices = { "1d": Math.round(entry.price * 0.25), "7d": Math.round(entry.price * 0.6), "30d": entry.price }
     return { ...entry, prices, ...(entry.owned ? { expiresAt: new Date(Date.now() + 7 * 86_400_000).toISOString() } : {}) }
   }) : list)
   return Object.fromEntries(Object.entries(cosmetics).map(([key, value]) => [key, rent(value)])) as T
