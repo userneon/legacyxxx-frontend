@@ -16,6 +16,8 @@ import { OrbCustomizer } from "@/components/orb-customizer"
 import { BgCustomizer } from "@/components/bg-customizer"
 import { BgThumb } from "@/components/bg-thumb"
 import { BackgroundScene, bgById, type BgLook } from "@/lib/backgrounds"
+import StarBorder from "@/components/reactbits/star-border"
+import ShinyText from "@/components/reactbits/shiny-text"
 import { SmokePuff } from "@/components/smoke-puff"
 import { GrenadeLight, GrenadeTrail } from "@/components/grenade-trail"
 import { FlashEffect } from "@/components/flash-effect"
@@ -487,19 +489,31 @@ export function ShopPage() {
               </PopoverContent>
             </Popover>
             )}
-            {/* One button for both: Buy turns into Undo in the same place, and Wear it only comes once the Undo time is over. */}
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => (undoing ? void undoBuy(item) : afford ? void buy(item) : (setSheetOpen(false), navigate("/wallet/top-up")))}
-              className={cn("inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg text-[13px] font-semibold transition-[background-color,border-color,color] duration-300 disabled:opacity-60", undoing ? "border border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text)] hover:bg-[var(--card-surface)]" : "lx-primary-button")}
-            >
-              <span key={undoing ? "undo" : "buy"} className="lx-swap-in inline-flex items-center gap-2">
-                {undoing
-                  ? <><Undo2 className="size-4" />Undo ({undoLeft}s)</>
-                  : afford ? `${item.owned ? "Extend" : "Buy"} for ${cost.toLocaleString()} LX` : `Top up ${(cost - (balance ?? 0)).toLocaleString()} more LX`}
-              </span>
-            </button>
+            {/* One place for both: Buy (a React Bits Star Border with Shiny Text) turns into Undo, and Wear it only comes once the Undo time is over. */}
+            {undoing ? (
+              <button type="button" disabled={busy} onClick={() => void undoBuy(item)} className="lx-swap-in inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-[var(--line-strong)] bg-[var(--raised)] text-[13px] font-semibold text-[var(--text)] transition-colors hover:bg-[var(--card-surface)] disabled:opacity-60">
+                <Undo2 className="size-4" />Undo ({undoLeft}s)
+              </button>
+            ) : (
+              <StarBorder
+                as="button"
+                type="button"
+                disabled={busy}
+                onClick={() => (afford ? void buy(item) : (setSheetOpen(false), navigate("/wallet/top-up")))}
+                className="lx-swap-in h-10 w-full text-[13px] font-semibold"
+                radius={8}
+                thickness={1}
+                duration={5}
+                trailLength={0.28}
+                glow={0.35}
+                color="#c4b5fd"
+                backgroundColor="#262626"
+                borderColor="#404040"
+                textColor="#fafafa"
+              >
+                <ShinyText text={afford ? `${item.owned ? "Extend" : "Buy"} for ${cost.toLocaleString()} LX` : `Top up ${(cost - (balance ?? 0)).toLocaleString()} more LX`} speed={3.2} delay={1.4} shineWidth={0.35} color="#fafafa" shineColor="#a78bfa" />
+              </StarBorder>
+            )}
             {!undoing && !item.owned && item.unlock === "coin" && (
               <button type="button" onClick={() => toggleTray(item)} aria-pressed={tray.includes(item.id)} className="inline-flex h-9 w-full items-center justify-center rounded-lg border border-[var(--line)] text-[12px] font-semibold text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)]">
                 {tray.includes(item.id) ? "Remove from outfit" : "Add to outfit"}
