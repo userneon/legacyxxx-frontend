@@ -127,7 +127,7 @@ export function OrderDialog({ product, onClose, onDone }: { product: GoodsProduc
     <Dialog open={Boolean(product)} onOpenChange={(open) => { if (!open) onClose() }}>
       <DialogContent className="rounded-2xl">
         <DialogHeader>
-          <DialogTitle>{product?.kind === "lx" ? "Top up" : "Order"} {product?.name}</DialogTitle>
+          <DialogTitle>Order {product?.name}</DialogTitle>
           <DialogDescription>We call to confirm. You pay with QPay.</DialogDescription>
         </DialogHeader>
         {product && (

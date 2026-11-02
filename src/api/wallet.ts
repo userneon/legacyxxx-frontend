@@ -53,7 +53,43 @@ export interface Wallet {
   summary?: WalletSummary | null
 }
 
+/** A QPay top-up: the invoice the player pays in a bank app, and where it stands (backend POST /wallet/topup). */
+export interface TopUp {
+  id: string
+  productId: string
+  amountMnt: number
+  grantsLx: number
+  status: "pending" | "paid" | "expired" | "failed"
+  createdAt: string
+  paidAt: string | null
+}
+export interface TopUpInvoice extends TopUp {
+  name: string
+  /** The QR picture as base64 (PNG), from QPay. */
+  qrImage: string
+  qrText: string
+  shortUrl: string
+  /** One link per bank app; only the invoice's own, from QPay. */
+  links: Array<{ name: string; description: string; logo: string; link: string }>
+  expiresInMinutes: number
+}
+
 export const walletService = {
+  /** Whether the site can take QPay payments right now (the merchant is set up). */
+  async topUpAvailable(options?: CallOptions): Promise<boolean> {
+    return (await get<{ available: boolean }>("/api/v1/wallet/topup/status", undefined, options)).available
+  },
+  async startTopUp(productId: string): Promise<TopUpInvoice> {
+    return post<TopUpInvoice>("/api/v1/wallet/topup", { productId })
+  },
+  /** Asks QPay about the invoice; the LX are added by the server the moment it is paid. */
+  async topUp(id: string, options?: CallOptions): Promise<TopUp> {
+    return get<TopUp>(`/api/v1/wallet/topup/${id}`, undefined, options)
+  },
+  async myTopUps(options?: CallOptions): Promise<TopUp[]> {
+    return (await get<{ topups: TopUp[] }>("/api/v1/wallet/topups", undefined, options)).topups
+  },
+
   async getMine(options?: CallOptions): Promise<Wallet> {
     return get<Wallet>("/api/v1/wallet/me", undefined, options)
   },

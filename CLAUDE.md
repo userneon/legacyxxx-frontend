@@ -148,6 +148,12 @@ Skin collection page (owner request 2026-10-27, `src/pages/skin-collection.tsx`)
 
 Four cards (5x5, Fun, Pro League, Tournaments), each with a pill, title, one line, a real status and a CS2 agent picture (`src/assets/home/mode-*.webp`, owner-supplied, transparent) at the right. The card under the pointer (5x5 by default) is the wide one: bright picture, a violet border and soft glow underneath, and a white "Play now"; the others keep their picture dim. No server counts or rank gates are shown, since the API has no per-mode figure for them.
 
+### Top up with QPay (owner request 2026-11-02)
+
+Wallet → Top up pays an LX package with **QPay only**, fully automatic; the staff-call orders for LX packages are gone (`POST /shop/orders` refuses `kind: lx`, staff can no longer credit LX by hand). The page asks `POST /wallet/topup`
+for an invoice and opens `QpayPayDialog` (`components/qpay-pay-dialog.tsx`): QR code and bank-app links from QPay, a 30-minute clock, a check every 4 s (`GET /wallet/topup/:id`). The server asks QPay itself and adds the LX once, when QPay says PAID for the whole price
+(`wallet_apply` ref `qpay:<id>`); a callback (`/public/qpay/callback/:id`) only nudges that check. Merchant credentials are API environment variables (`QPAY_CLIENT_ID`, `QPAY_CLIENT_SECRET`, `QPAY_INVOICE_CODE`), never in this repo; without them the page says QPay is not set up. Real data only.
+
 ### Play (owner pick 2026-10-11, design "D")
 
 (A boxes-in-a-grid layout was tried on 2026-10-26 and taken back the same day, owner request: the cards looked like other servers' sites.)

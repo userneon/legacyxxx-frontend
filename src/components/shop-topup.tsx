@@ -1,18 +1,19 @@
 /**
- * The Shop's Top up tab: pick an LX package, see what the balance becomes and what it buys, send the request. Staff call, take the
- * payment with QPay and mark it paid; the LX then arrive in the wallet on their own. Everything comes from the API.
+ * The Shop's Top up tab: pick an LX package, see what the balance becomes and what it buys, and pay it with QPay (owner request
+ * 2026-11-02). The server makes the QPay invoice and adds the LX once QPay says it is paid. Everything comes from the API.
  */
 import { useEffect, useMemo, useState } from "react"
 import { Check, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
 
 import { walletService, type Wallet } from "@/api"
-import { shopGoodsService, type GoodsOrder, type GoodsProduct } from "@/api/shop-goods"
+import { shopGoodsService, type GoodsProduct } from "@/api/shop-goods"
+import type { TopUp, TopUpInvoice } from "@/api/wallet"
 import qpayLogo from "@/assets/payments/qpay.svg"
 import { AnimatedNumber } from "@/components/animated-number"
 import { LxMark } from "@/components/lx-mark"
 import { RelativeTime } from "@/components/relative-time"
-import { OrderDialog } from "@/components/shop-goods"
+import { QpayPayDialog } from "@/components/qpay-pay-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
@@ -23,26 +24,21 @@ const label = "text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--
 
 const STEPS = [
   { title: "Pick a package" },
-  { title: "We call you" },
-  { title: "You pay with QPay" },
-  { title: "LX reach your wallet" },
+  { title: "Scan the QR or open your bank app" },
+  { title: "LX reach your wallet at once" },
 ]
 
-/** Where a top-up order stands: 0 sent, 1 called, 2 paid (the LX are in the wallet). -1 cancelled. */
-function stage(status: GoodsOrder["status"]) {
-  if (status === "cancelled") return -1
-  if (status === "new") return 0
-  if (status === "contacted") return 1
-  return 2
-}
+const STATE_LABEL: Record<TopUp["status"], string> = { pending: "Waiting for payment", paid: "Paid · LX added", expired: "Expired", failed: "Failed" }
 
 export function ShopTopUp() {
   const { user } = useAuth()
   const products = useApiQuery<GoodsProduct[]>((signal) => shopGoodsService.products({ signal }), { queryKey: "shop-goods" })
-  const orders = useApiQuery<GoodsOrder[]>((signal) => shopGoodsService.myOrders({ signal }), { enabled: Boolean(user), queryKey: user ? `shop-orders:${user.id}` : "shop-orders:guest" })
+  const topUpsQuery = useApiQuery<TopUp[]>((signal) => walletService.myTopUps({ signal }), { enabled: Boolean(user), queryKey: user ? `topups:${user.id}` : "topups:guest" })
+  const availability = useApiQuery<boolean>((signal) => walletService.topUpAvailable({ signal }), { queryKey: "topup-available" })
   const wallet = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const [picked, setPicked] = useState<string | null>(null)
-  const [ordering, setOrdering] = useState<GoodsProduct | null>(null)
+  const [invoice, setInvoice] = useState<TopUpInvoice | null>(null)
+  const [starting, setStarting] = useState(false)
 
   const packages = useMemo(() => (products.data ?? []).filter((product) => product.kind === "lx" && product.grantsLx > 0).sort((a, b) => a.priceMnt - b.priceMnt), [products.data])
   const balance = wallet.data?.balance ?? null
@@ -60,7 +56,26 @@ export function ShopTopUp() {
   }, [packages, picked, balance, clanPrice])
 
   const selected = packages.find((pack) => pack.id === picked) ?? null
-  const topUps = (orders.data ?? []).filter((order) => order.productKind === "lx")
+  const topUps = topUpsQuery.data ?? []
+  const qpayReady = availability.data !== false
+
+  const start = async () => {
+    if (!selected || starting) return
+    if (!user) { toast.error("Sign in with Steam to top up."); return }
+    setStarting(true)
+    try {
+      setInvoice(await walletService.startTopUp(selected.id))
+    } catch (caught) {
+      toast.error(caught instanceof Error ? caught.message : "Could not start the payment. Try again.")
+    } finally {
+      setStarting(false)
+    }
+  }
+  const settled = (status: TopUp["status"]) => {
+    void wallet.refetch()
+    void topUpsQuery.refetch()
+    if (status === "paid") toast.success("Paid. The LX are in your wallet.")
+  }
 
   if (products.loading) return <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]"><Skeleton className="h-[360px] rounded-xl" /><Skeleton className="h-[360px] rounded-xl" /></div>
   if (products.error || !products.data) {
@@ -87,9 +102,10 @@ export function ShopTopUp() {
                 {balance + selected.grantsLx >= clanPrice ? "Enough for a clan." : `${(clanPrice - balance - selected.grantsLx).toLocaleString()} LX short of a clan.`}
               </p>
             )}
-            <button type="button" onClick={() => (user ? setOrdering(selected) : toast.error("Sign in with Steam to top up."))} className="lx-primary-button inline-flex h-11 items-center justify-center rounded-lg px-4 text-[14px] font-semibold">
-              {user ? `Top up ${mnt(selected.priceMnt)}` : "Sign in to top up"}
+            <button type="button" disabled={starting || (Boolean(user) && !qpayReady)} onClick={() => void start()} className="lx-primary-button inline-flex h-11 items-center justify-center rounded-lg px-4 text-[14px] font-semibold disabled:opacity-50">
+              {!user ? "Sign in to top up" : starting ? "Making the invoice…" : `Pay ${mnt(selected.priceMnt)} with QPay`}
             </button>
+            {user && !qpayReady && <p className="text-xs leading-relaxed text-[var(--text-dim)]">QPay is not set up yet. Top-ups open soon.</p>}
           </>
         )}
       </div>
@@ -140,11 +156,11 @@ export function ShopTopUp() {
 
         <section aria-label="Payment method" className="flex flex-col gap-3">
           <span className={label}>Pay with</span>
-          {/* QPay is the one way to pay (owner request 2026-11-02). Until the payment is taken in the app, staff call and send the QPay payment by hand. */}
+          {/* QPay is the one way to pay (owner request 2026-11-02). */}
           <div role="radiogroup" aria-label="Payment method">
             <button type="button" role="radio" aria-checked="true" className="flex w-full items-center gap-4 rounded-xl border border-[var(--text-2)] bg-[var(--raised)] p-3.5 text-left sm:max-w-[520px]">
               <span className="grid h-11 w-[88px] shrink-0 place-items-center rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)] px-3"><img src={qpayLogo} alt="QPay" className="h-6 w-[60px]" draggable={false} /></span>
-              <span className="flex min-w-0 flex-1 flex-col gap-0.5"><span className="text-[13px] font-semibold text-[var(--text)]">QPay</span><span className="text-[12px] leading-snug text-[var(--text-muted)]">Staff call you, you pay with QPay, and the LX arrive once it is paid.</span></span>
+              <span className="flex min-w-0 flex-1 flex-col gap-0.5"><span className="text-[13px] font-semibold text-[var(--text)]">QPay</span><span className="text-[12px] leading-snug text-[var(--text-muted)]">Pay in any Mongolian bank app. The LX arrive as soon as QPay confirms it.</span></span>
               <Check className="size-4 shrink-0 text-[var(--text)]" aria-hidden="true" />
             </button>
           </div>
@@ -154,7 +170,7 @@ export function ShopTopUp() {
 
         <section aria-label="How it works" className="flex flex-col gap-3">
           <span className={label}>How it works</span>
-          <ol className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <ol className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {STEPS.map((step, index) => (
               <li key={step.title} className="flex gap-3 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-3.5">
                 <span className="grid size-6 shrink-0 place-items-center rounded-full border border-[var(--line)] text-[12px] font-semibold text-[var(--text-2)]">{index + 1}</span>
@@ -168,29 +184,15 @@ export function ShopTopUp() {
           <section aria-label="My top-ups" className="flex flex-col gap-3">
             <span className={label}>My top-ups</span>
             <ul className="flex flex-col gap-2">
-              {topUps.map((order) => {
-                const at = stage(order.status)
-                return (
-                  <li key={order.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-[var(--glass-line)] px-4 py-3">
-                    <span className="flex min-w-[140px] flex-1 flex-col gap-0.5">
-                      <span className="text-[13px] font-semibold text-[var(--text)]">{order.grantsLx.toLocaleString()} LX · {mnt(order.unitPriceMnt * order.quantity)}</span>
-                      <RelativeTime value={order.createdAt} className="text-[11px] text-[var(--text-dim)]" />
-                    </span>
-                    {at < 0 ? (
-                      <span className="rounded-full border border-[var(--line)] px-2.5 py-0.5 text-[11px] text-[var(--text-dim)]">Cancelled</span>
-                    ) : (
-                      <ol className="flex items-center gap-1.5 text-[11px]" aria-label="Progress">
-                        {["Sent", "We called", "Paid · LX added"].map((step, index) => (
-                          <li key={step} className={cn("flex items-center gap-1.5", index <= at ? "text-[var(--text)]" : "text-[var(--text-faint)]")}>
-                            <span className={cn("size-2 rounded-full", index <= at ? "bg-[var(--text)]" : "bg-[var(--line-strong)]")} aria-hidden="true" />{step}
-                            {index < 2 && <span className="h-px w-4 bg-[var(--line-strong)]" aria-hidden="true" />}
-                          </li>
-                        ))}
-                      </ol>
-                    )}
-                  </li>
-                )
-              })}
+              {topUps.map((topUp) => (
+                <li key={topUp.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-[var(--glass-line)] px-4 py-3">
+                  <span className="flex min-w-[140px] flex-1 flex-col gap-0.5">
+                    <span className="text-[13px] font-semibold text-[var(--text)]">{topUp.grantsLx.toLocaleString()} LX · {mnt(topUp.amountMnt)}</span>
+                    <RelativeTime value={topUp.createdAt} className="text-[11px] text-[var(--text-dim)]" />
+                  </span>
+                  <span className={cn("rounded-full border px-2.5 py-0.5 text-[11px]", topUp.status === "paid" ? "border-[var(--status-green)]/50 text-[var(--status-green)]" : "border-[var(--line)] text-[var(--text-dim)]")}>{STATE_LABEL[topUp.status]}</span>
+                </li>
+              ))}
             </ul>
           </section>
         )}
@@ -198,7 +200,7 @@ export function ShopTopUp() {
 
       <aside aria-label="Your top-up" className="hidden lg:sticky lg:top-0 lg:block">{summary}</aside>
 
-      <OrderDialog product={user ? ordering : null} onClose={() => setOrdering(null)} onDone={() => { setOrdering(null); void orders.refetch() }} />
+      <QpayPayDialog invoice={invoice} onClose={() => setInvoice(null)} onSettled={settled} />
     </div>
   )
 }
