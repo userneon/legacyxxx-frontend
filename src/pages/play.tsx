@@ -52,7 +52,7 @@ function connect(address: string | null | undefined, name: string) {
     return
   }
   // A browser cannot tell whether Steam answered, so say what to do if nothing opens.
-  toast(`Opening Steam to join ${name}…`, { description: "If nothing opens, start Steam first or copy the address.", duration: 6000, action: { label: "Copy IP", onClick: () => void copyAddress(address) } })
+  toast(`Opening Steam to join ${name}…`, { description: "If CS2 is already open, press ~ and paste: the connect command is copied.", duration: 6000, action: { label: "Copy IP", onClick: () => void copyAddress(address) } })
 }
 
 async function copyAddress(address: string | null | undefined) {

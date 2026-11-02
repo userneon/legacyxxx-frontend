@@ -64,6 +64,7 @@ function openLink(url) {
     const parsed = new URL(url)
     if (parsed.protocol === "https:" || parsed.protocol === "http:") void shell.openExternal(parsed.toString())
     // A "Connect" link on the site: only steam://connect/<ip:port>, nothing else Steam can do.
+    else if (parsed.protocol === "steam:" && /^steam:\/\/run\/730\/\/\+connect%20[A-Za-z0-9.-]{1,253}:\d{2,5}$/.test(parsed.toString())) void shell.openExternal(parsed.toString())
     else if (parsed.protocol === "steam:" && /^steam:\/\/connect\/[A-Za-z0-9.-]{1,253}:\d{2,5}(\/[A-Za-z0-9_-]{1,32})?$/.test(parsed.toString())) void shell.openExternal(parsed.toString())
   } catch { /* not a link */ }
 }
@@ -106,7 +107,8 @@ const ADDRESS = /^[A-Za-z0-9.-]{1,253}:\d{2,5}$/
 ipcMain.handle("legacyx:connect", (_event, address, password) => {
   if (typeof address !== "string" || !ADDRESS.test(address)) return false
   const suffix = typeof password === "string" && /^[A-Za-z0-9_-]{1,32}$/.test(password) ? `/${password}` : ""
-  void shell.openExternal(`steam://connect/${address}${suffix}`)
+  // CS2 often ignores steam://connect/, so the game is started with +connect in its launch options (the website copies the command too).
+  void shell.openExternal(`steam://run/730//+connect%20${address}${suffix ? `%20%2Bpassword%20${suffix.slice(1)}` : ""}`)
   return true
 })
 
