@@ -760,6 +760,21 @@ export async function mockResponse(method: string, path: string, query: Query, b
     const needle = String(query?.query ?? "").trim().toLowerCase()
     return { players: NAMES.map((name, index) => ({ steamId: `7656119800000${String(index).padStart(4, "0")}`, name, avatar: "", level: 24 - index })).filter((player) => !needle || player.name.toLowerCase().includes(needle)) }
   }
+  // Design preview only: the Roles editor on the staff site.
+  if (path === "/api/v1/staff/game-roles" && method === "GET") {
+    const cmds = [["noclip", "Cheats", "<target> <0|1>", false], ["god", "Cheats", "<target> <0|1>", false], ["speed", "Cheats", "<target> <value>", false], ["freeze", "Fun", "<target> [time]", false], ["goto", "Fun", "Teleport to player", false], ["bring", "Fun", "Bring a player to you", false], ["slap", "Fun", "Slap a player", false], ["ban", "Bans", "Ban a player from console", false], ["kick", "Basics and votes", "Kick a player from console", false], ["mute", "Chat and punishments", "Mute a player from console", false], ["rcon", "Server", "Send RCON command from console", true]] as const
+    const settings = (commands: string[], modes: string[], immunity: number) => ({ commands, extraFlags: [] as string[], modes, immunity })
+    return {
+      roles: [
+        { role: "creator", label: "Content Creator", ...settings(["noclip", "god", "speed", "freeze", "goto", "bring", "slap"], ["fun"], 100), changed: false, updatedAt: null, builtIn: settings(["noclip", "god", "speed", "freeze", "goto", "bring", "slap"], ["fun"], 100) },
+        { role: "main_creator", label: "Main Content Creator", ...settings(["noclip", "god", "speed", "freeze", "goto", "bring", "slap"], ["fun"], 200), changed: true, updatedAt: "2026-11-02T10:00:00Z", builtIn: settings(["noclip", "god", "speed", "freeze", "goto", "bring", "slap"], ["fun"], 200) },
+        { role: "admin", label: "Admin", ...settings(["ban", "kick", "slap", "mute"], [], 500), changed: false, updatedAt: null, builtIn: settings(["ban", "kick", "slap", "mute"], [], 500) },
+      ],
+      commands: cmds.map(([name, group, summary, locked]) => ({ name, group, summary, locked })),
+      extraFlags: [{ flag: "@css/changemap", label: "Change the map from other plugins" }, { flag: "@legacyx/match", label: "Force-start a match" }],
+      modes: ["5x5", "pro", "fun"],
+    }
+  }
   if (path === "/api/v1/staff/settings" && method === "GET") return { settings: [
     { key: "play.leave_window_hours", group: "Play", label: "Leave counting window", hint: "Leaves of ranked matches are counted over this many hours.", unit: "hours", def: 24, min: 1, max: 168, value: 24, changed: false, updatedAt: null },
     { key: "play.leave_block_from", group: "Play", label: "Block from the Nth leave", hint: "Earlier leaves only cost EXP; this one and later ones also block playing.", unit: "leaves", def: 3, min: 1, max: 20, value: 2, changed: true, updatedAt: new Date().toISOString() },
