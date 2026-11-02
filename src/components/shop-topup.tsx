@@ -1,9 +1,9 @@
 /**
  * The Shop's Top up tab: pick an LX package, see what the balance becomes and what it buys, send the request. Staff call, take the
- * payment (bank transfer or QPay) and mark it paid; the LX then arrive in the wallet on their own. Everything comes from the API.
+ * payment (bank transfer; QPay is on its way) and mark it paid; the LX then arrive in the wallet on their own. Everything comes from the API.
  */
 import { useEffect, useMemo, useState } from "react"
-import { Check, RotateCcw } from "lucide-react"
+import { Check, Landmark, QrCode, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
 
 import { walletService, type Wallet } from "@/api"
@@ -23,7 +23,7 @@ const label = "text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--
 const STEPS = [
   { title: "Pick a package" },
   { title: "We call you" },
-  { title: "You pay by bank or QPay" },
+  { title: "You pay by bank transfer" },
   { title: "LX reach your wallet" },
 ]
 
@@ -78,6 +78,7 @@ export function ShopTopUp() {
             <div className="flex flex-col gap-2 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] p-3.5">
               <span className="flex justify-between text-[13px]"><span className="text-[var(--text-muted)]">Package</span><b className="text-[var(--text)]">+{selected.grantsLx.toLocaleString()} LX</b></span>
               <span className="flex justify-between text-[13px]"><span className="text-[var(--text-muted)]">You pay</span><b className="text-[var(--text)]">{mnt(selected.priceMnt)}</b></span>
+              <span className="flex justify-between text-[13px]"><span className="text-[var(--text-muted)]">Pay with</span><b className="text-[var(--text)]">Bank transfer</b></span>
               {balance != null && <span className="flex justify-between border-t border-[var(--line-soft)] pt-2 text-[13px]"><span className="text-[var(--text-muted)]">New balance</span><b className="text-[var(--text)]">{(balance + selected.grantsLx).toLocaleString()} LX</b></span>}
             </div>
             {clanPrice != null && balance != null && (
@@ -104,14 +105,14 @@ export function ShopTopUp() {
               const bonus = bonusOf(pack)
               const hero = packages.length > 2 && bestValue?.id === pack.id
               return (
-                <button key={pack.id} type="button" role="radio" aria-checked={on} onClick={() => setPicked(pack.id)} className={cn("group relative flex h-[280px] flex-col justify-end overflow-hidden rounded-2xl border bg-[var(--card-surface)] text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 max-sm:h-[230px]", hero && "col-span-2", on ? "border-[var(--text)]" : "border-[var(--line-soft)] hover:border-[var(--line-strong)]")}>
+                <button key={pack.id} type="button" role="radio" aria-checked={on} onClick={() => setPicked(pack.id)} className={cn("group relative flex h-[210px] flex-col justify-end overflow-hidden rounded-2xl border bg-[var(--card-surface)] text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 max-sm:h-[230px]", hero && "col-span-2", on ? "border-[var(--text)]" : "border-[var(--line-soft)] hover:border-[var(--line-strong)]")}>
                   {/* The package's own picture fills the card; without one, a soft light and the LX coin stand in. */}
                   {pack.imageUrl ? (
                     <img src={pack.imageUrl} alt="" loading="lazy" className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
                   ) : (
                     <>
-                      <span aria-hidden="true" className="absolute left-1/2 top-[38%] aspect-square w-[120%] -translate-x-1/2 -translate-y-1/2 opacity-30" style={{ background: "radial-gradient(circle, #e5e5e5 0%, transparent 58%)" }} />
-                      <span className="absolute left-1/2 top-[38%] -translate-x-1/2 -translate-y-1/2"><LxMark size={hero ? 96 : 72} /></span>
+                      <span aria-hidden="true" className="absolute left-1/2 top-[40%] aspect-square w-[110%] -translate-x-1/2 -translate-y-1/2 opacity-30" style={{ background: "radial-gradient(circle, #e5e5e5 0%, transparent 58%)" }} />
+                      <span className="absolute left-1/2 top-[38%] -translate-x-1/2 -translate-y-1/2"><LxMark size={hero ? 80 : 60} /></span>
                     </>
                   )}
                   <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-[var(--card-surface)] via-[var(--card-surface)]/90 to-transparent" />
@@ -133,6 +134,21 @@ export function ShopTopUp() {
                 </button>
               )
             })}
+          </div>
+        </section>
+
+        <section aria-label="Payment method" className="flex flex-col gap-3">
+          <span className={label}>Pay with</span>
+          <div role="radiogroup" aria-label="Payment method" className="grid gap-3 sm:grid-cols-2">
+            <button type="button" role="radio" aria-checked="true" className="flex items-start gap-3 rounded-xl border border-[var(--text-2)] bg-[var(--raised)] p-3.5 text-left">
+              <span className="grid size-9 shrink-0 place-items-center rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)] text-[var(--text)]"><Landmark className="size-[18px]" aria-hidden="true" /></span>
+              <span className="flex min-w-0 flex-1 flex-col gap-0.5"><span className="text-[13px] font-semibold text-[var(--text)]">Bank transfer</span><span className="text-[12px] leading-snug text-[var(--text-muted)]">Staff call you, you pay from your bank, and the LX arrive once it is paid.</span></span>
+              <Check className="mt-0.5 size-4 shrink-0 text-[var(--text)]" aria-hidden="true" />
+            </button>
+            <button type="button" role="radio" aria-checked="false" aria-disabled="true" disabled className="flex cursor-not-allowed items-start gap-3 rounded-xl border border-dashed border-[var(--line)] p-3.5 text-left opacity-70">
+              <span className="grid size-9 shrink-0 place-items-center rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)] text-[var(--text-2)]"><QrCode className="size-[18px]" aria-hidden="true" /></span>
+              <span className="flex min-w-0 flex-1 flex-col gap-0.5"><span className="flex items-center gap-2 text-[13px] font-semibold text-[var(--text)]">QPay<span className="rounded-full border border-[var(--line-strong)] px-2 py-px text-[10px] font-medium uppercase tracking-wide text-[var(--text-dim)]">Soon</span></span><span className="text-[12px] leading-snug text-[var(--text-muted)]">Pay with a QR code in your bank app, and the LX arrive at once.</span></span>
+            </button>
           </div>
         </section>
 
