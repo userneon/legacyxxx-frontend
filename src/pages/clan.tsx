@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { usePathTab } from "@/hooks/use-url-tab"
 import { useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft, Check, Coins, Crown, Globe, Lock, Pencil, Plus, Search, Upload, UserPlus, Users, X } from "lucide-react"
+import { ArrowLeft, Check, Coins, Crown, Globe, Lock, Pencil, Plus, Search, Trophy, Upload, UserPlus, Users, X } from "lucide-react"
 import { toast } from "sonner"
 
 
@@ -337,6 +337,12 @@ function ClanCardPreview({ clan, accent, tint }: { clan: ClanCard; accent: strin
   return (
     <div className="flex flex-col gap-3">
       {preview.blurb && <p className="line-clamp-2 text-[12px] leading-snug text-[var(--text-muted)]">{preview.blurb}</p>}
+      {/* Small facts, each only when the API has it: where it plays and whether it is looking for players. */}
+      <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-medium uppercase tracking-wide text-[var(--text-dim)]">
+        {clan.region && <span title="Region" className="inline-flex items-center gap-1 rounded-full border border-[var(--line)] bg-[var(--card-surface)]/70 px-2 py-0.5"><Globe className="size-3" aria-hidden="true" />{clan.region}</span>}
+        {clan.recruit && <span title="This clan reads answers before accepting" className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5" style={{ borderColor: tint(45), color: accent }}><UserPlus className="size-3" aria-hidden="true" />Recruiting</span>}
+        {clan.currentPlayers >= clan.maxPlayers && <span className="inline-flex items-center gap-1 rounded-full border border-[var(--line)] px-2 py-0.5">Full</span>}
+      </div>
       <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-lg" style={{ background: tint(18) }}>
         {stats.map((stat) => (
           <div key={stat.label} className="flex flex-col gap-0.5 bg-[var(--card-surface)]/85 px-2.5 py-2">
@@ -345,6 +351,18 @@ function ClanCardPreview({ clan, accent, tint }: { clan: ClanCard; accent: strin
           </div>
         ))}
       </dl>
+      {preview.matches > 0 && (
+        <div className="flex flex-col gap-1" title={`${preview.wins} wins in ${preview.matches} ranked matches`}>
+          <div className="flex items-center justify-between text-[10px] text-[var(--text-dim)]"><span>Ranked record</span><span>{preview.wins} W · {preview.matches - preview.wins} other</span></div>
+          <div className="h-1 overflow-hidden rounded-full bg-[var(--raised)]"><div className="h-full rounded-full" style={{ width: `${Math.round((preview.wins / preview.matches) * 100)}%`, background: "var(--status-green)" }} /></div>
+        </div>
+      )}
+      {preview.topPlayer && (
+        <div className="flex items-center gap-2 text-[11px] text-[var(--text-dim)]" title="The member with the most EXP">
+          <Trophy className="size-3.5 shrink-0" style={{ color: accent }} aria-hidden="true" />
+          <span className="min-w-0 truncate"><span className="text-[var(--text-2)]">{preview.topPlayer.name}</span> · {preview.topPlayer.exp.toLocaleString()} EXP</span>
+        </div>
+      )}
       <div className="flex items-center justify-between gap-3">
         <span className="flex items-center" aria-label={`${preview.members.length} of ${clan.currentPlayers} members shown`}>
           {preview.members.map((member, index) => (
