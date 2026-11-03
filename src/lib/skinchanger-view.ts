@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react"
 
 /** Which part of Skinchanger is open. The sidebar's Skinchanger submenu sets it; the page shows it. */
-export type SkinchangerView = "loadout" | "collections"
+export type SkinchangerView = "loadout" | "collections" | "advanced"
 
 let current: SkinchangerView = "loadout"
 const listeners = new Set<() => void>()

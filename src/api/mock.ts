@@ -716,6 +716,9 @@ let mockClanLinks: Record<string, string> = { discord: "https://discord.gg/legac
 
 let mockPlayerConfig: Record<string, unknown> | null = { crosshair: "CSGO-aB3dE-fG4hI-jK5lM-nO6pQ-rS7tU", mouse: { model: "Logitech G Pro X Superlight", dpi: 800, sensitivity: 1.2, zoomSensitivity: 1, pollingRate: 1000 }, keyboard: { model: "Wooting 60HE" }, monitor: { resolution: "1920x1080", refreshRate: 240, aspect: "16:9" }, viewmodel: { fov: 68, offsetX: 2.5, offsetY: 0, offsetZ: -1.5 }, other: [{ label: "Launch options", value: "-novid -high" }] }
 
+// eslint-disable-next-line prefer-const
+let mockCrafts: Array<{ id: string; name: string; createdAt: string; updatedAt: string; catalogItem: unknown; options: Record<string, unknown>; accessories: unknown[] }> = []
+
 export async function mockResponse(method: string, path: string, query: Query, body?: unknown): Promise<unknown> {
   // A short, realistic delay so loading states and entrance animations show.
   await new Promise((resolve) => window.setTimeout(resolve, 250 + Math.random() * 250))
@@ -843,6 +846,18 @@ export async function mockResponse(method: string, path: string, query: Query, b
   }
   if (/^\/api\/v1\/skinchanger\/collections\/[^/]+\/apply$/.test(path)) return { version: 2, applied: 6, skipped: 0 }
   if (/^\/api\/v1\/skinchanger\/collections\/[^/]+\/like$/.test(path)) return { likes: 1, liked: true }
+  // Skinchanger → Advanced: crafts kept in memory for the mock session.
+  if (path === "/api/v1/skinchanger/crafts" || path.startsWith("/api/v1/skinchanger/crafts/")) {
+    const id = path.split("/")[5]
+    if (method === "GET") return { crafts: mockCrafts, limit: 60 }
+    if (method === "DELETE") { mockCrafts = mockCrafts.filter((craft) => craft.id !== id); return undefined }
+    const input = body as { name: string; catalogItemId: string; options: Record<string, unknown> }
+    const found = FIREARMS.flatMap((weapon) => skinsFor(String(weapon), "weapon_skin")).find((entry) => entry.id === input.catalogItemId) ?? skinsFor("AK-47", "weapon_skin")[0]
+    const now = new Date().toISOString()
+    const craft = { id: id ?? `craft-${mockCrafts.length + 1}-${Date.now()}`, name: input.name ?? "", createdAt: now, updatedAt: now, catalogItem: found, options: input.options ?? {}, accessories: [] }
+    mockCrafts = method === "PUT" ? mockCrafts.map((entry) => (entry.id === id ? craft : entry)) : [craft, ...mockCrafts]
+    return craft
+  }
   if (method === "POST" && path === "/api/v1/skinchanger/collections") return { id: "col-new" }
   if (method === "DELETE" && path.startsWith("/api/v1/skinchanger/collections/")) return { removed: true }
   if (path === "/api/v1/clans") return MOCK_CLANS

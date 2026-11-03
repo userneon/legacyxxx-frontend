@@ -1,4 +1,4 @@
-import { get, post, put, request, type CallOptions } from "./client"
+import { del, get, post, put, request, type CallOptions } from "./client"
 
 export type SkinchangerCategory = "weapon" | "weapon_skin" | "knife" | "glove" | "agent" | "music_kit" | "pin" | "sticker" | "charm"
 export type SkinchangerSlot = "weapon" | "knife" | "glove" | "agent" | "music_kit" | "pin"
@@ -16,6 +16,19 @@ export interface SkinchangerLoadout { version: number; updated_at: string | null
 export interface SkinchangerLoadoutInput { entries: Array<{ catalogItemId: string; slot: SkinchangerSlot; slotKey: string; teamScope: TeamScope; options: SkinchangerAppearanceOptions }> }
 export interface SkinchangerEntryMutationInput { expectedVersion: number; entry: { catalogItemId: string; slot: SkinchangerSlot; slotKey: string; teamScope: TeamScope; options: SkinchangerAppearanceOptions } }
 export interface SkinchangerEntryRemovalInput { expectedVersion: number; slotKey: string; teamScope: TeamScope }
+
+/** A craft from Skinchanger → Advanced: a skin with everything on it, saved to pick from the loadout later. */
+export interface SkinCraft {
+  id: string
+  name: string
+  createdAt: string
+  updatedAt: string
+  catalogItem: SkinchangerCatalogItem
+  options: SkinchangerAppearanceOptions
+  /** The stickers and the charm of `options`, with their pictures. */
+  accessories: SkinchangerCatalogItem[]
+}
+export interface SkinCraftInput { name: string; catalogItemId: string; options: SkinchangerAppearanceOptions }
 
 /** One skin in a community collection. */
 export interface SkinCollectionItem { slot: SkinchangerSlot; weaponClass: string | null; name: string; imageUrl: string | null; rarity: string | null }
@@ -53,6 +66,18 @@ export const skinchangerService = {
   },
   getLoadout(options?: CallOptions) {
     return get<{ loadout: SkinchangerLoadout }>("/skinchanger/loadout", undefined, options)
+  },
+  getCrafts(options?: CallOptions) {
+    return get<{ crafts: SkinCraft[]; limit: number }>("/skinchanger/crafts", undefined, options)
+  },
+  createCraft(input: SkinCraftInput) {
+    return post<SkinCraft>("/skinchanger/crafts", input)
+  },
+  updateCraft(id: string, input: SkinCraftInput) {
+    return put<SkinCraft>(`/skinchanger/crafts/${id}`, input)
+  },
+  deleteCraft(id: string) {
+    return del<void>(`/skinchanger/crafts/${id}`)
   },
   saveLoadout(input: SkinchangerLoadoutInput, options?: CallOptions) {
     return put<{ version: number; entryCount: number }>("/skinchanger/loadout", input, options)
