@@ -7,7 +7,7 @@ export type SkinchangerFirearmGroup = "Rifles" | "Mid Tier" | "Pistols"
 
 export interface SkinchangerStickerOption { catalogItemId: string; id?: number; slot: number; schema?: number; offsetX?: number; offsetY?: number; wear?: number; scale?: number; rotation?: number }
 export interface SkinchangerCharmOption { catalogItemId: string; id?: number; offsetX?: number; offsetY?: number; offsetZ?: number; seed?: number }
-export interface SkinchangerAppearanceOptions { wear?: number; seed?: number; statTrak?: boolean; nameTag?: string; stickers?: SkinchangerStickerOption[]; charm?: SkinchangerCharmOption }
+export interface SkinchangerAppearanceOptions { wear?: number; seed?: number; statTrak?: boolean; /** The kill count a StatTrak weapon starts with (Advanced studio). */ statTrakCount?: number; nameTag?: string; stickers?: SkinchangerStickerOption[]; charm?: SkinchangerCharmOption }
 export interface SkinchangerCatalogItem { id: string; external_key: string; category: SkinchangerCategory; weapon_class: string | null; display_name: string; weapon_defindex: number | null; paint_id: number | null; model: string | null; image_key: string | null; image_url: string | null; metadata: Record<string, unknown> }
 export interface SkinchangerCatalogPage { data: SkinchangerCatalogItem[]; pagination: { limit: number; offset: number; total: number } }
 export interface SkinchangerCatalogFacets { categories: Array<{ category: SkinchangerCategory; count: number }>; weaponClasses: Array<{ weaponClass: string; count: number }> }

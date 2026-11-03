@@ -49,6 +49,8 @@ export type {
   SkinchangerLoadoutInput,
   SkinchangerSlot,
   SkinCollection,
+  SkinCraft,
+  SkinCraftInput,
   SkinCollectionDetail,
   SkinCollectionDetailItem,
   SkinCollectionItem,

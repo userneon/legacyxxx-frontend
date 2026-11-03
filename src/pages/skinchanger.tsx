@@ -38,6 +38,7 @@ import { DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { Sheet } from "@/components/ui/sheet"
 import { DetailSheetContent } from "@/components/detail-sheet"
 import type { SkinCraft } from "@/api/skinchanger"
+import { SkinStudio } from "@/components/skin-studio"
 
 import { Checkbox } from "@/components/ui/checkbox"
 import { OptimizedImage } from "@/components/optimized-image"
@@ -45,6 +46,7 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { useViewParams } from "@/hooks/use-view-params"
 import { cn } from "@/lib/utils"
 import { rarityStyles } from "@/lib/cs2-rarity"
+import { wearColor, wearName, wearTiers, wearTrack } from "@/lib/skin-wear"
 import pinsIcon from "@/assets/skinchanger/pins.png"
 import defaultAgentT from "@/assets/skinchanger/default-agent-t.webp"
 import defaultAgentCt from "@/assets/skinchanger/default-agent-ct.webp"
@@ -173,37 +175,6 @@ function normalizeAppearanceOptions(options: SkinchangerAppearanceOptions) {
 }
 
 /** Wear bands, coloured like a meter from clean (green) to worn (red). */
-const wearTiers: Array<{ label: string; short: string; from: number; to: number; color: string }> = [
-  { label: "Factory New", short: "FN", from: 0, to: 0.07, color: "var(--wear-fn)" },
-  { label: "Minimal Wear", short: "MW", from: 0.07, to: 0.15, color: "var(--wear-mw)" },
-  { label: "Field-Tested", short: "FT", from: 0.15, to: 0.38, color: "var(--wear-ft)" },
-  { label: "Well-Worn", short: "WW", from: 0.38, to: 0.45, color: "var(--wear-ww)" },
-  { label: "Battle-Scarred", short: "BS", from: 0.45, to: 1, color: "var(--wear-bs)" },
-]
-
-/** Slider track: each band's colour over the part of the skin's float range it covers. */
-function wearTrack(minWear: number, maxWear: number) {
-  const span = Math.max(0.0001, maxWear - minWear)
-  const stops = wearTiers
-    .filter((tier) => tier.to > minWear && tier.from < maxWear)
-    .map((tier) => {
-      const start = ((Math.max(tier.from, minWear) - minWear) / span) * 100
-      const end = ((Math.min(tier.to, maxWear) - minWear) / span) * 100
-      return `${tier.color} ${start.toFixed(2)}% ${end.toFixed(2)}%`
-    })
-  return `linear-gradient(90deg, ${stops.join(", ")})`
-}
-
-const wearColor = (wear: number) => (wearTiers.find((tier) => wear < tier.to) ?? wearTiers[wearTiers.length - 1]!).color
-
-function wearName(wear: number) {
-  if (wear <= 0.07) return "Factory New"
-  if (wear <= 0.15) return "Minimal Wear"
-  if (wear <= 0.38) return "Field-Tested"
-  if (wear <= 0.45) return "Well-Worn"
-  return "Battle-Scarred"
-}
-
 function slotKeyForCatalogItem(item: SkinchangerCatalogItem, category: SkinchangerCategory) {
   const modelKey = String(item.weapon_defindex ?? item.weapon_class ?? item.id).toLowerCase().replace(/[^a-z0-9_-]+/g, "-")
   if ((["glove", "knife"] as SkinchangerCategory[]).includes(category)) return `${category}:${modelKey}`
@@ -277,9 +248,9 @@ export function SkinchangerPage() {
   // The trash button asks first ("Remove" / "Keep it"); nothing is deleted until it is confirmed.
   const [removeTarget, setRemoveTarget] = useState<{ model: SkinchangerCatalogItem; entry: SkinchangerLoadoutEntry } | null>(null)
   const [saving, setSaving] = useState(false)
-  // While the picker is open for a craft (Advanced studio): Save keeps a craft and nothing changes in the loadout.
-  const [craftMode, setCraftMode] = useState<{ id: string | null } | null>(null)
-  const [craftName, setCraftName] = useState("")
+  // Advanced studio: the gun being built or edited. Its editor (components/skin-studio.tsx) keeps crafts; the loadout is not touched.
+  const [studioWeapon, setStudioWeapon] = useState<SkinchangerCatalogItem | null>(null)
+  const [studioCraft, setStudioCraft] = useState<SkinCraft | null>(null)
   const [craftToDelete, setCraftToDelete] = useState<SkinCraft | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
   const pickerOpenRef = useRef(false)
@@ -375,8 +346,7 @@ export function SkinchangerPage() {
       ? loadoutEntries.find((entry) => entry.slot_key === category && entry.slot === category && entry.team_scope === selectedTeamScope && entry.skinchanger_catalog_items?.weapon_class === activeWeapon?.weapon_class)
       : undefined)
     ?? (fallsBackToBoth ? loadoutEntries.find((entry) => entry.slot_key === selectedSlotKey && entry.team_scope === "all") : undefined)
-  // A craft is built on its own: what the loadout holds for this weapon is not shown while crafting.
-  const savedItemForActiveSlot = craftMode ? null : savedEntryForActiveSlot?.skinchanger_catalog_items ?? null
+  const savedItemForActiveSlot = savedEntryForActiveSlot?.skinchanger_catalog_items ?? null
   const previewChoice = selected ?? savedItemForActiveSlot ?? (defaultChoice === category ? defaultModelItem(defaultChoice) : null)
   const canCustomizeAccessories = Boolean(activeWeapon && category === "weapon")
   const selectedCharmItem = customOptions.charm ? selectedAccessories[customOptions.charm.catalogItemId] ?? null : null
@@ -754,8 +724,6 @@ export function SkinchangerPage() {
     setEditingStickerSlot(null)
     setDefaultChoice(null)
     setRarityFilter(null)
-    setCraftMode(null)
-    setCraftName("")
   }
 
   useEffect(() => () => { if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current) }, [])
@@ -776,31 +744,20 @@ export function SkinchangerPage() {
     charm: craft.options.charm,
   })
 
-  /** Advanced studio: a new craft on this weapon. It is the same picker; Save keeps a craft instead of changing the loadout. */
-  const startCraft = (item: SkinchangerCatalogItem, kind: ModelKind) => {
-    setCraftMode({ id: null })
-    setCraftName("")
-    openModelPicker(item, kind)
+  /** Advanced studio: a new craft on this gun. */
+  const startCraft = (item: SkinchangerCatalogItem) => {
+    setStudioCraft(null)
+    setStudioWeapon(item)
   }
 
   const editCraft = (craft: SkinCraft) => {
-    const kind: ModelKind = craft.catalogItem.category === "knife" ? "knife" : craft.catalogItem.category === "glove" ? "glove" : "weapon"
-    const models = kind === "weapon" ? firearmModels?.data : kind === "knife" ? knifeModels?.data : gloveModels?.data
-    const model = models?.find((entry) => entry.weapon_class === craft.catalogItem.weapon_class)
+    const model = firearmModels?.data.find((entry) => entry.weapon_class === craft.catalogItem.weapon_class)
     if (!model) {
       toast.error("This weapon is not in the catalogue any more.")
       return
     }
-    setCraftMode({ id: craft.id })
-    setCraftName(craft.name)
-    beginPicker()
-    setCollection(collectionForKind(kind))
-    setSkinGroup("Rifles")
-    setAgentTeam(null)
-    setActiveWeapon(model)
-    setSelected(craft.catalogItem)
-    setCustomOptions(optionsOfCraft(craft))
-    setSelectedAccessories(Object.fromEntries(craft.accessories.map((accessory) => [accessory.id, accessory])))
+    setStudioCraft(craft)
+    setStudioWeapon(model)
   }
 
   /** Picks a saved craft for the loadout picker: its skin and options fill the picker, and the usual Save puts them in the loadout. */
@@ -810,28 +767,6 @@ export function SkinchangerPage() {
     setSelectedAccessories(Object.fromEntries(craft.accessories.map((accessory) => [accessory.id, accessory])))
     setAccessoryPicker(null)
     setEditingStickerSlot(null)
-  }
-
-  const saveCraftAndClose = async () => {
-    if (!selected || !craftMode || saving) return
-    setSaving(true)
-    try {
-      const input = {
-        name: craftName.trim().slice(0, 40),
-        catalogItemId: selected.id,
-        options: { ...customOptions, stickers: [...(customOptions.stickers ?? [])], charm: customOptions.charm ? { ...customOptions.charm } : undefined },
-      }
-      if (craftMode.id) await skinchangerService.updateCraft(craftMode.id, input)
-      else await skinchangerService.createCraft(input)
-      toast.success("Craft saved. Pick it from your loadout.", { id: "skin-craft" })
-      refetchCrafts()
-      closePicker()
-    } catch (caught) {
-      const message = (caught as { message?: unknown } | null)?.message
-      toast.error(typeof message === "string" && message ? message : "Could not save the craft. Try again.", { id: "skin-craft" })
-    } finally {
-      setSaving(false)
-    }
   }
 
   const deleteCraft = async (craft: SkinCraft) => {
@@ -1320,20 +1255,20 @@ export function SkinchangerPage() {
     renderSection(title, sectionItems(group).map((item) => modelCard(item, "weapon")))
 
   /* ---- Advanced studio: build looks once, pick them from the loadout later ------------------------------------------------------------------ */
-  const studioTile = (item: SkinchangerCatalogItem, kind: ModelKind) => {
+  const studioTile = (item: SkinchangerCatalogItem) => {
     const image = catalogImageUrl(item)
     return (
-      <button key={item.id} type="button" onClick={() => startCraft(item, kind)} className="group flex h-14 items-center gap-3 rounded-lg border border-[var(--glass-line)] bg-[var(--glass-fill)] px-3 text-left transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
+      <button key={item.id} type="button" onClick={() => startCraft(item)} className="group flex h-14 items-center gap-3 rounded-lg border border-[var(--glass-line)] bg-[var(--glass-fill)] px-3 text-left transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
         <span className="flex h-9 w-12 shrink-0 items-center justify-center">{image ? <OptimizedImage src={image} width={96} height={48} alt="" className="max-h-9 w-auto object-contain" /> : <ImageOff className="size-5 text-[var(--text-faint)]" />}</span>
         <span className="min-w-0 flex-1 truncate text-[13px] font-semibold text-[var(--text)]">{item.display_name}</span>
         <Plus className="size-4 shrink-0 text-[var(--text-dim)] transition-colors group-hover:text-[var(--text)]" aria-hidden="true" />
       </button>
     )
   }
-  const studioSection = (title: string, items: SkinchangerCatalogItem[], kind: ModelKind) => items.length === 0 ? null : (
+  const studioSection = (title: string, items: SkinchangerCatalogItem[]) => items.length === 0 ? null : (
     <section key={title} aria-label={title} className="flex flex-col gap-2.5">
       <h3 className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{title}</h3>
-      {items.map((item) => studioTile(item, kind))}
+      {items.map((item) => studioTile(item))}
     </section>
   )
   const studioFirearms = (group: WeaponGridGroup) => (firearmModels?.data ?? []).filter((item) => gridGroupForFirearm(item) === group).sort((a, b) => firearmOrder(a) - firearmOrder(b))
@@ -1383,17 +1318,15 @@ export function SkinchangerPage() {
       <section aria-label="Build a craft" className="flex flex-col gap-3">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <h2 className="text-[15px] font-semibold text-[var(--text)]">Build a craft</h2>
-          <span className="text-[13px] text-[var(--text-dim)]">Pick a weapon, a skin, then wear, pattern, StatTrak, name tag, stickers and charm.</span>
+          <span className="text-[13px] text-[var(--text-dim)]">Pick a gun, then its skin, wear, pattern, StatTrak, name, stickers and charm. Guns only.</span>
         </div>
-        {firearmsLoading || knivesLoading || glovesLoading
-          ? <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" aria-hidden="true">{Array.from({ length: 10 }, (_, index) => <Skeleton key={index} className="h-14 rounded-lg bg-[var(--glass-fill)]" />)}</div>
+        {firearmsLoading
+          ? <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-hidden="true">{Array.from({ length: 9 }, (_, index) => <Skeleton key={index} className="h-14 rounded-lg bg-[var(--glass-fill)]" />)}</div>
           : (
-            <div className="grid items-start gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-              <div className="flex flex-col gap-5">{studioSection("Pistols", studioFirearms("Pistols"), "weapon")}{studioSection("SMGs", studioFirearms("SMGs"), "weapon")}</div>
-              <div className="flex flex-col gap-5">{studioSection("Rifles", studioFirearms("Rifles"), "weapon")}</div>
-              <div className="flex flex-col gap-5">{studioSection("Sniper Rifles", studioFirearms("Sniper Rifles"), "weapon")}{studioSection("Heavy", studioFirearms("Heavy"), "weapon")}{studioSection("Equipment", studioFirearms("Equipment"), "weapon")}</div>
-              <div className="flex flex-col gap-5">{studioSection("Knives", knifeList, "knife")}</div>
-              <div className="flex flex-col gap-5">{studioSection("Gloves", gloveList, "glove")}</div>
+            <div className="grid items-start gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="flex flex-col gap-5">{studioSection("Pistols", studioFirearms("Pistols"))}{studioSection("SMGs", studioFirearms("SMGs"))}</div>
+              <div className="flex flex-col gap-5">{studioSection("Rifles", studioFirearms("Rifles"))}</div>
+              <div className="flex flex-col gap-5">{studioSection("Sniper Rifles", studioFirearms("Sniper Rifles"))}{studioSection("Heavy", studioFirearms("Heavy"))}{studioSection("Equipment", studioFirearms("Equipment"))}</div>
             </div>
           )}
       </section>
@@ -1486,7 +1419,7 @@ export function SkinchangerPage() {
                 <span className="truncate">{pickerTitle}</span>
               </DialogTitle>
               <DialogDescription className="truncate text-xs">
-                {craftMode ? (craftMode.id ? "Editing a craft" : "New craft: nothing changes in your loadout") : savedItemForActiveSlot ? `Saved: ${activeWeapon ? savedSkinLabel(savedItemForActiveSlot) : savedItemForActiveSlot.display_name}` : activeWeapon ? "Choose a skin" : "Choose one"}
+                {savedItemForActiveSlot ? `Saved: ${activeWeapon ? savedSkinLabel(savedItemForActiveSlot) : savedItemForActiveSlot.display_name}` : activeWeapon ? "Choose a skin" : "Choose one"}
               </DialogDescription>
             </div>
             <label className={cn("relative hidden w-60 shrink-0 sm:block", accessoryOpen && "sm:hidden")}>
@@ -1624,7 +1557,7 @@ export function SkinchangerPage() {
 
             {/* Preview, customize and save */}
             <aside className={cn("min-h-0 overflow-y-auto border-t border-border px-4 pt-4 lg:border-l lg:border-t-0", !(selected && pickerHasOptions) && "max-lg:max-h-[40dvh]", accessoryOpen && "max-lg:hidden")}>
-              {!craftMode && activeWeapon && (() => {
+              {activeWeapon && (() => {
                 const matching = crafts.filter((craft) => craft.catalogItem.weapon_class === activeWeapon.weapon_class)
                 if (matching.length === 0) return null
                 return (
@@ -1745,13 +1678,7 @@ export function SkinchangerPage() {
             )}
               {/* Save stays in reach while the options scroll. */}
               <div className="sticky bottom-0 -mx-4 mt-4 border-t border-border bg-card/95 px-4 py-3 backdrop-blur">
-                {craftMode && selected && (
-                  <label className="mb-3 flex flex-col gap-1.5 text-xs font-medium">
-                    Craft name (optional)
-                    <Input aria-label="Craft name" value={craftName} maxLength={40} placeholder={savedSkinLabel(selected)} onChange={(event) => setCraftName(event.target.value)} className="h-9 text-xs" />
-                  </label>
-                )}
-                {!craftMode && canUseForBothTeams && (
+                {canUseForBothTeams && (
                   <label className="mb-3 flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
                     <Checkbox checked={alsoOtherTeam} onCheckedChange={(checked) => setAlsoOtherTeam(checked === true)} disabled={!selected} />
                     <span>Also use for {otherTeamName}</span>
@@ -1760,9 +1687,9 @@ export function SkinchangerPage() {
                 )}
                 <div className="flex gap-2">
                   <Button variant="outline" className="flex-1" disabled={saving} onClick={closePicker}>Cancel</Button>
-                  <Button className="lx-primary-button flex-1 disabled:opacity-40 disabled:saturate-50" disabled={!selected || saving || (!craftMode && selectedAlreadyEquipped)} onClick={craftMode ? () => void saveCraftAndClose() : saveAndClose}>
+                  <Button className="lx-primary-button flex-1 disabled:opacity-40 disabled:saturate-50" disabled={!selected || saving || selectedAlreadyEquipped} onClick={saveAndClose}>
                     {saving ? <Loader2 className="size-4 animate-spin" /> : <BadgeCheck className="size-4" />}
-                    {craftMode ? "Save craft" : selectedAlreadyEquipped ? "Saved" : "Save"}
+                    {selectedAlreadyEquipped ? "Saved" : "Save"}
                   </Button>
                 </div>
               </div>
@@ -1770,6 +1697,8 @@ export function SkinchangerPage() {
           </div>
         </DetailSheetContent>
       </Sheet>
+
+      <SkinStudio weapon={studioWeapon} initial={studioCraft} onClose={() => setStudioWeapon(null)} onSaved={() => { setStudioWeapon(null); refetchCrafts() }} />
 
       <AlertDialog open={craftToDelete !== null} onOpenChange={(open) => { if (!open && !saving) setCraftToDelete(null) }}>
         <AlertDialogContent size="sm" className="gap-0 rounded-2xl border-[var(--line)] bg-[var(--panel)] p-0 sm:max-w-[380px]">
