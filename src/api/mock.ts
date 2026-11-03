@@ -470,13 +470,14 @@ const GLOVES = ["Sport Gloves", "Driver Gloves", "Specialist Gloves", "Moto Glov
 const SKIN_NAMES = ["Redline", "Asiimov", "Neon Rider", "Vulcan", "Fade", "Slate", "Printstream", "Case Hardened", "Bloodsport", "Phantom Disruptor"]
 const RARITIES = ["Covert", "Classified", "Restricted", "Mil-Spec Grade", "Industrial Grade", "Consumer Grade"]
 
-type MockItem = { id: string; external_key: string; category: string; weapon_class: string | null; display_name: string; weapon_defindex: null; paint_id: number | null; model: null; image_key: null; image_url: string | null; metadata: Record<string, unknown> }
+type MockItem = { id: string; external_key: string; category: string; weapon_class: string | null; display_name: string; weapon_defindex: number | null; paint_id: number | null; model: null; image_key: null; image_url: string | null; metadata: Record<string, unknown> }
 
 function item(id: string, category: string, weaponClass: string | null, name: string, image: string | null, metadata: Record<string, unknown> = {}, paint: number | null = null): MockItem {
   return { id, external_key: id, category, weapon_class: weaponClass, display_name: name, weapon_defindex: null, paint_id: paint, model: null, image_key: null, image_url: image, metadata }
 }
 
-const firearmModel = ([weaponClass, file, group]: [string, string, string]) => item(`weapon-${file}`, "weapon", weaponClass, weaponClass, `${ICON}/weapon_${file}_png.png`, { weaponGroup: group })
+// The AK-47 carries its real definition index, so the 3D view can be tried with a test model (public/models/weapons/README.md).
+const firearmModel = ([weaponClass, file, group]: [string, string, string]) => ({ ...item(`weapon-${file}`, "weapon", weaponClass, weaponClass, `${ICON}/weapon_${file}_png.png`, { weaponGroup: group }), weapon_defindex: weaponClass === "AK-47" ? 7 : null })
 const knifeModel = ([name, file]: [string, string]) => item(`knife-${file}`, "knife", name, name, `${ICON}/weapon_${file}_png.png`)
 const gloveModel = (name: string) => item(`glove-${name.toLowerCase().replace(/\s+/g, "-")}`, "glove", name, name, null)
 

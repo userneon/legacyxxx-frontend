@@ -3,8 +3,8 @@
  * sticker and the charm can be grabbed and moved on it, and the options beside it set the skin, wear, pattern, StatTrak with its kill count,
  * the name tag, and each sticker's size, turn and scratches. Guns only. Save keeps a craft; nothing changes in game until the craft is picked in the loadout.
  */
-import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
-import { BadgeCheck, ImageOff, Loader2, Minus, Plus, RotateCcw, Search, X } from "lucide-react"
+import { lazy, Suspense, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
+import { BadgeCheck, Box, ImageOff, Loader2, Minus, Plus, RotateCcw, Search, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { skinchangerService, type SkinchangerAppearanceOptions, type SkinchangerCatalogItem, type SkinCraft, type SkinchangerStickerOption } from "@/api"
@@ -19,7 +19,11 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cn } from "@/lib/utils"
 import { wearColor, wearName, wearTiers, wearTrack } from "@/lib/skin-wear"
+import { useWeaponModels, weaponModelFor } from "@/lib/weapon-models"
 import { clampOffset, cleanKillCount, FLAT_CHARM, FLAT_SLOTS, offsetAt, positionOf, STICKER_SLOTS } from "@/lib/studio-layout"
+
+// three.js is fetched only for a gun that has a 3D model.
+const StudioStage3D = lazy(() => import("@/components/studio-stage-3d"))
 
 const imageOf = (item: SkinchangerCatalogItem | null | undefined) => {
   if (!item?.image_url) return null
@@ -116,6 +120,11 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
   const [picking, setPicking] = useState<Picking>(null)
   const [query, setQuery] = useState("")
   const [saving, setSaving] = useState(false)
+  const [view, setView] = useState<"3d" | "flat">("3d")
+  const models = useWeaponModels()
+  // Memoised: the 3D view is rebuilt whenever this changes, so it must change only with the gun or the skin.
+  const model3d = useMemo(() => weaponModelFor(models, { weapon_defindex: weapon.weapon_defindex, paint_id: skin?.paint_id ?? null }), [models, weapon.weapon_defindex, skin?.paint_id])
+  const show3d = Boolean(model3d) && view === "3d"
   const stage = useRef<HTMLDivElement>(null)
   const drag = useRef<{ kind: "sticker" | "charm"; slot: number } | null>(null)
 
@@ -233,6 +242,22 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
         {/* The weapon */}
         <div className="flex min-h-0 flex-col gap-4 p-4 lg:overflow-y-auto">
           <div ref={stage} className="relative aspect-video w-full select-none overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--card-surface)]" aria-label="The weapon: drag a sticker or the charm to move it">
+            {model3d && (
+              <button type="button" onClick={() => setView(show3d ? "flat" : "3d")} aria-pressed={show3d} className="absolute right-2 top-2 z-10 inline-flex h-7 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--card-surface)] px-2 text-[11px] font-semibold text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)] aria-pressed:border-[var(--text-2)] aria-pressed:text-[var(--text)]"><Box className="size-3.5" aria-hidden="true" />3D</button>
+            )}
+            {show3d && model3d ? (
+              <Suspense fallback={null}>
+                <StudioStage3D
+                  choice={model3d}
+                  label={weapon.display_name}
+                  selection={selection}
+                  onSelect={setSelection}
+                  stickers={stickers.map((entry) => ({ slot: entry.slot, imageUrl: imageOf(accessories[entry.catalogItemId]), offsetX: entry.offsetX ?? 0, offsetY: entry.offsetY ?? 0, scale: entry.scale ?? 1, rotation: entry.rotation ?? 0, wear: entry.wear ?? 0 }))}
+                  charm={charm ? { imageUrl: imageOf(accessories[charm.catalogItemId]), offsetX: charm.offsetX ?? 0, offsetY: charm.offsetY ?? 0, offsetZ: charm.offsetZ ?? 0 } : null}
+                  onMove={(pick, offsetX, offsetY) => (pick.kind === "charm" ? setOptions((current) => (current.charm ? { ...current, charm: { ...current.charm, offsetX, offsetY } } : current)) : setSticker(pick.slot, { offsetX, offsetY }))}
+                />
+              </Suspense>
+            ) : (<>
             {stageImage ? <OptimizedImage src={stageImage} width={960} height={540} priority alt="" className="pointer-events-none absolute inset-0 size-full object-contain p-6" /> : <ImageOff className="absolute left-1/2 top-1/2 size-8 -translate-x-1/2 -translate-y-1/2 text-[var(--text-faint)]" />}
             {Array.from({ length: STICKER_SLOTS }, (_, slot) => {
               const entry = stickerAt(slot)
@@ -276,8 +301,9 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
                 </button>
               )
             })()}
+            </>)}
           </div>
-          <p className="text-[11px] text-[var(--text-dim)]">Drag a sticker or the charm to place it. The picture is a guide: the game places each one by the same offsets, relative to its slot.</p>
+          <p className="text-[11px] text-[var(--text-dim)]">{show3d ? "Drag the gun to turn it." : "Drag a sticker or the charm to place it."} The picture is a guide: the game places each one by the same offsets, relative to its slot.</p>
 
           {/* What is on the weapon */}
           <div className="flex flex-wrap gap-2" role="tablist" aria-label="Stickers and charm">

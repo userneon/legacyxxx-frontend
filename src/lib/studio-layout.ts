@@ -35,3 +35,33 @@ export function positionOf(anchor: readonly [number, number], offset: Offset, as
 export function cleanKillCount(value: number) {
   return Number.isFinite(value) ? Math.max(0, Math.min(999_999, Math.round(value))) : 0
 }
+
+/* ---- 3D: the same offsets, measured on a slot's own plane ------------------------------------------------------------------------------------------ */
+export type Vec3 = readonly [number, number, number]
+/** A slot in a model's space: where it is, which way it faces, and which way is up on it. `reach` is the model-space length of one whole unit of offset. */
+export interface SlotFrame { position: Vec3; normal: Vec3; up: Vec3 }
+
+const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
+const cross = (a: Vec3, b: Vec3): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
+const norm = (a: Vec3): Vec3 => { const length = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / length, a[1] / length, a[2] / length] }
+
+/** The slot's three axes: right, up and out of the surface. `up` is squared against the normal so a sloppy manifest still gives a clean frame. */
+export function frameAxes(frame: SlotFrame): { right: Vec3; up: Vec3; normal: Vec3 } {
+  const normal = norm(frame.normal)
+  const lean = dot(frame.up, normal)
+  const up = norm([frame.up[0] - normal[0] * lean, frame.up[1] - normal[1] * lean, frame.up[2] - normal[2] * lean])
+  return { right: norm(cross(up, normal)), up, normal }
+}
+
+/** The offsets of a point in the model's space, read on the slot's plane. */
+export function offsetOnPlane(frame: SlotFrame, point: Vec3, reach: number): Offset {
+  const { right, up } = frameAxes(frame)
+  const d: Vec3 = [point[0] - frame.position[0], point[1] - frame.position[1], point[2] - frame.position[2]]
+  return { x: clampOffset(dot(d, right) / reach), y: clampOffset(dot(d, up) / reach) }
+}
+
+/** Where an item with these offsets sits in the model's space. */
+export function pointOnPlane(frame: SlotFrame, offset: Offset, reach: number): Vec3 {
+  const { right, up } = frameAxes(frame)
+  return [0, 1, 2].map((i) => frame.position[i]! + (right[i]! * offset.x + up[i]! * offset.y) * reach) as unknown as Vec3
+}

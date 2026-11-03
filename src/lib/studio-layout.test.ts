@@ -23,3 +23,26 @@ describe("studio layout", () => {
     expect(cleanKillCount(Number.NaN)).toBe(0)
   })
 })
+
+import { frameAxes, offsetOnPlane, pointOnPlane, type SlotFrame } from "./studio-layout"
+
+describe("3D slot frames", () => {
+  const frame: SlotFrame = { position: [1, 2, 3], normal: [0, 0, 1], up: [0, 1, 0.3] }
+  it("builds a clean right, up and normal from a sloppy up", () => {
+    const axes = frameAxes(frame)
+    expect(axes.normal).toEqual([0, 0, 1])
+    expect(axes.up[2]).toBeCloseTo(0, 6)
+    expect(axes.right[0]).toBeCloseTo(1, 6)
+  })
+  it("a point and its offsets agree on the plane", () => {
+    const point = pointOnPlane(frame, { x: 0.4, y: -0.25 }, 0.2)
+    expect(point[0]).toBeCloseTo(1.08, 6)
+    expect(point[1]).toBeCloseTo(1.95, 6)
+    const offset = offsetOnPlane(frame, point, 0.2)
+    expect(offset.x).toBeCloseTo(0.4, 6)
+    expect(offset.y).toBeCloseTo(-0.25, 6)
+  })
+  it("stays inside the game's limits", () => {
+    expect(offsetOnPlane(frame, [100, 100, 3], 0.2)).toEqual({ x: 1, y: 1 })
+  })
+})
