@@ -53,7 +53,7 @@ export interface Wallet {
   summary?: WalletSummary | null
 }
 
-/** A QPay top-up: the invoice the player pays in a bank app, and where it stands (backend POST /wallet/topup). */
+/** A top-up: what the player pays and gets, and where it stands (backend POST /wallet/topup). */
 export interface TopUp {
   id: string
   productId: string
@@ -65,12 +65,8 @@ export interface TopUp {
 }
 export interface TopUpInvoice extends TopUp {
   name: string
-  /** The QR picture as base64 (PNG), from QPay. */
-  qrImage: string
-  qrText: string
-  shortUrl: string
-  /** One link per bank app; only the invoice's own, from QPay. */
-  links: Array<{ name: string; description: string; logo: string; link: string }>
+  /** Wire's own payment page (https), where the player pays with QPay or a bank app. */
+  checkoutUrl: string
   expiresInMinutes: number
 }
 

@@ -1,10 +1,12 @@
 /**
- * The Shop's Top up tab: pick an LX package, see what the balance becomes and what it buys, and pay it with QPay (owner request
- * 2026-11-02). The server makes the QPay invoice and adds the LX once QPay says it is paid. Everything comes from the API.
+ * The Shop's Top up tab: pick an LX package or an amount, see what the balance becomes and what it buys, and pay on Wire's page (owner
+ * request 2026-11-02, through the Wire gateway since 2026-11-03: QPay and the bank apps are there). The server adds the LX once Wire says
+ * the payment succeeded. Everything comes from the API.
  */
 import { useEffect, useMemo, useState } from "react"
 import { Check, Minus, Plus, RotateCcw, SlidersHorizontal } from "lucide-react"
 import { toast } from "sonner"
+import { useSearchParams } from "react-router-dom"
 
 import { walletService, type Wallet } from "@/api"
 import { shopGoodsService, type GoodsProduct } from "@/api/shop-goods"
@@ -13,7 +15,7 @@ import qpayLogo from "@/assets/payments/qpay.svg"
 import { AnimatedNumber } from "@/components/animated-number"
 import { LxMark } from "@/components/lx-mark"
 import { RelativeTime } from "@/components/relative-time"
-import { QpayPayDialog } from "@/components/qpay-pay-dialog"
+import { TopUpPayDialog } from "@/components/topup-pay-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
@@ -24,7 +26,7 @@ const label = "text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--
 
 const STEPS = [
   { title: "Pick a package" },
-  { title: "Scan the QR or open your bank app" },
+  { title: "Pay with QPay or your bank app" },
   { title: "LX reach your wallet at once" },
 ]
 
@@ -78,6 +80,22 @@ export function ShopTopUp() {
       setStarting(false)
     }
   }
+  // Wire sends the player back here with ?topup=<id> after paying: look at that top-up once, say how it went, and tidy the address.
+  const [params, setParams] = useSearchParams()
+  const returned = params.get("topup")
+  useEffect(() => {
+    if (!returned || !user) return
+    let cancelled = false
+    void walletService.topUp(returned).then((result) => {
+      if (cancelled) return
+      if (result.status === "paid") toast.success(`Paid. ${result.grantsLx.toLocaleString()} LX are in your wallet.`)
+      else if (result.status === "pending") toast("Waiting for the payment to arrive. The LX are added as soon as it does.")
+      void wallet.refetch()
+      void topUpsQuery.refetch()
+    }).catch(() => undefined).finally(() => { if (!cancelled) setParams((current) => { const next = new URLSearchParams(current); next.delete("topup"); return next }, { replace: true }) })
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [returned, user?.id])
   const settled = (status: TopUp["status"]) => {
     void wallet.refetch()
     void topUpsQuery.refetch()
@@ -110,9 +128,9 @@ export function ShopTopUp() {
               </p>
             )}
             <button type="button" disabled={starting || (Boolean(user) && !qpayReady)} onClick={() => void start()} className="lx-primary-button inline-flex h-11 items-center justify-center rounded-lg px-4 text-[14px] font-semibold disabled:opacity-50">
-              {!user ? "Sign in to top up" : starting ? "Making the invoice…" : `Pay ${mnt(offer.priceMnt)} with QPay`}
+              {!user ? "Sign in to top up" : starting ? "Starting the payment…" : `Pay ${mnt(offer.priceMnt)}`}
             </button>
-            {user && !qpayReady && <p className="text-xs leading-relaxed text-[var(--text-dim)]">QPay is not set up yet. Top-ups open soon.</p>}
+            {user && !qpayReady && <p className="text-xs leading-relaxed text-[var(--text-dim)]">Top-up is not set up yet. It opens soon.</p>}
           </>
         )}
       </div>
@@ -202,7 +220,7 @@ export function ShopTopUp() {
           <div role="radiogroup" aria-label="Payment method">
             <button type="button" role="radio" aria-checked="true" className="flex w-full items-center gap-4 rounded-xl border border-[var(--text-2)] bg-[var(--raised)] p-3.5 text-left sm:max-w-[520px]">
               <span className="grid h-11 w-[88px] shrink-0 place-items-center rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)] px-3"><img src={qpayLogo} alt="QPay" className="h-6 w-[60px]" draggable={false} /></span>
-              <span className="flex min-w-0 flex-1 flex-col gap-0.5"><span className="text-[13px] font-semibold text-[var(--text)]">QPay</span><span className="text-[12px] leading-snug text-[var(--text-muted)]">Pay in any Mongolian bank app. The LX arrive as soon as QPay confirms it.</span></span>
+              <span className="flex min-w-0 flex-1 flex-col gap-0.5"><span className="text-[13px] font-semibold text-[var(--text)]">QPay</span><span className="text-[12px] leading-snug text-[var(--text-muted)]">Pay on Wire's secure page with QPay or any Mongolian bank app. The LX arrive as soon as it is paid.</span></span>
               <Check className="size-4 shrink-0 text-[var(--text)]" aria-hidden="true" />
             </button>
           </div>
@@ -242,7 +260,7 @@ export function ShopTopUp() {
 
       <aside aria-label="Your top-up" className="hidden lg:sticky lg:top-0 lg:block">{summary}</aside>
 
-      <QpayPayDialog invoice={invoice} onClose={() => setInvoice(null)} onSettled={settled} />
+      <TopUpPayDialog invoice={invoice} onClose={() => setInvoice(null)} onSettled={settled} />
     </div>
   )
 }

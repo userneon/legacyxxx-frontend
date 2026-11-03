@@ -1,10 +1,9 @@
 /**
- * The QPay payment window of a top-up: the invoice's QR code and the bank-app links QPay gave, a clock, and a check every few
- * seconds. The LX are added by the server when QPay says the invoice is paid; this window only shows where it stands.
+ * The payment window of a top-up: a button to Wire's payment page (QPay and the bank apps are there), a clock, and a check every few
+ * seconds. The LX are added by the server when Wire says the payment succeeded; this window only shows where it stands.
  */
 import { useEffect, useRef, useState } from "react"
-import { Check, Copy, ExternalLink, RotateCcw } from "lucide-react"
-import { toast } from "sonner"
+import { Check, ExternalLink, RotateCcw } from "lucide-react"
 
 import { walletService, type TopUp, type TopUpInvoice } from "@/api/wallet"
 import qpayLogo from "@/assets/payments/qpay.svg"
@@ -19,7 +18,7 @@ function clock(ms: number) {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`
 }
 
-export function QpayPayDialog({ invoice, onClose, onSettled }: { invoice: TopUpInvoice | null; onClose: () => void; onSettled: (status: TopUp["status"]) => void }) {
+export function TopUpPayDialog({ invoice, onClose, onSettled }: { invoice: TopUpInvoice | null; onClose: () => void; onSettled: (status: TopUp["status"]) => void }) {
   const [status, setStatus] = useState<TopUp["status"]>("pending")
   const [now, setNow] = useState(() => Date.now())
   const [checkFailed, setCheckFailed] = useState(false)
@@ -54,17 +53,13 @@ export function QpayPayDialog({ invoice, onClose, onSettled }: { invoice: TopUpI
   }, [id])
 
   const left = invoice ? Date.parse(invoice.createdAt) + invoice.expiresInMinutes * 60_000 - now : 0
-  const copyLink = async () => {
-    if (!invoice?.shortUrl) return
-    try { await navigator.clipboard.writeText(invoice.shortUrl); toast.success("Link copied") } catch { toast.error("Could not copy the link") }
-  }
 
   return (
     <Dialog open={Boolean(invoice)} onOpenChange={(open) => { if (!open) onClose() }}>
-      <DialogContent className="max-h-[92dvh] overflow-y-auto rounded-2xl sm:max-w-[440px]">
+      <DialogContent className="max-h-[92dvh] overflow-y-auto rounded-2xl sm:max-w-[420px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2.5"><img src={qpayLogo} alt="QPay" className="h-5 w-12 shrink-0" draggable={false} />{invoice ? mnt(invoice.amountMnt) : ""}</DialogTitle>
-          <DialogDescription>{invoice ? `Scan the code or open your bank app. ${invoice.grantsLx.toLocaleString()} LX arrive the moment it is paid.` : ""}</DialogDescription>
+          <DialogTitle>{invoice ? `Pay ${mnt(invoice.amountMnt)}` : ""}</DialogTitle>
+          <DialogDescription>{invoice ? `${invoice.grantsLx.toLocaleString()} LX arrive the moment it is paid.` : ""}</DialogDescription>
         </DialogHeader>
         {invoice && status === "paid" && (
           <div className="flex flex-col items-center gap-3 py-8 text-center" role="status">
@@ -76,39 +71,20 @@ export function QpayPayDialog({ invoice, onClose, onSettled }: { invoice: TopUpI
         )}
         {invoice && status !== "paid" && status !== "pending" && (
           <div className="flex flex-col items-center gap-3 py-8 text-center">
-            <span className="text-[13px] text-[var(--text-muted)]">{status === "expired" ? "This invoice ran out of time. Nothing was charged." : "The invoice could not be used."}</span>
+            <span className="text-[13px] text-[var(--text-muted)]">{status === "expired" ? "This payment ran out of time. Nothing was charged." : "The payment could not be started."}</span>
             <button type="button" onClick={onClose} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-4 text-[13px] text-[var(--text-2)] hover:bg-[var(--line-soft)]"><RotateCcw className="size-3.5" />Start again</button>
           </div>
         )}
         {invoice && status === "pending" && (
           <div className="flex flex-col gap-4">
-            <div className="mx-auto grid size-[220px] place-items-center rounded-xl bg-[var(--text)] p-2">
-              {invoice.qrImage ? <img src={`data:image/png;base64,${invoice.qrImage}`} alt="QPay QR code" className="size-full" draggable={false} /> : <span className="px-4 text-center text-xs text-[var(--bg)]">No QR code. Use a bank app below.</span>}
+            <div className="flex items-center gap-3 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-3.5">
+              <span className="grid h-11 w-[88px] shrink-0 place-items-center rounded-[10px] border border-[var(--line)] bg-[var(--panel)] px-3"><img src={qpayLogo} alt="QPay" className="h-6 w-[60px]" draggable={false} /></span>
+              <span className="text-[12px] leading-snug text-[var(--text-muted)]">Wire's secure page opens in a new tab. Scan the QR code or open your bank app there.</span>
             </div>
+            <a href={invoice.checkoutUrl} target="_blank" rel="noreferrer noopener" className="lx-primary-button inline-flex h-11 items-center justify-center gap-2 rounded-lg px-4 text-[14px] font-semibold"><ExternalLink className="size-4" aria-hidden="true" />Open the payment page</a>
             <p className="text-center text-[12px] text-[var(--text-dim)]" aria-live="polite">
               {checkFailed ? "Could not check the payment. Trying again…" : `Waiting for the payment · ${clock(left)} left`}
             </p>
-            {invoice.links.length > 0 && (
-              <div className="flex flex-col gap-2">
-                <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">Open your bank app</span>
-                <ul className="grid max-h-[180px] grid-cols-2 gap-2 overflow-y-auto">
-                  {invoice.links.map((bank) => (
-                    <li key={bank.name}>
-                      <a href={bank.link} className="flex h-10 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-2.5 text-[12px] text-[var(--text-2)] hover:border-[var(--line-strong)]">
-                        {bank.logo.startsWith("https://") && <img src={bank.logo} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = "none" }} className="size-6 shrink-0 rounded-md" />}
-                        <span className="truncate">{bank.description || bank.name}</span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {invoice.shortUrl.startsWith("https://") && (
-              <div className="flex gap-2">
-                <a href={invoice.shortUrl} target="_blank" rel="noreferrer noopener" className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] text-[var(--text-2)] hover:border-[var(--line-strong)]"><ExternalLink className="size-3.5" />Open the QPay page</a>
-                <button type="button" onClick={() => void copyLink()} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text-2)] hover:border-[var(--line-strong)]"><Copy className="size-3.5" />Copy</button>
-              </div>
-            )}
           </div>
         )}
       </DialogContent>
