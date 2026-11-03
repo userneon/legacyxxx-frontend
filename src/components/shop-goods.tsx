@@ -117,7 +117,8 @@ export function OrderDialog({ product, onClose, onDone }: { product: GoodsProduc
       setQuantity(1); setNote("")
       onDone()
     } catch (caught) {
-      toast.error(caught instanceof Error ? caught.message : "Could not send the order. Try again.")
+      const message = (caught as { message?: unknown } | null)?.message
+      toast.error(typeof message === "string" && message ? message : "Could not send the order. Try again.")
     } finally {
       setBusy(false)
     }

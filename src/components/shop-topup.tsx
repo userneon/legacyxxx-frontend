@@ -75,7 +75,9 @@ export function ShopTopUp() {
     try {
       setInvoice(await walletService.startTopUp(picked === "custom" ? { amountMnt: customMnt } : { productId: selected!.id }))
     } catch (caught) {
-      toast.error(caught instanceof Error ? caught.message : "Could not start the payment. Try again.")
+      // The API client throws a plain { status, code, message } object, not an Error, so read the message from either.
+      const message = (caught as { message?: unknown } | null)?.message
+      toast.error(typeof message === "string" && message ? message : "Could not start the payment. Try again.")
     } finally {
       setStarting(false)
     }
