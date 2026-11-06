@@ -74,11 +74,15 @@ export function ServersPanel() {
     }
   }
   useEffect(() => { void load() }, [])
+  // Only the list of servers and recent actions, not the access or the database figures: this is what is asked for while an action waits.
+  const refresh = async () => {
+    try { setOverview(await staffPanelService.overview()) } catch { /* the next round tries again */ }
+  }
   // While an action waits for the game server (it checks every few seconds), refresh so its result shows up.
   const waiting = (overview?.pendingActions ?? []).some((action) => action.status === "pending" || action.status === "claimed")
   useEffect(() => {
     if (!waiting) return
-    const timer = window.setInterval(() => { void load() }, 3000)
+    const timer = window.setInterval(() => { void refresh() }, 1500)
     return () => window.clearInterval(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [waiting])
@@ -95,7 +99,7 @@ export function ServersPanel() {
       const result = await staffPanelService.queueAction({ serverId: server, type: action.type, playerSteamId: action.needsPlayer ? steamId.trim() : undefined, message: action.needsMessage ? message.trim() : undefined, map: action.needsMap ? map : undefined })
       setNotice(`${action.label} sent. The server runs it within a few seconds; the result shows under Recent actions.`)
       void result
-      await load()
+      await refresh()
     } catch (error) {
       setNotice(messageOf(error))
     } finally {
@@ -110,7 +114,7 @@ export function ServersPanel() {
     try {
       await staffPanelService.queueAction({ serverId: server, type, playerSteamId, message: text || undefined })
       setNotice("Sent. The server runs it within a few seconds; the result shows under Recent actions.")
-      await load()
+      await refresh()
       return true
     } catch (error) {
       setNotice(messageOf(error))
