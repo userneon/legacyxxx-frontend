@@ -3,11 +3,18 @@ import { del, get, put, type CallOptions } from "./client"
 /** The kinds of server a role may work on; none picked means every kind. */
 export type GameMode = "5x5" | "pro" | "fun"
 
+/** A limit on one command for a role: seconds to wait between two uses and uses per map; 0 means none. */
+export interface CommandLimit {
+  cooldown: number
+  perMap: number
+}
+
 export interface GameRoleSettings {
   commands: string[]
   extraFlags: string[]
   modes: GameMode[]
   immunity: number
+  limits: Record<string, CommandLimit>
 }
 
 /** An in-game role as the Owner sees it on the staff site (Staff → Roles). */

@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react"
-import { Lock, RotateCcw, Search, ShieldCheck } from "lucide-react"
+import { Gauge, Lock, RotateCcw, Search, ShieldCheck } from "lucide-react"
 import { toast } from "sonner"
 
-import { gameRolesService, type GameMode, type GameRoleSettings, type GameRoleView } from "@/api/game-roles"
+import { gameRolesService, type CommandLimit, type GameMode, type GameRoleSettings, type GameRoleView } from "@/api/game-roles"
 import { STAFF_BODY } from "@/components/staff-ui"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -11,8 +11,12 @@ import { cn } from "@/lib/utils"
 
 const MODE_LABEL: Record<GameMode, string> = { "5x5": "5x5 Matches", pro: "Pro League", fun: "Fun" }
 const field = "h-9 w-[110px] rounded-lg border border-[var(--line)] bg-[var(--bg)] px-3 text-[13px] text-[var(--text)] focus:border-[var(--text-faint)] focus:outline-none"
-const same = (a: GameRoleSettings, b: GameRoleSettings) => JSON.stringify([[...a.commands].sort(), [...a.extraFlags].sort(), [...a.modes].sort(), a.immunity]) === JSON.stringify([[...b.commands].sort(), [...b.extraFlags].sort(), [...b.modes].sort(), b.immunity])
-const pick = (role: GameRoleView): GameRoleSettings => ({ commands: role.commands, extraFlags: role.extraFlags, modes: role.modes, immunity: role.immunity })
+/** The limits that count: on a command the role has, with something set. */
+const liveLimits = (settings: GameRoleSettings) => Object.fromEntries(Object.entries(settings.limits ?? {}).filter(([name, limit]) => settings.commands.includes(name) && (limit.cooldown > 0 || limit.perMap > 0)).sort(([a], [b]) => a.localeCompare(b)))
+const same = (a: GameRoleSettings, b: GameRoleSettings) => JSON.stringify([[...a.commands].sort(), [...a.extraFlags].sort(), [...a.modes].sort(), a.immunity, liveLimits(a)]) === JSON.stringify([[...b.commands].sort(), [...b.extraFlags].sort(), [...b.modes].sort(), b.immunity, liveLimits(b)])
+const pick = (role: GameRoleView): GameRoleSettings => ({ commands: role.commands, extraFlags: role.extraFlags, modes: role.modes, immunity: role.immunity, limits: role.limits ?? {} })
+const limitText = (limit: CommandLimit | undefined) => (!limit || (limit.cooldown === 0 && limit.perMap === 0) ? "" : [limit.cooldown > 0 ? `${limit.cooldown} s apart` : "", limit.perMap > 0 ? `${limit.perMap} per map` : ""].filter(Boolean).join(" · "))
+const wholeIn = (value: string, max: number) => Math.max(0, Math.min(max, Math.round(Number(value) || 0)))
 
 /** Staff → Roles (Owner only): what each in-game role may do, and on which kinds of server. The Owner role is fixed and is not listed. */
 export function StaffRoles({ isOwner }: { isOwner: boolean }) {
@@ -22,7 +26,7 @@ export function StaffRoles({ isOwner }: { isOwner: boolean }) {
   const role = data?.roles.find((entry) => entry.role === chosen) ?? data?.roles[0] ?? null
   return (
     <div className={STAFF_BODY}>
-      <p className="max-w-3xl text-[13px] text-[var(--text-muted)]">What each in-game role may run, and on which kinds of server it works. The game servers read a change within a minute. The Owner role is fixed and always has everything. Commands that change the server itself or the permissions cannot be given to any role.</p>
+      <p className="max-w-3xl text-[13px] text-[var(--text-muted)]">What each in-game role may run, how often, and on which kinds of server it works. The game servers read a change within a minute. The Owner role is fixed and always has everything. Commands that change the server itself or the permissions cannot be given to any role.</p>
       {loading && !data ? (
         <div className="grid gap-4 lg:grid-cols-[260px_minmax(0,1fr)]"><Skeleton className="h-[320px] rounded-xl bg-[var(--glass-fill)]" /><Skeleton className="h-[520px] rounded-xl bg-[var(--glass-fill)]" /></div>
       ) : error && !data ? (
@@ -50,6 +54,7 @@ function RoleEditor({ role, data, onSaved }: { role: GameRoleView; data: NonNull
   const [draft, setDraft] = useState<GameRoleSettings>(pick(role))
   const [search, setSearch] = useState("")
   const [busy, setBusy] = useState(false)
+  const [openLimit, setOpenLimit] = useState<string | null>(null)
   useEffect(() => { setDraft(pick(role)) }, [role])
   const dirty = !same(draft, pick(role))
   const atBuiltIn = same(draft, role.builtIn)
@@ -65,6 +70,7 @@ function RoleEditor({ role, data, onSaved }: { role: GameRoleView; data: NonNull
   const toggleGroup = (names: string[], on: boolean) => setDraft((current) => ({ ...current, commands: on ? Array.from(new Set([...current.commands, ...names])) : current.commands.filter((entry) => !names.includes(entry)) }))
   const toggleMode = (mode: GameMode) => setDraft((current) => ({ ...current, modes: current.modes.includes(mode) ? current.modes.filter((entry) => entry !== mode) : [...current.modes, mode] }))
   const toggleFlag = (flag: string) => setDraft((current) => ({ ...current, extraFlags: current.extraFlags.includes(flag) ? current.extraFlags.filter((entry) => entry !== flag) : [...current.extraFlags, flag] }))
+  const setLimit = (name: string, patch: Partial<CommandLimit>) => setDraft((current) => ({ ...current, limits: { ...current.limits, [name]: { ...(current.limits[name] ?? { cooldown: 0, perMap: 0 }), ...patch } } }))
   const run = async (work: () => Promise<unknown>, done: string) => {
     setBusy(true)
     try {
@@ -123,11 +129,29 @@ function RoleEditor({ role, data, onSaved }: { role: GameRoleView; data: NonNull
                 </div>
                 <ul className="grid gap-x-4 px-3 pb-2 sm:grid-cols-2">
                   {commands.map((command) => (
-                    <li key={command.name}>
-                      <label className={cn("flex items-start gap-2.5 py-1.5 text-[13px]", command.locked ? "cursor-not-allowed opacity-55" : "cursor-pointer")}>
-                        <Checkbox checked={chosenSet.has(command.name)} disabled={command.locked} onCheckedChange={() => toggle(command.name)} className="mt-0.5" aria-label={command.name} />
-                        <span className="flex min-w-0 flex-col"><span className="flex items-center gap-1.5 font-medium text-[var(--text)]">!{command.name}{command.locked && <Lock className="size-3 text-[var(--text-dim)]" aria-label="Owner only" />}</span>{command.summary && <span className="text-[11px] leading-snug text-[var(--text-dim)]">{command.summary}</span>}</span>
-                      </label>
+                    <li key={command.name} className="min-w-0">
+                      <div className="flex items-start gap-1">
+                        <label className={cn("flex min-w-0 flex-1 items-start gap-2.5 py-1.5 text-[13px]", command.locked ? "cursor-not-allowed opacity-55" : "cursor-pointer")}>
+                          <Checkbox checked={chosenSet.has(command.name)} disabled={command.locked} onCheckedChange={() => toggle(command.name)} className="mt-0.5" aria-label={command.name} />
+                          <span className="flex min-w-0 flex-col"><span className="flex items-center gap-1.5 font-medium text-[var(--text)]">!{command.name}{command.locked && <Lock className="size-3 text-[var(--text-dim)]" aria-label="Owner only" />}</span>{command.summary && <span className="text-[11px] leading-snug text-[var(--text-dim)]">{command.summary}</span>}</span>
+                        </label>
+                        {chosenSet.has(command.name) && !command.locked && (
+                          <button type="button" onClick={() => setOpenLimit(openLimit === command.name ? null : command.name)} aria-expanded={openLimit === command.name} aria-label={`Limit for !${command.name}`} title={limitText(draft.limits[command.name]) || "Set a limit"} className={cn("mt-1 inline-flex h-6 shrink-0 items-center gap-1 rounded-md border px-1.5 text-[11px] transition-colors hover:border-[var(--line-strong)]", limitText(draft.limits[command.name]) ? "border-[var(--text-2)] text-[var(--text)]" : "border-[var(--line)] text-[var(--text-dim)]")}>
+                            <Gauge className="size-3" aria-hidden="true" />{limitText(draft.limits[command.name]) || "Limit"}
+                          </button>
+                        )}
+                      </div>
+                      {openLimit === command.name && chosenSet.has(command.name) && (
+                        <div className="mb-1.5 ml-6 flex flex-wrap items-end gap-3 rounded-lg border border-[var(--line-soft)] bg-[var(--bg)] p-2.5">
+                          <label className="flex flex-col gap-1 text-[11px] text-[var(--text-dim)]">Wait between uses (seconds)
+                            <input type="number" min={0} max={3600} step={1} value={draft.limits[command.name]?.cooldown ?? 0} onChange={(event) => setLimit(command.name, { cooldown: wholeIn(event.target.value, 3600) })} className={cn(field, "h-8 w-[110px]")} />
+                          </label>
+                          <label className="flex flex-col gap-1 text-[11px] text-[var(--text-dim)]">Most uses per map
+                            <input type="number" min={0} max={999} step={1} value={draft.limits[command.name]?.perMap ?? 0} onChange={(event) => setLimit(command.name, { perMap: wholeIn(event.target.value, 999) })} className={cn(field, "h-8 w-[110px]")} />
+                          </label>
+                          <span className="pb-1.5 text-[11px] text-[var(--text-faint)]">0 means no limit.</span>
+                        </div>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -150,7 +174,7 @@ function RoleEditor({ role, data, onSaved }: { role: GameRoleView; data: NonNull
       <footer className="sticky bottom-0 flex flex-wrap items-center justify-end gap-3 border-t border-[var(--line-soft)] bg-[var(--panel)] px-4 py-3">
         {dirty && <span role="status" className="mr-auto inline-flex items-center gap-1.5 text-[12px] text-[var(--text-2)]"><span aria-hidden="true" className="size-1.5 rounded-full bg-[var(--accent-solid)]" />Not saved yet</span>}
         <button type="button" disabled={!dirty || busy} onClick={() => setDraft(pick(role))} className="inline-flex h-10 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-4 text-[13px] text-[var(--text-2)] hover:border-[var(--line-strong)] disabled:opacity-50">Discard</button>
-        <button type="button" disabled={!dirty || busy || !immunityOk} onClick={() => void run(() => gameRolesService.save(role.role, draft), `${role.label} saved`)} className="lx-primary-button inline-flex h-10 items-center rounded-lg px-5 text-[13px] font-semibold disabled:opacity-50">{busy ? "Saving…" : "Save role"}</button>
+        <button type="button" disabled={!dirty || busy || !immunityOk} onClick={() => void run(() => gameRolesService.save(role.role, { ...draft, limits: liveLimits(draft) }), `${role.label} saved`)} className="lx-primary-button inline-flex h-10 items-center rounded-lg px-5 text-[13px] font-semibold disabled:opacity-50">{busy ? "Saving…" : "Save role"}</button>
       </footer>
     </section>
   )

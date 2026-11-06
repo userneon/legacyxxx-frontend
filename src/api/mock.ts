@@ -753,10 +753,10 @@ export async function mockResponse(method: string, path: string, query: Query, b
   // Design preview only: the Roles editor on the staff site.
   if (path === "/api/v1/staff/game-roles" && method === "GET") {
     const cmds = [["noclip", "Cheats", "<target> <0|1>", false], ["god", "Cheats", "<target> <0|1>", false], ["speed", "Cheats", "<target> <value>", false], ["freeze", "Fun", "<target> [time]", false], ["goto", "Fun", "Teleport to player", false], ["bring", "Fun", "Bring a player to you", false], ["slap", "Fun", "Slap a player", false], ["ban", "Bans", "Ban a player from console", false], ["kick", "Basics and votes", "Kick a player from console", false], ["mute", "Chat and punishments", "Mute a player from console", false], ["rcon", "Server", "Send RCON command from console", true]] as const
-    const settings = (commands: string[], modes: string[], immunity: number) => ({ commands, extraFlags: [] as string[], modes, immunity })
+    const settings = (commands: string[], modes: string[], immunity: number, limits: Record<string, { cooldown: number; perMap: number }> = {}) => ({ commands, extraFlags: [] as string[], modes, immunity, limits })
     return {
       roles: [
-        { role: "creator", label: "Content Creator", ...settings(["noclip", "god", "speed", "freeze", "goto", "bring", "slap"], ["fun"], 100), changed: false, updatedAt: null, builtIn: settings(["noclip", "god", "speed", "freeze", "goto", "bring", "slap"], ["fun"], 100) },
+        { role: "creator", label: "Content Creator", ...settings(["noclip", "god", "speed", "freeze", "goto", "bring", "slap"], ["fun"], 100, { freeze: { cooldown: 30, perMap: 5 } }), changed: false, updatedAt: null, builtIn: settings(["noclip", "god", "speed", "freeze", "goto", "bring", "slap"], ["fun"], 100) },
         { role: "main_creator", label: "Main Content Creator", ...settings(["noclip", "god", "speed", "freeze", "goto", "bring", "slap"], ["fun"], 200), changed: true, updatedAt: "2026-11-02T10:00:00Z", builtIn: settings(["noclip", "god", "speed", "freeze", "goto", "bring", "slap"], ["fun"], 200) },
         { role: "admin", label: "Admin", ...settings(["ban", "kick", "slap", "mute"], [], 500), changed: false, updatedAt: null, builtIn: settings(["ban", "kick", "slap", "mute"], [], 500) },
       ],
