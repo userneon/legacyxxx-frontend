@@ -148,6 +148,8 @@ export function ServersPanel() {
         )}
       </section>
 
+      {server && access.role === "OWNER" && <ServerName key={server} serverId={server} current={overview?.servers.find((item) => item.server_id === server)?.name ?? ""} onSaved={refresh} onNotice={setNotice} />}
+
       {server && <ServerLive serverId={server} busy={busy} onAct={actOn} />}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
@@ -214,5 +216,33 @@ export function ServersPanel() {
         </section>
       )}
     </div>
+  )
+}
+
+/** The server's name on the website (Owner). The game server takes it with its next heartbeat and sets its own hostname: nothing is written on the machine. */
+function ServerName({ serverId, current, onSaved, onNotice }: { serverId: string; current: string; onSaved: () => Promise<void>; onNotice: (text: string) => void }) {
+  const [name, setName] = useState(current)
+  const [saving, setSaving] = useState(false)
+  useEffect(() => { setName(current) }, [current])
+  const clean = name.trim()
+  const valid = clean.length > 0 && clean.length <= 60 && !/[\u0000-\u001f\u007f"';\\$`=]/.test(clean)
+  const save = async () => {
+    setSaving(true)
+    try {
+      await staffPanelService.renameServer(serverId, clean)
+      onNotice(`Renamed to "${clean}". The server takes it with its next report (within 10 seconds).`)
+      await onSaved()
+    } catch (error) {
+      onNotice(messageOf(error))
+    } finally {
+      setSaving(false)
+    }
+  }
+  return (
+    <form aria-label="Server name" className="flex flex-wrap items-center gap-2" onSubmit={(event) => { event.preventDefault(); if (valid && clean !== current && !saving) void save() }}>
+      <label htmlFor="staff-server-name" className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-faint)]">Name</label>
+      <Input id="staff-server-name" value={name} onChange={(event) => setName(event.target.value)} maxLength={60} aria-invalid={!valid} className="h-9 w-full max-w-[320px] rounded-lg text-[13px]" />
+      <button type="submit" disabled={!valid || clean === current || saving} className="inline-flex h-9 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text-2)] hover:border-[var(--line-strong)] disabled:opacity-50">{saving ? "Saving…" : "Save name"}</button>
+    </form>
   )
 }
