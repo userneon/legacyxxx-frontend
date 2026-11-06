@@ -1,7 +1,7 @@
 /**
  * The Advanced studio's 3D view of a gun (three.js, loaded only when a gun has a model, see lib/weapon-models.ts): the Weapon Paints models, painted with
  * the skin's own texture. Turn it with the pointer; grab a sticker or the charm and it moves along the gun's side, and what is dropped is the offsets the
- * plugin stores (lib/studio-layout.ts). Stickers are laid on the gun's surface (decals), the charm is a flat picture hung near the back.
+ * plugin stores (lib/studio-layout.ts). Stickers are laid on the gun's surface (decals). The charm hangs on a small chain from near the back as a thick plaque with its picture, and swings when it is moved (the source has no charm models, so this is a stand-in).
  */
 import { useEffect, useRef, useState } from "react"
 import { RotateCcw } from "lucide-react"
@@ -28,6 +28,18 @@ interface Geometry {
   slots: Array<SlotFrame | null>
   charm: SlotFrame
 }
+/** The hanging charm: `anchor` sits where it is fixed to the gun, `swing` turns about it; `plaque` holds the layers that give the picture some thickness. */
+interface CharmRig {
+  anchor: THREE.Group
+  swing: THREE.Group
+  materials: THREE.MeshStandardMaterial[]
+  meshes: THREE.Mesh[]
+  length: number
+  angle: number
+  speed: number
+  last: THREE.Vector3
+  lastVelocity: number
+}
 interface Ctx {
   scene: THREE.Scene
   camera: THREE.PerspectiveCamera
@@ -38,6 +50,7 @@ interface Ctx {
   textures: Map<string, THREE.Texture>
   loader: THREE.TextureLoader
   geometry: Geometry | null
+  charm: CharmRig | null
 }
 
 const SKIP_MATERIAL = /bare_arm|scope/i
@@ -59,6 +72,38 @@ function bodyMesh(root: THREE.Object3D): THREE.Mesh | null {
     if (score > bestScore) { bestScore = score; best = mesh }
   })
   return best
+}
+
+/** A keychain: three chain links and a plaque made of layers of the charm's picture, so it has thickness seen from the side. */
+function buildCharm(edge: number): CharmRig {
+  const anchor = new THREE.Group()
+  const swing = new THREE.Group()
+  anchor.add(swing)
+  const metal = new THREE.MeshStandardMaterial({ color: 0xb9bdc6, metalness: 1, roughness: 0.35 })
+  const meshes: THREE.Mesh[] = []
+  const linkGeometry = new THREE.TorusGeometry(edge * 0.07, edge * 0.018, 8, 16)
+  for (let i = 0; i < 3; i++) {
+    const link = new THREE.Mesh(linkGeometry, metal)
+    link.position.y = -(edge * 0.07 + i * edge * 0.11)
+    link.rotation.y = i % 2 ? Math.PI / 2 : 0
+    swing.add(link)
+    meshes.push(link)
+  }
+  const chain = edge * 0.1 + 3 * edge * 0.11
+  const layers = 9
+  const thickness = edge * 0.14
+  const plane = new THREE.PlaneGeometry(edge, edge)
+  const materials: THREE.MeshStandardMaterial[] = []
+  for (let k = 0; k < layers; k++) {
+    const outer = k === 0 || k === layers - 1
+    const material = new THREE.MeshStandardMaterial({ color: outer ? 0xffffff : 0x8a8d96, transparent: true, alphaTest: 0.4, side: THREE.DoubleSide, roughness: 0.55, metalness: 0.1 })
+    const layer = new THREE.Mesh(plane, material)
+    layer.position.set(0, -(chain + edge / 2), (k / (layers - 1) - 0.5) * thickness)
+    swing.add(layer)
+    materials.push(material)
+    meshes.push(layer)
+  }
+  return { anchor, swing, materials, meshes, length: chain + edge / 2, angle: 0, speed: 3, last: new THREE.Vector3(), lastVelocity: 0 }
 }
 
 export default function StudioStage3D({ choice, stickers, charm, selection, label, onSelect, onMove }: {
@@ -105,7 +150,7 @@ export default function StudioStage3D({ choice, stickers, charm, selection, labe
     scene.add(root)
     const loader = new THREE.TextureLoader()
     loader.setCrossOrigin("anonymous")
-    const context: Ctx = { scene, camera, renderer, controls, items: new Map(), markers: [], textures: new Map(), loader, geometry: null }
+    const context: Ctx = { scene, camera, renderer, controls, items: new Map(), markers: [], textures: new Map(), loader, geometry: null, charm: null }
     ctx.current = context
 
     const resize = () => {
@@ -130,7 +175,7 @@ export default function StudioStage3D({ choice, stickers, charm, selection, labe
     }
     const down = (event: PointerEvent) => {
       setPointer(event)
-      const targets = [...context.items.values(), ...context.markers].filter((mesh) => mesh.visible)
+      const targets = [...context.items.values(), ...context.markers, ...(context.charm?.meshes ?? [])].filter((mesh) => mesh.visible)
       const hit = raycaster.intersectObjects(targets, false)[0]
       const pick = hit?.object.userData.pick as Pick | undefined
       if (!pick) return
@@ -159,7 +204,7 @@ export default function StudioStage3D({ choice, stickers, charm, selection, labe
     // Development only: where an item is on screen, for trying the grab in a browser test.
     if (import.meta.env.DEV) {
       ;(window as unknown as { __studio3d?: (id: string) => [number, number] | null }).__studio3d = (id) => {
-        const mesh = context.items.get(id)
+        const mesh = id === "charm:0" ? context.charm?.meshes[context.charm.meshes.length - 1] : context.items.get(id)
         if (!mesh) return null
         const box = renderer.domElement.getBoundingClientRect()
         const p = new THREE.Box3().setFromObject(mesh).getCenter(new THREE.Vector3()).project(camera)
@@ -246,9 +291,25 @@ export default function StudioStage3D({ choice, stickers, charm, selection, labe
       })
       .catch(() => { if (!disposed) setState("error") })
 
+    let before = performance.now()
     const tick = () => {
       frame = requestAnimationFrame(tick)
       if (document.hidden) return
+      const now = performance.now()
+      const dt = Math.min(0.05, (now - before) / 1000)
+      before = now
+      const rig = context.charm
+      if (rig && dt > 0) {
+        // A pendulum: gravity pulls it straight down, moving the hook sideways swings it, and the swing dies away.
+        const velocity = (rig.anchor.position.x - rig.last.x) / dt
+        const push = (velocity - rig.lastVelocity) / dt
+        rig.last.copy(rig.anchor.position)
+        rig.lastVelocity = velocity
+        const acceleration = -(9.8 / rig.length) * Math.sin(rig.angle) - 2.2 * rig.speed - (Math.max(-60, Math.min(60, push)) / rig.length) * Math.cos(rig.angle)
+        rig.speed += acceleration * dt
+        rig.angle = Math.max(-1.2, Math.min(1.2, rig.angle + rig.speed * dt))
+        rig.swing.rotation.z = rig.angle
+      }
       controls.update()
       renderer.render(scene, camera)
     }
@@ -272,6 +333,7 @@ export default function StudioStage3D({ choice, stickers, charm, selection, labe
           material.dispose()
         }
       })
+      context.charm?.meshes.forEach((mesh) => { if (!(mesh.geometry instanceof THREE.PlaneGeometry) || mesh === context.charm?.meshes[0]) mesh.geometry.dispose() })
       context.textures.forEach((texture) => texture.dispose())
       scene.environment?.dispose()
       environment.dispose()
@@ -328,9 +390,28 @@ export default function StudioStage3D({ choice, stickers, charm, selection, labe
       put(`sticker:${sticker.slot}`, { kind: "sticker", slot: sticker.slot }, () => new DecalGeometry(geometry.target, position, orientation, new THREE.Vector3(edge, edge, depth)), sticker.imageUrl, 1 - sticker.wear * 0.6, 5 + sticker.slot)
     }
     if (charm) {
-      const point = pointOnPlane(geometry.charm, { x: charm.offsetX, y: charm.offsetY }, geometry.reach)
       const edge = size.x * 0.09
-      put("charm:0", { kind: "charm", slot: 0 }, () => new THREE.PlaneGeometry(edge, edge).translate(point[0], point[1], geometry.charm.position[2] + size.z * 0.05 + charm.offsetZ * size.z), charm.imageUrl, 1, 6)
+      let rig = context.charm
+      if (!rig) {
+        rig = buildCharm(edge)
+        context.charm = rig
+        context.scene.add(rig.anchor)
+        rig.meshes.forEach((mesh) => { mesh.userData.pick = { kind: "charm", slot: 0 } satisfies Pick })
+        rig.speed = 3
+      }
+      const point = pointOnPlane(geometry.charm, { x: charm.offsetX, y: charm.offsetY }, geometry.reach)
+      rig.anchor.position.set(point[0], point[1], geometry.charm.position[2] + size.z * 0.1 + charm.offsetZ * size.z)
+      const url = charm.imageUrl
+      const first = rig.materials[0]
+      if (url && first && first.userData.url !== url) {
+        rig.materials.forEach((material) => { material.userData.url = url })
+        texture(url, (loaded) => { rig.materials.forEach((material) => { if (material.userData.url === url) { material.map = loaded; material.needsUpdate = true } }) }, () => rig.materials.forEach((material) => { material.color.set(0x888888) }))
+      }
+    } else if (context.charm) {
+      context.scene.remove(context.charm.anchor)
+      context.charm.meshes.forEach((mesh) => { if (!(mesh.geometry instanceof THREE.PlaneGeometry)) mesh.geometry.dispose() })
+      context.charm.materials.forEach((material) => material.dispose())
+      context.charm = null
     }
     for (const [id, mesh] of context.items) {
       if (wanted.has(id)) continue
