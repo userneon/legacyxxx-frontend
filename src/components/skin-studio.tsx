@@ -20,6 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cn } from "@/lib/utils"
 import { StudioRealPreview } from "@/components/studio-real-preview"
+import { StudioSkinWarmer } from "@/components/studio-skin-warmer"
 import { wearColor, wearName, wearTiers, wearTrack } from "@/lib/skin-wear"
 import { clampOffset, cleanKillCount, OFFSET_LIMIT, STICKER_SLOTS } from "@/lib/studio-layout"
 
@@ -270,6 +271,7 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
         {/* The weapon */}
         <div className="flex min-h-0 flex-col gap-4 p-4 lg:overflow-y-auto">
           <div className="relative aspect-video w-full select-none overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--card-surface)]" aria-label="The weapon as the game draws it">
+            {realCraft && <StudioSkinWarmer weapon={weapon} activeSkinId={skin?.id ?? null} changeKey={`${skin?.id ?? ""}:${JSON.stringify(options)}`} />}
             {realCraft ? <StudioRealPreview craft={realCraft} label={weapon.display_name} skinKey={`${weapon.id}:${skin?.id ?? ""}`} /> : (
               <>
                 {stageImage ? <OptimizedImage src={stageImage} width={960} height={540} priority alt="" className="pointer-events-none absolute inset-0 size-full object-contain p-6 opacity-40" /> : <ImageOff className="absolute left-1/2 top-1/2 size-8 -translate-x-1/2 -translate-y-1/2 text-[var(--text-faint)]" />}
