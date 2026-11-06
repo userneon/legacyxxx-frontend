@@ -364,6 +364,13 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     } catch {
       // Really signed out (or the server is busy): fall through to the original 401.
     }
+    // A visitor who is signed out but still holds an old session cookie gets this 401 on pages that are public (the clan list, the leaders):
+    // ask once more as a guest. A page that needs a sign-in answers 401 again and shows that, as before.
+    try {
+      return await request<T>(path, { ...options, renewed: true, skipAuth: true, headers: { ...options.headers, "X-Guest-Fallback": "1" } })
+    } catch {
+      // Still refused: fall through to the original 401.
+    }
   }
 
   if (!response.ok) {
