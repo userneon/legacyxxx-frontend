@@ -1,79 +1,15 @@
 /**
- * Where stickers and the charm sit in the Advanced studio, and how a drag turns into the game's offsets (-1 ... 1, as the site stores them).
- * The numbers below are the one place to calibrate: the slot spots and the reach describe the weapon's side picture, and the offsets the game
- * reads are only as exact as these are, so check a result in game once and adjust here.
+ * The numbers of the Advanced studio that the game reads: how many sticker slots a gun has, how far a sticker or charm may be moved from its slot
+ * (the offsets the plugin stores) and how a typed StatTrak count is cleaned. The gun itself is drawn by the ChainSkins viewer, not here.
  */
 export const STICKER_SLOTS = 5
 
-/** The default spot of each sticker slot on a weapon's side picture, as [x, y] shares of the picture's width and height. */
-export const FLAT_SLOTS: ReadonlyArray<readonly [number, number]> = [[0.34, 0.4], [0.46, 0.4], [0.58, 0.4], [0.7, 0.4], [0.82, 0.4]]
-/** Where the charm hangs, same measure. */
-export const FLAT_CHARM: readonly [number, number] = [0.12, 0.62]
-/**
- * What the plugin stores for a sticker or the charm is a pair of small floats that the Weapon Paints viewers read as a share of the gun's own
- * width and height (one whole unit moves it a whole gun length across, one half the best-known range is -0.5 ... 0.5). The editor keeps to that range.
- */
+/** The game reads an offset as a share of the gun and the editor keeps to -0.5 ... 0.5. */
 export const OFFSET_LIMIT = 0.5
-/** In the flat view, one whole unit of offset moves a sticker this share of the picture's width sideways ... */
-export const OFFSET_REACH = 0.8
-/** ... and this share of the picture's width up or down (a gun is about a quarter as tall as it is long). */
-export const OFFSET_REACH_Y = 0.24
-/** The game's offset y grows upwards; the picture's y grows downwards. */
-export const OFFSET_Y_UP = true
 
 export const clampOffset = (value: number) => Math.max(-OFFSET_LIMIT, Math.min(OFFSET_LIMIT, Number.isFinite(value) ? value : 0))
-
-export interface Offset { x: number; y: number }
-
-/** The offsets that put something at `point` (shares of the picture) when its home is `anchor`. `aspect` is the picture's width over its height. */
-export function offsetAt(anchor: readonly [number, number], point: readonly [number, number], aspect: number): Offset {
-  const x = (point[0] - anchor[0]) / OFFSET_REACH
-  const down = (point[1] - anchor[1]) / (OFFSET_REACH_Y * aspect)
-  return { x: clampOffset(x), y: clampOffset(OFFSET_Y_UP ? -down : down) }
-}
-
-/** The inverse: where an item with these offsets is drawn, as shares of the picture. */
-export function positionOf(anchor: readonly [number, number], offset: Offset, aspect: number): [number, number] {
-  const down = (OFFSET_Y_UP ? -offset.y : offset.y) * OFFSET_REACH_Y * aspect
-  return [anchor[0] + offset.x * OFFSET_REACH, anchor[1] + down]
-}
 
 /** A StatTrak kill count typed by a player: whole numbers from 0 to 999,999. */
 export function cleanKillCount(value: number) {
   return Number.isFinite(value) ? Math.max(0, Math.min(999_999, Math.round(value))) : 0
-}
-
-/* ---- 3D: the same offsets, measured on a slot's own plane ------------------------------------------------------------------------------------------ */
-export type Vec3 = readonly [number, number, number]
-/** A slot in a model's space: where it is, which way it faces, and which way is up on it. */
-export interface SlotFrame { position: Vec3; normal: Vec3; up: Vec3 }
-/** The model-space length of one whole unit of offset, sideways and up: one number for both, or [sideways, up]. */
-export type Reach = number | readonly [number, number]
-const reachOf = (reach: Reach): readonly [number, number] => (typeof reach === "number" ? [reach, reach] : reach)
-
-const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
-const cross = (a: Vec3, b: Vec3): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
-const norm = (a: Vec3): Vec3 => { const length = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / length, a[1] / length, a[2] / length] }
-
-/** The slot's three axes: right, up and out of the surface. `up` is squared against the normal so a sloppy manifest still gives a clean frame. */
-export function frameAxes(frame: SlotFrame): { right: Vec3; up: Vec3; normal: Vec3 } {
-  const normal = norm(frame.normal)
-  const lean = dot(frame.up, normal)
-  const up = norm([frame.up[0] - normal[0] * lean, frame.up[1] - normal[1] * lean, frame.up[2] - normal[2] * lean])
-  return { right: norm(cross(up, normal)), up, normal }
-}
-
-/** The offsets of a point in the model's space, read on the slot's plane. */
-export function offsetOnPlane(frame: SlotFrame, point: Vec3, reach: Reach): Offset {
-  const [reachX, reachY] = reachOf(reach)
-  const { right, up } = frameAxes(frame)
-  const d: Vec3 = [point[0] - frame.position[0], point[1] - frame.position[1], point[2] - frame.position[2]]
-  return { x: clampOffset(dot(d, right) / reachX), y: clampOffset(dot(d, up) / reachY) }
-}
-
-/** Where an item with these offsets sits in the model's space. */
-export function pointOnPlane(frame: SlotFrame, offset: Offset, reach: Reach): Vec3 {
-  const [reachX, reachY] = reachOf(reach)
-  const { right, up } = frameAxes(frame)
-  return [0, 1, 2].map((i) => frame.position[i]! + right[i]! * offset.x * reachX + up[i]! * offset.y * reachY) as unknown as Vec3
 }
