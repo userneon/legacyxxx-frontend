@@ -51,6 +51,8 @@ export interface ProfileOverview {
     /** The name colour and glow the player wears. */
     nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   }
+  /** Set while the player has an active ban: the API sends no numbers then and the page draws its stat cards censored with "Banned". Null otherwise (lifting the ban brings everything back). */
+  banned?: { permanent: boolean; expiresAt: string | null; reason: string | null; since: string | null } | null
   viewer: { isOwner: boolean; isStaff: boolean }
   visibility: Record<ProfileSection, boolean> | null
   hidden: ProfileSection[]

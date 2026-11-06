@@ -7,7 +7,7 @@ import { DiscordLinkedMark } from "@/components/discord-linked-mark"
 import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
-import { ArrowDown, ArrowLeftRight, ArrowUp, ChevronRight, Copy, Crown, ExternalLink, Eye, EyeOff, Info, MessageCircle, Minus, MoreHorizontal, Play, RotateCcw, ShieldAlert, ShieldCheck, Shield } from "lucide-react"
+import { ArrowDown, ArrowLeftRight, ArrowUp, Ban, ChevronRight, Copy, Crown, ExternalLink, Eye, EyeOff, Info, MessageCircle, Minus, MoreHorizontal, Play, RotateCcw, ShieldAlert, ShieldCheck, Shield } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -182,7 +182,9 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
             <h1 {...nameProps(user.nameStyle, "truncate text-[30px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]")} title={user.username}><PlayerNameText name={user.username} /></h1>
             <DiscordLinkedMark linked={overview.discordLinked} focusable className="shrink-0 [&_svg]:size-[18px]" />
           </div>
-          {user.title && <span className={cn("text-[11px] font-semibold uppercase tracking-[3px]", user.title === "Genesis" ? "lx-profile-title-founder" : "text-[var(--text-dim)]")}>{user.title}</span>}
+          {overview.banned
+            ? <span title={overview.banned.reason ?? undefined} className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[3px] text-[var(--status-red)]"><Ban className="size-3.5" aria-hidden="true" />Banned</span>
+            : user.title && <span className={cn("text-[11px] font-semibold uppercase tracking-[3px]", user.title === "Genesis" ? "lx-profile-title-founder" : "text-[var(--text-dim)]")}>{user.title}</span>}
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2">
           <RoleBadge role={user.role} />
@@ -204,7 +206,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
         <div className="flex flex-wrap items-center justify-center gap-3.5 text-[13px] text-[var(--text-muted)]">
           {competitive?.position && <><span title="Leaderboard position" className="font-semibold text-[var(--text-2)]">#{competitive.position}</span><span className="text-[var(--line-strong)]">·</span></>}
           {user.memberSince && <><span title="Member since">Since {formatDate(user.memberSince)}</span><span className="text-[var(--line-strong)]">·</span></>}
-          <span title="Last played">{overview.lastPlayedAt ? <>Active <RelativeTime value={overview.lastPlayedAt} /></> : "No matches yet"}</span>
+          <span title="Last played">{overview.banned ? "Banned" : overview.lastPlayedAt ? <>Active <RelativeTime value={overview.lastPlayedAt} /></> : "No matches yet"}</span>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2">
         {presence?.connectAddress && (
@@ -378,6 +380,40 @@ function TrustCard({ overview, onOpenPenalty }: { overview: ProfileOverview; onO
         ) : (
           <span className="flex items-center gap-[5px] text-[13px] font-medium text-[var(--status-green)]"><ShieldCheck className="size-3.5" />Clean</span>
         )}
+      </div>
+    </section>
+  )
+}
+
+/** A stat card of a banned player (owner request 2026-11-06): the card keeps its shape and heading, every figure is a bar, and "Banned" sits over it. Nothing real is drawn. */
+function CensoredCard({ label, rows = 3, className }: { label: string; rows?: number; className?: string }) {
+  return (
+    <section aria-label={`${label}: banned`} className={cn(card, "relative overflow-hidden p-[18px]", className)}>
+      <div aria-hidden="true" className="flex flex-col gap-3 opacity-60">
+        <span className="h-2.5 w-24 rounded-full bg-[var(--line-strong)]" />
+        {Array.from({ length: rows }, (_, index) => <span key={index} className="h-3 rounded-full bg-[var(--line)]" style={{ width: `${88 - index * 17}%` }} />)}
+      </div>
+      <div className="absolute inset-0 flex items-center justify-center gap-2 bg-[var(--card-surface)]/55 text-[11px] font-semibold uppercase tracking-[3px] text-[var(--status-red)]">
+        <Ban className="size-3.5" aria-hidden="true" />{label} · Banned
+      </div>
+    </section>
+  )
+}
+
+function CensoredStatsRow() {
+  return (
+    <section aria-label="Stats: banned" className={cn(card, "relative overflow-hidden")}>
+      <div aria-hidden="true" className="lx-stat-grid grid grid-cols-2 opacity-60 md:grid-cols-5">
+        {EMPTY_STATS.map((tile) => (
+          <div key={tile.key} className="lx-stat-cell flex flex-col gap-2 px-4 py-3.5">
+            <span className="text-[11px] font-medium uppercase tracking-[1.5px] text-[var(--text-faint)]">{tile.label}</span>
+            <span className="h-6 w-16 rounded-md bg-[var(--line-strong)]" />
+            <span className="h-1 rounded-full bg-[var(--line)]" />
+          </div>
+        ))}
+      </div>
+      <div className="absolute inset-0 flex items-center justify-center gap-2 bg-[var(--card-surface)]/55 text-[11px] font-semibold uppercase tracking-[3px] text-[var(--status-red)]">
+        <Ban className="size-3.5" aria-hidden="true" />Stats · Banned
       </div>
     </section>
   )
@@ -824,25 +860,25 @@ export function ProfilePage({ userId }: { userId?: string }) {
         )}
 
         <div {...rise(1)} className={cn(rise(1).className, "grid gap-4 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]")}>
-          {data.competitive ? <RankCard competitive={data.competitive} /> : <section className={cn(card, "flex items-center p-[18px] text-[13px] text-[var(--text-dim)]")}>Unranked — no competitive matches yet</section>}
+          {data.banned ? <CensoredCard label="Rank" rows={2} /> : data.competitive ? <RankCard competitive={data.competitive} /> : <section className={cn(card, "flex items-center p-[18px] text-[13px] text-[var(--text-dim)]")}>Unranked — no competitive matches yet</section>}
           <TrustCard overview={data} onOpenPenalty={(id) => setOpenPenalty(penaltyById(id))} />
         </div>
 
-        {hidden.has("stats") ? <HiddenCard section="stats" /> : data.stats ? <StatsRow stats={data.stats} form={data.recentMatches?.slice(0, 5).map((match) => match.result)} /> : <EmptyStatsRow />}
+        {data.banned ? <CensoredStatsRow /> : hidden.has("stats") ? <HiddenCard section="stats" /> : data.stats ? <StatsRow stats={data.stats} form={data.recentMatches?.slice(0, 5).map((match) => match.result)} /> : <EmptyStatsRow />}
 
         <div {...rise(3)} className={cn(rise(3).className, "grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]")}>
           <div className="flex min-w-0 flex-col gap-4">
-            {hidden.has("matches") ? <HiddenCard section="matches" /> : (
+            {data.banned ? <CensoredCard label="Recent matches" rows={5} /> : hidden.has("matches") ? <HiddenCard section="matches" /> : (
               <>
                 <RecentMatches matches={data.recentMatches ?? []} kdAverage={data.stats?.find((tile) => tile.key === "kd")?.average ?? null} onOpen={setOpenMatch} />
               </>
             )}
           </div>
           <div className="flex min-w-0 flex-col gap-4">
-            {hidden.has("faceit") ? <HiddenCard section="faceit" /> : showFaceit && faceit && <FaceitCard faceit={faceit} />}
+            {data.banned ? (showFaceit && faceit ? <CensoredCard label="FACEIT" rows={3} /> : null) : hidden.has("faceit") ? <HiddenCard section="faceit" /> : showFaceit && faceit && <FaceitCard faceit={faceit} />}
             <PenaltyHistory penalties={data.penalties} total={data.penaltyCount} steamId={data.user.steamId} onOpen={setOpenPenalty} />
             {hidden.has("loadout") ? <HiddenCard section="loadout" /> : data.loadout && <LoadoutCard loadout={data.loadout} />}
-            {!hidden.has("matches") && data.maps && <MapsCard maps={data.maps} />}
+            {data.banned ? <CensoredCard label="Maps" rows={4} /> : !hidden.has("matches") && data.maps && <MapsCard maps={data.maps} />}
           </div>
         </div>
       </div>
