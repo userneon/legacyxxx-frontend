@@ -5,16 +5,16 @@ import { cleanKillCount, FLAT_SLOTS, offsetAt, positionOf } from "./studio-layou
 describe("studio layout", () => {
   it("a dragged point and its offsets agree", () => {
     const anchor = FLAT_SLOTS[2]!
-    const offset = offsetAt(anchor, [anchor[0] + 0.06, anchor[1] - 0.05], 2)
-    expect(offset.x).toBeCloseTo(0.5, 5)
+    const offset = offsetAt(anchor, [anchor[0] + 0.2, anchor[1] - 0.05], 2)
+    expect(offset.x).toBeCloseTo(0.25, 5)
     expect(offset.y).toBeGreaterThan(0)
     const [x, y] = positionOf(anchor, offset, 2)
-    expect(x).toBeCloseTo(anchor[0] + 0.06, 5)
+    expect(x).toBeCloseTo(anchor[0] + 0.2, 5)
     expect(y).toBeCloseTo(anchor[1] - 0.05, 5)
   })
   it("never goes past the game's limits", () => {
-    expect(offsetAt([0.5, 0.5], [5, -5], 1)).toEqual({ x: 1, y: 1 })
-    expect(offsetAt([0.5, 0.5], [-5, 5], 1)).toEqual({ x: -1, y: -1 })
+    expect(offsetAt([0.5, 0.5], [5, -5], 1)).toEqual({ x: 0.5, y: 0.5 })
+    expect(offsetAt([0.5, 0.5], [-5, 5], 1)).toEqual({ x: -0.5, y: -0.5 })
   })
   it("cleans a kill count", () => {
     expect(cleanKillCount(12.6)).toBe(13)
@@ -42,7 +42,15 @@ describe("3D slot frames", () => {
     expect(offset.x).toBeCloseTo(0.4, 6)
     expect(offset.y).toBeCloseTo(-0.25, 6)
   })
+  it("reads sideways and up with their own reach", () => {
+    const point = pointOnPlane(frame, { x: 0.4, y: 0.2 }, [1, 0.25])
+    expect(point[0]).toBeCloseTo(1.4, 6)
+    expect(point[1]).toBeCloseTo(2.05, 6)
+    const offset = offsetOnPlane(frame, point, [1, 0.25])
+    expect(offset.x).toBeCloseTo(0.4, 6)
+    expect(offset.y).toBeCloseTo(0.2, 6)
+  })
   it("stays inside the game's limits", () => {
-    expect(offsetOnPlane(frame, [100, 100, 3], 0.2)).toEqual({ x: 1, y: 1 })
+    expect(offsetOnPlane(frame, [100, 100, 3], 0.2)).toEqual({ x: 0.5, y: 0.5 })
   })
 })

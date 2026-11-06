@@ -494,7 +494,7 @@ function skinsFor(weaponClass: string, category: "weapon_skin" | "knife" | "glov
     `${prefix}${weaponClass} | ${skin}`,
     image,
     { rarity: category === "weapon_skin" ? RARITIES[index % RARITIES.length] : "Covert", minWear: 0, maxWear: 1 },
-    100 + index,
+    weaponClass === "AK-47" ? [282, 801, 302, 180, 44, 340, 14][index] ?? 100 + index : 100 + index,
   ))
 }
 

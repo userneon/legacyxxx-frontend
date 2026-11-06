@@ -339,8 +339,8 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
                   <Slider name="Turn" value={selectedSticker.rotation ?? 0} min={-180} max={180} step={1} onChange={(value) => setSticker(selection.slot, { rotation: value })} format={(value) => `${value}°`} />
                   <Slider name="Scratches" value={selectedSticker.wear ?? 0} min={0} max={1} step={0.01} onChange={(value) => setSticker(selection.slot, { wear: value })} format={(value) => `${Math.round(value * 100)}%`} />
                   <div className="grid grid-cols-2 gap-3">
-                    <Slider name="Left–right" value={selectedSticker.offsetX ?? 0} min={-1} max={1} step={0.001} onChange={(value) => setSticker(selection.slot, { offsetX: clampOffset(value) })} format={(value) => value.toFixed(3)} />
-                    <Slider name="Up–down" value={selectedSticker.offsetY ?? 0} min={-1} max={1} step={0.001} onChange={(value) => setSticker(selection.slot, { offsetY: clampOffset(value) })} format={(value) => value.toFixed(3)} />
+                    <Slider name="Left–right" value={selectedSticker.offsetX ?? 0} min={-0.5} max={0.5} step={0.005} onChange={(value) => setSticker(selection.slot, { offsetX: clampOffset(value) })} format={(value) => value.toFixed(3)} />
+                    <Slider name="Up–down" value={selectedSticker.offsetY ?? 0} min={-0.5} max={0.5} step={0.005} onChange={(value) => setSticker(selection.slot, { offsetY: clampOffset(value) })} format={(value) => value.toFixed(3)} />
                   </div>
                   <button type="button" onClick={() => setSticker(selection.slot, { offsetX: 0, offsetY: 0, scale: 1, rotation: 0, wear: 0 })} className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Back to the slot's default</button>
                 </div>
@@ -358,9 +358,9 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
               </div>
               {charm ? (
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <Slider name="Left–right" value={charm.offsetX ?? 0} min={-1} max={1} step={0.001} onChange={(value) => set({ charm: { ...charm, offsetX: clampOffset(value) } })} format={(value) => value.toFixed(3)} />
-                  <Slider name="Up–down" value={charm.offsetY ?? 0} min={-1} max={1} step={0.001} onChange={(value) => set({ charm: { ...charm, offsetY: clampOffset(value) } })} format={(value) => value.toFixed(3)} />
-                  <Slider name="Depth" value={charm.offsetZ ?? 0} min={-1} max={1} step={0.001} onChange={(value) => set({ charm: { ...charm, offsetZ: clampOffset(value) } })} format={(value) => value.toFixed(3)} />
+                  <Slider name="Left–right" value={charm.offsetX ?? 0} min={-0.5} max={0.5} step={0.005} onChange={(value) => set({ charm: { ...charm, offsetX: clampOffset(value) } })} format={(value) => value.toFixed(3)} />
+                  <Slider name="Up–down" value={charm.offsetY ?? 0} min={-0.5} max={0.5} step={0.005} onChange={(value) => set({ charm: { ...charm, offsetY: clampOffset(value) } })} format={(value) => value.toFixed(3)} />
+                  <Slider name="Depth" value={charm.offsetZ ?? 0} min={-0.5} max={0.5} step={0.005} onChange={(value) => set({ charm: { ...charm, offsetZ: clampOffset(value) } })} format={(value) => value.toFixed(3)} />
                   <Slider name="Charm pattern" value={charm.seed ?? 0} min={0} max={1000} step={1} onChange={(value) => set({ charm: { ...charm, seed: Math.round(value) } })} />
                   <button type="button" onClick={() => set({ charm: { ...charm, offsetX: 0, offsetY: 0, offsetZ: 0 } })} className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Back to the default spot</button>
                 </div>

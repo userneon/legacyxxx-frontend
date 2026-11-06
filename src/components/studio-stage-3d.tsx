@@ -1,16 +1,18 @@
 /**
- * The Advanced studio's 3D view of a gun (three.js, loaded only when a gun has a model, see public/models/weapons/README.md). Turn it with the pointer on the
- * gun itself; grab a sticker or the charm and it moves on its own slot's plane, and what you drop is the same offsets the game stores (lib/studio-layout.ts).
- * The skin's texture, when the skin has one, goes on the material called "skin" (or the only material).
+ * The Advanced studio's 3D view of a gun (three.js, loaded only when a gun has a model, see lib/weapon-models.ts): the Weapon Paints models, painted with
+ * the skin's own texture. Turn it with the pointer; grab a sticker or the charm and it moves along the gun's side, and what is dropped is the offsets the
+ * plugin stores (lib/studio-layout.ts). Stickers are laid on the gun's surface (decals), the charm is a flat picture hung near the back.
  */
 import { useEffect, useRef, useState } from "react"
 import { RotateCcw } from "lucide-react"
 import * as THREE from "three"
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
+import { DecalGeometry } from "three/examples/jsm/geometries/DecalGeometry.js"
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
 
 import { Skeleton } from "@/components/ui/skeleton"
-import { frameAxes, offsetOnPlane, pointOnPlane, type SlotFrame } from "@/lib/studio-layout"
+import { offsetOnPlane, pointOnPlane, type SlotFrame } from "@/lib/studio-layout"
 import type { WeaponModelChoice } from "@/lib/weapon-models"
 
 export interface StageSticker { slot: number; imageUrl: string | null; offsetX: number; offsetY: number; scale: number; rotation: number; wear: number }
@@ -18,16 +20,45 @@ export interface StageCharm { imageUrl: string | null; offsetX: number; offsetY:
 export type StageSelection = { kind: "sticker"; slot: number } | { kind: "charm" } | null
 
 interface Pick { kind: "sticker" | "charm"; slot: number }
+/** What the loaded gun is measured as: its side view's box, and the slots on it. */
+interface Geometry {
+  target: THREE.Mesh
+  size: THREE.Vector3
+  reach: [number, number]
+  slots: Array<SlotFrame | null>
+  charm: SlotFrame
+}
 interface Ctx {
   scene: THREE.Scene
   camera: THREE.PerspectiveCamera
   renderer: THREE.WebGLRenderer
   controls: OrbitControls
-  root: THREE.Group
   items: Map<string, THREE.Mesh>
   markers: THREE.Mesh[]
   textures: Map<string, THREE.Texture>
   loader: THREE.TextureLoader
+  geometry: Geometry | null
+}
+
+const SKIP_MATERIAL = /bare_arm|scope/i
+
+/** The biggest mesh of the model, which is the gun's body: the stickers go on it. */
+function bodyMesh(root: THREE.Object3D): THREE.Mesh | null {
+  let best: THREE.Mesh | null = null
+  let bestScore = -Infinity
+  root.traverse((node) => {
+    const mesh = node as THREE.Mesh
+    if (!mesh.isMesh || !mesh.geometry || !mesh.material) return
+    const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+    if (materials.some((material) => SKIP_MATERIAL.test(String(material?.name ?? "")))) return
+    mesh.geometry.computeBoundingBox()
+    const box = mesh.geometry.boundingBox
+    if (!box) return
+    const s = box.getSize(new THREE.Vector3())
+    const score = s.x * s.y + s.x * s.z + s.y * s.z
+    if (score > bestScore) { bestScore = score; best = mesh }
+  })
+  return best
 }
 
 export default function StudioStage3D({ choice, stickers, charm, selection, label, onSelect, onMove }: {
@@ -60,13 +91,13 @@ export default function StudioStage3D({ choice, stickers, charm, selection, labe
     renderer.domElement.style.cssText = "width:100%;height:100%;display:block;touch-action:none"
     const scene = new THREE.Scene()
     const camera = new THREE.PerspectiveCamera(35, 1, 0.005, 100)
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x404040, 1.6))
-    const key1 = new THREE.DirectionalLight(0xffffff, 2.2)
+    // A plain room's light gives the metal something to reflect without downloading a picture.
+    const environment = new THREE.PMREMGenerator(renderer)
+    scene.environment = environment.fromScene(new RoomEnvironment(), 0.04).texture
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x404040, 0.9))
+    const key1 = new THREE.DirectionalLight(0xffffff, 1.6)
     key1.position.set(3, 4, 5)
     scene.add(key1)
-    const rim = new THREE.DirectionalLight(0xffffff, 0.8)
-    rim.position.set(-4, 1, -3)
-    scene.add(rim)
     const controls = new OrbitControls(camera, renderer.domElement)
     controls.enablePan = false
     controls.enableDamping = true
@@ -74,7 +105,7 @@ export default function StudioStage3D({ choice, stickers, charm, selection, labe
     scene.add(root)
     const loader = new THREE.TextureLoader()
     loader.setCrossOrigin("anonymous")
-    const context: Ctx = { scene, camera, renderer, controls, root, items: new Map(), markers: [], textures: new Map(), loader }
+    const context: Ctx = { scene, camera, renderer, controls, items: new Map(), markers: [], textures: new Map(), loader, geometry: null }
     ctx.current = context
 
     const resize = () => {
@@ -88,7 +119,7 @@ export default function StudioStage3D({ choice, stickers, charm, selection, labe
     observer.observe(element)
     resize()
 
-    // Grabbing: a sticker or the charm moves on its own slot's plane, so the offsets are those of the game.
+    // Grabbing: a sticker or the charm moves along the gun's side (the plane of its slot), so the offsets are the ones the plugin stores.
     const raycaster = new THREE.Raycaster()
     const pointer = new THREE.Vector2()
     let held: Pick | null = null
@@ -109,17 +140,14 @@ export default function StudioStage3D({ choice, stickers, charm, selection, labe
       live.current.onSelect(pick.kind === "charm" ? { kind: "charm" } : { kind: "sticker", slot: pick.slot })
     }
     const move = (event: PointerEvent) => {
-      if (!held) return
+      if (!held || !context.geometry) return
       setPointer(event)
-      const { choice: current } = live.current
-      const slotFrame: SlotFrame | null = held.kind === "charm" ? current.charm : current.slots[held.slot] ?? null
+      const slotFrame = held.kind === "charm" ? context.geometry.charm : context.geometry.slots[held.slot]
       if (!slotFrame) return
-      const local = new THREE.Ray(raycaster.ray.origin.clone(), raycaster.ray.direction.clone()).applyMatrix4(root.matrixWorld.clone().invert())
-      const axes = frameAxes(slotFrame)
-      const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(...axes.normal), new THREE.Vector3(...slotFrame.position))
-      const point = local.intersectPlane(plane, new THREE.Vector3())
+      const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -slotFrame.position[2])
+      const point = raycaster.ray.intersectPlane(plane, new THREE.Vector3())
       if (!point) return
-      const offset = offsetOnPlane(slotFrame, [point.x, point.y, point.z], current.reach)
+      const offset = offsetOnPlane(slotFrame, [point.x, point.y, point.z], context.geometry.reach)
       live.current.onMove(held, Math.round(offset.x * 1000) / 1000, Math.round(offset.y * 1000) / 1000)
     }
     const up = (event: PointerEvent) => {
@@ -134,7 +162,7 @@ export default function StudioStage3D({ choice, stickers, charm, selection, labe
         const mesh = context.items.get(id)
         if (!mesh) return null
         const box = renderer.domElement.getBoundingClientRect()
-        const p = mesh.getWorldPosition(new THREE.Vector3()).project(camera)
+        const p = new THREE.Box3().setFromObject(mesh).getCenter(new THREE.Vector3()).project(camera)
         return [box.left + ((p.x + 1) / 2) * box.width, box.top + ((1 - p.y) / 2) * box.height]
       }
     }
@@ -144,48 +172,76 @@ export default function StudioStage3D({ choice, stickers, charm, selection, labe
     renderer.domElement.addEventListener("pointercancel", up)
 
     const choice = live.current.choice
-    const skinTexture = choice.textureUrl ? loader.loadAsync(choice.textureUrl).catch(() => null) : Promise.resolve(null)
-    Promise.all([new GLTFLoader().loadAsync(choice.modelUrl), skinTexture])
-      .then(([gltf, texture]) => {
+    const textures = choice.textureUrls
+      ? Promise.all([loader.loadAsync(choice.textureUrls[0]), choice.textureUrls[1] ? loader.loadAsync(choice.textureUrls[1]).catch(() => null) : Promise.resolve(null)]).catch(() => null)
+      : Promise.resolve(null)
+    Promise.all([new GLTFLoader().loadAsync(choice.modelUrl), textures])
+      .then(([gltf, paint]) => {
         if (disposed) return
         const model = gltf.scene
-        if (texture) {
-          texture.flipY = false
-          texture.colorSpace = THREE.SRGBColorSpace
-          texture.anisotropy = renderer.capabilities.getMaxAnisotropy()
-          const materials = new Set<THREE.MeshStandardMaterial>()
+        if (paint) {
+          const [colour, metal] = paint
+          for (const texture of [colour, metal]) {
+            if (!texture) continue
+            texture.flipY = false
+            texture.wrapS = THREE.RepeatWrapping
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy()
+          }
+          colour.colorSpace = THREE.SRGBColorSpace
+          if (metal) metal.colorSpace = THREE.NoColorSpace
           model.traverse((node) => {
             const mesh = node as THREE.Mesh
-            if (!mesh.isMesh) return
-            for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) if ((material as THREE.MeshStandardMaterial).isMeshStandardMaterial) materials.add(material as THREE.MeshStandardMaterial)
+            if (!mesh.isMesh || !mesh.material) return
+            const list = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+            const next = list.map((material) => {
+              if (!material || SKIP_MATERIAL.test(String(material.name ?? ""))) return material
+              const clone = (material as THREE.MeshStandardMaterial).clone()
+              clone.map = colour
+              clone.color = new THREE.Color(0xffffff)
+              clone.metalnessMap = metal
+              if (metal && "metalness" in clone) clone.metalness = 1
+              clone.needsUpdate = true
+              return clone
+            })
+            mesh.material = Array.isArray(mesh.material) ? next : next[0]!
           })
-          const list = [...materials]
-          for (const material of list.length === 1 ? list : list.filter((entry) => /skin/i.test(entry.name))) {
-            material.map = texture
-            material.needsUpdate = true
-          }
         }
-        // The gun sits in `root` unchanged, so the manifest's slot coordinates are its own; only `root` moves it to the middle of the view.
         root.add(model)
-        const box = new THREE.Box3().setFromObject(model)
-        const size = box.getSize(new THREE.Vector3())
-        root.position.copy(box.getCenter(new THREE.Vector3()).multiplyScalar(-1))
         root.updateMatrixWorld(true)
-        const longest = Math.max(size.x, size.y, size.z) || 1
-        const distance = (longest / 2 / Math.tan((camera.fov * Math.PI) / 360)) * 1.4
-        camera.position.set(distance * 0.2, distance * 0.15, distance)
-        controls.minDistance = distance * 0.4
-        controls.maxDistance = distance * 2.5
+        const all = new THREE.Box3().setFromObject(model)
+        const middle = all.getCenter(new THREE.Vector3())
+        const length = Math.max(all.getSize(new THREE.Vector3()).x, 0.0001)
+        // The camera looks at the gun from its right side (+z), where the sticker slots are.
+        controls.target.copy(middle)
+        camera.position.set(middle.x + length * 0.08, middle.y + length * 0.06, middle.z + (length / 2 / Math.tan((camera.fov * Math.PI) / 360)) * 0.9)
+        controls.minDistance = length * 0.35
+        controls.maxDistance = length * 3
         controls.update()
-        // A ring on every slot, so an empty slot can be picked on the gun too.
-        choice.slots.forEach((slotFrame, slot) => {
-          const marker = new THREE.Mesh(new THREE.RingGeometry(choice.reach * 0.35, choice.reach * 0.45, 32), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55, depthTest: false, side: THREE.DoubleSide }))
-          marker.userData.pick = { kind: "sticker", slot } satisfies Pick
-          placeOnFrame(marker, slotFrame, { x: 0, y: 0 }, choice.reach, 0, 0.0005)
-          marker.renderOrder = 10
-          root.add(marker)
-          context.markers.push(marker)
-        })
+
+        const target = bodyMesh(model)
+        if (target) {
+          const box = new THREE.Box3().setFromObject(target)
+          const size = box.getSize(new THREE.Vector3())
+          const centre = box.getCenter(new THREE.Vector3())
+          const side = box.max.z
+          const frameAt = (x: number, y: number): SlotFrame => ({ position: [x, y, side], normal: [0, 0, 1], up: [0, 1, 0] })
+          const slots = Array.from({ length: 5 }, (_, slot) => {
+            const [fx, fy, distance] = choice.projectors[slot] ?? [0, 0, 0]
+            return fx === 0 && fy === 0 && distance === 0 ? null : frameAt(centre.x + fx * size.x, centre.y + fy * size.y)
+          })
+          // The source has no spot for the charm: it hangs near the back of the gun, low (a guess, move it where it belongs).
+          context.geometry = { target, size, reach: [size.x, size.y], slots, charm: frameAt(centre.x - size.x * 0.42, centre.y - size.y * 0.15) }
+          slots.forEach((slotFrame, slot) => {
+            if (!slotFrame) return
+            const radius = size.x * 0.035
+            const marker = new THREE.Mesh(new THREE.RingGeometry(radius * 0.75, radius, 32), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6, depthTest: false, side: THREE.DoubleSide }))
+            marker.userData.pick = { kind: "sticker", slot } satisfies Pick
+            marker.position.set(slotFrame.position[0], slotFrame.position[1], slotFrame.position[2] + size.z * 0.01)
+            marker.renderOrder = 10
+            scene.add(marker)
+            context.markers.push(marker)
+          })
+        }
         setState("ready")
       })
       .catch(() => { if (!disposed) setState("error") })
@@ -217,54 +273,78 @@ export default function StudioStage3D({ choice, stickers, charm, selection, labe
         }
       })
       context.textures.forEach((texture) => texture.dispose())
+      scene.environment?.dispose()
+      environment.dispose()
       renderer.dispose()
       renderer.domElement.remove()
       ctx.current = null
     }
-  }, [choice.modelUrl, choice.textureUrl, attempt]) // the gun is rebuilt only for another model or texture; slots are read from `live`
+  }, [choice.modelUrl, choice.textureUrls?.[0], attempt]) // eslint-disable-line react-hooks/exhaustive-deps -- rebuilt only for another gun or texture; the rest is read from `live`
 
   /* ---- the stickers and the charm, from the editor's state ---------------------------------------------------------------------------------------- */
   useEffect(() => {
     const context = ctx.current
-    if (!context || state !== "ready") return
-    const wanted = new Map<string, { pick: Pick; imageUrl: string | null; frame: SlotFrame; offset: { x: number; y: number }; z: number; size: number; rotation: number; opacity: number }>()
-    for (const sticker of stickers) {
-      const slotFrame = choice.slots[sticker.slot]
-      if (slotFrame) wanted.set(`sticker:${sticker.slot}`, { pick: { kind: "sticker", slot: sticker.slot }, imageUrl: sticker.imageUrl, frame: slotFrame, offset: { x: sticker.offsetX, y: sticker.offsetY }, z: 0, size: choice.reach * 1.1 * sticker.scale, rotation: sticker.rotation, opacity: 1 - sticker.wear * 0.6 })
+    const geometry = context?.geometry
+    if (!context || !geometry || state !== "ready") return
+    const { size } = geometry
+    const wanted = new Set<string>()
+
+    const texture = (url: string | null, apply: (texture: THREE.Texture) => void, fail: () => void) => {
+      if (!url) return
+      const cached = context.textures.get(url)
+      if (cached) apply(cached)
+      else context.loader.load(url, (loaded) => { loaded.colorSpace = THREE.SRGBColorSpace; context.textures.set(url, loaded); apply(loaded) }, undefined, fail)
     }
-    if (charm && choice.charm) wanted.set("charm:0", { pick: { kind: "charm", slot: 0 }, imageUrl: charm.imageUrl, frame: choice.charm, offset: { x: charm.offsetX, y: charm.offsetY }, z: charm.offsetZ * choice.reach, size: choice.reach * 1.4, rotation: 0, opacity: 1 })
+    const put = (id: string, pick: Pick, build: () => THREE.BufferGeometry, url: string | null, opacity: number, order: number) => {
+      wanted.add(id)
+      let mesh = context.items.get(id)
+      if (!mesh) {
+        mesh = new THREE.Mesh(build(), new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4, side: THREE.DoubleSide }))
+        mesh.userData.pick = pick
+        mesh.renderOrder = order
+        context.scene.add(mesh)
+        context.items.set(id, mesh)
+      } else {
+        mesh.geometry.dispose()
+        mesh.geometry = build()
+      }
+      const material = mesh.material as THREE.MeshBasicMaterial
+      material.opacity = opacity
+      if (url && material.userData.url !== url) {
+        material.userData.url = url
+        texture(url, (loaded) => { if (material.userData.url === url) { material.map = loaded; material.color.set(0xffffff); material.needsUpdate = true } }, () => { material.color.set(0x888888); material.needsUpdate = true })
+      }
+    }
+
+    for (const sticker of stickers) {
+      const slotFrame = geometry.slots[sticker.slot]
+      if (!slotFrame) continue
+      const point = pointOnPlane(slotFrame, { x: sticker.offsetX, y: sticker.offsetY }, geometry.reach)
+      const edge = size.x * 0.085 * sticker.scale
+      const depth = size.z * 0.5
+      // A box laid over the gun's right side, deep enough to catch its surface: the sticker is cut out of the surface inside it.
+      const position = new THREE.Vector3(point[0], point[1], slotFrame.position[2] - depth / 2)
+      const orientation = new THREE.Euler(0, 0, THREE.MathUtils.degToRad(sticker.rotation))
+      put(`sticker:${sticker.slot}`, { kind: "sticker", slot: sticker.slot }, () => new DecalGeometry(geometry.target, position, orientation, new THREE.Vector3(edge, edge, depth)), sticker.imageUrl, 1 - sticker.wear * 0.6, 5 + sticker.slot)
+    }
+    if (charm) {
+      const point = pointOnPlane(geometry.charm, { x: charm.offsetX, y: charm.offsetY }, geometry.reach)
+      const edge = size.x * 0.09
+      put("charm:0", { kind: "charm", slot: 0 }, () => new THREE.PlaneGeometry(edge, edge).translate(point[0], point[1], geometry.charm.position[2] + size.z * 0.05 + charm.offsetZ * size.z), charm.imageUrl, 1, 6)
+    }
     for (const [id, mesh] of context.items) {
       if (wanted.has(id)) continue
-      context.root.remove(mesh)
+      context.scene.remove(mesh)
       mesh.geometry.dispose()
       ;(mesh.material as THREE.Material).dispose()
       context.items.delete(id)
     }
-    for (const [id, item] of wanted) {
-      let mesh = context.items.get(id)
-      if (!mesh) {
-        mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2 }))
-        mesh.userData.pick = item.pick
-        mesh.renderOrder = 5
-        context.root.add(mesh)
-        context.items.set(id, mesh)
-      }
-      const material = mesh.material as THREE.MeshBasicMaterial
-      material.opacity = item.opacity
-      const url = item.imageUrl
-      if (url && material.userData.url !== url) {
-        material.userData.url = url
-        const cached = context.textures.get(url)
-        const apply = (texture: THREE.Texture) => { texture.colorSpace = THREE.SRGBColorSpace; material.map = texture; material.color.set(0xffffff); material.needsUpdate = true }
-        if (cached) apply(cached)
-        else context.loader.load(url, (texture) => { context.textures.set(url, texture); if (material.userData.url === url) apply(texture) }, undefined, () => { material.color.set(0x888888); material.needsUpdate = true })
-      }
-      mesh.scale.set(item.size, item.size, 1)
-      placeOnFrame(mesh, item.frame, item.offset, choice.reach, item.rotation, 0.001 + item.z)
-    }
     // A slot's ring shows while it is empty or picked.
-    context.markers.forEach((marker, slot) => { marker.visible = !wanted.has(`sticker:${slot}`) || (selection?.kind === "sticker" && selection.slot === slot) })
-  }, [stickers, charm, selection, choice, state])
+    context.markers.forEach((marker) => {
+      const slot = (marker.userData.pick as Pick).slot
+      marker.visible = !wanted.has(`sticker:${slot}`) || (selection?.kind === "sticker" && selection.slot === slot)
+    })
+  }, [stickers, charm, selection, state])
 
   return (
     <div className="relative size-full" role="img" aria-label={`${label}, 3D view. Drag a sticker or the charm to move it; drag the gun to turn it.`}>
@@ -278,14 +358,4 @@ export default function StudioStage3D({ choice, stickers, charm, selection, labe
       )}
     </div>
   )
-}
-
-/** Puts a flat mesh on a slot: on its plane at the offsets, facing out of the surface, turned `rotation` degrees, a little off the surface (`lift`). */
-function placeOnFrame(mesh: THREE.Mesh, slotFrame: SlotFrame, offset: { x: number; y: number }, reach: number, rotation: number, lift: number) {
-  const axes = frameAxes(slotFrame)
-  const point = pointOnPlane(slotFrame, offset, reach)
-  const right = new THREE.Vector3(...axes.right), up = new THREE.Vector3(...axes.up), normal = new THREE.Vector3(...axes.normal)
-  mesh.position.set(point[0] + axes.normal[0] * lift, point[1] + axes.normal[1] * lift, point[2] + axes.normal[2] * lift)
-  mesh.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, up, normal))
-  mesh.rotateZ(THREE.MathUtils.degToRad(rotation))
 }

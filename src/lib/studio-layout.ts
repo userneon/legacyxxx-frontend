@@ -9,25 +9,32 @@ export const STICKER_SLOTS = 5
 export const FLAT_SLOTS: ReadonlyArray<readonly [number, number]> = [[0.34, 0.4], [0.46, 0.4], [0.58, 0.4], [0.7, 0.4], [0.82, 0.4]]
 /** Where the charm hangs, same measure. */
 export const FLAT_CHARM: readonly [number, number] = [0.12, 0.62]
-/** One whole unit of offset moves a sticker or the charm this share of the picture's width. */
-export const OFFSET_REACH = 0.12
+/**
+ * What the plugin stores for a sticker or the charm is a pair of small floats that the Weapon Paints viewers read as a share of the gun's own
+ * width and height (one whole unit moves it a whole gun length across, one half the best-known range is -0.5 ... 0.5). The editor keeps to that range.
+ */
+export const OFFSET_LIMIT = 0.5
+/** In the flat view, one whole unit of offset moves a sticker this share of the picture's width sideways ... */
+export const OFFSET_REACH = 0.8
+/** ... and this share of the picture's width up or down (a gun is about a quarter as tall as it is long). */
+export const OFFSET_REACH_Y = 0.24
 /** The game's offset y grows upwards; the picture's y grows downwards. */
 export const OFFSET_Y_UP = true
 
-export const clampOffset = (value: number) => Math.max(-1, Math.min(1, Number.isFinite(value) ? value : 0))
+export const clampOffset = (value: number) => Math.max(-OFFSET_LIMIT, Math.min(OFFSET_LIMIT, Number.isFinite(value) ? value : 0))
 
 export interface Offset { x: number; y: number }
 
 /** The offsets that put something at `point` (shares of the picture) when its home is `anchor`. `aspect` is the picture's width over its height. */
 export function offsetAt(anchor: readonly [number, number], point: readonly [number, number], aspect: number): Offset {
   const x = (point[0] - anchor[0]) / OFFSET_REACH
-  const down = (point[1] - anchor[1]) / (OFFSET_REACH * aspect)
+  const down = (point[1] - anchor[1]) / (OFFSET_REACH_Y * aspect)
   return { x: clampOffset(x), y: clampOffset(OFFSET_Y_UP ? -down : down) }
 }
 
 /** The inverse: where an item with these offsets is drawn, as shares of the picture. */
 export function positionOf(anchor: readonly [number, number], offset: Offset, aspect: number): [number, number] {
-  const down = (OFFSET_Y_UP ? -offset.y : offset.y) * OFFSET_REACH * aspect
+  const down = (OFFSET_Y_UP ? -offset.y : offset.y) * OFFSET_REACH_Y * aspect
   return [anchor[0] + offset.x * OFFSET_REACH, anchor[1] + down]
 }
 
@@ -38,8 +45,11 @@ export function cleanKillCount(value: number) {
 
 /* ---- 3D: the same offsets, measured on a slot's own plane ------------------------------------------------------------------------------------------ */
 export type Vec3 = readonly [number, number, number]
-/** A slot in a model's space: where it is, which way it faces, and which way is up on it. `reach` is the model-space length of one whole unit of offset. */
+/** A slot in a model's space: where it is, which way it faces, and which way is up on it. */
 export interface SlotFrame { position: Vec3; normal: Vec3; up: Vec3 }
+/** The model-space length of one whole unit of offset, sideways and up: one number for both, or [sideways, up]. */
+export type Reach = number | readonly [number, number]
+const reachOf = (reach: Reach): readonly [number, number] => (typeof reach === "number" ? [reach, reach] : reach)
 
 const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 const cross = (a: Vec3, b: Vec3): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
@@ -54,14 +64,16 @@ export function frameAxes(frame: SlotFrame): { right: Vec3; up: Vec3; normal: Ve
 }
 
 /** The offsets of a point in the model's space, read on the slot's plane. */
-export function offsetOnPlane(frame: SlotFrame, point: Vec3, reach: number): Offset {
+export function offsetOnPlane(frame: SlotFrame, point: Vec3, reach: Reach): Offset {
+  const [reachX, reachY] = reachOf(reach)
   const { right, up } = frameAxes(frame)
   const d: Vec3 = [point[0] - frame.position[0], point[1] - frame.position[1], point[2] - frame.position[2]]
-  return { x: clampOffset(dot(d, right) / reach), y: clampOffset(dot(d, up) / reach) }
+  return { x: clampOffset(dot(d, right) / reachX), y: clampOffset(dot(d, up) / reachY) }
 }
 
 /** Where an item with these offsets sits in the model's space. */
-export function pointOnPlane(frame: SlotFrame, offset: Offset, reach: number): Vec3 {
+export function pointOnPlane(frame: SlotFrame, offset: Offset, reach: Reach): Vec3 {
+  const [reachX, reachY] = reachOf(reach)
   const { right, up } = frameAxes(frame)
-  return [0, 1, 2].map((i) => frame.position[i]! + (right[i]! * offset.x + up[i]! * offset.y) * reach) as unknown as Vec3
+  return [0, 1, 2].map((i) => frame.position[i]! + right[i]! * offset.x * reachX + up[i]! * offset.y * reachY) as unknown as Vec3
 }
