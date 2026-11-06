@@ -33,6 +33,15 @@ const imageOf = (item: SkinchangerCatalogItem | null | undefined) => {
 const metaNumber = (item: SkinchangerCatalogItem | null, key: string, fallback: number) => (typeof item?.metadata[key] === "number" ? (item.metadata[key] as number) : fallback)
 const skinLabel = (item: SkinchangerCatalogItem) => (item.display_name.split("|")[1] ?? item.display_name).trim().replace(/ \((Factory New|Minimal Wear|Field-Tested|Well-Worn|Battle-Scarred)\)$/i, "")
 
+function SlotTile({ name, number, image, filled, on, onClick }: { name: string; number: number | string; image: string | null | undefined; filled: boolean; on: boolean; onClick: () => void }) {
+  return (
+    <button type="button" role="tab" aria-selected={on} aria-label={name} title={filled ? name : `Add ${name.toLowerCase()}`} onClick={onClick} className={cn("relative flex size-14 items-center justify-center rounded-xl border transition-colors", on ? "border-[var(--text-2)] bg-[var(--raised)]" : filled ? "border-[var(--line)] bg-[var(--panel)] hover:border-[var(--line-strong)]" : "border-dashed border-[var(--line-strong)] text-[var(--text-dim)] hover:bg-[var(--raised)] hover:text-[var(--text)]")}>
+      {filled && image ? <OptimizedImage src={image} width={64} height={64} alt="" className="max-h-9 w-auto object-contain" /> : filled ? <span className="text-[11px] text-[var(--text-muted)]">{number}</span> : <Plus className="size-4" aria-hidden="true" />}
+      <span className="absolute left-1.5 top-1 text-[9px] font-semibold text-[var(--text-faint)]">{number}</span>
+    </button>
+  )
+}
+
 type Selection = { kind: "sticker"; slot: number } | { kind: "charm" }
 type Picking = "sticker" | "charm" | null
 
@@ -240,6 +249,11 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
 
   const stickerOf = (slot: number) => { const entry = stickerAt(slot); return entry ? accessories[entry.catalogItemId] : undefined }
   const seed = options.seed ?? 0
+  // An empty slot opens its picker at once; a filled one is selected to be edited.
+  const selectSlot = (next: Selection | null) => {
+    setSelection(next)
+    if (next && (next.kind === "sticker" ? !stickerAt(next.slot) : !charm)) setPicking(next.kind)
+  }
 
   return (
     <>
@@ -271,7 +285,7 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
                   choice={model3d}
                   label={weapon.display_name}
                   selection={selection}
-                  onSelect={setSelection}
+                  onSelect={selectSlot}
                   stickers={stickers.map((entry) => ({ slot: entry.slot, imageUrl: imageOf(accessories[entry.catalogItemId]), offsetX: entry.offsetX ?? 0, offsetY: entry.offsetY ?? 0, scale: entry.scale ?? 1, rotation: entry.rotation ?? 0, wear: entry.wear ?? 0 }))}
                   charm={charm ? { imageUrl: imageOf(accessories[charm.catalogItemId]), offsetX: charm.offsetX ?? 0, offsetY: charm.offsetY ?? 0, offsetZ: charm.offsetZ ?? 0 } : null}
                   onMove={(pick, offsetX, offsetY) => (pick.kind === "charm" ? setOptions((current) => (current.charm ? { ...current, charm: { ...current.charm, offsetX, offsetY } } : current)) : setSticker(pick.slot, { offsetX, offsetY }))}
@@ -323,24 +337,16 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
             })()}
             </>)}
           </div>
-          <p className="text-[11px] text-[var(--text-dim)]">{showReal ? "Real view: how it looks in game. It is a preview, so switch to Flat or 3D to move a sticker or the charm." : show3d ? "Drag a sticker or the charm to place it, drag the gun to turn it." : "Drag a sticker or the charm to place it."} The game places each one by the same offsets, relative to its slot.</p>
+          <p className="text-[11px] text-[var(--text-dim)]">{showReal ? "A preview. Switch to Flat or 3D to move things." : show3d ? "Drag to place. Drag the gun to turn it." : "Drag to place."}</p>
 
           {/* What is on the weapon */}
-          <div className="flex flex-wrap gap-2" role="tablist" aria-label="Stickers and charm">
+          <div className="flex flex-wrap items-center gap-2" role="tablist" aria-label="Stickers and charm">
             {Array.from({ length: STICKER_SLOTS }, (_, slot) => {
               const item = stickerOf(slot)
-              const on = selection?.kind === "sticker" && selection.slot === slot
-              return (
-                <button key={slot} type="button" role="tab" aria-selected={on} onClick={() => setSelection({ kind: "sticker", slot })} className={cn("flex h-11 min-w-[88px] items-center gap-2 rounded-lg border px-2.5 text-xs transition-colors", on ? "border-[var(--text-2)] bg-[var(--raised)] text-[var(--text)]" : "border-[var(--line)] bg-[var(--panel)] text-[var(--text-muted)] hover:border-[var(--line-strong)]")}>
-                  <span className="flex size-7 shrink-0 items-center justify-center">{imageOf(item) ? <OptimizedImage src={imageOf(item)!} width={56} height={56} alt="" className="max-h-7 w-auto object-contain" /> : <span className="text-[var(--text-dim)]">{slot + 1}</span>}</span>
-                  Sticker {slot + 1}
-                </button>
-              )
+              return <SlotTile key={slot} name={`Sticker ${slot + 1}`} number={slot + 1} image={imageOf(item)} filled={Boolean(stickerAt(slot))} on={selection?.kind === "sticker" && selection.slot === slot} onClick={() => selectSlot({ kind: "sticker", slot })} />
             })}
-            <button type="button" role="tab" aria-selected={selection?.kind === "charm"} onClick={() => setSelection({ kind: "charm" })} className={cn("flex h-11 min-w-[88px] items-center gap-2 rounded-lg border px-2.5 text-xs transition-colors", selection?.kind === "charm" ? "border-[var(--text-2)] bg-[var(--raised)] text-[var(--text)]" : "border-[var(--line)] bg-[var(--panel)] text-[var(--text-muted)] hover:border-[var(--line-strong)]")}>
-              <span className="flex size-7 shrink-0 items-center justify-center">{imageOf(charm ? accessories[charm.catalogItemId] : null) ? <OptimizedImage src={imageOf(accessories[charm!.catalogItemId])!} width={56} height={56} alt="" className="max-h-7 w-auto object-contain" /> : <span className="text-[var(--text-dim)]">C</span>}</span>
-              Charm
-            </button>
+            <span aria-hidden="true" className="mx-1 h-8 w-px bg-[var(--line)]" />
+            <SlotTile name="Charm" number="C" image={imageOf(charm ? accessories[charm.catalogItemId] : null)} filled={Boolean(charm)} on={selection?.kind === "charm"} onClick={() => selectSlot({ kind: "charm" })} />
           </div>
 
           {/* The selected sticker or charm */}

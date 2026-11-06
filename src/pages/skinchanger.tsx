@@ -1301,23 +1301,11 @@ export function SkinchangerPage() {
   }
   const studio = (
     <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-9">
-      <ol aria-label="How Advanced works" className="grid gap-3 sm:grid-cols-3">
-        {[
-          ["1", "Build", "Pick a gun below and set its skin, wear, StatTrak, name, stickers and charm. Move stickers on the gun itself."],
-          ["2", "Save", "Save it as a craft. Nothing changes in game and your loadout stays as it is."],
-          ["3", "Use", "In Loadout, open a weapon's picker and choose it under Your crafts, then Save the loadout."],
-        ].map(([step, title, text]) => (
-          <li key={step} className="flex gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3.5">
-            <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-[var(--line-strong)] text-[11px] font-semibold text-[var(--text-2)]">{step}</span>
-            <span className="flex min-w-0 flex-col gap-0.5"><span className="text-[13px] font-semibold text-[var(--text)]">{title}</span><span className="text-[11px] leading-snug text-[var(--text-dim)]">{text}</span></span>
-          </li>
-        ))}
-      </ol>
       <section aria-label="Your crafts" className="flex flex-col gap-3">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <h2 className="text-[15px] font-semibold text-[var(--text)]">Your crafts</h2>
           <span className="text-[11px] text-[var(--text-dim)]">{crafts.length} of {craftLimit}</span>
-          <span className="text-[13px] text-[var(--text-dim)]">Click one to edit it.</span>
+          <span className="text-[13px] text-[var(--text-dim)]">A craft changes nothing in game. Pick it when you set up your loadout.</span>
         </div>
         {craftsError && !craftsResponse
           ? <QueryState loading={false} error={{ ...craftsError, message: "Could not load your crafts." }} empty={false} onRetry={refetchCrafts} />
