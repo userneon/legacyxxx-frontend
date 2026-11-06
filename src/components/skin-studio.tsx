@@ -4,7 +4,7 @@
  * the name tag, and each sticker's size, turn and scratches. Guns only. Save keeps a craft; nothing changes in game until the craft is picked in the loadout.
  */
 import { lazy, Suspense, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
-import { BadgeCheck, Box, ImageOff, Loader2, Minus, Plus, RotateCcw, Search, X } from "lucide-react"
+import { BadgeCheck, ImageOff, Loader2, Minus, Plus, RotateCcw, Search, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { skinchangerService, type SkinchangerAppearanceOptions, type SkinchangerCatalogItem, type SkinCraft, type SkinchangerStickerOption } from "@/api"
@@ -255,12 +255,16 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
         {/* The weapon */}
         <div className="flex min-h-0 flex-col gap-4 p-4 lg:overflow-y-auto">
           <div ref={stage} className="relative aspect-video w-full select-none overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--card-surface)]" aria-label="The weapon: drag a sticker or the charm to move it">
-            {model3d && (
-              <button type="button" onClick={() => setView(show3d ? "flat" : "3d")} aria-pressed={show3d} className="absolute right-2 top-2 z-10 inline-flex h-7 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--card-surface)] px-2 text-[11px] font-semibold text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)] aria-pressed:border-[var(--text-2)] aria-pressed:text-[var(--text)]"><Box className="size-3.5" aria-hidden="true" />3D</button>
-            )}
-            {realCraft && (
-              <button type="button" onClick={() => setView(showReal ? (model3d ? "3d" : "flat") : "real")} aria-pressed={showReal} className="absolute right-2 top-10 z-10 inline-flex h-7 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--card-surface)] px-2 text-[11px] font-semibold text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)] aria-pressed:border-[var(--accent-solid)] aria-pressed:text-[var(--text)]" title="The game's own look, drawn by the ChainSkins viewer. Drag to turn; move things in the 3D or flat view.">Real</button>
-            )}
+            <div role="group" aria-label="How to look at the gun" className="absolute right-2 top-2 z-10 inline-flex rounded-lg border border-[var(--line)] bg-[var(--card-surface)] p-0.5 text-[11px] font-semibold">
+              {([
+                { id: "flat", label: "Flat", hint: "A picture of the gun. Drag a sticker or the charm to place it.", on: true },
+                { id: "3d", label: "3D", hint: "The gun in 3D. Drag a sticker or the charm to place it, drag the gun to turn it.", on: Boolean(model3d) },
+                { id: "real", label: "Real", hint: "The game's own look, drawn by the ChainSkins viewer. A preview only: place things in Flat or 3D.", on: Boolean(realCraft) },
+              ] as const).filter((entry) => entry.on).map((entry) => {
+                const active = entry.id === "real" ? showReal : entry.id === "3d" ? show3d : view === "flat" || (view === "3d" && !model3d)
+                return <button key={entry.id} type="button" title={entry.hint} aria-pressed={active} onClick={() => setView(entry.id)} className={cn("h-6 rounded-md px-2.5 transition-colors", active ? "bg-[var(--raised)] text-[var(--text)]" : "text-[var(--text-muted)] hover:text-[var(--text)]")}>{entry.label}</button>
+              })}
+            </div>
             {showReal && realCraft ? <StudioRealPreview craft={realCraft} label={weapon.display_name} /> : show3d && model3d ? (
               <Suspense fallback={null}>
                 <StudioStage3D
@@ -319,7 +323,7 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
             })()}
             </>)}
           </div>
-          <p className="text-[11px] text-[var(--text-dim)]">{show3d ? "Drag the gun to turn it." : "Drag a sticker or the charm to place it."} The picture is a guide: the game places each one by the same offsets, relative to its slot.</p>
+          <p className="text-[11px] text-[var(--text-dim)]">{showReal ? "Real view: how it looks in game. It is a preview, so switch to Flat or 3D to move a sticker or the charm." : show3d ? "Drag a sticker or the charm to place it, drag the gun to turn it." : "Drag a sticker or the charm to place it."} The game places each one by the same offsets, relative to its slot.</p>
 
           {/* What is on the weapon */}
           <div className="flex flex-wrap gap-2" role="tablist" aria-label="Stickers and charm">
