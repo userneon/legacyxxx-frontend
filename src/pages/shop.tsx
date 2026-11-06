@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
-import { Check, ChevronDown, Heart, Lock, RotateCcw, Search, SlidersHorizontal, Undo2, X } from "lucide-react"
+import { Check, ChevronDown, Crosshair, Heart, Lock, RotateCcw, Search, SlidersHorizontal, Sword, Undo2, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
-import { COSMETIC_DURATIONS, cosmeticsService, type CosmeticDuration, type CosmeticKind, type Cosmetics, type FrameItem } from "@/api/cosmetics"
+import { COSMETIC_DURATIONS, cosmeticsService, isModelKind, type ModelKind, type CosmeticDuration, type CosmeticKind, type Cosmetics, type FrameItem } from "@/api/cosmetics"
 import { clansService, walletService, type MyClanState, type Wallet } from "@/api"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
@@ -42,19 +42,20 @@ const SORTS = [
 
 /** The kinds the Shop sells (banners and titles are earned: they live in Profile → Appearance). */
 type ShopKind = Exclude<CosmeticKind, "banner" | "title">
-type ShopTab = "featured" | "frame" | "background" | "name" | "smoke_color" | "clan" | "goods"
+type ShopTab = "featured" | "frame" | "background" | "name" | "smoke_color" | "model" | "clan" | "goods"
 const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "featured", label: "Featured" },
   { value: "frame", label: "Frames" },
   { value: "background", label: "Backgrounds" },
   { value: "name", label: "Name" },
   { value: "smoke_color", label: "Grenades" },
+  { value: "model", label: "Weapons" },
   { value: "clan", label: "Clan" },
   { value: "goods", label: "Goods" },
 ]
 
 /** The Shop's top row is grouped: what you wear on your profile (frames, backgrounds, name, grenades) sits under one Profile tab with its own row below. */
-const PROFILE_TABS: ShopTab[] = ["frame", "background", "name", "smoke_color"]
+const PROFILE_TABS: ShopTab[] = ["frame", "background", "name", "smoke_color", "model"]
 const TOP_TABS: Array<{ value: "featured" | "profile" | "clan" | "goods"; label: string }> = [
   { value: "featured", label: "Featured" },
   { value: "profile", label: "Profile" },
@@ -72,8 +73,20 @@ function ItemArt({ item, avatar, username, size, orb }: { item: ShopItem; avatar
   if (item.kind === "grenade_trail") return <GrenadeTrail color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "flash_effect") return <FlashEffect color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "grenade_light") return <GrenadeLight color={item.color} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
+  if (isModelKind(item.kind)) return <ModelArt kind={item.kind} big={size > 100} />
   const look = item.kind === "name_color" ? { color: item.color ?? null, colorFx: item.fx ?? null } : { glow: item.glow ?? null, glowFx: item.fx ?? null }
   return <span {...nameProps(look, cn("font-bold text-[var(--text)]", size > 100 ? "max-w-full truncate text-[19px]" : "whitespace-nowrap text-[13px]"))}>{username}</span>
+}
+
+/** A weapon model has no picture of its own here (the model is in the game): the weapon it replaces, drawn as an icon. */
+function ModelArt({ kind, big }: { kind: ModelKind; big: boolean }) {
+  const Icon = kind === "model_knife" ? Sword : Crosshair
+  return (
+    <span className="flex flex-col items-center gap-1.5 text-[var(--text-2)]">
+      <Icon className={big ? "size-14" : "size-9"} strokeWidth={1.5} aria-hidden="true" />
+      <span className="text-[10px] uppercase tracking-[1.2px] text-[var(--text-dim)]">{kind === "model_knife" ? "Knife" : kind === "model_deagle" ? "Desert Eagle" : "AK-47"}</span>
+    </span>
+  )
 }
 
 function accentOf(item: ShopItem) {
@@ -140,7 +153,7 @@ export function ShopPage() {
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
-  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", background: "backgrounds", name: "name", smoke_color: "smoke", clan: "clan", goods: "goods" }, "featured")
+  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", background: "backgrounds", name: "name", smoke_color: "smoke", model: "weapons", clan: "clan", goods: "goods" }, "featured")
   // Which Profile sub-tab to return to when the Profile tab is tapped again.
   const [lastProfileTab, setLastProfileTab] = useState<ShopTab>("frame")
   useEffect(() => { if (PROFILE_TABS.includes(tab)) setLastProfileTab(tab) }, [tab])
@@ -207,13 +220,16 @@ export function ShopPage() {
     ...(data?.grenadeTrails ?? []).map((item) => ({ ...item, kind: "grenade_trail" as const })),
     ...(data?.grenadeLights ?? []).map((item) => ({ ...item, kind: "grenade_light" as const })),
     ...(data?.flashEffects ?? []).map((item) => ({ ...item, kind: "flash_effect" as const })),
+    ...(data?.modelKnives ?? []).map((item) => ({ ...item, kind: "model_knife" as const })),
+    ...(data?.modelDeagles ?? []).map((item) => ({ ...item, kind: "model_deagle" as const })),
+    ...(data?.modelAk47s ?? []).map((item) => ({ ...item, kind: "model_ak47" as const })),
   ].filter((item) => !item.retired), [data])
-  const worn = { frame: data?.equippedFrame ?? null, background: data?.equippedBackground ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null, grenade_light: data?.equippedGrenadeLight ?? null, flash_effect: data?.equippedFlashEffect ?? null }
+  const worn = { frame: data?.equippedFrame ?? null, background: data?.equippedBackground ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null, grenade_light: data?.equippedGrenadeLight ?? null, flash_effect: data?.equippedFlashEffect ?? null, model_knife: data?.equippedModelKnife ?? null, model_deagle: data?.equippedModelDeagle ?? null, model_ak47: data?.equippedModelAk47 ?? null }
   const balance = wallet?.balance ?? null
   const username = user?.username ?? "Player"
 
   const featured = all.filter((item) => item.featured && item.unlock === "coin")
-  const inTab = all.filter((item) => tab === "featured" || item.kind === tab || (tab === "name" && (item.kind === "name_color" || item.kind === "name_glow")) || (tab === "smoke_color" && (item.kind === "grenade_trail")))
+  const inTab = all.filter((item) => tab === "featured" || item.kind === tab || (tab === "name" && (item.kind === "name_color" || item.kind === "name_glow")) || (tab === "smoke_color" && (item.kind === "grenade_trail")) || (tab === "model" && isModelKind(item.kind)))
   const shown = inTab
     .filter((item) => (!search.trim() || item.name.toLowerCase().includes(search.trim().toLowerCase())))
     .filter((item) => show === "all" || (show === "saved" ? saved.includes(item.id) : show === "owned" ? item.owned : !item.owned && item.unlock === "coin"))
@@ -565,6 +581,8 @@ export function ShopPage() {
             <div className="relative flex items-center justify-center py-4"><FlashEffect key={`${selected.id}${tried(selected).fx}`} color={tried(selected).color} shape={tried(selected).fx} className={effect} /></div>
           ) : selected?.kind === "grenade_light" ? (
             <div className="relative flex items-center justify-center py-4"><GrenadeLight color={tried(selected).color} className={effect} /></div>
+          ) : selected && isModelKind(selected.kind) ? (
+            <div className="relative flex items-center justify-center py-6"><ModelArt kind={selected.kind} big /></div>
           ) : selected?.kind === "smoke_color" ? (
             <div className="relative flex items-center justify-center py-4"><span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} /><SmokePuff color={tried(selected).color} color2={tried(selected).color2} className={effect} /></div>
           ) : (
@@ -692,7 +710,7 @@ export function ShopPage() {
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
         <PageTabs<(typeof TOP_TABS)[number]["value"]> ariaLabel="Shop sections" value={PROFILE_TABS.includes(tab) ? "profile" : (tab as "featured" | "clan" | "goods")} onChange={(next) => setTab(next === "profile" ? lastProfileTab : next)} options={TOP_TABS} />
-        {(tab === "featured" || tab === "frame" || tab === "background" || tab === "name" || tab === "smoke_color") && (
+        {(tab === "featured" || tab === "frame" || tab === "background" || tab === "name" || tab === "smoke_color" || tab === "model") && (
           <PageBarEnd className="max-md:hidden">
             <label className={cn(pageSearchClass, "max-md:hidden")}>
               <Search className="size-4 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />
@@ -742,7 +760,7 @@ export function ShopPage() {
               <section aria-label="Items">
                 <div className="mb-3 flex items-center gap-2 max-md:-mx-4 max-md:overflow-x-auto max-md:px-4 max-md:pb-1 max-md:scrollbar-hidden md:flex-wrap [&>*]:shrink-0">
                   {/* Name and Grenades head each of their sections instead, so they get no empty heading here. */}
-                  {tab !== "name" && tab !== "smoke_color" && <span className="lx-shop-heading">{tab === "featured" ? "All items" : TABS.find((entry) => entry.value === tab)?.label}</span>}
+                  {tab !== "name" && tab !== "smoke_color" && tab !== "model" && <span className="lx-shop-heading">{tab === "featured" ? "All items" : TABS.find((entry) => entry.value === tab)?.label}</span>}
                   <span className="flex-1" />
                   <div role="radiogroup" aria-label="Show" className="flex items-center gap-1.5">
                     {([["all", "All"], ["available", "Not owned"], ["owned", "Owned"], ["saved", "Saved"]] as const).map(([value, label]) => (
@@ -778,6 +796,13 @@ export function ShopPage() {
                 ) : tab === "smoke_color" ? (
                   <div className="flex flex-col gap-6">
                     {([["smoke_color", "Smoke"], ["grenade_trail", "Trail"]] as const).map(([kind, heading]) => {
+                      const list = shown.filter((item) => item.kind === kind)
+                      return list.length ? <div key={kind}><div className="lx-shop-heading mb-2.5">{heading}</div>{grid(list)}</div> : null
+                    })}
+                  </div>
+                ) : tab === "model" ? (
+                  <div className="flex flex-col gap-6">
+                    {([["model_knife", "Knives"], ["model_deagle", "Desert Eagle"], ["model_ak47", "AK-47"]] as const).map(([kind, heading]) => {
                       const list = shown.filter((item) => item.kind === kind)
                       return list.length ? <div key={kind}><div className="lx-shop-heading mb-2.5">{heading}</div>{grid(list)}</div> : null
                     })}

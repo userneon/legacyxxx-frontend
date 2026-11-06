@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router-dom"
-import { Bell, Check, CircleCheck, Frame, Link2, RotateCcw, MonitorSmartphone, type LucideIcon } from "lucide-react"
+import { Bell, Check, CircleCheck, Crosshair, Frame, Link2, RotateCcw, MonitorSmartphone, Sword, type LucideIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
-import { cosmeticsService, type CosmeticKind, type Cosmetics, type FrameItem, type Nade, type NadeSlotKind } from "@/api/cosmetics"
+import { cosmeticsService, isModelKind, type CosmeticKind, type Cosmetics, type FrameItem, type Nade, type NadeSlotKind } from "@/api/cosmetics"
 import { NadeSlots } from "@/components/nade-slots"
 import { bannerClass, nameProps, timeLeft } from "@/lib/cosmetics"
 import { Switch } from "@/components/switch"
@@ -183,6 +183,9 @@ const KINDS: Array<{ value: CosmeticKind; label: string; noun: string; group: "p
   { value: "title", label: "Title", noun: "title", group: "profile" },
   { value: "smoke_color", label: "Smoke", noun: "smoke colour", group: "game" },
   { value: "grenade_trail", label: "Trail", noun: "trail", group: "game" },
+  { value: "model_knife", label: "Knife", noun: "knife model", group: "game" },
+  { value: "model_deagle", label: "Deagle", noun: "Deagle model", group: "game" },
+  { value: "model_ak47", label: "AK-47", noun: "AK-47 model", group: "game" },
 ]
 const KIND_GROUPS = [{ id: "profile", label: "Profile" }, { id: "game", label: "In game" }] as const
 
@@ -195,8 +198,8 @@ function Appearance() {
   const [bgDrafts, setBgDrafts] = useState<Record<string, BgLook>>({})
   const saved = useSavedFlash()
 
-  const lists: Record<CosmeticKind, FrameItem[]> = { frame: data?.frames ?? [], background: data?.backgrounds ?? [], name_color: data?.nameColors ?? [], name_glow: data?.nameGlows ?? [], banner: data?.banners ?? [], title: data?.titles ?? [], smoke_color: data?.smokeColors ?? [], grenade_trail: data?.grenadeTrails ?? [], grenade_light: data?.grenadeLights ?? [], flash_effect: data?.flashEffects ?? [] }
-  const worn: Record<CosmeticKind, string | null> = { frame: data?.equippedFrame ?? null, background: data?.equippedBackground ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, banner: data?.equippedBanner ?? null, title: data?.equippedTitle ?? null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null, grenade_light: data?.equippedGrenadeLight ?? null, flash_effect: data?.equippedFlashEffect ?? null }
+  const lists: Record<CosmeticKind, FrameItem[]> = { frame: data?.frames ?? [], background: data?.backgrounds ?? [], name_color: data?.nameColors ?? [], name_glow: data?.nameGlows ?? [], banner: data?.banners ?? [], title: data?.titles ?? [], smoke_color: data?.smokeColors ?? [], grenade_trail: data?.grenadeTrails ?? [], grenade_light: data?.grenadeLights ?? [], flash_effect: data?.flashEffects ?? [], model_knife: data?.modelKnives ?? [], model_deagle: data?.modelDeagles ?? [], model_ak47: data?.modelAk47s ?? [] }
+  const worn: Record<CosmeticKind, string | null> = { frame: data?.equippedFrame ?? null, background: data?.equippedBackground ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, banner: data?.equippedBanner ?? null, title: data?.equippedTitle ?? null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null, grenade_light: data?.equippedGrenadeLight ?? null, flash_effect: data?.equippedFlashEffect ?? null, model_knife: data?.equippedModelKnife ?? null, model_deagle: data?.equippedModelDeagle ?? null, model_ak47: data?.equippedModelAk47 ?? null }
   const noun = KINDS.find((entry) => entry.value === kind)?.noun ?? "item"
   const frames = lists[kind].filter((item) => item.owned)
   const selectedId = picked[kind] ?? worn[kind] ?? frames[0]?.id ?? null
@@ -329,6 +332,8 @@ function Appearance() {
                         <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><GrenadeLight color={item.color} className="w-[88px]" /></span>
                       ) : kind === "smoke_color" ? (
                         <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><SmokePuff color={item.color} color2={item.color2} className="w-[88px]" /></span>
+                      ) : isModelKind(kind) ? (
+                        <span className="flex h-[76px] w-full items-center justify-center text-[var(--text-dim)]">{kind === "model_knife" ? <Sword size={32} strokeWidth={2} aria-hidden="true" /> : <Crosshair size={32} strokeWidth={2} aria-hidden="true" />}</span>
                       ) : kind === "title" ? (
                         <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><span className={cn("truncate text-[11px] font-semibold uppercase tracking-[3px]", item.name === "Genesis" ? "lx-profile-title-founder" : "text-[var(--text-dim)]")}>{item.name}</span></span>
                       ) : (

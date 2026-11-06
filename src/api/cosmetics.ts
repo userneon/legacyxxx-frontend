@@ -45,7 +45,12 @@ export interface FrameItem {
   owners?: number | null
 }
 
-export type CosmeticKind = "frame" | "background" | "name_color" | "name_glow" | "banner" | "title" | "smoke_color" | "grenade_trail" | "grenade_light" | "flash_effect"
+export type CosmeticKind = "frame" | "background" | "name_color" | "name_glow" | "banner" | "title" | "smoke_color" | "grenade_trail" | "grenade_light" | "flash_effect" | "model_knife" | "model_deagle" | "model_ak47"
+
+/** The kinds that are a custom weapon model (owner request 2026-11-06). */
+export const MODEL_KINDS = ["model_knife", "model_deagle", "model_ak47"] as const
+export type ModelKind = (typeof MODEL_KINDS)[number]
+export const isModelKind = (kind: string): kind is ModelKind => (MODEL_KINDS as readonly string[]).includes(kind)
 
 /** How a player's name is painted: plain colours from the API, never a style string. */
 export interface NameStyle {
@@ -75,6 +80,10 @@ export interface Cosmetics {
   equippedGrenadeTrail?: string | null
   equippedGrenadeLight?: string | null
   equippedFlashEffect?: string | null
+  /** The weapon models worn: one for a knife, one for the Desert Eagle, one for the AK-47. */
+  equippedModelKnife?: string | null
+  equippedModelDeagle?: string | null
+  equippedModelAk47?: string | null
   nadeSlots?: NadeSlots
   frames: FrameItem[]
   /** The React Bits backgrounds for profiles, and the knobs this player saved for each (keyed by item id). */
@@ -92,6 +101,10 @@ export interface Cosmetics {
   grenadeTrails?: FrameItem[]
   grenadeLights?: FrameItem[]
   flashEffects?: FrameItem[]
+  /** Custom weapon models sold for LX (game server). */
+  modelKnives?: FrameItem[]
+  modelDeagles?: FrameItem[]
+  modelAk47s?: FrameItem[]
 }
 
 export const cosmeticsService = {
