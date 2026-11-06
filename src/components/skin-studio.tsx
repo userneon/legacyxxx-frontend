@@ -18,6 +18,7 @@ import { Sheet } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cn } from "@/lib/utils"
+import { StudioRealPreview } from "@/components/studio-real-preview"
 import { wearColor, wearName, wearTiers, wearTrack } from "@/lib/skin-wear"
 import { useWeaponModels, weaponModelFor } from "@/lib/weapon-models"
 import { clampOffset, cleanKillCount, FLAT_CHARM, FLAT_SLOTS, offsetAt, positionOf, STICKER_SLOTS } from "@/lib/studio-layout"
@@ -120,12 +121,24 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
   const [picking, setPicking] = useState<Picking>(null)
   const [query, setQuery] = useState("")
   const [saving, setSaving] = useState(false)
-  const [view, setView] = useState<"3d" | "flat">("3d")
+  const [view, setView] = useState<"3d" | "flat" | "real">("3d")
   const models = useWeaponModels()
   // Memoised: the 3D view is rebuilt whenever this changes, so it must change only with the gun or the skin.
   const model3d = useMemo(() => weaponModelFor(models, { weapon_defindex: weapon.weapon_defindex, paint_id: skin?.paint_id ?? null }), [models, weapon.weapon_defindex, skin?.paint_id])
   const show3d = Boolean(model3d) && view === "3d"
+  const showReal = view === "real"
   const stage = useRef<HTMLDivElement>(null)
+  const realCraft = useMemo(() => {
+    if (!skin?.paint_id || !weapon.weapon_defindex) return null
+    const kit = (id: string) => accessories[id]?.weapon_defindex ?? null
+    const charmId = options.charm ? kit(options.charm.catalogItemId) : null
+    return {
+      defindex: weapon.weapon_defindex, paintId: skin.paint_id, wear: options.wear ?? 0.0001, seed: options.seed ?? 0,
+      statTrakCount: options.statTrak ? cleanKillCount(options.statTrakCount ?? 0) : null, nameTag: options.nameTag,
+      stickers: (options.stickers ?? []).flatMap((entry) => { const id = kit(entry.catalogItemId); return id ? [{ slot: entry.slot, id, wear: entry.wear, scale: entry.scale, rotation: entry.rotation, offsetX: entry.offsetX, offsetY: entry.offsetY }] : [] }),
+      charm: options.charm && charmId ? { id: charmId, offsetX: options.charm.offsetX, offsetY: options.charm.offsetY, offsetZ: options.charm.offsetZ, seed: options.charm.seed } : null,
+    }
+  }, [skin?.paint_id, weapon.weapon_defindex, options, accessories])
   const drag = useRef<{ kind: "sticker" | "charm"; slot: number } | null>(null)
 
   const { data: skinsPage, loading: skinsLoading, error: skinsError, refetch: refetchSkins } = useApiQuery(
@@ -245,7 +258,10 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
             {model3d && (
               <button type="button" onClick={() => setView(show3d ? "flat" : "3d")} aria-pressed={show3d} className="absolute right-2 top-2 z-10 inline-flex h-7 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--card-surface)] px-2 text-[11px] font-semibold text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)] aria-pressed:border-[var(--text-2)] aria-pressed:text-[var(--text)]"><Box className="size-3.5" aria-hidden="true" />3D</button>
             )}
-            {show3d && model3d ? (
+            {realCraft && (
+              <button type="button" onClick={() => setView(showReal ? (model3d ? "3d" : "flat") : "real")} aria-pressed={showReal} className="absolute right-2 top-10 z-10 inline-flex h-7 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--card-surface)] px-2 text-[11px] font-semibold text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)] aria-pressed:border-[var(--accent-solid)] aria-pressed:text-[var(--text)]" title="The game's own look, drawn by the ChainSkins viewer. Drag to turn; move things in the 3D or flat view.">Real</button>
+            )}
+            {showReal && realCraft ? <StudioRealPreview craft={realCraft} label={weapon.display_name} /> : show3d && model3d ? (
               <Suspense fallback={null}>
                 <StudioStage3D
                   choice={model3d}
