@@ -2,7 +2,7 @@ import { isServerAddress, steamConnect } from "@/lib/steam-connect"
 import { DetailSheetContent } from "@/components/detail-sheet"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
-import { ChevronDown, Clock, Copy, Gamepad2, LoaderCircle, Lock, Play, Map as MapIcon, RotateCcw, SlidersHorizontal, Star } from "lucide-react"
+import { ChevronDown, Clock, Copy, Eye, Gamepad2, LoaderCircle, Lock, Play, Map as MapIcon, RotateCcw, SlidersHorizontal, Star } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -53,6 +53,15 @@ function connect(address: string | null | undefined, name: string) {
   }
   // A browser cannot tell whether Steam answered, so say what to do if nothing opens.
   toast(`Opening Steam to join ${name}…`, { description: "If CS2 is already open, press ~ and paste: the connect command is copied.", duration: 6000, action: { label: "Copy IP", onClick: () => void copyAddress(address) } })
+}
+
+/** Watch a live match as a spectator: CS2 opens and joins the server's GOTV (no slot, no playing). Needs the GOTV address the server reports. */
+function watch(address: string | null | undefined, name: string) {
+  if (!steamConnect(address)) {
+    toast.error("Watching is not available", { description: `${name} does not report a GOTV address right now.` })
+    return
+  }
+  toast(`Opening CS2 to watch ${name}…`, { description: "You join as a spectator, a little behind the live game. If CS2 is already open, press ~ and paste: the connect command is copied.", duration: 7000 })
 }
 
 async function copyAddress(address: string | null | undefined) {
@@ -293,6 +302,8 @@ function ServerSheet({ server, onClose, gate }: { server: PlayServer | null; onC
   const { live } = liveMatch
   const address = live?.connectAddress ?? server?.connectAddress ?? null
   const connectable = Boolean(server?.joinable && isServerAddress(address))
+  const watchAddress = live?.gotvAddress ?? server?.gotvAddress ?? null
+  const watchable = server?.status === "live" && isServerAddress(watchAddress)
   return (
     <Sheet open={server !== null} onOpenChange={(open) => { if (!open) onClose() }}>
       <DetailSheetContent width="max-w-4xl" backdrop={server && cs2MapArtwork(live?.map ?? server.map) ? <img src={cs2MapArtwork(live?.map ?? server.map)!} alt="" className="size-full object-cover opacity-30" /> : undefined}>
@@ -324,6 +335,12 @@ function ServerSheet({ server, onClose, gate }: { server: PlayServer | null; onC
                 <Copy className="size-3.5" />
                 Copy IP
               </button>
+              {watchable && (
+                <button type="button" onClick={() => watch(watchAddress, server.name)} className={cn(secondary, "h-10 flex-1")}>
+                  <Eye className="size-3.5" />
+                  Watch
+                </button>
+              )}
               <button type="button" disabled={!connectable || gate.reason !== null} onClick={() => connect(address, server.name)} className={cn(primary, "h-10 flex-1 text-[13px]")}>
                 <Play className="size-3.5" />
                 Connect
@@ -475,6 +492,8 @@ function ServerDetail({ server, gate }: { server: PlayServer; gate: PlayGate }) 
   const { live } = liveMatch
   const address = live?.connectAddress ?? server.connectAddress ?? null
   const connectable = Boolean(server.joinable && isServerAddress(address))
+  const watchAddress = live?.gotvAddress ?? server.gotvAddress ?? null
+  const watchable = server.status === "live" && isServerAddress(watchAddress)
   const reason = server.status === "offline" ? "Server is offline" : server.status === "full" || server.players >= server.maxPlayers ? "Server is full" : "No connection address"
   return (
     <section aria-label={server.name} className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--card-surface)]">
@@ -503,6 +522,12 @@ function ServerDetail({ server, gate }: { server: PlayServer; gate: PlayGate }) 
           <Copy className="size-3.5" />
           Copy IP
         </button>
+        {watchable && (
+          <button type="button" onClick={() => watch(watchAddress, server.name)} className={cn(secondary, "h-11 flex-1")}>
+            <Eye className="size-3.5" />
+            Watch
+          </button>
+        )}
         {connectable && gate.reason === null ? (
           <button type="button" onClick={() => connect(address, server.name)} className={cn(primary, "h-11 flex-[2] text-[14px]")}>
             <Play className="size-4 fill-current" />

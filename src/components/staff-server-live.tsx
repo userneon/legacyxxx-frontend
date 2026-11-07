@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Ban, Database, Loader2, LockKeyhole, MessageSquare, RotateCcw, Users, UsersRound } from "lucide-react"
+import { Ban, Database, Eye, Loader2, LockKeyhole, MessageSquare, RotateCcw, Users, UsersRound } from "lucide-react"
 
 import { serversService } from "@/api/servers"
 import type { ServerLiveMatch, ServerLiveMatchPlayer } from "@/api/types"
@@ -9,6 +9,7 @@ import { ACTION_HINTS } from "@/lib/staff-action-hints"
 import { STAFF_CARD, StaffEmpty, StaffSection, Tip, type Tone } from "@/components/staff-ui"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cs2MapLabel } from "@/lib/cs2-map-art"
+import { isServerAddress, steamConnect } from "@/lib/steam-connect"
 import { cn } from "@/lib/utils"
 
 type PlayerAction = { type: StaffPanelActionRequest["type"]; label: string; icon: typeof Ban; needsMessage: boolean; tone: Tone | undefined; placeholder: string }
@@ -43,7 +44,9 @@ export function ServerLive({ serverId, busy, onAct }: { serverId: string; busy: 
     <StaffSection
       title="Live on this server"
       count={anyone ? new Set(roster.map((player) => player.steamId)).size : undefined}
-      end={data && <span className="text-xs text-[var(--text-dim)]">{cs2MapLabel(data.map)} · {data.state === "unavailable" ? "no live report" : data.state}{data.round !== null ? ` · round ${data.round}` : ""}{data.score ? ` · T ${data.score.t} – ${data.score.ct} CT` : ""}</span>}
+      end={data && <span className="flex items-center gap-3 text-xs text-[var(--text-dim)]">{isServerAddress(data.gotvAddress) && data.state !== "unavailable" && (
+        <Tip text="Opens CS2 and joins this server's GOTV as a spectator, a little behind the live game."><button type="button" onClick={() => { steamConnect(data.gotvAddress) }} className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-2.5 text-[12px] text-[var(--text-2)] hover:border-[var(--line-strong)]"><Eye className="size-3.5" aria-hidden="true" />Watch</button></Tip>
+      )}<span>{cs2MapLabel(data.map)} · {data.state === "unavailable" ? "no live report" : data.state}{data.round !== null ? ` · round ${data.round}` : ""}{data.score ? ` · T ${data.score.t} – ${data.score.ct} CT` : ""}</span></span>}
     >
       {loading && !data ? (
         <div className="flex items-center gap-2 text-[13px] text-[var(--text-dim)]"><Loader2 className="size-4 animate-spin" aria-hidden="true" />Loading the players…</div>
