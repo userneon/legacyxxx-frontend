@@ -39,7 +39,11 @@ export function PageTabs<T extends string>({ value, onChange, options, ariaLabel
   useLayoutEffect(() => {
     const measure = () => {
       const node = buttons.current.get(value)
-      if (node) setLine({ x: node.offsetLeft, width: node.offsetWidth })
+      if (node) {
+        setLine({ x: node.offsetLeft, width: node.offsetWidth })
+        // On a phone the row scrolls: the chosen tab is always brought into view.
+        node.scrollIntoView?.({ inline: "nearest", block: "nearest" })
+      }
     }
     measure()
     const observer = new ResizeObserver(measure)
@@ -48,9 +52,9 @@ export function PageTabs<T extends string>({ value, onChange, options, ariaLabel
   }, [value, options.length])
 
   return (
-    <div className="flex items-center gap-5">
+    <div className="flex min-w-0 max-w-full items-center gap-5">
       {lead && <span className="text-[13px] text-[var(--text-dim)] max-sm:hidden">{lead}</span>}
-      <div ref={container} role="tablist" aria-label={ariaLabel} className="relative flex gap-6">
+      <div ref={container} role="tablist" aria-label={ariaLabel} className="relative flex min-w-0 max-w-full gap-6 max-sm:gap-4 max-sm:overflow-x-auto max-sm:scrollbar-hidden">
         {options.map((option) => {
           const active = option.value === value
           return (
@@ -79,7 +83,7 @@ export function PageTabs<T extends string>({ value, onChange, options, ariaLabel
         {line && (
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute -bottom-px left-0 h-[2px] rounded-full bg-[var(--text)] transition-[transform,width] duration-[450ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+            className="pointer-events-none absolute -bottom-px left-0 h-[2px] max-sm:bottom-0 rounded-full bg-[var(--text)] transition-[transform,width] duration-[450ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
             style={{ transform: `translateX(${line.x}px)`, width: line.width }}
           />
         )}

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import { Check, Lock } from "lucide-react"
+import { Check, ChevronDown, Lock } from "lucide-react"
 import { toast } from "sonner"
 
 import prestige from "@/assets/ranks/prestige.webp"
@@ -83,7 +83,9 @@ export function ShopRanks({ catalogue }: { catalogue: PerkCatalogue }) {
   const { user } = useAuth()
   const [params, setParams] = useSearchParams()
   const mine = useApiQuery<PerkMine>((signal) => perksService.mine({ signal }), { enabled: Boolean(user), queryKey: `perk-mine:${user?.id ?? "none"}` })
-  const [days, setDays] = useState<PerkDays>(() => (catalogue.days.find((value) => catalogue.tiers.some((tier) => tier.prices[String(value)])) ?? 30))
+  // Each card has its own length (owner request 2026-11-07): a dropdown on the card, the price beside it.
+  const [lengths, setLengths] = useState<Record<string, PerkDays>>({})
+  const daysOf = (tier: PerkCatalogue["tiers"][number]): PerkDays => lengths[tier.key] ?? (catalogue.days.find((value) => tier.prices[String(value)]) ?? 30)
   const [invoice, setInvoice] = useState<PerkInvoice | null>(null)
   const [picker, setPicker] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
@@ -105,7 +107,7 @@ export function ShopRanks({ catalogue }: { catalogue: PerkCatalogue }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [returned, user?.id])
 
-  const buy = async (tierKey: string) => {
+  const buy = async (tierKey: string, days: PerkDays) => {
     if (!user) { toast.message("Sign in to buy a rank."); return }
     setBusy(tierKey)
     try { setInvoice(await perksService.checkout(tierKey, days)) } catch (caught) { toast.error((caught as { message?: string }).message ?? "Could not start the payment") } finally { setBusy(null) }
@@ -137,48 +139,52 @@ export function ShopRanks({ catalogue }: { catalogue: PerkCatalogue }) {
         </section>
       )}
 
-      <div role="radiogroup" aria-label="How long" className="flex flex-wrap items-center gap-1.5">
-        <span className="mr-1 text-[12px] text-[var(--text-dim)]">For</span>
-        {catalogue.days.map((value) => (
-          <button key={value} type="button" role="radio" aria-checked={days === value} onClick={() => setDays(value)} className={cn("h-9 rounded-lg border px-4 text-[13px] transition-colors", days === value ? "border-[var(--brand)] bg-[var(--brand)]/15 text-[var(--text)]" : "border-[var(--line)] text-[var(--text-muted)] hover:border-[var(--line-strong)] hover:text-[var(--text)]")}>{value} days</button>
-        ))}
-      </div>
-
       <ul className="grid gap-3 md:grid-cols-3">
         {catalogue.tiers.map((tier) => {
+          const days = daysOf(tier)
           const price = tier.prices[String(days)]
           const mineHere = grant?.tier === tier.key
           const otherRunning = Boolean(grant) && !mineHere
+          const benefits = [
+            `${tier.quota} commands you pick yourself, from fun and cheat commands`,
+            `Works on ${modes}`,
+            "Your emblem and name beside your name in Tab, chat, Leaders and reviews",
+            "A badge, a banner and a soft light on your profile",
+            "Renew before it ends and pick your commands again",
+          ]
           return (
-            <li key={tier.key} className={cn("flex min-w-0 flex-col gap-4 overflow-hidden rounded-xl border bg-[var(--glass-fill)] pb-5", mineHere ? "border-[var(--brand)]" : "border-[var(--glass-line)]")}>
-              {TIER_ART[tier.key] ? <img src={TIER_ART[tier.key]} alt={tier.name} width={640} height={640} loading="lazy" draggable={false} className="aspect-square w-full object-cover" /> : <h3 className="px-5 pt-5 text-[22px] font-bold text-[var(--text)]">{tier.name}</h3>}
-              <span className="px-5 text-[13px] text-[var(--text-muted)]">{tier.quota} commands of your choice</span>
-              <div className="flex items-baseline gap-2 px-5"><span className="lx-shop-price">{price ? mnt(price) : "Not for sale"}</span><span className="text-[12px] text-[var(--text-dim)]">{days} days</span></div>
-              <button type="button" disabled={!price || busy !== null || otherRunning || !catalogue.available} onClick={() => void buy(tier.key)} className="lx-primary-button mx-5 mt-auto inline-flex h-10 items-center justify-center rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50">{busy === tier.key ? "Opening…" : mineHere ? "Renew" : "Buy"}</button>
-              {otherRunning && <span className="px-5 text-[11px] text-[var(--text-dim)]">Another rank is running. It must end first.</span>}
+            <li key={tier.key} className={cn("flex min-w-0 flex-col gap-3 rounded-xl border bg-[var(--glass-fill)] p-3", mineHere ? "border-[var(--brand)]" : "border-[var(--glass-line)]")}>
+              <div className="flex items-start gap-3">
+                {TIER_ART[tier.key] ? <img src={TIER_ART[tier.key]} alt={tier.name} width={640} height={640} loading="lazy" draggable={false} className="size-[88px] shrink-0 rounded-lg object-cover" /> : <h3 className="text-[17px] font-bold text-[var(--text)]">{tier.name}</h3>}
+                <div className="flex min-w-0 flex-1 flex-col gap-2">
+                  <span className="text-[13px] text-[var(--text-muted)]">{tier.quota} commands of your choice</span>
+                  <label className="flex flex-col gap-1 text-[11px] text-[var(--text-dim)]">
+                    How long
+                    <select value={days} onChange={(event) => setLengths((current) => ({ ...current, [tier.key]: Number(event.target.value) as PerkDays }))} className="h-9 w-full rounded-lg border border-[var(--line)] bg-[var(--panel)] px-2.5 text-[13px] text-[var(--text)] focus-visible:border-[var(--text-faint)] focus-visible:outline-none">
+                      {catalogue.days.filter((value) => tier.prices[String(value)]).map((value) => <option key={value} value={value}>{value} days</option>)}
+                    </select>
+                  </label>
+                </div>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="lx-shop-price">{price ? mnt(price) : "Not for sale"}</span>
+                <button type="button" disabled={!price || busy !== null || otherRunning || !catalogue.available} onClick={() => void buy(tier.key, days)} className="lx-primary-button inline-flex h-9 items-center justify-center rounded-lg px-5 text-[13px] font-semibold disabled:opacity-50">{busy === tier.key ? "Opening…" : mineHere ? "Renew" : "Buy"}</button>
+              </div>
+              {otherRunning && <span className="text-[11px] text-[var(--text-dim)]">Another rank is running. It must end first.</span>}
+              <details className="group rounded-lg border border-[var(--line-soft)] px-3 py-2 text-[12px] text-[var(--text-muted)]">
+                <summary className="flex cursor-pointer list-none items-center justify-between text-[var(--text-2)] [&::-webkit-details-marker]:hidden">Benefits<ChevronDown className="size-3.5 transition-transform group-open:rotate-180" aria-hidden="true" /></summary>
+                <ul className="mt-2 flex flex-col gap-1.5">{benefits.map((line) => <li key={line} className="flex items-start gap-2"><Check className="mt-0.5 size-3 shrink-0 text-[var(--text-2)]" aria-hidden="true" />{line}</li>)}</ul>
+              </details>
             </li>
           )
         })}
       </ul>
       {!catalogue.available && <p className="text-[12px] text-[var(--text-dim)]">Payment is not set up yet.</p>}
 
-      <section aria-label="What you get" className="flex flex-col gap-3">
-        <div className="lx-shop-heading">What you get</div>
-        <ul className="grid gap-2 text-[13px] text-[var(--text-muted)] sm:grid-cols-2">
-          {[
-            `Commands you choose yourself: 3, 5 or 10 by rank, from fun and cheat commands`,
-            `Works on ${modes}`,
-            "Your rank's name before your own in Tab and chat",
-            "Pay with QPay or any bank app through Wire; it starts the moment it is paid",
-            "Closed the window without choosing? Pick any time. Once all are picked they stay until you renew",
-            "Renew before it ends and you can pick your commands again",
-          ].map((line) => <li key={line} className="flex items-start gap-2"><Check className="mt-0.5 size-3.5 shrink-0 text-[var(--text-2)]" aria-hidden="true" />{line}</li>)}
-        </ul>
-        <details className="text-[13px] text-[var(--text-muted)]">
-          <summary className="cursor-pointer text-[var(--text-2)]">The {catalogue.pool.length} commands you can pick from</summary>
-          <p className="mt-2 flex flex-wrap gap-1.5">{catalogue.pool.map((command) => <span key={command.name} title={command.summary || undefined} className="rounded-md border border-[var(--line)] px-2 py-0.5 text-[12px]">!{command.name}</span>)}</p>
-        </details>
-      </section>
+      <details className="text-[13px] text-[var(--text-muted)]">
+        <summary className="cursor-pointer text-[var(--text-2)]">The {catalogue.pool.length} commands you can pick from</summary>
+        <p className="mt-2 flex flex-wrap gap-1.5">{catalogue.pool.map((command) => <span key={command.name} title={command.summary || undefined} className="rounded-md border border-[var(--line)] px-2 py-0.5 text-[12px]">!{command.name}</span>)}</p>
+      </details>
 
       {user && mine.loading && !mine.data && <Skeleton className="h-10 rounded-lg" />}
       <PerkPayDialog invoice={invoice} onClose={() => setInvoice(null)} onSettled={(status) => { mine.refetch(); if (status === "paid") setPicker(true) }} />
