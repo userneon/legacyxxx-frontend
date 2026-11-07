@@ -7,6 +7,7 @@ import prestige from "@/assets/ranks/prestige.webp"
 import imperial from "@/assets/ranks/imperial.webp"
 import eternal from "@/assets/ranks/eternal.webp"
 import { perksService, type PerkCatalogue, type PerkDays, type PerkGrant, type PerkInvoice, type PerkMine } from "@/api/perks"
+import { PERK_EMBLEM } from "@/components/perk-badge"
 import { PerkPayDialog } from "@/components/perk-pay-dialog"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -115,6 +116,7 @@ export function ShopRanks({ catalogue }: { catalogue: PerkCatalogue }) {
     <div className="flex min-w-0 flex-col gap-5">
       {grant && (
         <section aria-label="Your rank" className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-xl border border-[var(--brand)]/40 bg-[var(--brand)]/[0.06] p-4">
+          {PERK_EMBLEM[grant.tier] && <img src={PERK_EMBLEM[grant.tier]} alt="" aria-hidden="true" width={64} height={64} className="size-16 shrink-0 object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]" />}
           <div className="flex min-w-0 flex-col gap-0.5">
             <span className="text-[11px] uppercase tracking-wide text-[var(--text-faint)]">Your rank</span>
             <span className="text-[22px] font-bold text-[var(--text)]">{grant.name}</span>
