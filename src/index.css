@@ -2117,3 +2117,37 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
     transform: translate3d(-6%, 10%, 0) rotate(-8deg) scale(0.96);
   }
 }
+
+/* The mark of a paid rank on the profile (owner request 2026-11-07): the tier's crown and name, and a soft light behind the header. Silver, violet with gold, gold with red:
+   the colours come from the owner-supplied card art, so they are palette-exempt and used only here. */
+.lx-perk-badge, .lx-profile-perk {
+  --perk: #d4d4d8; /* palette-exempt: Prestige silver */
+  --perk-edge: #f5f5f5; /* palette-exempt */
+}
+.lx-perk-badge[data-tier="tier2"], .lx-profile-perk[data-tier="tier2"] {
+  --perk: #8b5cf6; /* palette-exempt: Imperial violet */
+  --perk-edge: #f2cd72; /* palette-exempt: gold */
+}
+.lx-perk-badge[data-tier="tier3"], .lx-profile-perk[data-tier="tier3"] {
+  --perk: #dc2626; /* palette-exempt: Eternal red */
+  --perk-edge: #f2cd72; /* palette-exempt: gold */
+}
+.lx-perk-badge {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--perk) 26%, var(--card-surface)), color-mix(in oklab, var(--perk) 6%, var(--card-surface))) padding-box,
+    linear-gradient(135deg, var(--perk-edge), color-mix(in oklab, var(--perk) 45%, transparent) 60%, var(--perk-edge)) border-box;
+  color: color-mix(in oklab, var(--perk-edge) 70%, white);
+  text-shadow: 0 0 8px color-mix(in oklab, var(--perk) 60%, transparent);
+  box-shadow: 0 0 14px color-mix(in oklab, var(--perk) 28%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+.lx-profile-perk { position: relative; isolation: isolate; }
+.lx-profile-perk::before {
+  content: "";
+  position: absolute;
+  inset: -40px -10% auto;
+  height: 260px;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse 50% 70% at 50% 0%, color-mix(in oklab, var(--perk) 22%, transparent), transparent 72%);
+}

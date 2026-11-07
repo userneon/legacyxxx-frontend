@@ -1,5 +1,6 @@
 import { DiscordIcon } from "@/components/discord-strip"
 import { BoosterBadge } from "@/components/booster-badge"
+import { PerkBadge } from "@/components/perk-badge"
 import { ProfileConfigs } from "@/components/profile-config"
 import { ProfileBanner } from "@/components/profile-banner"
 import { PlayerNameText } from "@/components/player-name-text"
@@ -174,7 +175,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
     if (await copyText(url, "Profile link")) toast.success("Profile link copied")
   }
   return (
-    <header className="lx-swap-in flex flex-col items-center gap-4 text-center">
+    <header data-tier={overview.perk?.tier} className={cn("lx-swap-in flex flex-col items-center gap-4 text-center", overview.perk && "lx-profile-perk")}>
       <Avatar user={user} />
       <div className="flex min-w-0 max-w-full flex-1 flex-col items-center gap-3">
         <div className="flex min-w-0 max-w-full flex-col items-center gap-1">
@@ -189,6 +190,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
         <div className="flex flex-wrap items-center justify-center gap-2">
           <RoleBadge role={user.role} />
           {overview.creator && <CreatorBadge tier={overview.creator.tier} label={overview.creator.label} />}
+          {overview.perk && <PerkBadge tier={overview.perk.tier} name={overview.perk.name} />}
           {(overview.discordBoosting || overview.boosterPlace) && <BoosterBadge place={overview.boosterPlace} />}
           {overview.clan && (
             <Link to={`/clans/${overview.clan.number ?? overview.clan.id}`} title={overview.clan.name} className="inline-flex h-6 items-center gap-1 rounded-full border border-[var(--line)] px-2 text-[11px] font-semibold text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]">

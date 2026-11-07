@@ -27,6 +27,8 @@ export interface ProfileMatchRow {
 export interface ProfileOverview {
   /** 1, 2 or 3 for the top three Discord boosters (the Gold, Silver or Bronze booster frame), otherwise null. */
   boosterPlace?: 1 | 2 | 3 | null
+  /** A paid in-game rank that is running (the Shop's Ranks): its tier ("tier1".."tier3") and name, otherwise null. */
+  perk?: { tier: string; name: string } | null
   user: {
     id: string
     steamId: string
