@@ -8,6 +8,7 @@ import { Clapperboard, ExternalLink, RotateCcw, Search, Star, X } from "lucide-r
 import { creatorsService, CREATOR_PLATFORMS, type Creator, type CreatorTier } from "@/api/creators"
 import { CreatorApply } from "@/components/creator-apply"
 import { CreatorCode } from "@/components/creator-code"
+import { CreatorKit } from "@/components/creator-kit"
 import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
 import { FramedAvatar } from "@/components/framed-avatar"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
@@ -149,6 +150,7 @@ export function CreatorsPage() {
             <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Find a creator" aria-label="Find a creator" className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] focus:outline-none" />
             {search && <button type="button" aria-label="Clear search" onClick={() => setSearch("")} className="text-[var(--text-dim)] hover:text-[var(--text)]"><X className="size-3.5" /></button>}
           </label>
+          <CreatorKit />
           <CreatorCode />
           <CreatorApply onAboutSaved={refetch} />
         </PageBarEnd>

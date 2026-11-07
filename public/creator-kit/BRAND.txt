@@ -1,0 +1,33 @@
+LEGACY-X creator kit
+
+COLOURS
+  Black      #0A0A0A   backgrounds
+  Panel      #0F0F0F   boxes
+  Line       #262626   thin borders
+  White      #FAFAFA   text
+  Violet     #8B5CF6   the brand colour, used sparingly
+  Soft violet #A78BFA  the "-X" in the name, small icons
+
+TYPE
+  Name        Black Ops One (Google Fonts)   LEGACY-X, the "-X" in violet
+  Everything else  Exo 2 (Google Fonts), 500 and 700
+
+USING THE LOGO
+  - Write it LEGACY-X, upper case, with the "-X" in soft violet (the brand file) or all white / all black (one colour files).
+  - Leave empty space round it of at least half its height. Do not stretch, rotate, outline or add glow to it.
+  - Put it on black or a dark picture. The black file is for light backgrounds only.
+  - The round mark is a small picture (128 px): use it small. Ask staff for the big one.
+
+THUMBNAILS
+  16:9  1280 x 720   (YouTube)       9:16  1080 x 1920   (TikTok, Shorts, Reels)
+  The wordmark sits in the top-left corner; keep your face and title away from it. Keep words inside the middle 80 percent.
+
+OVERLAYS  (1920 x 1080, transparent PNG, put them on a layer above the game)
+  lower-third.png  name bar: type your name in the empty space above "Content Creator · LEGACY-X"
+  powered-by.png   corner badge, top right
+  creator-code.png your creator code: type it into the empty box (My code on the Creators page); say the code in the video too
+  end-card.png     last 5 seconds: Play ranked on LEGACY-X, legacyx.cc
+
+RULES
+  - Say what it is: a Content Creator video, not an official LEGACY-X announcement, unless staff said so.
+  - Do not use the kit on videos that show cheats, hate or anything that breaks the server rules.
