@@ -141,11 +141,11 @@ export function NotificationsMenu() {
           <p className="px-4 pb-5 pt-1 text-center text-xs text-muted-foreground">No notifications</p>
         ) : (
           <ul className="flex max-h-80 flex-col overflow-y-auto">
-            {entries.map((notification) => {
+            {entries.map((notification, index) => {
               const Icon = notificationIcon(notification)
               const target = notificationTarget(notification)
               return (
-              <li key={notification.id}>
+              <li key={notification.id} className="lx-flow-down" style={{ animationDelay: `${Math.min(index, 8) * 45}ms` }}>
                 <button
                   type="button"
                   disabled={target === null}
