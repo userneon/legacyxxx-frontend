@@ -107,6 +107,13 @@ THUMBNAILS
   16:9  1280 x 720   (YouTube)       9:16  1080 x 1920   (TikTok, Shorts, Reels)
   The wordmark sits in the top-left corner; keep your face and title away from it. Keep words inside the middle 80 percent.
 
+READY-MADE ANIMATIONS  (video/, 1920 x 1080, transparent WebM; made by backend/remotion, the same for everyone)
+  community-intro.webm   the "L" builds up, then COUNTER-STRIKE and COMMUNITY come in letter by letter (5 s)
+  logo-sting.webm        the mark and LEGACY-X (4 s)
+  wipe-transition.webm   a screen wipe between two clips (1.2 s)
+  community-badge.webm   a corner badge that slides in from the right (5 s)
+  Put them on a layer above your clip. Browsers and OBS read the transparency; if your editor shows a black box, ask staff for a MOV.
+
 OVERLAYS  (1920 x 1080, transparent PNG, put them on a layer above the game)
   lower-third.png  name bar: type your name in the empty space above "Content Creator · LEGACY-X"
   powered-by.png   corner badge, top right

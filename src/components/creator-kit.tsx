@@ -16,7 +16,7 @@ const field = "h-9 w-full rounded-lg border border-[var(--line)] bg-[var(--bg)] 
 const secondary = "inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]"
 const BASE = "/creator-kit"
 
-type Asset = { file: string; name: string; note: string; light?: boolean }
+type Asset = { file: string; name: string; note: string; light?: boolean; video?: boolean }
 type Group = { title: string; hint: string; items: Asset[] }
 
 /** What the kit holds (public/creator-kit/, drawn by scripts/make-creator-kit.mjs). Real files: nothing here is a sample. */
@@ -38,6 +38,16 @@ const GROUPS: Group[] = [
       { file: "thumbnail/thumbnail-16x9-dark.png", name: "16:9, dark", note: "1280 × 720, YouTube" },
       { file: "thumbnail/thumbnail-9x16-violet.png", name: "9:16, violet", note: "1080 × 1920, TikTok, Shorts, Reels" },
       { file: "thumbnail/thumbnail-9x16-dark.png", name: "9:16, dark", note: "1080 × 1920, TikTok, Shorts, Reels" },
+    ],
+  },
+  {
+    title: "Ready-made animations",
+    hint: "Transparent WebM, 1920 × 1080: put them on a layer above your clip. The same for everyone.",
+    items: [
+      { file: "video/community-intro.webm", name: "Community intro", note: "The L, then COUNTER-STRIKE COMMUNITY, 5 s", video: true },
+      { file: "video/logo-sting.webm", name: "Logo sting", note: "The mark and LEGACY-X, 4 s", video: true },
+      { file: "video/wipe-transition.webm", name: "Wipe transition", note: "Between two clips, 1.2 s", video: true },
+      { file: "video/community-badge.webm", name: "Community badge", note: "Slides in at the corner, 5 s", video: true },
     ],
   },
   {
@@ -171,7 +181,11 @@ export function CreatorKit() {
                 {group.items.map((item) => (
                   <li key={item.file} className="flex flex-col overflow-hidden rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)]">
                     <div className={cn("flex h-28 items-center justify-center bg-[length:16px_16px]", item.light ? "bg-[repeating-conic-gradient(#e5e5e5_0_25%,#fafafa_0_50%)]" : "bg-[repeating-conic-gradient(#1a1a1a_0_25%,#141414_0_50%)]")}>
-                      <img src={previews[item.file] ?? `${BASE}/${item.file}`} alt={item.name} loading="lazy" draggable={false} className="max-h-full max-w-full object-contain" />
+                      {item.video ? (
+                        <video src={`${BASE}/${item.file}`} aria-label={item.name} autoPlay loop muted playsInline preload="metadata" className="max-h-full max-w-full object-contain" />
+                      ) : (
+                        <img src={previews[item.file] ?? `${BASE}/${item.file}`} alt={item.name} loading="lazy" draggable={false} className="max-h-full max-w-full object-contain" />
+                      )}
                     </div>
                     <div className="flex items-center justify-between gap-2 px-3 py-2.5">
                       <div className="flex min-w-0 flex-col"><span className="truncate text-[13px] text-[var(--text)]">{item.name}</span><span className="truncate text-[11px] text-[var(--text-dim)]">{previews[item.file] ? "With your name" : item.note}</span></div>
