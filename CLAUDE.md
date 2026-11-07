@@ -340,3 +340,5 @@ Roles together (owner request 2026-11-07, "give CC and Staff at once, whatever t
 
 QA on any staff row (owner request 2026-11-07, "the Owner is already on the staff list, so add QA on top"): a player already on the list cannot be added a second time, so Staff → Team → edit has an **Also a QA tester** switch (`staff.qa`, `legacy_x_qa_role.sql`) that gives any role, an Owner included, the same QA access as the QA role; a QA chip shows on their card. The QA role stays for someone who is only a tester.
 
+Deleting from the staff list (owner request 2026-11-07, "make it possible to delete from the staff list"): every card in Staff → Team has a bin button; the first press asks "Delete for good?" (red, for 4 s), the second deletes the record (`DELETE /staffpanel/staff/:id`, Owner only; the last active Owner cannot be deleted). Their past actions stay in the audit log with no name on them, their QA items are taken back, and the player can be added again afterwards. Suspend and Remove (the "Removed" card) are still there for a pause.
+

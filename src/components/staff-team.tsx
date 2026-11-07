@@ -1,8 +1,8 @@
 import { useState } from "react"
-import { Pencil, Plus, RotateCcw, Shield } from "lucide-react"
+import { Pencil, Plus, RotateCcw, Shield, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
-import { get, patch, post } from "@/api/client"
+import { del, get, patch, post } from "@/api/client"
 import { PlayerPicker } from "@/components/player-picker"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { STAFF_BODY, type Tone } from "@/components/staff-ui"
@@ -127,6 +127,8 @@ export function StaffTeam() {
   const { data, loading, error, refetch } = useApiQuery((signal) => get<StaffMember[]>("/api/v1/staffpanel/staff", undefined, { signal }), { queryKey: "staff-team" })
   const [draft, setDraft] = useState<Draft | null>(null)
   const [busy, setBusy] = useState(false)
+  // The card whose Delete was pressed once: the second press deletes for good.
+  const [sure, setSure] = useState<string | null>(null)
 
   const run = async (work: () => Promise<unknown>, done: string) => {
     setBusy(true)
@@ -253,6 +255,16 @@ export function StaffTeam() {
                 ) : (
                   <button type="button" disabled={busy} onClick={() => void setStatus(member, "active")} className={cn(secondary, "flex-1")}>Reactivate</button>
                 )}
+                <button
+                  type="button"
+                  disabled={busy}
+                  aria-label={sure === member.id ? `Delete ${member.username} for good` : `Delete ${member.username}`}
+                  title={sure === member.id ? "Press again to delete for good" : "Delete from the list"}
+                  onClick={() => { if (sure !== member.id) { setSure(member.id); window.setTimeout(() => setSure((current) => (current === member.id ? null : current)), 4000); return } setSure(null); void run(() => del(`/api/v1/staffpanel/staff/${member.id}`), `${member.username} was deleted from the staff list`) }}
+                  className={cn(secondary, sure === member.id ? "border-[var(--status-red)] px-3 text-[var(--status-red)]" : "w-9 shrink-0 px-0")}
+                >
+                  <Trash2 className="size-4" />{sure === member.id && "Delete for good?"}
+                </button>
               </div>
             </li>
           ))}
