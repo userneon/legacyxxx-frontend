@@ -20,7 +20,7 @@ import { penaltyAdminService, type LiftRequest, type ModerationAccess } from "@/
 import type { PlayerCheck } from "@/api/checks"
 import { ChecksPage } from "@/pages/checks"
 import { IssuePenaltyDialog, LiftRequests } from "@/components/penalty-staff"
-import { PageBar, PageBarEnd, PageTabs } from "@/components/page-tabs"
+import { AdminShell, type ShellGroup } from "@/admin/admin-shell"
 import { Button } from "@/components/ui/button"
 import { formatRelativeTime } from "@/components/relative-time"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -62,6 +62,13 @@ const STEAM_ID = /^7656119\d{10}$/
 const ADMIN_TABS: StaffTab[] = ["overview", "checks", "penalties", "players"]
 const MANAGER_TABS: StaffTab[] = [...ADMIN_TABS, "clans", "creators", "shop", "servers"]
 const OWNER_TABS: StaffTab[] = [...MANAGER_TABS, "team", "roles", "settings"]
+/** How the staff site's menu groups its pages. */
+const GROUPS: Array<{ title: string; tabs: StaffTab[] }> = [
+  { title: "Work", tabs: ["overview", "checks", "penalties", "players"] },
+  { title: "Community", tabs: ["clans", "creators", "shop"] },
+  { title: "Servers", tabs: ["servers", "roles"] },
+  { title: "Team", tabs: ["team", "settings"] },
+]
 const tabsFor = (role: string | null | undefined): ReadonlySet<StaffTab> => new Set(role === "OWNER" ? OWNER_TABS : role === "MANAGER" ? MANAGER_TABS : ADMIN_TABS)
 
 /** Everything staff do on the site in one place: what is waiting, checks, penalties, a player by Steam ID, and the server console. */
@@ -106,19 +113,14 @@ export function StaffPage({ initialTab = "overview" }: { initialTab?: StaffTab }
   }
   if (!access.canManage) return <p className="px-6 py-10 text-[13px] text-[var(--text-dim)]">This page is for staff.</p>
 
+  const groups: ShellGroup[] = GROUPS
+    .map((group) => ({ title: group.title, items: group.tabs.filter((value) => allowed.has(value)).map((value) => ({ value, label: TABS.find((entry) => entry.value === value)?.label ?? value, count: counts[value] || undefined })) }))
+    .filter((group) => group.items.length > 0)
+
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <PageBar>
-        <PageTabs<StaffTab> ariaLabel="Staff" value={tab} onChange={setTab} options={TABS.filter((entry) => allowed.has(entry.value)).map((entry) => ({ ...entry, count: counts[entry.value] || undefined }))} />
-        <PageBarEnd>
-          <button type="button" onClick={() => setFinding(true)} className="flex h-9 w-[240px] items-center gap-2 rounded-lg border border-[var(--glass-line)] px-3 text-[13px] text-[var(--text-dim)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]">
-            <Search className="size-4 shrink-0" aria-hidden="true" />
-            <span className="flex-1 text-left">Find a player</span>
-            <kbd className="rounded border border-[var(--line)] px-1.5 text-[10px]">Ctrl K</kbd>
-          </button>
-        </PageBarEnd>
-      </PageBar>
-      <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
+    <>
+    <AdminShell groups={groups} current={tab} onGo={(value) => setTab(value as StaffTab)} onFind={() => setFinding(true)}>
+      <div className="min-h-full">
         {tab === "overview" && <Overview access={access} allowed={allowed} onGo={setTab} onCase={openCase} checks={checks.data} requests={requests.data} applications={applications.data?.applications ?? null} orders={orders.data} servers={servers.data} />}
         {tab === "checks" && <ChecksPage embedded />}
         {tab === "penalties" && <PenaltiesTab access={access} onCase={openCase} />}
@@ -131,8 +133,9 @@ export function StaffPage({ initialTab = "overview" }: { initialTab?: StaffTab }
         {tab === "roles" && <StaffRoles isOwner={access.role === "OWNER"} />}
         {tab === "settings" && <StaffSettings isOwner={access.role === "OWNER"} />}
       </div>
-      <StaffCommand open={finding} onOpenChange={setFinding} onPick={openCase} />
-    </div>
+    </AdminShell>
+    <StaffCommand open={finding} onOpenChange={setFinding} onPick={openCase} />
+    </>
   )
 }
 
