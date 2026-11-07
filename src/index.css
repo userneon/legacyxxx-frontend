@@ -2083,6 +2083,7 @@ body::before {
 .lx-team-card[data-tone="amber"], .lx-stat-cell[data-tone="amber"] { --tone: var(--tone-amber); }
 .lx-team-card[data-tone="green"], .lx-stat-cell[data-tone="green"] { --tone: var(--tone-green); }
 .lx-team-card[data-tone="sky"], .lx-stat-cell[data-tone="sky"] { --tone: var(--tone-sky); }
+.lx-team-card[data-tone="grey"] { --tone: #a3a3a3; } /* palette-exempt: QA grey */
 .lx-stat-cell[data-tone="violet"], section[data-tone="violet"] { --tone: var(--tone-violet); }
 section[data-tone="red"] { --tone: var(--tone-red); } section[data-tone="sky"] { --tone: var(--tone-sky); } section[data-tone="green"] { --tone: var(--tone-green); } section[data-tone="amber"] { --tone: var(--tone-amber); }
 .lx-team-dot { background: var(--tone); }

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils"
  */
 export const STAFF_BODY = "mx-auto flex w-full max-w-[1320px] flex-col gap-6 px-6 pb-10 pt-5 max-md:px-4"
 export const STAFF_GRID = "grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
-export type Tone = "red" | "amber" | "green" | "sky" | "violet"
+export type Tone = "red" | "amber" | "green" | "sky" | "violet" | "grey"
 
 /** The card shape, with `lx-tone` so a `data-tone` on the card colours its hairline, wash and icon tile. */
 export const STAFF_CARD = "lx-tone relative flex min-w-0 flex-col gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4 transition-colors hover:border-[var(--line-strong)]"
