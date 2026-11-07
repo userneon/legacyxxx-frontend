@@ -3,9 +3,10 @@ import { useSearchParams } from "react-router-dom"
 import { Check, ChevronDown, Lock } from "lucide-react"
 import { toast } from "sonner"
 
-import prestige from "@/assets/ranks/prestige.webp"
-import imperial from "@/assets/ranks/imperial.webp"
-import eternal from "@/assets/ranks/eternal.webp"
+import prestige from "@/assets/ranks/card-prestige.webp"
+import imperial from "@/assets/ranks/card-imperial.webp"
+import eternal from "@/assets/ranks/card-eternal.webp"
+import GlareHover from "@/components/reactbits/glare-hover"
 import { perksService, type PerkCatalogue, type PerkDays, type PerkGrant, type PerkInvoice, type PerkMine } from "@/api/perks"
 import { PERK_EMBLEM } from "@/components/perk-badge"
 import { PerkPayDialog } from "@/components/perk-pay-dialog"
@@ -16,7 +17,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
 
 const mnt = (value: number) => `${value.toLocaleString()}₮`
-/** The owner-supplied card art of each tier (it carries the rank's name). */
+/** The owner-supplied card art of each tier (a framed card with transparent corners; it carries the rank's name). */
 const TIER_ART: Record<string, string> = { tier1: prestige, tier2: imperial, tier3: eternal }
 const MODE_LABEL: Record<string, string> = { fun: "Fun servers", pro: "Pro League servers", "5x5": "5x5 servers" }
 const secondary = "inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3.5 text-[13px] text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] disabled:opacity-50"
@@ -140,7 +141,7 @@ export function ShopRanks({ catalogue }: { catalogue: PerkCatalogue }) {
       )}
 
       <ul className="grid gap-3 md:grid-cols-3">
-        {catalogue.tiers.map((tier) => {
+        {catalogue.tiers.map((tier, tierIndex) => {
           const days = daysOf(tier)
           const price = tier.prices[String(days)]
           const mineHere = grant?.tier === tier.key
@@ -155,7 +156,12 @@ export function ShopRanks({ catalogue }: { catalogue: PerkCatalogue }) {
           return (
             <li key={tier.key} className={cn("flex min-w-0 flex-col gap-3 rounded-xl border bg-[var(--glass-fill)] p-3", mineHere ? "border-[var(--brand)]" : "border-[var(--glass-line)]")}>
               <div className="flex items-start gap-3">
-                {TIER_ART[tier.key] ? <img src={TIER_ART[tier.key]} alt={tier.name} width={640} height={640} loading="lazy" draggable={false} className="size-[88px] shrink-0 rounded-lg object-cover" /> : <h3 className="text-[17px] font-bold text-[var(--text)]">{tier.name}</h3>}
+                {TIER_ART[tier.key] ? (
+                  // React Bits' Glare Hover, looping: a band of light keeps crossing the card (and its gold rim), clipped to the card's own shape; it follows reduced motion.
+                  <GlareHover width="auto" height="148px" borderRadius="0" glareColor="#ffffff" glareOpacity={0.6} glareSize={34} variant="streak" mode="loop" interval={3.2 + tierIndex * 0.9} intro className="shrink-0" style={{ borderWidth: 0, WebkitMaskImage: `url(${TIER_ART[tier.key]})`, maskImage: `url(${TIER_ART[tier.key]})`, WebkitMaskSize: "100% 100%", maskSize: "100% 100%" }}>
+                    <img src={TIER_ART[tier.key]} alt={tier.name} height={148} loading="lazy" draggable={false} className="block h-[148px] w-auto max-w-none" />
+                  </GlareHover>
+                ) : <h3 className="text-[17px] font-bold text-[var(--text)]">{tier.name}</h3>}
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
                   <span className="text-[13px] text-[var(--text-muted)]">{tier.quota} commands of your choice</span>
                   <label className="flex flex-col gap-1 text-[11px] text-[var(--text-dim)]">
