@@ -3,6 +3,7 @@ import { Download, Loader2, PackageOpen } from "lucide-react"
 import { toast } from "sonner"
 
 import { creatorsService, type MyReferral } from "@/api/creators"
+import { CreatorKitAnimated } from "@/components/creator-kit-animated"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { cleanCode, cleanName, fetchBytes, loadSlots, personalise, type Personal, type Slots } from "@/lib/creator-kit"
@@ -181,6 +182,7 @@ export function CreatorKit() {
               </ul>
             </section>
           ))}
+          {isAuthenticated && <CreatorKitAnimated name={personal.name} code={personal.code} />}
           <section aria-label="Colours and rules" className="flex flex-col gap-2.5">
             <h3 className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-faint)]">Colours <span className="font-normal normal-case tracking-normal text-[var(--text-dim)]">· name in Black Ops One, the rest in Exo 2</span></h3>
             <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">

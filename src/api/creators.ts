@@ -1,4 +1,4 @@
-import { del, get, post, put, type CallOptions } from "./client"
+import { API_BASE_URL, del, get, getAccessToken, post, put, type CallOptions } from "./client"
 
 /** Content creators (owner request 2026-10-12): Main Content Creator and Content Creator. */
 export type CreatorTier = "main" | "creator"
@@ -95,6 +95,32 @@ export interface StaffCreatorApplication {
 }
 
 /** A creator's own code, what it earned and who used it (the API makes the code the first time it is asked for). */
+/** The animated Creator kit (owner request 2026-11-07): the API renders the animations with the name and the code typed. */
+export interface KitRenderConfig {
+  enabled: boolean
+  items: Array<{ id: string; label: string; ext: string; needs: "name" | "code" | "either" }>
+  dailyLimit: number
+  keepHours: number
+  queue: number
+}
+export interface KitRenderFile { id: string; label: string; ext: string; bytes: number; url: string }
+export interface KitRender { id: string; status: "queued" | "rendering" | "done" | "failed"; error: string | null; createdAt: string; files: KitRenderFile[]; position?: number }
+
+/** A rendered file, downloaded with the sign-in (it is private to its maker) and handed to the browser as a save. */
+export async function downloadKitFile(file: KitRenderFile, filename: string): Promise<void> {
+  const token = getAccessToken()
+  const response = await fetch(`${API_BASE_URL}${file.url}`, { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : undefined })
+  if (!response.ok) throw new Error(response.status === 410 ? "The file is gone. Make it again." : "Could not download the file")
+  const url = URL.createObjectURL(await response.blob())
+  const link = document.createElement("a")
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 10_000)
+}
+
 export interface MyReferral {
   code: string
   count: number
@@ -120,6 +146,9 @@ export const creatorsService = {
   /** A creator changes their own channel links (at least one). */
   saveLinks: (links: CreatorLinks, options?: CallOptions) => put<{ links: CreatorLinks }>("/api/v1/creators/me/links", { links }, options),
   myReferral: (options?: CallOptions) => get<MyReferral>("/api/v1/creators/me/referral", undefined, options),
+  kitRenderConfig: (options?: CallOptions) => get<KitRenderConfig>("/api/v1/creators/kit-renders/config", undefined, options),
+  startKitRender: (input: { name: string; code: string; items: string[] }, options?: CallOptions) => post<{ id: string; status: string; position: number }>("/api/v1/creators/kit-renders", input, options),
+  kitRender: (id: string, options?: CallOptions) => get<KitRender>(`/api/v1/creators/kit-renders/${encodeURIComponent(id)}`, undefined, options),
   referralStatus: (options?: CallOptions) => get<ReferralStatus>("/api/v1/referral/status", undefined, options),
   redeemReferral: (code: string, options?: CallOptions) => post<{ redeemed: true; reward: number }>("/api/v1/referral/redeem", { code }, options),
   myApplication: (options?: CallOptions) => get<MyCreatorApplication>("/api/v1/creators/applications/me", undefined, options),

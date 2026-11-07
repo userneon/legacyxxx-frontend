@@ -714,6 +714,8 @@ const mockChat: Array<{ id: string; body: string; createdAt: string; author: { s
 ]
 let notificationPrefs = { tournaments: true, rankChanges: false, penalties: true }
 
+let mockKitLooks = 0
+let mockKitItems: string[] = []
 let mockCreatorAbout = "CS2 streams every evening, Mongolian commentary"
 
 /** Design preview only: the links a clan leader saved on the mock clan page. */
@@ -737,6 +739,14 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path === "/api/v1/auth/logout") {
     try { window.localStorage.removeItem("legacyx_access_token") } catch { /* storage blocked */ }
     return undefined
+  }
+  // The animated Creator kit: a render that "finishes" after two looks.
+  if (path === "/api/v1/creators/kit-renders/config") return { enabled: true, items: [{ id: "lower-third", label: "Lower third, slides in from the left (transparent WebM)", ext: "webm", needs: "name" }, { id: "code-bar", label: "Creator code bar, slides in from the right (transparent WebM)", ext: "webm", needs: "code" }, { id: "end-card", label: "End card, 6 seconds (MP4)", ext: "mp4", needs: "either" }, { id: "code-gif", label: "Creator code sticker (looping GIF)", ext: "gif", needs: "code" }, { id: "glitch-gif", label: "Glitch logo with your name (looping GIF)", ext: "gif", needs: "name" }], dailyLimit: 6, keepHours: 24, queue: 0 }
+  if (path === "/api/v1/creators/kit-renders" && method === "POST") { mockKitLooks = 0; mockKitItems = (body as { items: string[] }).items; return { id: "6b6da1e7-4298-4367-a1ec-bfecc179cb8a", status: "queued", position: 1 } }
+  if (path.startsWith("/api/v1/creators/kit-renders/")) {
+    mockKitLooks += 1
+    const done = mockKitLooks > 2
+    return { id: "6b6da1e7-4298-4367-a1ec-bfecc179cb8a", status: done ? "done" : "rendering", error: null, createdAt: new Date().toISOString(), position: 1, files: done ? mockKitItems.map((id) => ({ id, label: id, ext: id.endsWith("gif") ? "gif" : id === "end-card" ? "mp4" : "webm", bytes: 480_000, url: `/mock/${id}` })) : [] }
   }
   if (path === "/api/v1/creators/me/links" && method === "PUT") return { links: (body as { links: Record<string, string> }).links }
   if (path === "/api/v1/creators/me/about" && method === "PUT") { mockCreatorAbout = String((body as { bio: string }).bio); return { about: mockCreatorAbout } }
