@@ -97,6 +97,8 @@ export function ShopRanks({ catalogue }: { catalogue: PerkCatalogue }) {
   const daysOf = (tier: PerkCatalogue["tiers"][number]): PerkDays => lengths[tier.key] ?? (catalogue.days.find((value) => tier.prices[String(value)]) ?? 30)
   const [invoice, setInvoice] = useState<PerkInvoice | null>(null)
   const [picker, setPicker] = useState(false)
+  // The three cards' Benefits open and close together, so the cards stay level (owner request 2026-11-07).
+  const [benefitsOpen, setBenefitsOpen] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
   const grant = mine.data?.grant ?? null
   const pending = mine.data?.pending ?? null
@@ -183,7 +185,7 @@ export function ShopRanks({ catalogue }: { catalogue: PerkCatalogue }) {
                 <button type="button" disabled={!price || busy !== null || otherRunning || !catalogue.available} onClick={() => void buy(tier.key, days)} className="lx-primary-button inline-flex h-7 items-center justify-center rounded-lg px-3 text-[13px] font-semibold disabled:opacity-50">{busy === tier.key ? "Opening…" : mineHere ? "Renew" : "Buy"}</button>
               </div>
               {otherRunning && <span className="text-[11px] text-[var(--text-dim)]">Another rank is running. It must end first.</span>}
-              <details className="group rounded-lg border border-[var(--line-soft)] px-3 py-2 text-[12px] text-[var(--text-muted)]">
+              <details open={benefitsOpen} onToggle={(event) => setBenefitsOpen(event.currentTarget.open)} className="group rounded-lg border border-[var(--line-soft)] px-3 py-2 text-[12px] text-[var(--text-muted)]">
                 <summary className="flex cursor-pointer list-none items-center justify-between text-[var(--text-2)] [&::-webkit-details-marker]:hidden">Benefits and how it looks<ChevronDown className="size-3.5 transition-transform group-open:rotate-180" aria-hidden="true" /></summary>
                 <div className="mt-2">
               {/* What the rank puts on a profile: its banner, badge and title, shown on a sample name. */}
