@@ -880,20 +880,20 @@ body::before {
   animation: page-flow-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
-/* The outgoing page fades up and out before the next one flows in (App.tsx, 160ms). */
+/* Everything flows DOWN into place (owner request 2026-11-07: pages, tabs and sections come in from above, one after another). The outgoing page fades down and out before the next one flows in (App.tsx, 160ms). */
 .page-enter.page-leave {
   animation: page-flow-out 160ms cubic-bezier(0.4, 0, 1, 1) forwards;
   pointer-events: none;
 }
 @keyframes page-flow-out {
   from { opacity: 1; transform: none; }
-  to { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 0; transform: translateY(8px); }
 }
 
 @keyframes page-flow-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(-14px);
   }
   to {
     opacity: 1;
@@ -917,7 +917,7 @@ body::before {
   .page-enter > * > :nth-child(n + 9) { animation-delay: 256ms; }
 
   @keyframes page-section-stagger-in {
-    from { opacity: 0; transform: translateY(7px); }
+    from { opacity: 0; transform: translateY(-12px); }
     to { opacity: 1; transform: translateY(0); }
   }
 }
@@ -1736,7 +1736,7 @@ body::before {
   animation: lx-swap-in 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 @keyframes lx-swap-in {
-  from { opacity: 0; transform: translateY(6px); filter: blur(3px); }
+  from { opacity: 0; transform: translateY(-10px); filter: blur(3px); }
   to { opacity: 1; transform: none; filter: none; }
 }
 .lx-swap-fade {
@@ -2229,3 +2229,12 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
   to { opacity: 1; transform: translateY(0); }
 }
 @media (prefers-reduced-motion: reduce) { .lx-flow-down { animation: none; } }
+
+/* A tab's content: its parts flow down into place one after another. Key the element by the tab so it replays on a switch. */
+.lx-flow-stack > * { animation: lx-flow-down 0.42s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.lx-flow-stack > :nth-child(2) { animation-delay: 45ms; }
+.lx-flow-stack > :nth-child(3) { animation-delay: 90ms; }
+.lx-flow-stack > :nth-child(4) { animation-delay: 135ms; }
+.lx-flow-stack > :nth-child(5) { animation-delay: 180ms; }
+.lx-flow-stack > :nth-child(n + 6) { animation-delay: 225ms; }
+@media (prefers-reduced-motion: reduce) { .lx-flow-stack > * { animation: none; } }

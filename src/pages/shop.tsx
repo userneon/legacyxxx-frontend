@@ -823,9 +823,9 @@ export function ShopPage() {
           <p className="flex items-center justify-center gap-3 py-24 text-[13px] text-[var(--text-dim)]">Could not load the shop.<button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>
         ) : (
           tab === "clan" ? (
-            <ShopClan prices={wallet?.clanPrices} balance={balance} mine={user ? myClan : null} loading={Boolean(user) && (clanLoading || !wallet)} onChanged={() => Promise.all([refetchClan(), refetchWallet()])} />
+            <div key="clan" className="lx-flow-stack"><ShopClan prices={wallet?.clanPrices} balance={balance} mine={user ? myClan : null} loading={Boolean(user) && (clanLoading || !wallet)} onChanged={() => Promise.all([refetchClan(), refetchWallet()])} /></div>
           ) : (
-          <div className="flex min-w-0 flex-col gap-5">
+          <div key={tab} className="lx-flow-stack flex min-w-0 flex-col gap-5">
             {/* On Featured the Genesis card comes first: the bar waits until an item below it is picked. */}
             {(tab !== "featured" || picked !== null) && spotlight}
             <div className="flex min-w-0 flex-col gap-5">

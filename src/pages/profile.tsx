@@ -843,9 +843,9 @@ export function ProfilePage({ userId }: { userId?: string }) {
         </PageBar>
       )}
       {tab === "profile" && view === "configs" ? (
-        <div className="px-6 pb-8 pt-5 max-md:px-4"><ProfileConfigs userId={data.user.steamId || data.user.id} isOwner={data.viewer.isOwner} /></div>
+        <div key="configs" className="lx-flow-stack px-6 pb-8 pt-5 max-md:px-4"><ProfileConfigs userId={data.user.steamId || data.user.id} isOwner={data.viewer.isOwner} /></div>
       ) : tab !== "profile" ? (
-        <div className="px-6 pb-8 pt-6 max-md:px-4 max-md:pt-4"><div className="mx-auto w-full max-w-4xl">{tab === "appearance" ? <AppearanceSettings /> : <AccountSettings />}</div></div>
+        <div key={tab} className="lx-flow-stack px-6 pb-8 pt-6 max-md:px-4 max-md:pt-4"><div className="mx-auto w-full max-w-4xl">{tab === "appearance" ? <AppearanceSettings /> : <AccountSettings />}</div></div>
       ) : (<>
       {data.user.role === "Owner" && <div className="px-6 pt-4 max-md:px-4"><div className="mx-auto flex w-full max-w-3xl flex-col gap-4"><OwnerPanel overview={data} /><OwnerSections overview={data} /></div></div>}
       {(
