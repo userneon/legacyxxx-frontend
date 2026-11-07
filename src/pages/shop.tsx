@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
-import { Check, ChevronDown, Crosshair, Heart, Lock, RotateCcw, Search, SlidersHorizontal, Sword, Undo2, X } from "lucide-react"
+import { Check, ChevronDown, Crosshair, Heart, Lock, RotateCcw, Search, ShoppingBag, SlidersHorizontal, Sword, Undo2, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -29,7 +29,8 @@ import { ColorRow, PICK_COLORS, PICK_DEFAULT, demoColour } from "@/components/co
 import { FramedAvatar } from "@/components/framed-avatar"
 import { LxMark } from "@/components/lx-mark"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
-import { Sheet, SheetDescription, SheetTitle } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
+import { ChoiceSelect } from "@/components/choice-select"
 import { DetailSheetContent } from "@/components/detail-sheet"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -212,7 +213,13 @@ export function ShopPage() {
   const [duration, setDuration] = useState<CosmeticDuration>("30d")
   // Some items are rented for one length only (the Crystal Orb: 30 days); the API lists just the lengths it sells.
   const lengthsOf = (item: ShopItem) => { const sold = COSMETIC_DURATIONS.filter((length) => item.prices?.[length.value] !== undefined); return sold.length ? sold : COSMETIC_DURATIONS }
-  const durationFor = (item: ShopItem): CosmeticDuration => (lengthsOf(item).some((length) => length.value === duration) ? duration : lengthsOf(item)[0].value)
+  // A length picked in the outfit belongs to that item alone; without one the item follows the length picked last.
+  const [itemLength, setItemLength] = useState<Record<string, CosmeticDuration>>({})
+  const durationFor = (item: ShopItem): CosmeticDuration => {
+    const own = itemLength[item.id]
+    if (own && lengthsOf(item).some((length) => length.value === own)) return own
+    return lengthsOf(item).some((length) => length.value === duration) ? duration : lengthsOf(item)[0].value
+  }
   const priceFor = (item: ShopItem, length: CosmeticDuration = durationFor(item)) => item.prices?.[length] ?? item.price
 
   const all: ShopItem[] = useMemo(() => [
@@ -453,24 +460,58 @@ export function ShopPage() {
   const toggleTray = (item: ShopItem) => setTray((current) => (current.includes(item.id) ? current.filter((id) => id !== item.id) : [...current.filter((id) => all.find((other) => other.id === id)?.kind !== item.kind), item.id]))
   const trayItems = tray.map((id) => all.find((item) => item.id === id)).filter((item): item is ShopItem => Boolean(item) && !item!.owned && item!.unlock === "coin")
   const outfit = outfitTotal(trayItems.map((item) => ({ owned: item.owned, price: priceFor(item) })), balance)
+  const [outfitOpen, setOutfitOpen] = useState(false)
+  useEffect(() => { if (trayItems.length === 0) setOutfitOpen(false) }, [trayItems.length])
+  const after = balance === null ? null : balance - outfit.total
+  /** The outfit: a bar at the bottom of the page and a panel from the right with every item, its length and the total (owner request 2026-11-07). */
   const outfitPanel = trayItems.length > 0 ? (
-    <section aria-label="Outfit" className="flex flex-col gap-2.5 border-t border-[var(--line-soft)] px-4 py-3.5">
-      <div className="flex items-baseline justify-between"><span className="text-[13px] font-semibold text-[var(--text)]">Outfit</span><span className="text-[11px] text-[var(--text-dim)]">{trayItems.length} {trayItems.length === 1 ? "item" : "items"}</span></div>
-      <ul className="flex flex-col gap-1.5">
-        {trayItems.map((item) => (
-          <li key={item.id} className="flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--card-surface)] py-1.5 pl-2.5 pr-1.5 text-[12px]">
-            <span className="min-w-0 flex-1 truncate text-[var(--text)]">{item.name}</span>
-            <span className="inline-flex items-center gap-1 font-semibold text-[var(--text-2)]"><LxMark size={12} />{priceFor(item).toLocaleString()}</span>
-            <button type="button" aria-label={`Take ${item.name} out of the outfit`} onClick={() => toggleTray(item)} className="grid size-6 place-items-center rounded-md text-[var(--text-dim)] hover:bg-[var(--raised)] hover:text-[var(--text)]"><X className="size-3.5" /></button>
-          </li>
-        ))}
-      </ul>
-      <div className="flex items-baseline justify-between text-[12px]"><span className="text-[var(--text-dim)]">Total</span><span className="text-[15px] font-semibold text-[var(--text)]">{outfit.total.toLocaleString()} LX</span></div>
-      {!outfit.affordable && balance !== null && <p className="text-[11px] text-[var(--text-dim)]">You need {(outfit.total - balance).toLocaleString()} more LX.</p>}
-      <button type="button" disabled={busy} onClick={() => (outfit.affordable ? void buyMany(trayItems) : (setSheetOpen(false), navigate("/wallet/top-up")))} className="lx-primary-button inline-flex h-10 w-full items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-60">
-        {outfit.affordable ? `Buy outfit for ${outfit.total.toLocaleString()} LX` : "Top up"}
-      </button>
-    </section>
+    <>
+      <div className="fixed inset-x-0 bottom-3 z-30 flex justify-center px-4 max-md:bottom-[72px]">
+        <button type="button" onClick={() => setOutfitOpen(true)} aria-label="Open your outfit" className="lx-sweep flex items-center gap-4 rounded-xl border border-[var(--brand)]/60 bg-[var(--panel)] px-4 py-2.5 text-[13px] shadow-[0_10px_40px_rgba(0,0,0,0.6)] transition-colors hover:border-[var(--brand)]">
+          <ShoppingBag className="size-4 text-[var(--brand-bright)]" aria-hidden="true" />
+          <span className="font-semibold text-[var(--text)]">Outfit · {trayItems.length} {trayItems.length === 1 ? "item" : "items"}</span>
+          <span className="inline-flex items-center gap-1 font-semibold text-[var(--text)]"><LxMark size={13} />{outfit.total.toLocaleString()}</span>
+        </button>
+      </div>
+      <Sheet open={outfitOpen} onOpenChange={setOutfitOpen}>
+        <SheetContent side="right" className="flex w-full flex-col gap-0 border-l border-[var(--line)] bg-[var(--panel)] p-0 sm:max-w-[400px]">
+          <div className="border-b border-[var(--line-soft)] px-[18px] py-4">
+            <SheetTitle className="text-[15px] font-semibold text-[var(--text)]">Your outfit · {trayItems.length} {trayItems.length === 1 ? "item" : "items"}</SheetTitle>
+            <SheetDescription className="mt-0.5 text-[11px] text-[var(--text-dim)]">Bought together, worn at once.</SheetDescription>
+          </div>
+          <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-3.5">
+            {trayItems.map((item) => (
+              <li key={item.id} className="grid grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-3 rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)] p-2">
+                <Spot accent={accentOf(item)} height={64}><ItemArt item={item} avatar={user?.avatar} username={username} orb={data?.frameLook} size={34} /></Spot>
+                <div className="flex min-w-0 flex-col gap-1.5">
+                  <span className="truncate text-[13px] font-semibold text-[var(--text)]">{item.name}</span>
+                  <span className="text-[11px] text-[var(--text-dim)]">{KIND_WORD[item.kind] ?? "Item"}</span>
+                  {lengthsOf(item).length > 1 ? (
+                    <ChoiceSelect<CosmeticDuration> ariaLabel={`How long, ${item.name}`} value={durationFor(item)} onChange={(next) => setItemLength((current) => ({ ...current, [item.id]: next }))} options={lengthsOf(item).map((length) => ({ value: length.value, label: length.label, hint: `${priceFor(item, length.value).toLocaleString()} LX` }))} className="w-[150px]" />
+                  ) : <span className="text-[12px] text-[var(--text-2)]">{COSMETIC_DURATIONS.find((length) => length.value === durationFor(item))?.label}</span>}
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-[var(--text)]"><LxMark size={12} />{priceFor(item).toLocaleString()}</span>
+                  <button type="button" aria-label={`Take ${item.name} out of the outfit`} onClick={() => toggleTray(item)} className="inline-flex items-center gap-1 text-[11px] text-[var(--text-dim)] hover:text-[var(--text)]"><X className="size-3" />Remove</button>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className="flex flex-col gap-2 border-t border-[var(--line-soft)] bg-[var(--bg)] px-[18px] py-3.5 text-[13px]">
+            {balance !== null && <div className="flex justify-between text-[var(--text-dim)]"><span>Your balance</span><span className="inline-flex items-center gap-1"><LxMark size={12} />{balance.toLocaleString()}</span></div>}
+            <div className="flex items-baseline justify-between"><span className="text-[var(--text-dim)]">Total</span><span className="inline-flex items-center gap-1 text-[16px] font-bold text-[var(--text)]"><LxMark size={14} />{outfit.total.toLocaleString()}</span></div>
+            {balance !== null && (outfit.affordable
+              ? <p className="flex justify-between text-[12px] text-[var(--status-green)]"><span className="inline-flex items-center gap-1"><Check className="size-3" />Enough LX</span><span>Left after: {after?.toLocaleString()} LX</span></p>
+              : <p className="text-[12px] text-[var(--status-red)]">You need {(outfit.total - balance).toLocaleString()} more LX.</p>)}
+            <button type="button" disabled={busy} onClick={() => (outfit.affordable ? (setOutfitOpen(false), void buyMany(trayItems)) : (setOutfitOpen(false), navigate("/wallet/top-up")))} className="lx-primary-button inline-flex h-11 w-full items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-60">
+              {outfit.affordable ? `Buy all · ${outfit.total.toLocaleString()} LX` : "Top up LX"}
+            </button>
+            <button type="button" onClick={() => { setTray([]); setOutfitOpen(false) }} className="text-center text-[12px] text-[var(--text-dim)] hover:text-[var(--text)]">Empty the outfit</button>
+            <p className="text-center text-[11px] text-[var(--text-faint)]">After buying you can undo it for a few seconds.</p>
+          </div>
+        </SheetContent>
+      </Sheet>
+    </>
   ) : null
 
   const buyBlock = (item: ShopItem, inline = false) => {
@@ -524,7 +565,7 @@ export function ShopPage() {
               <PopoverContent align="end" side="top" sideOffset={8} className="w-[var(--radix-popover-trigger-width)] min-w-[220px] rounded-xl border-[var(--line)] bg-[var(--panel)] p-1.5 shadow-[0_18px_44px_rgba(0,0,0,0.55)]">
                 <div role="radiogroup" aria-label="How long" className="flex flex-col">
                   {lengthsOf(item).map((length) => (
-                    <button key={length.value} type="button" role="radio" aria-checked={durationFor(item) === length.value} onClick={() => setDuration(length.value)} className="flex h-9 items-center justify-between gap-3 rounded-lg px-2.5 text-left text-[13px] text-[var(--text-2)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)] aria-checked:text-[var(--text)]">
+                    <button key={length.value} type="button" role="radio" aria-checked={durationFor(item) === length.value} onClick={() => { setDuration(length.value); setItemLength((current) => { const { [item.id]: _own, ...rest } = current; return rest }) }} className="flex h-9 items-center justify-between gap-3 rounded-lg px-2.5 text-left text-[13px] text-[var(--text-2)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)] aria-checked:text-[var(--text)]">
                       <span className="flex items-center gap-2">{durationFor(item) === length.value ? <Check className="size-3.5" aria-hidden="true" /> : <span className="size-3.5" aria-hidden="true" />}{length.label}</span>
                       <span className="flex items-center gap-1 font-semibold"><LxMark size={12} />{priceFor(item, length.value).toLocaleString()}</span>
                     </button>
@@ -686,13 +727,13 @@ export function ShopPage() {
             {tab === "name" && combo.name_color && combo.name_glow
               ? [combo.name_color, combo.name_glow].map((id) => all.find((item) => item.id === id)).filter((item): item is ShopItem => Boolean(item)).map((item) => <div key={item.id}>{buyBlock(item)}</div>)
               : buyBlock(selected)}
-            {outfitPanel}
           </div>
         )}
       </div>
   )
 
   const soon = endingSoon(all)
+  const countOf = (target: ShopTab) => all.filter((item) => (isModelKind(item.kind as CosmeticKind) ? "model" : tabOfKind(item.kind)) === target).length
   const tabOfKind = (kind: ShopKind): ShopTab => (kind === "name_color" || kind === "name_glow" ? "name" : kind === "smoke_color" || kind === "grenade_trail" ? "smoke_color" : kind === "frame" ? "frame" : kind === "background" ? "background" : "featured")
   /**
    * The Spotlight bar (owner pick "S8", 2026-10-26): on a wide screen the picked item sits in one bar across the top of the list, stuck while the
@@ -708,7 +749,6 @@ export function ShopPage() {
         : buyBlock(selected, true)}
       </div>
       {customizerBlock(true)}
-      {outfitPanel}
     </div>
   ) : null
 
@@ -727,12 +767,35 @@ export function ShopPage() {
         )}
       </PageBar>
       {PROFILE_TABS.includes(tab) && (
-        <PageBar>
+        <PageBar className="lg:hidden">
           <PageTabs<ShopTab> ariaLabel="Profile items" value={tab} onChange={setTab} options={TABS.filter((entry) => PROFILE_TABS.includes(entry.value))} />
         </PageBar>
       )}
       {/* Not a scroller itself: the page panel around it scrolls, and a sticky rail sticks to the nearest scroller (an inner overflow-y-auto that never scrolled kept it from sticking). */}
-      <div className="lx-glass-page min-h-0 flex-1 px-6 py-5 max-md:px-4">
+      <div className="flex min-h-0 flex-1">
+      {/* A list of every kind on wide screens (owner request 2026-11-07): what is in each, at a glance; phones keep the tabs above. */}
+      <nav aria-label="Shop categories" className="hidden w-[210px] shrink-0 border-r border-[var(--glass-line)] px-3 py-5 lg:block">
+        <div className="sticky top-4 flex flex-col gap-0.5">
+          {([
+            { value: "featured", label: "All items", count: all.length, group: "" },
+            { value: "frame", label: "Frames", count: countOf("frame"), group: "Profile" },
+            { value: "background", label: "Backgrounds", count: countOf("background"), group: "" },
+            { value: "name", label: "Names", count: countOf("name"), group: "" },
+            { value: "smoke_color", label: "Grenades", count: countOf("smoke_color"), group: "" },
+            { value: "model", label: "Weapons", count: countOf("model"), group: "" },
+            { value: "clan", label: "Clan looks", count: null, group: "Clan" },
+          ] as Array<{ value: ShopTab; label: string; count: number | null; group: string }>).map((entry) => (
+            <div key={entry.value} className="contents">
+              {entry.group && <span className="px-2.5 pb-1 pt-4 text-[10px] font-medium uppercase tracking-[0.8px] text-[var(--text-faint)]">{entry.group}</span>}
+              <button type="button" aria-current={tab === entry.value ? "page" : undefined} onClick={() => setTab(entry.value)} className={cn("flex h-9 items-center justify-between rounded-lg px-2.5 text-[13px] transition-colors", tab === entry.value ? "bg-[var(--raised)] text-[var(--text)] shadow-[inset_2px_0_0_var(--brand)]" : "text-[var(--text-dim)] hover:bg-[var(--raised)]/60 hover:text-[var(--text)]")}>
+                {entry.label}
+                {entry.count !== null && entry.count > 0 && <span className="text-[11px] text-[var(--text-faint)]">{entry.count}</span>}
+              </button>
+            </div>
+          ))}
+        </div>
+      </nav>
+      <div className="lx-glass-page min-h-0 min-w-0 flex-1 px-6 py-5 max-md:px-4">
         {tab === "featured" && (
           <p className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] leading-relaxed text-[var(--text-dim)]">
             <span className="inline-flex items-center gap-1">Cosmetics cost <LxMark size={13} /> LX. Ranks are paid in ₮ with QPay or any bank app.</span>
@@ -834,6 +897,8 @@ export function ShopPage() {
           )
         )}
       </div>
+      </div>
+      {outfitPanel}
       <Sheet open={sheetOpen && Boolean(selected)} onOpenChange={setSheetOpen}>
         <DetailSheetContent width="max-w-xl">
           <SheetTitle className="sr-only">{selected?.name}</SheetTitle>

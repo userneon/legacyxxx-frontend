@@ -21,6 +21,12 @@ import { cn } from "@/lib/utils"
 const mnt = (value: number) => `${value.toLocaleString()}₮`
 /** The owner-supplied card art of each tier (a framed card with transparent corners; it carries the rank's name). */
 const TIER_ART: Record<string, string> = { tier1: prestige, tier2: imperial, tier3: eternal }
+/** Each tier's own colour for the card's fade (from the owner's art, so palette-exempt): silver, violet, red. */
+const TIER_FADE: Record<string, string> = {
+  tier1: "#cbd5e1", // palette-exempt: Prestige silver
+  tier2: "#8b5cf6", // palette-exempt: Imperial violet
+  tier3: "#ef4444", // palette-exempt: Eternal red
+}
 const MODE_LABEL: Record<string, string> = { fun: "Fun servers", pro: "Pro League servers", "5x5": "5x5 servers" }
 const secondary = "inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3.5 text-[13px] text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] disabled:opacity-50"
 const daysLeft = (iso: string) => Math.max(0, Math.ceil((Date.parse(iso) - Date.now()) / 86_400_000))
@@ -156,12 +162,12 @@ export function ShopRanks({ catalogue }: { catalogue: PerkCatalogue }) {
             "Renew before it ends and pick your commands again",
           ]
           return (
-            <li key={tier.key} className={cn("flex min-w-0 flex-col gap-3 rounded-xl border bg-[var(--glass-fill)] p-3", mineHere ? "border-[var(--brand)]" : "border-[var(--glass-line)]")}>
+            <li key={tier.key} style={TIER_FADE[tier.key] ? { backgroundImage: `linear-gradient(90deg, color-mix(in srgb, ${TIER_FADE[tier.key]} 30%, transparent), color-mix(in srgb, ${TIER_FADE[tier.key]} 8%, transparent) 55%, transparent)`, borderColor: mineHere ? undefined : `color-mix(in srgb, ${TIER_FADE[tier.key]} 38%, var(--glass-line))` } : undefined} className={cn("flex min-w-0 flex-col gap-2.5 rounded-xl border bg-[var(--glass-fill)] p-2.5", mineHere && "border-[var(--brand)]")}>
               <div className="flex items-start gap-3">
                 {TIER_ART[tier.key] ? (
                   // React Bits' Glare Hover, looping: a band of light keeps crossing the card (and its gold rim), clipped to the card's own shape; it follows reduced motion.
-                  <GlareHover width="auto" height="148px" borderRadius="0" glareColor="#ffffff" glareOpacity={0.6} glareSize={34} variant="streak" mode="loop" interval={3.2 + tierIndex * 0.9} intro className="shrink-0" style={{ borderWidth: 0, WebkitMaskImage: `url(${TIER_ART[tier.key]})`, maskImage: `url(${TIER_ART[tier.key]})`, WebkitMaskSize: "100% 100%", maskSize: "100% 100%" }}>
-                    <img src={TIER_ART[tier.key]} alt={tier.name} height={148} loading="lazy" draggable={false} className="block h-[148px] w-auto max-w-none" />
+                  <GlareHover width="auto" height="108px" borderRadius="0" glareColor="#ffffff" glareOpacity={0.6} glareSize={34} variant="streak" mode="loop" interval={3.2 + tierIndex * 0.9} intro className="shrink-0" style={{ borderWidth: 0, WebkitMaskImage: `url(${TIER_ART[tier.key]})`, maskImage: `url(${TIER_ART[tier.key]})`, WebkitMaskSize: "100% 100%", maskSize: "100% 100%" }}>
+                    <img src={TIER_ART[tier.key]} alt={tier.name} height={108} loading="lazy" draggable={false} className="block h-[108px] w-auto max-w-none" />
                   </GlareHover>
                 ) : <h3 className="text-[17px] font-bold text-[var(--text)]">{tier.name}</h3>}
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
@@ -172,6 +178,14 @@ export function ShopRanks({ catalogue }: { catalogue: PerkCatalogue }) {
                   </div>
                 </div>
               </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="lx-shop-price">{price ? mnt(price) : "Not for sale"}</span>
+                <button type="button" disabled={!price || busy !== null || otherRunning || !catalogue.available} onClick={() => void buy(tier.key, days)} className="lx-primary-button inline-flex h-9 items-center justify-center rounded-lg px-5 text-[13px] font-semibold disabled:opacity-50">{busy === tier.key ? "Opening…" : mineHere ? "Renew" : "Buy"}</button>
+              </div>
+              {otherRunning && <span className="text-[11px] text-[var(--text-dim)]">Another rank is running. It must end first.</span>}
+              <details className="group rounded-lg border border-[var(--line-soft)] px-3 py-2 text-[12px] text-[var(--text-muted)]">
+                <summary className="flex cursor-pointer list-none items-center justify-between text-[var(--text-2)] [&::-webkit-details-marker]:hidden">Benefits and how it looks<ChevronDown className="size-3.5 transition-transform group-open:rotate-180" aria-hidden="true" /></summary>
+                <div className="mt-2">
               {/* What the rank puts on a profile: its banner, badge and title, shown on a sample name. */}
               <div aria-label={`${tier.name} on a profile`} className="relative isolate h-[72px] overflow-hidden rounded-lg border border-[var(--line-soft)]">
                 <ProfileBanner fx={`perk-${tier.key}`} className="h-full" />
@@ -183,13 +197,7 @@ export function ShopRanks({ catalogue }: { catalogue: PerkCatalogue }) {
                   <span className="ml-auto shrink-0"><PerkBadge tier={tier.key} name={tier.name} /></span>
                 </div>
               </div>
-              <div className="flex items-center justify-between gap-3">
-                <span className="lx-shop-price">{price ? mnt(price) : "Not for sale"}</span>
-                <button type="button" disabled={!price || busy !== null || otherRunning || !catalogue.available} onClick={() => void buy(tier.key, days)} className="lx-primary-button inline-flex h-9 items-center justify-center rounded-lg px-5 text-[13px] font-semibold disabled:opacity-50">{busy === tier.key ? "Opening…" : mineHere ? "Renew" : "Buy"}</button>
-              </div>
-              {otherRunning && <span className="text-[11px] text-[var(--text-dim)]">Another rank is running. It must end first.</span>}
-              <details className="group rounded-lg border border-[var(--line-soft)] px-3 py-2 text-[12px] text-[var(--text-muted)]">
-                <summary className="flex cursor-pointer list-none items-center justify-between text-[var(--text-2)] [&::-webkit-details-marker]:hidden">Benefits<ChevronDown className="size-3.5 transition-transform group-open:rotate-180" aria-hidden="true" /></summary>
+</div>
                 <ul className="mt-2 flex flex-col gap-1.5">{benefits.map((line) => <li key={line} className="flex items-start gap-2"><Check className="mt-0.5 size-3 shrink-0 text-[var(--text-2)]" aria-hidden="true" />{line}</li>)}</ul>
               </details>
             </li>
