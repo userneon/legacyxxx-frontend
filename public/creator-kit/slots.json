@@ -1,0 +1,58 @@
+{
+ "thumbnail/thumbnail-16x9-violet.png": {
+  "by": {
+   "x": 44,
+   "y": 106,
+   "w": 896,
+   "h": 33
+  }
+ },
+ "thumbnail/thumbnail-16x9-dark.png": {
+  "by": {
+   "x": 44,
+   "y": 106,
+   "w": 896,
+   "h": 33
+  }
+ },
+ "thumbnail/thumbnail-9x16-violet.png": {
+  "by": {
+   "x": 60,
+   "y": 257,
+   "w": 756,
+   "h": 89
+  }
+ },
+ "thumbnail/thumbnail-9x16-dark.png": {
+  "by": {
+   "x": 60,
+   "y": 257,
+   "w": 756,
+   "h": 89
+  }
+ },
+ "overlay/lower-third.png": {
+  "name": {
+   "x": 126,
+   "y": 867,
+   "w": 640,
+   "h": 46
+  }
+ },
+ "overlay/creator-code.png": {
+  "code": {
+   "x": 822,
+   "y": 895,
+   "w": 360,
+   "h": 94
+  }
+ },
+ "overlay/end-card.png": {
+  "by": {
+   "x": 510,
+   "y": 726,
+   "w": 900,
+   "h": 54
+  }
+ }
+}

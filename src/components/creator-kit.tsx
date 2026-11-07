@@ -1,9 +1,17 @@
-import { useState } from "react"
-import { Download, PackageOpen } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { Download, Loader2, PackageOpen } from "lucide-react"
+import { toast } from "sonner"
+
+import { creatorsService, type MyReferral } from "@/api/creators"
+import { useApiQuery } from "@/hooks/use-api-query"
+import { useAuth } from "@/hooks/use-auth"
+import { cleanCode, cleanName, fetchBytes, loadSlots, personalise, type Personal, type Slots } from "@/lib/creator-kit"
+import { makeZip, type ZipFile } from "@/lib/zip-store"
 
 import { cn } from "@/lib/utils"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
+const field = "h-9 w-full rounded-lg border border-[var(--line)] bg-[var(--bg)] px-3 text-[13px] text-[var(--text)] placeholder:text-[var(--text-dim)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
 const secondary = "inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]"
 const BASE = "/creator-kit"
 
@@ -45,9 +53,95 @@ const GROUPS: Group[] = [
 
 const COLOURS: Array<[string, string]> = [["Black", "#0a0a0a"], ["White", "#fafafa"], ["Violet", "#8b5cf6"], ["Soft violet", "#a78bfa"]]
 
-/** The Creators page's kit: logos, thumbnail backgrounds and video overlays to download, with the brand colours and the rules for using them. */
+const slug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 24)
+
+function save(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement("a")
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 10_000)
+}
+
+/** The Creators page's kit: logos, thumbnail backgrounds and video overlays to download, with the brand colours and the rules for using them. A name (and a code) typed here is written onto them. */
 export function CreatorKit() {
   const [open, setOpen] = useState(false)
+  const { user, isAuthenticated } = useAuth()
+  const [name, setName] = useState("")
+  const [code, setCode] = useState("")
+  const [slots, setSlots] = useState<Slots | null>(null)
+  const [previews, setPreviews] = useState<Record<string, string>>({})
+  const [busy, setBusy] = useState(false)
+  const touched = useRef({ name: false, code: false })
+  const mine = useApiQuery<{ isCreator: boolean } | null>((signal) => (isAuthenticated && open ? creatorsService.myApplication({ signal }) : Promise.resolve(null)), { queryKey: `kit-creator-${isAuthenticated}-${open}` })
+  const referral = useApiQuery<MyReferral | null>((signal) => (mine.data?.isCreator ? creatorsService.myReferral({ signal }) : Promise.resolve(null)), { queryKey: `kit-referral-${Boolean(mine.data?.isCreator)}` })
+
+  // The first time it opens: their own name, and their code when they are a creator. Anything they type stays.
+  useEffect(() => { if (open && !touched.current.name && user?.username) setName(cleanName(user.username)) }, [open, user?.username])
+  useEffect(() => { if (open && !touched.current.code && referral.data?.code) setCode(referral.data.code) }, [open, referral.data?.code])
+  useEffect(() => {
+    if (!open || slots) return
+    loadSlots().then(setSlots).catch(() => setSlots({}))
+  }, [open, slots])
+
+  const personal: Personal = { name: cleanName(name), code: cleanCode(code) }
+  const personalised = Boolean(personal.name || personal.code)
+
+  // Pictures with the name written on them, shown while it is typed (a moment after the last key).
+  useEffect(() => {
+    if (!open || !slots) return
+    let cancelled = false
+    const made: string[] = []
+    const timer = window.setTimeout(async () => {
+      const next: Record<string, string> = {}
+      for (const file of Object.keys(slots)) {
+        try {
+          const blob = await personalise(file, personal, slots)
+          if (blob && !cancelled) { const url = URL.createObjectURL(blob); made.push(url); next[file] = url }
+        } catch { /* the plain picture stays */ }
+      }
+      if (!cancelled) setPreviews(next)
+    }, 350)
+    return () => { cancelled = true; window.clearTimeout(timer); made.forEach((url) => window.setTimeout(() => URL.revokeObjectURL(url), 2000)) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, slots, personal.name, personal.code])
+
+  const saveOne = async (item: Asset) => {
+    setBusy(true)
+    try {
+      const blob = slots ? await personalise(item.file, personal, slots) : null
+      const base = item.file.split("/").pop() ?? item.file
+      if (blob) save(blob, base.replace(/\.png$/, `-${slug(personal.name) || "me"}.png`))
+      else save(new Blob([await fetchBytes(item.file) as BlobPart]), base)
+    } catch (error) {
+      toast.error((error as Error).message || "Could not make the picture")
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const saveAll = async () => {
+    setBusy(true)
+    try {
+      const files: ZipFile[] = []
+      for (const group of GROUPS) {
+        for (const item of group.items) {
+          const blob = slots ? await personalise(item.file, personal, slots) : null
+          files.push({ name: item.file, data: blob ? new Uint8Array(await blob.arrayBuffer()) : await fetchBytes(item.file) })
+        }
+      }
+      files.push({ name: "logo/legacyx-mark-small.webp", data: await fetchBytes("logo/legacyx-mark-small.webp") }, { name: "BRAND.txt", data: await fetchBytes("BRAND.txt") })
+      save(makeZip(files), `legacyx-creator-kit${personal.name ? `-${slug(personal.name)}` : ""}.zip`)
+    } catch (error) {
+      toast.error((error as Error).message || "Could not make the zip")
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} className={secondary}><PackageOpen className="size-4" aria-hidden="true" />Creator kit</button>
@@ -57,7 +151,18 @@ export function CreatorKit() {
             <DialogTitle>Creator kit</DialogTitle>
             <DialogDescription>Logos, thumbnail backgrounds and overlays for your videos. Free to use in your Content Creator videos about LEGACY-X.</DialogDescription>
           </DialogHeader>
-          <a href={`${BASE}/legacyx-creator-kit.zip`} download className="lx-primary-button inline-flex h-10 items-center justify-center gap-2 self-start rounded-lg px-4 text-[13px] font-semibold"><Download className="size-4" aria-hidden="true" />Download everything (.zip)</a>
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            <label className="flex flex-col gap-1.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-faint)]">Your name
+              <input value={name} onChange={(event) => { touched.current.name = true; setName(event.target.value.slice(0, 24)) }} maxLength={24} placeholder="Written on the thumbnails, lower third and end card" className={cn(field, "font-normal normal-case tracking-normal")} />
+            </label>
+            <label className="flex flex-col gap-1.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-faint)]">Your creator code <span className="font-normal normal-case tracking-normal text-[var(--text-dim)]">(optional)</span>
+              <input value={code} onChange={(event) => { touched.current.code = true; setCode(cleanCode(event.target.value)) }} maxLength={8} placeholder="Written in the code bar" className={cn(field, "font-mono font-normal uppercase tracking-[0.2em]")} />
+            </label>
+          </div>
+          <button type="button" disabled={busy} onClick={() => void saveAll()} className="lx-primary-button inline-flex h-10 items-center justify-center gap-2 self-start rounded-lg px-4 text-[13px] font-semibold disabled:opacity-60">
+            {busy ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Download className="size-4" aria-hidden="true" />}
+            {personalised ? "Download everything with my name (.zip)" : "Download everything (.zip)"}
+          </button>
           {GROUPS.map((group) => (
             <section key={group.title} aria-label={group.title} className="flex flex-col gap-2.5">
               <h3 className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-faint)]">{group.title} <span className="font-normal normal-case tracking-normal text-[var(--text-dim)]">· {group.hint}</span></h3>
@@ -65,11 +170,11 @@ export function CreatorKit() {
                 {group.items.map((item) => (
                   <li key={item.file} className="flex flex-col overflow-hidden rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)]">
                     <div className={cn("flex h-28 items-center justify-center bg-[length:16px_16px]", item.light ? "bg-[repeating-conic-gradient(#e5e5e5_0_25%,#fafafa_0_50%)]" : "bg-[repeating-conic-gradient(#1a1a1a_0_25%,#141414_0_50%)]")}>
-                      <img src={`${BASE}/${item.file}`} alt={item.name} loading="lazy" draggable={false} className="max-h-full max-w-full object-contain" />
+                      <img src={previews[item.file] ?? `${BASE}/${item.file}`} alt={item.name} loading="lazy" draggable={false} className="max-h-full max-w-full object-contain" />
                     </div>
                     <div className="flex items-center justify-between gap-2 px-3 py-2.5">
-                      <div className="flex min-w-0 flex-col"><span className="truncate text-[13px] text-[var(--text)]">{item.name}</span><span className="truncate text-[11px] text-[var(--text-dim)]">{item.note}</span></div>
-                      <a href={`${BASE}/${item.file}`} download aria-label={`Download ${item.name}`} className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] text-[var(--text-2)] hover:border-[var(--line-strong)] hover:bg-[var(--raised)] hover:text-[var(--text)]"><Download className="size-4" aria-hidden="true" /></a>
+                      <div className="flex min-w-0 flex-col"><span className="truncate text-[13px] text-[var(--text)]">{item.name}</span><span className="truncate text-[11px] text-[var(--text-dim)]">{previews[item.file] ? "With your name" : item.note}</span></div>
+                      <button type="button" disabled={busy} onClick={() => void saveOne(item)} aria-label={`Download ${item.name}`} className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] text-[var(--text-2)] hover:border-[var(--line-strong)] hover:bg-[var(--raised)] hover:text-[var(--text)] disabled:opacity-50"><Download className="size-4" aria-hidden="true" /></button>
                     </div>
                   </li>
                 ))}

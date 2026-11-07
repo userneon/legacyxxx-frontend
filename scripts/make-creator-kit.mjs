@@ -39,28 +39,30 @@ for (const [name, mode] of [["white", "white"], ["brand", "brand"], ["black", "b
 }
 
 // --- thumbnails: backgrounds with the wordmark in a corner and nothing where the creator's picture and words go ---
-const thumb = (w, h, variant, corner) => `<div class="stage dark" style="width:${w}px;height:${h}px"><div class="glow ${variant === "neutral" ? "neutral" : ""}"></div><div class="grid"></div><div class="beam"></div>
-  <div style="position:absolute;${corner};display:flex;align-items:center;gap:18px"><div class="wm" style="font-size:${Math.round(h * 0.075)}px">LEGACY-<i>X</i></div></div></div>`
-add("thumbnail/thumbnail-16x9-violet.png", 1280, 720, thumb(1280, 720, "violet", "left:44px;top:36px"), false)
-add("thumbnail/thumbnail-16x9-dark.png", 1280, 720, thumb(1280, 720, "neutral", "left:44px;top:36px"), false)
-add("thumbnail/thumbnail-9x16-violet.png", 1080, 1920, thumb(1080, 1920, "violet", "left:60px;top:70px"), false)
-add("thumbnail/thumbnail-9x16-dark.png", 1080, 1920, thumb(1080, 1920, "neutral", "left:60px;top:70px"), false)
+const thumb = (w, h, variant, left, top) => { const f = Math.round(h * 0.075); return `<div class="stage dark" style="width:${w}px;height:${h}px"><div class="glow ${variant === "neutral" ? "neutral" : ""}"></div><div class="grid"></div><div class="beam"></div>
+  <div style="position:absolute;left:${left}px;top:${top}px;display:flex;align-items:center;gap:18px"><div class="wm" style="font-size:${f}px">LEGACY-<i>X</i></div></div>
+  <div data-slot="by" style="position:absolute;left:${left}px;top:${top + f + Math.round(f * 0.3)}px;width:${Math.round(w * 0.7)}px;height:${Math.round(f * 0.62)}px"></div></div>` }
+add("thumbnail/thumbnail-16x9-violet.png", 1280, 720, thumb(1280, 720, "violet", 44, 36), false)
+add("thumbnail/thumbnail-16x9-dark.png", 1280, 720, thumb(1280, 720, "neutral", 44, 36), false)
+add("thumbnail/thumbnail-9x16-violet.png", 1080, 1920, thumb(1080, 1920, "violet", 60, 70), false)
+add("thumbnail/thumbnail-9x16-dark.png", 1080, 1920, thumb(1080, 1920, "neutral", 60, 70), false)
 
 // --- overlays, 1920x1080, transparent ---
 add("overlay/lower-third.png", 1920, 1080, `<div style="position:absolute;left:80px;bottom:110px;display:flex;align-items:stretch;height:120px;min-width:760px">
   <div style="width:10px;background:var(--brand)"></div>
   <div style="flex:1;background:linear-gradient(90deg,rgba(10,10,10,.92),rgba(10,10,10,.55));padding:0 36px;display:flex;flex-direction:column;justify-content:center;gap:10px;border-top:1px solid rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.12)">
-    <div style="height:46px"></div><div style="font-size:26px;font-weight:500;color:var(--dim);letter-spacing:.06em;text-transform:uppercase">Content Creator · <span class="wm" style="font-size:24px;color:var(--text)">LEGACY-<i>X</i></span></div></div></div>
+    <div data-slot="name" style="height:46px;width:640px"></div><div style="font-size:26px;font-weight:500;color:var(--dim);letter-spacing:.06em;text-transform:uppercase">Content Creator · <span class="wm" style="font-size:24px;color:var(--text)">LEGACY-<i>X</i></span></div></div></div>
   <div style="position:absolute;left:100px;bottom:178px;font-size:12px;color:transparent">name goes here</div>`)
 add("overlay/powered-by.png", 1920, 1080, `<div style="position:absolute;right:64px;top:56px;display:flex;align-items:center;gap:16px;padding:14px 26px;background:rgba(10,10,10,.78);border:1px solid rgba(255,255,255,.14)">
   <span style="font-size:22px;font-weight:500;color:var(--dim);letter-spacing:.14em;text-transform:uppercase">Powered by</span><span class="wm" style="font-size:38px">LEGACY-<i>X</i></span></div>`)
 add("overlay/creator-code.png", 1920, 1080, `<div style="position:absolute;left:50%;bottom:90px;transform:translateX(-50%);display:flex;align-items:stretch;height:96px;background:rgba(10,10,10,.85);border:1px solid rgba(255,255,255,.16)">
   <div style="display:flex;align-items:center;padding:0 34px;background:var(--brand);font-size:30px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#f5f3ff">Creator code</div>
-  <div style="width:360px;display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:700;letter-spacing:.3em"></div>
+  <div data-slot="code" style="width:360px;height:100%"></div>
   <div style="display:flex;align-items:center;padding:0 30px;border-left:1px solid rgba(255,255,255,.16)"><span class="wm" style="font-size:34px">LEGACY-<i>X</i></span></div></div>`)
 add("overlay/end-card.png", 1920, 1080, `<div class="stage dark" style="width:1920px;height:1080px"><div class="glow"></div><div class="grid"></div><div class="beam"></div>
-  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px"><div style="font-size:34px;color:var(--dim);letter-spacing:.3em;text-transform:uppercase">Play ranked on</div><div class="wm" style="font-size:230px">LEGACY-<i>X</i></div><div style="font-size:44px;font-weight:700;letter-spacing:.06em">legacyx.cc</div></div></div>`, false)
+  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px"><div style="font-size:34px;color:var(--dim);letter-spacing:.3em;text-transform:uppercase">Play ranked on</div><div class="wm" style="font-size:230px">LEGACY-<i>X</i></div><div style="font-size:44px;font-weight:700;letter-spacing:.06em">legacyx.cc</div><div data-slot="by" style="width:900px;height:54px"></div></div></div>`, false)
 
+const slots = {}
 const browser = await chromium.launch()
 const ctx = await browser.newContext({ deviceScaleFactor: 1 })
 for (const job of jobs) {
@@ -68,11 +70,15 @@ for (const job of jobs) {
   await p.setViewportSize({ width: job.w, height: job.h })
   await p.setContent(job.html, { waitUntil: "networkidle" })
   await p.evaluate(() => document.fonts.ready)
+  const found = await p.evaluate(() => [...document.querySelectorAll("[data-slot]")].map((el) => { const r = el.getBoundingClientRect(); return { slot: el.dataset.slot, x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height) } }))
+  if (found.length) slots[job.file] = Object.fromEntries(found.map(({ slot, ...box }) => [slot, box]))
   await p.screenshot({ path: join(out, job.file), omitBackground: job.transparent, clip: { x: 0, y: 0, width: job.w, height: job.h } })
   await p.close()
   console.log("wrote", job.file)
 }
 await browser.close()
+// Where a name or a code goes on each picture: the Creator kit on the website writes it there in the browser (src/lib/creator-kit.ts).
+writeFileSync(join(out, "slots.json"), JSON.stringify(slots, null, 1))
 
 // the round mark (the only picture of it we have is 128 px, fine for an overlay, too small for a big logo)
 copyFileSync(join(root, "public", "logolegacyx.webp"), join(out, "logo", "legacyx-mark-small.webp"))
@@ -119,7 +125,7 @@ base = ${JSON.stringify(out)}
 with zipfile.ZipFile(os.path.join(base, "legacyx-creator-kit.zip"), "w", zipfile.ZIP_DEFLATED) as z:
     for folder, _, files in os.walk(base):
         for f in sorted(files):
-            if f.endswith(".zip"): continue
+            if f.endswith(".zip") or f == "slots.json": continue
             full = os.path.join(folder, f)
             z.write(full, os.path.relpath(full, base))
 `])
