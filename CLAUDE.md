@@ -351,3 +351,5 @@ Sending LX (owner request 2026-11-07, "make LX transferable, with a fee"): Walle
 
 
 Old square frames deleted (owner request 2026-11-07, "delete all the old square frames"): the files in `public/frames/` (all but the round `frog-*` set and their masks) and their `FRAMES`, `FRAME_GLOW` and `ACCENTS` entries are gone, and the API's catalogue rows were deleted (`legacyxxx-backend/supabase/legacy_x_old_frames_deleted.sql`). The earned rows `rank-*`, `server-booster`, `booster-*` and `founder` stay in the table, switched off, because the rank trigger and the booster code still write them.
+
+Rank emblems (owner request 2026-11-07, "make it like this", the owner's sheet of 18 hexagon badges: silver, blue, violet, red, gold with laurels): `public/ranks/rank-01.webp` … `rank-18.webp` (256px, transparent) replace the old SVGs; `rankImageSrc` points at them. Cut by `scripts/make-rank-emblems.py <sheet.png>`. The Discord bot keeps its own SVG copies in `assets/ranks/` for rank-up pictures until they are swapped too.

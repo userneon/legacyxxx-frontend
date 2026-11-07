@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils"
 
 /**
  * LEGACY-X rank emblems (RANK-SYSTEM.md section 4): 18 ranks in six tiers, drawn by the
- * supplied SVGs in public/ranks/rank-01.svg … rank-18.svg. The API names the emblem with
+ * owner-supplied pictures in public/ranks/rank-01.webp … rank-18.webp. The API names the emblem with
  * `rank_image_key`; the tier colour is only ever used on the emblem and the rank name next to it.
  */
 export type RankTier = "recruit" | "operator" | "vanguard" | "ace" | "apex" | "legacy"
@@ -22,7 +22,7 @@ export const rankTierColor = (rankId: number | null | undefined) => `var(--rank-
 
 export function rankImageSrc(rankId: number | null | undefined, imageKey?: string | null) {
   const key = imageKey && /^rank-\d{2}$/.test(imageKey) ? imageKey : `rank-${String(rankId ?? 7).padStart(2, "0")}`
-  return `/ranks/${key}.svg`
+  return `/ranks/${key}.webp?v=2`
 }
 
 interface RankProps {
