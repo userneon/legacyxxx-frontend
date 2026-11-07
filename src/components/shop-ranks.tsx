@@ -3,6 +3,9 @@ import { useSearchParams } from "react-router-dom"
 import { Check, Lock } from "lucide-react"
 import { toast } from "sonner"
 
+import prestige from "@/assets/ranks/prestige.webp"
+import imperial from "@/assets/ranks/imperial.webp"
+import eternal from "@/assets/ranks/eternal.webp"
 import { perksService, type PerkCatalogue, type PerkDays, type PerkGrant, type PerkInvoice, type PerkMine } from "@/api/perks"
 import { PerkPayDialog } from "@/components/perk-pay-dialog"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -12,6 +15,8 @@ import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
 
 const mnt = (value: number) => `${value.toLocaleString()}₮`
+/** The owner-supplied card art of each tier (it carries the rank's name). */
+const TIER_ART: Record<string, string> = { tier1: prestige, tier2: imperial, tier3: eternal }
 const MODE_LABEL: Record<string, string> = { fun: "Fun servers", pro: "Pro League servers", "5x5": "5x5 servers" }
 const secondary = "inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3.5 text-[13px] text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] disabled:opacity-50"
 const daysLeft = (iso: string) => Math.max(0, Math.ceil((Date.parse(iso) - Date.now()) / 86_400_000))
@@ -143,14 +148,12 @@ export function ShopRanks({ catalogue }: { catalogue: PerkCatalogue }) {
           const mineHere = grant?.tier === tier.key
           const otherRunning = Boolean(grant) && !mineHere
           return (
-            <li key={tier.key} className={cn("flex min-w-0 flex-col gap-4 rounded-xl border bg-[var(--glass-fill)] p-5", mineHere ? "border-[var(--brand)]" : "border-[var(--glass-line)]")}>
-              <div className="flex flex-col gap-1">
-                <span className="text-[22px] font-bold text-[var(--text)]">{tier.name}</span>
-                <span className="text-[13px] text-[var(--text-muted)]">{tier.quota} commands of your choice</span>
-              </div>
-              <div className="flex items-baseline gap-2"><span className="lx-shop-price">{price ? mnt(price) : "Not for sale"}</span><span className="text-[12px] text-[var(--text-dim)]">{days} days</span></div>
-              <button type="button" disabled={!price || busy !== null || otherRunning || !catalogue.available} onClick={() => void buy(tier.key)} className="lx-primary-button mt-auto inline-flex h-10 items-center justify-center rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50">{busy === tier.key ? "Opening…" : mineHere ? "Renew" : "Buy"}</button>
-              {otherRunning && <span className="text-[11px] text-[var(--text-dim)]">Another rank is running. It must end first.</span>}
+            <li key={tier.key} className={cn("flex min-w-0 flex-col gap-4 overflow-hidden rounded-xl border bg-[var(--glass-fill)] pb-5", mineHere ? "border-[var(--brand)]" : "border-[var(--glass-line)]")}>
+              {TIER_ART[tier.key] ? <img src={TIER_ART[tier.key]} alt={tier.name} width={640} height={640} loading="lazy" draggable={false} className="aspect-square w-full object-cover" /> : <h3 className="px-5 pt-5 text-[22px] font-bold text-[var(--text)]">{tier.name}</h3>}
+              <span className="px-5 text-[13px] text-[var(--text-muted)]">{tier.quota} commands of your choice</span>
+              <div className="flex items-baseline gap-2 px-5"><span className="lx-shop-price">{price ? mnt(price) : "Not for sale"}</span><span className="text-[12px] text-[var(--text-dim)]">{days} days</span></div>
+              <button type="button" disabled={!price || busy !== null || otherRunning || !catalogue.available} onClick={() => void buy(tier.key)} className="lx-primary-button mx-5 mt-auto inline-flex h-10 items-center justify-center rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50">{busy === tier.key ? "Opening…" : mineHere ? "Renew" : "Buy"}</button>
+              {otherRunning && <span className="px-5 text-[11px] text-[var(--text-dim)]">Another rank is running. It must end first.</span>}
             </li>
           )
         })}
