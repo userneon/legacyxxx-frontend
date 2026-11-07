@@ -12,7 +12,10 @@ import { cn } from "@/lib/utils"
 
 type StaffRole = "OWNER" | "MANAGER" | "ADMIN" | "DEVELOPER" | "DESIGNER"
 type StaffStatus = "active" | "suspended" | "revoked"
-interface StaffMember { id: string; userId: string; username: string; steamId: string; avatar: string; role: StaffRole; status: StaffStatus; stamina: number; immunity: number; expiresAt: string | null; createdAt: string }
+type AdminLevel = "admin" | "high" | "plus"
+interface StaffMember { id: string; userId: string; username: string; steamId: string; avatar: string; role: StaffRole; status: StaffStatus; stamina: number; immunity: number; expiresAt: string | null; createdAt: string; adminLevel: AdminLevel; extraCommands: string[] }
+interface AdminLevels { levels: Array<{ key: AdminLevel; label: string; quota: number }>; commands: Array<{ name: string; group: string; summary: string }> }
+interface GameRolesAnswer { roles: Array<{ role: string; commands: string[] }> }
 
 /** Each role has its own colour (owner request 2026-10-23): Owner violet, Manager red, Admin sky, Developer green, Designer amber. */
 const ROLES: Array<{ id: StaffRole; label: string; note: string; level: number; tone: Tone }> = [
@@ -22,12 +25,13 @@ const ROLES: Array<{ id: StaffRole; label: string; note: string; level: number; 
   { id: "DEVELOPER", label: "Developer", note: "Team badge, no moderation", level: 0, tone: "green" },
   { id: "DESIGNER", label: "Designer", note: "Team badge, no moderation", level: 0, tone: "amber" },
 ]
+const ADMIN_LEVEL_LABEL: Record<AdminLevel, string> = { admin: "Admin", high: "High Admin", plus: "+Admin" }
 const STATUS_LABEL: Record<StaffStatus, string> = { active: "Active", suspended: "Suspended", revoked: "Removed" }
 
 const input = "h-9 w-full rounded-lg border border-[var(--line)] bg-[var(--bg)] px-3 text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] focus:border-[var(--text-faint)] focus:outline-none"
 const secondary = "inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] disabled:opacity-50"
 
-type Draft = { id: string | null; steamId: string; role: StaffRole; immunity: number; stamina: number; term: Term; until: string }
+type Draft = { id: string | null; steamId: string; role: StaffRole; immunity: number; stamina: number; term: Term; until: string; adminLevel: AdminLevel; extraCommands: string[] }
 
 /** How long a grant lasts: no end, a fixed number of days from now, or a chosen date. */
 type Term = "none" | "7" | "30" | "90" | "date"
@@ -71,6 +75,52 @@ function RolePicker({ value, onChange }: { value: StaffRole; onChange: (role: St
   )
 }
 
+/** An Admin's level (owner request 2026-11-07): Admin 3, High Admin 5, +Admin 10 extra commands on top of the Admin role, picked here one by one. */
+function AdminLevelPicker({ level, extras, onChange }: { level: AdminLevel; extras: string[]; onChange: (level: AdminLevel, extras: string[]) => void }) {
+  const { data: catalogue } = useApiQuery((signal) => get<AdminLevels>("/api/v1/staffpanel/admin-levels", undefined, { signal }), { queryKey: "staff-admin-levels" })
+  const { data: roles } = useApiQuery((signal) => get<GameRolesAnswer>("/api/v1/staff/game-roles", undefined, { signal }), { queryKey: "staff-admin-role-commands" })
+  const levels = catalogue?.levels ?? []
+  const quota = levels.find((entry) => entry.key === level)?.quota ?? 0
+  const base = new Set(roles?.roles.find((entry) => entry.role === "admin")?.commands ?? [])
+  const groups = new Map<string, AdminLevels["commands"]>()
+  for (const command of catalogue?.commands ?? []) if (!base.has(command.name)) groups.set(command.group, [...(groups.get(command.group) ?? []), command])
+  const toggle = (name: string) => onChange(level, extras.includes(name) ? extras.filter((entry) => entry !== name) : extras.length < quota ? [...extras, name] : extras)
+  return (
+    <div className="flex flex-col gap-2 text-xs text-[var(--text-muted)]">
+      Admin level
+      <div role="radiogroup" aria-label="Admin level" className="grid gap-1.5 sm:grid-cols-3">
+        {levels.map((entry) => (
+          <button key={entry.key} type="button" role="radio" aria-checked={level === entry.key} onClick={() => onChange(entry.key, extras.slice(0, entry.quota))} className={cn("flex flex-col items-start gap-0.5 rounded-lg border px-3 py-2 text-left transition-colors", level === entry.key ? "border-[var(--text-faint)] bg-[var(--raised)]" : "border-[var(--line)] hover:border-[var(--line-strong)]")}>
+            <span className="text-[13px] font-semibold text-[var(--text)]">{entry.label}</span>
+            <span className="text-[11px] leading-snug text-[var(--text-dim)]">{entry.quota} extra commands</span>
+          </button>
+        ))}
+      </div>
+      <div className="flex items-baseline justify-between gap-3">
+        <span>Extra commands, on top of the Admin role</span>
+        <span className="text-[13px] font-semibold text-[var(--text)]">{extras.length} / {quota}</span>
+      </div>
+      {!catalogue ? <Skeleton className="h-24 bg-[var(--glass-fill)]" /> : (
+        <div className="flex max-h-64 flex-col gap-3 overflow-y-auto rounded-lg border border-[var(--line)] p-3">
+          {[...groups.entries()].map(([group, commands]) => (
+            <div key={group} className="flex flex-col gap-1.5">
+              <span className="text-[11px] uppercase tracking-wide text-[var(--text-faint)]">{group}</span>
+              <div className="flex flex-wrap gap-1.5">
+                {commands.map((command) => {
+                  const picked = extras.includes(command.name)
+                  return (
+                    <button key={command.name} type="button" aria-pressed={picked} disabled={!picked && extras.length >= quota} title={command.summary || command.name} onClick={() => toggle(command.name)} className={cn("h-8 rounded-lg border px-2.5 text-[13px] transition-colors disabled:opacity-40", picked ? "border-[var(--text-faint)] bg-[var(--raised)] text-[var(--text)]" : "border-[var(--line)] text-[var(--text-muted)] hover:border-[var(--line-strong)] hover:text-[var(--text)]")}>!{command.name}</button>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 /** Staff → Team: the Owner adds staff by SteamID, changes their role, and suspends or removes them. Others see why they cannot. */
 export function StaffTeam() {
   const { data, loading, error, refetch } = useApiQuery((signal) => get<StaffMember[]>("/api/v1/staffpanel/staff", undefined, { signal }), { queryKey: "staff-team" })
@@ -94,9 +144,9 @@ export function StaffTeam() {
     if (!draft) return
     const expiresAt = endOf(draft)
     if (expiresAt === "invalid") { toast.error("Pick a date after today"); return }
-    if (draft.id) return run(() => patch(`/api/v1/staffpanel/staff/${draft.id}`, { role: draft.role, immunity: draft.immunity, stamina: draft.stamina, expiresAt }), "Staff member updated")
+    if (draft.id) return run(() => patch(`/api/v1/staffpanel/staff/${draft.id}`, { role: draft.role, immunity: draft.immunity, stamina: draft.stamina, expiresAt, ...(draft.role === "ADMIN" ? { adminLevel: draft.adminLevel, extraCommands: draft.extraCommands } : {}) }), "Staff member updated")
     if (!/^7656119\d{10}$/.test(draft.steamId.trim())) { toast.error("Enter the player's SteamID64 (7656119…)"); return }
-    return run(() => post("/api/v1/staffpanel/staff", { steamId: draft.steamId.trim(), role: draft.role, immunity: draft.immunity, stamina: draft.stamina, expiresAt }), "Added to the staff")
+    return run(() => post("/api/v1/staffpanel/staff", { steamId: draft.steamId.trim(), role: draft.role, immunity: draft.immunity, stamina: draft.stamina, expiresAt, ...(draft.role === "ADMIN" ? { adminLevel: draft.adminLevel, extraCommands: draft.extraCommands } : {}) }), "Added to the staff")
   }
   const setStatus = (member: StaffMember, status: StaffStatus) => run(() => patch(`/api/v1/staffpanel/staff/${member.id}`, status === "active" && member.expiresAt && Date.parse(member.expiresAt) <= Date.now() ? { status, expiresAt: null } : { status }), `${member.username}: ${STATUS_LABEL[status].toLowerCase()}`)
   const pickRole = (role: StaffRole) => draft && setDraft({ ...draft, role, immunity: ROLES.find((entry) => entry.id === role)!.level, stamina: ROLES.find((entry) => entry.id === role)!.level })
@@ -114,7 +164,7 @@ export function StaffTeam() {
     <div className={STAFF_BODY}>
       <div className="flex items-center justify-between gap-3">
         <p className="text-[13px] text-[var(--text-muted)]">The LEGACY-X team. Game servers update within a minute.</p>
-        {!draft && <button type="button" onClick={() => setDraft({ id: null, steamId: "", role: "ADMIN", immunity: 500, stamina: 500, term: "none", until: "" })} className="lx-primary-button inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-3.5 text-[13px] font-semibold"><Plus className="size-4" />Add staff</button>}
+        {!draft && <button type="button" onClick={() => setDraft({ id: null, steamId: "", role: "ADMIN", immunity: 500, stamina: 500, term: "none", until: "", adminLevel: "admin", extraCommands: [] })} className="lx-primary-button inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-3.5 text-[13px] font-semibold"><Plus className="size-4" />Add staff</button>}
       </div>
 
       {draft && (
@@ -126,6 +176,7 @@ export function StaffTeam() {
             </div>
           )}
           <RolePicker value={draft.role} onChange={pickRole} />
+          {draft.role === "ADMIN" && <AdminLevelPicker level={draft.adminLevel} extras={draft.extraCommands} onChange={(adminLevel, extraCommands) => setDraft({ ...draft, adminLevel, extraCommands })} />}
           <div className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">How long
             <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="How long">
               {TERMS.map((term) => (
@@ -163,7 +214,7 @@ export function StaffTeam() {
                 <span className="flex min-w-0 flex-1 flex-col gap-1">
                   <span className="truncate text-[15px] font-semibold text-[var(--text)]" title={member.username}>{member.username}</span>
                   <span className="flex flex-wrap items-center gap-1.5">
-                    <span className="lx-tone-text inline-flex h-6 items-center rounded-full border border-[color-mix(in_oklab,var(--tone)_45%,transparent)] bg-[color-mix(in_oklab,var(--tone)_12%,transparent)] px-2.5 text-xs font-semibold">{ROLES.find((role) => role.id === member.role)?.label ?? member.role}</span>
+                    <span className="lx-tone-text inline-flex h-6 items-center rounded-full border border-[color-mix(in_oklab,var(--tone)_45%,transparent)] bg-[color-mix(in_oklab,var(--tone)_12%,transparent)] px-2.5 text-xs font-semibold">{member.role === "ADMIN" ? ADMIN_LEVEL_LABEL[member.adminLevel ?? "admin"] : ROLES.find((role) => role.id === member.role)?.label ?? member.role}</span>
                     {member.status !== "active" && <span className="text-xs text-[var(--text-dim)]">{STATUS_LABEL[member.status]}</span>}
                   </span>
                 </span>
@@ -172,12 +223,13 @@ export function StaffTeam() {
                 <span className="lx-stat-cell gap-1 px-3 py-2"><span className="lx-stat-label">Immunity</span><span className="text-[15px] font-semibold text-[var(--text)]">{member.immunity}</span></span>
                 <span className="lx-stat-cell gap-1 px-3 py-2"><span className="lx-stat-label">Stamina</span><span className="text-[15px] font-semibold text-[var(--text)]">{member.stamina}</span></span>
               </div>
+              {member.role === "ADMIN" && member.extraCommands?.length > 0 && <span className="text-[11px] leading-snug text-[var(--text-dim)]">Extra: {member.extraCommands.map((name) => `!${name}`).join(" ")}</span>}
               <span className="flex flex-col gap-0.5 text-[11px] text-[var(--text-dim)]">
                 <span className={cn(member.expiresAt && "lx-tone-text")}>{untilText(member.expiresAt)}</span>
                 <span className="truncate">{member.steamId}</span>
               </span>
               <div className="mt-auto flex gap-2">
-                <button type="button" aria-label={`Edit ${member.username}`} onClick={() => setDraft({ id: member.id, steamId: member.steamId, role: member.role, immunity: member.immunity, stamina: member.stamina, term: member.expiresAt ? "date" : "none", until: member.expiresAt ? member.expiresAt.slice(0, 10) : "" })} className={cn(secondary, "w-9 shrink-0 px-0")}><Pencil className="size-4" /></button>
+                <button type="button" aria-label={`Edit ${member.username}`} onClick={() => setDraft({ id: member.id, steamId: member.steamId, role: member.role, immunity: member.immunity, stamina: member.stamina, term: member.expiresAt ? "date" : "none", until: member.expiresAt ? member.expiresAt.slice(0, 10) : "", adminLevel: member.adminLevel ?? "admin", extraCommands: member.extraCommands ?? [] })} className={cn(secondary, "w-9 shrink-0 px-0")}><Pencil className="size-4" /></button>
                 {member.status === "active" ? (
                   <>
                     <button type="button" disabled={busy} onClick={() => void setStatus(member, "suspended")} className={cn(secondary, "flex-1")}>Suspend</button>
