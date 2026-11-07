@@ -2151,3 +2151,43 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
   pointer-events: none;
   background: radial-gradient(ellipse 50% 70% at 50% 0%, color-mix(in oklab, var(--perk) 22%, transparent), transparent 72%);
 }
+
+/* The profile banners of the paid ranks (owner request 2026-11-07): Prestige black marble with a silver ribbon, Imperial violet silk with gold, Eternal red silk with gold.
+   A rank's holder wears theirs on the profile unless they picked another banner. The colours come from the owner's card art (palette-exempt). */
+.lx-banner-perk {
+  --banner-a: #0c0c0e; /* palette-exempt: Prestige marble */
+  --banner-b: #26262b; /* palette-exempt */
+  --banner-line: #d4d4d8; /* palette-exempt: silver */
+  --banner-glow: #e5e5e5; /* palette-exempt */
+  position: relative;
+  background:
+    radial-gradient(ellipse 60% 120% at 82% 110%, color-mix(in oklab, var(--banner-glow) 24%, transparent), transparent 70%),
+    linear-gradient(118deg, transparent 28%, color-mix(in oklab, var(--banner-line) 20%, transparent) 40%, transparent 52%),
+    linear-gradient(62deg, transparent 52%, color-mix(in oklab, var(--banner-line) 12%, transparent) 62%, transparent 72%),
+    linear-gradient(135deg, var(--banner-a), var(--banner-b) 55%, var(--banner-a));
+  box-shadow: inset 0 -1px 0 color-mix(in oklab, var(--banner-line) 40%, transparent);
+}
+.lx-banner-perk::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.14) 50%, transparent 62%);
+  background-size: 250% 100%;
+  background-position: 160% 0;
+  background-repeat: no-repeat;
+  animation: lx-boost-sheen 6.5s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) { .lx-banner-perk::after { animation: none; } }
+.lx-banner-perk-2 {
+  --banner-a: #12061f; /* palette-exempt: Imperial silk */
+  --banner-b: #3b1580; /* palette-exempt */
+  --banner-line: #f2cd72; /* palette-exempt: gold */
+  --banner-glow: #8b5cf6; /* palette-exempt */
+}
+.lx-banner-perk-3 {
+  --banner-a: #160505; /* palette-exempt: Eternal silk */
+  --banner-b: #5a0f0f; /* palette-exempt */
+  --banner-line: #f2cd72; /* palette-exempt: gold */
+  --banner-glow: #dc2626; /* palette-exempt */
+}

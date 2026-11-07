@@ -817,6 +817,8 @@ export function ProfilePage({ userId }: { userId?: string }) {
   const tab: ProfileTab = own ? pathTab : "profile"
   const setTab = setPathTab
 
+  // A paid rank's banner (owner request 2026-11-07), unless the player picked another one.
+  const banner = data.user.banner ?? (data.perk ? `perk-${data.perk.tier}` : null)
   return (
     <div ref={topRef}>
       {own && (
@@ -827,8 +829,8 @@ export function ProfilePage({ userId }: { userId?: string }) {
       {tab === "profile" && (
       <div className="px-6 pt-6 max-md:px-4 max-md:pt-4">
         <section aria-label="Profile" className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-          <ProfileBanner fx={data.user.banner} fade className="h-[190px]" />
-          <div className={cn("relative px-5 pb-6 max-md:px-4", data.user.banner ? "pt-[84px]" : "pt-7")}>
+          <ProfileBanner fx={banner} fade className="h-[190px]" />
+          <div className={cn("relative px-5 pb-6 max-md:px-4", banner ? "pt-[84px]" : "pt-7")}>
             <Header overview={data} onVisibilityChange={refetch} />
           </div>
         </section>

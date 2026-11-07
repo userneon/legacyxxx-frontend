@@ -363,7 +363,7 @@ export function frameGlow(id: string | null | undefined): string | undefined {
 }
 
 /** Profile banners the site can draw: the API sends only an effect key, mapped to a CSS class here (anything else draws nothing). */
-const BANNER_CLASSES: Record<string, string> = { goldfoil: "lx-banner-goldfoil" }
+const BANNER_CLASSES: Record<string, string> = { goldfoil: "lx-banner-goldfoil", "perk-tier1": "lx-banner-perk lx-banner-perk-1", "perk-tier2": "lx-banner-perk lx-banner-perk-2", "perk-tier3": "lx-banner-perk lx-banner-perk-3" }
 export function bannerClass(fx: string | null | undefined): string | null {
   return fx && fx in BANNER_CLASSES ? BANNER_CLASSES[fx] : null
 }
