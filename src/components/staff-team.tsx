@@ -147,6 +147,13 @@ export function StaffTeam() {
     if (expiresAt === "invalid") { toast.error("Pick a date after today"); return }
     if (draft.id) return run(() => patch(`/api/v1/staffpanel/staff/${draft.id}`, { role: draft.role, immunity: draft.immunity, stamina: draft.stamina, expiresAt, qa: draft.qa, ...(draft.role === "ADMIN" ? { adminLevel: draft.adminLevel, extraCommands: draft.extraCommands } : {}) }), "Staff member updated")
     if (!/^7656119\d{10}$/.test(draft.steamId.trim())) { toast.error("Enter the player's SteamID64 (7656119…)"); return }
+    // Someone already on the list is not added twice: their own card opens for editing, with the role just picked (owner request 2026-11-07).
+    const listed = (data ?? []).find((member) => member.steamId === draft.steamId.trim())
+    if (listed) {
+      setDraft({ id: listed.id, steamId: listed.steamId, role: draft.role, immunity: draft.immunity, stamina: draft.stamina, term: draft.term, until: draft.until, adminLevel: draft.adminLevel, extraCommands: draft.extraCommands, qa: draft.qa || listed.qa === true })
+      toast.message(`${listed.username} is already on the list. Their card is open: Save changes their role.`)
+      return
+    }
     return run(() => post("/api/v1/staffpanel/staff", { steamId: draft.steamId.trim(), role: draft.role, immunity: draft.immunity, stamina: draft.stamina, expiresAt, qa: draft.qa, ...(draft.role === "ADMIN" ? { adminLevel: draft.adminLevel, extraCommands: draft.extraCommands } : {}) }), "Added to the staff")
   }
   const setStatus = (member: StaffMember, status: StaffStatus) => run(() => patch(`/api/v1/staffpanel/staff/${member.id}`, status === "active" && member.expiresAt && Date.parse(member.expiresAt) <= Date.now() ? { status, expiresAt: null } : { status }), `${member.username}: ${STATUS_LABEL[status].toLowerCase()}`)
