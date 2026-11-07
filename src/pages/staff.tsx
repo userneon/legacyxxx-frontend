@@ -31,12 +31,13 @@ import { usePathTab } from "@/hooks/use-url-tab"
 import { ServerMapCard } from "@/components/staff-server-card"
 import { CardIcon, STAFF_BODY, STAFF_CARD, STAFF_GRID, StaffEmpty, StaffSection } from "@/components/staff-ui"
 import { StaffCreators } from "@/components/staff-creators"
+import { StaffHost } from "@/components/staff-host"
 import { StaffRoles } from "@/components/staff-roles"
 import { StaffSettings } from "@/components/staff-settings"
 import { StaffShop } from "@/components/staff-shop"
 import { StaffTeam } from "@/components/staff-team"
 
-type StaffTab = "overview" | "checks" | "penalties" | "players" | "clans" | "creators" | "shop" | "team" | "servers" | "roles" | "settings"
+type StaffTab = "overview" | "checks" | "penalties" | "players" | "clans" | "creators" | "shop" | "team" | "servers" | "roles" | "host" | "settings"
 
 const TABS: Array<{ value: StaffTab; label: string }> = [
   { value: "overview", label: "Overview" },
@@ -49,6 +50,7 @@ const TABS: Array<{ value: StaffTab; label: string }> = [
   { value: "team", label: "Team" },
   { value: "servers", label: "Servers" },
   { value: "roles", label: "Roles" },
+  { value: "host", label: "Host" },
   { value: "settings", label: "Settings" },
 ]
 
@@ -61,12 +63,12 @@ const STEAM_ID = /^7656119\d{10}$/
  */
 const ADMIN_TABS: StaffTab[] = ["overview", "checks", "penalties", "players"]
 const MANAGER_TABS: StaffTab[] = [...ADMIN_TABS, "clans", "creators", "shop", "servers"]
-const OWNER_TABS: StaffTab[] = [...MANAGER_TABS, "team", "roles", "settings"]
+const OWNER_TABS: StaffTab[] = [...MANAGER_TABS, "team", "roles", "host", "settings"]
 /** How the staff site's menu groups its pages. */
 const GROUPS: Array<{ title: string; tabs: StaffTab[] }> = [
   { title: "Work", tabs: ["overview", "checks", "penalties", "players"] },
   { title: "Community", tabs: ["clans", "creators", "shop"] },
-  { title: "Servers", tabs: ["servers", "roles"] },
+  { title: "Servers", tabs: ["servers", "roles", "host"] },
   { title: "Team", tabs: ["team", "settings"] },
 ]
 const tabsFor = (role: string | null | undefined): ReadonlySet<StaffTab> => new Set(role === "OWNER" ? OWNER_TABS : role === "MANAGER" ? MANAGER_TABS : ADMIN_TABS)
@@ -75,7 +77,7 @@ const tabsFor = (role: string | null | undefined): ReadonlySet<StaffTab> => new 
 export function StaffPage({ initialTab = "overview" }: { initialTab?: StaffTab } = {}) {
   const { isAuthenticated } = useAuth()
   const { data: access, loading } = useApiQuery<ModerationAccess>((signal) => penaltyAdminService.getAccess({ signal }), { enabled: isAuthenticated, queryKey: `staff-access:${isAuthenticated}` })
-  const [asked, setTab] = usePathTab<StaffTab>("/staff", { overview: "", checks: "checks", penalties: "penalties", players: "players", clans: "clans", creators: "creators", shop: "shop", team: "team", servers: "servers", roles: "roles", settings: "settings" }, initialTab)
+  const [asked, setTab] = usePathTab<StaffTab>("/staff", { overview: "", checks: "checks", penalties: "penalties", players: "players", clans: "clans", creators: "creators", shop: "shop", team: "team", servers: "servers", roles: "roles", host: "host", settings: "settings" }, initialTab)
   const allowed = tabsFor(access?.role)
   const tab: StaffTab = allowed.has(asked) ? asked : "overview"
   const [params, setParams] = useSearchParams()
@@ -131,6 +133,7 @@ export function StaffPage({ initialTab = "overview" }: { initialTab?: StaffTab }
         {tab === "team" && <StaffTeam />}
         {tab === "servers" && <ServersPanel />}
         {tab === "roles" && <StaffRoles isOwner={access.role === "OWNER"} />}
+        {tab === "host" && <StaffHost isOwner={access.role === "OWNER"} />}
         {tab === "settings" && <StaffSettings isOwner={access.role === "OWNER"} />}
       </div>
     </AdminShell>
