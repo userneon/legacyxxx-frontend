@@ -422,7 +422,7 @@ export function ShopPage() {
                 {/* The rarity as a thin line along the bottom, never a surface. */}
                 <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: rarityOf(item.rarity).color }} />
                 <div className="relative">
-                  {KIND_WORD[item.kind] && <span aria-hidden="true" className="absolute left-2 top-2 z-[1] rounded-full border border-[var(--line)] bg-[var(--card-surface)]/80 px-1.5 py-px text-[9px] font-semibold uppercase tracking-[0.8px] text-[var(--text-dim)]">{KIND_WORD[item.kind]}</span>}
+                  {KIND_WORD[item.kind] && <span aria-hidden="true" className="absolute left-2 top-2 z-[1] rounded-md border border-[var(--line)] bg-[var(--card-surface)]/80 px-1.5 py-px text-[9px] font-semibold uppercase tracking-[0.8px] text-[var(--text-dim)]">{KIND_WORD[item.kind]}</span>}
                   <Spot accent={accentOf(shown)} height={dense ? 80 : 96} fill={shown.kind === "background"}><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={dense ? 46 : 56} /></Spot>
                 </div>
                 <div className="flex flex-col items-start gap-1 px-3 pb-2.5 pt-0.5">
