@@ -392,7 +392,8 @@ export function ShopPage() {
         ? <span className="lx-shop-price"><LxMark size={14} />{priceFor(item, "30d").toLocaleString()}</span>
         : <span className="inline-flex items-center gap-1 text-xs text-[var(--text-dim)]"><Lock className="size-3" />Earned</span>
     return (
-      <li key={item.id} className={cn("group/tile relative rounded-xl [content-visibility:auto] [contain-intrinsic-size:auto_190px]", justBought === item.id && "lx-bought")}>
+      // No content-visibility here: it paints only inside the box, which cut off the tile's border and glow when it lifts on hover (the lists are at most 30 tiles anyway).
+      <li key={item.id} className={cn("group/tile relative rounded-xl", justBought === item.id && "lx-bought")}>
         <TooltipProvider delayDuration={150}>
           <Tooltip>
             <TooltipTrigger asChild>
