@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { Database, Loader2, LockKeyhole, Map, Megaphone, MonitorUp, Power, RotateCcw, ServerCog, ShieldAlert, UserRoundCog, UsersRound } from "lucide-react"
+import { ArrowLeftRight, Database, ListOrdered, Loader2, LockKeyhole, Map, Megaphone, MonitorUp, OctagonX, Play, Power, RotateCcw, ServerCog, ShieldAlert, UserRoundCog, UsersRound } from "lucide-react"
 
 import { ServerLive } from "@/components/staff-server-live"
 import { ACTION_HINTS } from "@/lib/staff-action-hints"
@@ -38,6 +38,9 @@ const OWNER_ACTIONS: ActionDef[] = [
   { type: "player_ip_lookup", label: "Player IP lookup", icon: Database, needsPlayer: true },
 ]
 
+/** Match control (owner request 2026-11-07): what changes the running match on the picked server. Each is queued and audited like every other action. */
+const MATCH_TONE: Record<string, Tone> = { match_set_score: "amber", match_force_start: "green", match_end: "red", match_swap_sides: "violet", match_move_player: "violet" }
+
 function messageOf(error: unknown) {
   return (error as ApiError | null)?.message || "Could not complete that."
 }
@@ -54,6 +57,8 @@ export function ServersPanel() {
   const [steamId, setSteamId] = useState("")
   const [message, setMessage] = useState("")
   const [map, setMap] = useState("de_mirage")
+  const [scoreT, setScoreT] = useState("")
+  const [scoreCt, setScoreCt] = useState("")
   const [notice, setNotice] = useState("")
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
@@ -106,6 +111,24 @@ export function ServersPanel() {
       setBusy(false)
     }
   }
+
+  /** One of the match controls: the score, force start, end without a result, swap the sides, or a player to a team. */
+  const queueMatch = async (type: StaffPanelActionRequest["type"], label: string, extra: Partial<StaffPanelActionRequest> = {}, confirm?: string) => {
+    if (!server) return setNotice("Pick a server first.")
+    if (type === "match_move_player" && !/^\d{17}$/.test(steamId.trim())) return setNotice("Pick the player first (name or Steam ID).")
+    if (confirm && !window.confirm(confirm)) return
+    setBusy(true)
+    try {
+      await staffPanelService.queueAction({ serverId: server, type, playerSteamId: type === "match_move_player" ? steamId.trim() : undefined, ...extra })
+      setNotice(`${label} sent. The server runs it within a few seconds; the result shows under Recent actions.`)
+      await refresh()
+    } catch (error) {
+      setNotice(messageOf(error))
+    } finally {
+      setBusy(false)
+    }
+  }
+  const scoresValid = /^\d{1,2}$/.test(scoreT.trim()) && /^\d{1,2}$/.test(scoreCt.trim()) && Number(scoreT) <= 60 && Number(scoreCt) <= 60
 
   /** An action on one player from their card on the live view; true when it was queued. */
   const actOn = async (type: StaffPanelActionRequest["type"], playerSteamId: string, text: string): Promise<boolean> => {
@@ -177,6 +200,44 @@ export function ServersPanel() {
               </Tip>
             ))}
           </div>
+
+        <section aria-label="Match control" className="flex flex-col gap-3">
+          <h3 className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-faint)]">Match control <span className="font-normal normal-case tracking-normal">· the running match on the picked server</span></h3>
+          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+            <div data-tone={MATCH_TONE.match_set_score} className={cn(STAFF_CARD, "flex-row flex-wrap items-center gap-2 px-3.5 py-3 text-[13px] sm:col-span-2")}>
+              <ListOrdered className="lx-tone-text size-4 shrink-0" aria-hidden="true" />
+              <span className="text-[var(--text)]">Score</span>
+              <Input value={scoreT} onChange={(event) => setScoreT(event.target.value.replace(/\D/g, "").slice(0, 2))} inputMode="numeric" placeholder="T" aria-label="Terrorists' score" className="h-8 w-14 text-center text-[13px]" />
+              <span className="text-[var(--text-dim)]">–</span>
+              <Input value={scoreCt} onChange={(event) => setScoreCt(event.target.value.replace(/\D/g, "").slice(0, 2))} inputMode="numeric" placeholder="CT" aria-label="Counter-Terrorists' score" className="h-8 w-14 text-center text-[13px]" />
+              <Tip text={ACTION_HINTS.match_set_score}>
+                <button type="button" disabled={busy || !scoresValid} onClick={() => void queueMatch("match_set_score", "Set score", { scoreT: Number(scoreT), scoreCt: Number(scoreCt) })} className="ml-auto inline-flex h-8 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text-2)] hover:border-[var(--line-strong)] disabled:opacity-50">Set score</button>
+              </Tip>
+            </div>
+            <Tip text={ACTION_HINTS.match_force_start}>
+              <button type="button" data-tone={MATCH_TONE.match_force_start} disabled={busy} onClick={() => void queueMatch("match_force_start", "Force start")} className={cn(STAFF_CARD, "flex-row items-center gap-3 px-3.5 py-3 text-left text-[13px] text-[var(--text)] disabled:opacity-50")}>
+                <Play className="lx-tone-text size-4 shrink-0" aria-hidden="true" />Force start
+              </button>
+            </Tip>
+            <Tip text={ACTION_HINTS.match_end}>
+              <button type="button" data-tone={MATCH_TONE.match_end} disabled={busy} onClick={() => void queueMatch("match_end", "End match", {}, "End the running match with no result? Nothing is counted and no EXP changes.")} className={cn(STAFF_CARD, "flex-row items-center gap-3 px-3.5 py-3 text-left text-[13px] text-[var(--text)] disabled:opacity-50")}>
+                <OctagonX className="lx-tone-text size-4 shrink-0" aria-hidden="true" />End match, no result
+              </button>
+            </Tip>
+            <Tip text={ACTION_HINTS.match_swap_sides}>
+              <button type="button" data-tone={MATCH_TONE.match_swap_sides} disabled={busy} onClick={() => void queueMatch("match_swap_sides", "Swap sides", {}, "Swap the Terrorists and the Counter-Terrorists?")} className={cn(STAFF_CARD, "flex-row items-center gap-3 px-3.5 py-3 text-left text-[13px] text-[var(--text)] disabled:opacity-50")}>
+                <ArrowLeftRight className="lx-tone-text size-4 shrink-0" aria-hidden="true" />Swap sides
+              </button>
+            </Tip>
+            <div data-tone={MATCH_TONE.match_move_player} className={cn(STAFF_CARD, "flex-row flex-wrap items-center gap-2 px-3.5 py-3 text-[13px] sm:col-span-2 xl:col-span-3")}>
+              <UsersRound className="lx-tone-text size-4 shrink-0" aria-hidden="true" />
+              <span className="text-[var(--text)]">Move the player picked above to</span>
+              {([["t", "Terrorists"], ["ct", "Counter-Terrorists"], ["spec", "Spectators"]] as const).map(([team, label]) => (
+                <button key={team} type="button" disabled={busy} onClick={() => void queueMatch("match_move_player", `Move to ${label}`, { team })} className="inline-flex h-8 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text-2)] hover:border-[var(--line-strong)] disabled:opacity-50">{label}</button>
+              ))}
+            </div>
+          </div>
+        </section>
         </section>
 
         <section aria-label="Queue" className="flex flex-col gap-3 self-start">

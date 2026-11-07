@@ -660,13 +660,18 @@ export interface StaffPanelDatabaseOverview {
 
 export interface StaffPanelActionRequest {
   serverId: string
-  type: "ban" | "kick" | "mute" | "rename" | "map_change" | "server_announcement" | "match_announcement" | "hud_announcement" | "player_message" | "restart_all" | "restart_server" | "start_server" | "stop_server" | "timeout" | "player_ip_lookup"
+  type: "ban" | "kick" | "mute" | "rename" | "map_change" | "server_announcement" | "match_announcement" | "hud_announcement" | "player_message" | "restart_all" | "restart_server" | "start_server" | "stop_server" | "timeout" | "player_ip_lookup" | "match_set_score" | "match_end" | "match_force_start" | "match_swap_sides" | "match_move_player"
   playerSteamId?: string
   playerName?: string
   map?: string
   message?: string
   durationSeconds?: number
   reason?: string
+  /** Match score, the sides as they are now (match_set_score). */
+  scoreT?: number
+  scoreCt?: number
+  /** Where match_move_player puts the player. */
+  team?: "t" | "ct" | "spec"
 }
 
 /* ----------------------------------------------------------------------------

@@ -14,5 +14,10 @@ export const ACTION_HINTS: Record<string, string> = {
   start_server: "Starts the picked server if it is stopped. Owner only.",
   stop_server: "Stops the picked server. Players on it are dropped. Owner only; asks to confirm.",
   timeout: "Pauses the running match on the picked server with a message to the players.",
+  match_set_score: "Sets the round score of the running match, the sides as they are now (first the Terrorists, then the Counter-Terrorists). Everyone sees it in chat.",
+  match_end: "Ends the running match and resets the server to warmup. No result is sent: nothing is counted and no EXP changes. Asks to confirm.",
+  match_force_start: "Starts the match now without waiting for everyone to be ready.",
+  match_swap_sides: "Swaps the Terrorists and the Counter-Terrorists. Asks to confirm.",
+  match_move_player: "Moves the player picked above to the Terrorists, the Counter-Terrorists or the spectators.",
   player_ip_lookup: "Looks up the player's IP address for a ban check. The result shows under Recent actions.",
 }
