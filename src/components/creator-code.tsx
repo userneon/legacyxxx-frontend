@@ -43,7 +43,7 @@ function MyCode() {
             <DialogDescription>Share it with your viewers. A new player who enters it after their first ranked match gets LX, and so do you.</DialogDescription>
           </DialogHeader>
           {info.error ? (
-            <p className="text-[13px] text-[var(--text-dim)]">Could not load your code. <button type="button" onClick={info.refetch} className="text-[var(--text-2)] underline">Retry</button></p>
+            <p className="text-[13px] text-[var(--text-dim)]">Could not load your code{info.error.message ? ` (${info.error.status ? `${info.error.status}: ` : ""}${info.error.message})` : ""}. <button type="button" onClick={info.refetch} className="text-[var(--text-2)] underline">Retry</button></p>
           ) : !data ? (
             <div className="h-24 animate-pulse rounded-lg bg-[var(--raised)]" aria-hidden="true" />
           ) : (
