@@ -313,3 +313,7 @@ npm run check:colors                     # palette lint — must pass before com
 - `docs/design/RANK-SYSTEM.md` — EXP/rank calculation spec
 
 The LX coin (owner request 2026-11-02): `LxMark` draws the owner-supplied gold coin, `public/lx-coin.webp` (256px, round, transparent corners), everywhere an LX amount has a mark. It is a picture, so the neutral palette rules do not apply to it.
+
+### Shop → Ranks (owner request 2026-11-07)
+
+A fifth Shop tab, **Ranks** (`components/shop-ranks.tsx`, `api/perks.ts`; shown only while at least one tier is on sale): three in-game ranks for 14, 30 or 90 days, paid **straight through QPay (Wire), in ₮, no LX** (`POST /perks/checkout`, `PerkPayDialog` like the top-up's, the rank is given by the server when Wire says paid). Three cards (name, how many commands, price for the picked length), then "What you get". A rank gives **3, 5 or 10 commands the buyer picks** from the fun and cheat commands (nothing that punishes), on the kinds of server the "Shop rank" role allows (Staff → Roles). The picker opens after paying and from "Your rank" any time (closing it leaves the picks open); all of them picked locks them until a renewal opens them again. Names and prices are the Owner's (`perk_tiers`, set with SQL, never invented); it is not an Admin: no staff site, no ban or kick. Wire sends the buyer back to `/shop/ranks?perk=<id>`.

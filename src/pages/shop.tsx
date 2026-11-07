@@ -24,6 +24,8 @@ import { GrenadeLight, GrenadeTrail } from "@/components/grenade-trail"
 import { FlashEffect } from "@/components/flash-effect"
 import { ShopClan } from "@/components/shop-clan"
 import { ShopGoods } from "@/components/shop-goods"
+import { ShopRanks } from "@/components/shop-ranks"
+import { perksService } from "@/api/perks"
 import { ColorRow, PICK_COLORS, PICK_DEFAULT, demoColour } from "@/components/color-row"
 import { FramedAvatar } from "@/components/framed-avatar"
 import { LxMark } from "@/components/lx-mark"
@@ -42,7 +44,7 @@ const SORTS = [
 
 /** The kinds the Shop sells (banners and titles are earned: they live in Profile → Appearance). */
 type ShopKind = Exclude<CosmeticKind, "banner" | "title">
-type ShopTab = "featured" | "frame" | "background" | "name" | "smoke_color" | "model" | "clan" | "goods"
+type ShopTab = "featured" | "frame" | "background" | "name" | "smoke_color" | "model" | "clan" | "goods" | "ranks"
 const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "featured", label: "Featured" },
   { value: "frame", label: "Frames" },
@@ -52,15 +54,17 @@ const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "model", label: "Weapons" },
   { value: "clan", label: "Clan" },
   { value: "goods", label: "Goods" },
+  { value: "ranks", label: "Ranks" },
 ]
 
 /** The Shop's top row is grouped: what you wear on your profile (frames, backgrounds, name, grenades) sits under one Profile tab with its own row below. */
 const PROFILE_TABS: ShopTab[] = ["frame", "background", "name", "smoke_color", "model"]
-const TOP_TABS: Array<{ value: "featured" | "profile" | "clan" | "goods"; label: string }> = [
+const TOP_TABS: Array<{ value: "featured" | "profile" | "clan" | "goods" | "ranks"; label: string }> = [
   { value: "featured", label: "Featured" },
   { value: "profile", label: "Profile" },
   { value: "clan", label: "Clan" },
   { value: "goods", label: "Goods" },
+  { value: "ranks", label: "Ranks" },
 ]
 
 type ShopItem = FrameItem & { kind: ShopKind }
@@ -153,7 +157,9 @@ export function ShopPage() {
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
-  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", background: "backgrounds", name: "name", smoke_color: "smoke", model: "weapons", clan: "clan", goods: "goods" }, "featured")
+  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", background: "backgrounds", name: "name", smoke_color: "smoke", model: "weapons", clan: "clan", goods: "goods", ranks: "ranks" }, "featured")
+  // The in-game ranks (owner request 2026-11-07): the tab is there only while at least one is on sale, so nothing is shown that cannot be bought.
+  const { data: perks } = useApiQuery((signal) => perksService.catalogue({ signal }), { queryKey: "perk-catalogue" })
   // Which Profile sub-tab to return to when the Profile tab is tapped again.
   const [lastProfileTab, setLastProfileTab] = useState<ShopTab>("frame")
   useEffect(() => { if (PROFILE_TABS.includes(tab)) setLastProfileTab(tab) }, [tab])
@@ -709,7 +715,7 @@ export function ShopPage() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
-        <PageTabs<(typeof TOP_TABS)[number]["value"]> ariaLabel="Shop sections" value={PROFILE_TABS.includes(tab) ? "profile" : (tab as "featured" | "clan" | "goods")} onChange={(next) => setTab(next === "profile" ? lastProfileTab : next)} options={TOP_TABS} />
+        <PageTabs<(typeof TOP_TABS)[number]["value"]> ariaLabel="Shop sections" value={PROFILE_TABS.includes(tab) ? "profile" : (tab as "featured" | "clan" | "goods" | "ranks")} onChange={(next) => setTab(next === "profile" ? lastProfileTab : next)} options={TOP_TABS.filter((entry) => entry.value !== "ranks" || (perks?.tiers.length ?? 0) > 0)} />
         {(tab === "featured" || tab === "frame" || tab === "background" || tab === "name" || tab === "smoke_color" || tab === "model") && (
           <PageBarEnd className="max-md:hidden">
             <label className={cn(pageSearchClass, "max-md:hidden")}>
@@ -727,7 +733,9 @@ export function ShopPage() {
       )}
       {/* Not a scroller itself: the page panel around it scrolls, and a sticky rail sticks to the nearest scroller (an inner overflow-y-auto that never scrolled kept it from sticking). */}
       <div className="lx-glass-page min-h-0 flex-1 px-6 py-5 max-md:px-4">
-        {tab === "goods" ? (
+        {tab === "ranks" ? (
+          perks && perks.tiers.length > 0 ? <ShopRanks catalogue={perks} /> : <p className="py-8 text-[13px] text-[var(--text-dim)]">Nothing is for sale here yet.</p>
+        ) : tab === "goods" ? (
           <ShopGoods />
         ) : loading && !data ? (
           <div className="flex flex-col gap-5"><Skeleton className="h-[170px] rounded-[14px] max-lg:hidden" /><Skeleton className="h-[480px] rounded-xl" /></div>
