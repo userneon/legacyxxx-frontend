@@ -1,4 +1,7 @@
+import arShoots from "@/assets/maps/ar_shoots.webp"
+import arShootsNight from "@/assets/maps/ar_shoots_night.webp"
 import deAncient from "@/assets/maps/de_ancient.webp"
+import deAncientNight from "@/assets/maps/de_ancient_night.webp"
 import deAnubis from "@/assets/maps/de_anubis.webp"
 import deCache from "@/assets/maps/de_cache.webp"
 import deDust2 from "@/assets/maps/de_dust2.webp"
@@ -15,6 +18,9 @@ import deVertigo from "@/assets/maps/de_vertigo.webp"
  */
 const CS2_MAP_ARTWORK: Record<string, string> = {
   de_ancient: deAncient,
+  de_ancient_night: deAncientNight,
+  ar_shoots: arShoots,
+  ar_shoots_night: arShootsNight,
   de_anubis: deAnubis,
   de_cache: deCache,
   de_dust2: deDust2,
@@ -28,6 +34,9 @@ const CS2_MAP_ARTWORK: Record<string, string> = {
 
 const CS2_MAP_LABELS: Record<string, string> = {
   de_ancient: "Ancient",
+  de_ancient_night: "Ancient Night",
+  ar_shoots: "Shoots",
+  ar_shoots_night: "Shoots Night",
   de_anubis: "Anubis",
   de_cache: "Cache",
   de_dust2: "Dust II",
@@ -48,6 +57,8 @@ export function normalizeCs2MapKey(mapName: string | null | undefined): string |
 
   if (!normalized) return null
   const compact = normalized.replace(/_/g, "")
+  if (normalized in CS2_MAP_ARTWORK) return normalized
+  if (`de_${normalized}` in CS2_MAP_ARTWORK) return `de_${normalized}`
   if (compact === "dedust2" || compact === "dust2" || compact === "dustii") return "de_dust2"
   if (compact.startsWith("de")) {
     const candidate = `de_${compact.slice(2)}`
