@@ -76,7 +76,40 @@ export interface TopUpAvailability {
   custom?: { minMnt: number; maxMnt: number; stepMnt: number }
 }
 
+/** What a player may send as LX and what they have used (backend GET /wallet/transfer/rules). */
+export interface TransferRules {
+  feePercent: number
+  min: number
+  max: number
+  dailyMax: number
+  perHour: number
+  minRankedMatches: number
+  sentToday: number
+  sentLastHour: number
+  rankedMatches: number
+  remainingToday: number
+  /** A line saying why this player cannot send yet (null when they can). */
+  blocked: string | null
+}
+
+export interface TransferResult {
+  id: string
+  sent: number
+  fee: number
+  received: number
+  balance: number
+  to: string
+}
+
 export const walletService = {
+  async transferRules(options?: CallOptions): Promise<TransferRules> {
+    return get<TransferRules>("/api/v1/wallet/transfer/rules", undefined, options)
+  },
+  /** Sends LX to another player; the fee comes out of what they receive. */
+  async transfer(payload: { userId: string; amount: number }, options?: CallOptions): Promise<TransferResult> {
+    return post<TransferResult>("/api/v1/wallet/transfer", payload, options)
+  },
+
   /** Whether the site can take QPay payments right now (the merchant is set up). */
   async topUpAvailable(options?: CallOptions): Promise<TopUpAvailability> {
     return get<TopUpAvailability>("/api/v1/wallet/topup/status", undefined, options)

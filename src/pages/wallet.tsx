@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { ArrowUp, Clock, Flame, Gavel, Gem, Plus, RotateCcw, Trophy, Users } from "lucide-react"
+import { ArrowUp, Clock, Flame, Gavel, Gem, Plus, RotateCcw, Send, Trophy, Users } from "lucide-react"
 
 import { walletService, type Wallet, type WalletTransaction } from "@/api"
 import { AnimatedNumber } from "@/components/animated-number"
 import { LxMark } from "@/components/lx-mark"
 import { PageBar, PageTabs } from "@/components/page-tabs"
 import { RelativeTime } from "@/components/relative-time"
+import { SendLx } from "@/components/send-lx"
 import { ShopTopUp } from "@/components/shop-topup"
 import { Skeleton } from "@/components/ui/skeleton"
 import { usePathTab } from "@/hooks/use-url-tab"
@@ -14,12 +15,13 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
 
-type Tab = "overview" | "topup" | "history" | "earn"
+type Tab = "overview" | "topup" | "send" | "history" | "earn"
 type Filter = "all" | "earned" | "spent"
 
 const TABS: Array<{ value: Tab; label: string }> = [
   { value: "overview", label: "Overview" },
   { value: "topup", label: "Top up" },
+  { value: "send", label: "Send" },
   { value: "history", label: "History" },
   { value: "earn", label: "How to earn" },
 ]
@@ -106,7 +108,7 @@ function EarningsChart({ daily }: { daily: Array<{ day: string; earned: number }
 export function WalletPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [tab, setTab] = usePathTab<Tab>("/wallet", { overview: "", topup: "top-up", history: "history", earn: "earn" }, "overview")
+  const [tab, setTab] = usePathTab<Tab>("/wallet", { overview: "", topup: "top-up", send: "send", history: "history", earn: "earn" }, "overview")
   const [filter, setFilter] = useState<Filter>("all")
   const { data: wallet, loading, error, refetch } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
 
@@ -141,6 +143,8 @@ export function WalletPage() {
           <div className="grid gap-5 lg:grid-cols-[440px_minmax(0,1fr)]"><Skeleton className="h-[236px] rounded-2xl" /><Skeleton className="h-[236px] rounded-xl" /></div>
         ) : error || !wallet ? (
           <p className="flex items-center justify-center gap-3 py-24 text-[13px] text-[var(--text-dim)]">Could not load your wallet.<button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>
+        ) : tab === "send" ? (
+          <SendLx balance={wallet.balance} onSent={refetch} />
         ) : tab === "history" ? (
           <section className={cn(card, "max-w-3xl overflow-hidden")}>
             <div className="flex items-center gap-2 border-b border-[var(--line-soft)] px-4 py-3"><span className={cn(label, "mr-auto")}>History</span><Chips value={filter} onChange={setFilter} /></div>
@@ -172,7 +176,7 @@ export function WalletPage() {
               </section>
 
               <div className="flex gap-2">
-                {[{ label: "Top up", icon: Plus, to: "/wallet/top-up" }, { label: "Shop", icon: Gem, to: "/shop" }, { label: "Clan", icon: Users, to: "/clans" }, { label: "History", icon: Clock, to: "" }].map((action) => (
+                {[{ label: "Top up", icon: Plus, to: "/wallet/top-up" }, { label: "Send", icon: Send, to: "/wallet/send" }, { label: "Shop", icon: Gem, to: "/shop" }, { label: "Clan", icon: Users, to: "/clans" }, { label: "History", icon: Clock, to: "" }].map((action) => (
                   <button key={action.label} type="button" onClick={() => (action.to ? navigate(action.to) : setTab("history"))} className="flex h-[60px] flex-1 flex-col items-center justify-center gap-1 rounded-xl border border-[var(--line)] bg-[var(--glass-fill)] text-xs font-semibold text-[var(--text-2)] transition-colors hover:bg-[var(--raised)]">
                     <action.icon className="size-5 opacity-80" aria-hidden="true" />{action.label}
                   </button>

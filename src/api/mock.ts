@@ -983,6 +983,9 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path === "/api/v1/wallet/topups") return { topups: [{ id: "t1", productId: "lx-750", amountMnt: 5000, grantsLx: 750, status: "paid", createdAt: new Date(Date.now() - 30 * HOUR).toISOString(), paidAt: new Date(Date.now() - 30 * HOUR + 60_000).toISOString() }] }
   if (path === "/api/v1/wallet/topup" && method === "POST") return { id: "t2", productId: "lx-3000", amountMnt: 20000, grantsLx: 3000, status: "pending", createdAt: new Date().toISOString(), paidAt: null, name: "3,000 LX", checkoutUrl: "https://pay.wire.mn/c/mock", expiresInMinutes: 12 }
   if (path.startsWith("/api/v1/wallet/topup/")) return { id: "t2", productId: "lx-3000", amountMnt: 20000, grantsLx: 3000, status: "pending", createdAt: new Date().toISOString(), paidAt: null }
+  // Design preview only (dev mock): what the API tells a player about sending LX.
+  if (path === "/api/v1/wallet/transfer/rules") return { feePercent: 5, min: 10, max: 5000, dailyMax: 20000, perHour: 5, minRankedMatches: 1, sentToday: 1200, sentLastHour: 1, rankedMatches: 12, remainingToday: 18800, blocked: null }
+  if (path === "/api/v1/wallet/transfer" && method === "POST") { const sent = Number((body as { amount: number }).amount); const fee = Math.ceil(sent * 0.05); return { id: "mock", sent, fee, received: sent - fee, balance: 600 - sent, to: "Saran" } }
   if (path === "/api/v1/wallet/me") {
     if (!signedIn()) throw unauthorized()
     return {

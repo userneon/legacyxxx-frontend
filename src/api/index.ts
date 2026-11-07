@@ -59,5 +59,5 @@ export type {
   TeamScope,
 } from "./skinchanger"
 export { walletService } from "./wallet"
-export type { Wallet, WalletTransaction, ClanPrices, WalletSummary } from "./wallet"
+export type { Wallet, WalletTransaction, ClanPrices, WalletSummary, TransferRules, TransferResult } from "./wallet"
 export { cosmeticsService } from "./cosmetics"
