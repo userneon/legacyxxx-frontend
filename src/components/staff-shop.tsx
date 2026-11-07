@@ -36,7 +36,7 @@ const toLocalInput = (iso: string | null | undefined) => {
 const ORDER_TONE: Record<GoodsOrderStatus, Tone> = { new: "amber", contacted: "sky", paid: "green", shipped: "violet", done: "green", cancelled: "red" }
 
 type Draft = GoodsProductInput & { slug: string; isNew: boolean }
-const EMPTY: Draft = { slug: "", isNew: true, name: "", description: "", kind: "charm", grantsLx: 0, priceMnt: 0, imageUrl: null, stock: 0, enabled: true, sort: 0 }
+const EMPTY: Draft = { slug: "", isNew: true, name: "", description: "", kind: "charm", grantsLx: 0, priceMnt: 0, imageUrl: null, previewUrl: null, stock: 0, enabled: true, sort: 0 }
 
 /** Staff → Shop: the orders players asked for (call them, take the payment, move the status along) and the products on sale. Owners and Managers. */
 export function StaffShop() {
@@ -63,10 +63,11 @@ export function StaffShop() {
     if (!/^[a-z0-9-]{2,40}$/.test(draft.slug)) { toast.error("The short name needs 2-40 small letters, numbers or dashes"); return }
     if (draft.name.trim().length < 2) { toast.error("Give the product a name"); return }
     if (draft.imageUrl && !/^https:\/\//.test(draft.imageUrl)) { toast.error("The picture address must start with https://"); return }
+    if (draft.previewUrl && !/^https:\/\//.test(draft.previewUrl)) { toast.error("The photo address must start with https://"); return }
     setBusy(true)
     try {
       const { slug, isNew: _isNew, ...body } = draft
-      await shopGoodsService.saveProduct(slug, { ...body, name: body.name.trim(), description: body.description.trim(), imageUrl: body.imageUrl?.trim() || null, ...(body.kind === "founder" ? { endsAt: body.endsAt ?? null } : { endsAt: undefined }) })
+      await shopGoodsService.saveProduct(slug, { ...body, name: body.name.trim(), description: body.description.trim(), imageUrl: body.imageUrl?.trim() || null, previewUrl: body.previewUrl?.trim() || null, ...(body.kind === "founder" ? { endsAt: body.endsAt ?? null } : { endsAt: undefined }) })
       toast.success("Saved")
       setDraft(null)
       products.refetch()
@@ -76,7 +77,7 @@ export function StaffShop() {
       setBusy(false)
     }
   }
-  const edit = (product: StaffGoodsProduct) => setDraft({ slug: product.slug, isNew: false, name: product.name, description: product.description, kind: product.kind, grantsLx: product.grantsLx, priceMnt: product.priceMnt, imageUrl: product.imageUrl, stock: product.stock, enabled: product.enabled, sort: product.sort, ...(product.kind === "founder" ? { endsAt: product.founder?.endsAt ?? null } : {}) })
+  const edit = (product: StaffGoodsProduct) => setDraft({ slug: product.slug, isNew: false, name: product.name, description: product.description, kind: product.kind, grantsLx: product.grantsLx, priceMnt: product.priceMnt, imageUrl: product.imageUrl, previewUrl: product.previewUrl ?? null, stock: product.stock, enabled: product.enabled, sort: product.sort, ...(product.kind === "founder" ? { endsAt: product.founder?.endsAt ?? null } : {}) })
 
   return (
     <div className={STAFF_BODY}>
@@ -165,8 +166,11 @@ export function StaffShop() {
                 <input className={input} type="datetime-local" value={toLocalInput(draft.endsAt)} onChange={(event) => setDraft({ ...draft, endsAt: event.target.value ? new Date(event.target.value).toISOString() : null })} />
               </label>
             )}
-            <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Picture address (https://…)
+            <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Card picture (the AI picture, https://…)
               <input className={input} value={draft.imageUrl ?? ""} onChange={(event) => setDraft({ ...draft, imageUrl: event.target.value || null })} placeholder="https://…" />
+            </label>
+            <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Real photo (shown in the preview, https://…)
+              <input className={input} value={draft.previewUrl ?? ""} onChange={(event) => setDraft({ ...draft, previewUrl: event.target.value || null })} placeholder="https://… (optional)" />
             </label>
             <label className="flex items-center gap-2 text-[13px] text-[var(--text-2)]"><input type="checkbox" checked={draft.enabled} onChange={(event) => setDraft({ ...draft, enabled: event.target.checked })} />Show in the Shop</label>
             <div className="flex justify-end gap-2">

@@ -133,6 +133,13 @@ export function OrderDialog({ product, onClose, onDone }: { product: GoodsProduc
         </DialogHeader>
         {product && (
           <div className="flex flex-col gap-3">
+            {/* The preview is the real thing: its photo when staff added one, else the card picture. */}
+            {(product.previewUrl || product.imageUrl) && (
+              <figure className="relative overflow-hidden rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)]">
+                <img src={product.previewUrl ?? product.imageUrl ?? ""} alt={product.name} loading="lazy" className="aspect-[4/3] w-full object-cover" />
+                {product.previewUrl && <figcaption className="absolute left-2.5 top-2.5 rounded-full border border-[var(--line-strong)] bg-[var(--card-surface)] px-2 py-0.5 text-[11px] text-[var(--text-2)]">Real photo</figcaption>}
+              </figure>
+            )}
             <label className={cn("flex flex-col gap-1.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]", (product.kind === "lx" || product.kind === "founder") && "hidden")}>
               How many
               <select value={quantity} onChange={(event) => setQuantity(Number(event.target.value))} className={field}>

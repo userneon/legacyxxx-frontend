@@ -9,7 +9,10 @@ export interface GoodsProduct {
   kind: "charm" | "sticker" | "other" | "lx" | "founder"
   /** Price in tugrik (MNT). */
   priceMnt: number
+  /** The card picture (owner request 2026-11-07: an AI picture). */
   imageUrl: string | null
+  /** The real photo shown in the preview (the order window); null when there is none, then the card picture is used. */
+  previewUrl?: string | null
   stock: number
   /** For kind "lx": the LX the package puts in the wallet once it is paid. */
   grantsLx: number
@@ -55,6 +58,7 @@ export interface GoodsProductInput {
   grantsLx: number
   priceMnt: number
   imageUrl: string | null
+  previewUrl?: string | null
   stock: number
   enabled: boolean
   sort: number
