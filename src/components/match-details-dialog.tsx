@@ -14,6 +14,7 @@ import { Sheet } from "@/components/ui/sheet"
 import { DetailSheetContent } from "@/components/detail-sheet"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
 import { nameProps } from "@/lib/cosmetics"
 import { TeamIcon } from "@/components/team-icon"
 import { RelativeTime } from "@/components/relative-time"
@@ -93,6 +94,8 @@ function Scoreboard({ team, highlightSteamId, onPlayer }: { team: MatchDetailTea
                       <PlayerAvatar avatar={player.avatar} name={player.username} frame={player.frame} frameLook={player.frameLook} className={cn("size-7 shrink-0 rounded-md text-[10px]", highlighted && !player.frame && "ring-2 ring-white/60")} />
                       <span {...nameProps(player.nameStyle, "truncate font-medium group-enabled:group-hover:underline")}>{player.username}</span>
                       <PerkMark perk={player.perk} compact size={16} />
+                      {/* The rank beside the name (owner request 2026-11-07); nothing for a player with no ranked profile. */}
+                      {player.rankId != null && <CompetitiveRankBadge rankId={player.rankId} rankName={player.rankName} imageKey={player.rankImageKey} currentExp={player.currentExp} size={20} className="ml-auto shrink-0" />}
                     </button>
                   </td>
                   <td className="px-2 py-2 text-right font-semibold">{player.kills}</td>
@@ -261,6 +264,7 @@ function TeamComparison({ detail, onPlayer }: { detail: MatchDetail; onPlayer: (
               <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground"><Icon className="size-3" />{label}</div>
               <div {...nameProps(entry!.player.nameStyle, cn("truncate text-sm font-semibold", TEAM_TONE[entry!.team].text))}>{entry!.player.username}</div>
             </div>
+            {entry!.player.rankId != null && <CompetitiveRankBadge rankId={entry!.player.rankId} rankName={entry!.player.rankName} imageKey={entry!.player.rankImageKey} currentExp={entry!.player.currentExp} size={20} className="shrink-0" />}
             <span className="shrink-0 text-xs font-semibold">{value(entry!.player)}</span>
           </button>
         ))}

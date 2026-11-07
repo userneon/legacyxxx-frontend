@@ -269,6 +269,11 @@ export interface MatchDetailPlayer {
   nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   perk?: { tier: string; name: string } | null
   banner?: string | null
+  /** The player's rank now (absent for an older API, a player with no ranked profile, or a banned player). */
+  rankId?: number | null
+  rankName?: string | null
+  rankImageKey?: string | null
+  currentExp?: number | null
   steamId: string
   username: string
   avatar: string
