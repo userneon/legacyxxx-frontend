@@ -714,6 +714,7 @@ const mockChat: Array<{ id: string; body: string; createdAt: string; author: { s
 ]
 let notificationPrefs = { tournaments: true, rankChanges: false, penalties: true }
 
+let mockMarketItems: Array<{ id: string; title: string; priceMnt: number | null; description: string; images: string[]; status: "active" | "sold" | "removed"; createdAt: string; seller: { id: string; name: string; avatar: string | null; steamId: string }; phone: string; email: string; reportCount: number; mine: boolean }> = []
 let mockKitLooks = 0
 let mockKitItems: string[] = []
 let mockCreatorAbout = "CS2 streams every evening, Mongolian commentary"
@@ -739,6 +740,31 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path === "/api/v1/auth/logout") {
     try { window.localStorage.removeItem("legacyx_access_token") } catch { /* storage blocked */ }
     return undefined
+  }
+  // The Market (design preview): a few listings and the posting flow.
+  if (path.startsWith("/api/v1/public/market") || path.startsWith("/api/v1/market")) {
+    const seller = (name: string, steamId: string) => ({ id: `u-${steamId}`, name, avatar: null as string | null, steamId })
+    if (!mockMarketItems.length) {
+      mockMarketItems = [
+        { id: "11111111-1111-4111-8111-111111111111", title: "Logitech G Pro X Superlight, black", priceMnt: 280000, description: "Used for one season, no double-click, box and cable included.\nMeet in Ulaanbaatar.", images: ["/creator-kit/thumbnail/thumbnail-16x9-violet.png", "/creator-kit/thumbnail/thumbnail-16x9-dark.png"], status: "active", createdAt: new Date(Date.now() - 3_600_000).toISOString(), seller: seller("Temuulen", "76561198000000001"), phone: "+976 9911 2233", email: "temuulen@example.com", reportCount: 0, mine: false },
+        { id: "22222222-2222-4222-8222-222222222222", title: "Gaming chair, red and black", priceMnt: null, description: "Comfortable, one year old. Ask for the price.", images: ["/og-image.webp"], status: "active", createdAt: new Date(Date.now() - 86_400_000 * 2).toISOString(), seller: seller("xBataa", "76561198000000002"), phone: "", email: "bataa@example.com", reportCount: 0, mine: false },
+        { id: "33333333-3333-4333-8333-333333333333", title: "27 inch 240 Hz monitor", priceMnt: 650000, description: "No dead pixels. Receipt available.", images: [], status: "active", createdAt: new Date(Date.now() - 86_400_000 * 5).toISOString(), seller: seller("LegacyTester", "76561198000000003"), phone: "+976 8800 1122", email: "", reportCount: 0, mine: true },
+      ]
+    }
+    const card = (item: (typeof mockMarketItems)[number]) => ({ id: item.id, title: item.title, priceMnt: item.priceMnt, cover: item.images[0] ?? null, status: item.status, createdAt: item.createdAt, seller: item.seller })
+    const detail = (item: (typeof mockMarketItems)[number]) => ({ ...card(item), description: item.description, images: item.images.map((url, index) => ({ id: `${item.id}-${index}`, url })), hasPhone: Boolean(item.phone), hasEmail: Boolean(item.email), expiresAt: new Date(Date.now() + 86_400_000 * 40).toISOString(), mine: item.mine, hidden: false, reportCount: item.mine ? 0 : undefined, owner: item.mine ? { phone: item.phone, email: item.email } : undefined })
+    const found = mockMarketItems.find((item) => path.includes(item.id))
+    if (path === "/api/v1/public/market") return { items: mockMarketItems.filter((item) => item.status === "active").map(card), total: mockMarketItems.length, page: 1, pageSize: 24 }
+    if (path === "/api/v1/market/mine") return { items: mockMarketItems.filter((item) => item.mine).map(card) }
+    if (path === "/api/v1/market/reported") return { items: [] }
+    if (path === "/api/v1/market" && method === "POST") { const input = body as { title: string; description: string; priceMnt?: number | null; phone?: string; email?: string }; const id = `4444444-${Date.now()}`; mockMarketItems.unshift({ id, title: input.title, priceMnt: input.priceMnt ?? null, description: input.description, images: [], status: "active", createdAt: new Date().toISOString(), seller: seller("LegacyTester", "76561198000000003"), phone: input.phone ?? "", email: input.email ?? "", reportCount: 0, mine: true }); return { id } }
+    if (found && path.endsWith("/contact")) return { phone: found.phone, email: found.email }
+    if (found && path.endsWith("/images") && method === "POST") { found.images.push("/creator-kit/thumbnail/thumbnail-9x16-dark.png"); return { id: `${found.id}-${found.images.length}`, url: found.images[found.images.length - 1] } }
+    if (found && path.endsWith("/status") && method === "POST") { found.status = (body as { status: "active" | "sold" }).status; return { id: found.id, status: found.status } }
+    if (found && path.endsWith("/report") && method === "POST") return { reported: true }
+    if (found && method === "PUT") { Object.assign(found, { title: (body as { title: string }).title, description: (body as { description: string }).description, priceMnt: (body as { priceMnt?: number | null }).priceMnt ?? null }); return { id: found.id } }
+    if (found && method === "DELETE") { mockMarketItems = mockMarketItems.filter((item) => item !== found); return undefined }
+    if (found) return detail(found)
   }
   // The animated Creator kit: a render that "finishes" after two looks.
   if (path === "/api/v1/creators/kit-renders/config") return { enabled: true, items: [{ id: "lower-third", label: "Lower third, slides in from the left (transparent WebM)", ext: "webm", needs: "name" }, { id: "code-bar", label: "Creator code bar, slides in from the right (transparent WebM)", ext: "webm", needs: "code" }, { id: "end-card", label: "End card, 6 seconds (MP4)", ext: "mp4", needs: "either" }, { id: "code-gif", label: "Creator code sticker (looping GIF)", ext: "gif", needs: "code" }, { id: "glitch-gif", label: "Glitch logo with your name (looping GIF)", ext: "gif", needs: "name" }], dailyLimit: 6, keepHours: 24, queue: 0 }

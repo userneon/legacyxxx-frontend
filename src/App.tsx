@@ -38,6 +38,8 @@ const PenaltiesPage = lazy(() => import("@/pages/penalties").then((module) => ({
 const ExplorePage = lazy(() => import("@/pages/explore").then((module) => ({ default: module.ExplorePage })))
 const DiscordPage = lazy(() => import("@/pages/discord").then((module) => ({ default: module.DiscordPage })))
 const TeamPage = lazy(() => import("@/pages/team").then((module) => ({ default: module.TeamPage })))
+const MarketPage = lazy(() => import("@/pages/market").then((module) => ({ default: module.MarketPage })))
+const MarketListingPage = lazy(() => import("@/pages/market-listing").then((module) => ({ default: module.MarketListingPage })))
 const CreatorsPage = lazy(() => import("@/pages/creators").then((module) => ({ default: module.CreatorsPage })))
 const FeedbackPage = lazy(() => import("@/pages/feedback").then((module) => ({ default: module.FeedbackPage })))
 const ConnectPage = lazy(() => import("@/pages/connect").then((module) => ({ default: module.ConnectPage })))
@@ -167,6 +169,8 @@ export function App() {
               {isFeatureEnabled("shop") && <Route path="/shop" element={<ProtectedPage pageName="Shop"><ShopPage /></ProtectedPage>} />}
               {isFeatureEnabled("shop") && <Route path="/shop/top-up" element={<Navigate to="/wallet/top-up" replace />} />}
               {isFeatureEnabled("shop") && <Route path="/shop/:tab" element={<ProtectedPage pageName="Shop"><ShopPage /></ProtectedPage>} />}
+              {isFeatureEnabled("market") && <Route path="/market" element={<MarketPage />} />}
+              {isFeatureEnabled("market") && <Route path="/market/:id" element={<MarketListingPage />} />}
               <Route path="/penalties" element={<PenaltiesPage onProfileNavigate={handleProfileNavigate} />} />
               {/* Settings now live in Profile. */}
               <Route path="/settings" element={<Navigate to="/profile" state={{ tab: "settings" }} replace />} />

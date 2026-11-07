@@ -24,6 +24,8 @@ export const FEATURES = {
   compare: true,
   /** The Shop: frames, name colours and glows bought with LX. The server needs the cosmetics migrations. */
   shop: true,
+  /** The Market: players post what they like to sell. The server needs the market migration and a deploy. */
+  market: true,
 } as const
 
 export type FeatureName = keyof typeof FEATURES
@@ -38,6 +40,7 @@ const PAGE_FEATURES: Partial<Record<PageId, FeatureName>> = {
   skinchanger: "skinchanger",
   compare: "compare",
   shop: "shop",
+  market: "market",
   penalties: "penalties",
   leaders: "leaders",
   explore: "explore",

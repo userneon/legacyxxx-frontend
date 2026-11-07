@@ -1,6 +1,6 @@
 import type React from "react"
 import { useEffect, useState, type ComponentType } from "react"
-import { ArrowLeftRight, Gem, DoorOpen, Swords, MountainSnow, Scale, ScrollText, Telescope, Users, Lock, ChevronDown, ShieldCheck, Clapperboard } from "lucide-react"
+import { ArrowLeftRight, Gem, DoorOpen, Swords, MountainSnow, Scale, ScrollText, Telescope, Users, Lock, ChevronDown, ShieldCheck, Clapperboard, Store } from "lucide-react"
 
 import { isFeatureEnabled, isPageEnabled } from "@/lib/features"
 import { competitiveService } from "@/api"
@@ -44,6 +44,12 @@ const NAV_ITEMS: NavItem[] = enabledNav([
   { id: "penalties", label: "Penalties", icon: Scale },
   { id: "feedback", label: "Reviews", icon: ScrollText },
   { id: "explore", label: "Explore", icon: Telescope },
+])
+
+// Commerce (owner request 2026-11-07): the Shop and the Market under one row that opens like Play.
+const COMMERCE_ITEMS: NavItem[] = enabledNav([
+  { id: "shop", label: "Shop", icon: Gem },
+  { id: "market", label: "Market", icon: Store },
 ])
 
 // Community (owner request 2026-10-26): Clans, the Staff page and Creators under one row that opens like Play.
@@ -122,6 +128,8 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
   const [skinOpen, setSkinOpen] = useState(currentPage === "skinchanger")
   const communityActive = COMMUNITY_ITEMS.some((item) => item.id === currentPage)
   const [communityOpen, setCommunityOpen] = useState(communityActive)
+  const commerceActive = COMMERCE_ITEMS.some((item) => item.id === currentPage)
+  const [commerceOpen, setCommerceOpen] = useState(commerceActive)
   const skinView = useSkinchangerView()
   // Admins, Managers and Owners can ask players for a check; nobody else gets the entry.
   const staffAccess = useModerationAccess()
@@ -259,6 +267,38 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                       <div className="ml-5 flex flex-col gap-0.5 border-l border-[var(--line)] pl-2">
                         {SKIN_VIEWS.map((entry) => (
                           <button key={entry.id} type="button" onClick={() => { setSkinchangerView(entry.id); onNavigate("skinchanger") }} className={cn(rowClass, "overflow-visible px-3", isActive("skinchanger") && skinView === entry.id && activeRowClass)}>
+                            <span className="lx-nav-label flex-1 truncate text-left transition-[translate] duration-150 motion-reduce:transition-none">{entry.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            }
+            if (item.id === "shop" && COMMERCE_ITEMS.length > 0) {
+              const open = commerceOpen && !collapsed
+              return (
+                <div key={item.id} className="flex flex-col gap-0.5">
+                  <div className="relative">
+                    <RailTip label="Commerce" show={collapsed}><button
+                      type="button"
+                      // On the icon rail there's no room for the submenu, so Commerce opens the Shop directly.
+                      onClick={() => (collapsed ? onNavigate(COMMERCE_ITEMS[0].id) : setCommerceOpen((was) => !was))}
+                      aria-label="Commerce"
+                      aria-expanded={collapsed ? undefined : commerceOpen}
+                      className={cn(rowClass, collapsed && commerceActive && activeRowClass)}
+                    >
+                      <Store className="size-[18px] shrink-0" />
+                      <span className={cn(labelClass(collapsed), "flex-1")}>Commerce</span>
+                      <ChevronDown aria-hidden="true" className={cn("size-4 shrink-0 text-[var(--text-dim)] transition-[rotate,opacity] duration-300 motion-reduce:transition-none", EASE, commerceOpen ? "rotate-180" : "rotate-0", collapsed ? "opacity-0" : "opacity-100")} />
+                    </button></RailTip>
+                  </div>
+                  <div className={cn("grid transition-[grid-template-rows,opacity] duration-300 motion-reduce:transition-none", EASE, open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")} aria-hidden={!open}>
+                    <div className="overflow-hidden">
+                      <div className="ml-5 flex flex-col gap-0.5 border-l border-[var(--line)] pl-2">
+                        {COMMERCE_ITEMS.map((entry) => (
+                          <button key={entry.id} type="button" onClick={() => onNavigate(entry.id)} tabIndex={open ? 0 : -1} className={cn(rowClass, "overflow-visible px-3", isActive(entry.id) && activeRowClass)}>
                             <span className="lx-nav-label flex-1 truncate text-left transition-[translate] duration-150 motion-reduce:transition-none">{entry.label}</span>
                           </button>
                         ))}

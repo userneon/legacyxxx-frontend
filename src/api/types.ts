@@ -56,6 +56,7 @@ export type PageId =
   | "skinchanger"
   | "compare"
   | "shop"
+  | "market"
   | "wallet"
   | "checks"
   | "staff"
