@@ -9,7 +9,8 @@ import eternal from "@/assets/ranks/card-eternal.webp"
 import { ChoiceSelect } from "@/components/choice-select"
 import GlareHover from "@/components/reactbits/glare-hover"
 import { perksService, type PerkCatalogue, type PerkDays, type PerkGrant, type PerkInvoice, type PerkMine } from "@/api/perks"
-import { PERK_EMBLEM } from "@/components/perk-badge"
+import { PERK_EMBLEM, PerkBadge, PerkTitle } from "@/components/perk-badge"
+import { ProfileBanner } from "@/components/profile-banner"
 import { PerkPayDialog } from "@/components/perk-pay-dialog"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -151,7 +152,7 @@ export function ShopRanks({ catalogue }: { catalogue: PerkCatalogue }) {
             `${tier.quota} commands you pick yourself, from fun and cheat commands`,
             `Works on ${modes}`,
             "Your emblem and name beside your name in Tab, chat, Leaders and reviews",
-            "A badge, a banner and a soft light on your profile",
+            "On your profile: a badge, a banner, the rank as your title and a soft light",
             "Renew before it ends and pick your commands again",
           ]
           return (
@@ -169,6 +170,17 @@ export function ShopRanks({ catalogue }: { catalogue: PerkCatalogue }) {
                     How long
                     <ChoiceSelect<PerkDays> ariaLabel={`How long, ${tier.name}`} value={days} onChange={(next) => setLengths((current) => ({ ...current, [tier.key]: next }))} options={catalogue.days.filter((value) => tier.prices[String(value)]).map((value) => ({ value, label: `${value} days`, hint: mnt(tier.prices[String(value)] as number) }))} />
                   </div>
+                </div>
+              </div>
+              {/* What the rank puts on a profile: its banner, badge and title, shown on a sample name. */}
+              <div aria-label={`${tier.name} on a profile`} className="relative isolate h-[72px] overflow-hidden rounded-lg border border-[var(--line-soft)]">
+                <ProfileBanner fx={`perk-${tier.key}`} className="h-full" />
+                <div className="relative flex h-full items-center gap-3 px-3">
+                  <span className="flex min-w-0 flex-col gap-0.5">
+                    <span className="truncate text-[15px] font-bold text-[var(--text)]">Your name</span>
+                    <PerkTitle perk={{ tier: tier.key, name: tier.name }} />
+                  </span>
+                  <span className="ml-auto shrink-0"><PerkBadge tier={tier.key} name={tier.name} /></span>
                 </div>
               </div>
               <div className="flex items-center justify-between gap-3">

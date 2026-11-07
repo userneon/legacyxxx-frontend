@@ -1,6 +1,6 @@
 import { DiscordIcon } from "@/components/discord-strip"
 import { BoosterBadge } from "@/components/booster-badge"
-import { PerkBadge } from "@/components/perk-badge"
+import { PerkBadge, PerkTitle } from "@/components/perk-badge"
 import { ProfileConfigs } from "@/components/profile-config"
 import { ProfileBanner } from "@/components/profile-banner"
 import { PlayerNameText } from "@/components/player-name-text"
@@ -185,7 +185,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
           </div>
           {overview.banned
             ? <span title={overview.banned.reason ?? undefined} className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[3px] text-[var(--status-red)]"><Ban className="size-3.5" aria-hidden="true" />Banned</span>
-            : user.title && <span className={cn("text-[11px] font-semibold uppercase tracking-[3px]", user.title === "Genesis" ? "lx-profile-title-founder" : "text-[var(--text-dim)]")}>{user.title}</span>}
+            : user.title ? <span className={cn("text-[11px] font-semibold uppercase tracking-[3px]", user.title === "Genesis" ? "lx-profile-title-founder" : "text-[var(--text-dim)]")}>{user.title}</span> : overview.perk && <PerkTitle perk={overview.perk} />}
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2">
           <RoleBadge role={user.role} />

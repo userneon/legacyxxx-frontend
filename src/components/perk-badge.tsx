@@ -41,3 +41,9 @@ export function PerkMark({ perk, compact = false, size = 20 }: { perk?: PerkLook
     </span>
   )
 }
+
+/** The rank's name as a title under a player's name (the profile's title line, the Shop's preview): React Bits' Shiny Text in the tier's own colours. */
+export function PerkTitle({ perk }: { perk: PerkLook }) {
+  const tone = SHINE[perk.tier] ?? SHINE.tier1
+  return <ShinyText text={perk.name.toUpperCase()} color={tone.color} shineColor={tone.shine} speed={3.2} delay={0.8} glow={0.5} className="text-[11px] font-semibold tracking-[3px]" />
+}
