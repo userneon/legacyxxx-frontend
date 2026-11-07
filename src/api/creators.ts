@@ -60,6 +60,7 @@ export interface Creator {
   frame: string | null
   frameLook?: import("@/lib/frame-look").FrameLook | null
   nameStyle: unknown
+  perk?: { tier: string; name: string } | null
 }
 
 export interface CreatorInput {

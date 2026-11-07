@@ -12,6 +12,7 @@ export interface ChatMessage {
     frame: string | null
     frameLook?: import("@/lib/frame-look").FrameLook | null
     nameStyle: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
+    perk?: { tier: string; name: string } | null
     staffRole: "OWNER" | "MANAGER" | "ADMIN" | null
   }
 }

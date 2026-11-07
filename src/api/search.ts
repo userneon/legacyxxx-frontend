@@ -37,6 +37,7 @@ function normalizePlayer(raw: Record<string, unknown>): CommunityPlayer {
     frame: text(raw.frame) ?? null,
     frameLook: (raw.frameLook as CommunityPlayer["frameLook"]) ?? null,
     nameStyle: (raw.nameStyle as CommunityPlayer["nameStyle"]) ?? null,
+    perk: (raw.perk as CommunityPlayer["perk"]) ?? null,
   }
 }
 

@@ -1,4 +1,5 @@
 import { clanTagProps } from "@/lib/cosmetics"
+import { PerkMark } from "@/components/perk-badge"
 import { BoosterLadder } from "@/pages/leaders-boosters"
 import { PlayerNameText } from "@/components/player-name-text"
 import { ClanLadder } from "@/pages/leaders-clans"
@@ -102,6 +103,7 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
         <span className="flex min-w-0 flex-col gap-1.5">
           <span className="flex min-w-0 items-center gap-1.5">
             <span {...nameProps(player.name_style, cn("truncate font-semibold text-[var(--text)]", first ? "text-base" : "text-sm"))} title={player.username}><PlayerNameText name={player.username} /></span>
+            <PerkMark perk={player.perk} />
             {player.clan_tag && <span {...clanTagProps(player.clan_look, "shrink-0 text-[11px] font-semibold text-[var(--text-dim)]")}>[{player.clan_tag}]</span>}
             <DiscordLinkedMark linked={player.discord_linked} />
           </span>
@@ -167,6 +169,7 @@ function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: Competiti
           />
         </span>
         <span {...nameProps(you ? null : player.name_style, "min-w-0 truncate text-[13px] font-medium text-[var(--text)]")} title={player.username}>{you ? "You" : <PlayerNameText name={player.username} />}</span>
+        {!you && <PerkMark perk={player.perk} compact />}
         {player.clan_tag && <span {...clanTagProps(player.clan_look, "shrink-0 text-[11px] font-semibold text-[var(--text-dim)]")}>[{player.clan_tag}]</span>}
         <DiscordLinkedMark linked={player.discord_linked} />
       </span>

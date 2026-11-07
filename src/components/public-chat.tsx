@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
+import { PerkMark } from "@/components/perk-badge"
 import { MessageCircle, Send, Trash2, X } from "lucide-react"
 import { toast } from "sonner"
 
@@ -147,6 +148,7 @@ export function PublicChat() {
                   <div className="min-w-0 flex-1">
                     <p className="flex items-center gap-1.5 text-xs">
                       <span {...nameProps(message.author.nameStyle, "truncate font-semibold text-[var(--text)]")} title={message.author.name}>{message.author.name}</span>
+                      <PerkMark perk={message.author.perk} compact size={16} />
                       {message.author.staffRole && <span className={cn("shrink-0 rounded-full border px-1.5 text-[10px] font-semibold leading-[16px]", message.author.staffRole === "OWNER" ? "border-[var(--brand)]/45 bg-[var(--brand)]/12 text-[var(--brand-bright)]" : "border-[var(--line-strong)] text-[var(--text-2)]")}>{message.author.staffRole === "OWNER" ? "Owner" : message.author.staffRole === "MANAGER" ? "Manager" : "Admin"}</span>}
                       <span className="shrink-0 text-[11px] text-[var(--text-faint)]">{formatRelativeTime(new Date(message.createdAt))}</span>
                       {mayRemove && <button type="button" onClick={() => void remove(message)} aria-label={`Remove the message by ${message.author.name}`} title="Remove" className="ml-auto grid size-6 shrink-0 place-items-center rounded-md text-[var(--text-faint)] opacity-0 transition-[opacity,color] hover:text-[var(--status-red)] focus-visible:opacity-100 group-hover/msg:opacity-100 max-sm:opacity-100"><Trash2 className="size-3.5" /></button>}

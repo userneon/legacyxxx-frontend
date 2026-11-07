@@ -3,6 +3,7 @@
  * MatchZy map. Detail stats recorded before they were kept arrive as null and render as "—".
  */
 import { useEffect, useState } from "react"
+import { PerkMark } from "@/components/perk-badge"
 import { useNavigate } from "react-router-dom"
 import { Bomb, Clock3, Flag, Scissors, Skull, Circle, Zap, Target, Medal, Award } from "lucide-react"
 
@@ -91,6 +92,7 @@ function Scoreboard({ team, highlightSteamId, onPlayer }: { team: MatchDetailTea
                     >
                       <PlayerAvatar avatar={player.avatar} name={player.username} frame={player.frame} frameLook={player.frameLook} className={cn("size-7 shrink-0 rounded-md text-[10px]", highlighted && !player.frame && "ring-2 ring-white/60")} />
                       <span {...nameProps(player.nameStyle, "truncate font-medium group-enabled:group-hover:underline")}>{player.username}</span>
+                      <PerkMark perk={player.perk} compact size={16} />
                     </button>
                   </td>
                   <td className="px-2 py-2 text-right font-semibold">{player.kills}</td>

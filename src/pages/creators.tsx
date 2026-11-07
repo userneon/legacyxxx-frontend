@@ -1,5 +1,6 @@
 /** LEGACY-X Creators: the community's content creators, Main Content Creators first, each with their channels. */
 import { BrandIcon } from "@/components/brand-icons"
+import { PerkMark } from "@/components/perk-badge"
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { Clapperboard, ExternalLink, RotateCcw, Search, Star, X } from "lucide-react"
@@ -86,6 +87,7 @@ function CreatorHead({ creator, size }: { creator: Creator; size: number }) {
       <FramedAvatar avatar={creator.avatar ?? undefined} name={creator.username} frame={creator.frame} look={creator.frameLook} size={size} />
       <span className="flex min-w-0 flex-col gap-1">
         <span {...nameProps(creator.nameStyle as NameLook | null, cn("truncate font-bold text-[var(--text)] underline-offset-4 group-hover:underline", size > 60 ? "text-[22px] leading-tight" : "text-[15px]"))} title={creator.username}>{creator.username}</span>
+        <PerkMark perk={creator.perk} compact />
         {creator.rank && (
           <span className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
             <CompetitiveRankBadge rankId={creator.rank.id} rankName={creator.rank.name} imageKey={creator.rank.imageKey} size={16} />

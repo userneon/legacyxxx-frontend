@@ -1,4 +1,5 @@
 import { DetailSheetContent } from "@/components/detail-sheet"
+import { PerkMark } from "@/components/perk-badge"
 import { Sheet, SheetDescription, SheetTitle } from "@/components/ui/sheet"
 import { ClanLinksEditor, ClanLinksRow, clanLinkFields, clanLinksFromFields } from "@/components/clan-links"
 import { Reveal } from "@/components/reveal"
@@ -649,6 +650,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                             <PlayerAvatar avatar={member.avatar} name={member.name} className="size-8 shrink-0 rounded-[9px] text-xs" />
                             <span className="flex min-w-0 flex-col gap-0.5">
                               <span {...nameProps(member.nameStyle ? { ...member.nameStyle, glow: null, glowFx: null } : null, "min-w-0 truncate text-[13px] font-medium leading-tight")}>{member.name}{member.id === user?.id ? " (you)" : ""}</span>
+                              <PerkMark perk={member.perk} compact size={18} />
                               <RosterSub joinedAt={member.joinedAt} exp={member.stats?.currentExp ?? null} total={totalExp} />
                             </span>
                             {ranked

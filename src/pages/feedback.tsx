@@ -1,4 +1,5 @@
 import { PageBar, PageBarEnd, PageTabs } from "@/components/page-tabs"
+import { PerkMark } from "@/components/perk-badge"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { Clock, CornerDownRight, Heart, Laugh, LoaderCircle, MessageSquarePlus, Pencil, PenLine, Reply, RotateCcw, ShieldCheck, Star, ThumbsUp, Trash2 } from "lucide-react"
 
@@ -164,6 +165,7 @@ function ReviewCard({ entry, own, fresh, index, onOpenProfile, onEdit, onChanged
       <span className="flex min-w-0 flex-1 flex-col gap-1.5 text-left">
         <span className="flex min-w-0 items-center gap-2">
           <span {...nameProps(entry.nameStyle, "truncate text-[13px] font-medium text-[var(--text)]")}>{entry.name}</span>
+          <PerkMark perk={entry.perk} />
           {entry.steamId && (
             <span className="flex shrink-0 items-center gap-1 text-[11px] text-[var(--status-green)]">
               <ShieldCheck className="size-3" />

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { PerkMark } from "@/components/perk-badge"
 import { ArrowUpRight, LoaderCircle, RotateCcw, Search, Sparkles, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -83,6 +84,7 @@ function PlayerCard({ player, match, index, onOpen }: { player: CommunityPlayer;
         />
         <span className="flex min-w-0 flex-1 flex-col gap-1">
           <span {...nameProps(player.nameStyle, "truncate text-sm font-medium text-[var(--text)]")} title={player.name}><Highlight text={player.name} match={match} /></span>
+          <PerkMark perk={player.perk} compact size={18} />
           <span className="truncate text-xs text-[var(--text-dim)]">
             {player.lastPlayed ? <>Played <RelativeTime value={player.lastPlayed} /></> : "No matches yet"}
           </span>
@@ -212,6 +214,7 @@ export function ExplorePage({ onProfileNavigate }: { onProfileNavigate: (userId:
                     >
                       <PlayerAvatar avatar={player.avatar} name={player.username} frame={player.frame} frameLook={player.frame_look} className="size-7 rounded-full text-[10px]" />
                       <span {...nameProps(player.name_style)}>{player.username}</span>
+                      <PerkMark perk={player.perk} compact size={18} />
                     </button>
                   ))}
                 </div>
