@@ -69,6 +69,8 @@ export type NadeSlotKind = "grenade_trail" | "grenade_light"
 export type NadeSlots = Partial<Record<Nade, Partial<Record<NadeSlotKind, string | null>>>>
 
 export interface Cosmetics {
+  /** True for a QA tester: everything is theirs and the ranks switch on for free. */
+  qa?: boolean
   /** How many players there are (for "owned by" shares). */
   players?: number | null
   equippedFrame: string | null

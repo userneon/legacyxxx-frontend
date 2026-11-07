@@ -812,7 +812,7 @@ export function ShopPage() {
         {tab === "featured" && (perks ? perks.tiers.length > 0 : true) && (
           <section aria-label="Ranks" className="mb-6 flex flex-col gap-2.5">
             <div className="lx-shop-heading">Ranks</div>
-            {perks ? <ShopRanks catalogue={perks} /> : perksFailed ? (
+            {perks ? <ShopRanks catalogue={perks} qa={data?.qa === true} /> : perksFailed ? (
               <p className="flex items-center gap-3 text-[13px] text-[var(--text-dim)]">Could not load the ranks.<button type="button" onClick={retryPerks} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>
             ) : (
               <ul className="grid gap-3 md:grid-cols-3" aria-hidden="true" data-loading={perksLoading}>{[0, 1, 2].map((n) => <li key={n}><Skeleton className="h-[318px] rounded-xl" /></li>)}</ul>

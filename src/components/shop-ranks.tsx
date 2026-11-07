@@ -88,7 +88,7 @@ function PerkPicker({ grant, catalogue, open, onClose, onSaved }: { grant: PerkG
 }
 
 /** Shop → Ranks: three in-game ranks for 14, 30 or 90 days, paid straight through QPay (Wire), each with commands the buyer picks. */
-export function ShopRanks({ catalogue }: { catalogue: PerkCatalogue }) {
+export function ShopRanks({ catalogue, qa = false }: { catalogue: PerkCatalogue; qa?: boolean }) {
   const { user } = useAuth()
   const [params, setParams] = useSearchParams()
   const mine = useApiQuery<PerkMine>((signal) => perksService.mine({ signal }), { enabled: Boolean(user), queryKey: `perk-mine:${user?.id ?? "none"}` })
@@ -118,6 +118,11 @@ export function ShopRanks({ catalogue }: { catalogue: PerkCatalogue }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [returned, user?.id])
 
+  // A QA tester switches a rank on for free to try it (owner request 2026-11-07); no payment, the picker opens at once.
+  const getFree = async (tierKey: string) => {
+    setBusy(tierKey)
+    try { await perksService.qaActivate(tierKey); toast.success("Rank switched on for testing."); mine.refetch(); setPicker(true) } catch (caught) { toast.error((caught as { message?: string }).message ?? "That did not work") } finally { setBusy(null) }
+  }
   const buy = async (tierKey: string, days: PerkDays) => {
     if (!user) { toast.message("Sign in to buy a rank."); return }
     setBusy(tierKey)
@@ -182,9 +187,9 @@ export function ShopRanks({ catalogue }: { catalogue: PerkCatalogue }) {
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span className="lx-shop-price">{price ? mnt(price) : "Not for sale"}</span>
-                <button type="button" disabled={!price || busy !== null || otherRunning || !catalogue.available} onClick={() => void buy(tier.key, days)} className="lx-primary-button inline-flex h-7 items-center justify-center rounded-lg px-3 text-[13px] font-semibold disabled:opacity-50">{busy === tier.key ? "Opening…" : mineHere ? "Renew" : "Buy"}</button>
+                <button type="button" disabled={(!qa && (!price || !catalogue.available)) || busy !== null || (otherRunning && !qa)} onClick={() => void (qa ? getFree(tier.key) : buy(tier.key, days))} className="lx-primary-button inline-flex h-7 items-center justify-center rounded-lg px-3 text-[13px] font-semibold disabled:opacity-50">{busy === tier.key ? "Opening…" : qa ? (mineHere ? "Picks" : "Get free") : mineHere ? "Renew" : "Buy"}</button>
               </div>
-              {otherRunning && <span className="text-[11px] text-[var(--text-dim)]">Another rank is running. It must end first.</span>}
+              {otherRunning && !qa && <span className="text-[11px] text-[var(--text-dim)]">Another rank is running. It must end first.</span>}
               <details open={benefitsOpen} onToggle={(event) => setBenefitsOpen(event.currentTarget.open)} className="group rounded-lg border border-[var(--line-soft)] px-3 py-2 text-[12px] text-[var(--text-muted)]">
                 <summary className="flex cursor-pointer list-none items-center justify-between text-[var(--text-2)] [&::-webkit-details-marker]:hidden">Benefits and how it looks<ChevronDown className="size-3.5 transition-transform group-open:rotate-180" aria-hidden="true" /></summary>
                 <div className="mt-2">

@@ -342,3 +342,5 @@ QA on any staff row (owner request 2026-11-07, "the Owner is already on the staf
 
 Deleting from the staff list (owner request 2026-11-07, "make it possible to delete from the staff list"): every card in Staff → Team has a bin button; the first press asks "Delete for good?" (red, for 4 s), the second deletes the record (`DELETE /staffpanel/staff/:id`, Owner only; the last active Owner cannot be deleted). Their past actions stay in the audit log with no name on them, their QA items are taken back, and the player can be added again afterwards. Suspend and Remove (the "Removed" card) are still there for a pause.
 
+QA and the ranks (owner request 2026-11-07, "QA gets everything free, ranks too"): for a QA tester the Buy button on each Shop rank card says **Get free** (and **Picks** on the one they hold): it switches that rank on without paying (`POST /perks/qa-activate`, a year long, `perk_grants.qa`), so a tester can try Prestige, Imperial and Eternal, change between them and pick their commands. `GET /cosmetics` carries `qa` for this. Leaving QA takes the rank back; a rank somebody bought with money is never swapped or removed.
+

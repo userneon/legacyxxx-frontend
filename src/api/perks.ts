@@ -15,6 +15,8 @@ export const perksService = {
   mine: (options?: CallOptions) => get<PerkMine>("/api/v1/perks/me", undefined, options),
   checkout: (tier: string, days: PerkDays) => post<PerkInvoice>("/api/v1/perks/checkout", { tier, days }),
   order: (id: string, options?: CallOptions) => get<PerkOrder>(`/api/v1/perks/orders/${encodeURIComponent(id)}`, undefined, options),
+  /** A QA tester switches a rank on for free. */
+  qaActivate: (tier: string) => post<{ grant: PerkGrant | null }>("/api/v1/perks/qa-activate", { tier }),
   saveCommands: (commands: string[]) => put<{ grant: PerkGrant }>("/api/v1/perks/me/commands", { commands }),
 }
 
