@@ -54,6 +54,9 @@ const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "clan", label: "Clan" },
 ]
 
+/** What kind of thing a tile is, in one word, so a name like "Planet Orbit" or "Drift" says what it is before it is opened. */
+const KIND_WORD: Record<string, string> = { frame: "Frame", background: "Background", name_color: "Name", name_glow: "Name glow", grenade_trail: "Trail", smoke_color: "Smoke", model_knife: "Knife", model_deagle: "Deagle", model_ak47: "AK-47" }
+
 /** The Shop's top row is grouped: what you wear on your profile (frames, backgrounds, name, grenades) sits under one Profile tab with its own row below. */
 const PROFILE_TABS: ShopTab[] = ["frame", "background", "name", "smoke_color", "model"]
 const TOP_TABS: Array<{ value: "featured" | "profile" | "clan"; label: string }> = [
@@ -407,6 +410,7 @@ export function ShopPage() {
                 {/* The rarity as a thin line along the bottom, never a surface. */}
                 <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: rarityOf(item.rarity).color }} />
                 <div className="relative">
+                  {KIND_WORD[item.kind] && <span aria-hidden="true" className="absolute left-2 top-2 z-[1] rounded-full border border-[var(--line)] bg-[var(--card-surface)]/80 px-1.5 py-px text-[9px] font-semibold uppercase tracking-[0.8px] text-[var(--text-dim)]">{KIND_WORD[item.kind]}</span>}
                   <Spot accent={accentOf(shown)} height={dense ? 96 : 124} fill={shown.kind === "background"}><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={dense ? 56 : 70} /></Spot>
                 </div>
                 <div className="flex flex-col items-start gap-1 px-3 pb-2.5 pt-0.5">
@@ -729,6 +733,12 @@ export function ShopPage() {
       )}
       {/* Not a scroller itself: the page panel around it scrolls, and a sticky rail sticks to the nearest scroller (an inner overflow-y-auto that never scrolled kept it from sticking). */}
       <div className="lx-glass-page min-h-0 flex-1 px-6 py-5 max-md:px-4">
+        {tab === "featured" && (
+          <p className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] leading-relaxed text-[var(--text-dim)]">
+            <span className="inline-flex items-center gap-1">Cosmetics cost <LxMark size={13} /> LX. Ranks are paid in ₮ with QPay or any bank app.</span>
+            <button type="button" onClick={() => navigate("/wallet/top-up")} className="font-semibold text-[var(--text-2)] underline-offset-2 hover:text-[var(--text)] hover:underline">Top up LX</button>
+          </p>
+        )}
         {tab === "featured" && (perks ? perks.tiers.length > 0 : true) && (
           <section aria-label="Ranks" className="mb-6 flex flex-col gap-2.5">
             <div className="lx-shop-heading">Ranks</div>

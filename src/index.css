@@ -2159,7 +2159,7 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
   --banner-b: #26262b; /* palette-exempt */
   --banner-line: #d4d4d8; /* palette-exempt: silver */
   --banner-glow: #e5e5e5; /* palette-exempt */
-  position: relative;
+  /* No `position` here: an unlayered rule beats Tailwind's `absolute`, which pulled the banner into the flow and pushed the content below it out of sight. */
   background:
     radial-gradient(ellipse 60% 120% at 82% 110%, color-mix(in oklab, var(--banner-glow) 24%, transparent), transparent 70%),
     linear-gradient(118deg, transparent 28%, color-mix(in oklab, var(--banner-line) 20%, transparent) 40%, transparent 52%),

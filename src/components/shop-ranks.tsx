@@ -142,7 +142,7 @@ export function ShopRanks({ catalogue }: { catalogue: PerkCatalogue }) {
         </section>
       )}
 
-      <ul className="grid gap-3 md:grid-cols-3">
+      <ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 scrollbar-hidden md:mx-0 md:grid md:snap-none md:grid-cols-3 md:overflow-visible md:px-0 [&>li]:w-[min(86vw,330px)] [&>li]:shrink-0 [&>li]:snap-start md:[&>li]:w-auto">
         {catalogue.tiers.map((tier, tierIndex) => {
           const days = daysOf(tier)
           const price = tier.prices[String(days)]
