@@ -464,24 +464,27 @@ body::before {
 /* Shop (owner request 2026-10-24): a violet look for the whole Shop. A tile lifts and lights up under the pointer, the picked one carries the brand border and glow,
    the preview stage is an add-box, and a section heading has a short violet bar. Primary buttons stay white. */
 .lx-shop-tile {
+  /* Soft glass (owner request 2026-11-07, "glass, blurred, soft"): a faint see-through fill that blurs what moves behind it, lit in the item's own colour (--acc). */
   position: relative;
-  border: 1px solid var(--line-soft);
+  border: 1px solid rgb(255 255 255 / 0.07);
   background:
-    radial-gradient(90% 60% at 50% 0%, color-mix(in oklch, var(--brand) 9%, transparent), transparent 70%),
-    var(--card-surface);
+    radial-gradient(90% 65% at 50% 30%, color-mix(in oklch, var(--acc, var(--brand)) 16%, transparent), transparent 72%),
+    rgb(255 255 255 / 0.025);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
   transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
 .lx-shop-tile:hover {
   transform: translateY(-2px);
-  border-color: color-mix(in oklch, var(--brand) 45%, var(--line));
-  box-shadow: 0 14px 34px -20px color-mix(in oklch, var(--brand) 70%, transparent);
+  border-color: color-mix(in oklch, var(--acc, var(--brand)) 45%, rgb(255 255 255 / 0.1));
+  box-shadow: 0 14px 34px -20px color-mix(in oklch, var(--acc, var(--brand)) 70%, transparent);
 }
 .lx-shop-tile[aria-pressed="true"],
 .lx-shop-tile[data-worn="true"] {
   border-color: var(--brand);
   background:
     radial-gradient(100% 70% at 50% 0%, color-mix(in oklch, var(--brand) 20%, transparent), transparent 72%),
-    var(--card-surface);
+    rgb(255 255 255 / 0.035);
   box-shadow: 0 0 0 1px color-mix(in oklch, var(--brand) 40%, transparent), 0 18px 44px -20px color-mix(in oklch, var(--brand) 75%, transparent);
 }
 .lx-shop-tile[aria-pressed="true"]::before,
@@ -494,6 +497,23 @@ body::before {
   height: 1px;
   pointer-events: none;
   background: linear-gradient(90deg, transparent, var(--brand-bright), transparent);
+}
+/* The ring a frame shows in the Shop (owner request 2026-11-07, "I like the frames in the mock"): a thin ring in the frame's colour with a soft glow round the picture. */
+.lx-shop-ring {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  padding: 3px;
+  border: 1.5px solid var(--acc);
+  box-shadow: 0 0 16px color-mix(in oklch, var(--acc) 55%, transparent), inset 0 0 12px color-mix(in oklch, var(--acc) 30%, transparent);
+}
+/* The Shop's boxes (rank cards, outfit, preview): the same soft glass. */
+.lx-shop-glass {
+  border-color: rgb(255 255 255 / 0.08);
+  background-color: rgb(255 255 255 / 0.03);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
 }
 .lx-shop-price {
   display: inline-flex;
@@ -856,7 +876,8 @@ body::before {
    Page transition — fade in on mount
    ======================================== */
 .page-enter {
-  animation: page-flow-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* backwards, not both: once it has played nothing of it stays on the page (a held opacity or transform cuts off every backdrop blur inside). */
+  animation: page-flow-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
 /* The outgoing page fades up and out before the next one flows in (App.tsx, 160ms). */
@@ -883,7 +904,7 @@ body::before {
 /* Route content: sections arrive in a fast, readable sequence after navigation. */
 @media all {
   .page-enter > * > * {
-    animation: page-section-stagger-in 250ms cubic-bezier(0.23, 1, 0.32, 1) both;
+    animation: page-section-stagger-in 250ms cubic-bezier(0.23, 1, 0.32, 1) backwards;
   }
 
   .page-enter > * > :nth-child(2) { animation-delay: 32ms; }

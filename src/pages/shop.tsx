@@ -71,7 +71,11 @@ type ShopItem = FrameItem & { kind: ShopKind }
 /** What the item looks like: a frame around your picture, or your name painted with it. */
 function ItemArt({ item, avatar, username, size, orb }: { item: ShopItem; avatar?: string; username: string; size: number; orb?: FrameLook | null }) {
   if (item.kind === "background") return <BgThumb id={item.id} fill />
-  if (item.kind === "frame") return <FramedAvatar avatar={avatar} name={username} frame={item.id} look={orb} live={size >= 120} size={size} />
+  if (item.kind === "frame") {
+    const pic = <FramedAvatar avatar={avatar} name={username} frame={item.id} look={orb} live={size >= 120} size={size} />
+    // The Crystal Orb draws its own frame; every other frame shows as a ring in its colour.
+    return item.id === ORB_ID ? pic : <span className="lx-shop-ring" style={{ "--acc": frameAccent(item.id) } as React.CSSProperties}>{pic}</span>
+  }
   if (item.kind === "smoke_color") return <SmokePuff color={item.color} color2={item.color2} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "grenade_trail") return <GrenadeTrail color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "flash_effect") return <FlashEffect color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
@@ -412,6 +416,7 @@ export function ShopPage() {
                 onClick={() => choose(item)}
                 aria-pressed={active}
                 aria-label={item.name}
+                style={{ "--acc": accentOf(shown) } as React.CSSProperties}
                 className="lx-shop-tile relative flex w-full flex-col overflow-hidden rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60"
               >
                 {/* The rarity as a thin line along the bottom, never a surface. */}
@@ -467,7 +472,7 @@ export function ShopPage() {
   const outfitPanel = trayItems.length > 0 ? (
     <>
       <div className="fixed inset-x-0 bottom-3 z-30 flex justify-center px-4 max-md:bottom-[72px]">
-        <button type="button" onClick={() => setOutfitOpen(true)} aria-label="Open your outfit" className="lx-sweep flex items-center gap-4 rounded-xl border border-[var(--brand)]/60 bg-[var(--panel)] px-4 py-2.5 text-[13px] shadow-[0_10px_40px_rgba(0,0,0,0.6)] transition-colors hover:border-[var(--brand)]">
+        <button type="button" onClick={() => setOutfitOpen(true)} aria-label="Open your outfit" className="lx-sweep lx-shop-glass flex items-center gap-4 rounded-xl border border-[var(--brand)]/60 bg-[var(--panel)]/70 px-4 py-2.5 text-[13px] shadow-[0_10px_40px_rgba(0,0,0,0.6)] transition-colors hover:border-[var(--brand)]">
           <ShoppingBag className="size-4 text-[var(--brand-bright)]" aria-hidden="true" />
           <span className="font-semibold text-[var(--text)]">Outfit · {trayItems.length} {trayItems.length === 1 ? "item" : "items"}</span>
           <span className="inline-flex items-center gap-1 font-semibold text-[var(--text)]"><LxMark size={13} />{outfit.total.toLocaleString()}</span>
@@ -481,7 +486,7 @@ export function ShopPage() {
           </div>
           <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-3.5">
             {trayItems.map((item) => (
-              <li key={item.id} className="grid grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-3 rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)] p-2">
+              <li key={item.id} className="lx-shop-glass grid grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-3 rounded-[10px] border p-2">
                 <Spot accent={accentOf(item)} height={64}><ItemArt item={item} avatar={user?.avatar} username={username} orb={data?.frameLook} size={34} /></Spot>
                 <div className="flex min-w-0 flex-col gap-1.5">
                   <span className="truncate text-[13px] font-semibold text-[var(--text)]">{item.name}</span>
@@ -741,7 +746,7 @@ export function ShopPage() {
    * Phones keep the bottom sheet.
    */
   const spotlight = selected ? (
-    <div className="lx-add-box sticky top-0 z-10 hidden overflow-hidden rounded-[14px] border bg-[var(--panel)] lg:block">
+    <div className="lx-add-box lx-shop-glass sticky top-0 z-10 hidden overflow-hidden rounded-[14px] border bg-[var(--panel)]/80 lg:block">
       <div className="flex items-stretch">
       <div className={cn("relative flex w-[240px] shrink-0 items-center justify-center border-r border-[var(--line-soft)] [&>div]:w-full", selected.kind === "background" ? "min-h-[150px]" : "px-3")}>{previewStage(true)}</div>
       {tab === "name" && combo.name_color && combo.name_glow

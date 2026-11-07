@@ -162,7 +162,7 @@ export function ShopRanks({ catalogue }: { catalogue: PerkCatalogue }) {
             "Renew before it ends and pick your commands again",
           ]
           return (
-            <li key={tier.key} style={TIER_FADE[tier.key] ? { backgroundImage: `linear-gradient(90deg, color-mix(in srgb, ${TIER_FADE[tier.key]} 30%, transparent), color-mix(in srgb, ${TIER_FADE[tier.key]} 8%, transparent) 55%, transparent)`, borderColor: mineHere ? undefined : `color-mix(in srgb, ${TIER_FADE[tier.key]} 38%, var(--glass-line))` } : undefined} className={cn("flex min-w-0 flex-col gap-2 rounded-xl border bg-[var(--glass-fill)] p-2", mineHere && "border-[var(--brand)]")}>
+            <li key={tier.key} style={TIER_FADE[tier.key] ? { backgroundImage: `linear-gradient(90deg, color-mix(in srgb, ${TIER_FADE[tier.key]} 30%, transparent), color-mix(in srgb, ${TIER_FADE[tier.key]} 8%, transparent) 55%, transparent)`, borderColor: mineHere ? undefined : `color-mix(in srgb, ${TIER_FADE[tier.key]} 38%, var(--glass-line))` } : undefined} className={cn("lx-shop-glass flex min-w-0 flex-col gap-2 rounded-xl border p-2", mineHere && "border-[var(--brand)]")}>
               <div className="flex items-start gap-3">
                 {TIER_ART[tier.key] ? (
                   // React Bits' Glare Hover, looping: a band of light keeps crossing the card (and its gold rim), clipped to the card's own shape; it follows reduced motion.
