@@ -1,4 +1,4 @@
-"""Cuts the owner's sheet of 18 rank emblems (3 rows of 6, transparent PNG) into public/ranks/rank-01..18.webp (256px) and calms the translucent face colour.
+"""Cuts the owner's sheet of 18 hollow rank emblems (3 rows of 6, transparent PNG with a noisy halo) into public/ranks/rank-01..18.webp (256px): keeps the solid body, drops the halo.
 
     python3 scripts/make-rank-emblems.py <sheet.png>      # needs Pillow, numpy, scipy
 """
@@ -7,50 +7,33 @@ from PIL import Image
 import numpy as np
 from scipy import ndimage as ndi
 im=Image.open(sys.argv[1]).convert('RGBA')
-A=np.array(im);a=A[...,3]
-m=a>200
-m=ndi.binary_opening(m,iterations=3)
-m=ndi.binary_closing(m,iterations=4)
-m=ndi.binary_fill_holes(m)
-lab,n=ndi.label(m)
-sizes=ndi.sum(m,lab,range(1,n+1))
-order=np.argsort(sizes)[::-1][:24]
+A=np.array(im);a=A[...,3].astype(float)
+
+core=a>=190
+core=ndi.binary_opening(core,iterations=1)
+lab,n=ndi.label(ndi.binary_closing(core,iterations=3))
+sizes=ndi.sum(core,lab,range(1,n+1))
+order=np.argsort(sizes)[::-1][:18]
 
 objs=ndi.find_objects(lab)
-items=[]
-for i in order:
-    sl=objs[i];items.append((i+1,sl,sizes[i]))
-
-import os
-A=A.copy()
-low=(a<225)
-for i,sl,sz in items:
-    reg=(lab==i)&low
-    if reg.sum()<50: continue
-    med=np.median(A[...,:3][reg],axis=0)
-    w=reg.astype(float)
-    bl=np.zeros(A[...,:3].shape)
-    for c in range(3):
-        bl[...,c]=ndi.gaussian_filter(A[...,c]*w,14)/np.maximum(ndi.gaussian_filter(w,14),1e-3)
-    for c in range(3):
-        v=0.8*med[c]+0.2*bl[...,c]
-        A[...,c]=np.where(reg,v,A[...,c]).astype(np.uint8)
-cells=[]
-for i,sl,s_ in items: cells.append((i,sl))
-cells.sort(key=lambda c:(0 if c[1][0].start<200 else 1 if c[1][0].start<450 else 2, c[1][1].start))
-out='public/ranks'
-S=256
+cells=[(i+1,objs[i]) for i in order]
+cells.sort(key=lambda c:(0 if c[1][0].start<280 else 1 if c[1][0].start<560 else 2, c[1][1].start))
+al=np.clip((a-170)/70,0,1)
+S=256;out='public/ranks'
 for k,(i,sl) in enumerate(cells,1):
-    mm=ndi.binary_erosion(lab==i,iterations=1)
-    al=ndi.gaussian_filter(mm.astype(float),0.8)
-    al=np.clip(al*1.0,0,1)
-    y0,y1,x0,x1=sl[0].start,sl[0].stop,sl[1].start,sl[1].stop
-    p=8
-    rgb=A[y0-p:y1+p,x0-p:x1+p,:3]
-    alc=(al[y0-p:y1+p,x0-p:x1+p]*255).astype(np.uint8)
-    tile=Image.fromarray(np.dstack([rgb,alc]),'RGBA')
-    w,h=tile.size;sc=(S-16)/max(w,h)
-    tile=tile.resize((round(w*sc),round(h*sc)),Image.LANCZOS)
-    can=Image.new('RGBA',(S,S),(0,0,0,0));can.paste(tile,((S-tile.width)//2,(S-tile.height)//2))
+    reg=ndi.binary_dilation(lab==i,iterations=6)  # keep only near this emblem's body
+    # also keep inner parts (stars) that are separate comps: use bounding box region of the emblem's hull
+    y0,y1,x0,x1=sl[0].start-4,sl[0].stop+4,sl[1].start-4,sl[1].stop+4
+    box=np.zeros(a.shape,bool);box[y0:y1,x0:x1]=True
+    m=al*(box)
+    # drop specks: components of core inside the box smaller than 60px
+    c2=(m>0.5)
+    l2,n2=ndi.label(c2);sz=ndi.sum(c2,l2,range(1,n2+1))
+    keep=np.isin(l2,[j+1 for j,s in enumerate(sz) if s>=60])
+    keep=ndi.binary_dilation(keep,iterations=2)
+    m=m*keep
+    rgb=A[y0:y1,x0:x1,:3];alc=(m[y0:y1,x0:x1]*255).astype(np.uint8)
+    t=Image.fromarray(np.dstack([rgb,alc]),'RGBA');w,h=t.size;sc=(S-16)/max(w,h)
+    t=t.resize((round(w*sc),round(h*sc)),Image.LANCZOS)
+    can=Image.new('RGBA',(S,S),(0,0,0,0));can.paste(t,((S-t.width)//2,(S-t.height)//2))
     can.save(f'{out}/rank-{k:02d}.webp',quality=92,method=6)
-for k in range(18):
