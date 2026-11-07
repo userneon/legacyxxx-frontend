@@ -17,3 +17,23 @@ export const perksService = {
   order: (id: string, options?: CallOptions) => get<PerkOrder>(`/api/v1/perks/orders/${encodeURIComponent(id)}`, undefined, options),
   saveCommands: (commands: string[]) => put<{ grant: PerkGrant }>("/api/v1/perks/me/commands", { commands }),
 }
+
+// The catalogue is kept for the session and asked again every time the Shop opens, so the Ranks show at once on a second visit and a slow answer never leaves a gap.
+let remembered: PerkCatalogue | null = null
+const STORAGE_KEY = "lx-perk-catalogue"
+
+export function cachedPerkCatalogue(): PerkCatalogue | null {
+  if (remembered) return remembered
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY)
+    if (raw) remembered = JSON.parse(raw) as PerkCatalogue
+  } catch { /* no storage: the page just asks */ }
+  return remembered
+}
+
+export async function loadPerkCatalogue(options?: CallOptions): Promise<PerkCatalogue> {
+  const fresh = await perksService.catalogue(options)
+  remembered = fresh
+  try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(fresh)) } catch { /* ignore */ }
+  return fresh
+}

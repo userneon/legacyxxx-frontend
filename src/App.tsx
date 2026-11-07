@@ -1,4 +1,5 @@
 import { BackgroundBeams } from "@/components/background-beams"
+import { loadPerkCatalogue } from "@/api/perks"
 import Aurora from "@/components/ui/aurora"
 import { ProfileBackdrop } from "@/components/profile-backdrop"
 import { ProfileScene } from "@/components/profile-scene"
@@ -44,6 +45,8 @@ const ClanPage = lazy(() => import("@/pages/clan").then((module) => ({ default: 
 
 // LEGACY-X visual system: preserve the existing compact glass sidebar shell and route-level page transitions.
 export function App() {
+  // The Shop's ranks are asked for in the background, so they are already there when the Shop opens.
+  useEffect(() => { const id = window.setTimeout(() => { void loadPerkCatalogue().catch(() => undefined) }, 1500); return () => window.clearTimeout(id) }, [])
   const navigate = useNavigate()
   const location = useLocation()
   const { user } = useAuth()

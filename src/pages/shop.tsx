@@ -24,7 +24,7 @@ import { GrenadeLight, GrenadeTrail } from "@/components/grenade-trail"
 import { FlashEffect } from "@/components/flash-effect"
 import { ShopClan } from "@/components/shop-clan"
 import { ShopRanks } from "@/components/shop-ranks"
-import { perksService } from "@/api/perks"
+import { usePerkCatalogue } from "@/hooks/use-perk-catalogue"
 import { ColorRow, PICK_COLORS, PICK_DEFAULT, demoColour } from "@/components/color-row"
 import { FramedAvatar } from "@/components/framed-avatar"
 import { LxMark } from "@/components/lx-mark"
@@ -154,7 +154,7 @@ export function ShopPage() {
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
   const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", background: "backgrounds", name: "name", smoke_color: "smoke", model: "weapons", clan: "clan" }, "featured")
   // The in-game ranks (owner request 2026-11-07) sit at the top of Featured, only while at least one is on sale, so nothing is shown that cannot be bought. (The Goods tab was taken out the same day.)
-  const { data: perks } = useApiQuery((signal) => perksService.catalogue({ signal }), { queryKey: "perk-catalogue" })
+  const { catalogue: perks, loading: perksLoading, failed: perksFailed, retry: retryPerks } = usePerkCatalogue()
   // Which Profile sub-tab to return to when the Profile tab is tapped again.
   const [lastProfileTab, setLastProfileTab] = useState<ShopTab>("frame")
   useEffect(() => { if (PROFILE_TABS.includes(tab)) setLastProfileTab(tab) }, [tab])
@@ -728,10 +728,14 @@ export function ShopPage() {
       )}
       {/* Not a scroller itself: the page panel around it scrolls, and a sticky rail sticks to the nearest scroller (an inner overflow-y-auto that never scrolled kept it from sticking). */}
       <div className="lx-glass-page min-h-0 flex-1 px-6 py-5 max-md:px-4">
-        {tab === "featured" && perks && perks.tiers.length > 0 && (
+        {tab === "featured" && (perks ? perks.tiers.length > 0 : true) && (
           <section aria-label="Ranks" className="mb-6 flex flex-col gap-2.5">
             <div className="lx-shop-heading">Ranks</div>
-            <ShopRanks catalogue={perks} />
+            {perks ? <ShopRanks catalogue={perks} /> : perksFailed ? (
+              <p className="flex items-center gap-3 text-[13px] text-[var(--text-dim)]">Could not load the ranks.<button type="button" onClick={retryPerks} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>
+            ) : (
+              <ul className="grid gap-3 md:grid-cols-3" aria-hidden="true" data-loading={perksLoading}>{[0, 1, 2].map((n) => <li key={n}><Skeleton className="h-[318px] rounded-xl" /></li>)}</ul>
+            )}
           </section>
         )}
         {loading && !data ? (
