@@ -1,6 +1,6 @@
 import { get, type CallOptions } from "./client"
 
-export type TeamRole = "Owner" | "Manager" | "Admin" | "Developer" | "Designer"
+export type TeamRole = "Owner" | "Manager" | "Admin" | "Developer" | "Designer" | "QA"
 
 /** One member of the LEGACY-X team (backend GET /public/staff), Owner first. */
 export interface TeamMember {

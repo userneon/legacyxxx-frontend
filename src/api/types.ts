@@ -135,7 +135,7 @@ export interface UserProfile {
   steamId: string
   username: string
   avatar: string
-  role: "Owner" | "Founder" | "Manager" | "Admin" | "Player" | "Designer" | "Developer"
+  role: "Owner" | "Founder" | "Manager" | "Admin" | "Player" | "Designer" | "Developer" | "QA"
   moderationStatus?: ModerationStatus
   /** Profile boxes the player hid; absent on older backends (nothing hidden). */
   hiddenSections?: ProfileSection[]

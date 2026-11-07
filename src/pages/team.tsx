@@ -15,10 +15,10 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { cn } from "@/lib/utils"
 
 /** Each role's colour, the same as on the staff site (Owner violet, Manager red, Admin sky, Developer green, Designer amber). */
-const ROLE_TONE: Record<TeamRole, string> = { Owner: "violet", Manager: "red", Admin: "sky", Developer: "green", Designer: "amber" }
-const NUMERAL: Record<TeamRole, string> = { Owner: "I", Manager: "II", Admin: "III", Developer: "IV", Designer: "V" }
-const ROLES: TeamRole[] = ["Manager", "Admin", "Developer", "Designer"]
-const PLURAL: Record<TeamRole, string> = { Owner: "Owner", Manager: "Managers", Admin: "Admins", Developer: "Developers", Designer: "Designers" }
+const ROLE_TONE: Record<TeamRole, string> = { Owner: "violet", Manager: "red", Admin: "sky", Developer: "green", Designer: "amber", QA: "grey" }
+const NUMERAL: Record<TeamRole, string> = { Owner: "I", Manager: "II", Admin: "III", Developer: "IV", Designer: "V", QA: "VI" }
+const ROLES: TeamRole[] = ["Manager", "Admin", "Developer", "Designer", "QA"]
+const PLURAL: Record<TeamRole, string> = { Owner: "Owner", Manager: "Managers", Admin: "Admins", Developer: "Developers", Designer: "Designers", QA: "QA" }
 /** What each role does, from what each one can do on the staff site. */
 const DUTY: Record<TeamRole, string> = {
   Owner: "Runs LEGACY-X.",
@@ -26,6 +26,7 @@ const DUTY: Record<TeamRole, string> = {
   Admin: "Watches the servers, asks for checks and hands out penalties.",
   Developer: "Builds the website, the API and the game plugins.",
   Designer: "Draws the website, the cosmetics and the art.",
+  QA: "Tries the website and the Shop before they go live.",
 }
 type Filter = "all" | TeamRole
 

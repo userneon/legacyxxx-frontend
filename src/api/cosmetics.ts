@@ -17,6 +17,8 @@ export interface FrameItem {
   unlock: "free" | "coin" | "achievement"
   /** Staff switched it off after you bought it: still yours to wear, no longer sold. */
   retired?: boolean
+  /** Switched off for the public, shown only to a QA tester so they can try it. */
+  testing?: boolean
   /** The 30-day price. */
   price: number
   /** The price of each rental length (items sold with LX). */

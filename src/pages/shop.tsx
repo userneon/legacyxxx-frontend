@@ -400,7 +400,9 @@ export function ShopPage() {
   const card = (item: ShopItem, index = 0, dense = false) => {
     const shown = onTile(item, index)
     const active = isPicked(item)
-    const action = item.owned
+    const action = item.testing
+      ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--text-2)]"><Check className="size-3" />Testing<span className="font-medium text-[var(--text-dim)]"> · not on sale</span></span>
+      : item.owned
       ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--status-green)]"><Check className="size-3" />{worn[item.kind] === item.id ? "Worn" : "Owned"}{item.expiresAt ? <span className="font-medium text-[var(--text-dim)]"> · {timeLeft(item.expiresAt)}</span> : null}</span>
       : item.unlock === "coin"
         ? <span className="lx-shop-price"><LxMark size={14} />{priceFor(item, "30d").toLocaleString()}</span>

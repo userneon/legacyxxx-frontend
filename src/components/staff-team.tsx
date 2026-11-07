@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cn } from "@/lib/utils"
 
-type StaffRole = "OWNER" | "MANAGER" | "ADMIN" | "DEVELOPER" | "DESIGNER"
+type StaffRole = "OWNER" | "MANAGER" | "ADMIN" | "DEVELOPER" | "DESIGNER" | "QA"
 type StaffStatus = "active" | "suspended" | "revoked"
 type AdminLevel = "admin" | "high" | "plus"
 interface StaffMember { id: string; userId: string; username: string; steamId: string; avatar: string; role: StaffRole; status: StaffStatus; stamina: number; immunity: number; expiresAt: string | null; createdAt: string; adminLevel: AdminLevel; extraCommands: string[] }
@@ -24,6 +24,7 @@ const ROLES: Array<{ id: StaffRole; label: string; note: string; level: number; 
   { id: "ADMIN", label: "Admin", note: "Bans, mutes, kicks in game and on the site", level: 500, tone: "sky" },
   { id: "DEVELOPER", label: "Developer", note: "Team badge, no moderation", level: 0, tone: "green" },
   { id: "DESIGNER", label: "Designer", note: "Team badge, no moderation", level: 0, tone: "amber" },
+  { id: "QA", label: "QA", note: "Team badge; holds every Shop item to test it", level: 0, tone: "grey" },
 ]
 const ADMIN_LEVEL_LABEL: Record<AdminLevel, string> = { admin: "Admin", high: "High Admin", plus: "+Admin" }
 const STATUS_LABEL: Record<StaffStatus, string> = { active: "Active", suspended: "Suspended", revoked: "Removed" }
