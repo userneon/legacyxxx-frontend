@@ -609,9 +609,13 @@ function profileOverview(identity: string) {
       kd: (0.8 + ((i * 37) % 90) / 100).toFixed(2),
       playedAt: new Date(Date.now() - (i + 1) * 9 * HOUR).toISOString(),
       expDelta: result === "Win" ? (i === 1 ? 5 : i === 3 ? 0 : 18 + (i % 7)) : -(12 + (i % 5)),
-      expBreakdown: i === 1 ? { limited: "daily" } : i === 3 && result === "Win" ? { limited: "weekly" } : null,
+      // Design preview only (dev mock): the parts of a match's EXP change, as the API sends them.
+      expBreakdown: i === 1 ? { result: 11.4, margin: 2, performance: 5, bonus: 1, calibration: 1, limited: "daily" } : i === 3 && result === "Win" ? { result: 12, margin: 3, performance: 6, bonus: 0, calibration: 1, limited: "weekly" } : i === 5 ? { result: -14.2, margin: -2, performance: 1, bonus: 0, calibration: 2, mvp: false } : result === "Win" ? { result: 9.6, margin: 3, performance: 5, bonus: 1, calibration: 1, mvp: i === 0 } : { result: -13.1, margin: -2, performance: -3, bonus: 0, calibration: 1, shortHanded: i === 2 },
       matchId: `mock-${variant}-${i}`,
+      expBefore: 4200 + variant * 130 - i * 15 + (i % 3) * 22 - (result === "Win" ? 18 + (i % 7) : -(12 + (i % 5))),
       expAfter: 4200 + variant * 130 - i * 15 + (i % 3) * 22,
+      rankBefore: { id: 13, name: "Vanguard III", imageKey: "rank-13" },
+      rankAfter: { id: i === 0 ? 14 : 13, name: i === 0 ? "Vanguard IV" : "Vanguard III", imageKey: i === 0 ? "rank-14" : "rank-13" },
     })),
     // Per-map results with different sizes and rates, including a map with too few matches to rank.
     maps: [["de_mirage", 34, 24], ["de_inferno", 28, 15], ["de_dust2", 31, 16], ["de_ancient", 12, 9], ["de_nuke", 9, 3], ["de_anubis", 6, 2], ["de_overpass", 2, 1]].map(([map, matches, wins], i) => { const played = Math.max(2, (matches as number) + ((variant * (i + 2)) % 7) - 3); const won = Math.min(played, Math.max(0, (wins as number) + ((variant * (i + 3)) % 5) - 2)); return { map: map as string, matches: played, wins: won, winRate: Math.round((won / played) * 100) } }),
@@ -723,6 +727,13 @@ let mockCrafts: Array<{ id: string; name: string; createdAt: string; updatedAt: 
 export async function mockResponse(method: string, path: string, query: Query, body?: unknown): Promise<unknown> {
   // A short, realistic delay so loading states and entrance animations show.
   await new Promise((resolve) => window.setTimeout(resolve, 250 + Math.random() * 250))
+  if (/^\/api\/v1\/public\/matches\/[^/]+\/maps\/\d+$/.test(path)) {
+    const player = (n: number, name: string, kills: number, deaths: number) => ({ userId: `u${n}`, steamId: `7656119800000000${n}`, username: name, avatar: "", kills, deaths, assists: 3, kdDiff: kills - deaths, headshotPercent: 44, adr: 78, kastPercent: 71, mvps: 3, utilityDamage: 40, enemiesFlashed: 4, firstKills: 2, firstDeaths: 1, multiKills: { k3: 1, k4: 0, k5: 0 }, clutchesWon: 1, ratingDelta: 8, roundsPlayed: 19 })
+    return { matchId: "mock", mapNumber: 1, mapName: "de_mirage", playedAt: new Date(Date.now() - 3 * HOUR).toISOString(), winner: "team1", rounds: [], teams: [
+      { key: "team1", name: "Team A", score: 13, won: true, players: [player(1, "LegacyTester", 24, 15), player(2, "Saran", 18, 17)] },
+      { key: "team2", name: "Team B", score: 9, won: false, players: [player(3, "Bold", 20, 19), player(4, "Temuulen", 12, 20)] },
+    ] }
+  }
   if (path === "/api/v1/auth/logout") {
     try { window.localStorage.removeItem("legacyx_access_token") } catch { /* storage blocked */ }
     return undefined

@@ -14,6 +14,8 @@ import { Sheet } from "@/components/ui/sheet"
 import { DetailSheetContent } from "@/components/detail-sheet"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { ExpCalculation } from "@/components/exp-calculation"
+import type { ProfileMatchRow } from "@/api/profile-overview"
 import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
 import { nameProps } from "@/lib/cosmetics"
 import { TeamIcon } from "@/components/team-icon"
@@ -273,9 +275,11 @@ function TeamComparison({ detail, onPlayer }: { detail: MatchDetail; onPlayer: (
   )
 }
 
-export function MatchDetailsDialog({ matchId, mapNumber, highlightSteamId, onOpenChange }: {
+export function MatchDetailsDialog({ matchId, mapNumber, highlightSteamId, exp, onOpenChange }: {
   matchId: string | null
   mapNumber: number
+  /** The profile owner's EXP change in this match: shown as the EXP calculation card above the scoreboard. */
+  exp?: ProfileMatchRow | null
   /** The profile owner, highlighted on the scoreboard. */
   highlightSteamId?: string
   onOpenChange: (open: boolean) => void
@@ -328,6 +332,7 @@ export function MatchDetailsDialog({ matchId, mapNumber, highlightSteamId, onOpe
           </div>
 
           <div className="px-5 pb-5">
+            {exp && <ExpCalculation match={exp} className="mb-4" />}
             {loading && !detail ? (
               <div className="flex flex-col gap-3">
                 {[0, 1].map((i) => <div key={i} className="h-56 animate-pulse rounded-xl bg-white/[0.04]" />)}

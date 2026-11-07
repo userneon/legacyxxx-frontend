@@ -890,7 +890,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
       </>)}
 
       {openMatch?.matchId && (
-        <MatchDetailsDialog matchId={openMatch.matchId} mapNumber={openMatch.mapNumber ?? 1} highlightSteamId={data.user.steamId} onOpenChange={(open) => { if (!open) setOpenMatch(null) }} />
+        <MatchDetailsDialog matchId={openMatch.matchId} mapNumber={openMatch.mapNumber ?? 1} highlightSteamId={data.user.steamId} exp={openMatch} onOpenChange={(open) => { if (!open) setOpenMatch(null) }} />
       )}
       <PenaltyDetailSheet
         penalty={openPenalty}

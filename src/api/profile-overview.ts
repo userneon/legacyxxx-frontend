@@ -19,9 +19,28 @@ export interface ProfileMatchRow {
   mapNumber?: number
   playedAt?: string | null
   expDelta?: number
+  expBefore?: number | null
   expAfter?: number
+  /** The ranks the player stood at before and after this match (the API works them out; the site never does). */
+  rankBefore?: { id: number; name: string; imageKey: string } | null
+  rankAfter?: { id: number; name: string; imageKey: string } | null
   /** How the EXP was worked out; `limited` is set when the daily (×¼) or weekly (stopped) limit reduced the gain. */
-  expBreakdown?: { limited?: "daily" | "weekly" } | null
+  expBreakdown?: ExpBreakdown | null
+}
+
+/** The parts of one match's EXP change, as the API stored them (RANK-SYSTEM.md section 1). Any part can be missing on an older match. */
+export interface ExpBreakdown {
+  result?: number
+  margin?: number
+  performance?: number
+  bonus?: number
+  /** 2 while the player is still calibrating (their first ranked matches count double). */
+  calibration?: 1 | 2
+  limited?: "daily" | "weekly"
+  /** Why the formula was not applied, when it was not. */
+  rule?: "leaver" | "invalid_match" | "low_participation" | "fun_mode"
+  mvp?: boolean
+  shortHanded?: boolean
 }
 
 export interface ProfileOverview {
