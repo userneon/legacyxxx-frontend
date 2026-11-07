@@ -200,6 +200,7 @@ export interface CompetitiveLeaderboardEntry extends CompetitiveProfile {
   /** Name colour and glow the player wears. Absent from an older API. */
   name_style?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   perk?: { tier: string; name: string } | null
+  banner?: string | null
   deaths: number
   kd_ratio: number
   /** wins / matches_completed, 0–1. */
@@ -267,6 +268,7 @@ export interface MatchDetailPlayer {
   frameLook?: import("@/lib/frame-look").FrameLook | null
   nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   perk?: { tier: string; name: string } | null
+  banner?: string | null
   steamId: string
   username: string
   avatar: string
@@ -417,6 +419,7 @@ export interface CommunityPlayer {
   frameLook?: import("@/lib/frame-look").FrameLook | null
   nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   perk?: { tier: string; name: string } | null
+  banner?: string | null
 }
 
 export type ModerationStatus = "Banned" | "Muted" | "Gag" | "Clear"
@@ -569,6 +572,7 @@ export interface ClanMember {
   frameLook?: import("@/lib/frame-look").FrameLook | null
   nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   perk?: { tier: string; name: string } | null
+  banner?: string | null
   /** When the member joined the clan. Absent from an older API. */
   joinedAt?: string | null
   /** The member's real ranked numbers (null: no ranked profile) and linked FACEIT (null: none). Absent from an older API. */
@@ -777,6 +781,7 @@ export interface FeedbackEntry {
   frameLook?: import("@/lib/frame-look").FrameLook | null
   nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   perk?: { tier: string; name: string } | null
+  banner?: string | null
   /** How many players picked each reaction, and the signed-in viewer's own pick. Absent from an older API. */
   reactions?: Record<FeedbackReaction, number>
   myReaction?: FeedbackReaction | null

@@ -1,4 +1,5 @@
 import { PageBar, PageBarEnd, PageTabs } from "@/components/page-tabs"
+import { NameBanner } from "@/components/name-banner"
 import { PerkMark } from "@/components/perk-badge"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { Clock, CornerDownRight, Heart, Laugh, LoaderCircle, MessageSquarePlus, Pencil, PenLine, Reply, RotateCcw, ShieldCheck, Star, ThumbsUp, Trash2 } from "lucide-react"
@@ -192,10 +193,11 @@ function ReviewCard({ entry, own, fresh, index, onOpenProfile, onEdit, onChanged
     <article
       style={{ animationDelay: `${fresh ? 0 : Math.min(index, 10) * 50}ms` }}
       className={cn(
-        "lx-fx-card group relative flex flex-col gap-3 overflow-hidden rounded-xl border bg-[var(--glass-fill)] px-5 py-[18px]",
+        "lx-fx-card group relative isolate flex flex-col gap-3 overflow-hidden rounded-xl border bg-[var(--glass-fill)] px-5 py-[18px]",
         own ? "border-[var(--line-strong)] bg-[linear-gradient(160deg,color-mix(in_oklab,var(--brand)_10%,var(--card-surface)),var(--card-surface)_55%)]" : "border-[var(--line-soft)]",
       )}
     >
+      <NameBanner fx={entry.banner} />
       {own && (
         <span className="relative w-fit rounded-full border border-[var(--line-strong)] bg-[var(--raised)] px-2 py-0.5 text-[10px] font-bold tracking-[0.6px] text-[var(--text-2)]">YOUR REVIEW</span>
       )}

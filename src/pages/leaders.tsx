@@ -1,4 +1,5 @@
 import { clanTagProps } from "@/lib/cosmetics"
+import { NameBanner } from "@/components/name-banner"
 import { PerkMark } from "@/components/perk-badge"
 import { BoosterLadder } from "@/pages/leaders-boosters"
 import { PlayerNameText } from "@/components/player-name-text"
@@ -66,6 +67,7 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
         first ? "border-[var(--brand)]/45" : "mt-6 border-[var(--line-soft)]",
       )}
     >
+      <NameBanner fx={player.banner} />
       <span
         aria-hidden="true"
         className={cn(
@@ -143,12 +145,13 @@ function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: Competiti
         GRID,
         // lx-layer: rows pass under the sticky header, so Chrome layers them for overlap anyway; a
         // fixed layer keeps a podium hover from re-creating (and repainting) the row below it.
-        "lx-layer group relative w-full text-left transition-[background-color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] hover:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50",
+        "lx-layer group relative isolate w-full text-left transition-[background-color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] hover:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50",
         you
           ? "h-[60px] shrink-0 border-t border-[var(--brand)]/40 bg-[linear-gradient(90deg,color-mix(in_oklab,var(--brand)_16%,var(--card-surface)),var(--card-surface)_45%)]"
           : "lx-row-in h-14 border-b border-[var(--raised)] hover:bg-[var(--raised)]",
       )}
     >
+      {!you && <NameBanner fx={player.banner} />}
       {/* Violet marker: always on your pinned row, slides in on hover for the others. */}
       <span
         aria-hidden="true"

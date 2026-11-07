@@ -1,5 +1,6 @@
 /** Home: the top five of the competitive ladder. */
 import { PlayerNameText } from "@/components/player-name-text"
+import { NameBanner } from "@/components/name-banner"
 import { PerkMark } from "@/components/perk-badge"
 import { ArrowRight } from "lucide-react"
 
@@ -96,10 +97,11 @@ export function TopPlayers({ onOpenProfile, onViewAll }: { onOpenProfile: (steam
                     onClick={() => onOpenProfile(player.steam_id)}
                     className={cn(
                       ROW,
-                      "group relative w-full rounded-xl px-2 py-2.5 text-left transition-[background-color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] hover:bg-[var(--raised)] hover:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
+                      "group relative isolate w-full overflow-hidden rounded-xl px-2 py-2.5 text-left transition-[background-color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] hover:bg-[var(--raised)] hover:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
                       player.position === 1 && "bg-[linear-gradient(90deg,color-mix(in_oklab,var(--brand)_9%,transparent),transparent_55%)]",
                     )}
                   >
+                    <NameBanner fx={player.banner} />
                     <span
                       aria-hidden="true"
                       className="absolute bottom-2.5 left-0 top-2.5 w-[3px] scale-y-0 rounded-r-full bg-[var(--text-2)] opacity-0 transition-[scale,opacity] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]"
