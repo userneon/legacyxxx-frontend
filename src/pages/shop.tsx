@@ -139,7 +139,7 @@ function ShopGrid({ list, card, tight = false }: { list: ShopItem[]; tight?: boo
   const dense = tight || list.length > 12
   return (
     <>
-      <ul className={cn("grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4", dense ? "xl:grid-cols-6 2xl:grid-cols-7" : "xl:grid-cols-5 2xl:grid-cols-6")}>{visible.map((item, index) => card(item, index, dense))}</ul>
+      <ul className={cn("grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4", dense ? "xl:grid-cols-7 2xl:grid-cols-8" : "xl:grid-cols-6 2xl:grid-cols-7")}>{visible.map((item, index) => card(item, index, dense))}</ul>
       {list.length > limit && (
         <button type="button" onClick={() => setLimit((current) => current + FIRST_BATCH)} className="mx-auto mt-4 flex h-9 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-4 text-[13px] text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]">
           Show {Math.min(FIRST_BATCH, list.length - limit)} more · {list.length - limit} left
@@ -418,7 +418,7 @@ export function ShopPage() {
                 <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: rarityOf(item.rarity).color }} />
                 <div className="relative">
                   {KIND_WORD[item.kind] && <span aria-hidden="true" className="absolute left-2 top-2 z-[1] rounded-full border border-[var(--line)] bg-[var(--card-surface)]/80 px-1.5 py-px text-[9px] font-semibold uppercase tracking-[0.8px] text-[var(--text-dim)]">{KIND_WORD[item.kind]}</span>}
-                  <Spot accent={accentOf(shown)} height={dense ? 96 : 124} fill={shown.kind === "background"}><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={dense ? 56 : 70} /></Spot>
+                  <Spot accent={accentOf(shown)} height={dense ? 80 : 96} fill={shown.kind === "background"}><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={dense ? 46 : 56} /></Spot>
                 </div>
                 <div className="flex flex-col items-start gap-1 px-3 pb-2.5 pt-0.5">
                   <span className="line-clamp-2 w-full text-[11px] font-medium leading-[1.25] text-[var(--text-2)]">{item.name}</span>
@@ -837,7 +837,7 @@ export function ShopPage() {
               {tab === "featured" && featured.length > 0 && (
                 <section aria-label="Featured">
                   <div className="lx-shop-heading mb-2.5">Featured</div>
-                  <ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 scrollbar-hidden sm:mx-0 sm:grid sm:snap-none sm:grid-cols-3 sm:overflow-visible sm:px-0 xl:grid-cols-5 [&>li]:w-[170px] [&>li]:shrink-0 [&>li]:snap-start sm:[&>li]:w-auto">{featured.map((item, index) => card(item, index))}</ul>
+                  <ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 scrollbar-hidden sm:mx-0 sm:grid sm:snap-none sm:grid-cols-3 sm:overflow-visible sm:px-0 xl:grid-cols-7 [&>li]:w-[130px] [&>li]:shrink-0 [&>li]:snap-start sm:[&>li]:w-auto">{featured.map((item, index) => card(item, index, true))}</ul>
                 </section>
               )}
               <section aria-label="Items">

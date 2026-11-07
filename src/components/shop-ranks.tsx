@@ -162,12 +162,12 @@ export function ShopRanks({ catalogue }: { catalogue: PerkCatalogue }) {
             "Renew before it ends and pick your commands again",
           ]
           return (
-            <li key={tier.key} style={TIER_FADE[tier.key] ? { backgroundImage: `linear-gradient(90deg, color-mix(in srgb, ${TIER_FADE[tier.key]} 30%, transparent), color-mix(in srgb, ${TIER_FADE[tier.key]} 8%, transparent) 55%, transparent)`, borderColor: mineHere ? undefined : `color-mix(in srgb, ${TIER_FADE[tier.key]} 38%, var(--glass-line))` } : undefined} className={cn("flex min-w-0 flex-col gap-2.5 rounded-xl border bg-[var(--glass-fill)] p-2.5", mineHere && "border-[var(--brand)]")}>
+            <li key={tier.key} style={TIER_FADE[tier.key] ? { backgroundImage: `linear-gradient(90deg, color-mix(in srgb, ${TIER_FADE[tier.key]} 30%, transparent), color-mix(in srgb, ${TIER_FADE[tier.key]} 8%, transparent) 55%, transparent)`, borderColor: mineHere ? undefined : `color-mix(in srgb, ${TIER_FADE[tier.key]} 38%, var(--glass-line))` } : undefined} className={cn("flex min-w-0 flex-col gap-2 rounded-xl border bg-[var(--glass-fill)] p-2", mineHere && "border-[var(--brand)]")}>
               <div className="flex items-start gap-3">
                 {TIER_ART[tier.key] ? (
                   // React Bits' Glare Hover, looping: a band of light keeps crossing the card (and its gold rim), clipped to the card's own shape; it follows reduced motion.
-                  <GlareHover width="auto" height="108px" borderRadius="0" glareColor="#ffffff" glareOpacity={0.6} glareSize={34} variant="streak" mode="loop" interval={3.2 + tierIndex * 0.9} intro className="shrink-0" style={{ borderWidth: 0, WebkitMaskImage: `url(${TIER_ART[tier.key]})`, maskImage: `url(${TIER_ART[tier.key]})`, WebkitMaskSize: "100% 100%", maskSize: "100% 100%" }}>
-                    <img src={TIER_ART[tier.key]} alt={tier.name} height={108} loading="lazy" draggable={false} className="block h-[108px] w-auto max-w-none" />
+                  <GlareHover width="auto" height="76px" borderRadius="0" glareColor="#ffffff" glareOpacity={0.6} glareSize={34} variant="streak" mode="loop" interval={3.2 + tierIndex * 0.9} intro className="shrink-0" style={{ borderWidth: 0, WebkitMaskImage: `url(${TIER_ART[tier.key]})`, maskImage: `url(${TIER_ART[tier.key]})`, WebkitMaskSize: "100% 100%", maskSize: "100% 100%" }}>
+                    <img src={TIER_ART[tier.key]} alt={tier.name} height={76} loading="lazy" draggable={false} className="block h-[76px] w-auto max-w-none" />
                   </GlareHover>
                 ) : <h3 className="text-[17px] font-bold text-[var(--text)]">{tier.name}</h3>}
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
