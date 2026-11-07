@@ -16,6 +16,7 @@ const field = "h-9 w-full rounded-lg border border-[var(--line)] bg-[var(--bg)] 
 const secondary = "inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]"
 const BASE = "/creator-kit"
 
+type BannerEntry = { file: string; name: string; size: string; accent: "mono" | "violet" }
 type Asset = { file: string; name: string; note: string; light?: boolean; video?: boolean }
 type Group = { title: string; hint: string; items: Asset[] }
 
@@ -86,6 +87,8 @@ export function CreatorKit() {
   const [slots, setSlots] = useState<Slots | null>(null)
   const [previews, setPreviews] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState(false)
+  const [banners, setBanners] = useState<BannerEntry[]>([])
+  const [accent, setAccent] = useState<"mono" | "violet">("mono")
   const touched = useRef({ name: false, code: false })
   const mine = useApiQuery<{ isCreator: boolean } | null>((signal) => (isAuthenticated && open ? creatorsService.myApplication({ signal }) : Promise.resolve(null)), { queryKey: `kit-creator-${isAuthenticated}-${open}` })
   const referral = useApiQuery<MyReferral | null>((signal) => (mine.data?.isCreator ? creatorsService.myReferral({ signal }) : Promise.resolve(null)), { queryKey: `kit-referral-${Boolean(mine.data?.isCreator)}` })
@@ -93,6 +96,10 @@ export function CreatorKit() {
   // The first time it opens: their own name, and their code when they are a creator. Anything they type stays.
   useEffect(() => { if (open && !touched.current.name && user?.username) setName(cleanName(user.username)) }, [open, user?.username])
   useEffect(() => { if (open && !touched.current.code && referral.data?.code) setCode(referral.data.code) }, [open, referral.data?.code])
+  useEffect(() => {
+    if (!open || banners.length > 0) return
+    fetch(`${BASE}/banner/manifest.json`).then((response) => (response.ok ? response.json() : [])).then((list: BannerEntry[]) => setBanners(Array.isArray(list) ? list : [])).catch(() => undefined)
+  }, [open, banners.length])
   useEffect(() => {
     if (!open || slots) return
     loadSlots().then(setSlots).catch(() => setSlots({}))
@@ -144,6 +151,7 @@ export function CreatorKit() {
           files.push({ name: item.file, data: blob ? new Uint8Array(await blob.arrayBuffer()) : await fetchBytes(item.file) })
         }
       }
+      for (const banner of banners) files.push({ name: banner.file, data: await fetchBytes(banner.file) })
       files.push({ name: "logo/legacyx-mark-small.webp", data: await fetchBytes("logo/legacyx-mark-small.webp") }, { name: "BRAND.txt", data: await fetchBytes("BRAND.txt") })
       save(makeZip(files), `legacyx-creator-kit${personal.name ? `-${slug(personal.name)}` : ""}.zip`)
     } catch (error) {
@@ -196,6 +204,31 @@ export function CreatorKit() {
               </ul>
             </section>
           ))}
+          {banners.length > 0 && (
+            <section aria-label="Banners and badges" className="flex flex-col gap-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-faint)]">Banners and badges <span className="font-normal normal-case tracking-normal text-[var(--text-dim)]">· transparent PNG at twice the size, for a stream or a video</span></h3>
+                <div role="group" aria-label="Look" className="inline-flex rounded-lg border border-[var(--line)] p-0.5">
+                  {(["mono", "violet"] as const).map((value) => (
+                    <button key={value} type="button" aria-pressed={accent === value} onClick={() => setAccent(value)} className={cn("h-7 rounded-md px-3 text-[12px] transition-colors", accent === value ? "bg-[var(--raised)] text-[var(--text)]" : "text-[var(--text-dim)] hover:text-[var(--text)]")}>{value === "mono" ? "Grey" : "Violet"}</button>
+                  ))}
+                </div>
+              </div>
+              <ul className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+                {banners.filter((banner) => banner.accent === accent).map((banner) => (
+                  <li key={banner.file} className="flex flex-col overflow-hidden rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)]">
+                    <div className="flex h-24 items-center justify-center bg-[repeating-conic-gradient(#1a1a1a_0_25%,#141414_0_50%)] bg-[length:16px_16px] p-2">
+                      <img src={`${BASE}/${banner.file}`} alt={banner.name} loading="lazy" draggable={false} className="max-h-full max-w-full object-contain" />
+                    </div>
+                    <div className="flex items-center justify-between gap-2 px-3 py-2.5">
+                      <div className="flex min-w-0 flex-col"><span className="truncate text-[13px] text-[var(--text)]">{banner.name.replace(/ \((grey|violet)\)$/, "")}</span><span className="truncate text-[11px] text-[var(--text-dim)]">{banner.size}</span></div>
+                      <button type="button" disabled={busy} onClick={() => void saveOne({ file: banner.file, name: banner.name, note: banner.size })} aria-label={`Download ${banner.name}`} className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] text-[var(--text-2)] hover:border-[var(--line-strong)] hover:bg-[var(--raised)] hover:text-[var(--text)] disabled:opacity-50"><Download className="size-4" aria-hidden="true" /></button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           {isAuthenticated && <CreatorKitAnimated name={personal.name} code={personal.code} />}
           <section aria-label="Colours and rules" className="flex flex-col gap-2.5">
             <h3 className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-faint)]">Colours <span className="font-normal normal-case tracking-normal text-[var(--text-dim)]">· name in Black Ops One, the rest in Exo 2</span></h3>

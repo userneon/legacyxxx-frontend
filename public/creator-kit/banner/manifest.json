@@ -1,0 +1,218 @@
+[
+ {
+  "file": "banner/community-large-mono.png",
+  "name": "Counter Strike 2 Community (grey)",
+  "size": "1960 × 400",
+  "accent": "mono"
+ },
+ {
+  "file": "banner/community-large-violet.png",
+  "name": "Counter Strike 2 Community (violet)",
+  "size": "1960 × 400",
+  "accent": "violet"
+ },
+ {
+  "file": "banner/mongolian-community-mono.png",
+  "name": "Mongolian CS2 Community (grey)",
+  "size": "1920 × 420",
+  "accent": "mono"
+ },
+ {
+  "file": "banner/mongolian-community-violet.png",
+  "name": "Mongolian CS2 Community (violet)",
+  "size": "1920 × 420",
+  "accent": "violet"
+ },
+ {
+  "file": "banner/competitive-network-mono.png",
+  "name": "CS2 Competitive Network (grey)",
+  "size": "1440 × 260",
+  "accent": "mono"
+ },
+ {
+  "file": "banner/competitive-network-violet.png",
+  "name": "CS2 Competitive Network (violet)",
+  "size": "1440 × 260",
+  "accent": "violet"
+ },
+ {
+  "file": "banner/powered-by-mono.png",
+  "name": "Powered by LEGACY-X (grey)",
+  "size": "1040 × 260",
+  "accent": "mono"
+ },
+ {
+  "file": "banner/powered-by-violet.png",
+  "name": "Powered by LEGACY-X (violet)",
+  "size": "1040 × 260",
+  "accent": "violet"
+ },
+ {
+  "file": "banner/mongolia-mono.png",
+  "name": "CS2 Mongolia (grey)",
+  "size": "1120 × 200",
+  "accent": "mono"
+ },
+ {
+  "file": "banner/mongolia-violet.png",
+  "name": "CS2 Mongolia (violet)",
+  "size": "1120 × 200",
+  "accent": "violet"
+ },
+ {
+  "file": "banner/legacyx-mono.png",
+  "name": "LEGACY-X (grey)",
+  "size": "1120 × 220",
+  "accent": "mono"
+ },
+ {
+  "file": "banner/legacyx-violet.png",
+  "name": "LEGACY-X (violet)",
+  "size": "1120 × 220",
+  "accent": "violet"
+ },
+ {
+  "file": "banner/watch-learn-improve-mono.png",
+  "name": "Watch / Learn / Improve (grey)",
+  "size": "1400 × 200",
+  "accent": "mono"
+ },
+ {
+  "file": "banner/watch-learn-improve-violet.png",
+  "name": "Watch / Learn / Improve (violet)",
+  "size": "1400 × 200",
+  "accent": "violet"
+ },
+ {
+  "file": "banner/tagline-mono.png",
+  "name": "Play. Compete. Connect. (grey)",
+  "size": "1440 × 220",
+  "accent": "mono"
+ },
+ {
+  "file": "banner/tagline-violet.png",
+  "name": "Play. Compete. Connect. (violet)",
+  "size": "1440 × 220",
+  "accent": "violet"
+ },
+ {
+  "file": "banner/cs2-community-mono.png",
+  "name": "CS2 Community (grey)",
+  "size": "1240 × 200",
+  "accent": "mono"
+ },
+ {
+  "file": "banner/cs2-community-violet.png",
+  "name": "CS2 Community (violet)",
+  "size": "1240 × 200",
+  "accent": "violet"
+ },
+ {
+  "file": "banner/esports-ecosystem-mono.png",
+  "name": "LEGACY-X Esports Ecosystem (grey)",
+  "size": "1400 × 300",
+  "accent": "mono"
+ },
+ {
+  "file": "banner/esports-ecosystem-violet.png",
+  "name": "LEGACY-X Esports Ecosystem (violet)",
+  "size": "1400 × 300",
+  "accent": "violet"
+ },
+ {
+  "file": "banner/more-than-a-community-mono.png",
+  "name": "LEGACY-X More than a community (grey)",
+  "size": "1800 × 340",
+  "accent": "mono"
+ },
+ {
+  "file": "banner/more-than-a-community-violet.png",
+  "name": "LEGACY-X More than a community (violet)",
+  "size": "1800 × 340",
+  "accent": "violet"
+ },
+ {
+  "file": "banner/team-ct-mono.png",
+  "name": "Counter Strike 2, Counter-Terrorists (grey)",
+  "size": "1120 × 132",
+  "accent": "mono"
+ },
+ {
+  "file": "banner/team-ct-violet.png",
+  "name": "Counter Strike 2, Counter-Terrorists (violet)",
+  "size": "1120 × 132",
+  "accent": "violet"
+ },
+ {
+  "file": "banner/team-t-mono.png",
+  "name": "Counter Strike 2, Terrorists (grey)",
+  "size": "1120 × 132",
+  "accent": "mono"
+ },
+ {
+  "file": "banner/team-t-violet.png",
+  "name": "Counter Strike 2, Terrorists (violet)",
+  "size": "1120 × 132",
+  "accent": "violet"
+ },
+ {
+  "file": "banner/discord-mono.png",
+  "name": "Join our Discord (grey)",
+  "size": "880 × 152",
+  "accent": "mono"
+ },
+ {
+  "file": "banner/discord-violet.png",
+  "name": "Join our Discord (violet)",
+  "size": "880 × 152",
+  "accent": "violet"
+ },
+ {
+  "file": "banner/legacyx-compact-mono.png",
+  "name": "LEGACY-X compact (grey)",
+  "size": "760 × 140",
+  "accent": "mono"
+ },
+ {
+  "file": "banner/legacyx-compact-violet.png",
+  "name": "LEGACY-X compact (violet)",
+  "size": "760 × 140",
+  "accent": "violet"
+ },
+ {
+  "file": "banner/badge-l-mono.png",
+  "name": "L badge (grey)",
+  "size": "320 × 320",
+  "accent": "mono"
+ },
+ {
+  "file": "banner/badge-l-violet.png",
+  "name": "L badge (violet)",
+  "size": "320 × 320",
+  "accent": "violet"
+ },
+ {
+  "file": "banner/badge-cs2-mono.png",
+  "name": "CS2 tile (grey)",
+  "size": "400 × 200",
+  "accent": "mono"
+ },
+ {
+  "file": "banner/badge-cs2-violet.png",
+  "name": "CS2 tile (violet)",
+  "size": "400 × 200",
+  "accent": "violet"
+ },
+ {
+  "file": "banner/stripes-mono.png",
+  "name": "Slanted stripes (grey)",
+  "size": "440 × 160",
+  "accent": "mono"
+ },
+ {
+  "file": "banner/stripes-violet.png",
+  "name": "Slanted stripes (violet)",
+  "size": "440 × 160",
+  "accent": "violet"
+ }
+]
