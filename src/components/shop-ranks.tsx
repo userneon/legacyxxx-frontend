@@ -180,7 +180,7 @@ export function ShopRanks({ catalogue }: { catalogue: PerkCatalogue }) {
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span className="lx-shop-price">{price ? mnt(price) : "Not for sale"}</span>
-                <button type="button" disabled={!price || busy !== null || otherRunning || !catalogue.available} onClick={() => void buy(tier.key, days)} className="lx-primary-button inline-flex h-9 items-center justify-center rounded-lg px-5 text-[13px] font-semibold disabled:opacity-50">{busy === tier.key ? "Opening…" : mineHere ? "Renew" : "Buy"}</button>
+                <button type="button" disabled={!price || busy !== null || otherRunning || !catalogue.available} onClick={() => void buy(tier.key, days)} className="lx-primary-button inline-flex h-7 items-center justify-center rounded-lg px-3 text-[13px] font-semibold disabled:opacity-50">{busy === tier.key ? "Opening…" : mineHere ? "Renew" : "Buy"}</button>
               </div>
               {otherRunning && <span className="text-[11px] text-[var(--text-dim)]">Another rank is running. It must end first.</span>}
               <details className="group rounded-lg border border-[var(--line-soft)] px-3 py-2 text-[12px] text-[var(--text-muted)]">
