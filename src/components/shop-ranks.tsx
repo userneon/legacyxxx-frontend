@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import prestige from "@/assets/ranks/card-prestige.webp"
 import imperial from "@/assets/ranks/card-imperial.webp"
 import eternal from "@/assets/ranks/card-eternal.webp"
+import { ChoiceSelect } from "@/components/choice-select"
 import GlareHover from "@/components/reactbits/glare-hover"
 import { perksService, type PerkCatalogue, type PerkDays, type PerkGrant, type PerkInvoice, type PerkMine } from "@/api/perks"
 import { PERK_EMBLEM } from "@/components/perk-badge"
@@ -164,12 +165,10 @@ export function ShopRanks({ catalogue }: { catalogue: PerkCatalogue }) {
                 ) : <h3 className="text-[17px] font-bold text-[var(--text)]">{tier.name}</h3>}
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
                   <span className="text-[13px] text-[var(--text-muted)]">{tier.quota} commands of your choice</span>
-                  <label className="flex flex-col gap-1 text-[11px] text-[var(--text-dim)]">
+                  <div className="flex flex-col gap-1 text-[11px] text-[var(--text-dim)]">
                     How long
-                    <select value={days} onChange={(event) => setLengths((current) => ({ ...current, [tier.key]: Number(event.target.value) as PerkDays }))} className="h-9 w-full rounded-lg border border-[var(--line)] bg-[var(--panel)] px-2.5 text-[13px] text-[var(--text)] focus-visible:border-[var(--text-faint)] focus-visible:outline-none">
-                      {catalogue.days.filter((value) => tier.prices[String(value)]).map((value) => <option key={value} value={value}>{value} days</option>)}
-                    </select>
-                  </label>
+                    <ChoiceSelect<PerkDays> ariaLabel={`How long, ${tier.name}`} value={days} onChange={(next) => setLengths((current) => ({ ...current, [tier.key]: next }))} options={catalogue.days.filter((value) => tier.prices[String(value)]).map((value) => ({ value, label: `${value} days`, hint: mnt(tier.prices[String(value)] as number) }))} />
+                  </div>
                 </div>
               </div>
               <div className="flex items-center justify-between gap-3">
