@@ -22,6 +22,7 @@ export const PAGE_ROUTES: Record<PageId, string> = {
   team: "/team",
   discord: "/discord",
   feedback: "/reviews",
+  privacy: "/privacy",
   profile: "/profile",
 }
 
@@ -51,6 +52,7 @@ export const PAGE_TITLES: Record<PageId, string> = {
   team: "Staff",
   discord: "Discord",
   feedback: "Reviews",
+  privacy: "Privacy",
   profile: "Profile",
 }
 

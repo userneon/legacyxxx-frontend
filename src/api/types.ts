@@ -66,6 +66,7 @@ export type PageId =
   | "team"
   | "discord"
   | "feedback"
+  | "privacy"
   | "profile"
 
 /* ----------------------------------------------------------------------------

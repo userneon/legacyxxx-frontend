@@ -28,6 +28,7 @@ import { ADMIN_URL } from "@/lib/sites"
 import { cn } from "@/lib/utils"
 
 // Pages other than the first ones a visitor needs load when they are opened, so the first page does not wait for the Staff, Shop and Skinchanger code.
+const PrivacyPage = lazy(() => import("@/pages/privacy").then((module) => ({ default: module.PrivacyPage })))
 const TournamentsPage = lazy(() => import("@/pages/tournaments").then((module) => ({ default: module.TournamentsPage })))
 const SkinCollectionPage = lazy(() => import("@/pages/skin-collection").then((module) => ({ default: module.SkinCollectionPage })))
 const SkinchangerPage = lazy(() => import("@/pages/skinchanger").then((module) => ({ default: module.SkinchangerPage })))
@@ -150,6 +151,7 @@ export function App() {
               {/* Earlier addresses of the Play pages. */}
               <Route path="/play/5vs5" element={<Navigate to="/play/5x5" replace />} />
               <Route path="/play/proleague" element={<Navigate to="/play/pro" replace />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/tournaments" element={<TournamentsPage onProfileNavigate={handleProfileNavigate} />} />
               <Route path="/leaders" element={<LeadersPage onProfileNavigate={handleProfileNavigate} />} />
               {/* The address is /clans (and /clans/1); the older /clan keeps working and moves there, with its ?tab= kept. */}
