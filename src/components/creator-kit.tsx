@@ -43,7 +43,7 @@ const GROUPS: Group[] = [
   },
   {
     title: "Ready-made animations",
-    hint: "Transparent WebM, 1920 × 1080: put them on a layer above your clip. The same for everyone.",
+    hint: "Transparent WebM, 1920 × 1080: put them on a layer above your clip. The same for everyone. An editor that does not read WebM transparency (Premiere, CapCut, DaVinci): content creators can make the MOV copies in Animated below.",
     items: [
       { file: "video/community-intro.webm", name: "Community intro", note: "The L, then COUNTER-STRIKE COMMUNITY, 5 s", video: true },
       { file: "video/logo-sting.webm", name: "Logo sting", note: "The mark and LEGACY-X, 4 s", video: true },

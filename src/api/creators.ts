@@ -98,7 +98,7 @@ export interface StaffCreatorApplication {
 /** The animated Creator kit (owner request 2026-11-07): the API renders the animations with the name and the code typed. */
 export interface KitRenderConfig {
   enabled: boolean
-  items: Array<{ id: string; label: string; ext: string; needs: "name" | "code" | "either" }>
+  items: Array<{ id: string; label: string; ext: string; needs: "name" | "code" | "either" | "none"; heavy?: boolean }>
   dailyLimit: number
   keepHours: number
   queue: number

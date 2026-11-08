@@ -24,7 +24,9 @@ export function CreatorKitAnimated({ name, code }: { name: string; code: string 
   const [saving, setSaving] = useState("")
   const [error, setError] = useState("")
   const items = config.data?.items ?? []
-  const chosen = picked ?? new Set(items.map((item) => item.id))
+  // The big MOV copies (for video editors) are never ticked until asked for.
+  const defaults = () => new Set(items.filter((item) => !item.heavy).map((item) => item.id))
+  const chosen = picked ?? defaults()
 
   // Pick up the last job again after a reload.
   useEffect(() => {
@@ -76,8 +78,8 @@ export function CreatorKitAnimated({ name, code }: { name: string; code: string 
               return (
                 <li key={item.id}>
                   <label className={cn("flex cursor-pointer items-start gap-2.5 rounded-[10px] border bg-[var(--card-surface)] px-3 py-2.5 text-[13px] transition-colors", on ? "border-[var(--line-strong)] text-[var(--text)]" : "border-[var(--line)] text-[var(--text-dim)]")}>
-                    <input type="checkbox" checked={on} onChange={() => setPicked((current) => { const next = new Set(current ?? items.map((entry) => entry.id)); if (next.has(item.id)) next.delete(item.id); else next.add(item.id); return next })} className="mt-0.5 size-4 accent-[var(--accent-solid)]" />
-                    <span className="flex flex-col"><span>{item.label}</span><span className="text-[11px] text-[var(--text-dim)]">writes {item.needs === "name" ? "your name" : item.needs === "code" ? "your code" : "your name and code"}</span></span>
+                    <input type="checkbox" checked={on} onChange={() => setPicked((current) => { const next = new Set(current ?? defaults()); if (next.has(item.id)) next.delete(item.id); else next.add(item.id); return next })} className="mt-0.5 size-4 accent-[var(--accent-solid)]" />
+                    <span className="flex flex-col"><span>{item.label}</span><span className="text-[11px] text-[var(--text-dim)]">{item.needs === "none" ? "the same for everyone" : `writes ${item.needs === "name" ? "your name" : item.needs === "code" ? "your code" : "your name and code"}`}{item.heavy ? " · large file (up to about 100 MB), takes longer" : ""}</span></span>
                   </label>
                 </li>
               )
