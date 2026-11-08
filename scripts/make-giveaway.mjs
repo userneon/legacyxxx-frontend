@@ -50,7 +50,7 @@ h1 span{color:#a3a3a3}
 .steps{display:flex;flex-direction:column;gap:9px;margin-top:6px}
 .steps div{display:flex;align-items:center;gap:12px;font-size:${wide ? 21 : 20}px;color:#e5e5ea}
 .steps i{flex:none;width:30px;height:30px;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:16px;color:#0a0a0a;background:#e5e5e5;border-radius:9px}
-.extra{font-size:16px;color:#8a8a96;margin-top:2px}
+.extra{font-size:16px;line-height:1.4;color:#8a8a96;margin-top:2px;max-width:560px}
 .cards{flex:1;display:flex;flex-direction:column;gap:${wide ? 16 : 14}px;justify-content:center}
 .card{position:relative;display:flex;align-items:center;gap:20px;padding:${wide ? "18px 26px" : "16px 24px"};background:linear-gradient(160deg,#17171d,#0c0c10);border:1px solid #ffffff1c;border-radius:22px;overflow:hidden}
 .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--c)}
@@ -79,11 +79,11 @@ h3{font-size:${wide ? 30 : 28}px;font-weight:800;letter-spacing:2px;color:var(--
       <div><i>2</i>Steam-ээр нэвтэрч Discord-оо холбо</div>
       <div><i>3</i>Дор хаяж 1 ranked match тогло</div>
     </div>
-    <p class="extra">Нэмэлт эрх: найзаа creator кодтойгоор урь, постероо хуваалц</p>
+    <p class="extra">Сугалааны нэмэлт эрх: найзаа creator кодтойгоор урь · постероо хуваалц · LX цэнэглэвэл 2 дахин эрх (заавал биш)</p>
   </div>
   <div class="cards">${PRIZES.map((p) => card(p, wide)).join("")}</div>
 </div>
-<div class="note">Үнэгүй оролцоно. Бүх шагнал нь LEGACY-X платформын шагнал (мөнгө биш). Ялагчийг ил зарлана.</div>
+<div class="note">Үнэгүй оролцоно, цэнэглэх шаардлагагүй. Бүх шагнал нь LEGACY-X платформын шагнал (мөнгө биш). Ялагчийг ил зарлана.</div>
 <div class="url">LEGACYX.CC</div><div class="foot"></div>
 </body></html>`
 
