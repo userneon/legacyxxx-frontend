@@ -49,10 +49,10 @@ h1 span{color:#a3a3a3}
 .sub{font-size:${wide ? 28 : 26}px;line-height:1.35;color:#c4c4cc;max-width:560px}
 .steps{display:flex;flex-direction:column;gap:9px;margin-top:6px}
 .steps div{display:flex;align-items:center;gap:12px;font-size:${wide ? 21 : 20}px;color:#e5e5ea}
-.steps i{flex:none;width:30px;height:30px;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:16px;color:#0a0a0a;background:#e5e5e5;transform:skewX(-10deg)}
+.steps i{flex:none;width:30px;height:30px;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:16px;color:#0a0a0a;background:#e5e5e5;border-radius:9px}
 .extra{font-size:16px;color:#8a8a96;margin-top:2px}
 .cards{flex:1;display:flex;flex-direction:column;gap:${wide ? 16 : 14}px;justify-content:center}
-.card{position:relative;display:flex;align-items:center;gap:20px;padding:${wide ? "18px 26px" : "16px 24px"};background:linear-gradient(160deg,#17171d,#0c0c10);border:1px solid #ffffff1c;clip-path:polygon(0 0,calc(100% - 28px) 0,100% 28px,100% 100%,28px 100%,0 calc(100% - 28px))}
+.card{position:relative;display:flex;align-items:center;gap:20px;padding:${wide ? "18px 26px" : "16px 24px"};background:linear-gradient(160deg,#17171d,#0c0c10);border:1px solid #ffffff1c;border-radius:22px;overflow:hidden}
 .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--c)}
 .card.p1{background:linear-gradient(160deg,#2a1414,#100a0a);border-color:#f8717166;padding-top:${wide ? 24 : 20}px;padding-bottom:${wide ? 24 : 20}px}
 .place{display:flex;flex-direction:column;align-items:center;min-width:64px;line-height:1}
