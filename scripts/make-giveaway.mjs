@@ -50,6 +50,7 @@ h1 span{color:#a3a3a3}
 .steps{display:flex;flex-direction:column;gap:9px;margin-top:6px}
 .steps div{display:flex;align-items:center;gap:12px;font-size:${wide ? 21 : 20}px;color:#e5e5ea}
 .steps i{flex:none;width:30px;height:30px;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:16px;color:#0a0a0a;background:#e5e5e5;border-radius:9px}
+.steps b{background:#262626;border:1px solid #404040;border-radius:7px;padding:1px 9px;font-weight:700}
 .extra{font-size:16px;line-height:1.4;color:#8a8a96;margin-top:2px;max-width:560px}
 .cards{flex:1;display:flex;flex-direction:column;gap:${wide ? 16 : 14}px;justify-content:center}
 .card{position:relative;display:flex;align-items:center;gap:20px;padding:${wide ? "18px 26px" : "16px 24px"};background:linear-gradient(160deg,#17171d,#0c0c10);border:1px solid #ffffff1c;border-radius:22px;overflow:hidden}
@@ -77,7 +78,7 @@ h3{font-size:${wide ? 30 : 28}px;font-weight:800;letter-spacing:2px;color:var(--
     <div class="steps">
       <div><i>1</i>Discord server-т ор</div>
       <div><i>2</i>Steam-ээр нэвтэрч Discord-оо холбо</div>
-      <div><i>3</i>Дор хаяж 1 ranked match тогло</div>
+      <div><i>3</i>Үндсэн чат дээр <b>!join</b> гэж бич</div>
     </div>
     <p class="extra">Сугалааны нэмэлт эрх: найзаа creator кодтойгоор урь · постероо хуваалц · LX цэнэглэвэл 2 дахин эрх (заавал биш)</p>
   </div>
