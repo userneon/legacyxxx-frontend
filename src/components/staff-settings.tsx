@@ -4,6 +4,7 @@ import { toast } from "sonner"
 
 import { staffConfigService, type SiteSetting } from "@/api/staff-config"
 import { CardIcon, STAFF_BODY, STAFF_CARD, STAFF_GRID, StaffSection } from "@/components/staff-ui"
+import { StaffEvents } from "@/components/staff-events"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
 
@@ -31,6 +32,7 @@ export function StaffSettings({ isOwner }: { isOwner: boolean }) {
           </StaffSection>
         ))
       )}
+      <StaffEvents />
     </div>
   )
 }

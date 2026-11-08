@@ -1,0 +1,72 @@
+/*
+ * Holiday looks (owner request 2026-11-08, `components/event-layer.tsx`, `hooks/use-active-event.ts`, API `GET /public/events/active`).
+ * The one place besides the Shop where a calm colour of its own is allowed: a thin hairline, the greeting on Home and a few slow flecks, never a
+ * recolour of buttons or surfaces. Every colour line carries palette-exempt (the lint skips it). Off for reduced motion.
+ */
+
+:root[data-event="halloween"] { --event: #f08a24; } /* palette-exempt */
+:root[data-event="new-year"] { --event: #cfe3f5; } /* palette-exempt */
+:root[data-event="tsagaan-sar"] { --event: #e8c76a; } /* palette-exempt */
+
+/* a thin hairline along the top of the window while an event runs */
+:root[data-event] body::after {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 2px;
+  z-index: 60;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--event), transparent);
+  opacity: 0.8;
+}
+
+.lx-event-fleck {
+  position: absolute;
+  top: -12px;
+  left: calc(var(--i) * 6.4% + 1%);
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--event);
+  opacity: 0;
+  animation: lx-event-fall calc(14s + var(--i) * 1.3s) linear calc(var(--i) * -2.1s) infinite;
+}
+
+/* Halloween: embers that rise instead of fall */
+:root[data-event="halloween"] .lx-event-fleck { top: auto; bottom: -12px; width: 4px; height: 4px; box-shadow: 0 0 8px 1px var(--event); animation-name: lx-event-rise; }
+/* New Year: snow, a little bigger and softer */
+:root[data-event="new-year"] .lx-event-fleck { width: 6px; height: 6px; filter: blur(0.5px); }
+/* Tsagaan Sar: slow warm sparks */
+:root[data-event="tsagaan-sar"] .lx-event-fleck { width: 4px; height: 4px; box-shadow: 0 0 10px 1px var(--event); animation-duration: calc(18s + var(--i) * 1.5s); }
+
+@keyframes lx-event-fall {
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
+  10% { opacity: 0.7; }
+  90% { opacity: 0.5; }
+  100% { transform: translate3d(calc((var(--i) - 8) * 6px), 105vh, 0); opacity: 0; }
+}
+@keyframes lx-event-rise {
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
+  10% { opacity: 0.8; }
+  90% { opacity: 0.4; }
+  100% { transform: translate3d(calc((8 - var(--i)) * 5px), -105vh, 0); opacity: 0; }
+}
+
+/* the greeting pill on Home */
+.lx-event-greeting {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  border: 1px solid color-mix(in oklab, var(--event) 45%, transparent);
+  border-radius: 999px;
+  padding: 3px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--event);
+}
+.lx-event-greeting::before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: var(--event); }
+
+@media (prefers-reduced-motion: reduce) {
+  .lx-event-layer { display: none; }
+}

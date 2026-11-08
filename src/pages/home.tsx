@@ -19,6 +19,8 @@ import rankedArt from "@/assets/home/mode-ranked.webp"
 import funArt from "@/assets/home/mode-fun.webp"
 import proArt from "@/assets/home/mode-pro.webp"
 import eventsArt from "@/assets/home/mode-events.webp"
+import { useActiveEvent } from "@/hooks/use-active-event"
+import { eventGreeting } from "@/lib/site-events"
 
 interface HomePageProps {
   onNavigate: (page: PageId) => void
@@ -36,6 +38,7 @@ const MODE_CARDS: { id: PageId; key: ModeKey; label: string; tag: string; desc: 
 const TOURNAMENT_STATE = { registration: "Registration open", upcoming: "Starting soon", live: "Live now", finished: "Finished" } as const
 
 export function HomePage({ onNavigate }: HomePageProps) {
+  const greeting = eventGreeting(useActiveEvent()?.theme)
   const navigate = useNavigate()
   const { data: homeStats, loading: statsLoading } = useApiQuery<HomeStats>((signal) => serversService.getHomeStats({ signal }))
   const { data: tournaments } = useApiQuery((signal) => tournamentsService.list({ signal }), { queryKey: "home-tournaments" })
@@ -80,9 +83,12 @@ export function HomePage({ onNavigate }: HomePageProps) {
         <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
 
-        <div className="relative z-10 flex w-fit items-center gap-2">
-          <span className="size-1.5 rounded-full bg-[var(--brand-bright)]" />
-          <span className="text-xs font-medium text-[var(--text-muted)]">Mongolian CS2 community</span>
+        <div className="relative z-10 flex w-fit flex-wrap items-center gap-x-4 gap-y-2">
+          <span className="flex items-center gap-2">
+            <span className="size-1.5 rounded-full bg-[var(--brand-bright)]" />
+            <span className="text-xs font-medium text-[var(--text-muted)]">Mongolian CS2 community</span>
+          </span>
+          {greeting && <span className="lx-event-greeting">{greeting}</span>}
         </div>
         <div className="relative z-10 flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between @3xl:gap-10">
         <div className="flex shrink-0 flex-col gap-4">

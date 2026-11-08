@@ -1,4 +1,5 @@
 import { BackgroundBeams } from "@/components/background-beams"
+import { EventLayer } from "@/components/event-layer"
 import { loadPerkCatalogue } from "@/api/perks"
 import Aurora from "@/components/ui/aurora"
 import { ProfileBackdrop } from "@/components/profile-backdrop"
@@ -119,6 +120,7 @@ export function App() {
       {/* A slow grey light drifting over the near-black base, behind the beams (owner request 2026-11-01: keep the base background, add the Aurora in its own greys). */}
       {!profileGrid && !profileScene && <Aurora aria-hidden="true" intensity={0.14} className="pointer-events-none fixed inset-0 -z-[2] overflow-hidden" />}
       {!profileGrid && !profileScene && <BackgroundBeams />}
+      <EventLayer />
       <ProfileScene scene={currentPage === "profile" ? profileScene : null} />
       <ProfileBackdrop active={profileGrid} />
       <AppSidebar currentPage={currentPage} onNavigate={handleNavigate} />

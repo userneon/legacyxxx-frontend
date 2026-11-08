@@ -1014,6 +1014,8 @@ export async function mockResponse(method: string, path: string, query: Query, b
     { key: "tier2", name: "Imperial", quota: 5, prices: { "14": 42000, "30": 70000, "90": 175000 } },
     { key: "tier3", name: "Eternal", quota: 10, prices: { "14": 72000, "30": 120000, "90": 300000 } },
   ], pool: ["freeze", "blind", "bury", "drug", "glow", "noclip", "god"].map((name) => ({ name, group: name === "noclip" || name === "god" ? "Cheats" : "Fun", summary: "" })) }
+  if (path === "/api/v1/public/events/active") return { event: null }
+  if (path === "/api/v1/staff/events") return { today: "2026-11-08", runningId: null, events: [] }
   if (path === "/api/v1/perks/me") return { grant: null, pending: null }
   if (path === "/api/v1/wallet/topup/status") return { available: true, custom: { minMnt: 1000, maxMnt: 500000, stepMnt: 1000 } }
   if (path === "/api/v1/wallet/topups") return { topups: [{ id: "t1", productId: "lx-750", amountMnt: 5000, grantsLx: 750, status: "paid", createdAt: new Date(Date.now() - 30 * HOUR).toISOString(), paidAt: new Date(Date.now() - 30 * HOUR + 60_000).toISOString() }] }
