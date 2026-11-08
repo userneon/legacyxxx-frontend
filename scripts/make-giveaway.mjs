@@ -21,7 +21,7 @@ const coin = dataUri("public/lx-coin.webp", "image/webp")
 
 const PRIZES = [
   { place: 1, tier: "eternal", color: "#f87171", rank: "ETERNAL", days: "30 хоног", extras: ["Crystal Orb · 30 хоног", "20,000 LX"], how: "EXP-ийн өсөлтөөр хамгийн өндөр" },
-  { place: 2, tier: "imperial", color: "#a78bfa", rank: "IMPERIAL", days: "30 хоног", extras: ["Ring frame (өөрөө сонгоно)", "10,000 LX"], how: "Сугалаагаар" },
+  { place: 2, tier: "imperial", color: "#e5e5e5", rank: "IMPERIAL", days: "30 хоног", extras: ["Ring frame (өөрөө сонгоно)", "10,000 LX"], how: "Сугалаагаар" },
   { place: 3, tier: "prestige", color: "#d4d4d8", rank: "PRESTIGE", days: "14 хоног", extras: ["Beam frame (өөрөө сонгоно)", "5,000 LX"], how: "Сугалаагаар" },
 ]
 
@@ -41,16 +41,15 @@ const page = (w, h, wide) => `<!doctype html><html><head><meta charset="utf-8">
 *{box-sizing:border-box;margin:0}
 body{width:${w}px;height:${h}px;overflow:hidden;background:#07070a;font-family:"Exo 2",Inter,sans-serif;color:#fafafa;position:relative}
 .glow{position:absolute;border-radius:50%;filter:blur(130px);opacity:.55}
-.grid{position:absolute;inset:0;background-image:linear-gradient(#ffffff08 1px,transparent 1px),linear-gradient(90deg,#ffffff08 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse at 30% 40%,#000,transparent 75%)}
 .wrap{position:absolute;inset:0;padding:${wide ? "58px 72px 64px" : "54px 54px 70px"};display:flex;${wide ? "gap:48px" : "flex-direction:column;gap:26px"}}
 .hero{${wide ? "width:600px;flex:none;" : ""}display:flex;flex-direction:column;justify-content:${wide ? "center" : "flex-start"};gap:${wide ? 22 : 14}px}
-.brand{display:flex;align-items:center;gap:14px;font-weight:700;font-size:24px;letter-spacing:6px;color:#d4d4d4}.brand b{color:#a78bfa}
+.brand{display:flex;align-items:center;gap:14px;font-weight:700;font-size:24px;letter-spacing:6px;color:#d4d4d4}.brand b{color:#a3a3a3}
 h1{font-size:${wide ? 132 : 118}px;line-height:.92;font-weight:800;font-style:italic;letter-spacing:-2px}
-h1 span{color:#a78bfa;text-shadow:0 0 60px #8b5cf688}
+h1 span{color:#a3a3a3}
 .sub{font-size:${wide ? 28 : 26}px;line-height:1.35;color:#c4c4cc;max-width:560px}
 .steps{display:flex;flex-direction:column;gap:9px;margin-top:6px}
 .steps div{display:flex;align-items:center;gap:12px;font-size:${wide ? 21 : 20}px;color:#e5e5ea}
-.steps i{flex:none;width:30px;height:30px;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:16px;color:#0a0a0a;background:#a78bfa;transform:skewX(-10deg)}
+.steps i{flex:none;width:30px;height:30px;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:16px;color:#0a0a0a;background:#e5e5e5;transform:skewX(-10deg)}
 .extra{font-size:16px;color:#8a8a96;margin-top:2px}
 .cards{flex:1;display:flex;flex-direction:column;gap:${wide ? 16 : 14}px;justify-content:center}
 .card{position:relative;display:flex;align-items:center;gap:20px;padding:${wide ? "18px 26px" : "16px 24px"};background:linear-gradient(160deg,#17171d,#0c0c10);border:1px solid #ffffff1c;clip-path:polygon(0 0,calc(100% - 28px) 0,100% 28px,100% 100%,28px 100%,0 calc(100% - 28px))}
@@ -65,13 +64,11 @@ h3{font-size:${wide ? 30 : 28}px;font-weight:800;letter-spacing:2px;color:var(--
 .txt p{font-size:${wide ? 20 : 19}px;color:#e5e5ea;display:flex;align-items:center;gap:8px}
 .coin{width:22px;height:22px}
 .txt em{font-style:normal;font-size:14px;color:#8a8a96;letter-spacing:.5px;margin-top:2px}
-.foot{position:absolute;left:0;right:0;bottom:0;height:8px;background:linear-gradient(90deg,#8b5cf6,#a78bfa 40%,#8b5cf600)}
+.foot{position:absolute;left:0;right:0;bottom:0;height:8px;background:linear-gradient(90deg,#e5e5e5,#737373 45%,#73737300)}
 .note{position:absolute;${wide ? "left:72px;bottom:26px" : "left:54px;right:54px;bottom:24px"};font-size:14px;color:#7a7a86;letter-spacing:.3px}
 .url{position:absolute;${wide ? "right:72px;bottom:24px" : "right:54px;top:62px"};font-size:20px;letter-spacing:4px;color:#8a8a96;font-weight:600}
 </style></head><body>
-<div class="glow" style="width:700px;height:700px;left:-160px;top:-140px;background:#6d4fc4"></div>
-<div class="glow" style="width:560px;height:560px;right:-120px;bottom:-160px;background:#4c2f9a"></div>
-<div class="grid"></div>
+<div class="glow" style="width:700px;height:700px;left:-200px;top:-200px;background:#3f3f46;opacity:.35"></div>
 <div class="wrap">
   <div class="hero">
     <div class="brand">${mark(52)}<span>LEGACY<b>-X</b></span></div>
