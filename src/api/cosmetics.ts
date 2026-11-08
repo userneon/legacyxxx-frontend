@@ -47,10 +47,10 @@ export interface FrameItem {
   owners?: number | null
 }
 
-export type CosmeticKind = "frame" | "background" | "name_color" | "name_glow" | "banner" | "title" | "smoke_color" | "grenade_trail" | "grenade_light" | "flash_effect" | "model_knife" | "model_deagle" | "model_ak47" | "model_agent_ct" | "model_agent_t"
+export type CosmeticKind = "frame" | "background" | "name_color" | "name_glow" | "banner" | "title" | "smoke_color" | "grenade_trail" | "grenade_light" | "flash_effect" | "model_knife" | "model_deagle" | "model_ak47"
 
 /** The kinds that are a custom weapon model (owner request 2026-11-06). */
-export const MODEL_KINDS = ["model_knife", "model_deagle", "model_ak47", "model_agent_ct", "model_agent_t"] as const
+export const MODEL_KINDS = ["model_knife", "model_deagle", "model_ak47"] as const
 export type ModelKind = (typeof MODEL_KINDS)[number]
 export const isModelKind = (kind: string): kind is ModelKind => (MODEL_KINDS as readonly string[]).includes(kind)
 
@@ -88,9 +88,6 @@ export interface Cosmetics {
   equippedModelKnife?: string | null
   equippedModelDeagle?: string | null
   equippedModelAk47?: string | null
-  /** The agent models worn (owner request 2026-11-08): one for the CT side and one for the T side. */
-  equippedModelAgentCt?: string | null
-  equippedModelAgentT?: string | null
   nadeSlots?: NadeSlots
   frames: FrameItem[]
   /** The React Bits backgrounds for profiles, and the knobs this player saved for each (keyed by item id). */
@@ -112,9 +109,6 @@ export interface Cosmetics {
   modelKnives?: FrameItem[]
   modelDeagles?: FrameItem[]
   modelAk47s?: FrameItem[]
-  /** Agent models sold for LX (game server): a player model for each side. */
-  modelAgentsCt?: FrameItem[]
-  modelAgentsT?: FrameItem[]
 }
 
 export const cosmeticsService = {

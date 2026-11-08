@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
-import { Check, ChevronDown, Crosshair, Heart, Lock, RotateCcw, Search, ShoppingBag, SlidersHorizontal, Sword, Undo2, UserRound, X } from "lucide-react"
+import { Check, ChevronDown, Crosshair, Heart, Lock, RotateCcw, Search, ShoppingBag, SlidersHorizontal, Sword, Undo2, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -88,11 +88,11 @@ function ItemArt({ item, avatar, username, size, orb }: { item: ShopItem; avatar
 
 /** A weapon model has no picture of its own here (the model is in the game): the weapon it replaces, drawn as an icon. */
 function ModelArt({ kind, big }: { kind: ModelKind; big: boolean }) {
-  const Icon = kind === "model_knife" ? Sword : kind === "model_agent_ct" || kind === "model_agent_t" ? UserRound : Crosshair
+  const Icon = kind === "model_knife" ? Sword : Crosshair
   return (
     <span className="flex flex-col items-center gap-1.5 text-[var(--text-2)]">
       <Icon className={big ? "size-14" : "size-9"} strokeWidth={1.5} aria-hidden="true" />
-      <span className="text-[10px] uppercase tracking-[1.2px] text-[var(--text-dim)]">{kind === "model_knife" ? "Knife" : kind === "model_deagle" ? "Desert Eagle" : kind === "model_agent_ct" ? "CT agent" : kind === "model_agent_t" ? "T agent" : "AK-47"}</span>
+      <span className="text-[10px] uppercase tracking-[1.2px] text-[var(--text-dim)]">{kind === "model_knife" ? "Knife" : kind === "model_deagle" ? "Desert Eagle" : "AK-47"}</span>
     </span>
   )
 }
@@ -239,10 +239,8 @@ export function ShopPage() {
     ...(data?.modelKnives ?? []).map((item) => ({ ...item, kind: "model_knife" as const })),
     ...(data?.modelDeagles ?? []).map((item) => ({ ...item, kind: "model_deagle" as const })),
     ...(data?.modelAk47s ?? []).map((item) => ({ ...item, kind: "model_ak47" as const })),
-    ...(data?.modelAgentsCt ?? []).map((item) => ({ ...item, kind: "model_agent_ct" as const })),
-    ...(data?.modelAgentsT ?? []).map((item) => ({ ...item, kind: "model_agent_t" as const })),
   ].filter((item) => !item.retired), [data])
-  const worn = { frame: data?.equippedFrame ?? null, background: data?.equippedBackground ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null, grenade_light: data?.equippedGrenadeLight ?? null, flash_effect: data?.equippedFlashEffect ?? null, model_knife: data?.equippedModelKnife ?? null, model_deagle: data?.equippedModelDeagle ?? null, model_ak47: data?.equippedModelAk47 ?? null, model_agent_ct: data?.equippedModelAgentCt ?? null, model_agent_t: data?.equippedModelAgentT ?? null }
+  const worn = { frame: data?.equippedFrame ?? null, background: data?.equippedBackground ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null, grenade_light: data?.equippedGrenadeLight ?? null, flash_effect: data?.equippedFlashEffect ?? null, model_knife: data?.equippedModelKnife ?? null, model_deagle: data?.equippedModelDeagle ?? null, model_ak47: data?.equippedModelAk47 ?? null }
   const balance = wallet?.balance ?? null
   const username = user?.username ?? "Player"
 
@@ -895,7 +893,7 @@ export function ShopPage() {
                   </div>
                 ) : tab === "model" ? (
                   <div className="flex flex-col gap-6">
-                    {([["model_knife", "Knives"], ["model_deagle", "Desert Eagle"], ["model_ak47", "AK-47"], ["model_agent_ct", "CT agents"], ["model_agent_t", "T agents"]] as const).map(([kind, heading]) => {
+                    {([["model_knife", "Knives"], ["model_deagle", "Desert Eagle"], ["model_ak47", "AK-47"]] as const).map(([kind, heading]) => {
                       const list = shown.filter((item) => item.kind === kind)
                       return list.length ? <div key={kind}><div className="lx-shop-heading mb-2.5">{heading}</div>{grid(list)}</div> : null
                     })}
