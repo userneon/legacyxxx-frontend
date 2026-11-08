@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils"
 import { FrozenOrb } from "@/components/frozen-orb"
 import { ORB_ID, type FrameLook } from "@/lib/frame-look"
 import { OptimizedImage } from "@/components/optimized-image"
+import { RingFrame } from "@/components/ring-frame"
+import { isRingFrame } from "@/lib/ring-frames"
 
 function validAvatarUrl(value?: string) {
   if (!value) return false
@@ -50,6 +52,14 @@ export function PlayerAvatar({
       <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-inset ring-white/20" />
     </div>
   )
+  if (isRingFrame(frame)) {
+    return (
+      <span className="relative inline-flex shrink-0">
+        {picture}
+        <RingFrame id={frame} />
+      </span>
+    )
+  }
   if (frame !== ORB_ID) return picture
   return (
     <span className="relative inline-flex shrink-0">

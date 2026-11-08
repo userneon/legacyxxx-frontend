@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { frameAccent, nameProps, timeLeft } from "@/lib/cosmetics"
 import { SAVED_KEY, daysLeft, endingSoon, outfitTotal, rarityOf, readSaved } from "@/lib/shop-logic"
 import { ORB_ID, type FrameLook } from "@/lib/frame-look"
+import { isRingFrame } from "@/lib/ring-frames"
 import { OrbCustomizer } from "@/components/orb-customizer"
 import { BgCustomizer } from "@/components/bg-customizer"
 import { BgThumb } from "@/components/bg-thumb"
@@ -74,7 +75,7 @@ function ItemArt({ item, avatar, username, size, orb }: { item: ShopItem; avatar
   if (item.kind === "frame") {
     const pic = <FramedAvatar avatar={avatar} name={username} frame={item.id} look={orb} live={size >= 120} size={size} />
     // The Crystal Orb draws its own frame; every other frame shows as a ring in its colour.
-    return item.id === ORB_ID ? pic : <span className="lx-shop-ring" style={{ "--acc": frameAccent(item.id) } as React.CSSProperties}>{pic}</span>
+    return item.id === ORB_ID || isRingFrame(item.id) ? pic : <span className="lx-shop-ring" style={{ "--acc": frameAccent(item.id) } as React.CSSProperties}>{pic}</span>
   }
   if (item.kind === "smoke_color") return <SmokePuff color={item.color} color2={item.color2} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "grenade_trail") return <GrenadeTrail color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />

@@ -2244,3 +2244,24 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
 .lx-flow-stack > :nth-child(5) { animation-delay: 180ms; }
 .lx-flow-stack > :nth-child(n + 6) { animation-delay: 225ms; }
 @media (prefers-reduced-motion: reduce) { .lx-flow-stack > * { animation: none; } }
+
+/* Ring frames (owner request 2026-11-08): pure CSS rings round the round avatar, see lib/ring-frames.ts. The ring overflows the avatar's box by 12%.
+   Only the ring turns (transform), never a blurred layer, so a list of them stays cheap. Still for reduced motion. */
+.lx-ring { position: absolute; inset: var(--lx-ring-inset, -12%); border-radius: 9999px; pointer-events: none; z-index: 1; }
+.lx-ring-glow { position: absolute; inset: 9%; border-radius: 9999px; box-shadow: 0 0 calc(var(--lx-ring-size, 40px) * 0.28) var(--ring-b); opacity: 0.55; }
+.lx-ring-spin { position: absolute; inset: 0; border-radius: 9999px; animation: lx-ring-turn 5s linear infinite; }
+.lx-ring-gradient .lx-ring-spin {
+  background: conic-gradient(var(--ring-a), var(--ring-b), var(--ring-c), var(--ring-a));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 2px));
+}
+.lx-ring-beam::after { content: ""; position: absolute; inset: 0; border-radius: 9999px; border: 1px solid var(--ring-a); opacity: 0.55; }
+.lx-ring-beam .lx-ring-glow { opacity: 0.3; }
+.lx-ring-beam .lx-ring-spin {
+  background: conic-gradient(from 0deg, transparent 0 62%, var(--ring-a) 78%, var(--ring-b) 92%, var(--ring-c) 100%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 2px));
+  animation-duration: 3.2s;
+}
+@keyframes lx-ring-turn { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .lx-ring-spin { animation: none; } }

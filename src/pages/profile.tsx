@@ -34,6 +34,8 @@ import { PenaltyDetailSheet, StatusPill, TypeIcon, TYPE_META, formatPenaltyDate 
 import { OrbAvatar } from "@/components/orb-avatar"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { ORB_ID } from "@/lib/frame-look"
+import { RingFrame } from "@/components/ring-frame"
+import { isRingFrame } from "@/lib/ring-frames"
 import { CreatorBadge, CreatorLinks } from "@/pages/creators"
 import { clanTagProps, nameProps } from "@/lib/cosmetics"
 import { PageBar, PageTabs } from "@/components/page-tabs"
@@ -84,7 +86,8 @@ function Avatar({ user }: { user: ProfileOverview["user"] }) {
     )
   }
   return (
-    <span className="relative flex size-[116px] shrink-0 items-center justify-center">
+    <span className="relative flex size-[116px] shrink-0 items-center justify-center" style={{ "--lx-ring-inset": "-7%", "--lx-ring-size": "116px" } as React.CSSProperties}>
+      {isRingFrame(user.frame) && <RingFrame id={user.frame} />}
       <span className="relative size-[108px] overflow-hidden rounded-full border-4 border-[var(--card-surface)] bg-[var(--line)]">
         <PlayerAvatar avatar={user.avatar} name={user.username} className="size-full text-2xl" />
         {animated && <img src={animated} alt="" aria-hidden="true" onLoad={() => setReady(true)} className={cn("absolute inset-0 size-full rounded-full object-cover transition-opacity duration-300", ready ? "opacity-100" : "opacity-0")} />}

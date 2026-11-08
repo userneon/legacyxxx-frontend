@@ -2,6 +2,8 @@
 import { FrozenOrb } from "@/components/frozen-orb"
 import { OrbAvatar } from "@/components/orb-avatar"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { RingFrame } from "@/components/ring-frame"
+import { isRingFrame } from "@/lib/ring-frames"
 import { ORB_ID, type FrameLook } from "@/lib/frame-look"
 
 /**
@@ -14,6 +16,7 @@ export function FramedAvatar({ avatar, name, size, frame, look, live = false }: 
     <span className="relative inline-flex shrink-0" style={{ width: size, height: size }}>
       <PlayerAvatar avatar={avatar} name={name} style={{ width: size, height: size, fontSize: Math.round(size * 0.34) }} className="text-[var(--text-2)]" />
       {frame === ORB_ID && <FrozenOrb look={look} />}
+      {isRingFrame(frame) && <RingFrame id={frame} />}
     </span>
   )
 }
