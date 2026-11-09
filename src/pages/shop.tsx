@@ -88,6 +88,22 @@ function ItemArt({ item, avatar, username, size, orb }: { item: ShopItem; avatar
 /** The models that have an in-game picture (`public/shop/models/<id>.webp`, taken in the game, owner request 2026-11-09). Any other model shows the weapon it replaces as an icon. */
 const MODEL_PICTURES = new Set(["katana-wupie", "katana-miku", "katana-blood", "katana-dengliz", "deagle-mari", "ak-10005"])
 
+/** The preview's picture: a change of model slides the new picture in and the old one out, so the two are never swapped with a jump. */
+function SlidingPicture({ id }: { id: string }) {
+  const [state, setState] = useState<{ shown: string; prev: string | null }>({ shown: id, prev: null })
+  useEffect(() => {
+    setState((current) => (current.shown === id ? current : { shown: id, prev: current.shown }))
+    const timer = window.setTimeout(() => setState((current) => ({ ...current, prev: null })), 450)
+    return () => window.clearTimeout(timer)
+  }, [id])
+  return (
+    <div className="relative aspect-video w-full overflow-hidden">
+      {state.prev && <img key={`out-${state.prev}`} src={`/shop/models/${state.prev}.webp`} alt="" draggable={false} className="lx-model-out absolute inset-0 h-full w-full object-cover" />}
+      <img key={state.shown} src={`/shop/models/${state.shown}.webp`} alt="" width={640} height={360} draggable={false} className={cn("h-full w-full object-cover", state.prev && "lx-model-in")} />
+    </div>
+  )
+}
+
 /** Whether a model has an in-game picture (the Shop tile then lets it fill the whole top of the tile). */
 const hasModelPicture = (item: ShopItem) => isModelKind(item.kind) && MODEL_PICTURES.has(item.id)
 
@@ -97,7 +113,9 @@ const hasModelPicture = (item: ShopItem) => isModelKind(item.kind) && MODEL_PICT
  */
 function ModelArt({ id, kind, mode }: { id: string; kind: ModelKind; mode: "fill" | "big" | "preview" | "small" }) {
   if (MODEL_PICTURES.has(id)) {
-    const look = mode === "fill" ? "h-full w-full object-cover" : mode === "big" ? "aspect-video w-[320px] rounded-lg border border-[var(--line)] object-cover" : mode === "preview" ? "aspect-video w-full object-cover" : "aspect-video w-16 rounded-md object-cover"
+    // The big preview: when another model is picked, its picture slides in as the old one slides out and fades (owner request 2026-11-09, "the pictures move smoothly between each other").
+    if (mode === "preview") return <SlidingPicture id={id} />
+    const look = mode === "fill" ? "h-full w-full object-cover" : mode === "big" ? "aspect-video w-[320px] rounded-lg border border-[var(--line)] object-cover" : "aspect-video w-16 rounded-md object-cover"
     return <img src={`/shop/models/${id}.webp`} alt="" width={640} height={360} loading="lazy" draggable={false} className={look} />
   }
   const big = mode === "big" || mode === "preview"

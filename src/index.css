@@ -1034,6 +1034,13 @@ body::before {
 }
 @media (prefers-reduced-motion: reduce) { .lx-ring-seg { animation: none; } }
 
+/* The Shop's model picture: the new one slides in from the right while the old one slides out to the left and fades (owner request 2026-11-09). Transform and opacity only, still for reduced motion. */
+.lx-model-in { animation: lx-model-in 420ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.lx-model-out { animation: lx-model-out 420ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+@keyframes lx-model-in { from { opacity: 0; transform: translateX(28px) scale(1.04); } }
+@keyframes lx-model-out { to { opacity: 0; transform: translateX(-28px) scale(0.98); } }
+@media (prefers-reduced-motion: reduce) { .lx-model-in, .lx-model-out { animation: none; } }
+
 /* Play filtering: filtered cards fill into their final positions in a short, staggered pass. */
 @media all {
   .play-filter-result {
