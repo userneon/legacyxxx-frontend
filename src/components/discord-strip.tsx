@@ -1,5 +1,4 @@
 import { useEffect, useState, type ComponentProps } from "react"
-import { Link } from "react-router-dom"
 import { ArrowUpRight } from "lucide-react"
 
 import { LINKS } from "@/lib/links"
@@ -79,20 +78,6 @@ export function DiscordStrip() {
         <ArrowUpRight className="size-3.5" />
       </span>
     </a>
-  )
-}
-
-/** The Discord button in the top bar of every page: it opens the Discord page, where the invite, linking and pings are. */
-export function DiscordTopLink() {
-  return (
-    <Link
-      to="/discord"
-      aria-label="Discord"
-      className={"inline-flex h-9 shrink-0 items-center gap-2 rounded-full bg-[#5865F2] px-3.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#4752c4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7289DA] max-sm:px-2.5" /* palette-exempt: Discord brand */}
-    >
-      <DiscordIcon className="size-4" />
-      <span className="max-sm:hidden">Discord</span>
-    </Link>
   )
 }
 

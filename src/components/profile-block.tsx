@@ -13,6 +13,7 @@ import { NotificationsMenu } from "@/components/notifications-menu"
 import { WalletMenu } from "@/components/wallet-menu"
 import { FuseButton } from "@/components/fuse-button"
 import { SteamIcon } from "@/components/steam-login-gate"
+import { DiscordIcon } from "@/components/discord-strip"
 
 interface ProfileBlockProps {
   onNavigate: (page: PageId) => void
@@ -95,6 +96,10 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
             <button type="button" role="menuitem" className={cn(menuItemClass, "text-[var(--text)]")} onClick={() => { setOpen(false); navigate("/profile", { state: { tab: "settings" } }) }}>
               <Settings className="size-4" />
               Settings
+            </button>
+            <button type="button" role="menuitem" className={cn(menuItemClass, "text-[var(--text)]")} onClick={() => { setOpen(false); navigate("/discord") }}>
+              <DiscordIcon className="size-4" />
+              Discord
             </button>
           </div>
           <div className="border-t border-[var(--line-soft)] p-1.5">
