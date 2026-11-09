@@ -246,14 +246,14 @@ function Appearance() {
   const sampleName = user?.username ?? "Player"
 
   return (
-    <Section id="appearance" index={0} title="Appearance" description="What you wear on the site and in game. Cosmetic only." aside={saved.node}>
+    <div className="@container flex flex-col gap-3">
       {loading ? (
-        <div className="grid gap-4 md:grid-cols-[210px_minmax(0,1fr)]"><Skeleton className="h-[300px] rounded-[10px]" /><Skeleton className="h-[300px] rounded-[10px]" /></div>
+        <div className="grid gap-3 @3xl:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]"><Skeleton className="h-[320px] rounded-2xl" /><Skeleton className="h-[320px] rounded-2xl" /></div>
       ) : error || !data ? (
         <p className="flex items-center gap-3 text-[13px] text-[var(--text-dim)]">Could not load your appearance.<button type="button" onClick={refetch} className="inline-flex h-[34px] items-center gap-1.5 rounded-lg border border-[var(--line)] px-3.5 text-[13px] font-medium text-[var(--text-2)] hover:bg-[var(--raised)]"><RotateCcw className="size-3.5" />Retry</button></p>
       ) : (
-        <div className="grid gap-4 md:grid-cols-[210px_minmax(0,1fr)]">
-          <div className="flex flex-col items-center gap-3 self-start rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] p-4 md:sticky md:top-6">
+        <div className="grid gap-3 @3xl:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]">
+          <div className="lx-glass flex flex-col items-center gap-3 self-start rounded-2xl p-5 @3xl:sticky @3xl:top-4">
             <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} look={data.frameLook} size={108} />
             <span {...nameProps(previewLook, "max-w-full truncate text-[15px] font-bold text-[var(--text)]")}>{sampleName}</span>
             {kind === "background" && selected && <div className="relative h-[110px] w-full overflow-hidden rounded-lg bg-[var(--card-surface)] [&>div]:size-full"><BackgroundScene key={selected.id} id={selected.id} look={bgDrafts[selected.id] ?? data.backgroundLooks?.[selected.id] ?? {}} /></div>}
@@ -269,7 +269,8 @@ function Appearance() {
             {selected && <div className="w-full">{action(selected)}</div>}
           </div>
           <div className="flex min-w-0 flex-col gap-3">
-            <div role="radiogroup" aria-label="What to change" className="flex flex-col gap-2 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] p-2.5">
+            <div role="radiogroup" aria-label="What to change" className="lx-glass flex flex-col gap-2.5 rounded-2xl p-4">
+              <div className="flex items-center justify-between gap-3"><h2 className="text-[15px] font-semibold text-[var(--text)]">Appearance</h2>{saved.node}</div>
               {KIND_GROUPS.map((group) => (
                 <div key={group.id} className="flex flex-wrap items-center gap-1.5">
                   <span className="w-[64px] shrink-0 text-[10px] font-semibold uppercase tracking-wide text-[var(--text-faint)]">{group.label}</span>
@@ -303,10 +304,11 @@ function Appearance() {
               />
             )}
             {kind === "frame" && <OrbCustomizer avatar={user?.avatar} name={user?.username} owned={lists.frame.some((item) => item.id === "crystal-orb" && item.owned)} saved={data.frameLook ?? null} busy={busy} onSave={(look) => void run(() => cosmeticsService.saveFrameLook(look), "Could not save your orb")} />}
+            <div className="lx-glass rounded-2xl p-4">
             {frames.length === 0 ? (
               <p className="py-6 text-[13px] text-[var(--text-dim)]">You do not own a {noun} yet.</p>
             ) : (
-              <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+              <ul className="grid grid-cols-2 gap-2.5 @lg:grid-cols-3 @3xl:grid-cols-3 @5xl:grid-cols-4">
                 {frames.map((item) => (
                   <li key={item.id}>
                     <button
@@ -346,10 +348,11 @@ function Appearance() {
                 ))}
               </ul>
             )}
+            </div>
           </div>
         </div>
       )}
-    </Section>
+    </div>
   )
 }
 

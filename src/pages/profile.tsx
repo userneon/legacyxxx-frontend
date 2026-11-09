@@ -45,7 +45,7 @@ import { RelativeTime } from "@/components/relative-time"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Skeleton } from "@/components/ui/skeleton"
 
-const card = "rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]"
+const card = "rounded-2xl border border-[var(--glass-line)] bg-[var(--glass-fill)]"
 const outline = "inline-flex h-[34px] items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] font-medium text-[var(--text)] transition-[background-color,border-color,transform] duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
 
 const SECTION_LABEL: Record<ProfileSection, string> = { stats: "Stats", matches: "Recent matches", faceit: "FACEIT stats", loadout: "Loadout" }
@@ -830,31 +830,32 @@ export function ProfilePage({ userId }: { userId?: string }) {
         </PageBar>
       )}
       {tab === "profile" && (
-      <div className="px-6 pt-6 max-md:px-4 max-md:pt-4">
-        <section aria-label="Profile" className="relative overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
-          <ProfileBanner fx={banner} fade className="h-[190px]" />
-          <div className={cn("relative px-5 pb-6 max-md:px-4", banner ? "pt-[84px]" : "pt-7")}>
-            <Header overview={data} onVisibilityChange={refetch} />
-          </div>
-        </section>
-      </div>
-      )}
-      {/* The Owner's Respect and links come first; the rank, stats, matches and FACEIT below are the same as everyone's. */}
-      {tab === "profile" && (
-        <PageBar className="mt-4 max-md:px-4">
-          <PageTabs<"stats" | "configs"> ariaLabel="Profile views" value={view} onChange={setView} options={[{ value: "stats", label: "Stats" }, { value: "configs", label: "Configs" }]} />
-        </PageBar>
-      )}
-      {tab === "profile" && view === "configs" ? (
-        <div key="configs" className="lx-flow-stack px-6 pb-8 pt-5 max-md:px-4"><ProfileConfigs userId={data.user.steamId || data.user.id} isOwner={data.viewer.isOwner} /></div>
-      ) : tab !== "profile" ? (
-        <div key={tab} className="lx-flow-stack px-6 pb-8 pt-6 max-md:px-4 max-md:pt-4"><div className="mx-auto w-full max-w-4xl">{tab === "appearance" ? <AppearanceSettings /> : <AccountSettings />}</div></div>
-      ) : (<>
-      {data.user.role === "Owner" && <div className="px-6 pt-4 max-md:px-4"><div className="mx-auto flex w-full max-w-3xl flex-col gap-4"><OwnerPanel overview={data} /><OwnerSections overview={data} /></div></div>}
-      {(
-      <div className="flex flex-col gap-4 px-6 pb-8 pt-4 max-md:px-4">
-        {data.staff && <div {...rise(0)}><StaffCard staff={data.staff} username={data.user.username} /></div>}
-        {data.creator && (
+      <div className="@container px-6 pb-8 pt-5 max-md:px-4">
+        {data.user.role === "Owner" && <div className="pb-3"><div className="mx-auto flex w-full max-w-3xl flex-col gap-4"><OwnerPanel overview={data} /><OwnerSections overview={data} /></div></div>}
+        <div className="grid gap-3 @4xl:grid-cols-12">
+          {/* Who this is: the banner, the avatar, the name, the badges and the buttons, in one card that stays in view. */}
+          <aside className="flex min-w-0 flex-col gap-3 @4xl:col-span-4">
+            <section aria-label="Profile" className="lx-glass relative overflow-hidden rounded-2xl">
+              <ProfileBanner fx={banner} fade className="h-[130px]" />
+              <div className={cn("relative px-5 pb-6 max-md:px-4", banner ? "pt-[64px]" : "pt-7")}>
+                <Header overview={data} onVisibilityChange={refetch} />
+              </div>
+            </section>
+            <div {...rise(1)} className={rise(1).className}><TrustCard overview={data} onOpenPenalty={(id) => setOpenPenalty(penaltyById(id))} /></div>
+            {hidden.has("loadout") ? <HiddenCard section="loadout" /> : data.loadout && <LoadoutCard loadout={data.loadout} />}
+            {data.banned ? (showFaceit && faceit ? <CensoredCard label="FACEIT" rows={3} /> : null) : hidden.has("faceit") ? <HiddenCard section="faceit" /> : showFaceit && faceit && <FaceitCard faceit={faceit} />}
+            <PenaltyHistory penalties={data.penalties} total={data.penaltyCount} steamId={data.user.steamId} onOpen={setOpenPenalty} />
+          </aside>
+          <div className="@container flex min-w-0 flex-col gap-3 @4xl:col-span-8">
+            <div className="lx-glass rounded-2xl px-5">
+              <PageTabs<"stats" | "configs"> ariaLabel="Profile views" value={view} onChange={setView} options={[{ value: "stats", label: "Stats" }, { value: "configs", label: "Configs" }]} />
+            </div>
+            {view === "configs" ? (
+              <div key="configs" className="lx-flow-stack"><ProfileConfigs userId={data.user.steamId || data.user.id} isOwner={data.viewer.isOwner} /></div>
+            ) : (
+              <>
+                {data.staff && <div {...rise(0)}><StaffCard staff={data.staff} username={data.user.username} /></div>}
+                {data.creator && (
           <div {...rise(0)}>
             <section aria-label={data.creator.label} className={cn(card, "flex flex-wrap items-center gap-4 border-[var(--line-strong)] bg-[var(--glass-fill)] px-[18px] py-3.5")}>
               <span className="flex min-w-[220px] flex-1 flex-col gap-[3px]">
@@ -865,32 +866,23 @@ export function ProfilePage({ userId }: { userId?: string }) {
             </section>
           </div>
         )}
-
-        <div {...rise(1)} className={cn(rise(1).className, "grid gap-4 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]")}>
-          {data.banned ? <CensoredCard label="Rank" rows={2} /> : data.competitive ? <RankCard competitive={data.competitive} /> : <section className={cn(card, "flex items-center p-[18px] text-[13px] text-[var(--text-dim)]")}>Unranked — no competitive matches yet</section>}
-          <TrustCard overview={data} onOpenPenalty={(id) => setOpenPenalty(penaltyById(id))} />
-        </div>
-
-        {data.banned ? <CensoredStatsRow /> : hidden.has("stats") ? <HiddenCard section="stats" /> : data.stats ? <StatsRow stats={data.stats} form={data.recentMatches?.slice(0, 5).map((match) => match.result)} /> : <EmptyStatsRow />}
-
-        <div {...rise(3)} className={cn(rise(3).className, "grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]")}>
-          <div className="flex min-w-0 flex-col gap-4">
-            {data.banned ? <CensoredCard label="Recent matches" rows={5} /> : hidden.has("matches") ? <HiddenCard section="matches" /> : (
+                <div {...rise(1)} className={rise(1).className}>{data.banned ? <CensoredCard label="Rank" rows={2} /> : data.competitive ? <RankCard competitive={data.competitive} /> : <section className={cn(card, "flex items-center p-[18px] text-[13px] text-[var(--text-dim)]")}>Unranked — no competitive matches yet</section>}</div>
+                {data.banned ? <CensoredStatsRow /> : hidden.has("stats") ? <HiddenCard section="stats" /> : data.stats ? <StatsRow stats={data.stats}  /> : <EmptyStatsRow />}
+                {data.banned ? <CensoredCard label="Recent matches" rows={5} /> : hidden.has("matches") ? <HiddenCard section="matches" /> : (
               <>
                 <RecentMatches matches={data.recentMatches ?? []} kdAverage={data.stats?.find((tile) => tile.key === "kd")?.average ?? null} onOpen={setOpenMatch} />
               </>
             )}
-          </div>
-          <div className="flex min-w-0 flex-col gap-4">
-            {data.banned ? (showFaceit && faceit ? <CensoredCard label="FACEIT" rows={3} /> : null) : hidden.has("faceit") ? <HiddenCard section="faceit" /> : showFaceit && faceit && <FaceitCard faceit={faceit} />}
-            <PenaltyHistory penalties={data.penalties} total={data.penaltyCount} steamId={data.user.steamId} onOpen={setOpenPenalty} />
-            {hidden.has("loadout") ? <HiddenCard section="loadout" /> : data.loadout && <LoadoutCard loadout={data.loadout} />}
-            {data.banned ? <CensoredCard label="Maps" rows={4} /> : !hidden.has("matches") && data.maps && <MapsCard maps={data.maps} />}
+                {data.banned ? <CensoredCard label="Maps" rows={4} /> : !hidden.has("matches") && data.maps && <MapsCard maps={data.maps} />}
+              </>
+            )}
           </div>
         </div>
       </div>
       )}
-      </>)}
+      {tab !== "profile" && (
+        <div key={tab} className="lx-flow-stack px-6 pb-8 pt-6 max-md:px-4 max-md:pt-4"><div className={cn("mx-auto w-full", tab === "appearance" ? "max-w-none" : "max-w-4xl")}>{tab === "appearance" ? <AppearanceSettings /> : <AccountSettings />}</div></div>
+      )}
 
       {openMatch?.matchId && (
         <MatchDetailsDialog matchId={openMatch.matchId} mapNumber={openMatch.mapNumber ?? 1} highlightSteamId={data.user.steamId} exp={openMatch} onOpenChange={(open) => { if (!open) setOpenMatch(null) }} />
