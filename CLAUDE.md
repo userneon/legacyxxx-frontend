@@ -130,7 +130,7 @@ The site's frame (`App.tsx`, `.lx-frame` in `index.css`): one **solid frame** (`
 
 ### Flat outline (owner pick 2026-10-05, replaces the glass look of 2026-09-28)
 
-The whole app sits on a near-black backdrop (`body::before`) with a slow grey `<Aurora />` light (`components/ui/aurora.tsx`, its own greys, intensity 0.14, owner request 2026-11-01, drifting with transforms only) and white `<BackgroundBeams />` (owner request 2026-09-30, replaces the Dust II art). The shell — sidebar, top bar and
+The whole app sits on a near-black backdrop (`body::before`) with a slow grey `<Aurora />` light (`components/ui/aurora.tsx`, its own greys, intensity 0.14, owner request 2026-11-01, drifting with transforms only). The white `<BackgroundBeams />` of 2026-09-30 were taken out (owner request 2026-11-09, "remove the beams"; `components/background-beams.tsx` deleted). The shell — sidebar, top bar and
 page panel — is `.lx-glass-shell`: transparent with a 1px `--glass-shell-line` hairline, no fill, no blur. Cards inside use `--glass-fill` (transparent)
 (`bg-[var(--glass-fill)]`, `.glass`, `.lx-glass`) with a `--glass-line` hairline. The token and class names keep their old "glass" prefix so everything
 follows from `src/index.css`. Nothing may use `backdrop-filter` on the page itself. What scrolls under something (`.glass-strong` sticky toolbars) or floats over

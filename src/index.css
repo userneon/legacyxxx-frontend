@@ -271,7 +271,7 @@ body::before {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  /* Plain near-black; the light comes from <BackgroundBeams />. The Dust II art (assets/maps/de_dust2.webp)
+  /* Plain near-black; the light comes from the Aurora. The Dust II art (assets/maps/de_dust2.webp)
      was here until 2026-09-30. */
   background: #070708;
 }

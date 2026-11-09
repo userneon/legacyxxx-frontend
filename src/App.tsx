@@ -1,4 +1,3 @@
-import { BackgroundBeams } from "@/components/background-beams"
 import { EventLayer } from "@/components/event-layer"
 import { SnowLayer } from "@/components/snow-layer"
 import { loadPerkCatalogue } from "@/api/perks"
@@ -151,10 +150,9 @@ export function App() {
   // A narrow window, or the "Start with sidebar collapsed" setting, starts on the icon rail.
   return (
     <SidebarProvider defaultOpen={typeof window === "undefined" || (!getWebsitePreferences().sidebarCollapsed && window.innerWidth >= 1280)} style={{ "--sidebar-width": "264px", "--sidebar-width-icon": "62px" } as CSSProperties}>
-      {/* On a profile the whole backdrop is the Grid Scan; the beams come back when the visitor leaves. */}
-      {/* A slow grey light drifting over the near-black base, behind the beams (owner request 2026-11-01: keep the base background, add the Aurora in its own greys). */}
+      {/* On a profile the whole backdrop is the Grid Scan; the Aurora comes back when the visitor leaves. */}
+      {/* A slow grey light drifting over the near-black base, over the near-black base (owner request 2026-11-01: keep the base background, add the Aurora in its own greys; the white beams were taken out 2026-11-09). */}
       {!profileGrid && !profileScene && <Aurora aria-hidden="true" intensity={0.14} className="pointer-events-none fixed inset-0 -z-[2] overflow-hidden" />}
-      {!profileGrid && !profileScene && <BackgroundBeams />}
       <EventLayer />
       <SnowLayer />
       <ProfileScene scene={currentPage === "profile" ? profileScene : null} />
