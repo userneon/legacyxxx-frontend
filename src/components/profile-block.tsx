@@ -31,7 +31,7 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
   )
 
   // While the site is still asking whether you are signed in, do not offer a sign-in: on a reload it would flash up (and stay up while the server is busy).
-  if (!user && loading) return <span aria-hidden="true" className="h-9 w-[150px] animate-pulse rounded-lg bg-[var(--raised)]" />
+  if (!user && loading) return <span aria-hidden="true" className="h-9 w-[150px] animate-pulse rounded-full bg-[var(--card-surface)]" />
 
   if (!user) {
     return (
@@ -39,7 +39,7 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
         <button
           type="button"
           onClick={loginWithSteam}
-          className="lx-steam-button flex h-9 items-center gap-2 rounded-lg px-3.5 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
+          className="lx-primary-button flex h-9 items-center gap-2 rounded-full px-4 text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
         >
           <SteamIcon className="size-4 shrink-0" />
           Sign in with Steam

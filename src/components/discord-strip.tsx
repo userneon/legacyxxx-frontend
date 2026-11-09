@@ -88,7 +88,7 @@ export function DiscordTopLink() {
     <Link
       to="/discord"
       aria-label="Discord"
-      className={"inline-flex h-9 shrink-0 items-center gap-2 rounded-[10px] bg-[#5865F2] px-3 text-[13px] font-semibold text-white transition-colors hover:bg-[#4752c4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7289DA] max-sm:px-2.5" /* palette-exempt: Discord brand */}
+      className={"inline-flex h-9 shrink-0 items-center gap-2 rounded-full bg-[#5865F2] px-3.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#4752c4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7289DA] max-sm:px-2.5" /* palette-exempt: Discord brand */}
     >
       <DiscordIcon className="size-4" />
       <span className="max-sm:hidden">Discord</span>
