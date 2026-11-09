@@ -4,7 +4,14 @@ import { useActiveEvent } from "@/hooks/use-active-event"
 import { useWebsitePreferences } from "@/lib/preferences"
 import { flakeCount, isWinterSeason } from "@/lib/winter"
 
-interface Flake { x: number; y: number; r: number; speed: number; sway: number; freq: number; phase: number; alpha: number }
+interface Flake { x: number; y: number; r: number; speed: number; sway: number; freq: number; phase: number; alpha: number; age: number; landed: number }
+/** The top edge of a card, in window pixels, kept up to date in place so a flake that landed on it can follow a scroll. */
+interface Ledge { left: number; right: number; top: number }
+
+/** How long a flake rests on a card before it melts away, in seconds. */
+const MELT = 1.8
+/** The share of flakes that meet a card's top edge and stay on it; the others fall past. */
+const LAND_SHARE = 0.55
 
 /** One soft white dot, drawn once and stamped for every flake. */
 function makeSprite(): HTMLCanvasElement {
@@ -36,6 +43,8 @@ function newFlake(width: number, height: number, anywhere: boolean): Flake {
     freq: 0.4 + Math.random() * 0.9,
     phase: Math.random() * Math.PI * 2,
     alpha: 0.3 + depth * 0.5,
+    age: anywhere ? 9 : 0,
+    landed: 0,
   }
 }
 
@@ -66,6 +75,24 @@ export function SnowLayer() {
     let width = 0
     let height = 0
     let flakes: Flake[] = []
+    const ledges = new Map<Element, Ledge>()
+    let scanning = false
+    const scan = () => {
+      scanning = false
+      const seen = new Set<Element>()
+      document.querySelectorAll(".lx-glass, .lx-add-box").forEach((element) => {
+        const rect = element.getBoundingClientRect()
+        if (rect.width < 90 || rect.top < 70 || rect.top > height - 20 || rect.right < 0 || rect.left > width) return
+        seen.add(element)
+        const ledge = ledges.get(element)
+        if (ledge) { ledge.left = rect.left; ledge.right = rect.right; ledge.top = rect.top }
+        else ledges.set(element, { left: rect.left, right: rect.right, top: rect.top })
+      })
+      for (const element of [...ledges.keys()]) if (!seen.has(element)) ledges.delete(element)
+    }
+    const scanSoon = () => { if (!scanning) { scanning = true; requestAnimationFrame(scan) } }
+    const scanTimer = window.setInterval(scan, 500)
+    document.addEventListener("scroll", scanSoon, true)
     const resize = () => {
       width = window.innerWidth
       height = window.innerHeight
@@ -80,6 +107,7 @@ export function SnowLayer() {
     }
     resize()
     window.addEventListener("resize", resize)
+    scan()
 
     let frame = 0
     let last = performance.now()
@@ -91,14 +119,34 @@ export function SnowLayer() {
       const wind = Math.sin(t * 0.12) * 16 + Math.sin(t * 0.37) * 6
       ctx.clearRect(0, 0, width, height)
       for (const flake of flakes) {
-        flake.y += flake.speed * dt
-        flake.x += (wind * (flake.r / 5) + Math.cos(t * flake.freq + flake.phase) * flake.sway) * dt
-        if (flake.y > height + 12 || flake.x < -20 || flake.x > width + 20) {
-          Object.assign(flake, newFlake(width, height, false))
-          if (flake.x < 0 || flake.x > width) flake.x = Math.random() * width
+        flake.age += dt
+        let alpha = flake.alpha * Math.min(1, flake.age / 0.9) // a new flake fades in
+        let scale = 1
+        if (flake.landed > 0) {
+          // Resting on a card: it sinks into the snow and melts.
+          flake.landed += dt
+          const left = Math.max(0, 1 - flake.landed / MELT)
+          alpha *= left
+          scale = 0.5 + left * 0.5
+          if (left <= 0) { Object.assign(flake, newFlake(width, height, false)); continue }
+        } else {
+          const before = flake.y
+          flake.y += flake.speed * dt
+          flake.x += (wind * (flake.r / 5) + Math.cos(t * flake.freq + flake.phase) * flake.sway) * dt
+          if (flake.x < -20) flake.x += width + 40
+          else if (flake.x > width + 20) flake.x -= width + 40
+          for (const ledge of ledges.values()) {
+            if (before < ledge.top && flake.y >= ledge.top && flake.x > ledge.left + 14 && flake.x < ledge.right - 14 && Math.random() < LAND_SHARE) {
+              flake.landed = 0.001
+              flake.y = ledge.top + 1
+              break
+            }
+          }
+          alpha *= Math.min(1, Math.max(0, (height + 12 - flake.y) / 90)) // and fades out near the bottom
+          if (flake.y > height + 12) { Object.assign(flake, newFlake(width, height, false)); continue }
         }
-        ctx.globalAlpha = flake.alpha
-        const size = flake.r * 2.6
+        ctx.globalAlpha = alpha
+        const size = flake.r * 2.6 * scale
         ctx.drawImage(sprite, flake.x - size / 2, flake.y - size / 2, size, size)
       }
       ctx.globalAlpha = 1
@@ -111,6 +159,8 @@ export function SnowLayer() {
     return () => {
       cancelAnimationFrame(frame)
       window.removeEventListener("resize", resize)
+      window.clearInterval(scanTimer)
+      document.removeEventListener("scroll", scanSoon, true)
       document.removeEventListener("visibilitychange", onVisibility)
       delete root.dataset.winter
     }
