@@ -1,4 +1,4 @@
-/** LEGACY-X Home (bento, owner pick 2026-11-09): a map slider, the player's rank and rings, the four modes, the top of the ladder, reviews and Discord. */
+/** LEGACY-X Home (bento, owner pick 2026-11-09): a slider (today one slide: the Scanner and Anti-Cheat), the player's rank and rings, the four modes, the top of the ladder, reviews and Discord. */
 import { cn } from "@/lib/utils"
 import { serversService } from "@/api"
 import { tournamentsService } from "@/api/tournaments"
@@ -6,7 +6,7 @@ import type { HomeStats, PageId } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { HomeReviewsCard } from "@/components/home-reviews"
 import { DiscordCard } from "@/components/discord-strip"
-import { FindPlayerPill, MapSlider, RankPanel } from "@/components/home-bento"
+import { FindPlayerPill, HeroSlider, RankPanel } from "@/components/home-bento"
 import { TopPlayers } from "@/components/home-top-players"
 import { useNavigate } from "react-router-dom"
 import { formatDate } from "@/lib/preferences"
@@ -54,7 +54,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
     <div className="lx-glass-page @container p-4 @2xl:p-6">
       {greeting && <div className="mb-3"><span className="lx-event-greeting">{greeting}</span></div>}
       <div className="grid grid-cols-1 gap-3 @4xl:grid-cols-12">
-        <MapSlider className="@4xl:col-span-8" />
+        <HeroSlider className="@4xl:col-span-8" />
         <div className="flex flex-col gap-3 @4xl:col-span-4">
           <FindPlayerPill />
           <RankPanel />

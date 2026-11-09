@@ -11,7 +11,7 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { CompetitiveRankBadge, rankTierColor } from "@/components/competitive-rank-badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
+import scannerSlide from "@/assets/home/slide-scanner.webp"
 
 /* ───────── Rank medals (gold, silver, bronze for the first three places) ───────── */
 
@@ -43,47 +43,53 @@ export function RankMedal({ place, size = 28 }: { place: 1 | 2 | 3; size?: numbe
   )
 }
 
-/* ───────── Map slider ───────── */
+/* ───────── Hero slider ───────── */
 
-/** The maps shown in the slider: the real CS2 map artwork the site already carries (no night variants). */
-const SLIDE_MAPS = ["de_dust2", "de_mirage", "de_inferno", "de_nuke", "de_ancient", "de_anubis", "de_overpass", "de_vertigo", "de_train"]
+/** The slides: a picture and the line written on it. Add a slide here (and its picture in src/assets/home); the arrows and dots appear with the second one. */
+const SLIDES: { key: string; src: string; label: string; alt: string }[] = [
+  { key: "scanner", src: scannerSlide, label: "LEGACY-X Scanner x Anti-Cheat", alt: "A detective's board with a map, photos and notes, and a computer showing a scan" },
+]
 
-export function MapSlider({ className }: { className?: string }) {
-  const slides = SLIDE_MAPS.map((key) => ({ key, src: cs2MapArtwork(key), label: cs2MapLabel(key) })).filter((slide): slide is { key: string; src: string; label: string } => Boolean(slide.src))
+export function HeroSlider({ className }: { className?: string }) {
+  const slides = SLIDES
   const [index, setIndex] = useState(0)
   const go = (next: number) => setIndex((next + slides.length) % slides.length)
-  if (slides.length === 0) return null
+  const many = slides.length > 1
   return (
-    <section aria-roledescription="carousel" aria-label="CS2 maps" className={cn("lx-glass relative isolate min-h-[240px] overflow-hidden rounded-2xl", className)}>
+    <section aria-roledescription="carousel" aria-label="LEGACY-X" className={cn("lx-glass relative isolate min-h-[240px] overflow-hidden rounded-2xl", className)}>
       {slides.map((slide, position) => (
         <img
           key={slide.key}
           src={slide.src}
-          alt={position === index ? slide.label : ""}
+          alt={position === index ? slide.alt : ""}
           aria-hidden={position !== index}
           loading={position === 0 ? "eager" : "lazy"}
           decoding="async"
           className={cn("absolute inset-0 size-full object-cover transition-opacity duration-500", position === index ? "opacity-100" : "opacity-0")}
         />
       ))}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--card-surface)]/80 via-transparent to-transparent" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--card-surface)]/85 via-transparent to-transparent" />
       <div className="absolute inset-x-5 bottom-4 flex items-end justify-between gap-3">
         <div className="flex flex-col gap-2">
-          <div className="flex gap-1.5" aria-hidden="true">
-            {slides.map((slide, position) => (
-              <span key={slide.key} className={cn("h-1.5 rounded-full bg-white/80 transition-[width,opacity] duration-300", position === index ? "w-[18px] opacity-100" : "w-1.5 opacity-35")} />
-            ))}
-          </div>
+          {many && (
+            <div className="flex gap-1.5" aria-hidden="true">
+              {slides.map((slide, position) => (
+                <span key={slide.key} className={cn("h-1.5 rounded-full bg-white/80 transition-[width,opacity] duration-300", position === index ? "w-[18px] opacity-100" : "w-1.5 opacity-35")} />
+              ))}
+            </div>
+          )}
           <span className="text-lg font-semibold leading-none text-[var(--text)]" aria-live="polite">{slides[index].label}</span>
         </div>
-        <div className="flex items-center gap-0.5 rounded-full border border-white/15 bg-[var(--card-surface)]/70 p-1">
-          <button type="button" aria-label="Previous map" onClick={() => go(index - 1)} className="grid size-9 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-            <ChevronLeft className="size-[18px]" />
-          </button>
-          <button type="button" aria-label="Next map" onClick={() => go(index + 1)} className="grid size-9 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-            <ChevronRight className="size-[18px]" />
-          </button>
-        </div>
+        {many && (
+          <div className="flex items-center gap-0.5 rounded-full border border-white/15 bg-[var(--card-surface)]/70 p-1">
+            <button type="button" aria-label="Previous slide" onClick={() => go(index - 1)} className="grid size-9 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
+              <ChevronLeft className="size-[18px]" />
+            </button>
+            <button type="button" aria-label="Next slide" onClick={() => go(index + 1)} className="grid size-9 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
+              <ChevronRight className="size-[18px]" />
+            </button>
+          </div>
+        )}
       </div>
     </section>
   )
