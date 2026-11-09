@@ -437,3 +437,5 @@ Rail tooltips sit close to their icon (owner report 2026-11-09, "the tooltip is 
 
 Fewer layers in the top bar (owner report 2026-11-09, "too many layers"): the Tutorial button and the LX balance pill have no outline of their own any more (a soft fill only on hover), so the header pill's hairline is the only outline round them; the avatar keeps its ring.
 
+No white disc on the rail (owner request 2026-11-09, "remove the white"): the page you are on is still the tab that joins the panel, but its icon is drawn in `--text` straight on the panel's colour; the light `#d4d4d4` disc (`.lx-rail-disc`) is now transparent. (The earlier paragraphs that call it a light disc describe the look before this change.)
+
