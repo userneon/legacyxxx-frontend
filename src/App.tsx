@@ -6,6 +6,7 @@ import { ProfileBackdrop } from "@/components/profile-backdrop"
 import { ProfileScene } from "@/components/profile-scene"
 import { useProfileScene } from "@/lib/profile-scene"
 import { Component, Suspense, lazy, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react"
+import { ArrowUp } from "lucide-react"
 import { Navigate, Routes, Route, useNavigate, useLocation } from "react-router-dom"
 
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
@@ -104,6 +105,16 @@ export function App() {
   // The content panel scrolls on its own; a new page starts at the top (instantly, while it fades in).
   const panelRef = useRef<HTMLDivElement>(null)
   const shownSection = pageSection(shownLocation.pathname)
+  // A long page: a round button brings you back to the top once you have scrolled a screen down.
+  const [showTop, setShowTop] = useState(false)
+  useEffect(() => {
+    const node = panelRef.current
+    if (!node) return
+    const onScroll = () => setShowTop(node.scrollTop > 480)
+    onScroll()
+    node.addEventListener("scroll", onScroll, { passive: true })
+    return () => node.removeEventListener("scroll", onScroll)
+  }, [])
   useEffect(() => {
     panelRef.current?.scrollTo({ top: 0 })
   }, [shownSection])
@@ -163,6 +174,15 @@ export function App() {
           <ProfileBlock onNavigate={handleNavigate} tab={location.pathname === "/profile" || location.pathname === "/discord"} />
         </header>
 
+        <button
+          type="button"
+          aria-label="Back to the top"
+          onClick={() => panelRef.current?.scrollTo({ top: 0, behavior: "smooth" })}
+          style={{ left: "calc(var(--lx-panel-left, 0px) + 16px)", bottom: "calc(var(--lx-panel-bottom, 0px) + 16px)" }}
+          className={cn("fixed z-30 flex size-11 items-center justify-center rounded-full border border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text)] shadow-lg transition-[opacity,transform] duration-200 hover:bg-[var(--line)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]", showTop ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-2 opacity-0")}
+        >
+          <ArrowUp className="size-5" aria-hidden="true" />
+        </button>
         <div ref={panelRef} className="lx-glass-shell lx-frame-panel scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-clip">
           {/* Leaders scrolls its table inside the panel (sticky header, your row pinned under it), so it gets the panel's height instead of growing past it. */}
           <div key={shownSection} className={cn("page-enter flex flex-col", shownSection === "/leaders" ? "h-full" : "min-h-full", leaving && "page-leave")}>
