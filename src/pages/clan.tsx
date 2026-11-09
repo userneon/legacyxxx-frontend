@@ -65,7 +65,7 @@ function ClanBannerStrip({ banner, name }: { banner?: string | null; name: strin
   return (
     <div className="relative overflow-hidden border-b border-[var(--glass-line)] bg-[var(--raised)]">
       <img src={src} alt="" aria-hidden="true" loading="eager" decoding="async" className="absolute inset-0 size-full scale-125 object-cover opacity-60 blur-2xl" />
-      <img src={src} alt={`${name} banner`} loading="eager" decoding="async" className="relative mx-auto block h-auto max-h-[min(520px,70vh)] w-full object-contain" />
+      <img src={src} alt={`${name} banner`} loading="eager" decoding="async" className="relative mx-auto block h-auto max-h-[200px] w-full object-cover" />
     </div>
   )
 }
@@ -577,15 +577,18 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
       <div className="relative min-h-0 flex-1">
       <PageWash page={clan?.look?.page} />
       <div className="scrollbar-hidden relative size-full overflow-y-auto">
-        <div className="flex flex-col gap-4 px-6 pb-4 pt-4">
+        <div className="@container flex flex-col gap-4 px-6 pb-4 pt-4">
           <QueryState loading={loading} error={error} empty={!loading && !error && !clan} emptyMessage="Clan not found." onRetry={refetch} />
           {!loading && !error && clan && (
             <>
-              <section className="relative overflow-hidden rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)]">
+              {/* The clan as a bento (owner request 2026-11-09): who the clan is on the left, with what its managers answer and do, and the roster, stats and bank on the right. */}
+              <div className="grid gap-3 @4xl:grid-cols-12">
+              <aside className="flex min-w-0 flex-col gap-3 @4xl:col-span-4">
+              <section className="lx-glass relative overflow-hidden rounded-2xl">
               <ClanBannerStrip banner={clan.thumbnail} name={clan.name} />
-              <div className="relative flex flex-wrap items-center gap-4 p-6">
+              <div className="relative flex flex-col gap-4 p-5">
                 <ClanMark logo={clan.logo} tag={clan.tag} className="size-16 text-[15px]" />
-                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                   <h1 className="flex min-w-0 items-center gap-2 text-[22px] font-semibold leading-tight"><span className="truncate">{clan.name} <span className="text-[13px] font-medium text-[var(--text-dim)]">[{clan.tag}]</span></span>{clan.level ? <span title="Clan level" className="shrink-0 rounded-full border border-[var(--line-strong)] px-2 py-0.5 text-[11px] font-semibold text-[var(--text-2)]">Lv {clan.level}</span> : null}</h1>
                   <p className="flex flex-wrap items-center gap-x-3 text-[13px] text-[var(--text-dim)]"><span>{clan.region} · {clan.currentPlayers}/{clan.maxPlayers} members</span><JoinModeLabel mode={clan.joinMode} /></p>
                   {clan.description && <p className="max-w-2xl text-[13px] text-[var(--text-dim)]">{clan.description}</p>}
@@ -594,41 +597,15 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                 {isLeader && <button type="button" onClick={() => setEditing(true)} className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] hover:border-[var(--line-strong)]"><Pencil className="size-4" aria-hidden="true" /> Edit clan</button>}
               </div>
               </section>
-              <Dialog open={deleting} onOpenChange={setDeleting}>
-                <DialogContent className="rounded-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Delete {clan.name}?</DialogTitle>
-                    <DialogDescription>
-                      The clan and its members are removed for good. LX spent is not given back.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <form
-                    className="flex flex-col gap-3"
-                    onSubmit={(event) => { event.preventDefault(); if (confirmName.trim() === clan.name) { setDeleting(false); void run(() => clansService.deleteClan(clanId), "Clan deleted", () => navigate("/clans")) } }}
-                  >
-                    <Label htmlFor="clan-delete-name">Type the clan name <b className="text-[var(--text)]">{clan.name}</b> to confirm</Label>
-                    <Input id="clan-delete-name" autoComplete="off" value={confirmName} onChange={(event) => setConfirmName(event.target.value)} placeholder={clan.name} />
-                    <div className="flex justify-end gap-2">
-                      <button type="button" onClick={() => setDeleting(false)} className="inline-flex h-9 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] hover:border-[var(--line-strong)]">Cancel</button>
-                      <button type="submit" disabled={busy || confirmName.trim() !== clan.name} className="inline-flex h-9 items-center rounded-lg border border-[var(--status-red)]/60 bg-[var(--raised)] px-3 text-[13px] font-semibold text-[var(--status-red)] hover:border-[var(--status-red)] disabled:cursor-not-allowed disabled:opacity-40">Delete clan</button>
-                    </div>
-                  </form>
-                </DialogContent>
-              </Dialog>
-              <Sheet open={editing} onOpenChange={setEditing}>
-                <DetailSheetContent width="max-w-3xl" fill>
-                  <SheetTitle className="sr-only">Edit {clan.name}</SheetTitle>
-                  <SheetDescription className="sr-only">Description, links, who may join, roles, hand over, name and pictures of {clan.name}.</SheetDescription>
-                  <EditLook clan={clan} isLeader={isLeader} onChanged={() => void refetch()} />
-                </DetailSheetContent>
-              </Sheet>
-
+              {isManager && shown === "roster" && <JoinRequests clanId={clanId} onAccepted={() => void refetch()} />}
+              {isManager && shown === "roster" && <InvitePanel clanId={clanId} />}
+              {isManager && shown === "roster" && <ActivityPanel clanId={clanId} />}
+              </aside>
+              <div className="flex min-w-0 flex-col gap-3 @4xl:col-span-8">
               <ClanSectionTabs value={shown} onChange={setSection} member={Boolean(role)} />
               {shown === "stats" && <ClanStatsPanel clanId={clanId} onProfileNavigate={onProfileNavigate} />}
               {shown === "bank" && <ClanBankPanel clan={clan} role={role} onChanged={() => void refetch()} onProfileNavigate={onProfileNavigate} />}
               {shown === "roster" && <>
-              {isManager && <JoinRequests clanId={clanId} onAccepted={() => void refetch()} />}
-
               <section aria-label="Roster" className="flex flex-col gap-3">
                 <h2 className="lx-shop-heading">Roster<span className="lx-shop-price !h-5 !text-[11px]">{clan.currentPlayers} / {clan.maxPlayers}</span></h2>
                 {members.length === 0 ? (
@@ -682,9 +659,38 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                 )}
               </section>
 
-              {isManager && <InvitePanel clanId={clanId} />}
-              {isManager && <ActivityPanel clanId={clanId} />}
               </>}
+              </div>
+              </div>
+              <Dialog open={deleting} onOpenChange={setDeleting}>
+                <DialogContent className="rounded-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Delete {clan.name}?</DialogTitle>
+                    <DialogDescription>
+                      The clan and its members are removed for good. LX spent is not given back.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form
+                    className="flex flex-col gap-3"
+                    onSubmit={(event) => { event.preventDefault(); if (confirmName.trim() === clan.name) { setDeleting(false); void run(() => clansService.deleteClan(clanId), "Clan deleted", () => navigate("/clans")) } }}
+                  >
+                    <Label htmlFor="clan-delete-name">Type the clan name <b className="text-[var(--text)]">{clan.name}</b> to confirm</Label>
+                    <Input id="clan-delete-name" autoComplete="off" value={confirmName} onChange={(event) => setConfirmName(event.target.value)} placeholder={clan.name} />
+                    <div className="flex justify-end gap-2">
+                      <button type="button" onClick={() => setDeleting(false)} className="inline-flex h-9 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] hover:border-[var(--line-strong)]">Cancel</button>
+                      <button type="submit" disabled={busy || confirmName.trim() !== clan.name} className="inline-flex h-9 items-center rounded-lg border border-[var(--status-red)]/60 bg-[var(--raised)] px-3 text-[13px] font-semibold text-[var(--status-red)] hover:border-[var(--status-red)] disabled:cursor-not-allowed disabled:opacity-40">Delete clan</button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+              <Sheet open={editing} onOpenChange={setEditing}>
+                <DetailSheetContent width="max-w-3xl" fill>
+                  <SheetTitle className="sr-only">Edit {clan.name}</SheetTitle>
+                  <SheetDescription className="sr-only">Description, links, who may join, roles, hand over, name and pictures of {clan.name}.</SheetDescription>
+                  <EditLook clan={clan} isLeader={isLeader} onChanged={() => void refetch()} />
+                </DetailSheetContent>
+              </Sheet>
+
                     </>
           )}
         </div>
@@ -799,7 +805,7 @@ function JoinRequests({ clanId, onAccepted }: { clanId: string; onAccepted: () =
     <Reveal>
     <section className="flex flex-col gap-3">
       <h2 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-dim)]"><UserPlus className="size-3.5" aria-hidden="true" /> Join requests · {requests.length}</h2>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3">
         {requests.map((request) => (
           <div key={request.id} className="lx-shop-tile flex flex-col gap-2.5 rounded-xl p-3">
             <div className="flex items-center gap-3">
