@@ -8,6 +8,7 @@ import { LxMark } from "@/components/lx-mark"
 import { PageBar, PageTabs } from "@/components/page-tabs"
 import { RelativeTime } from "@/components/relative-time"
 import { SendLx } from "@/components/send-lx"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { ShopTopUp } from "@/components/shop-topup"
 import { Skeleton } from "@/components/ui/skeleton"
 import { usePathTab } from "@/hooks/use-url-tab"
@@ -21,7 +22,6 @@ type Filter = "all" | "earned" | "spent"
 const TABS: Array<{ value: Tab; label: string }> = [
   { value: "overview", label: "Overview" },
   { value: "topup", label: "Top up" },
-  { value: "send", label: "Send" },
   { value: "history", label: "History" },
   { value: "earn", label: "How to earn" },
 ]
@@ -110,6 +110,8 @@ export function WalletPage() {
   const navigate = useNavigate()
   const [tab, setTab] = usePathTab<Tab>("/wallet", { overview: "", topup: "top-up", send: "send", history: "history", earn: "earn" }, "overview")
   const [filter, setFilter] = useState<Filter>("all")
+  // Send is a window on the wallet itself, not a page: it opens at once with the name search waiting (the old /wallet/send address opens it too).
+  const [sendOpen, setSendOpen] = useState(tab === "send")
   const { data: wallet, loading, error, refetch } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
 
   const entries = useMemo(() => (wallet?.transactions ?? []).filter((entry) => filter === "all" || (filter === "earned" ? entry.amount > 0 : entry.amount < 0)), [wallet, filter])
@@ -143,8 +145,6 @@ export function WalletPage() {
           <div className="grid gap-5 lg:grid-cols-[440px_minmax(0,1fr)]"><Skeleton className="h-[236px] rounded-2xl" /><Skeleton className="h-[236px] rounded-xl" /></div>
         ) : error || !wallet ? (
           <p className="flex items-center justify-center gap-3 py-24 text-[13px] text-[var(--text-dim)]">Could not load your wallet.<button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>
-        ) : tab === "send" ? (
-          <SendLx balance={wallet.balance} onSent={refetch} />
         ) : tab === "history" ? (
           <section className={cn(card, "max-w-3xl overflow-hidden")}>
             <div className="flex items-center gap-2 border-b border-[var(--line-soft)] px-4 py-3"><span className={cn(label, "mr-auto")}>History</span><Chips value={filter} onChange={setFilter} /></div>
@@ -176,8 +176,8 @@ export function WalletPage() {
               </section>
 
               <div className="flex gap-2">
-                {[{ label: "Top up", icon: Plus, to: "/wallet/top-up" }, { label: "Send", icon: Send, to: "/wallet/send" }, { label: "Shop", icon: Gem, to: "/shop" }, { label: "Clan", icon: Users, to: "/clans" }, { label: "History", icon: Clock, to: "" }].map((action) => (
-                  <button key={action.label} type="button" onClick={() => (action.to ? navigate(action.to) : setTab("history"))} className="flex h-[60px] flex-1 flex-col items-center justify-center gap-1 rounded-xl border border-[var(--line)] bg-[var(--glass-fill)] text-xs font-semibold text-[var(--text-2)] transition-colors hover:bg-[var(--raised)]">
+                {[{ label: "Top up", icon: Plus, to: "/wallet/top-up" }, { label: "Send", icon: Send, to: "send" }, { label: "Shop", icon: Gem, to: "/shop" }, { label: "Clan", icon: Users, to: "/clans" }, { label: "History", icon: Clock, to: "" }].map((action) => (
+                  <button key={action.label} type="button" onClick={() => (action.to === "send" ? setSendOpen(true) : action.to ? navigate(action.to) : setTab("history"))} className="flex h-[60px] flex-1 flex-col items-center justify-center gap-1 rounded-xl border border-[var(--line)] bg-[var(--glass-fill)] text-xs font-semibold text-[var(--text-2)] transition-colors hover:bg-[var(--raised)]">
                     <action.icon className="size-5 opacity-80" aria-hidden="true" />{action.label}
                   </button>
                 ))}
@@ -224,6 +224,17 @@ export function WalletPage() {
           </div>
         )}
       </div>
+      {wallet && (
+        <Dialog open={sendOpen} onOpenChange={(open) => { setSendOpen(open); if (!open && tab === "send") setTab("overview") }}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Send LX</DialogTitle>
+              <DialogDescription className="sr-only">Pick a player, type an amount and confirm.</DialogDescription>
+            </DialogHeader>
+            <SendLx bare balance={wallet.balance} onSent={refetch} />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }

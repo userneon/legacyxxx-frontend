@@ -19,7 +19,7 @@ const feeOf = (amount: number, percent: number) => Math.ceil((amount * percent) 
  * Wallet → Send (owner request 2026-11-07, "make LX transferable, with a fee"): pick a player by name, type an amount, see what they will get after the
  * fee, confirm. The rules (fee, smallest and largest, daily and hourly limits) are the API's; nothing is worked out here that the API does not check again.
  */
-export function SendLx({ balance, onSent }: { balance: number; onSent: () => void }) {
+export function SendLx({ balance, onSent, bare = false }: { balance: number; onSent: () => void; /** Inside a dialog: no box of its own. */ bare?: boolean }) {
   const { user } = useAuth()
   const { data: rules, loading, error, refetch } = useApiQuery<TransferRules>((signal) => walletService.transferRules({ signal }), { queryKey: user ? `transfer-rules:${user.id}` : "transfer-rules" })
   const [query, setQuery] = useState("")
@@ -83,7 +83,7 @@ export function SendLx({ balance, onSent }: { balance: number; onSent: () => voi
   }
 
   return (
-    <section aria-label="Send LX" className="flex max-w-xl flex-col gap-4 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-5">
+    <section aria-label="Send LX" className={cn("flex flex-col gap-4", !bare && "max-w-xl rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-5")}>
       <div className="flex flex-col gap-1">
         <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">Send LX</span>
         <p className="text-[13px] text-[var(--text-muted)]">Send LX to another player. {rules.feePercent}% of it is kept as a fee, so they receive a little less.</p>
