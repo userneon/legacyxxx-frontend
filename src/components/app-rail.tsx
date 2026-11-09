@@ -138,7 +138,7 @@ function AppRail({ currentPage, onNavigate }: Props) {
                         </button>
                       </PopoverTrigger>
                     </TooltipTrigger>
-                    <RailLabel>{entry.label}</RailLabel>
+                    <RailLabel active={isActive}>{entry.label}</RailLabel>
                   </Tooltip>
                   <PopoverContent side="right" align="start" sideOffset={52} className="lx-rail-menu w-56 p-2">
                     <p className="px-3 pb-1.5 pt-2 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">{entry.label}</p>
@@ -171,7 +171,7 @@ function AppRail({ currentPage, onNavigate }: Props) {
               ) : (
                 <Tooltip>
                   <TooltipTrigger asChild onFocus={(event) => event.preventDefault()}>{button as ReactElement}</TooltipTrigger>
-                  <RailLabel>{entry.label}</RailLabel>
+                  <RailLabel active={isActive}>{entry.label}</RailLabel>
                 </Tooltip>
               )}
             </div>
@@ -182,9 +182,10 @@ function AppRail({ currentPage, onNavigate }: Props) {
   )
 }
 
-function RailLabel({ children }: { children: string }) {
+/** The tooltip beside a rail icon: close to an ordinary icon, a little further for the page you are on, whose tab reaches out of the rail. */
+function RailLabel({ children, active = false }: { children: string; active?: boolean }) {
   return (
-    <TooltipContent side="right" sideOffset={50} className="rounded-lg border border-[var(--line-strong)] px-2.5 py-1.5 text-[12px] font-semibold text-[var(--text)] shadow-[0_8px_24px_rgba(0,0,0,0.5)] duration-150 [--tooltip-bg:var(--card-surface)]">
+    <TooltipContent side="right" sideOffset={active ? 34 : 14} className="rounded-lg border border-[var(--line-strong)] px-2.5 py-1.5 text-[12px] font-semibold text-[var(--text)] shadow-[0_8px_24px_rgba(0,0,0,0.5)] duration-150 [--tooltip-bg:var(--card-surface)]">
       {children}
     </TooltipContent>
   )
