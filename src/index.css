@@ -948,6 +948,8 @@ body::before {
    Page transition — fade in on mount
    ======================================== */
 .page-enter {
+  /* The page grows out of the rail and folds back into it (owner request 2026-11-09). */
+  transform-origin: left center;
   /* backwards, not both: once it has played nothing of it stays on the page (a held opacity or transform cuts off every backdrop blur inside). */
   animation: page-flow-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
@@ -959,13 +961,13 @@ body::before {
 }
 @keyframes page-flow-out {
   from { opacity: 1; transform: none; }
-  to { opacity: 0; transform: translateY(8px); }
+  to { opacity: 0; transform: translate(-22px, 8px) scale(0.985); }
 }
 
 @keyframes page-flow-in {
   from {
     opacity: 0;
-    transform: translateY(-14px);
+    transform: translate(-26px, -14px) scale(0.985);
   }
   to {
     opacity: 1;
