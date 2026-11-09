@@ -81,7 +81,7 @@ function ItemArt({ item, avatar, username, size, orb }: { item: ShopItem; avatar
   if (item.kind === "grenade_trail") return <GrenadeTrail color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "flash_effect") return <FlashEffect color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "grenade_light") return <GrenadeLight color={item.color} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
-  if (isModelKind(item.kind)) return <ModelArt id={item.id} kind={item.kind} big={size > 100} />
+  if (isModelKind(item.kind)) return <ModelArt id={item.id} kind={item.kind} mode={size > 100 ? "big" : size >= 40 ? "fill" : "small"} />
   const look = item.kind === "name_color" ? { color: item.color ?? null, colorFx: item.fx ?? null } : { glow: item.glow ?? null, glowFx: item.fx ?? null }
   return <span {...nameProps(look, cn("font-bold text-[var(--text)]", size > 100 ? "max-w-full truncate text-[19px]" : "whitespace-nowrap text-[13px]"))}>{username}</span>
 }
@@ -89,11 +89,19 @@ function ItemArt({ item, avatar, username, size, orb }: { item: ShopItem; avatar
 /** The models that have an in-game picture (`public/shop/models/<id>.webp`, taken in the game, owner request 2026-11-09). Any other model shows the weapon it replaces as an icon. */
 const MODEL_PICTURES = new Set(["katana-wupie", "katana-miku", "katana-blood", "deagle-mari", "ak-10005"])
 
-/** A weapon model: its picture as it looks in the game's first person view, or, without one, the weapon it replaces drawn as an icon. */
-function ModelArt({ id, kind, big }: { id: string; kind: ModelKind; big: boolean }) {
+/** Whether a model has an in-game picture (the Shop tile then lets it fill the whole top of the tile). */
+const hasModelPicture = (item: ShopItem) => isModelKind(item.kind) && MODEL_PICTURES.has(item.id)
+
+/**
+ * A weapon model: its picture as it looks in the game's first person view, or, without one, the weapon it replaces drawn as an icon.
+ * `fill` covers its whole box (a tile), `big` is the hover card, `preview` the large one beside the price, `small` an outfit thumbnail.
+ */
+function ModelArt({ id, kind, mode }: { id: string; kind: ModelKind; mode: "fill" | "big" | "preview" | "small" }) {
   if (MODEL_PICTURES.has(id)) {
-    return <img src={`/shop/models/${id}.webp`} alt="" width={640} height={360} loading="lazy" draggable={false} className={cn("aspect-video rounded-lg border border-[var(--line)] object-cover", big ? "w-full max-w-[460px]" : "mt-4 w-[140px]")} />
+    const look = mode === "fill" ? "h-full w-full object-cover" : mode === "big" ? "aspect-video w-[320px] rounded-lg border border-[var(--line)] object-cover" : mode === "preview" ? "aspect-video w-full object-cover" : "aspect-video w-16 rounded-md object-cover"
+    return <img src={`/shop/models/${id}.webp`} alt="" width={640} height={360} loading="lazy" draggable={false} className={look} />
   }
+  const big = mode === "big" || mode === "preview"
   const Icon = kind === "model_knife" ? Sword : Crosshair
   return (
     <span className="flex flex-col items-center gap-1.5 text-[var(--text-2)]">
@@ -432,7 +440,7 @@ export function ShopPage() {
                 <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: rarityOf(item.rarity).color }} />
                 <div className="relative">
                   {KIND_WORD[item.kind] && <span aria-hidden="true" className="absolute left-2 top-2 z-[1] rounded-md border border-[var(--line)] bg-[var(--card-surface)]/80 px-1.5 py-px text-[9px] font-semibold uppercase tracking-[0.8px] text-[var(--text-dim)]">{KIND_WORD[item.kind]}</span>}
-                  <Spot accent={accentOf(shown)} height={dense ? 80 : 96} fill={shown.kind === "background"}><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={dense ? 46 : 56} /></Spot>
+                  <Spot accent={accentOf(shown)} height={dense ? 80 : 96} fill={shown.kind === "background" || hasModelPicture(shown)}><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={dense ? 46 : 56} /></Spot>
                 </div>
                 <div className="flex flex-col items-start gap-1 px-3 pb-2.5 pt-0.5">
                   <span className="line-clamp-2 w-full text-[11px] font-medium leading-[1.25] text-[var(--text-2)]">{item.name}</span>
@@ -643,7 +651,7 @@ export function ShopPage() {
           ) : selected?.kind === "grenade_light" ? (
             <div className="relative flex items-center justify-center py-4"><GrenadeLight color={tried(selected).color} className={effect} /></div>
           ) : selected && isModelKind(selected.kind) ? (
-            <div className="relative flex items-center justify-center py-6"><ModelArt id={selected.id} kind={selected.kind} big /></div>
+            <div className={cn("relative flex items-center justify-center", !hasModelPicture(selected) && "py-6")}><ModelArt id={selected.id} kind={selected.kind} mode="preview" /></div>
           ) : selected?.kind === "smoke_color" ? (
             <div className="relative flex items-center justify-center py-4"><span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} /><SmokePuff color={tried(selected).color} color2={tried(selected).color2} className={effect} /></div>
           ) : (
@@ -757,7 +765,7 @@ export function ShopPage() {
   const spotlight = selected ? (
     <div className="lx-add-box lx-shop-glass sticky top-0 z-10 hidden overflow-hidden rounded-[14px] border bg-[var(--panel)]/80 lg:block">
       <div className="flex items-stretch">
-      <div className={cn("relative flex w-[240px] shrink-0 items-center justify-center border-r border-[var(--line-soft)] [&>div]:w-full", selected.kind === "background" ? "min-h-[150px]" : "px-3")}>{previewStage(true)}</div>
+      <div className={cn("relative flex shrink-0 items-center justify-center border-r border-[var(--line-soft)] [&>div]:w-full", hasModelPicture(selected) ? "w-[400px]" : "w-[240px]", selected.kind === "background" ? "min-h-[150px]" : hasModelPicture(selected) ? "" : "px-3")}>{previewStage(true)}</div>
       {tab === "name" && combo.name_color && combo.name_glow
         ? [combo.name_color, combo.name_glow].map((id) => all.find((item) => item.id === id)).filter((item): item is ShopItem => Boolean(item)).map((item, index) => <div key={item.id} className={cn("flex min-w-0 flex-1", index > 0 && "border-l border-[var(--line-soft)]")}>{buyBlock(item, true)}</div>)
         : buyBlock(selected, true)}
