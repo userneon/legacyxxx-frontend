@@ -90,8 +90,8 @@
   --team-t: #d6b25e; /* palette-exempt: CS2 Terrorist side (muted yellow) */
   --team-ct: #5ab8ee; /* palette-exempt: CS2 Counter-Terrorist side (sky blue) */
   --penalty-ban: var(--status-red);
-  --penalty-mute: #f97316; /* palette-exempt: penalty type colour */
-  --penalty-gag: #a78bfa; /* palette-exempt: penalty type colour */
+  --penalty-mute: var(--text-2);
+  --penalty-gag: var(--text-2);
   --penalty-permanent: #f43f5e; /* palette-exempt: permanent penalty */
   /* Skin wear meter, clean -> worn. */
   --wear-fn: #22c55e;

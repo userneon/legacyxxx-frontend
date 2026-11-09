@@ -29,7 +29,7 @@ type TypeFilter = "all" | PenaltyType
 type StatusFilter = "all" | "active"
 
 /** One grid for the header row and every penalty row. */
-const GRID = "grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 px-4 md:grid-cols-[minmax(200px,1.1fr)_84px_100px_minmax(200px,1.5fr)_120px_100px_20px] md:gap-4 md:px-6"
+const GRID = "grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 px-4 @2xl:grid-cols-[minmax(130px,1fr)_72px_92px_minmax(110px,1.3fr)_100px_84px_16px] @2xl:gap-3 @2xl:px-4"
 const SEARCH_DEBOUNCE_MS = 250
 
 const readType = (value: string | null): TypeFilter => (value === "ban" || value === "comm" || value === "gag" ? value : "all")
@@ -123,10 +123,10 @@ function PenaltyRow({ penalty, onOpen, index }: { penalty: PenaltyEntry; onOpen:
       </span>
       <span><TypePill type={penalty.type} /></span>
       <span><StatusPill penalty={penalty} /></span>
-      <span className="min-w-0 truncate text-[13px] text-[var(--text-2)] max-md:hidden" title={reason}>{reason}</span>
-      <TermLabel penalty={penalty} className="text-[13px] font-medium max-md:hidden" />
-      <span className="text-[13px] text-[var(--text-muted)] max-md:hidden" title={formatPenaltyDate(penalty.date, true)}>{formatPenaltyDate(penalty.date)}</span>
-      <ChevronRight className="size-4 max-md:hidden text-[var(--text-faint)] transition-[translate,color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:translate-x-1 group-hover:text-[var(--text)] group-hover:duration-300" />
+      <span className="min-w-0 truncate text-[13px] text-[var(--text-2)] @max-2xl:hidden" title={reason}>{reason}</span>
+      <TermLabel penalty={penalty} className="text-[13px] font-medium @max-2xl:hidden" />
+      <span className="text-[13px] text-[var(--text-muted)] @max-2xl:hidden" title={formatPenaltyDate(penalty.date, true)}>{formatPenaltyDate(penalty.date)}</span>
+      <ChevronRight className="size-4 @max-2xl:hidden text-[var(--text-faint)] transition-[translate,color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:translate-x-1 group-hover:text-[var(--text)] group-hover:duration-300" />
     </button>
   )
 }
@@ -179,10 +179,10 @@ function RowSkeleton() {
         <Skeleton className="h-2.5 w-[55%] rounded-full bg-[var(--line)]" />
       </span>
       <Skeleton className="h-5 w-12 rounded-full bg-[var(--raised)]" />
-      <Skeleton className="h-2.5 w-3/4 rounded-full bg-[var(--line-soft)] max-md:hidden" />
-      <Skeleton className="h-2.5 w-16 rounded-full bg-[var(--line-soft)] max-md:hidden" />
-      <Skeleton className="h-2.5 w-14 rounded-full bg-[var(--line-soft)] max-md:hidden" />
-      <span className="max-md:hidden" />
+      <Skeleton className="h-2.5 w-3/4 rounded-full bg-[var(--line-soft)] @max-2xl:hidden" />
+      <Skeleton className="h-2.5 w-16 rounded-full bg-[var(--line-soft)] @max-2xl:hidden" />
+      <Skeleton className="h-2.5 w-14 rounded-full bg-[var(--line-soft)] @max-2xl:hidden" />
+      <span className="@max-2xl:hidden" />
     </div>
   )
 }
@@ -243,8 +243,7 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
   const activeTotal = found.filter((penalty) => penaltyStatus(penalty) === "active").length
 
   return (
-    <div className="scrollbar-hidden flex min-h-0 flex-1 overflow-x-auto">
-      <div className="flex min-w-0 flex-1 flex-col md:min-w-[900px]">
+    <div className="flex min-h-0 flex-1 flex-col">
         <PageBar>
           <PageTabs
             ariaLabel="Type"
@@ -290,28 +289,30 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
           </PageBarEnd>
         </PageBar>
 
-        <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
-          <div className="flex flex-col gap-4 px-6 pb-4 pt-4">
-            <div className="lx-stat-grid grid-cols-2 sm:grid-cols-4">
-              <SummaryCell label="Active now" value={firstLoad ? null : activeTotal} color="var(--status-red)" pulse selected={status === "active" && type === "all"} onClick={() => update({ status: status === "active" && type === "all" ? null : "active", type: null })} />
-              <SummaryCell label="Bans" value={firstLoad ? null : counts.ban} color={TYPE_META.ban.color} selected={type === "ban"} onClick={() => update({ type: type === "ban" ? null : "ban" })} />
-              <SummaryCell label="Mutes" value={firstLoad ? null : counts.comm} color={TYPE_META.comm.color} selected={type === "comm"} onClick={() => update({ type: type === "comm" ? null : "comm" })} />
-              <SummaryCell label="Gags" value={firstLoad ? null : counts.gag} color={TYPE_META.gag.color} selected={type === "gag"} onClick={() => update({ type: type === "gag" ? null : "gag" })} />
+        <div className="scrollbar-hidden @container min-h-0 flex-1 overflow-y-auto">
+          {/* The penalties as a bento (owner request 2026-11-09): the counts, requests and your own record on the left, the list in one card on the right. */}
+          <div className="grid gap-3 px-6 pb-4 pt-4 @4xl:grid-cols-12">
+            <aside className="flex min-w-0 flex-col gap-3 @4xl:col-span-4">
+            <div className="lx-stat-grid grid-cols-2">
+              <SummaryCell label="Active now" value={firstLoad ? null : activeTotal} color="var(--text-2)" pulse selected={status === "active" && type === "all"} onClick={() => update({ status: status === "active" && type === "all" ? null : "active", type: null })} />
+              <SummaryCell label="Bans" value={firstLoad ? null : counts.ban} color="var(--text-2)" selected={type === "ban"} onClick={() => update({ type: type === "ban" ? null : "ban" })} />
+              <SummaryCell label="Mutes" value={firstLoad ? null : counts.comm} color="var(--text-2)" selected={type === "comm"} onClick={() => update({ type: type === "comm" ? null : "comm" })} />
+              <SummaryCell label="Gags" value={firstLoad ? null : counts.gag} color="var(--text-2)" selected={type === "gag"} onClick={() => update({ type: type === "gag" ? null : "gag" })} />
             </div>
 
             {access && <LiftRequests access={access} onDecided={refetch} />}
 
             {user && <YourStatus penalties={mine ?? []} loading={mineLoading} onDetails={(penalty) => update({ penalty: penalty.id })} />}
-          </div>
-
+            </aside>
+            <section aria-label="Penalties" className="@container lx-glass min-w-0 overflow-hidden rounded-2xl @4xl:col-span-8">
           <div className={cn(GRID, "sticky top-0 z-[2] h-[38px] border-y border-[var(--line-soft)] bg-[var(--panel)] text-xs font-medium text-[var(--text-dim)]")}>
             <span>Player</span>
             <span>Type</span>
             <span>Status</span>
-            <span className="max-md:hidden">Reason</span>
-            <span className="max-md:hidden">Term</span>
-            <span className="max-md:hidden">Date</span>
-            <span className="max-md:hidden" />
+            <span className="@max-2xl:hidden">Reason</span>
+            <span className="@max-2xl:hidden">Term</span>
+            <span className="@max-2xl:hidden">Date</span>
+            <span className="@max-2xl:hidden" />
           </div>
 
           {/* Rows that stay glide to their new place when a filter changes; new ones cascade in. */}
@@ -347,9 +348,9 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
               </>
             )}
           </div>
-          <div className="h-6" />
+            </section>
+          </div>
         </div>
-      </div>
 
       <PenaltyDetailSheet penalty={selected} isOwn={isOwn} onChanged={refetch} onClose={() => update({ penalty: null })} onProfileNavigate={onProfileNavigate} />
     </div>

@@ -33,7 +33,7 @@ export function penaltyStatusColor(penalty: PenaltyEntry) {
 export function penaltyTermColor(penalty: PenaltyEntry) {
   const status = penaltyStatus(penalty)
   if (penalty.isPermanent && status === "active") return "var(--penalty-permanent)"
-  if (status === "active") return "var(--status-amber)"
+  if (status === "active") return "var(--text-2)"
   return "var(--text-muted)"
 }
 
