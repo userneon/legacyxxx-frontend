@@ -105,10 +105,9 @@ export function SnowLayer() {
       // No falling flakes (reduced motion): the caps on the cards are still marked.
       markAll()
       const markTimer = window.setInterval(markAll, 700)
-      let marking = 0
-      const watchMarks = new MutationObserver(() => { window.clearTimeout(marking); marking = window.setTimeout(markAll, 60) })
+      const watchMarks = new MutationObserver((records) => { if (records.some((record) => record.addedNodes.length > 0)) markAll() })
       watchMarks.observe(document.body, { childList: true, subtree: true })
-      return () => { window.clearInterval(markTimer); watchMarks.disconnect(); window.clearTimeout(marking); delete root.dataset.winter }
+      return () => { window.clearInterval(markTimer); watchMarks.disconnect(); delete root.dataset.winter }
     }
 
     const sprite = makeSprite()
@@ -134,9 +133,8 @@ export function SnowLayer() {
     }
     const scanSoon = () => { if (!scanning) { scanning = true; requestAnimationFrame(scan) } }
     const scanTimer = window.setInterval(scan, 500)
-    // A card that has just been drawn gets its snow at once, not at the next tick.
-    let watching = 0
-    const watch = new MutationObserver(() => { window.clearTimeout(watching); watching = window.setTimeout(scan, 60) })
+    // A card that has just been drawn gets its snow in the same frame (the observer runs before the browser paints), so the cap arrives with the card, not after it.
+    const watch = new MutationObserver((records) => { if (records.some((record) => record.addedNodes.length > 0)) scan() })
     watch.observe(document.body, { childList: true, subtree: true })
     document.addEventListener("scroll", scanSoon, true)
     const resize = () => {
@@ -207,7 +205,6 @@ export function SnowLayer() {
       window.removeEventListener("resize", resize)
       window.clearInterval(scanTimer)
       watch.disconnect()
-      window.clearTimeout(watching)
       document.removeEventListener("scroll", scanSoon, true)
       document.removeEventListener("visibilitychange", onVisibility)
       delete root.dataset.winter
