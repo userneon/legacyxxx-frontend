@@ -21,7 +21,7 @@ interface AppSidebarProps {
   onNavigate: (page: PageId) => void
 }
 
-type NavItem = { id: PageId; label: string; icon: ComponentType<{ className?: string }> }
+export type NavItem = { id: PageId; label: string; icon: ComponentType<{ className?: string }> }
 
 /** Navigation only lists pages whose feature is switched on — a disabled page has no entry at all. */
 function enabledNav(items: NavItem[]): NavItem[] {
@@ -29,14 +29,14 @@ function enabledNav(items: NavItem[]): NavItem[] {
 }
 
 // The Play submenu rows show no icon; the type only needs one for the other rows.
-const PLAY_ITEMS: NavItem[] = enabledNav([
+export const PLAY_ITEMS: NavItem[] = enabledNav([
   { id: "play-5vs5", label: "5x5 Matches", icon: Swords },
   { id: "play-fun", label: "Fun Mode", icon: Swords },
   { id: "play-proleague", label: "Pro League", icon: Swords },
   { id: "play-tournaments", label: "Tournaments", icon: Swords },
 ])
 
-const NAV_ITEMS: NavItem[] = enabledNav([
+export const NAV_ITEMS: NavItem[] = enabledNav([
   { id: "skinchanger", label: "Skinchanger", icon: KnifeIcon },
   { id: "compare", label: "Compare", icon: ArrowLeftRight },
   { id: "shop", label: "Shop", icon: Gem },
@@ -47,20 +47,20 @@ const NAV_ITEMS: NavItem[] = enabledNav([
 ])
 
 // Commerce (owner request 2026-11-07): the Shop and the Market under one row that opens like Play.
-const COMMERCE_ITEMS: NavItem[] = enabledNav([
+export const COMMERCE_ITEMS: NavItem[] = enabledNav([
   { id: "shop", label: "Shop", icon: Gem },
   { id: "market", label: "Market", icon: Store },
 ])
 
 // Community (owner request 2026-10-26): Clans, the Staff page and Creators under one row that opens like Play.
-const COMMUNITY_ITEMS: NavItem[] = enabledNav([
+export const COMMUNITY_ITEMS: NavItem[] = enabledNav([
   { id: "clan", label: "Clans", icon: Users },
   { id: "team", label: "Staff", icon: ShieldCheck },
   { id: "creators", label: "Creators", icon: Clapperboard },
 ])
 
 // Skinchanger gets a submenu only while community collections are switched on.
-const SKIN_VIEWS: Array<{ id: SkinchangerView; label: string }> = [
+export const SKIN_VIEWS: Array<{ id: SkinchangerView; label: string }> = [
   { id: "loadout", label: "Loadout" },
   { id: "collections", label: "Collections" },
   { id: "advanced", label: "Advanced" },

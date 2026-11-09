@@ -328,6 +328,52 @@ body::before {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+/* The shell (owner pick 2026-11-09, the preview with the disc): one solid frame holding the rail, a pill header and the page panel.
+   Radius scale of the shell: frame 36, page panel 28, header and rail pills 999. The page and its cards keep the scale below. */
+:root { --lx-frame: #101010; --lx-r-frame: 36px; --lx-r-panel: 28px; }
+.lx-frame { display: contents; }
+@media (min-width: 560px) {
+  .lx-frame {
+    display: flex; gap: 12px; flex: 1; min-width: 0;
+    height: calc(100svh - 24px); margin: 12px; padding: 12px;
+    border-radius: var(--lx-r-frame); background: var(--lx-frame); border: 1px solid var(--line);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+  .lx-frame-main { height: 100%; min-height: 0; padding: 0; gap: 12px; }
+  .lx-frame .lx-frame-header { border-radius: 999px; background: var(--raised); }
+  .lx-frame .lx-frame-panel { border-radius: var(--lx-r-panel); background: var(--card-surface); }
+}
+.lx-rail { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 60px; flex: none; }
+.lx-rail-logo { display: grid; place-items: center; width: 60px; height: 60px; flex: none; border-radius: 50%; background: var(--raised); border: 1px solid var(--line-strong); transition: border-color .15s; }
+.lx-rail-logo:hover { border-color: var(--text-faint); }
+.lx-rail-pill { position: relative; flex: 1; min-height: 0; width: 60px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 0; border-radius: 999px; background: var(--raised); border: 1px solid var(--line); }
+.lx-rail-slot { flex: none; }
+.lx-rail-item { position: relative; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; color: var(--text-faint); transition: color .15s, transform .15s; }
+.lx-rail-item:hover { color: var(--text); }
+.lx-rail-item:active { transform: scale(.92); }
+.lx-rail-item:focus-visible { outline: 2px solid var(--accent-solid); outline-offset: 2px; }
+/* The disc: it is the active page's icon, half over the panel, cut in by a ring of the frame's colour. It slides to the icon of the page you open. */
+.lx-rail-disc {
+  position: absolute; left: 34px; top: 0; z-index: 3; width: 56px; height: 56px; border-radius: 50%;
+  display: grid; place-items: center; pointer-events: none;
+  background: #d4d4d4; color: var(--bg); box-shadow: 0 0 0 9px var(--lx-frame);
+  transition: transform .5s cubic-bezier(.2, .9, .25, 1.12), opacity .2s;
+}
+.lx-rail-disc[data-on="0"] { opacity: 0; }
+.lx-rail-disc-icon { animation: lx-disc-icon .4s cubic-bezier(.2, .9, .3, 1.3) backwards; }
+@keyframes lx-disc-icon { from { transform: scale(.55) rotate(-14deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.lx-rail-menu { border-radius: 20px; border: 1px solid var(--line-strong); background: var(--card-surface); box-shadow: 0 18px 50px rgba(0, 0, 0, .55); }
+.lx-rail-menu-row { display: flex; width: 100%; align-items: center; gap: 10px; height: 40px; padding: 0 12px; border-radius: 12px; font-size: 13px; font-weight: 500; color: var(--text-muted); transition: background-color .15s, color .15s; }
+.lx-rail-menu-row:hover { background: var(--raised); color: var(--text); }
+.lx-rail-menu-row-on { color: var(--text); font-weight: 600; background: var(--raised); }
+@media (prefers-reduced-motion: reduce) {
+  .lx-rail-disc { transition: opacity .01s; }
+  .lx-rail-disc-icon { animation: none; }
+}
+@media (max-height: 760px) {
+  .lx-rail-item { width: 38px; height: 38px; }
+  .lx-rail-pill { padding: 10px 0; gap: 2px; }
+}
 .lx-glass-shell,
 .lx-glass-sidebar > [data-sidebar="sidebar"] {
   background: var(--glass-shell);

@@ -9,7 +9,7 @@ import { Component, Suspense, lazy, useEffect, useRef, useState, type CSSPropert
 import { Navigate, Routes, Route, useNavigate, useLocation } from "react-router-dom"
 
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/app-sidebar"
+import { ShellNav } from "@/components/app-rail"
 import { ProfileBlock } from "@/components/profile-block"
 import { DiscordTopLink } from "@/components/discord-strip"
 import { SiteTourButton } from "@/components/site-tour"
@@ -123,10 +123,11 @@ export function App() {
       <EventLayer />
       <ProfileScene scene={currentPage === "profile" ? profileScene : null} />
       <ProfileBackdrop active={profileGrid} />
-      <AppSidebar currentPage={currentPage} onNavigate={handleNavigate} />
-      {/* Floating shell: sidebar, top bar and content panel are separate cards with an 8px gutter. */}
-      <SidebarInset className="m-0 flex h-svh min-w-0 flex-col gap-2 bg-transparent p-2 pl-0">
-        <header className="lx-glass-shell flex h-14 shrink-0 items-center gap-4 rounded-[14px] pl-4 pr-2 max-md:pl-2">
+      {/* The shell (owner pick 2026-11-09): one solid frame holding the rail, a pill header and the page panel. A phone keeps the sidebar sheet and the older layout. */}
+      <div className="lx-frame">
+      <ShellNav currentPage={currentPage} onNavigate={handleNavigate} />
+      <SidebarInset className="lx-frame-main m-0 flex min-w-0 flex-col gap-2 bg-transparent max-[559px]:h-svh max-[559px]:p-2">
+        <header className="lx-glass-shell lx-frame-header flex h-14 shrink-0 items-center gap-4 pl-4 pr-2 max-md:pl-2">
           {/* On a phone the sidebar is a sheet, so the top bar carries its only trigger. */}
           <SidebarTrigger className="size-9 shrink-0 rounded-[10px] text-[var(--text-muted)] hover:bg-[var(--raised)] hover:text-[var(--text)] min-[560px]:hidden" />
           <div className="flex min-w-0 flex-1 items-center gap-2 text-[13px]">
@@ -140,7 +141,7 @@ export function App() {
           <ProfileBlock onNavigate={handleNavigate} />
         </header>
 
-        <div ref={panelRef} className="lx-glass-shell scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-clip rounded-[14px]">
+        <div ref={panelRef} className="lx-glass-shell lx-frame-panel scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-clip">
           {/* Leaders scrolls its table inside the panel (sticky header, your row pinned under it), so it gets the panel's height instead of growing past it. */}
           <div key={shownSection} className={cn("page-enter flex flex-col", shownSection === "/leaders" ? "h-full" : "min-h-full", leaving && "page-leave")}>
             <RouteErrorBoundary resetKey={shownLocation.pathname}>
@@ -205,6 +206,7 @@ export function App() {
           </div>
         </div>
       </SidebarInset>
+      </div>
       <PublicChat />
     </SidebarProvider>
   )
