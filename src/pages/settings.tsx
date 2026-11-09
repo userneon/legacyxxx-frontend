@@ -252,7 +252,7 @@ function Appearance() {
       ) : error || !data ? (
         <p className="flex items-center gap-3 text-[13px] text-[var(--text-dim)]">Could not load your appearance.<button type="button" onClick={refetch} className="inline-flex h-[34px] items-center gap-1.5 rounded-lg border border-[var(--line)] px-3.5 text-[13px] font-medium text-[var(--text-2)] hover:bg-[var(--raised)]"><RotateCcw className="size-3.5" />Retry</button></p>
       ) : (
-        <div className="grid gap-3 @3xl:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]">
+        <div className="lx-bento grid gap-3 @3xl:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]">
           <div className="lx-glass flex flex-col items-center gap-3 self-start rounded-2xl p-5 @3xl:sticky @3xl:top-4">
             <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} look={data.frameLook} size={108} />
             <span {...nameProps(previewLook, "max-w-full truncate text-[15px] font-bold text-[var(--text)]")}>{sampleName}</span>

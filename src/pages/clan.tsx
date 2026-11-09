@@ -226,7 +226,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
             <ClanAppearancePanel clanId={String(mine.clan.id)} tag={mine.clan.tag} leader={mine.role === "leader"} />
           ) : (
             /* The clans as a bento (owner request 2026-11-09): your place and the totals on the left, the clans on the right. */
-            <div className="grid gap-3 @4xl:grid-cols-12">
+            <div className="lx-bento grid gap-3 @4xl:grid-cols-12">
               <aside className="flex min-w-0 flex-col gap-3 @4xl:col-span-4">
                 {mineKnown && (mine ? (
                   <button type="button" onClick={() => onClanNavigate(String(mine.clan.number ?? mine.clan.id))} className="lx-glass flex items-center gap-4 rounded-2xl p-4 text-left transition-colors hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
@@ -611,7 +611,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
           {!loading && !error && clan && (
             <>
               {/* The clan as a bento (owner request 2026-11-09): who the clan is on the left, with what its managers answer and do, and the roster, stats and bank on the right. */}
-              <div className="grid gap-3 @4xl:grid-cols-12">
+              <div className="lx-bento grid gap-3 @4xl:grid-cols-12">
               <aside className="flex min-w-0 flex-col gap-3 @4xl:col-span-4">
               <section className="lx-glass relative overflow-hidden rounded-2xl">
               <ClanBannerStrip banner={clan.thumbnail} name={clan.name} />

@@ -803,7 +803,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
       {tab === "profile" && (
       <div className="@container px-6 pb-8 pt-5 max-md:px-4">
         {data.user.role === "Owner" && <div className="pb-3"><div className="mx-auto flex w-full max-w-3xl flex-col gap-4"><OwnerPanel overview={data} /><OwnerSections overview={data} /></div></div>}
-        <div className="grid gap-3 @4xl:grid-cols-12">
+        <div className="lx-bento grid gap-3 @4xl:grid-cols-12">
           {/* Who this is: the banner, the avatar, the name, the badges and the buttons, in one card that stays in view. */}
           <aside className="flex min-w-0 flex-col gap-3 @4xl:col-span-4">
             <section aria-label="Profile" className="lx-glass relative overflow-hidden rounded-2xl">

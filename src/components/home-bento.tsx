@@ -131,13 +131,14 @@ export function RingStat({ segments, value, label, title }: { segments: Segment[
           return (
             <circle
               key={position}
+              className="lx-ring-seg"
               cx="24"
               cy="24"
               r={RADIUS}
               fill="none"
               strokeWidth="4"
               strokeLinecap="round"
-              style={{ stroke: TONE[segment.tone] }}
+              style={{ stroke: TONE[segment.tone], animationDelay: `${300 + position * 140}ms` }}
               strokeDasharray={`${Math.max((CIRC * segment.pct) / 100 - 4, 0.1).toFixed(1)} ${CIRC.toFixed(1)}`}
               strokeDashoffset={(-(CIRC * start) / 100).toFixed(1)}
               transform="rotate(-90 24 24)"

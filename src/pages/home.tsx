@@ -53,7 +53,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
   return (
     <div className="lx-glass-page @container p-4 @2xl:p-6">
       {greeting && <div className="mb-3"><span className="lx-event-greeting">{greeting}</span></div>}
-      <div className="grid grid-cols-1 gap-3 @4xl:grid-cols-12">
+      <div className="lx-bento grid grid-cols-1 gap-3 @4xl:grid-cols-12">
         <HeroSlider className="@4xl:col-span-8" />
         <div className="flex flex-col gap-3 @4xl:col-span-4">
           <FindPlayerPill />

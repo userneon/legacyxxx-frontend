@@ -291,7 +291,7 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
 
         <div className="scrollbar-hidden @container min-h-0 flex-1 overflow-y-auto">
           {/* The penalties as a bento (owner request 2026-11-09): the counts, requests and your own record on the left, the list in one card on the right. */}
-          <div className="grid gap-3 px-6 pb-4 pt-4 @4xl:grid-cols-12">
+          <div className="lx-bento grid gap-3 px-6 pb-4 pt-4 @4xl:grid-cols-12">
             <aside className="flex min-w-0 flex-col gap-3 @4xl:col-span-4">
             <div className="lx-stat-grid grid-cols-2">
               <SummaryCell label="Active now" value={firstLoad ? null : activeTotal} color="var(--text-2)" pulse selected={status === "active" && type === "all"} onClick={() => update({ status: status === "active" && type === "all" ? null : "active", type: null })} />
