@@ -101,14 +101,14 @@ export function NotificationsMenu() {
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger
         className={cn(
-          "relative flex size-10 items-center justify-center rounded-[10px] text-[var(--text-muted)]",
+          "relative flex size-10 items-center justify-center rounded-full text-[var(--text-muted)]",
           "transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)]",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60",
         )}
         aria-label={unread > 0 ? `Notifications (${unread} unread)` : "Notifications"}
       >
         <Bell className="size-[18px]" />
-        {unread > 0 && <span aria-hidden="true" className="absolute right-2.5 top-2.5 size-[7px] rounded-full bg-[var(--accent-solid)] ring-2 ring-[var(--panel)]" />}
+        {unread > 0 && <span aria-hidden="true" className="absolute right-2.5 top-2.5 size-[7px] rounded-full bg-[var(--accent-solid)] ring-2 ring-[var(--raised)]" />}
       </PopoverTrigger>
 
       <PopoverContent align="end" sideOffset={8} className="w-[360px] overflow-hidden rounded-[20px] border-[var(--line-strong)] bg-[var(--card-surface)] p-0 shadow-[0_18px_50px_rgba(0,0,0,0.55)]">
