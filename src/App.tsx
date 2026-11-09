@@ -150,7 +150,7 @@ export function App() {
       <div className="lx-frame">
       <ShellNav currentPage={currentPage} onNavigate={handleNavigate} />
       <SidebarInset className="lx-frame-main m-0 flex min-w-0 flex-col gap-2 bg-transparent max-[559px]:h-svh max-[559px]:p-2">
-        <header className="lx-glass-shell lx-frame-header relative z-[3] flex h-14 shrink-0 items-center gap-4 pl-4 pr-2 max-md:pl-2">
+        <header className="lx-glass-shell lx-frame-header relative z-[3] flex h-14 shrink-0 items-center gap-4 pl-4 pr-2 max-md:pl-2 max-sm:gap-1.5">
           {/* On a phone the sidebar is a sheet, so the top bar carries its only trigger. */}
           <SidebarTrigger className="size-9 shrink-0 rounded-[10px] text-[var(--text-muted)] hover:bg-[var(--raised)] hover:text-[var(--text)] min-[560px]:hidden" />
           <div className="flex min-w-0 flex-1 items-center gap-2 text-[13px]">
@@ -159,7 +159,7 @@ export function App() {
             <span className="truncate font-semibold text-[var(--text)]">{PAGE_TITLES[currentPage]}</span>
           </div>
           <SiteTourButton />
-          <span aria-hidden="true" className="h-6 w-px shrink-0 bg-[var(--line)]" />
+          <span aria-hidden="true" className="h-6 w-px shrink-0 bg-[var(--line)] max-sm:hidden" />
           <ProfileBlock onNavigate={handleNavigate} tab={location.pathname === "/profile" || location.pathname === "/discord"} />
         </header>
 

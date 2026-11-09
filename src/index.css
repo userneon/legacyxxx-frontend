@@ -343,6 +343,10 @@ body::before {
   .lx-frame .lx-frame-header { border-radius: 999px; background: var(--raised); }
   .lx-frame .lx-frame-panel { border-radius: var(--lx-r-panel); background: var(--card-surface); }
 }
+/* A phone's page panel is solid too (owner report: "many problems on mobile"): the backdrop lines no longer run behind the text. */
+@media (max-width: 559px) {
+  .lx-frame .lx-frame-panel { background: var(--card-surface); }
+}
 .lx-rail { position: relative; z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 12px; width: 60px; flex: none; }
 .lx-rail-logo { display: grid; place-items: center; width: 60px; height: 60px; flex: none; border-radius: 50%; background: var(--raised); border: 1px solid var(--line-strong); transition: border-color .15s; }
 .lx-rail-logo:hover { border-color: var(--text-faint); }

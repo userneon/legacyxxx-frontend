@@ -61,7 +61,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
         </div>
 
         {/* Mode cards: the same four cards, equal width, each with its real status. */}
-        <div className="grid grid-cols-2 gap-3 @4xl:col-span-12 @4xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 @md:grid-cols-2 @4xl:col-span-12 @4xl:grid-cols-4">
           {MODE_CARDS.map((mode, index) => {
             const status = modeStatus(mode.key)
             return (

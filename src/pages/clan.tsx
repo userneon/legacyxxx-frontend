@@ -250,7 +250,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
                 ))}
                 {invites.length > 0 && !mine && <Invitations invites={invites} onChanged={changed} />}
                 {!loading && !error && !q && list.length > 0 && (
-                  <div className="grid grid-cols-2 gap-3 @4xl:grid-cols-1">
+                  <div className="grid grid-cols-1 gap-3 @md:grid-cols-2 @4xl:grid-cols-1">
                     <RingStat value={`${Math.round((members / Math.max(1, members + open)) * 100)}%`} label="Slots filled" title={`${members} of ${members + open} member slots`} segments={[{ pct: (members / Math.max(1, members + open)) * 100, tone: "green" }]} />
                     <div className="lx-glass grid grid-cols-3 gap-2 rounded-2xl px-4 py-3">
                       {[{ label: "Clans", value: list.length }, { label: "Members", value: members }, { label: "Open", value: open }].map((stat) => (
