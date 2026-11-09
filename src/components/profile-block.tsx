@@ -17,11 +17,13 @@ import { DiscordIcon } from "@/components/discord-strip"
 
 interface ProfileBlockProps {
   onNavigate: (page: PageId) => void
+  /** Profile or Discord is open: the avatar grows a tab down into the page panel (owner request 2026-11-09), like the rail's active page. */
+  tab?: boolean
 }
 
 const menuItemClass = "flex h-10 w-full items-center gap-2.5 rounded-xl px-2.5 text-sm font-medium transition-colors duration-150 hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/60"
 
-export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
+export function ProfileBlock({ onNavigate, tab = false }: ProfileBlockProps) {
   const { user, loading, loginWithSteam, logout } = useAuth()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -57,13 +59,17 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
   return (
     <div className="flex items-center gap-2">
       <WalletMenu />
-      <NotificationsMenu />
 
+      <span className="relative flex size-9 shrink-0">
+      <span aria-hidden="true" data-on={tab ? "1" : "0"} className="lx-hdr-tab max-[559px]:hidden">
+        <span className="lx-hdr-tab-edge" />
+        <span className="lx-hdr-tab-disc" />
+      </span>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
           aria-haspopup="menu"
           aria-label={user.username}
-          className="size-9 shrink-0 overflow-hidden rounded-full border border-[var(--line-strong)] bg-[var(--line)] transition-colors hover:border-[var(--text-dim)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
+          className="relative z-[1] size-9 shrink-0 overflow-hidden rounded-full border border-[var(--line-strong)] bg-[var(--line)] transition-colors hover:border-[var(--text-dim)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
         >
           <Avatar user={user} />
         </PopoverTrigger>
@@ -120,6 +126,8 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
           </div>
         </PopoverContent>
       </Popover>
+      </span>
+      <NotificationsMenu />
     </div>
   )
 }
