@@ -81,13 +81,19 @@ function ItemArt({ item, avatar, username, size, orb }: { item: ShopItem; avatar
   if (item.kind === "grenade_trail") return <GrenadeTrail color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "flash_effect") return <FlashEffect color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "grenade_light") return <GrenadeLight color={item.color} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
-  if (isModelKind(item.kind)) return <ModelArt kind={item.kind} big={size > 100} />
+  if (isModelKind(item.kind)) return <ModelArt id={item.id} kind={item.kind} big={size > 100} />
   const look = item.kind === "name_color" ? { color: item.color ?? null, colorFx: item.fx ?? null } : { glow: item.glow ?? null, glowFx: item.fx ?? null }
   return <span {...nameProps(look, cn("font-bold text-[var(--text)]", size > 100 ? "max-w-full truncate text-[19px]" : "whitespace-nowrap text-[13px]"))}>{username}</span>
 }
 
-/** A weapon model has no picture of its own here (the model is in the game): the weapon it replaces, drawn as an icon. */
-function ModelArt({ kind, big }: { kind: ModelKind; big: boolean }) {
+/** The models that have an in-game picture (`public/shop/models/<id>.webp`, taken in the game, owner request 2026-11-09). Any other model shows the weapon it replaces as an icon. */
+const MODEL_PICTURES = new Set(["katana-wupie", "katana-miku", "katana-blood", "deagle-mari", "ak-10005"])
+
+/** A weapon model: its picture as it looks in the game's first person view, or, without one, the weapon it replaces drawn as an icon. */
+function ModelArt({ id, kind, big }: { id: string; kind: ModelKind; big: boolean }) {
+  if (MODEL_PICTURES.has(id)) {
+    return <img src={`/shop/models/${id}.webp`} alt="" width={640} height={360} loading="lazy" draggable={false} className={cn("aspect-video rounded-lg border border-[var(--line)] object-cover", big ? "w-full max-w-[460px]" : "mt-4 w-[140px]")} />
+  }
   const Icon = kind === "model_knife" ? Sword : Crosshair
   return (
     <span className="flex flex-col items-center gap-1.5 text-[var(--text-2)]">
@@ -637,7 +643,7 @@ export function ShopPage() {
           ) : selected?.kind === "grenade_light" ? (
             <div className="relative flex items-center justify-center py-4"><GrenadeLight color={tried(selected).color} className={effect} /></div>
           ) : selected && isModelKind(selected.kind) ? (
-            <div className="relative flex items-center justify-center py-6"><ModelArt kind={selected.kind} big /></div>
+            <div className="relative flex items-center justify-center py-6"><ModelArt id={selected.id} kind={selected.kind} big /></div>
           ) : selected?.kind === "smoke_color" ? (
             <div className="relative flex items-center justify-center py-4"><span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} /><SmokePuff color={tried(selected).color} color2={tried(selected).color2} className={effect} /></div>
           ) : (
