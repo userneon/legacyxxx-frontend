@@ -118,6 +118,8 @@ export function WalletPage() {
   const summary = wallet?.summary ?? null
   // Playing earns LX only while the API lists the play rules (it does not once LX is bought with a top-up).
   const playEarning = (wallet?.earn ?? []).some((rule) => rule.id === "match")
+  // The streak note reads the API's own rule, so it follows the amount when the economy changes.
+  const streakSeven = (wallet?.earn ?? []).find((rule) => rule.id === "streak-7")?.coins ?? null
 
   const earnRules = (
     <section className={cn(card, "flex flex-col overflow-hidden")} aria-label="How to earn">
@@ -204,7 +206,7 @@ export function WalletPage() {
                       {summary.week.map((entry) => (
                         <span key={entry.day} title={entry.day} className={cn("grid size-[26px] place-items-center rounded-full border text-[10px] font-bold", entry.played ? "border-[var(--text)] bg-[var(--text)] text-[var(--bg)]" : "border-[var(--line)] text-[var(--text-dim)]")}>{dayLetter(entry.day)}</span>
                       ))}
-                      <span className="ml-auto text-[11px] text-[var(--text-dim)]">+100 LX on day 7</span>
+                      {streakSeven != null && <span className="ml-auto text-[11px] text-[var(--text-dim)]">+{streakSeven.toLocaleString()} LX on day 7</span>}
                     </div>
                   </section>}
                 </>
