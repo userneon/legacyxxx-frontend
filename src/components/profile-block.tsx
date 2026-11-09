@@ -19,7 +19,7 @@ interface ProfileBlockProps {
   onNavigate: (page: PageId) => void
 }
 
-const menuItemClass = "flex h-10 w-full items-center gap-2.5 rounded-lg px-2.5 text-sm font-medium transition-colors duration-150 hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/60"
+const menuItemClass = "flex h-10 w-full items-center gap-2.5 rounded-xl px-2.5 text-sm font-medium transition-colors duration-150 hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/60"
 
 export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
   const { user, loading, loginWithSteam, logout } = useAuth()
@@ -68,7 +68,7 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
           <Avatar user={user} />
         </PopoverTrigger>
 
-        <PopoverContent align="end" sideOffset={8} role="menu" className="w-[280px] overflow-hidden rounded-[14px] border-[var(--line-soft)] bg-[var(--panel)] p-0 shadow-[0_16px_40px_rgba(0,0,0,0.5)]">
+        <PopoverContent align="end" sideOffset={8} role="menu" className="w-[280px] overflow-hidden rounded-[20px] border-[var(--line-strong)] bg-[var(--card-surface)] p-0 shadow-[0_18px_50px_rgba(0,0,0,0.55)]">
           <div className="flex flex-col gap-3 border-b border-[var(--line-soft)] p-4">
             <div className="flex items-center gap-3">
               <span className="size-11 shrink-0 overflow-hidden rounded-full border border-[var(--line-strong)] bg-[var(--line)]"><Avatar user={user} /></span>
@@ -110,7 +110,7 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
               icon={<LogOut className="size-4" />}
               undoIcon={<Undo2 className="size-4" />}
               fuseColor="var(--text)"
-              radius={8}
+              radius={12}
               undoWindow={3500}
               fuseThickness={1.5}
               commitOn="fuseEnd"
