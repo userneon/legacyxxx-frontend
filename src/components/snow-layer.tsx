@@ -8,6 +8,35 @@ interface Flake { x: number; y: number; r: number; speed: number; sway: number; 
 /** The top edge of a card, in window pixels, kept up to date in place so a flake that landed on it can follow a scroll. */
 interface Ledge { left: number; right: number; top: number }
 
+/** The boxes that count as cards on every page (the flat-outline fills, the Shop's glass, the solid grey boxes). */
+const CARD_SELECTOR = '.lx-glass, .glass, [class*="glass-fill"], .lx-shop-glass, .lx-shop-tile, [class*="card-surface"]'
+
+/** Cards already judged, so each is measured once. */
+const judged = new WeakSet<Element>()
+
+/**
+ * Marks a box that is a real card (wide and tall enough, rounded, in flow, with no ::before of its own) with `data-snow`, which is what index/event-themes.css
+ * draws the snow cap on. A box that is not positioned gets `position: relative` unless something inside is absolutely placed against it.
+ */
+function markCard(element: HTMLElement) {
+  if (judged.has(element)) return
+  const rect = element.getBoundingClientRect()
+  if (rect.width === 0 && rect.height === 0) return // not laid out yet: ask again next time
+  judged.add(element)
+  if (rect.width < 120 || rect.height < 56) return
+  const style = getComputedStyle(element)
+  if (style.position === "absolute" || style.position === "fixed") return
+  if ((parseFloat(style.borderTopLeftRadius) || 0) < 8) return
+  const before = getComputedStyle(element, "::before").content
+  if (before && before !== "none" && before !== "normal") return
+  if (style.position === "static") {
+    const anchored = Array.from(element.querySelectorAll<HTMLElement>("*")).slice(0, 120).some((child) => (child as HTMLElement).offsetParent === element && getComputedStyle(child).position === "absolute")
+    if (anchored) return
+    element.style.position = "relative"
+  }
+  element.dataset.snow = "1"
+}
+
 /** How long a flake rests on a card before it melts away, in seconds. */
 const MELT = 1.8
 /** The share of flakes that meet a card's top edge and stay on it; the others fall past. */
@@ -66,9 +95,14 @@ export function SnowLayer() {
     // The snow on the cards is still, so it stays for reduced motion; the falling flakes do not.
     root.dataset.winter = "on"
     const node = canvas.current
-    if (calm || !node) return () => { delete root.dataset.winter }
-    const ctx = node.getContext("2d")
-    if (!ctx) return () => { delete root.dataset.winter }
+    const markAll = () => document.querySelectorAll<HTMLElement>(CARD_SELECTOR).forEach(markCard)
+    const ctx = !calm && node ? node.getContext("2d") : null
+    if (!ctx || !node) {
+      // No falling flakes (reduced motion): the caps on the cards are still marked.
+      markAll()
+      const markTimer = window.setInterval(markAll, 700)
+      return () => { window.clearInterval(markTimer); delete root.dataset.winter }
+    }
 
     const sprite = makeSprite()
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
@@ -80,7 +114,8 @@ export function SnowLayer() {
     const scan = () => {
       scanning = false
       const seen = new Set<Element>()
-      document.querySelectorAll(".lx-glass, .lx-add-box").forEach((element) => {
+      document.querySelectorAll<HTMLElement>(CARD_SELECTOR).forEach(markCard)
+      document.querySelectorAll("[data-snow]").forEach((element) => {
         const rect = element.getBoundingClientRect()
         if (rect.width < 90 || rect.top < 70 || rect.top > height - 20 || rect.right < 0 || rect.left > width) return
         seen.add(element)
