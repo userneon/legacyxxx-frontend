@@ -435,3 +435,5 @@ Home fills the panel and the rail does not shake (owner request 2026-11-09, "eve
 
 Rail tooltips sit close to their icon (owner report 2026-11-09, "the tooltip is too far"): a label opens 14px from an ordinary icon and 34px from the page you are on, whose tab reaches out of the rail (`RailLabel` in `app-rail.tsx`; it was 50px for every icon).
 
+Fewer layers in the top bar (owner report 2026-11-09, "too many layers"): the Tutorial button and the LX balance pill have no outline of their own any more (a soft fill only on hover), so the header pill's hairline is the only outline round them; the avatar keeps its ring.
+

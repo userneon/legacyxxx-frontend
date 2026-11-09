@@ -30,7 +30,7 @@ export function WalletMenu() {
     <Link
       to="/wallet"
       aria-label={`Wallet: ${wallet.balance.toLocaleString()} LX`}
-      className="flex h-9 shrink-0 items-center gap-2 rounded-full border border-[var(--line-strong)] px-3.5 text-[13px] font-semibold text-[var(--text)] transition-colors hover:border-[var(--text-dim)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
+      className="flex h-9 shrink-0 items-center gap-2 rounded-full px-3.5 text-[13px] font-semibold text-[var(--text)] transition-colors hover:bg-[var(--line-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
     >
       <LxMark size={18} />
       <AnimatedNumber value={wallet.balance} durationMs={600} />

@@ -62,7 +62,7 @@ export function SiteTourButton() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Tutorial"
-        className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-[var(--line)] px-3.5 text-[13px] font-semibold text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]"
+        className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full px-3.5 text-[13px] font-semibold text-[var(--text-2)] transition-colors hover:bg-[var(--line-soft)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]"
       >
         <CircleHelp className="size-4" aria-hidden="true" />
         <span className="max-sm:hidden">Tutorial</span>
