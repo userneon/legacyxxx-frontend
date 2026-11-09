@@ -450,19 +450,6 @@ function EmptyStatsRow() {
   )
 }
 
-/** The last results as small W / L / D chips, newest first (the same chips as the Form row under Recent matches). */
-function FormChips({ results }: { results: string[] }) {
-  return (
-    <span aria-label={`Last ${results.length} results`} className="flex gap-1">
-      {results.map((result, index) => (
-        <span key={index} title={result} style={{ animationDelay: `${index * 40}ms` }} className={cn("lx-row-in flex size-[20px] items-center justify-center rounded-md border text-[10px] font-bold", result === "Win" ? "border-[var(--result-win)]/45 bg-[var(--result-win)]/20 text-[var(--result-win)]" : result === "Loss" ? "border-[var(--result-loss)]/40 bg-[var(--result-loss)]/10 text-[var(--result-loss)]" : "border-[var(--line-strong)] text-[var(--text-dim)]")}>
-          {result === "Win" ? "W" : result === "Loss" ? "L" : "D"}
-        </span>
-      ))}
-    </span>
-  )
-}
-
 /** Rings for the numbers a player cares about (owner request 2026-11-09, "add donuts and circles"): win rate, K/D, headshots and the EXP limits, drawn from the same API numbers as the tiles below. */
 function ProfileRings({ overview }: { overview: ProfileOverview }) {
   const stat = (key: string) => overview.stats?.find((tile) => tile.key === key)?.value
