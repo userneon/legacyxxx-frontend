@@ -373,6 +373,20 @@ body::before {
 .lx-rail-menu-row { display: flex; width: 100%; align-items: center; gap: 10px; height: 40px; padding: 0 12px; border-radius: 12px; font-size: 13px; font-weight: 500; color: var(--text-muted); transition: background-color .15s, color .15s; }
 .lx-rail-menu-row:hover { background: var(--raised); color: var(--text); }
 .lx-rail-menu-row-on { color: var(--text); font-weight: 600; background: var(--raised); }
+/* The group menu comes out of the rail (owner request 2026-11-09): it grows from its left edge beside the disc and its rows slide out one after another; it folds back into the rail when closed. Transform and opacity only, still for reduced motion. */
+.lx-rail-menu { transform-origin: left center; }
+.lx-rail-menu[data-state="open"] { animation: lx-rail-out 340ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.lx-rail-menu[data-state="closed"] { animation: lx-rail-in 160ms cubic-bezier(0.4, 0, 1, 1) forwards; }
+.lx-rail-menu[data-state="open"] > * { animation: lx-rail-row-out 360ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.lx-rail-menu[data-state="open"] > :nth-child(1) { animation-delay: 60ms; }
+.lx-rail-menu[data-state="open"] > :nth-child(2) { animation-delay: 100ms; }
+.lx-rail-menu[data-state="open"] > :nth-child(3) { animation-delay: 140ms; }
+.lx-rail-menu[data-state="open"] > :nth-child(4) { animation-delay: 180ms; }
+.lx-rail-menu[data-state="open"] > :nth-child(n + 5) { animation-delay: 220ms; }
+@keyframes lx-rail-out { from { opacity: 0; transform: translateX(-40px) scale(0.86, 0.94); } }
+@keyframes lx-rail-in { to { opacity: 0; transform: translateX(-24px) scale(0.92, 0.96); } }
+@keyframes lx-rail-row-out { from { opacity: 0; transform: translateX(-16px); } }
+@media (prefers-reduced-motion: reduce) { .lx-rail-menu, .lx-rail-menu > * { animation: none !important; } }
 @media (prefers-reduced-motion: reduce) {
   .lx-rail-tab { transition: opacity .01s; }
   .lx-rail-disc-icon { animation: none; }
