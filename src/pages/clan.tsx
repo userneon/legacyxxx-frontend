@@ -339,20 +339,21 @@ function JoinModeLabel({ mode, className }: { mode: ClanCard["joinMode"]; classN
 }
 
 /** A clan's colour: the one it bought for its backdrop, else one of five calm hues picked from its tag (violet, orchid, emerald, teal, ruby). */
-const CLAN_HUES = [262, 285, 152, 172, 350]
 function clanAccent(clan: ClanCard): string {
   const own = clan.look?.backdrop?.from
   if (own && /^#[0-9a-fA-F]{6}$/.test(own)) return own
   let hash = 0
   for (const char of `${clan.tag}${clan.id}`) hash = (hash * 31 + char.charCodeAt(0)) >>> 0
-  return `hsl(${CLAN_HUES[hash % CLAN_HUES.length]} 70% 58%)`
+  // A clan that bought no backdrop has no colour of its own any more (owner request 2026-11-09, "too much colour"): a calm grey.
+  void hash
+  return "hsl(0 0% 72%)"
 }
 
 /** Under a member's name in the roster: when they joined, and their share of the clan's EXP as a thin bar (both from the API's real numbers; left out when unknown). */
 /** A member's role as an icon in the first column of the roster (owner request 2026-11-09): crown for the leader, shield for a manager, flag for a captain, a person for a member. */
 function RoleIcon({ role }: { role: string }) {
   const Icon = role === "leader" ? Crown : role === "co-leader" ? ShieldCheck : role === "captain" ? Flag : User
-  const tone = role === "leader" ? "text-[var(--brand-bright)]" : role === "co-leader" ? "text-[var(--text-2)]" : role === "captain" ? "text-[var(--text-muted)]" : "text-[var(--text-faint)]"
+  const tone = role === "leader" ? "text-[var(--text)]" : role === "co-leader" ? "text-[var(--text-2)]" : role === "captain" ? "text-[var(--text-muted)]" : "text-[var(--text-faint)]"
   return <span title={roleLabel(role)} className="flex w-5 shrink-0 justify-center"><Icon className={cn("size-4", tone)} aria-label={roleLabel(role)} /></span>
 }
 
@@ -635,7 +636,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
               {shown === "bank" && <ClanBankPanel clan={clan} role={role} onChanged={() => void refetch()} onProfileNavigate={onProfileNavigate} />}
               {shown === "roster" && <>
               <section aria-label="Roster" className="flex flex-col gap-3">
-                <h2 className="lx-shop-heading">Roster<span className="lx-shop-price !h-5 !text-[11px]">{clan.currentPlayers} / {clan.maxPlayers}</span></h2>
+                <h2 className="flex items-center gap-2 text-sm font-semibold"><span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--text-faint)]" />Roster<span className="inline-flex h-5 items-center rounded-full border border-[var(--line)] px-2 text-[11px] font-medium text-[var(--text-muted)]">{clan.currentPlayers} / {clan.maxPlayers}</span></h2>
                 {members.length === 0 ? (
                   <p className="text-[13px] text-[var(--text-dim)]">No members to show.</p>
                 ) : (
@@ -648,7 +649,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                       return (
                         <li key={member.id} className="group relative isolate flex h-14 items-center gap-1 overflow-hidden border-b border-[var(--raised)] transition-[background-color] duration-500 last:border-b-0 hover:bg-[var(--raised)] hover:duration-200">
                           <NameBanner fx={member.banner} />
-                          <span aria-hidden="true" className="absolute bottom-2 left-0 top-2 w-[3px] origin-center scale-y-0 rounded-r-full bg-[var(--brand-bright)] opacity-0 transition-[scale,opacity] duration-500 group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300" />
+                          <span aria-hidden="true" className="absolute bottom-2 left-0 top-2 w-[3px] origin-center scale-y-0 rounded-r-full bg-[var(--text-2)] opacity-0 transition-[scale,opacity] duration-500 group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300" />
                           <button type="button" onClick={() => onProfileNavigate(member.steamId || member.id)} className="flex h-full min-w-0 flex-1 items-center gap-3 px-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--brand)]/60">
                             <RoleIcon role={member.role} />
                             {/* A roster is a plain list: no frame light and no name glow (owner request 2026-11-02); the name keeps its colour. */}
@@ -827,7 +828,7 @@ function JoinRequests({ clanId, onAccepted }: { clanId: string; onAccepted: () =
       <h2 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-dim)]"><UserPlus className="size-3.5" aria-hidden="true" /> Join requests · {requests.length}</h2>
       <div className="grid gap-3">
         {requests.map((request) => (
-          <div key={request.id} className="lx-shop-tile flex flex-col gap-2.5 rounded-xl p-3">
+          <div key={request.id} className="lx-glass flex flex-col gap-2.5 rounded-xl p-3">
             <div className="flex items-center gap-3">
               <PlayerAvatar avatar={request.avatar} name={request.name} className="size-10 rounded-[10px] text-sm" />
               <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{request.name}</span>

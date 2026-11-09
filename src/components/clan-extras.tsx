@@ -27,9 +27,9 @@ function ToneCell({ label, value, tone }: { label: string; value: string; tone: 
 export function ClanSectionTabs({ value, onChange, member }: { value: ClanSection; onChange: (next: ClanSection) => void; member: boolean }) {
   // Each section has its own colour (owner request 2026-10-25, "tell them apart by colour"): the icon, and the underline when open.
   const options: Array<{ value: ClanSection; label: string; Icon: typeof Users; tone: Tone }> = [
-    { value: "roster", label: "Roster", Icon: Users, tone: "violet" },
-    { value: "stats", label: "Stats", Icon: Trophy, tone: "amber" },
-    ...(member ? [{ value: "bank" as const, label: "Bank", Icon: Coins, tone: "green" as const }] : []),
+    { value: "roster", label: "Roster", Icon: Users, tone: "grey" },
+    { value: "stats", label: "Stats", Icon: Trophy, tone: "grey" },
+    ...(member ? [{ value: "bank" as const, label: "Bank", Icon: Coins, tone: "grey" as const }] : []),
   ]
   return (
     <div role="tablist" aria-label="Clan sections" className="flex gap-1 overflow-x-auto border-b border-[var(--line-soft)] scrollbar-hidden">
@@ -55,13 +55,13 @@ function LevelCard({ progress }: { progress: ClanStats["progress"] }) {
   return (
     <section className="flex flex-col gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4">
       <div className="flex items-center gap-4">
-        <span className={cn("grid size-14 shrink-0 place-items-center rounded-full border-2 text-[22px] font-bold", progress.level >= 15 ? "border-[var(--brand)] text-[var(--brand-bright)]" : progress.level >= 10 ? "border-[#fcd34d] text-[#fcd34d]" /* palette-exempt: gold level ring */ : progress.level >= 5 ? "border-[#d4d4d4] text-[var(--text)]" : "border-[var(--line-strong)] text-[var(--text)]")}>{progress.level}</span>
+        <span className={cn("grid size-14 shrink-0 place-items-center rounded-full border-2 text-[22px] font-bold", progress.level >= 15 ? "border-[var(--text-2)] text-[var(--text-2)]" : progress.level >= 10 ? "border-[#fcd34d] text-[#fcd34d]" /* palette-exempt: gold level ring */ : progress.level >= 5 ? "border-[#d4d4d4] text-[var(--text)]" : "border-[var(--line-strong)] text-[var(--text)]")}>{progress.level}</span>
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           <span className="flex items-baseline justify-between gap-2">
             <span className="text-[15px] font-semibold">Level {progress.level}</span>
             <span className="text-[11px] text-[var(--text-dim)]">{progress.next === null ? `${progress.xp.toLocaleString()} XP · top level` : `${progress.xp.toLocaleString()} / ${progress.next.toLocaleString()} XP`}</span>
           </span>
-          <span className="h-2 overflow-hidden rounded-full bg-[var(--raised)]"><span className="block h-full rounded-full bg-[var(--brand)]" style={{ width: `${Math.round(Math.min(1, Math.max(0, done)) * 100)}%` }} /></span>
+          <span className="h-2 overflow-hidden rounded-full bg-[var(--raised)]"><span className="block h-full rounded-full bg-[var(--text-2)]" style={{ width: `${Math.round(Math.min(1, Math.max(0, done)) * 100)}%` }} /></span>
           <span className="text-[11px] text-[var(--text-dim)]">Members earn XP for the clan in ranked matches (win 25, draw 15, loss 10).</span>
         </div>
       </div>
@@ -102,7 +102,7 @@ export function ClanStatsPanel({ clanId, onProfileNavigate }: { clanId: string; 
   if (loading && !data) return <div className="flex flex-col gap-3"><Skeleton className="h-[150px] rounded-xl" /><Skeleton className="h-[72px] rounded-xl" /><Skeleton className="h-[200px] rounded-xl" /></div>
   if (error || !data) return <Retry onRetry={refetch} text="Could not load the clan's stats." />
   const t = data.totals
-  const cells: Array<[string, string, Tone]> = [["Matches", t.matches.toLocaleString(), "sky"], ["Win rate", `${t.winRate}%`, "green"], ["Wins", t.wins.toLocaleString(), "green"], ["K/D", t.kd.toFixed(2), "violet"], ["Kills", t.kills.toLocaleString(), "red"], ["HS", `${t.headshotRate}%`, "red"], ["Aces", t.aces.toLocaleString(), "amber"], ["Clutches", t.clutches.toLocaleString(), "amber"]]
+  const cells: Array<[string, string, Tone]> = [["Matches", t.matches.toLocaleString(), "grey"], ["Win rate", `${t.winRate}%`, "grey"], ["Wins", t.wins.toLocaleString(), "grey"], ["K/D", t.kd.toFixed(2), "grey"], ["Kills", t.kills.toLocaleString(), "grey"], ["HS", `${t.headshotRate}%`, "grey"], ["Aces", t.aces.toLocaleString(), "grey"], ["Clutches", t.clutches.toLocaleString(), "grey"]]
   return (
     <div className="flex flex-col gap-4">
       <LevelCard progress={data.progress} />
@@ -111,19 +111,19 @@ export function ClanStatsPanel({ clanId, onProfileNavigate }: { clanId: string; 
       </div>
       {t.matches === 0 && <p className="text-[13px] text-[var(--text-dim)]">No ranked matches by members since they joined yet.</p>}
       <section className="flex flex-col gap-2.5">
-        <h2 className="lx-shop-heading">Best players</h2>
+        <h2 className="flex items-center gap-2 text-sm font-semibold"><span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--text-faint)]" />Best players</h2>
         <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
-          <Leader label="MVP this week" person={data.leaders.weekMvp} unit="EXP" tone="amber" onOpen={onProfileNavigate} />
-          <Leader label="Most kills" person={data.leaders.kills} unit="kills" tone="red" onOpen={onProfileNavigate} />
-          <Leader label="Best K/D" person={data.leaders.kd} unit="K/D" tone="violet" onOpen={onProfileNavigate} />
-          <Leader label="Most wins" person={data.leaders.wins} unit="wins" tone="green" onOpen={onProfileNavigate} />
+          <Leader label="MVP this week" person={data.leaders.weekMvp} unit="EXP" tone="grey" onOpen={onProfileNavigate} />
+          <Leader label="Most kills" person={data.leaders.kills} unit="kills" tone="grey" onOpen={onProfileNavigate} />
+          <Leader label="Best K/D" person={data.leaders.kd} unit="K/D" tone="grey" onOpen={onProfileNavigate} />
+          <Leader label="Most wins" person={data.leaders.wins} unit="wins" tone="grey" onOpen={onProfileNavigate} />
         </div>
       </section>
       <section className="flex flex-col gap-2.5">
-        <h2 className="lx-shop-heading">Achievements</h2>
+        <h2 className="flex items-center gap-2 text-sm font-semibold"><span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--text-faint)]" />Achievements</h2>
         <ul className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
           {data.achievements.map((entry) => (
-            <li key={entry.id} data-tone={entry.tier > 0 ? ACHIEVEMENT_TONE[entry.id] ?? "violet" : "grey"} className="lx-tone flex items-center gap-3 overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3">
+            <li key={entry.id} data-tone="grey" className="lx-tone flex items-center gap-3 overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3">
               <span className="lx-tone-icon grid size-10 shrink-0 place-items-center rounded-[10px] border"><Medal className="size-4" aria-hidden="true" /></span>
               <span className="flex min-w-0 flex-1 flex-col gap-1">
                 <span className="flex items-baseline justify-between gap-2"><span className="truncate text-[13px] font-semibold">{entry.title}</span><span className="shrink-0 text-[11px] text-[var(--text-dim)]">Tier {entry.tier}/{entry.tiers}</span></span>
@@ -139,7 +139,7 @@ export function ClanStatsPanel({ clanId, onProfileNavigate }: { clanId: string; 
 }
 
 /** Achievement colours by ladder; one not started yet stays grey. */
-const ACHIEVEMENT_TONE: Record<string, Tone> = { wins: "green", matches: "sky", aces: "amber", clutches: "amber", level: "violet", members: "violet" }
+
 
 /** Members give LX to the clan; the leader spends it on member slots. */
 export function ClanBankPanel({ clan, role, onChanged, onProfileNavigate }: { clan: ClanDetail; role: ClanRole | null; onChanged: () => void; onProfileNavigate: (id: string) => void }) {
@@ -164,7 +164,7 @@ export function ClanBankPanel({ clan, role, onChanged, onProfileNavigate }: { cl
   const valid = Number.isInteger(amount) && amount >= 10 && amount <= 100_000
   return (
     <div className="flex flex-col gap-4">
-      <section data-tone="green" className="lx-tone flex flex-wrap items-end gap-4 overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4">
+      <section data-tone="grey" className="lx-tone flex flex-wrap items-end gap-4 overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4">
         <div className="flex min-w-[140px] flex-1 flex-col gap-1">
           <span className="lx-stat-label lx-tone-text">Clan bank</span>
           <span className="flex items-center gap-2 text-[22px] font-semibold leading-none"><Coins className="lx-tone-text size-5" aria-hidden="true" />{data.balance.toLocaleString()} LX</span>
@@ -185,12 +185,12 @@ export function ClanBankPanel({ clan, role, onChanged, onProfileNavigate }: { cl
       </section>
       <div className="grid gap-4 lg:grid-cols-2">
         <section className="flex flex-col gap-2.5">
-          <h2 className="lx-shop-heading">Top givers</h2>
+          <h2 className="flex items-center gap-2 text-sm font-semibold"><span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--text-faint)]" />Top givers</h2>
           {data.donors.length ? (
             <ol className="flex flex-col gap-1.5">
               {data.donors.map((donor, index) => (
                 <li key={donor.id}>
-                  <button type="button" data-tone={index === 0 ? "amber" : index < 3 ? "violet" : "grey"} onClick={() => onProfileNavigate(donor.steamId || donor.id)} className="lx-tone flex w-full items-center gap-3 overflow-hidden rounded-lg border border-[var(--line-soft)] p-2 text-left transition-colors hover:bg-[var(--raised)]">
+                  <button type="button" data-tone="grey" onClick={() => onProfileNavigate(donor.steamId || donor.id)} className="lx-tone flex w-full items-center gap-3 overflow-hidden rounded-lg border border-[var(--line-soft)] p-2 text-left transition-colors hover:bg-[var(--raised)]">
                     <span className="lx-tone-text w-5 text-center text-[13px] font-semibold">{index + 1}</span>
                     <PlayerAvatar avatar={donor.avatar} name={donor.name} className="size-8 rounded-lg text-xs" />
                     <span className="min-w-0 flex-1 truncate text-[13px]">{donor.name}</span>
@@ -202,7 +202,7 @@ export function ClanBankPanel({ clan, role, onChanged, onProfileNavigate }: { cl
           ) : <p className="text-[13px] text-[var(--text-dim)]">Nobody has given yet.</p>}
         </section>
         <section className="flex flex-col gap-2.5">
-          <h2 className="lx-shop-heading">Latest</h2>
+          <h2 className="flex items-center gap-2 text-sm font-semibold"><span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--text-faint)]" />Latest</h2>
           {data.log.length ? (
             <ul className="flex flex-col divide-y divide-[var(--line-soft)] rounded-xl border border-[var(--glass-line)]">
               {data.log.map((entry, index) => (
