@@ -469,62 +469,25 @@ function ProfileRings({ overview }: { overview: ProfileOverview }) {
   const win = stat("winRate")
   const kd = stat("kd")
   const hs = stat("hs")
+  const tile = (key: string) => overview.stats?.find((entry) => entry.key === key)
+  const matches = tile("matches")
+  const avgKills = tile("avgKills")
   const limits = overview.competitive?.expLimits ?? null
   const share = (used: number, cap: number) => (cap > 0 ? Math.max(0, Math.min(100, (used / cap) * 100)) : 0)
   const cards: ReactNode[] = []
+  // Matches and average kills have no ceiling, so their ring shows how many ranked players the player beats (the API's percentile).
+  const beats = (entry: NonNullable<typeof matches>) => (typeof entry.percentile === "number" ? [{ pct: entry.percentile, tone: "green" as const }] : [])
+  if (matches) cards.push(<RingStat key="matches" value={matches.value.toLocaleString()} label="Matches" title={typeof matches.percentile === "number" ? `More than ${matches.percentile}% of ranked players` : undefined} segments={beats(matches)} />)
   if (typeof win === "number") cards.push(<RingStat key="win" value={`${Math.round(win)}%`} label="Win rate" segments={[{ pct: win, tone: "green" }]} />)
   if (typeof kd === "number") cards.push(<RingStat key="kd" value={kd.toFixed(2)} label="K/D" title="Kills against deaths" segments={[{ pct: (kd / (kd + 1)) * 100, tone: "green" }, { pct: (1 / (kd + 1)) * 100, tone: "red" }]} />)
   if (typeof hs === "number") cards.push(<RingStat key="hs" value={`${Math.round(hs)}%`} label="Headshots" segments={[{ pct: hs, tone: "green" }]} />)
+  if (avgKills) cards.push(<RingStat key="kills" value={avgKills.value.toFixed(1)} label="Avg. kills" title={typeof avgKills.percentile === "number" ? `Better than ${avgKills.percentile}% of ranked players` : undefined} segments={beats(avgKills)} />)
   if (limits) {
     cards.push(<RingStat key="day" value={`${Math.round(share(limits.day.used, limits.day.cap))}%`} label="EXP today" title={`${limits.day.used.toLocaleString()} of ${limits.day.cap.toLocaleString()} EXP today`} segments={[{ pct: share(limits.day.used, limits.day.cap), tone: limits.day.used >= limits.day.cap ? "red" : "green" }]} />)
     cards.push(<RingStat key="week" value={`${Math.round(share(limits.week.used, limits.week.cap))}%`} label="EXP this week" title={`${limits.week.used.toLocaleString()} of ${limits.week.cap.toLocaleString()} EXP this week`} segments={[{ pct: share(limits.week.used, limits.week.cap), tone: limits.week.used >= limits.week.cap ? "red" : "green" }]} />)
   }
   if (cards.length === 0) return null
-  return <section aria-label="Rings" className="grid grid-cols-2 gap-3 @xl:grid-cols-3 @3xl:grid-cols-5">{cards}</section>
-}
-
-function StatsRow({ stats, form }: { stats: NonNullable<ProfileOverview["stats"]>; form?: string[] }) {
-  const format = (key: string, value: number) => (key === "winRate" || key === "hs" ? `${value}%` : key === "kd" ? value.toFixed(2) : key === "avgKills" ? value.toFixed(1) : value.toLocaleString())
-  return (
-    <section aria-label="LEGACY-X stats" className="lx-stat-grid grid-cols-2 sm:grid-flow-col sm:grid-cols-none sm:auto-cols-fr">
-      {stats.map((tile) => {
-        const average = tile.average ?? null
-        const percentile = tile.percentile ?? null
-        const above = average !== null && tile.value > average
-        const below = average !== null && tile.value < average
-        // Above the community average is green, below is red, equal is grey (the same colours as the Compare page).
-        // How many matches a player has played is not good or bad, so that tile stays neutral.
-        const judged = tile.key !== "matches"
-        const tone = judged && above ? "text-[var(--result-win)]" : judged && below ? "text-[var(--result-loss)]" : "text-[var(--text-2)]"
-        const toneBg = judged && above ? "bg-[var(--result-win)]" : judged && below ? "bg-[var(--result-loss)]" : "bg-[var(--text-2)]"
-        return (
-          <div key={tile.key} title={format(tile.key, tile.value)} className="lx-stat-cell px-4 py-3.5">
-            <span className="lx-stat-label">{tile.label}</span>
-            <span className="flex items-center justify-between gap-2">
-              <span className="text-2xl font-semibold leading-none text-[var(--text)]">
-                <AnimatedNumber value={tile.value} decimals={tile.key === "kd" ? 2 : tile.key === "avgKills" ? 1 : 0} suffix={tile.key === "winRate" || tile.key === "hs" ? "%" : ""} />
-              </span>
-              {tile.key === "matches" && form && form.length > 0 && <FormChips results={form} />}
-            </span>
-            {percentile !== null && (
-              <span role="img" aria-label={`Better than ${percentile}% of ranked players`} className="relative mt-0.5 block h-1 overflow-hidden rounded-full bg-[var(--line)]">
-                <i className={cn("lx-stat-fill block h-full rounded-full", toneBg)} style={{ width: `${Math.max(3, percentile)}%` }} />
-              </span>
-            )}
-            {average !== null && (
-              <span className="flex items-center justify-between gap-2 text-[11px] text-[var(--text-dim)]">
-                <span title="Average of ranked players with 5+ matches" className="inline-flex items-center gap-1">
-                  {above ? <ArrowUp className={cn("size-3", tone)} aria-hidden="true" /> : below ? <ArrowDown className={cn("size-3", tone)} aria-hidden="true" /> : <Minus className={cn("size-3", tone)} aria-hidden="true" />}
-                  Avg {format(tile.key, average)}
-                </span>
-                {percentile !== null && <span className={cn("font-semibold", tone)}>{percentile >= 50 ? `Top ${Math.max(1, 100 - percentile)}%` : `Beats ${percentile}%`}</span>}
-              </span>
-            )}
-          </div>
-        )
-      })}
-    </section>
-  )
+  return <section aria-label="Rings" className="grid grid-cols-2 gap-3 @xl:grid-cols-3 @3xl:grid-cols-4">{cards}</section>
 }
 
 function RecentMatches({ matches, kdAverage, onOpen }: { matches: ProfileMatchRow[]; kdAverage: number | null; onOpen: (match: ProfileMatchRow) => void }) {
@@ -889,7 +852,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
         )}
                 <div {...rise(1)} className={rise(1).className}>{data.banned ? <CensoredCard label="Rank" rows={2} /> : data.competitive ? <RankCard competitive={data.competitive} /> : <section className={cn(card, "flex items-center p-[18px] text-[13px] text-[var(--text-dim)]")}>Unranked — no competitive matches yet</section>}</div>
                 {!data.banned && !hidden.has("stats") && data.stats && <div {...rise(2)} className={rise(2).className}><ProfileRings overview={data} /></div>}
-                {data.banned ? <CensoredStatsRow /> : hidden.has("stats") ? <HiddenCard section="stats" /> : data.stats ? <StatsRow stats={data.stats}  /> : <EmptyStatsRow />}
+                {data.banned ? <CensoredStatsRow /> : hidden.has("stats") ? <HiddenCard section="stats" /> : data.stats ? null : <EmptyStatsRow />}
                 {data.banned ? <CensoredCard label="Recent matches" rows={5} /> : hidden.has("matches") ? <HiddenCard section="matches" /> : (
               <>
                 <RecentMatches matches={data.recentMatches ?? []} kdAverage={data.stats?.find((tile) => tile.key === "kd")?.average ?? null} onOpen={setOpenMatch} />
