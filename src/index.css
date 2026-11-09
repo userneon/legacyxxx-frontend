@@ -347,6 +347,18 @@ body::before {
 @media (max-width: 559px) {
   .lx-frame .lx-frame-panel { background: var(--card-surface); }
 }
+/* Content that runs past the bottom of the page panel melts into it instead of being cut off by the edge (owner report 2026-11-09). A sticky strip with a negative margin: it takes no room and never grows the page. */
+.lx-frame-panel::after {
+  content: "";
+  display: block;
+  position: sticky;
+  bottom: 0;
+  height: 44px;
+  margin-top: -44px;
+  z-index: 6;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--card-surface));
+}
 .lx-rail { position: relative; z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 12px; width: 60px; flex: none; }
 .lx-rail-logo { display: grid; place-items: center; width: 60px; height: 60px; flex: none; border-radius: 50%; background: var(--raised); border: 1px solid var(--line-strong); transition: border-color .15s; }
 .lx-rail-logo:hover { border-color: var(--text-faint); }
@@ -1003,19 +1015,14 @@ body::before {
 /* Bento pages (owner request 2026-11-09, "every page flows down into place, one after another"): each cell of a bento grid, then the cards stacked in a column, flow down in turn. Transforms and opacity only, `backwards` fill, still for reduced motion. */
 .page-enter .lx-bento > *,
 .page-enter .lx-bento > * > * {
-  animation: lx-flow-down 460ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation: lx-flow-down 380ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
-.page-enter .lx-bento > :nth-child(1) { animation-delay: 40ms; }
-.page-enter .lx-bento > :nth-child(2) { animation-delay: 100ms; }
-.page-enter .lx-bento > :nth-child(3) { animation-delay: 160ms; }
-.page-enter .lx-bento > :nth-child(4) { animation-delay: 220ms; }
-.page-enter .lx-bento > :nth-child(5) { animation-delay: 280ms; }
-.page-enter .lx-bento > :nth-child(n + 6) { animation-delay: 340ms; }
-.page-enter .lx-bento > * > :nth-child(1) { animation-delay: 90ms; }
-.page-enter .lx-bento > * > :nth-child(2) { animation-delay: 160ms; }
-.page-enter .lx-bento > * > :nth-child(3) { animation-delay: 230ms; }
-.page-enter .lx-bento > * > :nth-child(4) { animation-delay: 300ms; }
-.page-enter .lx-bento > * > :nth-child(n + 5) { animation-delay: 370ms; }
+.page-enter .lx-bento > :nth-child(2) { animation-delay: 25ms; }
+.page-enter .lx-bento > :nth-child(3) { animation-delay: 50ms; }
+.page-enter .lx-bento > :nth-child(n + 4) { animation-delay: 75ms; }
+.page-enter .lx-bento > * > :nth-child(2) { animation-delay: 25ms; }
+.page-enter .lx-bento > * > :nth-child(3) { animation-delay: 50ms; }
+.page-enter .lx-bento > * > :nth-child(n + 4) { animation-delay: 75ms; }
 @media (prefers-reduced-motion: reduce) {
   .page-enter .lx-bento > *, .page-enter .lx-bento > * > * { animation: none; }
 }

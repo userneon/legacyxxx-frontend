@@ -138,7 +138,7 @@ export function RingStat({ segments, value, label, title }: { segments: Segment[
               fill="none"
               strokeWidth="4"
               strokeLinecap="round"
-              style={{ stroke: TONE[segment.tone], animationDelay: `${300 + position * 140}ms` }}
+              style={{ stroke: TONE[segment.tone], animationDelay: `${120 + position * 60}ms` }}
               strokeDasharray={`${Math.max((CIRC * segment.pct) / 100 - 4, 0.1).toFixed(1)} ${CIRC.toFixed(1)}`}
               strokeDashoffset={(-(CIRC * start) / 100).toFixed(1)}
               transform="rotate(-90 24 24)"
@@ -173,7 +173,7 @@ export function RankPanel() {
     (signal) => competitiveService.getPlayer(user!.id, { signal }),
     { enabled: Boolean(user?.id), queryKey: `home-rank:${user?.id ?? "guest"}` },
   )
-  const { data: overview } = useApiQuery(
+  const { data: overview, loading: overviewLoading } = useApiQuery(
     (signal) => profileOverviewService.get(user!.id, { signal }),
     { enabled: Boolean(user?.id), queryKey: `home-rank-limits:${user?.id ?? "guest"}` },
   )
@@ -243,6 +243,12 @@ export function RankPanel() {
             title={`${profile.kills} kills · ${deaths} deaths`}
             segments={[{ pct: pct(profile.kills, profile.kills + deaths), tone: "green" }, { pct: pct(deaths, profile.kills + deaths), tone: "red" }]}
           />
+        )}
+        {!limits && overviewLoading && (
+          <>
+            <Skeleton className="h-[70px] rounded-2xl" />
+            <Skeleton className="h-[70px] rounded-2xl" />
+          </>
         )}
         {limits && (
           <>

@@ -92,7 +92,9 @@
   filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.45));
   /* The snow comes back slowly after the pointer has left... */
   transition: opacity 1.6s ease 1s, transform 1.6s ease 1s;
+  animation: lx-snow-in 0.45s ease backwards;
 }
+@keyframes lx-snow-in { from { opacity: 0; } }
 /* ...and is brushed off the moment the pointer is over the card (owner request 2026-11-09, "when I hover, the snow should go away"). */
 :root[data-winter="on"] [data-snow]:hover::before {
   opacity: 0;
@@ -101,5 +103,5 @@
 }
 @media (prefers-reduced-motion: reduce) {
   :root[data-winter="on"] [data-snow]::before,
-  :root[data-winter="on"] [data-snow]:hover::before { transition: none; }
+  :root[data-winter="on"] [data-snow]:hover::before { transition: none; animation: none; }
 }

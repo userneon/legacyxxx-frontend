@@ -1,6 +1,9 @@
 import { useEffect, useState, type ComponentProps } from "react"
 import { ArrowUpRight } from "lucide-react"
 
+import { discordService } from "@/api/discord"
+import { useApiQuery } from "@/hooks/use-api-query"
+import { Skeleton } from "@/components/ui/skeleton"
 import { LINKS } from "@/lib/links"
 import discord3d from "@/assets/home/discord-3d.webp"
 import { cn } from "@/lib/utils"
@@ -84,7 +87,11 @@ export function DiscordStrip() {
 /** Home's Discord card (bento): the server's blue, the 3D mark, how many are online and a few of their faces (the public widget; no count when it is off). */
 export function DiscordCard({ className }: { className?: string }) {
   const widget = useDiscordWidget()
-  const faces = widget?.members.slice(0, 5) ?? []
+  // Our own public list of members who linked Discord (the bot fills it): it still says something when the server widget is switched off.
+  const { data: community, loading: communityLoading } = useApiQuery((signal) => discordService.getCommunity("boosts", { signal }), { queryKey: "home-discord-community" })
+  const linked = community?.length ?? 0
+  const boosting = community?.filter((entry) => entry.boosting).length ?? 0
+  const faces = widget?.members.slice(0, 5).map((member) => ({ id: member.id, src: member.avatar_url })) ?? (community ?? []).filter((entry) => entry.avatar).slice(0, 5).map((entry) => ({ id: entry.discordId, src: entry.avatar }))
   return (
     <a
       href={widget?.instant_invite || LINKS.discordInvite}
@@ -99,13 +106,25 @@ export function DiscordCard({ className }: { className?: string }) {
           <span className="text-[26px] font-bold leading-none text-white">{widget.presence_count.toLocaleString()}</span>
           <span className="text-[13px]">members online</span>
         </span>
+      ) : communityLoading && !community ? (
+        <Skeleton className="h-7 w-32 bg-white/10" />
+      ) : linked > 0 ? (
+        <span className="flex items-baseline gap-2 text-[#c7ccff]" /* palette-exempt: Discord brand */>
+          <span className="text-[26px] font-bold leading-none text-white">{linked.toLocaleString()}</span>
+          <span className="text-[13px]">linked on LEGACY-X</span>
+        </span>
       ) : (
         <span className="text-[13px] text-[#c7ccff]" /* palette-exempt: Discord brand */>Teammates, announcements and clips</span>
+      )}
+      {(widget ? linked > 0 : boosting > 0) && (
+        <span className="text-[12px] text-[#aab1ff]" /* palette-exempt: Discord brand */>
+          {widget ? `${linked.toLocaleString()} linked on LEGACY-X` : ""}{widget && boosting > 0 ? " · " : ""}{boosting > 0 ? `${boosting.toLocaleString()} boosting the server` : ""}
+        </span>
       )}
       {faces.length > 0 && (
         <span className="flex items-center" aria-hidden="true">
           <span className="flex -space-x-2">
-            {faces.map((member) => <img key={member.id} src={member.avatar_url} alt="" className="size-6 rounded-full border-2 border-[#2a3390] object-cover" loading="lazy" /> /* palette-exempt: Discord brand */)}
+            {faces.map((face) => <img key={face.id} src={face.src} alt="" className="size-6 rounded-full border-2 border-[#2a3390] object-cover" loading="lazy" /> /* palette-exempt: Discord brand */)}
           </span>
         </span>
       )}

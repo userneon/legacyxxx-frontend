@@ -130,7 +130,7 @@ function AppRail({ currentPage, onNavigate }: Props) {
               {entry.menu ? (
                 <Popover open={openMenu === entry.key} onOpenChange={(open) => setOpenMenu(open ? entry.key : null)}>
                   <Tooltip open={openMenu === entry.key ? false : undefined}>
-                    <TooltipTrigger asChild>
+                    <TooltipTrigger asChild onFocus={(event) => event.preventDefault()}>
                       <PopoverTrigger asChild>
                         <button type="button" aria-label={entry.label} aria-current={isActive ? "page" : undefined} aria-haspopup="menu" className="lx-rail-item">
                           <entry.icon className={cn("size-5", isActive && "opacity-0")} />
@@ -170,7 +170,7 @@ function AppRail({ currentPage, onNavigate }: Props) {
                 </Popover>
               ) : (
                 <Tooltip>
-                  <TooltipTrigger asChild>{button as ReactElement}</TooltipTrigger>
+                  <TooltipTrigger asChild onFocus={(event) => event.preventDefault()}>{button as ReactElement}</TooltipTrigger>
                   <RailLabel>{entry.label}</RailLabel>
                 </Tooltip>
               )}

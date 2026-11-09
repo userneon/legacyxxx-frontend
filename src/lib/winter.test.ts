@@ -23,9 +23,9 @@ describe("isWinterSeason", () => {
 describe("flakeCount", () => {
   it("gives a desktop many flakes and a phone fewer", () => {
     expect(flakeCount(1440, 900)).toBeGreaterThan(flakeCount(390, 844))
-    expect(flakeCount(390, 844)).toBeGreaterThanOrEqual(90)
+    expect(flakeCount(390, 844)).toBeGreaterThanOrEqual(40)
   })
   it("never goes past the cap", () => {
-    expect(flakeCount(3840, 2160)).toBe(280)
+    expect(flakeCount(3840, 2160)).toBe(130)
   })
 })

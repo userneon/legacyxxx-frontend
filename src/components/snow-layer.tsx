@@ -9,7 +9,10 @@ interface Flake { x: number; y: number; r: number; speed: number; sway: number; 
 interface Ledge { left: number; right: number; top: number }
 
 /** The boxes that count as cards on every page (the flat-outline fills, the Shop's glass, the solid grey boxes). */
-const CARD_SELECTOR = '.lx-glass, .glass, [class*="glass-fill"], .lx-shop-glass, .lx-shop-tile, [class*="card-surface"]'
+const CARD_SELECTOR = '.lx-glass, .glass, [class*="glass-fill"], .lx-shop-glass, .lx-shop-tile, [class*="bg-[var(--card-surface)]"]'
+
+/** Floating things (tooltips, menus, dialogs, the rail and the header) never wear snow, whatever their class names say. */
+const NO_SNOW_INSIDE = '[data-radix-popper-content-wrapper], [role="tooltip"], [role="dialog"], [role="menu"], [role="listbox"], nav, header, [data-slot="tooltip-content"], [data-slot="popover-content"]'
 
 /** Cards already judged, so each is measured once. */
 const judged = new WeakSet<Element>()
@@ -23,6 +26,7 @@ function markCard(element: HTMLElement) {
   const rect = element.getBoundingClientRect()
   if (rect.width === 0 && rect.height === 0) return // not laid out yet: ask again next time
   judged.add(element)
+  if (element.closest(NO_SNOW_INSIDE)) return
   if (rect.width < 120 || rect.height < 56) return
   const style = getComputedStyle(element)
   if (style.position === "absolute" || style.position === "fixed") return
@@ -66,12 +70,12 @@ function newFlake(width: number, height: number, anywhere: boolean): Flake {
   return {
     x: Math.random() * width,
     y: anywhere ? Math.random() * height : -12,
-    r: 1 + depth * 3,
+    r: 0.9 + depth * 1.9,
     speed: 22 + depth * 70,
     sway: 6 + Math.random() * 22,
     freq: 0.4 + Math.random() * 0.9,
     phase: Math.random() * Math.PI * 2,
-    alpha: 0.3 + depth * 0.5,
+    alpha: 0.25 + depth * 0.45,
     age: anywhere ? 9 : 0,
     landed: 0,
   }
@@ -101,7 +105,10 @@ export function SnowLayer() {
       // No falling flakes (reduced motion): the caps on the cards are still marked.
       markAll()
       const markTimer = window.setInterval(markAll, 700)
-      return () => { window.clearInterval(markTimer); delete root.dataset.winter }
+      let marking = 0
+      const watchMarks = new MutationObserver(() => { window.clearTimeout(marking); marking = window.setTimeout(markAll, 60) })
+      watchMarks.observe(document.body, { childList: true, subtree: true })
+      return () => { window.clearInterval(markTimer); watchMarks.disconnect(); window.clearTimeout(marking); delete root.dataset.winter }
     }
 
     const sprite = makeSprite()
@@ -127,6 +134,10 @@ export function SnowLayer() {
     }
     const scanSoon = () => { if (!scanning) { scanning = true; requestAnimationFrame(scan) } }
     const scanTimer = window.setInterval(scan, 500)
+    // A card that has just been drawn gets its snow at once, not at the next tick.
+    let watching = 0
+    const watch = new MutationObserver(() => { window.clearTimeout(watching); watching = window.setTimeout(scan, 60) })
+    watch.observe(document.body, { childList: true, subtree: true })
     document.addEventListener("scroll", scanSoon, true)
     const resize = () => {
       width = window.innerWidth
@@ -181,7 +192,7 @@ export function SnowLayer() {
           if (flake.y > height + 12) { Object.assign(flake, newFlake(width, height, false)); continue }
         }
         ctx.globalAlpha = alpha
-        const size = flake.r * 2.6 * scale
+        const size = flake.r * 2.4 * scale
         ctx.drawImage(sprite, flake.x - size / 2, flake.y - size / 2, size, size)
       }
       ctx.globalAlpha = 1
@@ -195,6 +206,8 @@ export function SnowLayer() {
       cancelAnimationFrame(frame)
       window.removeEventListener("resize", resize)
       window.clearInterval(scanTimer)
+      watch.disconnect()
+      window.clearTimeout(watching)
       document.removeEventListener("scroll", scanSoon, true)
       document.removeEventListener("visibilitychange", onVisibility)
       delete root.dataset.winter
