@@ -115,6 +115,7 @@ function AppRail({ currentPage, onNavigate }: Props) {
           data-on={active && discTop !== null ? "1" : "0"}
           style={{ transform: `translate3d(0, ${discTop ?? 0}px, 0)` }}
         >
+          <span className="lx-rail-tab-edge" />
           <span className="lx-rail-disc">{active && <active.icon key={active.key} className="lx-rail-disc-icon size-5" />}</span>
         </span>
         {entries.map((entry) => {
