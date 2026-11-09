@@ -9,7 +9,7 @@ import { useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { usePathTab } from "@/hooks/use-url-tab"
 import { useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft, Check, Coins, Crown, Flag, Globe, Lock, Pencil, Plus, Search, Trophy, Upload, UserPlus, Users, X } from "lucide-react"
+import { ArrowLeft, Check, Coins, Crown, Flag, Globe, Lock, Pencil, Plus, Search, ShieldCheck, Trophy, Upload, User, UserPlus, Users, X } from "lucide-react"
 import { toast } from "sonner"
 
 
@@ -328,6 +328,13 @@ function clanAccent(clan: ClanCard): string {
 }
 
 /** Under a member's name in the roster: when they joined, and their share of the clan's EXP as a thin bar (both from the API's real numbers; left out when unknown). */
+/** A member's role as an icon in the first column of the roster (owner request 2026-11-09): crown for the leader, shield for a manager, flag for a captain, a person for a member. */
+function RoleIcon({ role }: { role: string }) {
+  const Icon = role === "leader" ? Crown : role === "co-leader" ? ShieldCheck : role === "captain" ? Flag : User
+  const tone = role === "leader" ? "text-[var(--brand-bright)]" : role === "co-leader" ? "text-[var(--text-2)]" : role === "captain" ? "text-[var(--text-muted)]" : "text-[var(--text-faint)]"
+  return <span title={roleLabel(role)} className="flex w-5 shrink-0 justify-center"><Icon className={cn("size-4", tone)} aria-label={roleLabel(role)} /></span>
+}
+
 function RosterSub({ joinedAt, exp, total }: { joinedAt?: string | null; exp: number | null; total: number }) {
   const when = joinedAt && !Number.isNaN(Date.parse(joinedAt)) ? new Date(joinedAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : null
   const share = exp !== null && total > 0 && exp > 0 ? Math.round((exp / total) * 100) : null
@@ -613,18 +620,17 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                 ) : (
                   <ul className="overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
                     <li aria-hidden="true" className="flex h-9 items-center gap-1 border-b border-[var(--raised)] text-[11px] font-medium text-[var(--text-dim)] max-md:hidden">
-                      <span className="flex min-w-0 flex-1 items-center gap-3 px-4"><span className="w-5 shrink-0">#</span><span>Player</span><span className="flex-1" /><span className="w-[150px] shrink-0 max-lg:hidden">Rank</span><span className="w-[70px] shrink-0 text-right">Matches</span><span className="w-[64px] shrink-0 text-right">Win rate</span><span className="w-[56px] shrink-0 text-right">K/D</span><span className="w-[96px] shrink-0 text-right max-xl:hidden">FACEIT</span></span>
+                      <span className="flex min-w-0 flex-1 items-center gap-3 px-4"><span className="w-5 shrink-0" /><span>Player</span><span className="flex-1" /><span className="w-[150px] shrink-0 max-lg:hidden">Rank</span><span className="w-[70px] shrink-0 text-right">Matches</span><span className="w-[64px] shrink-0 text-right">Win rate</span><span className="w-[56px] shrink-0 text-right">K/D</span><span className="w-[96px] shrink-0 text-right max-xl:hidden">FACEIT</span></span>
                       <span className="w-[96px] shrink-0" />
                     </li>
                     {[...members].sort((x, y) => ROLE_ORDER.indexOf(x.role) - ROLE_ORDER.indexOf(y.role)).map((member, index) => {
                       const totalExp = members.reduce((sum, entry) => sum + (entry.stats?.currentExp ?? 0), 0)
-                      const ranked = member.role === "leader" || member.role === "co-leader"
                       return (
                         <li key={member.id} className="group relative isolate flex h-14 items-center gap-1 overflow-hidden border-b border-[var(--raised)] transition-[background-color] duration-500 last:border-b-0 hover:bg-[var(--raised)] hover:duration-200">
                           <NameBanner fx={member.banner} />
                           <span aria-hidden="true" className="absolute bottom-2 left-0 top-2 w-[3px] origin-center scale-y-0 rounded-r-full bg-[var(--brand-bright)] opacity-0 transition-[scale,opacity] duration-500 group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300" />
                           <button type="button" onClick={() => onProfileNavigate(member.steamId || member.id)} className="flex h-full min-w-0 flex-1 items-center gap-3 px-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--brand)]/60">
-                            <span className="w-5 shrink-0 text-sm font-semibold text-[var(--text-muted)] transition-colors duration-300 group-hover:text-[var(--text)]">{index + 1}</span>
+                            <RoleIcon role={member.role} />
                             {/* A roster is a plain list: no frame light and no name glow (owner request 2026-11-02); the name keeps its colour. */}
                             <PlayerAvatar avatar={member.avatar} name={member.name} className="size-8 shrink-0 rounded-[9px] text-xs" />
                             <span className="flex min-w-0 flex-col gap-0.5">
@@ -632,11 +638,6 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                               <PerkMark perk={member.perk} compact size={18} />
                               <RosterSub joinedAt={member.joinedAt} exp={member.stats?.currentExp ?? null} total={totalExp} />
                             </span>
-                            {ranked
-                              ? <span className="inline-flex w-fit shrink-0 items-center gap-1 rounded-full border border-[color-mix(in_oklch,var(--brand-bright)_35%,transparent)] bg-[color-mix(in_oklch,var(--brand)_14%,transparent)] px-2 py-px text-[11px] font-semibold text-[var(--brand-bright)]">{member.role === "leader" && <Crown className="size-3" aria-hidden="true" />}{roleLabel(member.role)}</span>
-                              : member.role === "captain"
-                                ? <span className="inline-flex w-fit shrink-0 items-center gap-1 rounded-full border border-[var(--line-strong)] bg-[var(--raised)] px-2 py-px text-[11px] font-semibold text-[var(--text-2)]"><Flag className="size-3" aria-hidden="true" />Captain</span>
-                                : <span className="shrink-0 text-[11px] text-[var(--text-dim)]">{roleLabel(member.role)}</span>}
                             <span className="min-w-0 flex-1" />
                             <span className="w-[150px] shrink-0 max-lg:hidden">{member.stats ? <RankLabel rankId={member.stats.rankId} rankName={member.stats.rankName} imageKey={member.stats.rankImageKey} currentExp={member.stats.currentExp} size={20} nameClassName="text-xs font-medium" /> : <span className="text-xs text-[var(--text-dim)]">Unranked</span>}</span>
                             <span className="w-[70px] shrink-0 text-right text-[13px] text-[var(--text-muted)] max-md:hidden" title="Ranked matches">{member.stats ? member.stats.matches.toLocaleString() : "—"}</span>
@@ -650,7 +651,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                     })}
                     {Array.from({ length: Math.min(Math.max(clan.maxPlayers - members.length, 0), 3) }, (_, index) => (
                       <li key={`open-${index}`} className="flex h-14 items-center gap-3 border-b border-[var(--raised)] px-4 text-[var(--text-faint)] last:border-b-0">
-                        <span className="w-5 shrink-0 text-sm">{members.length + index + 1}</span>
+                        <User className="size-4 w-5 shrink-0" aria-hidden="true" />
                         <span className="grid size-8 place-items-center rounded-[9px] border border-dashed border-[var(--line)]"><UserPlus className="size-3.5" aria-hidden="true" /></span>
                         <span className="text-[13px]">{index === 2 && clan.maxPlayers - members.length > 3 ? `+${clan.maxPlayers - members.length - 2} open slots` : "Open slot"}</span>
                       </li>
