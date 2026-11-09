@@ -11,7 +11,7 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { formatDate } from "@/lib/preferences"
 import { cn } from "@/lib/utils"
 
-const card = "overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]"
+const card = "overflow-hidden rounded-2xl border border-[var(--glass-line)] bg-[var(--glass-fill)]"
 
 function Heading({ children, note }: { children: React.ReactNode; note?: React.ReactNode }) {
   return (
@@ -156,7 +156,7 @@ export function OwnerSections({ overview }: { overview: ProfileOverview }) {
       {overview.message && <OwnerMessage message={overview.message} />}
       <PlayerReviews />
       {(team.length > 0 || updates.length > 0) && (
-        <div className={cn("grid items-start gap-4", team.length > 0 && updates.length > 0 && "md:grid-cols-2")}>
+        <div className={cn("grid items-start gap-3", team.length > 0 && updates.length > 0 && "md:grid-cols-2")}>
           <Team team={team} />
           <Updates updates={updates} />
         </div>

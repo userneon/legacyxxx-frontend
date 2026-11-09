@@ -802,7 +802,6 @@ export function ProfilePage({ userId }: { userId?: string }) {
       )}
       {tab === "profile" && (
       <div className="@container px-6 pb-8 pt-5 max-md:px-4">
-        {data.user.role === "Owner" && <div className="pb-3"><div className="mx-auto flex w-full max-w-3xl flex-col gap-4"><OwnerPanel overview={data} /><OwnerSections overview={data} /></div></div>}
         <div className="lx-bento grid gap-3 @4xl:grid-cols-12">
           {/* Who this is: the banner, the avatar, the name, the badges and the buttons, in one card that stays in view. */}
           <aside className="flex min-w-0 flex-col gap-3 @4xl:col-span-4">
@@ -812,6 +811,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
                 <Header overview={data} onVisibilityChange={refetch} />
               </div>
             </section>
+            {data.user.role === "Owner" && <OwnerPanel overview={data} />}
             <div {...rise(1)} className={rise(1).className}><TrustCard overview={data} onOpenPenalty={(id) => setOpenPenalty(penaltyById(id))} /></div>
             {hidden.has("loadout") ? <HiddenCard section="loadout" /> : data.loadout && <LoadoutCard loadout={data.loadout} />}
             {data.banned ? (showFaceit && faceit ? <CensoredCard label="FACEIT" rows={3} /> : null) : hidden.has("faceit") ? <HiddenCard section="faceit" /> : showFaceit && faceit && <FaceitCard faceit={faceit} />}
@@ -846,6 +846,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
               </>
             )}
                 {data.banned ? <CensoredCard label="Maps" rows={4} /> : !hidden.has("matches") && data.maps && <MapsCard maps={data.maps} />}
+                {data.user.role === "Owner" && <OwnerSections overview={data} />}
               </>
             )}
           </div>
