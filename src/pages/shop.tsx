@@ -35,7 +35,6 @@ import { ChoiceSelect } from "@/components/choice-select"
 import { DetailSheetContent } from "@/components/detail-sheet"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 const SORTS = [
   { value: "price-up", label: "Price: low to high" },
@@ -425,9 +424,6 @@ export function ShopPage() {
     return (
       // No content-visibility here: it paints only inside the box, which cut off the tile's border and glow when it lifts on hover (the lists are at most 30 tiles anyway).
       <li key={item.id} className={cn("group/tile relative rounded-xl", justBought === item.id && "lx-bought")}>
-        <TooltipProvider delayDuration={150}>
-          <Tooltip>
-            <TooltipTrigger asChild>
               <button
                 type="button"
                 onClick={() => choose(item)}
@@ -447,16 +443,7 @@ export function ShopPage() {
                   {action}
                 </div>
               </button>
-            </TooltipTrigger>
             <button type="button" onClick={() => toggleSaved(item.id)} aria-pressed={saved.includes(item.id)} aria-label={saved.includes(item.id) ? `Remove ${item.name} from saved` : `Save ${item.name} for later`} className={cn("absolute right-1.5 top-1.5 z-[2] grid size-7 place-items-center rounded-full border border-[var(--line)] bg-[var(--card-surface)]/80 text-[var(--text-dim)] transition-opacity hover:text-[var(--text)] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60", saved.includes(item.id) ? "text-[var(--brand-bright)] opacity-100" : "opacity-0 group-hover/tile:opacity-100")}><Heart className={cn("size-3.5", saved.includes(item.id) && "fill-current")} aria-hidden="true" /></button>
-            {/* A big look at it on your own picture, with its name and what it costs. */}
-            <TooltipContent side="top" sideOffset={8} className="flex flex-col items-center gap-2 rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] px-5 py-4 text-[var(--text)] [--tooltip-bg:var(--panel)]">
-              <Spot accent={accentOf(shown)} height={190} fill={shown.kind === "background"}><div className="px-6"><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={150} /></div></Spot>
-              <span className="text-[13px] font-semibold">{item.name}</span>
-              <span className="text-[11px] text-[var(--text-dim)]">{rarityOf(item.rarity).label} · {item.owned ? (worn[item.kind] === item.id ? "Worn" : "Owned") : item.unlock === "coin" ? `${priceFor(item, "30d").toLocaleString()} LX · 30 days` : "Earned"}</span>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
       </li>
     )
   }
