@@ -9,7 +9,7 @@ import { useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { usePathTab } from "@/hooks/use-url-tab"
 import { useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft, Check, Coins, Crown, Flag, Globe, Lock, Pencil, Plus, Search, ShieldCheck, Trophy, Upload, User, UserPlus, Users, X } from "lucide-react"
+import { ArrowLeft, ArrowRight, Check, Coins, Crown, Flag, Globe, Lock, Pencil, Plus, Search, ShieldCheck, Trophy, Upload, User, UserPlus, Users, X } from "lucide-react"
 import { toast } from "sonner"
 
 
@@ -20,6 +20,7 @@ import { ClanAppearancePanel } from "@/components/shop-clan"
 import { CLAN_ART_RULES, clanArtProblem, clanArtSrc, type ClanArtKind } from "@/api/clans"
 import type { ClanCard, ClanDetail, ClanJoinRequest, ClanRole, MyClanState } from "@/api/types"
 import { ClanMark } from "@/components/clan-mark"
+import { RingStat } from "@/components/home-bento"
 import { ClanBankPanel, ClanSectionTabs, ClanStatsPanel, type ClanSection } from "@/components/clan-extras"
 import { ActivityPanel, ManagersSection, useClanFee, InvitePanel, RenameForm, clanFailure, roleLabel } from "@/components/clan-manage"
 import { Button } from "@/components/ui/button"
@@ -216,47 +217,67 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
               </label>
             </>
           )}
-          {mineKnown && !mine && (
-            <button type="button" onClick={() => (isAuthenticated ? setCreating(true) : loginWithSteam())} className="lx-primary-button inline-flex h-9 items-center gap-2 rounded-lg px-3.5 text-[13px] font-semibold">
-              <Plus className="size-4" aria-hidden="true" />
-              Create clan{fee != null ? ` · ${fee.toLocaleString()}` : ""}
-            </button>
-          )}
         </PageBarEnd>
       </PageBar>
 
       <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
-        <div className="flex flex-col gap-4 px-6 pb-4 pt-4">
-          {invites.length > 0 && !mine && <Reveal><Invitations invites={invites} onChanged={changed} /></Reveal>}
-
+        <div className="@container px-6 pb-4 pt-4">
           {!mineKnown && tab === "appearance" ? null : mine && tab === "appearance" ? (
             <ClanAppearancePanel clanId={String(mine.clan.id)} tag={mine.clan.tag} leader={mine.role === "leader"} />
           ) : (
-            <>
-              {!loading && !error && !q && (
-                <div className="lx-stat-grid grid-cols-3">
-                  {[{ label: "Clans", value: list.length }, { label: "Members", value: members }, { label: "Open slots", value: open }].map((stat) => (
-                    <div key={stat.label} className="lx-stat-cell shadow-none!">
-                      <span className="lx-stat-label">{stat.label}</span>
-                      <span className="text-xl font-semibold leading-none text-[var(--text)]"><AnimatedNumber value={stat.value} /></span>
+            /* The clans as a bento (owner request 2026-11-09): your place and the totals on the left, the clans on the right. */
+            <div className="grid gap-3 @4xl:grid-cols-12">
+              <aside className="flex min-w-0 flex-col gap-3 @4xl:col-span-4">
+                {mineKnown && (mine ? (
+                  <button type="button" onClick={() => onClanNavigate(String(mine.clan.number ?? mine.clan.id))} className="lx-glass flex items-center gap-4 rounded-2xl p-4 text-left transition-colors hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
+                    <ClanMark logo={mine.clan.logo} tag={mine.clan.tag} className="size-14 text-[14px]" />
+                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span className="text-[11px] text-[var(--text-dim)]">Your clan</span>
+                      <span className="truncate text-[17px] font-semibold text-[var(--text)]">{mine.clan.name} <span className="text-[12px] font-medium text-[var(--text-dim)]">[{mine.clan.tag}]</span></span>
+                      <span className="text-[12px] text-[var(--text-dim)]">{roleLabel(mine.role)} · {mine.clan.currentPlayers}/{mine.clan.maxPlayers} members</span>
+                    </span>
+                    <ArrowRight className="size-4 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />
+                  </button>
+                ) : (
+                  <div className="lx-glass flex flex-col items-start gap-3 rounded-2xl p-4">
+                    <span className="text-[15px] font-semibold text-[var(--text)]">Start your own clan</span>
+                    <p className="text-[13px] text-[var(--text-dim)]">Gather a team, share a roster and climb together.</p>
+                    <button type="button" onClick={() => (isAuthenticated ? setCreating(true) : loginWithSteam())} className="lx-primary-button inline-flex h-9 items-center gap-2 rounded-lg px-3.5 text-[13px] font-semibold">
+                      <Plus className="size-4" aria-hidden="true" />
+                      Create clan{fee != null ? ` · ${fee.toLocaleString()} LX` : ""}
+                    </button>
+                  </div>
+                ))}
+                {invites.length > 0 && !mine && <Invitations invites={invites} onChanged={changed} />}
+                {!loading && !error && !q && list.length > 0 && (
+                  <div className="grid grid-cols-2 gap-3 @4xl:grid-cols-1">
+                    <RingStat value={`${Math.round((members / Math.max(1, members + open)) * 100)}%`} label="Slots filled" title={`${members} of ${members + open} member slots`} segments={[{ pct: (members / Math.max(1, members + open)) * 100, tone: "green" }]} />
+                    <div className="lx-glass grid grid-cols-3 gap-2 rounded-2xl px-4 py-3">
+                      {[{ label: "Clans", value: list.length }, { label: "Members", value: members }, { label: "Open", value: open }].map((stat) => (
+                        <div key={stat.label} className="flex flex-col gap-1">
+                          <span className="text-[11px] text-[var(--text-dim)]">{stat.label}</span>
+                          <span className="text-xl font-semibold leading-none text-[var(--text)]"><AnimatedNumber value={stat.value} /></span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              )}
+                  </div>
+                )}
+              </aside>
 
-              <QueryState loading={loading && list.length === 0} skeleton={<ClanListSkeleton />} error={error} empty={!loading && !error && list.length === 0} emptyMessage={q ? "No clan has that name." : "No clans yet."} onRetry={refetch} />
-
-              {!error && list.length > 0 && (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-                  {list.map((clan) => (
-                    <ClanCardItem key={clan.id} clan={clan} mine={mine} pending={pending.includes(clan.id)} canJoin={!mine} onClanNavigate={onClanNavigate} onChanged={changed} />
-                  ))}
-                </div>
-              )}
-              {!error && mayShowMore && (
-                <button type="button" disabled={loading} onClick={() => setLimit((value) => value + PAGE_SIZE)} className="mx-auto inline-flex h-9 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-4 text-[13px] hover:border-[var(--line-strong)] disabled:opacity-50">Show more</button>
-              )}
-            </>
+              <div className="flex min-w-0 flex-col gap-3 @4xl:col-span-8">
+                <QueryState loading={loading && list.length === 0} skeleton={<ClanListSkeleton />} error={error} empty={!loading && !error && list.length === 0} emptyMessage={q ? "No clan has that name." : "No clans yet."} onRetry={refetch} />
+                {!error && list.length > 0 && (
+                  <div className="grid gap-3 @2xl:grid-cols-2">
+                    {list.map((clan) => (
+                      <ClanCardItem key={clan.id} clan={clan} mine={mine} pending={pending.includes(clan.id)} canJoin={!mine} onClanNavigate={onClanNavigate} onChanged={changed} />
+                    ))}
+                  </div>
+                )}
+                {!error && mayShowMore && (
+                  <button type="button" disabled={loading} onClick={() => setLimit((value) => value + PAGE_SIZE)} className="mx-auto inline-flex h-9 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-4 text-[13px] hover:border-[var(--line-strong)] disabled:opacity-50">Show more</button>
+                )}
+              </div>
+            </div>
           )}
         </div>
       </div>

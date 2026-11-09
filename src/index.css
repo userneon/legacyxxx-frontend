@@ -1836,13 +1836,13 @@ body::before {
 /* ========================================
    Side detail panels (server details, penalty details)
    ======================================== */
-/* Solid panel with a violet top line; slides in on a soft ease-out. */
+/* Solid panel with a neutral top line; slides in on a soft ease-out (owner request 2026-11-09: no violet in the detail sheets). */
 .lx-sheet {
   /* Nearly opaque: the page behind only tints the edges, it never shows through the text. */
   background: color-mix(in oklab, var(--panel) 97%, transparent);
   backdrop-filter: blur(22px) saturate(160%);
   -webkit-backdrop-filter: blur(22px) saturate(160%);
-  box-shadow: -24px 0 60px rgba(0, 0, 0, 0.55), 0 0 0 1px color-mix(in oklab, var(--brand) 18%, transparent);
+  box-shadow: -24px 0 60px rgba(0, 0, 0, 0.55), 0 0 0 1px var(--line-strong);
 }
 .lx-sheet::before {
   content: "";
@@ -1851,7 +1851,7 @@ body::before {
   top: 0;
   z-index: 20;
   height: 2px;
-  background: linear-gradient(90deg, transparent, var(--brand-bright), transparent);
+  background: linear-gradient(90deg, transparent, var(--text-faint), transparent);
   pointer-events: none;
 }
 .lx-sheet-overlay {
@@ -2167,7 +2167,7 @@ section[data-tone="red"] { --tone: var(--tone-red); } section[data-tone="sky"] {
 .lx-creator-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
 
 /* Detail sheets (owner request 2026-10-26): every detail view rises from the bottom and covers the screen (`components/detail-sheet.tsx`). */
-.lx-detail-sheet .lx-sheet { box-shadow: 0 -24px 60px rgba(0, 0, 0, 0.55), 0 0 0 1px color-mix(in oklab, var(--brand) 18%, transparent); }
+.lx-detail-sheet .lx-sheet { box-shadow: 0 -24px 60px rgba(0, 0, 0, 0.55), 0 0 0 1px var(--line-strong); }
 @media (prefers-reduced-motion: reduce) { .lx-detail-sheet { animation-duration: 1ms !important; } }
 
 /* Premium grenade trail previews (owner request 2026-10-26): the lightning flickers, the pulse puffs swell, the stardust twinkles. Off for reduced motion. */

@@ -900,7 +900,7 @@ export function SkinchangerPage() {
                     data-catalog-item-id={item.id}
                     className={cn(
                       "relative flex flex-col overflow-hidden rounded-lg border bg-[var(--glass-fill)] p-2 text-left transition-colors duration-150",
-                      isCurrent ? "border-[var(--brand)]" : "border-[var(--line-soft)] hover:border-[var(--line-strong)]",
+                      isCurrent ? "border-[var(--text-2)]" : "border-[var(--line-soft)] hover:border-[var(--line-strong)]",
                     )}
                   >
                     <span className="flex h-16 items-center justify-center">
@@ -1524,11 +1524,11 @@ export function SkinchangerPage() {
                           data-catalog-item-id={item.id}
                           className={cn(
                             "lx-layer group relative flex flex-col overflow-hidden rounded-lg border bg-[var(--glass-fill)] p-2 text-left transition-[border-color,box-shadow,translate] duration-300 hover:-translate-y-1 hover:shadow-[0_10px_24px_rgba(0,0,0,0.45)]",
-                            isSelected ? "border-[var(--brand)]" : "border-[var(--line-soft)] hover:border-[var(--line-strong)]",
+                            isSelected ? "border-[var(--text-2)]" : "border-[var(--line-soft)] hover:border-[var(--line-strong)]",
                           )}
                         >
                           {/* A violet light rises from the bottom edge on hover, whatever the rarity (owner request 2026-11-01); the rarity stays the thin line. */}
-                          <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 origin-bottom scale-y-50 bg-[linear-gradient(to_top,color-mix(in_srgb,var(--brand)_42%,transparent),transparent)] opacity-0 transition-[opacity,scale] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-y-100 group-hover:opacity-100 motion-reduce:transition-none" />
+                          <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 origin-bottom scale-y-50 bg-[linear-gradient(to_top,color-mix(in_srgb,var(--text)_12%,transparent),transparent)] opacity-0 transition-[opacity,scale] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-y-100 group-hover:opacity-100 motion-reduce:transition-none" />
                           {rarity && <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px]" style={{ backgroundColor: rarity.accent }} />}
                           {isSaved && <span className="absolute right-1.5 top-1.5 inline-flex items-center gap-1 rounded border border-[var(--line-strong)] bg-[var(--raised)] px-1 py-px text-[9px] font-semibold uppercase text-[var(--text-2)]"><BadgeCheck className="size-3" />Saved</span>}
                           {/* The picture leans and floats up a little on hover; the tile and its text stay straight and sharp. */}
