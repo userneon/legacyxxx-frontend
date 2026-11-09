@@ -87,7 +87,7 @@ function ItemArt({ item, avatar, username, size, orb }: { item: ShopItem; avatar
 }
 
 /** The models that have an in-game picture (`public/shop/models/<id>.webp`, taken in the game, owner request 2026-11-09). Any other model shows the weapon it replaces as an icon. */
-const MODEL_PICTURES = new Set(["katana-wupie", "katana-miku", "katana-blood", "deagle-mari", "ak-10005"])
+const MODEL_PICTURES = new Set(["katana-wupie", "katana-miku", "katana-blood", "katana-dengliz", "deagle-mari", "ak-10005"])
 
 /** Whether a model has an in-game picture (the Shop tile then lets it fill the whole top of the tile). */
 const hasModelPicture = (item: ShopItem) => isModelKind(item.kind) && MODEL_PICTURES.has(item.id)
