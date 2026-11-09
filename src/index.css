@@ -1858,6 +1858,28 @@ body::before {
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
+/* On the website's shell (owner request 2026-11-09: "the detail comes up only inside the content box, the rest of the content blurred"): the sheet and its blur cover only the page panel; the rail and the header stay sharp. A phone keeps the full-screen sheet. */
+@media (min-width: 560px) {
+  html.lx-shell .lx-sheet-overlay {
+    inset: var(--lx-panel-top) var(--lx-panel-right) var(--lx-panel-bottom) var(--lx-panel-left);
+    border-radius: var(--lx-r-panel, 28px);
+    background: rgba(10, 10, 10, 0.5);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  html.lx-shell .lx-detail-sheet {
+    left: calc(var(--lx-panel-left) + 12px);
+    right: calc(var(--lx-panel-right) + 12px);
+    top: calc(var(--lx-panel-top) + 44px);
+    bottom: calc(var(--lx-panel-bottom) + 12px);
+    width: auto;
+  }
+  html.lx-shell .lx-detail-sheet .lx-sheet {
+    width: 100%;
+    border-bottom-width: 1px;
+    border-radius: 24px;
+  }
+}
 
 /* The panel's blocks rise in one after another once it has slid in. */
 .lx-sheet-rise > * {

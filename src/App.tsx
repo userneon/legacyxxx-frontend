@@ -108,6 +108,30 @@ export function App() {
     panelRef.current?.scrollTo({ top: 0 })
   }, [shownSection])
 
+  // The detail sheets open inside the page panel (owner request 2026-11-09): publish the panel's edges so the sheet and its blur can sit exactly over it.
+  useEffect(() => {
+    const node = panelRef.current
+    if (!node) return
+    const root = document.documentElement
+    const publish = () => {
+      const rect = node.getBoundingClientRect()
+      root.style.setProperty("--lx-panel-left", `${Math.round(rect.left)}px`)
+      root.style.setProperty("--lx-panel-top", `${Math.round(rect.top)}px`)
+      root.style.setProperty("--lx-panel-right", `${Math.round(window.innerWidth - rect.right)}px`)
+      root.style.setProperty("--lx-panel-bottom", `${Math.round(window.innerHeight - rect.bottom)}px`)
+    }
+    root.classList.add("lx-shell")
+    publish()
+    const observer = new ResizeObserver(publish)
+    observer.observe(node)
+    window.addEventListener("resize", publish)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener("resize", publish)
+      root.classList.remove("lx-shell")
+    }
+  }, [])
+
   const profileScene = useProfileScene()
   // A profile with a Steam background gets it behind the whole window; one without keeps the Grid Scan (dev) or the beams.
   const profileGrid = currentPage === "profile" && isFeatureEnabled("profileGrid") && !profileScene
