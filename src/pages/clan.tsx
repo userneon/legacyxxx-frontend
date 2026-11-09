@@ -622,7 +622,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                     <li aria-hidden="true" className="flex h-9 items-center gap-1 border-b border-[var(--raised)] text-[11px] font-medium text-[var(--text-dim)] max-md:hidden">
                       <span className="flex min-w-0 flex-1 items-center gap-3 px-4"><span className="w-5 shrink-0" /><span>Player</span><span className="flex-1" /><span className="w-[150px] shrink-0 max-lg:hidden">Rank</span><span className="w-[70px] shrink-0 text-right">Matches</span><span className="w-[64px] shrink-0 text-right">Win rate</span><span className="w-[56px] shrink-0 text-right">K/D</span><span className="w-[96px] shrink-0 text-right max-xl:hidden">FACEIT</span></span>
                     </li>
-                    {[...members].sort((x, y) => ROLE_ORDER.indexOf(x.role) - ROLE_ORDER.indexOf(y.role)).map((member, index) => {
+                    {[...members].sort((x, y) => ROLE_ORDER.indexOf(x.role) - ROLE_ORDER.indexOf(y.role)).map((member) => {
                       const totalExp = members.reduce((sum, entry) => sum + (entry.stats?.currentExp ?? 0), 0)
                       return (
                         <li key={member.id} className="group relative isolate flex h-14 items-center gap-1 overflow-hidden border-b border-[var(--raised)] transition-[background-color] duration-500 last:border-b-0 hover:bg-[var(--raised)] hover:duration-200">

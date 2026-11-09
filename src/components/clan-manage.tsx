@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { ArrowRight, Coins, Crown, Flag, Send, ShieldAlert, Trash2, UserMinus, X } from "lucide-react"
+import { ArrowRight, Coins, Crown, Send, ShieldAlert, Trash2, UserMinus, X } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -56,7 +56,6 @@ export function roleLabel(role: string) {
   return ROLE_LABEL[role as ClanRole] ?? role
 }
 
-const iconButton = "flex size-8 items-center justify-center rounded-lg text-[var(--text-dim)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)] disabled:opacity-50"
 
 /** The buttons next to a member: make or unmake a manager, hand the clan over, remove. Only what the viewer may do shows. */
 /**

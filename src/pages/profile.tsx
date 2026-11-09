@@ -8,7 +8,7 @@ import { DiscordLinkedMark } from "@/components/discord-linked-mark"
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
-import { ArrowDown, ArrowLeftRight, ArrowUp, Ban, ChevronRight, Copy, Crown, ExternalLink, Eye, EyeOff, Info, MessageCircle, Minus, MoreHorizontal, Play, RotateCcw, ShieldAlert, ShieldCheck, Shield } from "lucide-react"
+import { ArrowLeftRight, Ban, ChevronRight, Copy, Crown, ExternalLink, Eye, EyeOff, Info, MessageCircle, MoreHorizontal, Play, RotateCcw, ShieldAlert, ShieldCheck, Shield } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
