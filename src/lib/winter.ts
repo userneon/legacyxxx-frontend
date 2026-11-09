@@ -11,5 +11,5 @@ export function isWinterSeason(now: Date = new Date()): boolean {
 
 /** How many flakes a window of this size gets: plenty on a desktop, fewer on a phone, never more than the cap. */
 export function flakeCount(width: number, height: number): number {
-  return Math.round(Math.min(130, Math.max(40, (width * height) / 11000)))
+  return Math.round(Math.min(56, Math.max(16, (width * height) / 26000)))
 }
