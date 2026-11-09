@@ -10,7 +10,6 @@ import type { CompetitiveProfile } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { CompetitiveRankBadge, rankTierColor } from "@/components/competitive-rank-badge"
-import { SteamIcon } from "@/components/steam-login-gate"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 
@@ -148,11 +147,21 @@ function RingStat({ segments, value, label, title }: { segments: Segment[]; valu
   )
 }
 
+/** One emblem for each of the six rank tiers (RANK-SYSTEM.md section 4), lowest to highest. */
+const RANK_TIERS = [
+  { name: "Recruit", rankId: 3 },
+  { name: "Operator", rankId: 8 },
+  { name: "Vanguard", rankId: 12 },
+  { name: "Ace", rankId: 15 },
+  { name: "Apex", rankId: 17 },
+  { name: "Legacy", rankId: 18 },
+]
+
 const pct = (part: number, whole: number) => (whole > 0 ? Math.max(0, Math.min(100, (part / whole) * 100)) : 0)
 
 /** The signed-in player's rank with its progress, and four rings: win rate, K/D and EXP against the daily and weekly limits. Signed out: the Steam sign-in. */
 export function RankPanel() {
-  const { user, loading: authLoading, loginWithSteam } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const { data: profile, loading, error, refetch } = useApiQuery<CompetitiveProfile>(
     (signal) => competitiveService.getPlayer(user!.id, { signal }),
     { enabled: Boolean(user?.id), queryKey: `home-rank:${user?.id ?? "guest"}` },
@@ -163,16 +172,21 @@ export function RankPanel() {
   )
 
   if (!user) {
+    // Signed out: the six rank tiers with their emblems (nothing made up). The sign-in itself stays in the top bar.
     return (
-      <div className="lx-glass flex flex-1 flex-col items-start justify-center gap-3 rounded-2xl p-5">
-        <div className="text-[15px] font-semibold text-[var(--text)]">Your rank</div>
-        <p className="text-[13px] text-[var(--text-dim)]">{authLoading ? "Checking your sign-in…" : "Sign in to see your rank and stats."}</p>
-        {!authLoading && (
-          <button type="button" onClick={loginWithSteam} className="lx-steam-button flex h-9 items-center gap-2 rounded-lg px-3.5 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
-            <SteamIcon className="size-4 shrink-0" />
-            Sign in with Steam
-          </button>
-        )}
+      <div className="lx-glass flex flex-1 flex-col items-center justify-center gap-4 rounded-2xl p-5 text-center">
+        <div>
+          <div className="text-[15px] font-semibold text-[var(--text)]">Climb the ranks</div>
+          <p className="mt-0.5 text-xs text-[var(--text-dim)]">{authLoading ? "Checking your sign-in…" : "Sign in to see where you stand."}</p>
+        </div>
+        <ul className="grid w-full grid-cols-3 gap-x-2 gap-y-3">
+          {RANK_TIERS.map((tier) => (
+            <li key={tier.name} className="flex flex-col items-center gap-1">
+              <CompetitiveRankBadge rankId={tier.rankId} rankName={tier.name} size={40} />
+              <span className="text-[11px] font-medium" style={{ color: rankTierColor(tier.rankId) }}>{tier.name}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     )
   }
