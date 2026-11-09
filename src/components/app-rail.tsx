@@ -108,13 +108,14 @@ function AppRail({ currentPage, onNavigate }: Props) {
         <img src="/logolegacyx.webp" alt="" aria-hidden="true" className="size-8" />
       </button>
       <div ref={pillRef} className="lx-rail-pill">
+        {/* The tab: the page panel's own colour reaches from the panel through the gap into the rail and ends in a round end around the disc, so the active page and its panel are one shape. */}
         <span
           aria-hidden="true"
-          className="lx-rail-disc"
+          className="lx-rail-tab"
           data-on={active && discTop !== null ? "1" : "0"}
           style={{ transform: `translate3d(0, ${discTop ?? 0}px, 0)` }}
         >
-          {active && <active.icon key={active.key} className="lx-rail-disc-icon size-5" />}
+          <span className="lx-rail-disc">{active && <active.icon key={active.key} className="lx-rail-disc-icon size-5" />}</span>
         </span>
         {entries.map((entry) => {
           const isActive = active?.key === entry.key
