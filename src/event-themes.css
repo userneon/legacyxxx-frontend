@@ -70,3 +70,30 @@
 @media (prefers-reduced-motion: reduce) {
   .lx-event-layer { display: none; }
 }
+
+/* Winter snow (owner request 2026-11-09, components/snow-layer.tsx): the canvas does the falling, so the New Year flecks step aside, and the cards carry
+   a little snow on their top edge. Every colour line carries palette-exempt (the lint skips it); the cap is still, so it stays for reduced motion. */
+:root[data-winter="on"][data-event="new-year"] .lx-event-layer { display: none; }
+:root[data-winter="on"] .lx-glass:not([class~="absolute"], [class~="fixed"], [class~="sticky"], [class~="relative"]),
+:root[data-winter="on"] .lx-add-box:not([class~="absolute"], [class~="fixed"], [class~="sticky"], [class~="relative"]) { position: relative; }
+:root[data-winter="on"] .lx-glass::before,
+:root[data-winter="on"] .lx-add-box::before {
+  content: "";
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  top: -2px;
+  height: 7px;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 6px 4px at 50% 0, #f7fbff 94%, transparent 100%) 0 0 / 15px 100% repeat-x, /* palette-exempt */
+    radial-gradient(ellipse 11px 6px at 50% 0, #e8f1fa 94%, transparent 100%) 6px 0 / 37px 100% repeat-x, /* palette-exempt */
+    linear-gradient(#f7fbff, #eaf2fb) 0 0 / 100% 2px no-repeat; /* palette-exempt */
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.45));
+  border-radius: 3px 3px 0 0;
+}
+@media (max-width: 559px) {
+  :root[data-winter="on"] .lx-glass::before,
+  :root[data-winter="on"] .lx-add-box::before { left: 16px; right: 16px; }
+}

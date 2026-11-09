@@ -1,5 +1,6 @@
 import { BackgroundBeams } from "@/components/background-beams"
 import { EventLayer } from "@/components/event-layer"
+import { SnowLayer } from "@/components/snow-layer"
 import { loadPerkCatalogue } from "@/api/perks"
 import Aurora from "@/components/ui/aurora"
 import { ProfileBackdrop } from "@/components/profile-backdrop"
@@ -155,6 +156,7 @@ export function App() {
       {!profileGrid && !profileScene && <Aurora aria-hidden="true" intensity={0.14} className="pointer-events-none fixed inset-0 -z-[2] overflow-hidden" />}
       {!profileGrid && !profileScene && <BackgroundBeams />}
       <EventLayer />
+      <SnowLayer />
       <ProfileScene scene={currentPage === "profile" ? profileScene : null} />
       <ProfileBackdrop active={profileGrid} />
       {/* The shell (owner pick 2026-11-09): one solid frame holding the rail, a pill header and the page panel. A phone keeps the sidebar sheet and the older layout. */}

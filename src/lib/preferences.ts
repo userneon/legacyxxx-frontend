@@ -8,10 +8,12 @@ export type TimeFormat = "24h" | "12h"
 export interface WebsitePreferences {
   sidebarCollapsed: boolean
   timeFormat: TimeFormat
+  /** Winter snow over the site (on by default; it only shows in winter or during a New Year event). */
+  snow: boolean
 }
 
 export const WEBSITE_PREFS_KEY = "legacyx.website-prefs"
-const DEFAULTS: WebsitePreferences = { sidebarCollapsed: false, timeFormat: "24h" }
+const DEFAULTS: WebsitePreferences = { sidebarCollapsed: false, timeFormat: "24h", snow: true }
 
 function read(): WebsitePreferences {
   try {
@@ -21,6 +23,7 @@ function read(): WebsitePreferences {
     return {
       sidebarCollapsed: typeof parsed.sidebarCollapsed === "boolean" ? parsed.sidebarCollapsed : DEFAULTS.sidebarCollapsed,
       timeFormat: parsed.timeFormat === "12h" ? "12h" : "24h",
+      snow: typeof parsed.snow === "boolean" ? parsed.snow : DEFAULTS.snow,
     }
   } catch {
     return DEFAULTS
