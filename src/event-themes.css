@@ -78,22 +78,19 @@
 :root[data-winter="on"] .lx-add-box:not([class~="absolute"], [class~="fixed"], [class~="sticky"], [class~="relative"]) { position: relative; }
 :root[data-winter="on"] .lx-glass::before,
 :root[data-winter="on"] .lx-add-box::before {
+  /* The whole card's shape (its own radius), of which only the top band shows: the snow follows the rounded corners right to the edge. */
   content: "";
   position: absolute;
-  left: 22px;
-  right: 22px;
-  top: -2px;
-  height: 7px;
+  inset: -1px;
   z-index: 3;
   pointer-events: none;
+  border-radius: inherit;
   background:
-    radial-gradient(ellipse 6px 4px at 50% 0, #f7fbff 94%, transparent 100%) 0 0 / 15px 100% repeat-x, /* palette-exempt */
-    radial-gradient(ellipse 11px 6px at 50% 0, #e8f1fa 94%, transparent 100%) 6px 0 / 37px 100% repeat-x, /* palette-exempt */
+    radial-gradient(ellipse 6px 4px at 50% 0, #f7fbff 94%, transparent 100%) 0 0 / 15px 7px repeat-x, /* palette-exempt */
+    radial-gradient(ellipse 11px 6px at 50% 0, #e8f1fa 94%, transparent 100%) 6px 0 / 37px 7px repeat-x, /* palette-exempt */
     linear-gradient(#f7fbff, #eaf2fb) 0 0 / 100% 2px no-repeat; /* palette-exempt */
+  background-repeat: repeat-x, repeat-x, no-repeat;
+  -webkit-mask-image: linear-gradient(#000 7px, transparent 7px);
+  mask-image: linear-gradient(#000 7px, transparent 7px);
   filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.45));
-  border-radius: 3px 3px 0 0;
-}
-@media (max-width: 559px) {
-  :root[data-winter="on"] .lx-glass::before,
-  :root[data-winter="on"] .lx-add-box::before { left: 16px; right: 16px; }
 }
