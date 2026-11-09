@@ -1089,6 +1089,10 @@ export async function mockResponse(method: string, path: string, query: Query, b
     if (play[2] === "servers") return serverList(mode)
     return { server: SERVERS[mode].find((entry) => entry.joinable) ?? null }
   }
+  if (/^\/api\/v1\/public\/competitive\/players\/[^/]+$/.test(path)) {
+    // Design preview of the signed-in player's ranked profile (the numbers are made up here and only exist in the local mock).
+    return { user_id: "mock-me", steam_id: "76561198000009999", username: "LegacyTester", avatar: "", current_exp: 1180, rank_id: 7, rank_slug: "operator-iii", rank_name: "Operator III", rank_image_key: "rank-07", pro_league_unlocked: false, matches_completed: 100, wins: 57, losses: 38, kills: 1620, assists: 400, headshot_kills: 700, deaths: 1380, last_match_at: null, current_rank_min_exp: 1000, next_rank_id: 8, next_rank_name: "Vanguard I", next_rank_min_exp: 1400 }
+  }
   switch (path) {
     case "/api/v1/public/overview":
       return { playersOnline: 91, liveServers: 11, matchesToday: 37, modes: { "5x5": 37, fun: 48, pro: 14 } }

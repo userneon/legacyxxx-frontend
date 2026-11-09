@@ -2318,3 +2318,10 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
 }
 @keyframes lx-ring-turn { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .lx-ring-spin { animation: none; } }
+
+/* Home's Discord card: the server's own blue (third-party brand colours, palette-exempt). */
+.lx-discord-card {
+  background: linear-gradient(135deg, #232a6e 0%, #3340b8 55%, #5865f2 100%); /* palette-exempt: Discord brand */
+  border: 1px solid #5865f2; /* palette-exempt: Discord brand */
+}
+@media (prefers-reduced-motion: reduce) { .lx-discord-card img { transition: none; } }

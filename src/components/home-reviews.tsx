@@ -96,3 +96,41 @@ export function HomeReviews({ onWriteReview }: { onWriteReview: () => void }) {
     </section>
   )
 }
+
+/** Home's small reviews card (bento): the average and count, and the latest review in the player's own words. */
+export function HomeReviewsCard({ onOpen, className }: { onOpen: () => void; className?: string }) {
+  const { data, loading, error, refetch } = useApiQuery<FeedbackEntry[]>((signal) => feedbackService.getFeedback({ signal }), { queryKey: "home-reviews-card" })
+  const reviews = [...(data ?? [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  const total = reviews.length
+  const average = total ? reviews.reduce((sum, entry) => sum + entry.rating, 0) / total : 0
+  const latest = reviews[0]
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className={cn("lx-glass group flex flex-col gap-2 rounded-2xl p-4 text-left transition-colors hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50", className)}
+      aria-label="Reviews"
+    >
+      <span className="flex items-center justify-between gap-2 text-sm font-semibold">
+        Reviews
+        <ArrowRight className="size-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+      </span>
+      {loading && !data ? (
+        <><Skeleton className="h-7 w-32" /><Skeleton className="h-4 w-full" /></>
+      ) : error && !data ? (
+        <span className="text-xs text-[var(--text-dim)]">Could not load reviews. <span role="link" tabIndex={0} onClick={(event) => { event.stopPropagation(); refetch() }} onKeyDown={(event) => { if (event.key === "Enter") { event.stopPropagation(); refetch() } }} className="font-medium text-[var(--text)] underline">Retry</span></span>
+      ) : total === 0 ? (
+        <span className="text-xs text-[var(--text-dim)]">No reviews yet. Write the first one.</span>
+      ) : (
+        <>
+          <span className="flex items-baseline gap-2">
+            <Star className="size-5 self-center fill-[var(--star)] text-[var(--star)]" aria-hidden="true" />
+            <span className="text-[22px] font-semibold leading-none">{average.toFixed(1)}</span>
+            <span className="text-xs text-[var(--text-dim)]">· {total.toLocaleString()} review{total === 1 ? "" : "s"}</span>
+          </span>
+          {latest && <span className="line-clamp-2 text-[13px] leading-snug text-[var(--text-muted)]">{latest.message}</span>}
+        </>
+      )}
+    </button>
+  )
+}

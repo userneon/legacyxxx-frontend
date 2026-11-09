@@ -1,19 +1,14 @@
-/** LEGACY-X Home: hero, live stats, play modes, the top of the ladder, reviews and Discord. */
-import { useRef, useState } from "react"
+/** LEGACY-X Home (bento, owner pick 2026-11-09): a map slider, the player's rank and rings, the four modes, the top of the ladder, reviews and Discord. */
 import { cn } from "@/lib/utils"
 import { serversService } from "@/api"
 import { tournamentsService } from "@/api/tournaments"
 import type { HomeStats, PageId } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
-import { OptimizedImage } from "@/components/optimized-image"
-import homeHeroGif from "@/assets/skinchanger/hero.webp"
-import { HomeReviews } from "@/components/home-reviews"
-import { DiscordStrip } from "@/components/discord-strip"
+import { HomeReviewsCard } from "@/components/home-reviews"
+import { DiscordCard } from "@/components/discord-strip"
+import { FindPlayerPill, MapSlider, RankPanel } from "@/components/home-bento"
 import { TopPlayers } from "@/components/home-top-players"
 import { useNavigate } from "react-router-dom"
-import { AnimatedNumber } from "@/components/animated-number"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Play } from "lucide-react"
 import { formatDate } from "@/lib/preferences"
 import rankedArt from "@/assets/home/mode-ranked.webp"
 import funArt from "@/assets/home/mode-fun.webp"
@@ -27,11 +22,11 @@ interface HomePageProps {
 }
 
 type ModeKey = "5x5" | "fun" | "pro" | "tournaments"
-const MODE_CARDS: { id: PageId; key: ModeKey; label: string; tag: string; desc: string; art: string }[] = [
-  { id: "play-5vs5", key: "5x5", label: "5x5 Matches", tag: "Ranked", desc: "Competitive 5v5. Every match counts toward your rank.", art: rankedArt },
-  { id: "play-fun", key: "fun", label: "Fun Mode", tag: "Casual", desc: "Surf, aim, deathmatch and more.", art: funArt },
-  { id: "play-proleague", key: "pro", label: "Pro League", tag: "High rank", desc: "Ranked 5v5 for high-rank players.", art: proArt },
-  { id: "play-tournaments", key: "tournaments", label: "Tournaments", tag: "Events", desc: "5v5 events on LEGACY-X servers.", art: eventsArt },
+const MODE_CARDS: { id: PageId; key: ModeKey; label: string; tag: string; art: string }[] = [
+  { id: "play-5vs5", key: "5x5", label: "5x5 Matches", tag: "Ranked", art: rankedArt },
+  { id: "play-fun", key: "fun", label: "Fun Mode", tag: "Casual", art: funArt },
+  { id: "play-proleague", key: "pro", label: "Pro League", tag: "High rank", art: proArt },
+  { id: "play-tournaments", key: "tournaments", label: "Tournaments", tag: "Events", art: eventsArt },
 ]
 
 
@@ -40,24 +35,8 @@ const TOURNAMENT_STATE = { registration: "Registration open", upcoming: "Startin
 export function HomePage({ onNavigate }: HomePageProps) {
   const greeting = eventGreeting(useActiveEvent()?.theme)
   const navigate = useNavigate()
-  const { data: homeStats, loading: statsLoading } = useApiQuery<HomeStats>((signal) => serversService.getHomeStats({ signal }))
+  const { data: homeStats } = useApiQuery<HomeStats>((signal) => serversService.getHomeStats({ signal }))
   const { data: tournaments } = useApiQuery((signal) => tournamentsService.list({ signal }), { queryKey: "home-tournaments" })
-
-  // On wide screens the card under the pointer stretches to twice the width of the others; with none hovered the 5x5 card is the wide one.
-  const [activeMode, setActiveMode] = useState<ModeKey | null>(null)
-  // A short pause before a card opens, so the pointer passing over a card on its way elsewhere does not make the row jump.
-  const hoverTimer = useRef<number | undefined>(undefined)
-  const hoverMode = (key: ModeKey) => {
-    window.clearTimeout(hoverTimer.current)
-    hoverTimer.current = window.setTimeout(() => setActiveMode(key), 140)
-  }
-  const wide = (key: ModeKey) => (activeMode === null ? key === "5x5" : activeMode === key)
-
-  const heroStats = [
-    { label: "Players Online", value: homeStats?.playersOnline, flagship: true },
-    { label: "Live Servers", value: homeStats?.liveServers, flagship: false },
-    { label: "Matches Today", value: homeStats?.matchesToday, flagship: false },
-  ]
 
   /** Real status line per mode card: players on that mode's servers, or the tournament state. */
   const modeStatus = (key: ModeKey): { text: string; live: boolean } | null => {
@@ -72,116 +51,51 @@ export function HomePage({ onNavigate }: HomePageProps) {
   }
 
   return (
-    <div className="lx-glass-page @container flex flex-col gap-5 p-4 @2xl:p-6">
-      {/* Hero */}
-      <div className="lx-glass relative flex flex-col gap-4 overflow-hidden rounded-xl p-8 @2xl:p-10">
-        <picture className="pointer-events-none absolute inset-0">
-          <OptimizedImage src={homeHeroGif} width={480} height={268} priority alt="" aria-hidden="true" className="h-full w-full object-cover opacity-35" />
-        </picture>
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--card-surface)]/85 via-[var(--card-surface)]/60 to-transparent" />
-        <div aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10" />
-        <div aria-hidden="true" className="lx-hero-grid pointer-events-none absolute inset-0" />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
+    <div className="lx-glass-page @container p-4 @2xl:p-6">
+      {greeting && <div className="mb-3"><span className="lx-event-greeting">{greeting}</span></div>}
+      <div className="grid grid-cols-1 gap-3 @4xl:grid-cols-12">
+        <MapSlider className="@4xl:col-span-8" />
+        <div className="flex flex-col gap-3 @4xl:col-span-4">
+          <FindPlayerPill />
+          <RankPanel />
+        </div>
 
-        <div className="relative z-10 flex w-fit flex-wrap items-center gap-x-4 gap-y-2">
-          <span className="flex items-center gap-2">
-            <span className="size-1.5 rounded-full bg-[var(--brand-bright)]" />
-            <span className="text-xs font-medium text-[var(--text-muted)]">Mongolian CS2 community</span>
-          </span>
-          {greeting && <span className="lx-event-greeting">{greeting}</span>}
+        {/* Mode cards: the same four cards, equal width, each with its real status. */}
+        <div className="grid grid-cols-2 gap-3 @4xl:col-span-12 @4xl:grid-cols-4">
+          {MODE_CARDS.map((mode, index) => {
+            const status = modeStatus(mode.key)
+            return (
+              <button
+                key={mode.id}
+                type="button"
+                onClick={() => onNavigate(mode.id)}
+                style={{ animationDelay: `${120 + index * 80}ms` }}
+                className="lx-fx-card lx-glass group relative flex h-[124px] min-w-0 flex-col overflow-hidden rounded-2xl p-4 text-left transition-colors hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
+              >
+                <img
+                  src={mode.art}
+                  alt=""
+                  aria-hidden="true"
+                  loading="lazy"
+                  className="pointer-events-none absolute -right-2 bottom-0 h-[112px] w-auto max-w-none object-contain object-bottom [mask-image:linear-gradient(90deg,transparent_0,#000_32%)] transition-transform duration-500 group-hover:-translate-y-0.5"
+                />
+                <span className="relative text-[11px] font-medium text-[var(--text-dim)]">{mode.tag}</span>
+                <h3 className="relative mt-1 max-w-[55%] text-base font-semibold leading-tight text-[var(--text)]">{mode.label}</h3>
+                <span className={cn("relative mt-auto flex max-w-[52%] items-center gap-1.5 text-xs transition-opacity duration-300", status ? "opacity-100" : "opacity-0")}>
+                  {status?.live && <span className="lx-live-dot size-1.5 shrink-0 rounded-full bg-[var(--status-green)]" />}
+                  <span className={cn("truncate", status?.live ? "text-[var(--text-2)]" : "text-[var(--text-dim)]")}>{status?.text ?? " "}</span>
+                </span>
+              </button>
+            )
+          })}
         </div>
-        <div className="relative z-10 flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between @3xl:gap-10">
-        <div className="flex shrink-0 flex-col gap-4">
-        <h1 className="whitespace-nowrap text-[30px] font-bold leading-[1.05] tracking-normal text-[var(--text)] min-[420px]:text-4xl md:text-5xl min-[1440px]:text-6xl">
-          Play ranked.<br />
-          Climb to <span className="lx-brand-text">Legacy.</span>
-        </h1>
-        <p className="max-w-md text-[15px] leading-relaxed text-[var(--text-2)]">
-          Every match on our servers counts toward your rank.
-        </p>
-        </div>
-        <dl className="mt-3 grid grid-cols-3 @3xl:mt-0 @3xl:flex">
-          {heroStats.map((stat, index) => (
-            <div
-              key={stat.label}
-              className={cn("flex min-w-0 flex-col-reverse justify-end gap-1.5 pr-2 @sm:pr-5 @3xl:pr-8", index > 0 && "border-l border-[var(--line)] pl-3 @sm:pl-5 @3xl:pl-8")}
-            >
-              <dt className="flex items-center gap-1.5 text-[10px] @sm:whitespace-nowrap @sm:text-[11px] font-medium uppercase leading-tight tracking-wide text-[var(--text-muted)] @2xl:text-xs">
-                {stat.flagship && Boolean(stat.value) && <span className="lx-live-dot size-1.5 shrink-0 rounded-full bg-[var(--status-green)]" />}
-                {stat.label}
-              </dt>
-              <dd className={cn("text-xl font-semibold leading-none @2xl:text-[28px]", stat.flagship ? "text-[var(--brand-bright)]" : "text-[var(--text)]")}>
-                {statsLoading && stat.value === undefined ? <Skeleton className="h-5 w-10 @2xl:h-7 @2xl:w-12" /> : <AnimatedNumber value={stat.value} />}
-              </dd>
-            </div>
-          ))}
-        </dl>
+
+        <TopPlayers className="@4xl:col-span-8" onOpenProfile={(steamId) => navigate(`/profile/${encodeURIComponent(steamId)}`)} onViewAll={() => onNavigate("leaders")} />
+        <div className="flex flex-col gap-3 @4xl:col-span-4">
+          <HomeReviewsCard onOpen={() => onNavigate("feedback")} className="flex-[0.8]" />
+          <DiscordCard className="flex-[1.3]" />
         </div>
       </div>
-
-      {/* Mode cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:flex" onMouseLeave={() => { window.clearTimeout(hoverTimer.current); setActiveMode(null) }}>
-        {MODE_CARDS.map((mode, index) => {
-          const status = modeStatus(mode.key)
-          const isWide = wide(mode.key)
-          return (
-            <button
-              key={mode.id}
-              type="button"
-              onClick={() => onNavigate(mode.id)}
-              onMouseEnter={() => hoverMode(mode.key)}
-              onFocus={() => setActiveMode(mode.key)}
-              onBlur={() => setActiveMode(null)}
-              style={{ animationDelay: `${120 + index * 80}ms`, flexGrow: isWide ? 2 : 1 }}
-              className={cn(
-                "lx-fx-card lx-glass [--lx-grow-duration:1400ms] [--lx-grow-ease:cubic-bezier(0.45,0,0.25,1)] group relative flex h-[236px] min-w-0 basis-0 flex-col justify-end overflow-hidden rounded-xl p-5 text-left transition-[flex-grow,border-color,box-shadow] duration-[1400ms] ease-[cubic-bezier(0.45,0,0.25,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
-                isWide && "border-[var(--brand)]/60 shadow-[0_18px_40px_-20px_var(--brand)]",
-              )}
-            >
-              <img
-                src={mode.art}
-                alt=""
-                aria-hidden="true"
-                loading="lazy"
-                className={cn(
-                  "pointer-events-none absolute bottom-0 right-0 h-[278px] w-auto max-w-none transform-gpu object-contain object-bottom will-change-[translate,opacity] transition-[opacity,translate] duration-[1400ms] ease-[cubic-bezier(0.45,0,0.25,1)]",
-                  isWide ? "translate-x-0 opacity-100" : "translate-x-2 opacity-25",
-                )}
-              />
-              <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--card-surface)]/85 via-[var(--card-surface)]/30 to-transparent" />
-              <span className="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--card-surface)]/70 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                <span className="size-1.5 rounded-full bg-[var(--brand-bright)]" />
-                {mode.tag}
-              </span>
-              <div className="relative">
-                <h3 className="text-2xl font-semibold leading-tight tracking-[-0.2px] text-[var(--text)]">{mode.label}</h3>
-                <p className="mt-1 max-w-[200px] text-[13px] leading-snug text-[var(--text-muted)]">{mode.desc}</p>
-              </div>
-              <div className={cn("relative mt-4 flex h-9 items-center justify-between gap-3 transition-opacity duration-300", status ? "opacity-100" : "opacity-0")}>
-                <span className="flex items-center gap-1.5">
-                  {status?.live && <span className="lx-live-dot size-1.5 rounded-full bg-[var(--status-green)]" />}
-                  <span className="whitespace-nowrap text-xs text-[var(--text-dim)]">{status?.text ?? " "}</span>
-                </span>
-                <span
-                  aria-hidden={!isWide}
-                  className={cn(
-                    "lx-primary-button absolute right-0 top-0 inline-flex h-9 items-center gap-2 rounded-lg px-4 text-[13px] font-semibold transition-[opacity,translate] duration-500 ease-[cubic-bezier(0.45,0,0.25,1)]",
-                    isWide ? "translate-y-0 opacity-100 delay-300" : "pointer-events-none translate-y-1 opacity-0",
-                  )}
-                >
-                  <Play className="size-3.5 fill-current" />
-                  Play now
-                </span>
-              </div>
-            </button>
-          )
-        })}
-      </div>
-
-      <TopPlayers onOpenProfile={(steamId) => navigate(`/profile/${encodeURIComponent(steamId)}`)} onViewAll={() => onNavigate("leaders")} />
-
-      <HomeReviews onWriteReview={() => onNavigate("feedback")} />
-      <DiscordStrip />
     </div>
   )
 }

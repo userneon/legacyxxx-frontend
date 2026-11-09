@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 import { ArrowUpRight } from "lucide-react"
 
 import { LINKS } from "@/lib/links"
+import discord3d from "@/assets/home/discord-3d.webp"
 import { cn } from "@/lib/utils"
 
 /** Discord server ID; live counts need Server Settings → Widget → Enable Server Widget. */
@@ -92,5 +93,42 @@ export function DiscordTopLink() {
       <DiscordIcon className="size-4" />
       <span className="max-sm:hidden">Discord</span>
     </Link>
+  )
+}
+
+/** Home's Discord card (bento): the server's blue, the 3D mark, how many are online and a few of their faces (the public widget; no count when it is off). */
+export function DiscordCard({ className }: { className?: string }) {
+  const widget = useDiscordWidget()
+  const faces = widget?.members.slice(0, 5) ?? []
+  return (
+    <a
+      href={widget?.instant_invite || LINKS.discordInvite}
+      target="_blank"
+      rel="noreferrer"
+      aria-label="Join the LEGACY-X Discord"
+      className={cn("lx-discord-card group relative flex flex-col justify-center gap-2 overflow-hidden rounded-2xl p-4 pr-24 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7289DA]", className) /* palette-exempt: Discord brand */}
+    >
+      <span className="text-sm font-semibold text-[#c7ccff]" /* palette-exempt: Discord brand */>Discord</span>
+      {widget ? (
+        <span className="flex items-baseline gap-2 text-[#c7ccff]" /* palette-exempt: Discord brand */>
+          <span className="text-[26px] font-bold leading-none text-white">{widget.presence_count.toLocaleString()}</span>
+          <span className="text-[13px]">members online</span>
+        </span>
+      ) : (
+        <span className="text-[13px] text-[#c7ccff]" /* palette-exempt: Discord brand */>Teammates, announcements and clips</span>
+      )}
+      {faces.length > 0 && (
+        <span className="flex items-center" aria-hidden="true">
+          <span className="flex -space-x-2">
+            {faces.map((member) => <img key={member.id} src={member.avatar_url} alt="" className="size-6 rounded-full border-2 border-[#2a3390] object-cover" loading="lazy" /> /* palette-exempt: Discord brand */)}
+          </span>
+        </span>
+      )}
+      <span className="mt-1 inline-flex h-9 w-fit items-center gap-1 rounded-lg bg-white px-4 text-[13px] font-semibold text-[#3340b8] transition-colors group-hover:bg-[#e8eaff]" /* palette-exempt: Discord brand */>
+        Join Discord
+        <ArrowUpRight className="size-3.5" />
+      </span>
+      <img src={discord3d} alt="" aria-hidden="true" width={96} height={96} className="pointer-events-none absolute right-3 top-1/2 h-24 w-auto -translate-y-1/2 drop-shadow-[0_10px_18px_rgba(0,0,30,0.5)] transition-transform duration-300 group-hover:rotate-3 group-hover:scale-105" />
+    </a>
   )
 }
