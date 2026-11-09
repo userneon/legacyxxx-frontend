@@ -21,7 +21,7 @@ import { CLAN_ART_RULES, clanArtProblem, clanArtSrc, type ClanArtKind } from "@/
 import type { ClanCard, ClanDetail, ClanJoinRequest, ClanRole, MyClanState } from "@/api/types"
 import { ClanMark } from "@/components/clan-mark"
 import { ClanBankPanel, ClanSectionTabs, ClanStatsPanel, type ClanSection } from "@/components/clan-extras"
-import { ActivityPanel, ManagersSection, TransferSection, useClanFee, InvitePanel, MemberControls, RenameForm, clanFailure, roleLabel } from "@/components/clan-manage"
+import { ActivityPanel, ManagersSection, useClanFee, InvitePanel, RenameForm, clanFailure, roleLabel } from "@/components/clan-manage"
 import { Button } from "@/components/ui/button"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -601,7 +601,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                   {clan.description && <p className="max-w-2xl text-[13px] text-[var(--text-dim)]">{clan.description}</p>}
                   <ClanLinksRow links={clan.links} />
                 </div>
-                {isLeader && <button type="button" onClick={() => setEditing(true)} className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] hover:border-[var(--line-strong)]"><Pencil className="size-4" aria-hidden="true" /> Edit clan</button>}
+                {isManager && <button type="button" onClick={() => setEditing(true)} className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] hover:border-[var(--line-strong)]"><Pencil className="size-4" aria-hidden="true" /> Edit clan</button>}
               </div>
               </section>
               {isManager && shown === "roster" && <JoinRequests clanId={clanId} onAccepted={() => void refetch()} />}
@@ -621,7 +621,6 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                   <ul className="overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
                     <li aria-hidden="true" className="flex h-9 items-center gap-1 border-b border-[var(--raised)] text-[11px] font-medium text-[var(--text-dim)] max-md:hidden">
                       <span className="flex min-w-0 flex-1 items-center gap-3 px-4"><span className="w-5 shrink-0" /><span>Player</span><span className="flex-1" /><span className="w-[150px] shrink-0 max-lg:hidden">Rank</span><span className="w-[70px] shrink-0 text-right">Matches</span><span className="w-[64px] shrink-0 text-right">Win rate</span><span className="w-[56px] shrink-0 text-right">K/D</span><span className="w-[96px] shrink-0 text-right max-xl:hidden">FACEIT</span></span>
-                      <span className="w-[96px] shrink-0" />
                     </li>
                     {[...members].sort((x, y) => ROLE_ORDER.indexOf(x.role) - ROLE_ORDER.indexOf(y.role)).map((member, index) => {
                       const totalExp = members.reduce((sum, entry) => sum + (entry.stats?.currentExp ?? 0), 0)
@@ -645,7 +644,6 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                             <span className="w-[56px] shrink-0 text-right text-[13px] text-[var(--text-muted)] max-md:hidden" title="K/D">{member.stats?.kd != null ? member.stats.kd.toFixed(2) : "—"}</span>
                             <span className="w-[96px] shrink-0 text-right text-[13px] text-[var(--text-muted)] max-xl:hidden" title={member.faceit ? `FACEIT ${member.faceit.username}` : "No FACEIT linked"}>{member.faceit ? `Lv ${member.faceit.level} · ${member.faceit.elo.toLocaleString()}` : "—"}</span>
                           </button>
-                          <span className="flex w-[96px] shrink-0 justify-end">{member.id !== user?.id && <MemberControls clanId={clanId} clanName={clan.name} member={member} viewerRole={role} onChanged={() => void refetch()} />}</span>
                         </li>
                       )
                     })}
@@ -898,7 +896,7 @@ function EditLook({ clan, isLeader, onChanged }: { clan: ClanDetail; isLeader: b
     </section>
   )
   const jump = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })
-  const parts: Array<[string, string]> = isLeader ? [["edit-about", "About"], ["edit-joining", "Joining"], ["edit-people", "People"], ["edit-look", "Pictures"], ["edit-name", "Name"]] : [["edit-about", "About"], ["edit-joining", "Joining"], ["edit-look", "Pictures"]]
+  const parts: Array<[string, string]> = !isLeader ? [["edit-people", "People"]] : isLeader ? [["edit-about", "About"], ["edit-joining", "Joining"], ["edit-people", "People"], ["edit-look", "Pictures"], ["edit-name", "Name"]] : [["edit-about", "About"], ["edit-joining", "Joining"], ["edit-look", "Pictures"]]
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <header className="flex shrink-0 items-center gap-3.5 border-b border-[var(--line-soft)] px-6 pb-4 pt-1 max-sm:px-4">
@@ -912,7 +910,7 @@ function EditLook({ clan, isLeader, onChanged }: { clan: ClanDetail; isLeader: b
         {parts.map(([id, label]) => <button key={id} type="button" onClick={() => jump(id)} className="inline-flex h-7 shrink-0 items-center rounded-full border border-[var(--line)] px-3 text-[12px] text-[var(--text-dim)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]">{label}</button>)}
       </nav>
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6 py-4 max-sm:px-4">
-        {section("edit-about", "About", "What players see first on the clan's page and card.", <>
+        {isLeader && section("edit-about", "About", "What players see first on the clan's page and card.", <>
           <div className="flex flex-col gap-2">
             <Label htmlFor="clan-description">Description</Label>
             <textarea id="clan-description" maxLength={200} rows={3} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="What is your clan about?" className="w-full resize-none rounded-lg border border-[var(--line)] bg-[var(--glass-fill)] p-3 text-[13px] leading-6 text-[var(--text)] outline-none transition-colors placeholder:text-[var(--text-faint)] focus-visible:border-[var(--line-strong)]" />
@@ -920,25 +918,26 @@ function EditLook({ clan, isLeader, onChanged }: { clan: ClanDetail; isLeader: b
           </div>
           <ClanLinksEditor value={linkFields} onChange={setLinkFields} />
         </>)}
-        {section("edit-joining", "Joining", "How players get in and how many fit.", <>
+        {isLeader && section("edit-joining", "Joining", "How players get in and how many fit.", <>
           <JoinSettings joinMode={joinMode} maxPlayers={maxPlayers} onMode={setJoinMode} onMax={setMaxPlayers} />
           {tooFew && <p className="text-[13px] text-[var(--status-red)]">The clan already has {clan.currentPlayers} members.</p>}
           {isLeader && <RecruitmentSettings key={`${clan.recruitment?.enabled}:${(clan.recruitment?.questions ?? []).join("|")}`} clan={clan} onChanged={onChanged} />}
         </>)}
-        {isLeader && section("edit-people", "People", "Who does what, and who leads.", <>
-          <ManagersSection clan={clan} onChanged={onChanged} />
-          <TransferSection clan={clan} onChanged={onChanged} />
+        {section("edit-people", "People", isLeader ? "Who does what, who leads and who is removed." : "Remove captains and members.", <>
+          <ManagersSection clan={clan} viewerRole={isLeader ? "leader" : "co-leader"} onChanged={onChanged} />
         </>)}
-        {section("edit-look", "Pictures", "The logo shows on cards and lists; the banner sits above the clan's page.", <>
+        {isLeader && section("edit-look", "Pictures", "The logo shows on cards and lists; the banner sits above the clan's page.", <>
       <ArtSlot kind="logo" busy={busy} preview={clanArtSrc(clan.logo)} onPick={(file) => void run(() => clansService.uploadArt(clan.id, "logo", file), "Logo saved")} onRemove={() => void run(() => clansService.removeArt(clan.id, "logo"), "Logo removed")} />
       <ArtSlot kind="banner" busy={busy} preview={clanArtSrc(clan.thumbnail)} onPick={(file) => void run(() => clansService.uploadArt(clan.id, "banner", file), "Banner saved")} onRemove={() => void run(() => clansService.removeArt(clan.id, "banner"), "Banner removed")} />
         </>)}
         {isLeader && section("edit-name", "Name and tag", "Renaming costs LX and can be done once a week.", <RenameForm clan={clan} onChanged={onChanged} />)}
       </div>
+      {isLeader && (
       <footer className="flex shrink-0 flex-wrap items-center justify-end gap-3 border-t border-[var(--line-soft)] bg-[var(--panel)] px-6 py-3 max-sm:px-4">
         {!unchanged && !tooFew && <span role="status" className="mr-auto inline-flex items-center gap-1.5 text-[12px] text-[var(--text-2)]"><span aria-hidden="true" className="size-1.5 rounded-full bg-[var(--accent-solid)]" />Not saved yet</span>}
         <button type="button" disabled={busy || tooFew || unchanged} onClick={() => void run(() => clansService.updateClan(clan.id, { description: description.trim(), joinMode, maxPlayers, links: clanLinksFromFields(linkFields) }), "Clan saved")} className="lx-primary-button inline-flex h-10 items-center rounded-lg px-5 text-[13px] font-semibold disabled:opacity-50">{busy ? "Saving…" : "Save changes"}</button>
       </footer>
+      )}
     </div>
   )
 }

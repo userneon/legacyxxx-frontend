@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { ArrowRight, Coins, Crown, Flag, Send, ShieldAlert, Trash2, UserMinus, X } from "lucide-react"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 
 import { clansService, walletService, type Wallet } from "@/api"
 import type { ApiError, ClanActivityLine, ClanDetail, ClanJoinRequest, ClanMember, ClanRole } from "@/api/types"
@@ -162,15 +163,14 @@ export function TransferSection({ clan, onChanged }: { clan: ClanDetail; onChang
   )
 }
 
-export function MemberControls({ clanId, clanName, member, viewerRole, onChanged }: { clanId: string; clanName: string; member: ClanMember; viewerRole: ClanRole | null; onChanged: () => void }) {
-  const [busy, setBusy] = useState(false)
-  // Handing the clan over opens the same confirmation as Edit clan → Hand over leadership.
-  const [handing, setHanding] = useState(false)
-  const target = member.role as ClanRole
-  if (target === "leader" || !viewerRole || viewerRole === "member") return null
-  const mayRemove = viewerRole === "leader" || target === "member" || target === "captain"
-  const run = async (action: () => Promise<unknown>, done: string) => {
-    setBusy(true)
+/** Edit clan: the leader gives each member a role: Manager (handles requests, invitations and members), Captain (a title, no powers) or plain Member. */
+export function ManagersSection({ clan, viewerRole, onChanged }: { clan: ClanDetail; viewerRole: ClanRole; onChanged: () => void }) {
+  const [busy, setBusy] = useState("")
+  const [handing, setHanding] = useState<ClanMember | null>(null)
+  const isLeader = viewerRole === "leader"
+  const others = (clan.members ?? []).filter((member) => member.role !== "leader")
+  const run = async (member: ClanMember, action: () => Promise<unknown>, done: string) => {
+    setBusy(member.id)
     try {
       await action()
       toast.success(done)
@@ -178,58 +178,21 @@ export function MemberControls({ clanId, clanName, member, viewerRole, onChanged
     } catch (error) {
       toast.error("That did not work", { description: clanFailure(error, "Try again in a moment.") })
     } finally {
-      setBusy(false)
-    }
-  }
-  return (
-    <span className="mr-2 flex shrink-0 items-center">
-      {viewerRole === "leader" && (
-        <>
-          <button type="button" disabled={busy} aria-label={target === "co-leader" ? `Make ${member.name} a member` : `Make ${member.name} a manager`} title={target === "co-leader" ? "Remove manager" : "Make manager"} onClick={() => void run(() => clansService.setRole(clanId, member.id, target === "co-leader" ? "member" : "co-leader"), target === "co-leader" ? `${member.name} is a member again` : `${member.name} is a manager`)} className={iconButton}>
-            <Crown className="size-4" aria-hidden="true" />
-          </button>
-          {target !== "co-leader" && (
-            <button type="button" disabled={busy} aria-label={target === "captain" ? `Make ${member.name} a member` : `Make ${member.name} a captain`} title={target === "captain" ? "Remove captain" : "Make captain"} onClick={() => void run(() => clansService.setRole(clanId, member.id, target === "captain" ? "member" : "captain"), target === "captain" ? `${member.name} is a member again` : `${member.name} is a captain`)} className={iconButton}>
-              <Flag className="size-4" aria-hidden="true" />
-            </button>
-          )}
-          <button type="button" disabled={busy} aria-label={`Hand the clan to ${member.name}`} title="Make leader" onClick={() => setHanding(true)} className={iconButton}>
-            <Send className="size-4" aria-hidden="true" />
-          </button>
-          <HandOverDialog clanId={clanId} clanName={clanName} member={member} open={handing} onOpenChange={setHanding} onDone={onChanged} />
-        </>
-      )}
-      {mayRemove && (
-        <button type="button" disabled={busy} aria-label={`Remove ${member.name}`} title="Remove" onClick={() => { if (window.confirm(`Remove ${member.name} from the clan?`)) void run(() => clansService.removeMember(clanId, member.id), `${member.name} was removed`) }} className={iconButton}>
-          <UserMinus className="size-4" aria-hidden="true" />
-        </button>
-      )}
-    </span>
-  )
-}
-
-/** Edit clan: the leader gives each member a role: Manager (handles requests, invitations and members), Captain (a title, no powers) or plain Member. */
-export function ManagersSection({ clan, onChanged }: { clan: ClanDetail; onChanged: () => void }) {
-  const [busy, setBusy] = useState("")
-  const others = (clan.members ?? []).filter((member) => member.role !== "leader")
-  const set = async (member: ClanMember, role: "co-leader" | "captain" | "member") => {
-    if (member.role === role) return
-    setBusy(member.id)
-    try {
-      await clansService.setRole(clan.id, member.id, role)
-      toast.success(role === "co-leader" ? `${member.name} is a manager` : role === "captain" ? `${member.name} is a captain` : `${member.name} is a member again`)
-      onChanged()
-    } catch (error) {
-      toast.error("That did not work", { description: clanFailure(error, "Try again in a moment.") })
-    } finally {
       setBusy("")
     }
   }
+  const set = (member: ClanMember, role: "co-leader" | "captain" | "member") => {
+    if (member.role === role) return
+    void run(member, () => clansService.setRole(clan.id, member.id, role), role === "co-leader" ? `${member.name} is a manager` : role === "captain" ? `${member.name} is a captain` : `${member.name} is a member again`)
+  }
+  // A manager removes captains and members; the leader removes anyone but themselves.
+  const mayRemove = (member: ClanMember) => isLeader || member.role === "member" || member.role === "captain"
   const choices = [["member", "Member"], ["captain", "Captain"], ["co-leader", "Manager"]] as const
+  const button = "inline-flex h-7 items-center gap-1 rounded-md border border-[var(--line)] px-2 text-[12px] text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)] disabled:opacity-50"
   return (
     <div className="flex flex-col gap-2">
-      <Label>Roles</Label>
-      <p className="text-[12px] leading-snug text-[var(--text-dim)]"><b className="font-semibold text-[var(--text-2)]">Manager</b> handles requests, invitations and removes members. <b className="font-semibold text-[var(--text-2)]">Captain</b> is a title on the roster with no powers. Only you change roles.</p>
+      <Label>Members</Label>
+      <p className="text-[12px] leading-snug text-[var(--text-dim)]">{isLeader ? <><b className="font-semibold text-[var(--text-2)]">Manager</b> handles requests, invitations and removes members. <b className="font-semibold text-[var(--text-2)]">Captain</b> is a title with no powers. Make leader hands the clan over; remove takes a member out.</> : "You can remove captains and members."}</p>
       {others.length === 0 ? (
         <p className="text-[13px] text-[var(--text-dim)]">No other members yet.</p>
       ) : (
@@ -237,16 +200,21 @@ export function ManagersSection({ clan, onChanged }: { clan: ClanDetail; onChang
           {others.map((member) => (
             <li key={member.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-[var(--line-soft)] px-3 py-2 last:border-b-0">
               <PlayerAvatar avatar={member.avatar} name={member.name} className="size-7 rounded-lg text-[10px]" />
-              <span className="min-w-0 flex-1 truncate text-[13px]">{member.name}</span>
-              <span role="radiogroup" aria-label={`Role of ${member.name}`} className="inline-flex rounded-lg border border-[var(--line)] p-0.5">
-                {choices.map(([value, label]) => (
-                  <button key={value} type="button" role="radio" aria-checked={member.role === value} disabled={busy === member.id} onClick={() => void set(member, value)} className="h-7 rounded-md px-2.5 text-[12px] text-[var(--text-dim)] transition-colors hover:text-[var(--text)] aria-checked:bg-[var(--raised)] aria-checked:font-semibold aria-checked:text-[var(--text)] disabled:opacity-50">{label}</button>
-                ))}
-              </span>
+              <span className="min-w-0 flex-1 truncate text-[13px]">{member.name} <span className="text-[11px] text-[var(--text-dim)]">{roleLabel(member.role)}</span></span>
+              {isLeader && (
+                <span role="radiogroup" aria-label={`Role of ${member.name}`} className="inline-flex rounded-lg border border-[var(--line)] p-0.5">
+                  {choices.map(([value, label]) => (
+                    <button key={value} type="button" role="radio" aria-checked={member.role === value} disabled={busy === member.id} onClick={() => set(member, value)} className="h-7 rounded-md px-2.5 text-[12px] text-[var(--text-dim)] transition-colors hover:text-[var(--text)] aria-checked:bg-[var(--raised)] aria-checked:font-semibold aria-checked:text-[var(--text)] disabled:opacity-50">{label}</button>
+                  ))}
+                </span>
+              )}
+              {isLeader && <button type="button" disabled={busy === member.id} onClick={() => setHanding(member)} className={button} title={`Hand the clan to ${member.name}`}><Crown className="size-3.5" aria-hidden="true" />Make leader</button>}
+              {mayRemove(member) && <button type="button" disabled={busy === member.id} onClick={() => { if (window.confirm(`Remove ${member.name} from the clan?`)) void run(member, () => clansService.removeMember(clan.id, member.id), `${member.name} was removed`) }} className={cn(button, "text-[var(--status-red)]")} title={`Remove ${member.name}`}><UserMinus className="size-3.5" aria-hidden="true" />Remove</button>}
             </li>
           ))}
         </ul>
       )}
+      {handing && <HandOverDialog clanId={clan.id} clanName={clan.name} member={handing} open onOpenChange={(open) => { if (!open) setHanding(null) }} onDone={onChanged} />}
     </div>
   )
 }
