@@ -2334,9 +2334,9 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
   transition: opacity .25s, transform .5s cubic-bezier(.2, .9, .25, 1.12);
 }
 .lx-hdr-tab[data-on="0"] { opacity: 0; transform: translateY(-8px); }
-.lx-hdr-tab::before, .lx-hdr-tab::after { content: ""; position: absolute; bottom: 2px; width: 12px; height: 12px; }
-.lx-hdr-tab::before { left: -12px; background: radial-gradient(circle at 0 0, transparent 10.5px, var(--glass-shell-line) 10.5px, var(--glass-shell-line) 11.5px, var(--card-surface) 11.5px); }
-.lx-hdr-tab::after { right: -12px; background: radial-gradient(circle at 100% 0, transparent 10.5px, var(--glass-shell-line) 10.5px, var(--glass-shell-line) 11.5px, var(--card-surface) 11.5px); }
+.lx-hdr-tab::before, .lx-hdr-tab::after { content: ""; position: absolute; bottom: 1px; width: 12px; height: 12px; }
+.lx-hdr-tab::before { left: -12px; background: radial-gradient(circle at 0 0, transparent 11px, var(--glass-shell-line) 11px, var(--glass-shell-line) 12px, var(--card-surface) 12px); }
+.lx-hdr-tab::after { right: -12px; background: radial-gradient(circle at 100% 0, transparent 11px, var(--glass-shell-line) 11px, var(--glass-shell-line) 12px, var(--card-surface) 12px); }
 /* the outline runs round the top end and down the two sides to the header's lower edge, where the curved joins take over */
-.lx-hdr-tab-edge { position: absolute; left: 0; right: 0; top: 0; height: 54px; border: 1px solid var(--glass-shell-line); border-bottom: 0; border-radius: 28px 28px 0 0; }
+.lx-hdr-tab-edge { position: absolute; left: 0; right: 0; top: 0; height: 56px; border: 1px solid var(--glass-shell-line); border-bottom: 0; border-radius: 28px 28px 0 0; }
 @media (prefers-reduced-motion: reduce) { .lx-hdr-tab { transition: opacity .01s; transform: none !important; } }
