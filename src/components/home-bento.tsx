@@ -113,13 +113,13 @@ export function FindPlayerPill() {
 
 /* ───────── Ring stats ───────── */
 
-type Segment = { pct: number; tone: "green" | "red" | "grey" }
+export type Segment = { pct: number; tone: "green" | "red" | "grey" }
 const TONE: Record<Segment["tone"], string> = { green: "var(--status-green)", red: "var(--status-red)", grey: "var(--text-faint)" }
 const RADIUS = 19
 const CIRC = 2 * Math.PI * RADIUS
 
 /** One stat card: a thin ring (green, red and grey parts), the number and its name. */
-function RingStat({ segments, value, label, title }: { segments: Segment[]; value: string; label: string; title?: string }) {
+export function RingStat({ segments, value, label, title }: { segments: Segment[]; value: string; label: string; title?: string }) {
   let offset = 0
   return (
     <div title={title} className="lx-glass flex items-center gap-3 rounded-2xl px-3.5 py-3">

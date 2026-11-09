@@ -5,7 +5,7 @@ import { ProfileConfigs } from "@/components/profile-config"
 import { ProfileBanner } from "@/components/profile-banner"
 import { PlayerNameText } from "@/components/player-name-text"
 import { DiscordLinkedMark } from "@/components/discord-linked-mark"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
 import { ArrowDown, ArrowLeftRight, ArrowUp, Ban, ChevronRight, Copy, Crown, ExternalLink, Eye, EyeOff, Info, MessageCircle, Minus, MoreHorizontal, Play, RotateCcw, ShieldAlert, ShieldCheck, Shield } from "lucide-react"
@@ -23,6 +23,7 @@ import { LINKS } from "@/lib/links"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { formatDate, useWebsitePreferences } from "@/lib/preferences"
 import { PAGE_ROUTES, PAGE_TITLES, documentTitle } from "@/lib/routes"
+import { RingStat } from "@/components/home-bento"
 import { CompetitiveRankBadge, RankLabel, RankPill } from "@/components/competitive-rank-badge"
 import { FaceitLevelBadge } from "@/components/faceit-level-badge"
 import { MatchDetailsDialog } from "@/components/match-details-dialog"
@@ -462,6 +463,26 @@ function FormChips({ results }: { results: string[] }) {
   )
 }
 
+/** Rings for the numbers a player cares about (owner request 2026-11-09, "add donuts and circles"): win rate, K/D, headshots and the EXP limits, drawn from the same API numbers as the tiles below. */
+function ProfileRings({ overview }: { overview: ProfileOverview }) {
+  const stat = (key: string) => overview.stats?.find((tile) => tile.key === key)?.value
+  const win = stat("winRate")
+  const kd = stat("kd")
+  const hs = stat("hs")
+  const limits = overview.competitive?.expLimits ?? null
+  const share = (used: number, cap: number) => (cap > 0 ? Math.max(0, Math.min(100, (used / cap) * 100)) : 0)
+  const cards: ReactNode[] = []
+  if (typeof win === "number") cards.push(<RingStat key="win" value={`${Math.round(win)}%`} label="Win rate" segments={[{ pct: win, tone: "green" }]} />)
+  if (typeof kd === "number") cards.push(<RingStat key="kd" value={kd.toFixed(2)} label="K/D" title="Kills against deaths" segments={[{ pct: (kd / (kd + 1)) * 100, tone: "green" }, { pct: (1 / (kd + 1)) * 100, tone: "red" }]} />)
+  if (typeof hs === "number") cards.push(<RingStat key="hs" value={`${Math.round(hs)}%`} label="Headshots" segments={[{ pct: hs, tone: "green" }]} />)
+  if (limits) {
+    cards.push(<RingStat key="day" value={`${Math.round(share(limits.day.used, limits.day.cap))}%`} label="EXP today" title={`${limits.day.used.toLocaleString()} of ${limits.day.cap.toLocaleString()} EXP today`} segments={[{ pct: share(limits.day.used, limits.day.cap), tone: limits.day.used >= limits.day.cap ? "red" : "green" }]} />)
+    cards.push(<RingStat key="week" value={`${Math.round(share(limits.week.used, limits.week.cap))}%`} label="EXP this week" title={`${limits.week.used.toLocaleString()} of ${limits.week.cap.toLocaleString()} EXP this week`} segments={[{ pct: share(limits.week.used, limits.week.cap), tone: limits.week.used >= limits.week.cap ? "red" : "green" }]} />)
+  }
+  if (cards.length === 0) return null
+  return <section aria-label="Rings" className="grid grid-cols-2 gap-3 @xl:grid-cols-3 @3xl:grid-cols-5">{cards}</section>
+}
+
 function StatsRow({ stats, form }: { stats: NonNullable<ProfileOverview["stats"]>; form?: string[] }) {
   const format = (key: string, value: number) => (key === "winRate" || key === "hs" ? `${value}%` : key === "kd" ? value.toFixed(2) : key === "avgKills" ? value.toFixed(1) : value.toLocaleString())
   return (
@@ -867,6 +888,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
           </div>
         )}
                 <div {...rise(1)} className={rise(1).className}>{data.banned ? <CensoredCard label="Rank" rows={2} /> : data.competitive ? <RankCard competitive={data.competitive} /> : <section className={cn(card, "flex items-center p-[18px] text-[13px] text-[var(--text-dim)]")}>Unranked — no competitive matches yet</section>}</div>
+                {!data.banned && !hidden.has("stats") && data.stats && <div {...rise(2)} className={rise(2).className}><ProfileRings overview={data} /></div>}
                 {data.banned ? <CensoredStatsRow /> : hidden.has("stats") ? <HiddenCard section="stats" /> : data.stats ? <StatsRow stats={data.stats}  /> : <EmptyStatsRow />}
                 {data.banned ? <CensoredCard label="Recent matches" rows={5} /> : hidden.has("matches") ? <HiddenCard section="matches" /> : (
               <>
