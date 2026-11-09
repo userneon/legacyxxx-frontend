@@ -346,7 +346,7 @@ body::before {
 .lx-rail { position: relative; z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 12px; width: 60px; flex: none; }
 .lx-rail-logo { display: grid; place-items: center; width: 60px; height: 60px; flex: none; border-radius: 50%; background: var(--raised); border: 1px solid var(--line-strong); transition: border-color .15s; }
 .lx-rail-logo:hover { border-color: var(--text-faint); }
-.lx-rail-pill { position: relative; flex: 1; min-height: 0; width: 60px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 0; border-radius: 999px; background: var(--raised); border: 1px solid var(--line); }
+.lx-rail-pill { position: relative; flex: 1; min-height: 0; width: 60px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 46px 0; border-radius: 999px; background: var(--raised); border: 1px solid var(--line); }
 .lx-rail-slot { flex: none; }
 .lx-rail-item { position: relative; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; color: var(--text-faint); transition: color .15s, transform .15s; }
 .lx-rail-item:hover { color: var(--text); }
@@ -355,15 +355,15 @@ body::before {
 /* The tab: the page panel's colour reaches through the gap into the rail, with a round end around the disc and curved joins above and below where it meets the panel,
    so the active page and its panel read as one shape. It slides to the icon of the page you open. */
 .lx-rail-tab {
-  position: absolute; left: 2px; top: 0; z-index: 4; width: 78px; height: 56px; pointer-events: none;
+  position: absolute; left: 2px; top: 0; z-index: 4; width: 72px; height: 56px; pointer-events: none;
   background: var(--card-surface); border-radius: 28px 0 0 28px; border: 1px solid var(--line); border-right: 0;
   transition: transform .5s cubic-bezier(.2, .9, .25, 1.12), opacity .2s;
 }
 .lx-rail-tab[data-on="0"] { opacity: 0; }
 /* the joins: a quarter circle above and below the tab, in the panel's colour, where the tab meets the panel's edge */
-.lx-rail-tab::before, .lx-rail-tab::after { content: ""; position: absolute; right: 8px; width: 14px; height: 14px; }
-.lx-rail-tab::before { top: -14px; background: radial-gradient(circle at 0 0, transparent 13px, var(--card-surface) 13.5px); }
-.lx-rail-tab::after { bottom: -14px; background: radial-gradient(circle at 0 100%, transparent 13px, var(--card-surface) 13.5px); }
+.lx-rail-tab::before, .lx-rail-tab::after { content: ""; position: absolute; right: 2px; width: 14px; height: 14px; }
+.lx-rail-tab::before { top: -14px; background: radial-gradient(circle at 0 0, transparent 12.5px, var(--line) 12.5px, var(--line) 13.5px, var(--card-surface) 13.5px); }
+.lx-rail-tab::after { bottom: -14px; background: radial-gradient(circle at 0 100%, transparent 12.5px, var(--line) 12.5px, var(--line) 13.5px, var(--card-surface) 13.5px); }
 .lx-rail-disc { position: absolute; left: 6px; top: 5px; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: #d4d4d4; color: var(--bg); }
 .lx-rail-disc-icon { animation: lx-disc-icon .4s cubic-bezier(.2, .9, .3, 1.3) backwards; }
 @keyframes lx-disc-icon { from { transform: scale(.55) rotate(-14deg); opacity: 0; } to { transform: none; opacity: 1; } }
@@ -377,7 +377,7 @@ body::before {
 }
 @media (max-height: 760px) {
   .lx-rail-item { width: 38px; height: 38px; }
-  .lx-rail-pill { padding: 10px 0; gap: 2px; }
+  .lx-rail-pill { gap: 2px; }
 }
 .lx-glass-shell,
 .lx-glass-sidebar > [data-sidebar="sidebar"] {
