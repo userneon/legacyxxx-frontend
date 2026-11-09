@@ -2327,7 +2327,7 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
 @media (prefers-reduced-motion: reduce) { .lx-discord-card img { transition: none; } }
 
 /* The account tab (owner request 2026-11-09): while Profile or Discord is open the avatar grows a tab down through the gap into the page panel, in the panel's colour with curved joins,
-   the same shape as the rail's active page turned to point down. The tab is 56 wide and sits behind the avatar (a light disc round it); the joins are 12px quarter circles in the gap. */
+   the same shape as the rail's active page turned to point down. The tab is 56 wide and sits behind the avatar (no disc); the joins are 12px quarter circles in the gap. */
 .lx-hdr-tab {
   position: absolute; left: -10px; top: -8px; z-index: 0; width: 56px; height: 68px; pointer-events: none;
   background: var(--card-surface); border-radius: 28px 28px 0 0;
@@ -2335,9 +2335,8 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
 }
 .lx-hdr-tab[data-on="0"] { opacity: 0; transform: translateY(-8px); }
 .lx-hdr-tab::before, .lx-hdr-tab::after { content: ""; position: absolute; bottom: 2px; width: 12px; height: 12px; }
-.lx-hdr-tab::before { left: -12px; background: radial-gradient(circle at 0 0, transparent 10.5px, var(--line) 10.5px, var(--line) 11.5px, var(--card-surface) 11.5px); }
-.lx-hdr-tab::after { right: -12px; background: radial-gradient(circle at 100% 0, transparent 10.5px, var(--line) 10.5px, var(--line) 11.5px, var(--card-surface) 11.5px); }
+.lx-hdr-tab::before { left: -12px; background: radial-gradient(circle at 0 0, transparent 10.5px, var(--glass-shell-line) 10.5px, var(--glass-shell-line) 11.5px, var(--card-surface) 11.5px); }
+.lx-hdr-tab::after { right: -12px; background: radial-gradient(circle at 100% 0, transparent 10.5px, var(--glass-shell-line) 10.5px, var(--glass-shell-line) 11.5px, var(--card-surface) 11.5px); }
 /* the outline runs round the top end and down the two sides to the header's lower edge, where the curved joins take over */
-.lx-hdr-tab-edge { position: absolute; left: 0; right: 0; top: 0; height: 54px; border: 1px solid var(--line); border-bottom: 0; border-radius: 28px 28px 0 0; }
-.lx-hdr-tab-disc { position: absolute; left: 6px; top: 6px; width: 44px; height: 44px; border-radius: 50%; background: #d4d4d4; }
+.lx-hdr-tab-edge { position: absolute; left: 0; right: 0; top: 0; height: 54px; border: 1px solid var(--glass-shell-line); border-bottom: 0; border-radius: 28px 28px 0 0; }
 @media (prefers-reduced-motion: reduce) { .lx-hdr-tab { transition: opacity .01s; transform: none !important; } }

@@ -63,7 +63,6 @@ export function ProfileBlock({ onNavigate, tab = false }: ProfileBlockProps) {
       <span className="relative flex size-9 shrink-0">
       <span aria-hidden="true" data-on={tab ? "1" : "0"} className="lx-hdr-tab max-[559px]:hidden">
         <span className="lx-hdr-tab-edge" />
-        <span className="lx-hdr-tab-disc" />
       </span>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
