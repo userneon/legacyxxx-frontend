@@ -1,10 +1,9 @@
 /**
- * Skinchanger → Advanced: the editor of one craft, a gun with everything on it (owner request 2026-11-03). The gun is shown big as the game draws
- * it (the ChainSkins viewer; only that view, owner request 2026-11-06), with a "Loading" cover until it is drawn. Each sticker and the charm is
- * moved on a small square (a dot to grab) or with sliders, and the options beside it set the skin, wear, pattern, StatTrak with its kill count,
+ * Skinchanger → Advanced: the editor of one craft, a gun with everything on it (owner request 2026-11-03). The weapon is shown big; each
+ * sticker and the charm can be grabbed and moved on it, and the options beside it set the skin, wear, pattern, StatTrak with its kill count,
  * the name tag, and each sticker's size, turn and scratches. Guns only. Save keeps a craft; nothing changes in game until the craft is picked in the loadout.
  */
-import { useMemo, useState, type PointerEvent as ReactPointerEvent } from "react"
+import { lazy, Suspense, useMemo, useState } from "react"
 import { BadgeCheck, ImageOff, Loader2, Minus, Plus, RotateCcw, Search, X } from "lucide-react"
 import { toast } from "sonner"
 
@@ -19,10 +18,12 @@ import { Sheet } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cn } from "@/lib/utils"
-import { StudioRealPreview } from "@/components/studio-real-preview"
-import { StudioSkinWarmer } from "@/components/studio-skin-warmer"
 import { wearColor, wearName, wearTiers, wearTrack } from "@/lib/skin-wear"
-import { clampOffset, cleanKillCount, OFFSET_LIMIT, STICKER_SLOTS } from "@/lib/studio-layout"
+import { useWeaponModels, weaponModelFor } from "@/lib/weapon-models"
+import { clampOffset, cleanKillCount, STICKER_SLOTS } from "@/lib/studio-layout"
+
+// three.js is fetched only for a gun that has a 3D model.
+const StudioStage3D = lazy(() => import("@/components/studio-stage-3d"))
 
 const imageOf = (item: SkinchangerCatalogItem | null | undefined) => {
   if (!item?.image_url) return null
@@ -37,44 +38,6 @@ function SlotTile({ name, number, image, filled, on, onClick }: { name: string; 
       {filled && image ? <OptimizedImage src={image} width={64} height={64} alt="" className="max-h-9 w-auto object-contain" /> : filled ? <span className="text-[11px] text-[var(--text-muted)]">{number}</span> : <Plus className="size-4" aria-hidden="true" />}
       <span className="absolute left-1.5 top-1 text-[9px] font-semibold text-[var(--text-faint)]">{number}</span>
     </button>
-  )
-}
-
-/**
- * A square to grab: the dot is the item's place on the gun, left–right and up–down (±0.5, the offsets the game reads; up is plus). Drag the dot or
- * press the arrow keys. The gun's picture is the viewer beside it, which follows a moment after.
- */
-function PositionPad({ name, x, y, onChange }: { name: string; x: number; y: number; onChange: (x: number, y: number) => void }) {
-  const toOffset = (event: ReactPointerEvent<HTMLElement>) => {
-    const box = event.currentTarget.getBoundingClientRect()
-    const nx = Math.max(0, Math.min(1, (event.clientX - box.left) / box.width))
-    const ny = Math.max(0, Math.min(1, (event.clientY - box.top) / box.height))
-    onChange(round(clampOffset((nx - 0.5) * 2 * OFFSET_LIMIT)), round(clampOffset(-(ny - 0.5) * 2 * OFFSET_LIMIT)))
-  }
-  const left = ((x / OFFSET_LIMIT) / 2 + 0.5) * 100
-  const top = (0.5 - (y / OFFSET_LIMIT) / 2) * 100
-  return (
-    <div
-      role="application"
-      aria-label={`${name}: drag to move, or use the arrow keys`}
-      tabIndex={0}
-      onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); toOffset(event) }}
-      onPointerMove={(event) => { if (event.currentTarget.hasPointerCapture(event.pointerId)) toOffset(event) }}
-      onPointerUp={(event) => { if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId) }}
-      onKeyDown={(event) => {
-        const step = event.shiftKey ? 0.05 : 0.01
-        const move: Record<string, [number, number]> = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, step], ArrowDown: [0, -step] }
-        const delta = move[event.key]
-        if (!delta) return
-        event.preventDefault()
-        onChange(round(clampOffset(x + delta[0])), round(clampOffset(y + delta[1])))
-      }}
-      className="relative aspect-square w-full max-w-[168px] cursor-grab touch-none select-none rounded-xl border border-[var(--line)] bg-[var(--bg)] outline-none focus-visible:border-[var(--accent-solid)] active:cursor-grabbing"
-    >
-      <span aria-hidden="true" className="absolute inset-x-0 top-1/2 h-px bg-[var(--line-soft)]" />
-      <span aria-hidden="true" className="absolute inset-y-0 left-1/2 w-px bg-[var(--line-soft)]" />
-      <span aria-hidden="true" style={{ left: `${left}%`, top: `${top}%` }} className="absolute size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[var(--text)] bg-[var(--card-surface)]" />
-    </div>
   )
 }
 
@@ -166,18 +129,9 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
   const [picking, setPicking] = useState<Picking>(null)
   const [query, setQuery] = useState("")
   const [saving, setSaving] = useState(false)
-  const realCraft = useMemo(() => {
-    if (!skin?.paint_id || !weapon.weapon_defindex) return null
-    const kit = (id: string) => accessories[id]?.weapon_defindex ?? null
-    const charmId = options.charm ? kit(options.charm.catalogItemId) : null
-    return {
-      defindex: weapon.weapon_defindex, paintId: skin.paint_id, wear: options.wear ?? 0.0001, seed: options.seed ?? 0,
-      statTrakCount: options.statTrak ? cleanKillCount(options.statTrakCount ?? 0) : null, nameTag: options.nameTag,
-      stickers: (options.stickers ?? []).flatMap((entry) => { const id = kit(entry.catalogItemId); return id ? [{ slot: entry.slot, id, wear: entry.wear, scale: entry.scale, rotation: entry.rotation, offsetX: entry.offsetX, offsetY: entry.offsetY }] : [] }),
-      charm: options.charm && charmId ? { id: charmId, offsetX: options.charm.offsetX, offsetY: options.charm.offsetY, offsetZ: options.charm.offsetZ, seed: options.charm.seed } : null,
-    }
-  }, [skin?.paint_id, weapon.weapon_defindex, options, accessories])
-
+  const weaponModels = useWeaponModels()
+  // Memoised: the 3D view is rebuilt whenever this changes, so it must change only with the gun or the skin.
+  const model3d = useMemo(() => weaponModelFor(weaponModels, { weapon_defindex: weapon.weapon_defindex, paint_id: skin?.paint_id ?? null }), [weaponModels, weapon.weapon_defindex, skin?.paint_id])
   const { data: skinsPage, loading: skinsLoading, error: skinsError, refetch: refetchSkins } = useApiQuery(
     (signal) => skinchangerService.getCatalog({ category: "weapon_skin", weaponClass: weapon.weapon_class ?? undefined, query: query.trim() || undefined, limit: 60, offset: 0 }, { signal }),
     { queryKey: `studio-skins:${weapon.id}:${query.trim()}` },
@@ -215,6 +169,7 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
     setPicking(null)
   }
 
+  /* ---- the stage: the gun, its stickers and charm, grabbed with the pointer ---------------------------------------------------------------------- */
   const stageImage = imageOf(skin) ?? imageOf(weapon)
 
   const selectedSticker = selection?.kind === "sticker" ? stickerAt(selection.slot) : undefined
@@ -270,15 +225,27 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
       <div className="grid min-h-0 flex-1 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_380px] lg:overflow-hidden">
         {/* The weapon */}
         <div className="flex min-h-0 flex-col gap-4 p-4 lg:overflow-y-auto">
-          <div className="relative aspect-video w-full select-none overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--card-surface)]" aria-label="The weapon as the game draws it">
-            {realCraft && <StudioSkinWarmer weapon={weapon} activeSkinId={skin?.id ?? null} changeKey={`${skin?.id ?? ""}:${JSON.stringify(options)}`} />}
-            {realCraft ? <StudioRealPreview craft={realCraft} label={weapon.display_name} skinKey={`${weapon.id}:${skin?.id ?? ""}`} /> : (
+          <div className="relative aspect-video w-full select-none overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--card-surface)]" aria-label="The weapon in 3D: drag a sticker or the charm to move it, drag the gun to turn it">
+            {model3d ? (
+              <Suspense fallback={null}>
+                <StudioStage3D
+                  choice={model3d}
+                  label={weapon.display_name}
+                  selection={selection}
+                  onSelect={selectSlot}
+                  stickers={stickers.map((entry) => ({ slot: entry.slot, imageUrl: imageOf(accessories[entry.catalogItemId]), offsetX: entry.offsetX ?? 0, offsetY: entry.offsetY ?? 0, scale: entry.scale ?? 1, rotation: entry.rotation ?? 0, wear: entry.wear ?? 0 }))}
+                  charm={charm ? { imageUrl: imageOf(accessories[charm.catalogItemId]), offsetX: charm.offsetX ?? 0, offsetY: charm.offsetY ?? 0, offsetZ: charm.offsetZ ?? 0 } : null}
+                  onMove={(pick, offsetX, offsetY) => (pick.kind === "charm" ? setOptions((current) => (current.charm ? { ...current, charm: { ...current.charm, offsetX, offsetY } } : current)) : setSticker(pick.slot, { offsetX, offsetY }))}
+                />
+              </Suspense>
+            ) : (
               <>
-                {stageImage ? <OptimizedImage src={stageImage} width={960} height={540} priority alt="" className="pointer-events-none absolute inset-0 size-full object-contain p-6 opacity-40" /> : <ImageOff className="absolute left-1/2 top-1/2 size-8 -translate-x-1/2 -translate-y-1/2 text-[var(--text-faint)]" />}
-                <p className="absolute inset-x-0 bottom-4 text-center text-[13px] text-[var(--text-dim)]">Pick a skin to see the gun.</p>
+                {stageImage ? <OptimizedImage src={stageImage} width={960} height={540} priority alt="" className="pointer-events-none absolute inset-0 size-full object-contain p-6 opacity-40" /> : <ImageOff className="absolute left-1/2 top-1/2 size-8 -translate-x-1/2 -translate-y-1/2 text-[var(--text-faint)]" aria-hidden="true" />}
+                <p className="absolute inset-x-0 bottom-4 text-center text-[13px] text-[var(--text-dim)]">{weaponModels ? (skin ? "There is no 3D model for this gun yet." : "Pick a skin to see the gun.") : "Loading the 3D guns…"}</p>
               </>
             )}
           </div>
+          <p className="text-[11px] text-[var(--text-dim)]">{model3d ? "Drag a sticker or the charm to place it. Drag the gun to turn it." : "The 3D view shows guns that have a model."}</p>
 
           {/* What is on the weapon */}
           <div className="flex flex-wrap items-center gap-2" role="tablist" aria-label="Stickers and charm">
@@ -301,9 +268,7 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
                 </span>
               </div>
               {selectedSticker ? (
-                <div className="grid gap-4 sm:grid-cols-[168px_minmax(0,1fr)]">
-                  <PositionPad name={`Sticker ${selection.slot + 1} place`} x={selectedSticker.offsetX ?? 0} y={selectedSticker.offsetY ?? 0} onChange={(offsetX, offsetY) => setSticker(selection.slot, { offsetX, offsetY })} />
-                  <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2">
                   <Slider name="Size" value={selectedSticker.scale ?? 1} min={0.1} max={3} step={0.01} onChange={(value) => setSticker(selection.slot, { scale: value })} format={(value) => `${value.toFixed(2)}×`} />
                   <Slider name="Turn" value={selectedSticker.rotation ?? 0} min={-180} max={180} step={1} onChange={(value) => setSticker(selection.slot, { rotation: value })} format={(value) => `${value}°`} />
                   <Slider name="Scratches" value={selectedSticker.wear ?? 0} min={0} max={1} step={0.01} onChange={(value) => setSticker(selection.slot, { wear: value })} format={(value) => `${Math.round(value * 100)}%`} />
@@ -312,7 +277,6 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
                     <Slider name="Up–down" value={selectedSticker.offsetY ?? 0} min={-0.5} max={0.5} step={0.005} onChange={(value) => setSticker(selection.slot, { offsetY: clampOffset(value) })} format={(value) => value.toFixed(3)} />
                   </div>
                   <button type="button" onClick={() => setSticker(selection.slot, { offsetX: 0, offsetY: 0, scale: 1, rotation: 0, wear: 0 })} className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Back to the slot's default</button>
-                  </div>
                 </div>
               ) : <p className="text-[13px] text-[var(--text-dim)]">This slot is empty.</p>}
             </section>
@@ -327,15 +291,12 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
                 </span>
               </div>
               {charm ? (
-                <div className="grid gap-4 sm:grid-cols-[168px_minmax(0,1fr)]">
-                  <PositionPad name="Charm place" x={charm.offsetX ?? 0} y={charm.offsetY ?? 0} onChange={(offsetX, offsetY) => set({ charm: { ...charm, offsetX, offsetY } })} />
-                  <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2">
                   <Slider name="Left–right" value={charm.offsetX ?? 0} min={-0.5} max={0.5} step={0.005} onChange={(value) => set({ charm: { ...charm, offsetX: clampOffset(value) } })} format={(value) => value.toFixed(3)} />
                   <Slider name="Up–down" value={charm.offsetY ?? 0} min={-0.5} max={0.5} step={0.005} onChange={(value) => set({ charm: { ...charm, offsetY: clampOffset(value) } })} format={(value) => value.toFixed(3)} />
                   <Slider name="Depth" value={charm.offsetZ ?? 0} min={-0.5} max={0.5} step={0.005} onChange={(value) => set({ charm: { ...charm, offsetZ: clampOffset(value) } })} format={(value) => value.toFixed(3)} />
                   <Slider name="Charm pattern" value={charm.seed ?? 0} min={0} max={1000} step={1} onChange={(value) => set({ charm: { ...charm, seed: Math.round(value) } })} />
                   <button type="button" onClick={() => set({ charm: { ...charm, offsetX: 0, offsetY: 0, offsetZ: 0 } })} className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Back to the default spot</button>
-                  </div>
                 </div>
               ) : <p className="text-[13px] text-[var(--text-dim)]">No charm on this weapon.</p>}
             </section>
@@ -434,4 +395,3 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
   )
 }
 
-const round = (value: number) => Math.round(value * 1000) / 1000
