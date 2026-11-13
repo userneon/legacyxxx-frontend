@@ -42,6 +42,7 @@ cluttered, "AI-made" and flat. Since then:
 - **Numbers, not rings**: `RingStat` (`home-bento.tsx`, used on Home, Profile, Clans) is a stat cell: name, the number large, a thin bar in the same green / red / grey parts.
 - **Wallet's action icons** are plain tiles (`.lx-glass-icon`), no coloured glass plates. On the website a `.lx-tone` card has no wash or top line (the staff site keeps them).
 - **Snow is off by default** (`lib/preferences.ts`); a visitor can switch it on in Settings → Website.
+- **Variety without noise** (owner feedback the same day, "UI monotony"): three card tiers. `.lx-feature` is the one card a page leads with (Home's and Profile's rank card, the Leaders top three): one step lighter (`#141417`), a faint top highlight, and a soft wash and hairline in its own colour (`--tint`, the rank tier colour). Plain cards for the rest, `.lx-nested` inside a card. Stats have a size (`RingStat size="lg" | "md" | "sm"`, an optional lucide `icon`): Profile shows Matches, Win rate and K/D large and Headshots, Avg. kills and the two EXP limits as a compact strip. Section headings are 18px bold (Home's Top players). Colour still comes only from meaning (tier, status), never decoration.
 - **Not changed**: the five rank gem cards (owner art, cursor glow in the tier colour), status colours, rank emblem colours, brand colours of Discord/TikTok, the staff site.
 
 ## Design tokens (`src/index.css`)

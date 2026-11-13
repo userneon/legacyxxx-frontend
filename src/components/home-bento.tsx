@@ -1,6 +1,6 @@
 /** Home bento parts (owner request 2026-11-09): the map slider, the signed-in player's rank and four ring stats, the four mode cards and the rank medals. Real data only. */
 import { useId, useState } from "react"
-import { ChevronLeft, ChevronRight, RotateCcw, Search } from "lucide-react"
+import { CalendarDays, ChevronLeft, ChevronRight, Crosshair, RotateCcw, Search, Trophy, Zap, type LucideIcon } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
 import { cn } from "@/lib/utils"
@@ -120,15 +120,20 @@ const TONE: Record<Segment["tone"], string> = { green: "var(--status-green)", re
  * One stat (owner request 2026-11-13, "fix everything" after the design audit: the rings read as decoration and a red ring looked like an error): the name, the
  * number large, and under it a thin bar made of the same green, red and grey parts. Keeps its old name so Home, Profile and Clans need no change.
  */
-export function RingStat({ segments, value, label, title }: { segments: Segment[]; value: string; label: string; title?: string }) {
+export function RingStat({ segments, value, label, title, icon: Icon, size = "md" }: { segments: Segment[]; value: string; label: string; title?: string; icon?: LucideIcon; size?: "lg" | "md" | "sm" }) {
   const parts = segments.filter((segment) => segment.pct > 0)
   return (
-    <div title={title} className="lx-glass flex flex-col gap-2.5 px-4 py-3.5">
-      <div className="truncate text-[11px] font-medium text-[var(--text-dim)]">{label}</div>
-      <div className="mt-auto text-[22px] font-bold leading-none text-[var(--text)]">{value}</div>
-      <div className="flex h-1 gap-0.5 overflow-hidden rounded-full bg-[var(--line-soft)]" aria-hidden="true">
-        {parts.map((segment, position) => <span key={position} className="h-full rounded-full" style={{ width: `${Math.min(100, segment.pct)}%`, background: TONE[segment.tone] }} />)}
+    <div title={title} className={cn("lx-glass flex flex-col", size === "lg" ? "gap-3 px-5 py-4" : size === "sm" ? "gap-2 px-3.5 py-3" : "gap-2.5 px-4 py-3.5")}>
+      <div className="flex items-center gap-2">
+        {Icon && <span className="lx-stat-icon"><Icon className="size-3.5" aria-hidden="true" /></span>}
+        <span className="truncate text-[11px] font-medium text-[var(--text-dim)]">{label}</span>
       </div>
+      <div className={cn("mt-auto font-bold leading-none text-[var(--text)]", size === "lg" ? "text-[32px] tracking-[-0.5px]" : size === "sm" ? "text-[18px]" : "text-[24px]")}>{value}</div>
+      {parts.length > 0 && (
+        <div className="flex h-1 gap-0.5 overflow-hidden rounded-full bg-[var(--line-soft)]" aria-hidden="true">
+          {parts.map((segment, position) => <span key={position} className="h-full rounded-full" style={{ width: `${Math.min(100, segment.pct)}%`, background: TONE[segment.tone] }} />)}
+        </div>
+      )}
     </div>
   )
 }
@@ -198,8 +203,8 @@ export function RankPanel() {
 
   return (
     <div className="flex flex-1 flex-col gap-3">
-      <div className="lx-glass flex items-center gap-4 px-4 py-3.5">
-        <CompetitiveRankBadge rankId={profile.rank_id} rankName={profile.rank_name} imageKey={profile.rank_image_key} size={60} className="shrink-0" />
+      <div className="lx-glass lx-feature flex items-center gap-4 px-4 py-4" style={{ ["--tint" as string]: rankTierColor(profile.rank_id) }}>
+        <CompetitiveRankBadge rankId={profile.rank_id} rankName={profile.rank_name} imageKey={profile.rank_image_key} size={68} className="shrink-0" />
         <div className="min-w-0 flex-1">
           <div className="truncate text-[22px] font-bold leading-tight" style={{ color: rankTierColor(profile.rank_id) }}>{profile.rank_name}</div>
           <div className="my-1.5 h-1.5 overflow-hidden rounded-full bg-[var(--line-soft)]" role="progressbar" aria-valuenow={Math.round(progress)} aria-valuemin={0} aria-valuemax={100} aria-label="Progress to the next rank">
@@ -212,6 +217,7 @@ export function RankPanel() {
         <RingStat
           value={matches > 0 ? `${Math.round(pct(profile.wins, matches))}%` : "—"}
           label="Win rate"
+          icon={Trophy}
           title={matches > 0 ? `${profile.wins} wins · ${profile.losses} losses · ${draws} draws` : "No ranked matches yet"}
           segments={[{ pct: pct(profile.wins, matches), tone: "green" }, { pct: pct(profile.losses, matches), tone: "red" }, { pct: pct(draws, matches), tone: "grey" }]}
         />
@@ -219,6 +225,7 @@ export function RankPanel() {
           <RingStat
             value={deaths > 0 ? (profile.kills / deaths).toFixed(2) : profile.kills > 0 ? profile.kills.toFixed(2) : "—"}
             label="K/D"
+            icon={Crosshair}
             title={`${profile.kills} kills · ${deaths} deaths`}
             segments={[{ pct: pct(profile.kills, profile.kills + deaths), tone: "green" }, { pct: pct(deaths, profile.kills + deaths), tone: "red" }]}
           />
@@ -234,12 +241,14 @@ export function RankPanel() {
             <RingStat
               value={`${Math.round(pct(limits.day.used, limits.day.cap))}%`}
               label="EXP today"
+              icon={Zap}
               title={`${limits.day.used.toLocaleString()} of ${limits.day.cap.toLocaleString()} EXP today`}
               segments={[{ pct: pct(limits.day.used, limits.day.cap), tone: limits.day.used >= limits.day.cap ? "red" : "green" }]}
             />
             <RingStat
               value={`${Math.round(pct(limits.week.used, limits.week.cap))}%`}
               label="EXP this week"
+              icon={CalendarDays}
               title={`${limits.week.used.toLocaleString()} of ${limits.week.cap.toLocaleString()} EXP this week`}
               segments={[{ pct: pct(limits.week.used, limits.week.cap), tone: limits.week.used >= limits.week.cap ? "red" : "green" }]}
             />

@@ -61,9 +61,9 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
       onClick={onOpen}
       aria-label={`Open ${player.username} profile`}
       // The player's rank tier colour tints the corner glow (--tier); the podium spot sets the order and height.
-      style={{ "--tier": rankTierColor(player.rank_id), order: slot, animationDelay: `${first ? 60 : 160 + slot * 60}ms` } as CSSProperties}
+      style={{ "--tier": rankTierColor(player.rank_id), "--tint": rankTierColor(player.rank_id), order: slot, animationDelay: `${first ? 60 : 160 + slot * 60}ms` } as CSSProperties}
       className={cn(
-        "lx-fx-card group relative isolate flex min-w-0 flex-col gap-4 overflow-hidden rounded-xl border bg-[var(--glass-fill)] p-[18px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
+        "lx-fx-card lx-feature group relative isolate flex min-w-0 flex-col gap-4 overflow-hidden rounded-xl border bg-[var(--glass-fill)] p-[18px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
         first ? "border-[var(--line-strong)]" : "mt-6 border-[var(--line-soft)]",
       )}
     >

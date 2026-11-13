@@ -2355,3 +2355,19 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
 html:not(.adm) .lx-tone { background-image: none; }
 html:not(.adm) .lx-tone::before { display: none; }
 html:not(.adm) .lx-tone:hover { border-color: var(--line-strong); }
+
+/* ==== Variety inside the one card system (owner feedback 2026-11-13, "UI monotony") ====
+   Three tiers instead of one flat box everywhere, each carried by meaning, not decoration:
+   - .lx-feature: the one card a page leads with (rank, the #1 leader). One step lighter, a faint top highlight, and, when it has a colour of its own
+     (--tint: a rank tier colour), a soft wash of it from the top left and a hairline in it. Never violet for its own sake.
+   - the plain card (.lx-glass and friends) for everything else;
+   - .lx-nested for boxes inside a card. */
+:is(.lx-glass, .lx-pcard).lx-feature, .lx-feature {
+  background:
+    radial-gradient(110% 130% at 0% 0%, color-mix(in oklch, var(--tint, transparent) 14%, transparent), transparent 62%),
+    #141417;
+  border-color: color-mix(in oklch, var(--tint, rgb(255 255 255)) 22%, rgb(255 255 255 / 0.08));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05);
+}
+/* A stat's small icon tile and the big number. */
+.lx-stat-icon { display: grid; place-items: center; width: 26px; height: 26px; flex-shrink: 0; border-radius: 8px; background: var(--raised); color: var(--text-2); }
