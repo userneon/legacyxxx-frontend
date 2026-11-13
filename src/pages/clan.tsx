@@ -425,14 +425,14 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
         </DialogContent>
       </Dialog>
       {banner ? (
-        <BannerArt src={banner} className="absolute inset-0 -z-10 transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
+        <BannerArt src={banner} className="absolute -inset-px -z-10 bg-transparent" />
       ) : (
         <>
           {wash && <div aria-hidden="true" className="absolute inset-0 -z-10 opacity-50" style={{ background: wash }} />}
           <Swords aria-hidden="true" className="absolute right-6 top-10 -z-10 size-[104px] text-[var(--brand)] opacity-70" strokeWidth={1.6} />
         </>
       )}
-      {banner && <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-[#1b1b1d] via-[#1b1b1d]/60 to-transparent" />}
+      {banner && <div aria-hidden="true" className="absolute -inset-px -z-10 bg-gradient-to-t from-[#1b1b1d] via-[#1b1b1d]/60 to-transparent" />}
       <div className="relative flex flex-1 flex-col p-4">
         {/* The way in is a small control top right; the whole card opens the clan (OneTake-style card, owner request 2026-11-13). */}
         <div className="flex items-start justify-between gap-2">
