@@ -776,6 +776,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
   }
   if (path === "/api/v1/creators/me/links" && method === "PUT") return { links: (body as { links: Record<string, string> }).links }
   if (path === "/api/v1/creators/me/about" && method === "PUT") { mockCreatorAbout = String((body as { bio: string }).bio); return { about: mockCreatorAbout } }
+  if (path === "/api/v1/creators/me/tiktok") return { available: true, link: localStorage.getItem("legacyx_mock_tiktok") ? { username: "legacyx", displayName: "LEGACY-X", avatarUrl: null, followers: 12400, likes: 83200, videos: 41, linkedAt: new Date().toISOString() } : null }
   if (path === "/api/v1/creators/me/referral") return { code: "XK7Q2M", count: 18, earned: 3600, recent: [{ id: "r1", name: "Temuulen", steamId: "76561198000000011", avatar: null, at: new Date(Date.now() - 2 * 864e5).toISOString() }, { id: "r2", name: "Khuslen_AWP", steamId: "76561198000000012", avatar: null, at: new Date(Date.now() - 4 * 864e5).toISOString() }, { id: "r3", name: "Gansukh", steamId: "76561198000000013", avatar: null, at: new Date(Date.now() - 6 * 864e5).toISOString() }] }
   if (path === "/api/v1/creators/applications/me") {
     // Design preview only: set localStorage legacyx_mock_creator=1 to see a creator's "Edit my about".

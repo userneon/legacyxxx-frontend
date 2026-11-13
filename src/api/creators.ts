@@ -61,7 +61,12 @@ export interface Creator {
   frameLook?: import("@/lib/frame-look").FrameLook | null
   nameStyle: unknown
   perk?: { tier: string; name: string } | null
+  /** Their TikTok, proven with TikTok's own sign-in (null when not connected). */
+  tiktok?: { username: string; followers: number | null } | null
 }
+
+/** A creator's connected TikTok account, as TikTok told the API. */
+export interface TikTokLink { username: string; displayName: string; avatarUrl: string | null; followers: number | null; likes: number | null; videos: number | null; linkedAt: string }
 
 export interface CreatorInput {
   tier: CreatorTier
@@ -145,6 +150,10 @@ export const creatorsService = {
   saveAbout: (bio: string, options?: CallOptions) => put<{ about: string }>("/api/v1/creators/me/about", { bio }, options),
   /** A creator changes their own channel links (at least one). */
   saveLinks: (links: CreatorLinks, options?: CallOptions) => put<{ links: CreatorLinks }>("/api/v1/creators/me/links", { links }, options),
+  /** The creator's connected TikTok (null when none) and whether the website can connect one. */
+  myTikTok: (options?: CallOptions) => get<{ available: boolean; link: TikTokLink | null }>("/api/v1/creators/me/tiktok", undefined, options),
+  startTikTok: (options?: CallOptions) => post<{ url: string }>("/api/v1/creators/me/tiktok/start", {}, options),
+  removeTikTok: (options?: CallOptions) => del<void>("/api/v1/creators/me/tiktok", options),
   myReferral: (options?: CallOptions) => get<MyReferral>("/api/v1/creators/me/referral", undefined, options),
   kitRenderConfig: (options?: CallOptions) => get<KitRenderConfig>("/api/v1/creators/kit-renders/config", undefined, options),
   startKitRender: (input: { name: string; code: string; items: string[] }, options?: CallOptions) => post<{ id: string; status: string; position: number }>("/api/v1/creators/kit-renders", input, options),

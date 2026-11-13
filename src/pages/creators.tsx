@@ -3,7 +3,7 @@ import { BrandIcon, TIKTOK_PATH } from "@/components/brand-icons"
 import { PerkMark } from "@/components/perk-badge"
 import { useState } from "react"
 import { Link } from "react-router-dom"
-import { Clapperboard, ExternalLink, RotateCcw, Search, Star, X } from "lucide-react"
+import { BadgeCheck, Clapperboard, ExternalLink, RotateCcw, Search, Star, X } from "lucide-react"
 
 import { creatorsService, CREATOR_PLATFORMS, type Creator, type CreatorTier } from "@/api/creators"
 import { CreatorApply } from "@/components/creator-apply"
@@ -54,24 +54,25 @@ function tiktokHandle(url: string) {
 }
 
 /** TikTok gets a button of its own: black, its glitch logo, the handle, and a short glitch on hover. */
-function TikTokButton({ url }: { url: string }) {
+function TikTokButton({ url, verified }: { url: string; verified?: boolean }) {
   const handle = tiktokHandle(url)
   return (
     <a href={url} target="_blank" rel="noopener noreferrer nofollow" aria-label={handle ? `TikTok ${handle}` : "TikTok"} className="lx-tiktok group inline-flex h-8 items-center gap-2 rounded-lg px-3 text-xs">
       <TikTokMark />
       <span className="lx-tiktok-word font-bold tracking-[0.01em] text-white">TikTok</span>
       {handle && <span className="max-w-[120px] truncate font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--text-2)]">{handle}</span>}
+      {verified && <BadgeCheck className="size-3.5 shrink-0 text-[var(--status-green)]" aria-label="Verified by TikTok" />}
     </a>
   )
 }
 
 /** A creator's channels as small link buttons, in a fixed platform order; TikTok has its own look. */
-export function CreatorLinks({ links, className }: { links: Creator["links"]; className?: string }) {
+export function CreatorLinks({ links, className, tiktokVerified }: { links: Creator["links"]; className?: string; tiktokVerified?: boolean }) {
   const present = CREATOR_PLATFORMS.filter((platform) => links[platform.id])
   if (present.length === 0) return null
   return (
     <div className={cn("flex flex-wrap gap-1.5", className)}>
-      {present.map((platform) => platform.id === "tiktok" ? <TikTokButton key="tiktok" url={links.tiktok!} /> : (
+      {present.map((platform) => platform.id === "tiktok" ? <TikTokButton key="tiktok" url={links.tiktok!} verified={tiktokVerified} /> : (
         <a key={platform.id} href={links[platform.id]} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[var(--line)] px-2.5 text-xs font-medium text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)] hover:text-[var(--text)]">
           <BrandIcon platform={platform.id} className="size-3.5 shrink-0" />
           {platform.label}
@@ -123,13 +124,14 @@ function CreatorCard({ creator }: { creator: Creator }) {
     <article className="flex h-full flex-col gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4 transition-colors hover:border-[var(--line-strong)]">
       <CreatorHead creator={creator} size={48} />
       {creator.bio && <p className="line-clamp-2 text-[13px] leading-relaxed text-[var(--text-muted)]">{creator.bio}</p>}
-      <CreatorLinks links={creator.links} className="mt-auto" />
+      <CreatorLinks links={creator.links} tiktokVerified={Boolean(creator.tiktok)} className="mt-auto" />
     </article>
   )
 }
 
 export function CreatorsPage() {
-  const [tab, setTab] = useState<CreatorsTab>("all")
+  // TikTok sends a creator back here after connecting (?tiktok=linked): open their panel, where the result is told.
+  const [tab, setTab] = useState<CreatorsTab>(() => (new URLSearchParams(window.location.search).has("tiktok") ? "panel" : "all"))
   const [search, setSearch] = useState("")
   const { isAuthenticated } = useAuth()
   const mineApp = useApiQuery((signal) => (isAuthenticated ? creatorsService.myApplication({ signal }) : Promise.resolve(null)), { queryKey: `creator-panel-app-${isAuthenticated}` })

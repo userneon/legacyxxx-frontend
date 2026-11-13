@@ -9,6 +9,7 @@ import { PlayerAvatar } from "@/components/player-avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CreatorKit } from "@/components/creator-kit"
 import { CreatorApply } from "@/components/creator-apply"
+import { CreatorTikTok } from "@/components/creator-tiktok"
 import { useApiQuery } from "@/hooks/use-api-query"
 
 const card = "rounded-[24px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-6"
@@ -67,6 +68,7 @@ export function CreatorPanel({ onAboutSaved }: { onAboutSaved?: () => void }) {
           ) : <p className="text-[13px] text-[var(--text-dim)]">Nobody has used your code yet.</p>}
         </section>
       </div>
+      <div className="lg:col-span-12"><CreatorTikTok onChanged={onAboutSaved} /></div>
     </div>
   )
 }

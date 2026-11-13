@@ -33,6 +33,7 @@ export function PrivacyPage() {
         <p><b className="text-[var(--text)]">What you set up.</b> Your skins, cosmetics, clan, reviews, market listings (with the phone number and e-mail you chose to put on them), chat messages, your Configs tab, and your FOL$ wallet and its history.</p>
         <p><b className="text-[var(--text)]">Payments.</b> A top-up or a paid rank is paid on the page of our payment provider (Wire, with QPay and the banks). We keep the amount, the time and the result. We never see your card or bank login.</p>
         <p><b className="text-[var(--text)]">Your phone (iPhone app).</b> If you allow notifications, a push token that Apple gives the app, so we can send you the same messages as the bell on the website. Your choice of language and the player you follow stay on your phone.</p>
+        <p><b className="text-[var(--text)]">TikTok (content creators only).</b> If you are a content creator and connect your TikTok with TikTok's own sign-in, we keep your TikTok account id, your @handle, display name and picture, and the follower, like and video counts TikTok gave us at that moment. We never keep TikTok's access token and never post for you. You can disconnect it on the Creators page and it is deleted.</p>
         <p><b className="text-[var(--text)]">Staff checks.</b> If staff ask you to run the LEGACY-X Checker, it reads the programs and files described to you on its first screen and sends the result to staff. It changes nothing on your computer. The result is kept for a limited time.</p>
       </Part>
 
@@ -42,7 +43,7 @@ export function PrivacyPage() {
 
       <Part title="Who sees it">
         <p>Your name, avatar, rank, stats, clan, reviews and penalties are public on the website: that is what a ladder is. Staff see more (IP addresses, checks, the log of what staff did). Your market phone number and e-mail are shown only to signed-in players who press the button for them. Hidden stats stay hidden when you hide them in Settings.</p>
-        <p>We use these services to run the platform: Steam (sign-in), Supabase (our database), Wire (payments), Apple (push notifications), Discord (our community server and its bot) and our own game servers and web servers.</p>
+        <p>We use these services to run the platform: Steam (sign-in), Supabase (our database), Wire (payments), Apple (push notifications), Discord (our community server and its bot), TikTok (only for creators who connect it) and our own game servers and web servers.</p>
       </Part>
 
       <Part title="How long">
