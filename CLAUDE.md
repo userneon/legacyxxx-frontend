@@ -439,3 +439,5 @@ Fewer layers in the top bar (owner report 2026-11-09, "too many layers"): the Tu
 
 No white disc on the rail (owner request 2026-11-09, "remove the white"): the page you are on is still the tab that joins the panel, but its icon is drawn in `--text` straight on the panel's colour; the light `#d4d4d4` disc (`.lx-rail-disc`) is now transparent. (The earlier paragraphs that call it a light disc describe the look before this change.)
 
+Phone polish from an audit of every main page (owner request 2026-11-13, "improve the website we have"): the Shop's one-line price note reads as one sentence on a phone (the LX coin is inline instead of a flex item that broke the line), and the page panel keeps 64px of room at its end under 640px so the round chat and back-to-top buttons never sit on the last card.
+

@@ -825,7 +825,7 @@ export function ShopPage() {
       <div className="lx-glass-page min-h-0 min-w-0 flex-1 px-6 py-5 max-md:px-4">
         {tab === "featured" && (
           <p className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] leading-relaxed text-[var(--text-dim)]">
-            <span className="inline-flex items-center gap-1">Cosmetics cost <LxMark size={13} /> LX. Ranks are paid in ₮ with QPay or any bank app.</span>
+            <span>Cosmetics cost <span className="inline-block align-[-2px]"><LxMark size={13} /></span> LX. Ranks are paid in ₮ with QPay or any bank app.</span>
             <button type="button" onClick={() => navigate("/wallet/top-up")} className="font-semibold text-[var(--text-2)] underline-offset-2 hover:text-[var(--text)] hover:underline">Top up LX</button>
           </p>
         )}
