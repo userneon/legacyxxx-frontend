@@ -2545,21 +2545,15 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
 
 
 /* ---- Cursor effects (owner request 2026-11-13, "holo card, tile, bento and the others"; `lib/cursor-fx.ts`, `components/fx-ring.tsx`) ---- */
-.lx-fx-ring, .lx-fx-spot, .lx-fx-holo { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity 250ms var(--ease-out); }
+.lx-fx-ring, .lx-fx-spot { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity 250ms var(--ease-out); }
 .lx-fx-spot { z-index: 0; background: radial-gradient(230px circle at var(--x, 50%) var(--y, 50%), color-mix(in srgb, var(--fx-c, var(--brand)) 24%, transparent), transparent 65%); }
 .lx-fx-ring { z-index: 4; padding: 1px; background: radial-gradient(170px circle at var(--x, 50%) var(--y, 50%), var(--fx, rgb(167 139 250 / 0.95)), transparent 62%);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
-.lx-fx-holo { z-index: 3; mix-blend-mode: screen; overflow: hidden;
-  background: linear-gradient(115deg, transparent calc(var(--hx, 50%) - 28%), rgb(255 255 255 / 0.2) calc(var(--hx, 50%) - 10%), rgb(167 139 250 / 0.22) var(--hx, 50%), rgb(120 255 190 / 0.13) calc(var(--hx, 50%) + 10%), transparent calc(var(--hx, 50%) + 28%)); } /* palette-exempt: holo foil */
-[data-hot] > .lx-fx-ring, [data-hot] > .lx-fx-spot, [data-hot] > .lx-fx-holo { opacity: 1; }
-[data-fx~="tilt"] { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform 160ms ease-out, translate 200ms var(--ease-out), border-color 200ms var(--ease-out), background-color 200ms var(--ease-out); }
-/* Home's bento: the card (`.lx-glass`) under the pointer gets a soft light and a brighter edge. */
-.lx-bento .lx-glass { transition: box-shadow 250ms var(--ease-out); }
-.lx-bento .lx-glass[data-hot] { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16); background-image: radial-gradient(260px circle at var(--x, 50%) var(--y, 50%), rgb(139 92 246 / 0.13), transparent 65%); }
+[data-hot] > .lx-fx-ring, [data-hot] > .lx-fx-spot { opacity: 1; }
 /* The glass icon: a coloured plate behind a frosted one (Wallet's actions). */
 .lx-glass-icon { position: relative; display: grid; place-items: center; width: 38px; height: 38px; }
 .lx-glass-icon::before { content: ""; position: absolute; inset: 0; border-radius: 12px; background: linear-gradient(135deg, var(--c1), var(--c2)); transform: rotate(14deg) translate(4px, -3px); transition: transform 250ms var(--ease-out); } /* palette-exempt: icon plates in the status colours */
 .lx-glass-icon::after { content: ""; position: absolute; inset: 0; border-radius: 12px; background: rgb(255 255 255 / 0.12); border: 1px solid rgb(255 255 255 / 0.22); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3); }
 .lx-glass-icon > svg { position: relative; z-index: 1; color: #fff; }
 button:hover > .lx-glass-icon::before, button:focus-visible > .lx-glass-icon::before { transform: rotate(22deg) translate(7px, -5px); }
-@media (prefers-reduced-motion: reduce) { [data-fx~="tilt"] { transform: none; } .lx-fx-ring, .lx-fx-spot, .lx-fx-holo { transition: none; } .lx-glass-icon::before { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .lx-fx-ring, .lx-fx-spot { transition: none; } .lx-glass-icon::before { transition: none; } }

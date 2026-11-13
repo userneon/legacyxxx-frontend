@@ -8,7 +8,6 @@ import { Link } from "react-router-dom"
 import { ArrowUpRight, MessageCircle, RotateCcw, Search, X } from "lucide-react"
 
 import { teamService, type TeamMember, type TeamRole } from "@/api/team"
-import { FxRing } from "@/components/fx-ring"
 import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -65,8 +64,7 @@ function Name({ member, className }: { member: TeamMember; className: string }) 
 function OwnerCard({ member }: { member: TeamMember }) {
   const since = sinceText(member.since)
   return (
-    <div className="lx-team-card lx-team-hero" data-tone={ROLE_TONE.Owner} data-fx="glow">
-      <FxRing />
+    <div className="lx-team-card lx-team-hero" data-tone={ROLE_TONE.Owner}>
       <Link to={`/profile/${member.steamId}`} className="lx-team-inner flex-row! items-center gap-5 p-5 max-sm:flex-col! max-sm:text-center" aria-label={`${member.username}, Owner`}>
         <Face member={member} size={96} />
         <span className="flex min-w-0 flex-1 flex-col gap-2 max-sm:items-center">
@@ -90,8 +88,7 @@ function TeamCard({ member }: { member: TeamMember }) {
   const since = sinceText(member.since)
   const cells = statCells(member)
   return (
-    <li className="lx-team-card" data-tone={ROLE_TONE[member.role]} data-fx="tilt">
-      <FxRing holo />
+    <li className="lx-team-card" data-tone={ROLE_TONE[member.role]}>
       <Link to={`/profile/${member.steamId}`} className="lx-team-inner" aria-label={`${member.username}, ${member.role}`}>
         <span className="flex w-full items-center justify-between">
           {member.rank ? <span title={member.rank.name}><CompetitiveRankBadge rankId={member.rank.id} rankName={member.rank.name} imageKey={member.rank.imageKey} size={22} /></span> : <span aria-hidden="true" className="size-[22px]" />}
