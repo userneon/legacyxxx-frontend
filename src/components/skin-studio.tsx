@@ -225,7 +225,7 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
       <div className="grid min-h-0 flex-1 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_380px] lg:overflow-hidden">
         {/* The weapon */}
         <div className="flex min-h-0 flex-col gap-4 p-4 lg:overflow-y-auto">
-          <div className="relative aspect-video w-full select-none overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--card-surface)]" aria-label="The weapon in 3D: drag a sticker or the charm to move it, drag the gun to turn it">
+          <div className="relative aspect-video w-full shrink-0 select-none overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--card-surface)]" aria-label="The weapon in 3D: drag a sticker or the charm to move it, drag the gun to turn it">
             {model3d ? (
               <Suspense fallback={null}>
                 <StudioStage3D

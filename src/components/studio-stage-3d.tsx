@@ -294,7 +294,16 @@ export default function StudioStage3D({ choice, stickers, charm, selection, labe
         }
         root.add(model)
         root.updateMatrixWorld(true)
-        const all = new THREE.Box3().setFromObject(model)
+        // The camera frames the gun itself: arms and scopes the source ships with the model must not stretch the box (the gun would sit small in the middle of it).
+        const all = new THREE.Box3()
+        model.traverse((node) => {
+          const mesh = node as THREE.Mesh
+          if (!mesh.isMesh || !mesh.geometry) return
+          const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+          if (materials.some((material) => SKIP_MATERIAL.test(String(material?.name ?? "")))) return
+          all.expandByObject(mesh)
+        })
+        if (all.isEmpty()) all.setFromObject(model)
         const middle = all.getCenter(new THREE.Vector3())
         const length = Math.max(all.getSize(new THREE.Vector3()).x, 0.0001)
         // The camera looks at the gun from its right side (+z), where the sticker slots are.
