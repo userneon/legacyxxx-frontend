@@ -153,7 +153,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
   const playActive = currentPage.startsWith("play-")
 
   return (
-    <Sidebar variant="floating" collapsible="icon" className="lx-glass-sidebar border-none [&>div[data-sidebar=sidebar]]:rounded-2xl">
+    <Sidebar variant="floating" collapsible="icon" className="lx-glass-sidebar border-none [&>div[data-sidebar=sidebar]]:rounded-[14px]">
       <SidebarContent className="gap-0 overflow-x-hidden px-3 pb-3">
         <div className={cn("flex h-[60px] shrink-0 items-center transition-[padding] duration-300 motion-reduce:transition-none", EASE, collapsed ? "px-1" : "pl-3 pr-1")}>
           <span className={cn("flex min-w-0 flex-1 items-center gap-2 overflow-hidden text-base font-bold tracking-[0.3px] text-[var(--text)]", labelClass(collapsed))}>

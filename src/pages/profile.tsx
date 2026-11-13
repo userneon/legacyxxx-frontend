@@ -8,7 +8,7 @@ import { DiscordLinkedMark } from "@/components/discord-linked-mark"
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
-import { ArrowLeftRight, Ban, ChevronRight, Copy, Crosshair, Crown, ExternalLink, EyeOff, Info, MessageCircle, MoreHorizontal, Play, RotateCcw, ShieldAlert, ShieldCheck, Shield, Swords, Trophy } from "lucide-react"
+import { ArrowLeftRight, Ban, ChevronRight, Copy, Crown, ExternalLink, EyeOff, Info, MessageCircle, MoreHorizontal, Play, RotateCcw, ShieldAlert, ShieldCheck, Shield } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -24,7 +24,7 @@ import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { formatDate, useWebsitePreferences } from "@/lib/preferences"
 import { PAGE_ROUTES, PAGE_TITLES, documentTitle } from "@/lib/routes"
 import { RingStat } from "@/components/home-bento"
-import { CompetitiveRankBadge, RankLabel, RankPill, rankTierColor } from "@/components/competitive-rank-badge"
+import { CompetitiveRankBadge, RankLabel, RankPill } from "@/components/competitive-rank-badge"
 import { FaceitLevelBadge } from "@/components/faceit-level-badge"
 import { MatchDetailsDialog } from "@/components/match-details-dialog"
 import { setProfileScene } from "@/lib/profile-scene"
@@ -48,7 +48,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ReportPlayerDialog } from "@/components/report-player-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 
-const card = "lx-pcard rounded-2xl border border-[var(--glass-line)] bg-[var(--glass-fill)]"
+const card = "lx-pcard rounded-[24px] border border-[var(--glass-line)] bg-[var(--glass-fill)]"
 const outline = "inline-flex h-[34px] items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] font-medium text-[var(--text)] transition-[background-color,border-color,transform] duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
 
 const SECTION_LABEL: Record<ProfileSection, string> = { stats: "Stats", matches: "Recent matches", faceit: "FACEIT stats", loadout: "Loadout" }
@@ -276,13 +276,13 @@ function RankCard({ competitive }: { competitive: NonNullable<ProfileOverview["c
     return () => cancelAnimationFrame(frame)
   }, [share])
   return (
-    <section aria-label="Rank" style={{ ["--tint" as string]: rankTierColor(competitive.rankId) }} className={cn(card, "lx-feature relative flex items-center gap-[18px] overflow-hidden p-[18px]")}>
-      <CompetitiveRankBadge rankId={competitive.rankId} rankName={competitive.rankName} imageKey={competitive.rankImageKey} size={84} className="relative shrink-0" />
+    <section aria-label="Rank" className={cn(card, "relative flex items-center gap-[18px] overflow-hidden p-[18px]")}>
+      <CompetitiveRankBadge rankId={competitive.rankId} rankName={competitive.rankName} imageKey={competitive.rankImageKey} size={72} className="relative shrink-0 drop-" />
       <div className="relative flex min-w-0 flex-1 flex-col gap-2.5">
         <div className="flex items-baseline justify-between gap-3">
           <span className="flex flex-col gap-1.5">
             <span className="text-xs text-[var(--text-muted)]">Rank</span>
-            <RankLabel rankId={competitive.rankId} rankName={competitive.rankName} imageKey={competitive.rankImageKey} size={0} nameClassName="text-[22px] font-bold" className="[&>img]:hidden" />
+            <RankLabel rankId={competitive.rankId} rankName={competitive.rankName} imageKey={competitive.rankImageKey} size={0} nameClassName="text-base font-semibold" className="[&>img]:hidden" />
           </span>
           <Link to={`${PAGE_ROUTES.leaders}${competitive.position ? `?focus=${competitive.position}` : ""}`} className="group flex items-center gap-1 text-xs text-[var(--text-muted)] transition-colors hover:text-[var(--text)]">
             Leaderboard <ChevronRight className="size-3.5" />
@@ -463,24 +463,17 @@ function ProfileRings({ overview }: { overview: ProfileOverview }) {
   const cards: ReactNode[] = []
   // Matches and average kills have no ceiling, so their ring shows how many ranked players the player beats (the API's percentile).
   const beats = (entry: NonNullable<typeof matches>) => (typeof entry.percentile === "number" ? [{ pct: entry.percentile, tone: "green" as const }] : [])
-  // Two tiers (owner feedback 2026-11-13, "UI monotony"): the three numbers people look for first are large, the rest a compact strip under them.
-  const primary: ReactNode[] = []
-  if (matches) primary.push(<RingStat key="matches" size="lg" icon={Swords} value={matches.value.toLocaleString()} label="Matches" title={typeof matches.percentile === "number" ? `More than ${matches.percentile}% of ranked players` : undefined} segments={beats(matches)} />)
-  if (typeof win === "number") primary.push(<RingStat key="win" size="lg" icon={Trophy} value={`${Math.round(win)}%`} label="Win rate" segments={[{ pct: win, tone: "green" }]} />)
-  if (typeof kd === "number") primary.push(<RingStat key="kd" size="lg" icon={Crosshair} value={kd.toFixed(2)} label="K/D" title="Kills against deaths" segments={[{ pct: (kd / (kd + 1)) * 100, tone: "green" }, { pct: (1 / (kd + 1)) * 100, tone: "red" }]} />)
-  if (typeof hs === "number") cards.push(<RingStat key="hs" size="sm" value={`${Math.round(hs)}%`} label="Headshots" segments={[{ pct: hs, tone: "green" }]} />)
-  if (avgKills) cards.push(<RingStat key="kills" size="sm" value={avgKills.value.toFixed(1)} label="Avg. kills" title={typeof avgKills.percentile === "number" ? `Better than ${avgKills.percentile}% of ranked players` : undefined} segments={beats(avgKills)} />)
+  if (matches) cards.push(<RingStat key="matches" value={matches.value.toLocaleString()} label="Matches" title={typeof matches.percentile === "number" ? `More than ${matches.percentile}% of ranked players` : undefined} segments={beats(matches)} />)
+  if (typeof win === "number") cards.push(<RingStat key="win" value={`${Math.round(win)}%`} label="Win rate" segments={[{ pct: win, tone: "green" }]} />)
+  if (typeof kd === "number") cards.push(<RingStat key="kd" value={kd.toFixed(2)} label="K/D" title="Kills against deaths" segments={[{ pct: (kd / (kd + 1)) * 100, tone: "green" }, { pct: (1 / (kd + 1)) * 100, tone: "red" }]} />)
+  if (typeof hs === "number") cards.push(<RingStat key="hs" value={`${Math.round(hs)}%`} label="Headshots" segments={[{ pct: hs, tone: "green" }]} />)
+  if (avgKills) cards.push(<RingStat key="kills" value={avgKills.value.toFixed(1)} label="Avg. kills" title={typeof avgKills.percentile === "number" ? `Better than ${avgKills.percentile}% of ranked players` : undefined} segments={beats(avgKills)} />)
   if (limits) {
-    cards.push(<RingStat key="day" size="sm" value={`${Math.round(share(limits.day.used, limits.day.cap))}%`} label="EXP today" title={`${limits.day.used.toLocaleString()} of ${limits.day.cap.toLocaleString()} EXP today`} segments={[{ pct: share(limits.day.used, limits.day.cap), tone: limits.day.used >= limits.day.cap ? "red" : "green" }]} />)
-    cards.push(<RingStat key="week" size="sm" value={`${Math.round(share(limits.week.used, limits.week.cap))}%`} label="EXP this week" title={`${limits.week.used.toLocaleString()} of ${limits.week.cap.toLocaleString()} EXP this week`} segments={[{ pct: share(limits.week.used, limits.week.cap), tone: limits.week.used >= limits.week.cap ? "red" : "green" }]} />)
+    cards.push(<RingStat key="day" value={`${Math.round(share(limits.day.used, limits.day.cap))}%`} label="EXP today" title={`${limits.day.used.toLocaleString()} of ${limits.day.cap.toLocaleString()} EXP today`} segments={[{ pct: share(limits.day.used, limits.day.cap), tone: limits.day.used >= limits.day.cap ? "red" : "green" }]} />)
+    cards.push(<RingStat key="week" value={`${Math.round(share(limits.week.used, limits.week.cap))}%`} label="EXP this week" title={`${limits.week.used.toLocaleString()} of ${limits.week.cap.toLocaleString()} EXP this week`} segments={[{ pct: share(limits.week.used, limits.week.cap), tone: limits.week.used >= limits.week.cap ? "red" : "green" }]} />)
   }
-  if (primary.length === 0 && cards.length === 0) return null
-  return (
-    <section aria-label="Stats" className="flex flex-col gap-3">
-      {primary.length > 0 && <div className="grid grid-cols-1 gap-3 @md:grid-cols-3">{primary}</div>}
-      {cards.length > 0 && <div className="grid grid-cols-2 gap-3 @xl:grid-cols-4">{cards}</div>}
-    </section>
-  )
+  if (cards.length === 0) return null
+  return <section aria-label="Rings" className="grid grid-cols-2 gap-3 @xl:grid-cols-3 @3xl:grid-cols-4">{cards}</section>
 }
 
 function RecentMatches({ matches, kdAverage, onOpen }: { matches: ProfileMatchRow[]; kdAverage: number | null; onOpen: (match: ProfileMatchRow) => void }) {
@@ -665,7 +658,7 @@ function ProfileSkeleton() {
       <div className="px-6 pt-6 max-md:px-4 max-md:pt-4">
         {/* The header: avatar, name, a line of facts and the buttons, all centred. */}
         <section className={cn(card, "flex h-[299px] flex-col items-center px-5 pt-7 max-md:px-4")}>
-          <Skeleton className="size-[104px] rounded-2xl bg-[var(--line)]" />
+          <Skeleton className="size-[104px] rounded-[26px] bg-[var(--line)]" />
           <Skeleton className="mt-5 h-7 w-56 max-w-full rounded-full bg-[var(--line-strong)]" />
           <Skeleton className={cn("mt-3 h-3 w-64 max-w-full", bar)} />
           <div className="mt-5 flex gap-2">
@@ -805,7 +798,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
   return (
     <div ref={topRef}>
       {true && (
-      <div className="@container px-6 pb-8 pt-5 max-md:px-4">
+      <div className="@container lx-profile-calm px-6 pb-8 pt-5 max-md:px-4">
         <div className="lx-bento grid gap-4 @4xl:grid-cols-12">
           {/* Who this is: the banner, the avatar, the name, the badges and the buttons, in one card that stays in view. */}
           <aside className="flex min-w-0 flex-col gap-3 @4xl:col-span-4">

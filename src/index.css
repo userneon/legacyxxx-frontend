@@ -415,6 +415,50 @@
   border: 1px solid var(--glass-line);
   box-shadow: var(--glass-highlight);
 }
+/* Light sweep: when the pointer enters a card, one soft band of light glides across it, left to right, and fades out at the
+   end. It is a pseudo-element with its own transitions, so the card's own transitions, borders and shadows are untouched.
+   Cards get it when they are an article, link, button or list item, or already react to hover (a class with "hover:");
+   big panels (plain sections and divs) do not, so a whole page never flashes. Any element can opt in with .lx-sweep.
+   The band eases in and out (slow start, slow finish), its edges are feathered in several steps, and on leaving it fades
+   first and only then jumps back, so there is never a visible snap. */
+:is(:is([class*="glass-fill"], .glass, .lx-glass):is(article, a, button, li, [role="button"], [class*="hover:"]), .lx-sweep):not(textarea, input, [class~="absolute"], [class~="fixed"], [class~="sticky"]) {
+  position: relative;
+  isolation: isolate;
+}
+:is(:is([class*="glass-fill"], .glass, .lx-glass):is(article, a, button, li, [role="button"], [class*="hover:"]), .lx-sweep):not(textarea, input)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* Behind the content (the map art and text), above the card's own background: the band never hazes the picture. */
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(
+    102deg,
+    transparent 28%,
+    rgba(255, 255, 255, 0.012) 38%,
+    rgba(255, 255, 255, 0.05) 46%,
+    rgba(255, 255, 255, 0.085) 50%,
+    rgba(255, 255, 255, 0.05) 54%,
+    rgba(255, 255, 255, 0.012) 62%,
+    transparent 72%
+  ) no-repeat;
+  background-size: 220% 100%;
+  background-position: 112.5% 0;
+  /* Leaving: fade out, then (after the fade) reset the position. */
+  transition: opacity 380ms ease-out, background-position 0s linear 380ms;
+}
+:is(:is([class*="glass-fill"], .glass, .lx-glass):is(article, a, button, li, [role="button"], [class*="hover:"]), .lx-sweep):not(textarea, input):hover::after {
+  opacity: 1;
+  background-position: -12.5% 0;
+  /* Entering: fade in fast while the band glides slowly, easing at both ends. */
+  transition: opacity 260ms ease-out, background-position 1500ms cubic-bezier(0.45, 0.05, 0.25, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(:is([class*="glass-fill"], .glass, .lx-glass):is(article, a, button, li, [role="button"], [class*="hover:"]), .lx-sweep):not(textarea, input)::after,
+  :is(:is([class*="glass-fill"], .glass, .lx-glass):is(article, a, button, li, [role="button"], [class*="hover:"]), .lx-sweep):not(textarea, input):hover::after { transition: none; opacity: 0; }
+}
 /* Play list rows: the map fills the row and fades out from left to right. */
 .lx-list-art {
   -webkit-mask-image: linear-gradient(90deg, #000 0%, rgba(0, 0, 0, 0.55) 45%, transparent 100%);
@@ -456,9 +500,21 @@
  */
 /* A box needs a positioned parent for the top hairline: a dialog is already fixed, so it must not be set to relative here (that pushed it out of the middle of the screen); a plain section adds `relative` itself. */
 .lx-add-box {
-  border-color: var(--glass-line) !important;
-  background: var(--card-surface) !important;
-  box-shadow: none;
+  border-color: color-mix(in oklch, var(--brand) 28%, var(--line)) !important;
+  background:
+    radial-gradient(120% 80% at 100% 0%, color-mix(in oklch, var(--brand) 14%, transparent), transparent 55%),
+    var(--card-surface) !important;
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--brand) 6%, transparent), 0 18px 50px -24px color-mix(in oklch, var(--brand) 45%, transparent);
+}
+.lx-add-box::before {
+  content: "";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  top: -1px;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--brand-bright), transparent);
 }
 .lx-add-icon {
   display: inline-flex;
@@ -483,10 +539,58 @@
   background: color-mix(in oklch, var(--brand) 12%, transparent) !important;
   color: var(--text) !important;
 }
-/* Shop tiles: an ordinary card (one card system, 2026-11-13). Hover brightens the hairline; the picked or worn tile carries the brand border. */
-.lx-shop-tile { position: relative; isolation: isolate; transition: border-color 0.18s ease, background-color 0.18s ease; }
-.lx-shop-tile:hover { border-color: var(--line-strong); }
-.lx-shop-tile[aria-pressed="true"], .lx-shop-tile[data-worn="true"] { border-color: color-mix(in oklch, var(--brand) 70%, transparent); }
+/* Shop (owner request 2026-10-24): a violet look for the whole Shop. A tile lifts and lights up under the pointer, the picked one carries the brand border and glow,
+   the preview stage is an add-box, and a section heading has a short violet bar. Primary buttons stay white. */
+.lx-shop-tile {
+  /* Soft glass (owner request 2026-11-07, "glass, blurred, soft"): a faint see-through fill that blurs what moves behind it, lit in the item's own colour (--acc). */
+  position: relative;
+  border: 1px solid rgb(255 255 255 / 0.07);
+  background:
+    radial-gradient(90% 65% at 50% 30%, color-mix(in oklch, var(--acc, var(--brand)) 16%, transparent), transparent 72%),
+    rgb(255 255 255 / 0.025);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+/* The item's own light under the pointer (owner request 2026-11-13): a violet light shines INTO the tile from its top-right corner, fading out towards the bottom-left, behind the picture and the text, instead of a shadow under it. */
+.lx-shop-tile { isolation: isolate; }
+.lx-shop-tile::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  background: radial-gradient(90% 75% at 104% -6%, color-mix(in oklch, var(--brand) 44%, transparent), transparent 70%);
+}
+.lx-shop-tile:hover::after,
+.lx-shop-tile:focus-visible::after { opacity: 1; }
+.lx-shop-tile:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklch, var(--brand) 50%, rgb(255 255 255 / 0.1));
+  box-shadow: inset 0 1px 0 color-mix(in oklch, var(--brand-bright) 40%, transparent);
+}
+.lx-shop-tile[aria-pressed="true"],
+.lx-shop-tile[data-worn="true"] {
+  border-color: var(--brand);
+  background:
+    radial-gradient(100% 70% at 50% 0%, color-mix(in oklch, var(--brand) 20%, transparent), transparent 72%),
+    rgb(255 255 255 / 0.035);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--brand) 40%, transparent), 0 18px 44px -20px color-mix(in oklch, var(--brand) 75%, transparent);
+}
+.lx-shop-tile[aria-pressed="true"]::before,
+.lx-shop-tile[data-worn="true"]::before {
+  content: "";
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: -1px;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--brand-bright), transparent);
+}
 /* The ring a frame shows in the Shop (owner request 2026-11-07, "I like the frames in the mock"): a thin ring in the frame's colour with a soft glow round the picture. */
 .lx-shop-ring {
   position: relative;
@@ -497,8 +601,13 @@
   border: 1.5px solid var(--acc);
   box-shadow: 0 0 16px color-mix(in oklch, var(--acc) 55%, transparent), inset 0 0 12px color-mix(in oklch, var(--acc) 30%, transparent);
 }
-/* The Shop's boxes (rank cards, outfit, preview): ordinary cards. */
-.lx-shop-glass { border-color: var(--glass-line); background-color: var(--glass-fill); }
+/* The Shop's boxes (rank cards, outfit, preview): the same soft glass. */
+.lx-shop-glass {
+  border-color: rgb(255 255 255 / 0.08);
+  background-color: rgb(255 255 255 / 0.03);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+}
 .lx-shop-price {
   display: inline-flex;
   align-items: center;
@@ -555,6 +664,21 @@
 .lx-kill-ring { transform-box: fill-box; transform-origin: center; animation: lx-kill-ring 2.2s ease-out infinite both; }
 @keyframes lx-kill-ring { 0% { transform: scale(0.3); } 40%, 100% { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .lx-kill-play, .lx-kill-ring { animation: none; } }
+/* Home: a soft violet light on top of the backdrop. */
+.lx-glass-page {
+  position: relative;
+  isolation: isolate;
+}
+.lx-glass-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(32% 22% at 92% 0%, color-mix(in oklch, var(--brand) 15%, transparent), transparent 70%),
+    radial-gradient(26% 20% at 0% 100%, color-mix(in oklch, var(--brand-bright) 6%, transparent), transparent 70%);
+}
 
 .glass-strong {
   background: var(--panel);
@@ -1658,7 +1782,38 @@
   to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
-
+/* A violet light runs around the edge while hovered (no glow around the card). */
+@property --lx-edge-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+.lx-fx-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: 1px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--lx-edge-angle), transparent 0deg, transparent 220deg, var(--brand) 290deg, var(--brand-bright) 330deg, transparent 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 400ms cubic-bezier(0.37, 0, 0.18, 1);
+  /* Paused at rest: an always-running @property animation repaints every card, and its images, on
+     every frame. It runs only while the card is hovered or focused, and freezes as it fades out. */
+  animation: lx-edge-spin 3.2s linear infinite paused;
+}
+.lx-fx-card:hover::before,
+.lx-fx-card:focus-visible::before {
+  opacity: 1;
+  animation-play-state: running;
+}
+@keyframes lx-edge-spin {
+  to { --lx-edge-angle: 360deg; }
+}
 
 /* Map artwork slowly pans so the cards never sit still. */
 .lx-map-drift {
@@ -2069,8 +2224,12 @@
    a round avatar in the middle, the name and the role under it). The role's colour (data-tone, the staff-site tones) is only the avatar's thin ring, the role text and
    the arrow on hover; no holo frame, numerals or sheen any more. The Owner's card is the same card laid out wide. ---- */
 .lx-team-card { --tone: var(--tone-violet); list-style: none; }
-.lx-people-card, .lx-team-card { transition: border-color 200ms var(--ease-out); }
-.lx-people-card:hover, .lx-team-card:hover { border-color: var(--line-strong); }
+/* The frosted card the Staff and Creators pages share (owner request 2026-11-13, "frosted, the content creators the same"): soft see-through glass with a light top edge. */
+.lx-people-card, .lx-team-card { border-radius: 20px; border: 1px solid rgb(255 255 255 / 0.14); background: linear-gradient(160deg, rgb(255 255 255 / 0.11), rgb(255 255 255 / 0.04) 60%, rgb(255 255 255 / 0.06));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), inset 0 0 24px rgb(255 255 255 / 0.03), 0 10px 30px -14px rgb(0 0 0 / 0.6);
+  backdrop-filter: blur(30px) saturate(170%); -webkit-backdrop-filter: blur(30px) saturate(170%);
+  transition: translate 200ms var(--ease-out), border-color 200ms var(--ease-out), background-color 200ms var(--ease-out); }
+.lx-people-card:hover, .lx-team-card:hover { border-color: rgb(255 255 255 / 0.26); background: linear-gradient(160deg, rgb(255 255 255 / 0.15), rgb(255 255 255 / 0.06) 60%, rgb(255 255 255 / 0.09)); }
 .lx-team-card[data-tone="red"], .lx-stat-cell[data-tone="red"] { --tone: var(--tone-red); }
 .lx-team-card[data-tone="amber"], .lx-stat-cell[data-tone="amber"] { --tone: var(--tone-amber); }
 .lx-team-card[data-tone="green"], .lx-stat-cell[data-tone="green"] { --tone: var(--tone-green); }
@@ -2079,6 +2238,7 @@
 .lx-stat-cell[data-tone="violet"], section[data-tone="violet"] { --tone: var(--tone-violet); }
 section[data-tone="red"] { --tone: var(--tone-red); } section[data-tone="sky"] { --tone: var(--tone-sky); } section[data-tone="green"] { --tone: var(--tone-green); } section[data-tone="amber"] { --tone: var(--tone-amber); }
 .lx-team-dot { background: var(--tone); }
+.lx-team-card:hover, .lx-creator-grid .lx-people-card:hover { translate: 0 -2px; }
 .lx-team-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
 @media (max-width: 639px) { .lx-team-grid { gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); } .lx-team-grid .lx-team-face { width: 64px !important; height: 64px !important; } }
 .lx-team-hero:hover { translate: none; }
@@ -2275,6 +2435,18 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
 .lx-hdr-tab-edge { position: absolute; left: 0; right: 0; top: 0; height: 56px; border: 1px solid var(--glass-shell-line); border-bottom: 0; border-radius: 28px 28px 0 0; }
 @media (prefers-reduced-motion: reduce) { .lx-hdr-tab { transition: opacity .01s; transform: none !important; } }
 
+/* Calm Home (owner request 2026-11-13, preview): bigger corners, one hairline, solid soft cards, colour only where it means something
+   (brand wash on the rank card, the ring's own green/red as a glow from the bottom edge). Scoped to Home. */
+.lx-calm .lx-glass { border-radius: 24px; background: rgb(255 255 255 / 0.045); border-color: rgb(255 255 255 / 0.1); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.09); backdrop-filter: blur(22px) saturate(150%); -webkit-backdrop-filter: blur(22px) saturate(150%); }
+/* Soft colour behind the glass so the frost has something to blur: violet, a cool blue and a faint violet at the foot. */
+.lx-calm::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background:
+  radial-gradient(34% 30% at 18% 22%, color-mix(in oklch, var(--brand) 18%, transparent), transparent 70%),
+  radial-gradient(40% 26% at 45% 100%, color-mix(in oklch, var(--brand) 10%, transparent), transparent 70%); }
+.lx-calm .lx-calm-brand { position: relative; isolation: isolate; overflow: hidden; }
+.lx-calm .lx-calm-brand::before { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(75% 130% at 0% 0%, color-mix(in oklch, var(--brand) 26%, transparent), transparent 65%); }
+.lx-calm .lx-ring-card { position: relative; isolation: isolate; overflow: hidden; padding: 16px 18px; }
+/* Calm Home: a soft light rising from the bottom edge of the stat cards, in the ring's own colour. */
+.lx-calm .lx-ring-card::before { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(90% 60% at 50% 125%, color-mix(in oklch, var(--t) 42%, transparent), transparent 70%); }
 /* Home's TikTok card: TikTok's black with a cyan light at the top left and a red one at the bottom right. Palette-exempt: TikTok brand. */
 .lx-tiktok-card {
   background:
@@ -2286,23 +2458,82 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
 }
 .lx-tiktok-card:hover { border-color: #3d3d3d; }
 @media (prefers-reduced-motion: reduce) { .lx-tiktok-card img { transition: none; } }
+/* Calm Home hover: a card only gets a little brighter (fill and hairline), nothing jumps. */
+.lx-calm .lx-glass, .lx-calm .lx-tiktok-card, .lx-calm .lx-discord-card { transition: background-color 0.25s, border-color 0.25s, filter 0.25s; }
+.lx-calm a.lx-glass:hover, .lx-calm button.lx-glass:hover, .lx-calm .lx-fx-card:hover { background: rgb(255 255 255 / 0.075); border-color: rgb(255 255 255 / 0.16); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12); }
+.lx-calm .lx-tiktok-card:hover, .lx-calm .lx-discord-card:hover { filter: brightness(1.1); }
+/* Calm Home: no light sweep (glare) across cards on hover. */
+.lx-calm :is(.lx-glass, .glass, [class*="glass-fill"], .lx-sweep):not(textarea, input)::after { display: none !important; }
+/* Calm frost for boxes that keep their own border and radius (Wallet top-up tiles): the same see-through glass, without touching the border colour. */
+.lx-calm .lx-frost { background: rgb(255 255 255 / 0.045); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08); backdrop-filter: blur(22px) saturate(150%); -webkit-backdrop-filter: blur(22px) saturate(150%); transition: background-color 0.25s; }
+.lx-calm button.lx-frost:hover { background: rgb(255 255 255 / 0.075); }
+/* Noir cards (owner request 2026-11-13, "simple, black, not so many lights; the light fades in from the top right"): plain near-black cards with a hairline.
+   Only the one hero card of a page (.lx-noir-balance, the Top up preview) carries a light, fading in from the top right corner. Wallet first. Scoped to .lx-noir. */
+.lx-noir.lx-calm .lx-glass, .lx-noir.lx-calm .lx-frost { background: #0a0a0c; border-color: rgb(255 255 255 / 0.07); box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; position: relative; isolation: isolate; overflow: hidden; }
+.lx-noir.lx-calm .lx-frost:hover { background: #0e0e11; }
+.lx-noir.lx-calm .lx-noir-balance, .lx-noir.lx-calm .lx-noir-hero { background-image: none !important; background-color: #09090b !important; }
+.lx-noir.lx-calm .lx-noir-balance::before, .lx-noir.lx-calm .lx-noir-hero::before { content: ""; position: absolute; z-index: -1; right: -12%; top: -45%; width: 80%; height: 150%; border-radius: 50%; background: radial-gradient(closest-side, rgb(255 255 255 / 0.13), transparent); filter: blur(30px); pointer-events: none; }
+.lx-noir.lx-calm .lx-frost[aria-checked="true"] { border-color: rgb(255 255 255 / 0.7); }
 /* Wallet → Top up, the own-amount slider: a thin track filled up to the thumb (--fill), a round white thumb. */
 .lx-range { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 999px; cursor: pointer; background: linear-gradient(to right, var(--text) var(--fill, 0%), var(--line) var(--fill, 0%)); outline: none; }
 .lx-range::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--text); border: 3px solid var(--bg); box-shadow: 0 0 0 1px var(--line-strong); }
 .lx-range::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--text); border: 3px solid var(--bg); box-shadow: 0 0 0 1px var(--line-strong); }
 .lx-range:focus-visible { box-shadow: 0 0 0 3px rgb(255 255 255 / 0.2); }
+/* Wallet: fewer lights (owner report 2026-11-13, "too many lights"): no page glow behind the cards and no light on the Top up preview; the balance card keeps the one. */
+.lx-noir.lx-calm::after { display: none; }
+.lx-noir.lx-calm .lx-noir-hero::before { display: none; }
+/* Shop tiles as shell cards (owner request 2026-11-13, after the owner's task-card and glass references; the five rank cards keep their gem look): an outer dark shell, an inner panel
+   (radius = shell radius minus the padding) with the item's own colour rising from its bottom edge, the name and price below, and a soft light of the same colour thrown round the shell. */
+.lx-shop-tile.lx-shop-tile { padding: 6px; border-radius: 20px; background: #0d0e12; backdrop-filter: none; -webkit-backdrop-filter: none; border-color: rgb(255 255 255 / 0.07); box-shadow: 0 18px 34px -24px color-mix(in oklch, var(--acc, var(--brand)) 60%, transparent); }
+.lx-shop-tile.lx-shop-tile[aria-pressed="true"], .lx-shop-tile.lx-shop-tile[data-worn="true"] { background: #0d0e12; box-shadow: 0 0 0 1px color-mix(in oklch, var(--brand) 40%, transparent), 0 18px 40px -20px color-mix(in oklch, var(--brand) 70%, transparent); }
+.lx-tile-panel { position: relative; isolation: isolate; overflow: hidden; border-radius: 14px; border: 1px solid rgb(255 255 255 / 0.08); background: #09090c; }
+.lx-tile-panel::after { content: ""; position: absolute; inset: auto 0 0 0; height: 60%; z-index: 0; pointer-events: none; background: radial-gradient(85% 100% at 50% 135%, color-mix(in oklch, var(--acc, var(--brand)) 55%, transparent), transparent 70%); }
+.lx-tile-panel > * { position: relative; z-index: 1; }
+.lx-shop-tile.lx-shop-tile > div:last-child { padding-inline: 10px; padding-top: 6px; }
+/* Frost on the Shop tiles (owner request 2026-11-13, "add frost"): the shell is see-through glass that blurs the light behind it, tinted a little by the item's own colour. */
+.lx-shop-tile.lx-shop-tile { background: linear-gradient(160deg, color-mix(in oklch, var(--acc, var(--brand)) 14%, rgb(255 255 255 / 0.06)), rgb(255 255 255 / 0.03)); backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%); border-color: rgb(255 255 255 / 0.14); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 18px 34px -24px color-mix(in oklch, var(--acc, var(--brand)) 60%, transparent); }
+.lx-shop-tile.lx-shop-tile[aria-pressed="true"], .lx-shop-tile.lx-shop-tile[data-worn="true"] { background: linear-gradient(160deg, color-mix(in oklch, var(--brand) 24%, rgb(255 255 255 / 0.06)), rgb(255 255 255 / 0.03)); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), 0 0 0 1px color-mix(in oklch, var(--brand) 40%, transparent), 0 18px 40px -20px color-mix(in oklch, var(--brand) 70%, transparent); }
+.lx-tile-panel { background: rgb(6 6 10 / 0.55); border-color: rgb(255 255 255 / 0.1); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+/* Shop tiles, neutral frost (owner choice 2026-11-13, "grey-white frost"): the shell is plain grey-white glass; only the glow rising inside the panel carries the item's colour. */
+.lx-shop-tile.lx-shop-tile { background: linear-gradient(160deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.03)); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 14px 28px -22px rgb(0 0 0 / 0.8); }
+.lx-shop-tile.lx-shop-tile[aria-pressed="true"], .lx-shop-tile.lx-shop-tile[data-worn="true"] { background: linear-gradient(160deg, rgb(255 255 255 / 0.1), rgb(255 255 255 / 0.04)); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), 0 0 0 1px color-mix(in oklch, var(--brand) 40%, transparent); }
 /* Shop prices read "700$" (owner request 2026-11-13): inside a price pill the letters FOL$ before the number are hidden and a $ follows it. Pills with a ₮ price (the ranks) have no mark and stay as they are. */
 .lx-shop-price .lx-mark { display: none; }
 .lx-shop-price:has(.lx-mark)::after { content: "$"; margin-left: -4px; }
+/* The light behind a product (owner request 2026-11-13, after the task-card picture): a dome of light rising from the panel's bottom edge, brightest and whitest on the edge itself, fading upward and sideways, the corners staying dark. */
+.lx-tile-panel::after { height: 72%; background:
+  radial-gradient(52% 60% at 50% 112%, color-mix(in oklch, var(--acc, var(--brand)) 40%, #fff) 0%, color-mix(in oklch, var(--acc, var(--brand)) 88%, transparent) 28%, color-mix(in oklch, var(--acc, var(--brand)) 30%, transparent) 55%, transparent 78%); filter: blur(5px); }
+.lx-tile-panel::after { z-index: 2; height: 85%; mix-blend-mode: screen; background:
+  radial-gradient(98% 72% at 50% 118%, color-mix(in oklch, var(--acc, var(--brand)) 35%, #fff) 0%, color-mix(in oklch, var(--acc, var(--brand)) 92%, transparent) 36%, color-mix(in oklch, var(--acc, var(--brand)) 38%, transparent) 64%, transparent 90%); filter: blur(4px); }
+.lx-tile-panel > * { z-index: 1; }
+/* No light behind the product itself (owner request 2026-11-13): the frame ring in a tile keeps its line but not its glow. */
+.lx-tile-panel .lx-shop-ring { box-shadow: none; }
 /* One price format in the Shop (owner request 2026-11-13: "700$"): everywhere inside the Shop a mark in front of a number is hidden and the number is followed by "$". */
 .lx-shop-root span:has(> .lx-mark):not(.lx-shop-price)::after { content: "$"; margin-left: -2px; }
 .lx-shop-root .lx-mark { display: none; }
 /* Tile price as plain bold text (owner idea 2026-11-13, after the FACEIT shop: kind, name and price clearly stacked, no pill on the tile). */
 .lx-shop-tile .lx-shop-price { height: auto; padding: 0; border: 0; background: none; box-shadow: none; font-size: 15px; border-radius: 0; }
+/* The Buy button on a rank card: barely see-through (owner request 2026-11-13, "a little translucent, still noticeable"). */
+.lx-primary-button.lx-rank-buy { background: rgb(255 255 255 / 0.14); border-color: rgb(255 255 255 / 0.28); color: #fff; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18); }
+.lx-primary-button.lx-rank-buy:hover:not(:disabled) { background: rgb(255 255 255 / 0.22); }
+/* Product tiles like the rank cards (owner request 2026-11-13): the picture panel runs to the tile's edges and the name and price sit on a translucent frosted strip. */
+.lx-shop-tile.lx-shop-tile { padding: 0; overflow: hidden; border-radius: 20px; }
+.lx-shop-tile.lx-shop-tile .lx-tile-panel { border-radius: 0; border-width: 0 0 1px; }
+.lx-shop-tile.lx-shop-tile > div:last-child { background: rgb(255 255 255 / 0.07); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 10px 12px 12px; margin-top: -1px; }
+/* No light under the product picture (owner request 2026-11-13). */
+.lx-tile-panel::after { display: none; }
 /* Shop section headings (Ranks, Featured, All items, ...) stand out (owner request 2026-11-13): larger, white, sentence case, the violet bar replaced by a hairline running to the right. */
 .lx-shop-heading { font-size: 18px; font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--text); gap: 14px; }
 .lx-shop-heading::before { display: none; }
 .lx-shop-heading::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, rgb(255 255 255 / 0.16), transparent); }
+/* Profile in the calm look (owner request 2026-11-13): solid near-black cards with a hairline and bigger corners, no light sweep, roomier inside. */
+.lx-profile-calm .lx-pcard, .lx-profile-calm .lx-glass { background: #0b0b0d; border-color: rgb(255 255 255 / 0.08); border-radius: 24px; box-shadow: none; }
+.lx-profile-calm .lx-pcard::after, .lx-profile-calm .lx-glass::after { display: none !important; }
+/* Play in the calm look (owner request 2026-11-13): big corners, rows that breathe, a see-through Connect button. */
+.lx-play-panel { background: #0b0b0d; border-color: rgb(255 255 255 / 0.08); }
+.lx-play-connect { background: rgb(255 255 255 / 0.14) !important; border-color: rgb(255 255 255 / 0.28) !important; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18); backdrop-filter: blur(6px); }
+.lx-play-connect:hover:not(:disabled) { background: rgb(255 255 255 / 0.22) !important; }
+
 
 /* ---- Cursor effects (owner request 2026-11-13, "holo card, tile, bento and the others"; `lib/cursor-fx.ts`, `components/fx-ring.tsx`) ---- */
 .lx-fx-ring, .lx-fx-spot { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity 250ms var(--ease-out); }
@@ -2310,13 +2541,20 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
 .lx-fx-ring { z-index: 4; padding: 1px; background: radial-gradient(170px circle at var(--x, 50%) var(--y, 50%), var(--fx, rgb(167 139 250 / 0.95)), transparent 62%);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
 [data-hot] > .lx-fx-ring, [data-hot] > .lx-fx-spot { opacity: 1; }
-/* Wallet's action icons: a plain tile, the icon in the action's colour (one card system, 2026-11-13; the coloured glass plates were removed). */
-.lx-glass-icon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 10px; background: var(--raised); border: 1px solid var(--line); }
-.lx-glass-icon > svg { color: var(--c1, var(--text)); }
-@media (prefers-reduced-motion: reduce) { .lx-fx-ring, .lx-fx-spot { transition: none; } }
+/* The glass icon: a coloured plate behind a frosted one (Wallet's actions). */
+.lx-glass-icon { position: relative; display: grid; place-items: center; width: 38px; height: 38px; }
+.lx-glass-icon::before { content: ""; position: absolute; inset: 0; border-radius: 12px; background: linear-gradient(135deg, var(--c1), var(--c2)); transform: rotate(14deg) translate(4px, -3px); transition: transform 250ms var(--ease-out); } /* palette-exempt: icon plates in the status colours */
+.lx-glass-icon::after { content: ""; position: absolute; inset: 0; border-radius: 12px; background: rgb(255 255 255 / 0.12); border: 1px solid rgb(255 255 255 / 0.22); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3); }
+.lx-glass-icon > svg { position: relative; z-index: 1; color: #fff; }
+button:hover > .lx-glass-icon::before, button:focus-visible > .lx-glass-icon::before { transform: rotate(22deg) translate(7px, -5px); }
+@media (prefers-reduced-motion: reduce) { .lx-fx-ring, .lx-fx-spot { transition: none; } .lx-glass-icon::before { transition: none; } }
 
 
 /* ---- onetake.ru-inspired details (owner request 2026-11-13, "keep the sidebar, do the others") ---- */
+/* One big soft violet light along the bottom of the window, behind the page; the shell and the cards stay transparent over it. */
+body::after { content: ""; position: fixed; left: 0; right: 0; bottom: 0; height: 46vh; z-index: -1; pointer-events: none;
+  background: radial-gradient(75% 100% at 50% 100%, rgb(109 61 196 / 0.34), rgb(109 61 196 / 0.1) 45%, transparent 72%); } /* palette-exempt: the brand violet, deeper */
+@media print { body::after { display: none; } }
 /* Fields with the counter inside them, and a radio group (the Create clan form). */
 .lx-field { position: relative; }
 .lx-field input { width: 100%; height: 46px; border-radius: 14px; border: 0; background: rgb(255 255 255 / 0.07); padding: 0 56px 0 16px; font-size: 14px; color: var(--text); }
@@ -2327,47 +2565,3 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
 .lx-radio > i { flex: none; width: 22px; height: 22px; border-radius: 999px; background: rgb(255 255 255 / 0.07); border: 1px solid rgb(255 255 255 / 0.12); display: grid; place-items: center; transition: background-color 150ms var(--ease-out); }
 .lx-radio[aria-checked="true"] > i { background: color-mix(in srgb, var(--brand) 28%, transparent); border-color: color-mix(in srgb, var(--brand) 55%, transparent); }
 .lx-radio[aria-checked="true"] > i::after { content: ""; width: 10px; height: 10px; border-radius: 999px; background: var(--brand-bright); }
-
-
-/* ==== One card system (owner request 2026-11-13, "fix everything" after the design audit: too many kinds of card, too much violet, too many effects, flat) ====
-   Every card on the website is the same object: a solid near-black fill, one hairline, a 14px corner, no shadow, no blur, no light. A card that reacts to the
-   pointer only brightens its hairline; nothing lifts, glows, sweeps or turns violet. Colour stays for meaning (status, rank emblems, the picked item). */
-:root { --glass-fill: #0f0f11; --glass-line: rgb(255 255 255 / 0.07); --card-radius: 14px; }
-:is(.lx-glass, .glass, .lx-pcard, .lx-people-card, .lx-team-card, .lx-play-panel, .lx-shop-tile, .lx-shop-glass, .lx-frost, .lx-ring-card) {
-  background: var(--glass-fill);
-  border: 1px solid var(--glass-line);
-  border-radius: var(--card-radius);
-  box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-:is(a, button, li, article, [role="button"]):is(.lx-glass, .glass, .lx-pcard, .lx-people-card, .lx-team-card, .lx-shop-tile, .lx-frost, .lx-fx-card):hover,
-.lx-fx-card:hover { border-color: rgb(255 255 255 / 0.14); transform: none; }
-.lx-frost[aria-checked="true"], .lx-frost[aria-pressed="true"] { border-color: var(--text-2); }
-.lx-team-inner { border-radius: calc(var(--card-radius) - 1px); }
-/* A nested box inside a card (a stat cell, a row group): one step lighter, the card's radius minus its padding. */
-.lx-nested { background: var(--raised); border: 1px solid var(--line-soft); border-radius: 10px; }
-/* Section headings everywhere: the same clear white heading with a hairline running right (was the Shop's alone). */
-.lx-section-title { display: flex; align-items: center; gap: 14px; font-size: 18px; font-weight: 700; color: var(--text); }
-.lx-section-title::after { content: ""; flex: 1; height: 1px; background: var(--line-soft); }
-.lx-glass.rounded-full { border-radius: 999px; }
-/* The staff-site kind colours (.lx-tone) stay on the staff site; on the website a toned card is an ordinary card (only its icon keeps the tone). */
-html:not(.adm) .lx-tone { background-image: none; }
-html:not(.adm) .lx-tone::before { display: none; }
-html:not(.adm) .lx-tone:hover { border-color: var(--line-strong); }
-
-/* ==== Variety inside the one card system (owner feedback 2026-11-13, "UI monotony") ====
-   Three tiers instead of one flat box everywhere, each carried by meaning, not decoration:
-   - .lx-feature: the one card a page leads with (rank, the #1 leader). One step lighter, a faint top highlight, and, when it has a colour of its own
-     (--tint: a rank tier colour), a soft wash of it from the top left and a hairline in it. Never violet for its own sake.
-   - the plain card (.lx-glass and friends) for everything else;
-   - .lx-nested for boxes inside a card. */
-:is(.lx-glass, .lx-pcard).lx-feature, .lx-feature {
-  background:
-    radial-gradient(110% 130% at 0% 0%, color-mix(in oklch, var(--tint, transparent) 14%, transparent), transparent 62%),
-    #141417;
-  border-color: color-mix(in oklch, var(--tint, rgb(255 255 255)) 22%, rgb(255 255 255 / 0.08));
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05);
-}
-/* A stat's small icon tile and the big number. */
-.lx-stat-icon { display: grid; place-items: center; width: 26px; height: 26px; flex-shrink: 0; border-radius: 8px; background: var(--raised); color: var(--text-2); }

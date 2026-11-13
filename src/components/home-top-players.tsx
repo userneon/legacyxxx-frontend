@@ -17,7 +17,8 @@ import { RankMedal } from "@/components/home-bento"
 function SectionHeader({ title, subtitle, action, onAction }: { title: string; subtitle?: string; action?: string; onAction?: () => void }) {
   return (
     <div className="mb-3 flex items-center justify-between gap-3">
-      <h2 className="flex items-baseline gap-2 text-[18px] font-bold">
+      <h2 className="flex items-center gap-2 text-sm font-semibold">
+        <span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--text-faint)]" />
         {title}
         {subtitle && <span className="text-xs font-normal text-[var(--text-dim)]">{subtitle}</span>}
       </h2>

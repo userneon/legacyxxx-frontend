@@ -117,7 +117,7 @@ export function ShopTopUp() {
 
   return (
     <div className="mx-auto flex w-full max-w-[920px] flex-col gap-6 pb-24 lg:pb-6">
-      <section aria-label="Preview" className="lx-glass relative overflow-hidden rounded-2xl border border-[var(--glass-line)] bg-[var(--card-surface)]">
+      <section aria-label="Preview" className="lx-glass lx-noir-hero relative overflow-hidden rounded-2xl border border-[var(--glass-line)] bg-[var(--card-surface)]">
         <div className="relative grid items-center gap-6 p-5 sm:p-6">
           <div className="flex min-w-0 flex-col gap-5">
             <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">

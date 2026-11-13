@@ -56,7 +56,7 @@ export function Segmented<T extends string>({
       {thumb && (
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute left-0 top-[3px] bottom-[3px] rounded-lg bg-[var(--line)] transition-[transform,width] duration-200 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none"
+          className="pointer-events-none absolute left-0 top-[3px] bottom-[3px] rounded-[7px] bg-[var(--line)] transition-[transform,width] duration-200 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none"
           style={{ transform: `translateX(${thumb.x}px)`, width: thumb.width }}
         />
       )}
@@ -75,7 +75,7 @@ export function Segmented<T extends string>({
             disabled={option.disabled}
             onClick={() => onChange(option.value)}
             className={cn(
-              "relative z-[1] inline-flex items-center gap-1.5 rounded-lg font-medium transition-colors duration-150",
+              "relative z-[1] inline-flex items-center gap-1.5 rounded-[7px] font-medium transition-colors duration-150",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 disabled:opacity-50",
               size === "sm" ? "h-7 px-3 text-xs" : "h-[30px] px-3 text-[13px]",
               active ? "text-[var(--text)]" : "text-[var(--text-muted)] hover:text-[var(--text)]",

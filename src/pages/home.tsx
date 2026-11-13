@@ -52,7 +52,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
   }
 
   return (
-    <div className="@container flex flex-1 flex-col p-4 @2xl:p-6">
+    <div className="lx-glass-page lx-calm @container flex flex-1 flex-col p-4 @2xl:p-6">
       {greeting && <div className="mb-3"><span className="lx-event-greeting">{greeting}</span></div>}
       <div className="lx-bento grid flex-1 grid-cols-1 gap-3 @4xl:grid-cols-12 @4xl:[grid-template-rows:minmax(auto,1fr)_auto_minmax(auto,1fr)]">
         <HeroSlider className="@4xl:col-span-8" />

@@ -94,7 +94,7 @@ function Section({ id, title, description, aside, children, index = 0 }: { id: S
 function ConnectionRow({ icon, title, description, action }: { icon: React.ReactNode; title: string; description: React.ReactNode; action: React.ReactNode }) {
   return (
     <div className="lx-layer flex items-center gap-3.5 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] px-3.5 py-3 transition-[border-color,translate,box-shadow] duration-500 hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:duration-300">
-      <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[var(--line-soft)] text-[var(--text)]">{icon}</span>
+      <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-[9px] bg-[var(--line-soft)] text-[var(--text)]">{icon}</span>
       <span className="flex min-w-0 flex-1 flex-col gap-[5px]">
         <span className="text-sm font-medium text-[var(--text)]">{title}</span>
         <span className="truncate text-xs text-[var(--text-dim)]">{description}</span>
@@ -394,7 +394,7 @@ export function AccountSettings() {
     <div className="flex flex-col gap-4">
       <Section id="connections" title="Connections" description="Accounts linked to your profile.">
         <ConnectionRow
-          icon={user?.avatar ? <PlayerAvatar avatar={user.avatar} name={user.username} className="size-9 rounded-lg text-xs" /> : <SteamIcon className="size-[18px]" />}
+          icon={user?.avatar ? <PlayerAvatar avatar={user.avatar} name={user.username} className="size-9 rounded-[9px] text-xs" /> : <SteamIcon className="size-[18px]" />}
           title="Steam"
           description={user ? `${user.username} · ${user.steamId}` : "—"}
           action={<span className="inline-flex shrink-0 items-center gap-[5px] text-xs font-medium text-[var(--status-green)]"><CircleCheck className="size-3.5" />Connected</span>}

@@ -71,7 +71,7 @@ function TopCard({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen:
         {podiumFrame ? (
           <span className={cn("shrink-0", "")}><FramedAvatar avatar={entry.avatar || undefined} name={entry.name} frame={podiumFrame} size={by === "boosts" ? (first ? 78 : 68) : first ? 56 : 48} /></span>
         ) : (
-          <PlayerAvatar avatar={entry.avatar || undefined} name={entry.name} className={cn("shrink-0 text-base", first ? "size-[60px] rounded-2xl ring-2 ring-[var(--boost)]/70 ring-offset-2 ring-offset-[var(--card-surface)]" : "size-[52px] rounded-2xl")} />
+          <PlayerAvatar avatar={entry.avatar || undefined} name={entry.name} className={cn("shrink-0 text-base", first ? "size-[60px] rounded-[15px] ring-2 ring-[var(--boost)]/70 ring-offset-2 ring-offset-[var(--card-surface)]" : "size-[52px] rounded-[13px]")} />
         )}
         <Who entry={entry} big={first} />
       </span>
@@ -91,15 +91,15 @@ function TopCard({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen:
 
 function Row({ entry, by, onOpen, you }: { entry: CommunityEntry; by: By; onOpen: () => void; you?: boolean }) {
   return (
-    <div className={cn(GRID, "lx-boost-row lx-layer group relative w-full overflow-hidden text-left transition-colors", you ? "h-[60px] shrink-0 border-t border-[var(--line-strong)] bg-[var(--raised)]" : "h-14 border-b border-[var(--raised)]", entry.boosting && "lx-boost-row-on")} aria-label={you ? "Your position" : undefined}>
+    <div className={cn(GRID, "lx-boost-row lx-layer group relative w-full overflow-hidden text-left transition-colors", you ? "h-[60px] shrink-0 border-t border-[var(--brand)]/40 bg-[linear-gradient(90deg,color-mix(in_oklab,var(--brand)_16%,var(--card-surface)),var(--card-surface)_45%)]" : "h-14 border-b border-[var(--raised)]", entry.boosting && "lx-boost-row-on")} aria-label={you ? "Your position" : undefined}>
       {entry.boosting && <span aria-hidden="true" className="lx-boost-star left-[78px] top-[10px]" style={{ animationDelay: "0.4s", width: 8, height: 8 }} />}
       {entry.boosting && <span aria-hidden="true" className="lx-boost-star left-[228px] top-[38px]" style={{ animationDelay: "1.6s", width: 7, height: 7 }} />}
-      <span className={cn("text-sm font-semibold", you ? "text-[var(--text)]" : "text-[var(--text-muted)] group-hover:text-[var(--text)]")}>{entry.position}</span>
+      <span className={cn("text-sm font-semibold", you ? "text-[var(--brand-bright)]" : "text-[var(--text-muted)] group-hover:text-[var(--text)]")}>{entry.position}</span>
       <span className="flex min-w-0 items-center gap-3">
         {entry.boosts > 0 && entry.boosting ? (
           <FramedAvatar avatar={entry.avatar || undefined} name={entry.name} frame="server-booster" size={32} />
         ) : (
-          <PlayerAvatar avatar={entry.avatar || undefined} name={entry.name} className="size-8 shrink-0 rounded-lg text-[10px]" />
+          <PlayerAvatar avatar={entry.avatar || undefined} name={entry.name} className="size-8 shrink-0 rounded-[9px] text-[10px]" />
         )}
         <span className="flex min-w-0 items-baseline gap-2">
           <span className={cn("min-w-0 truncate text-[13px] font-medium text-[var(--text)]", entry.boosting && "lx-boost-name")} title={entry.name}>{you ? "You" : entry.name}</span>
@@ -153,11 +153,11 @@ export function BoosterLadder({ search, onProfileNavigate }: { search: string; o
       <div className={cn(GRID, "sticky top-0 z-[2] h-10 border-y border-[var(--line-soft)] bg-[var(--panel)] text-xs font-medium text-[var(--text-dim)]")}>
         <span>#</span>
         <span>Member</span>
-        <span className={cn("text-right max-md:hidden", by === "boosts" && "text-[var(--text)]")}>Boosts</span>
+        <span className={cn("text-right max-md:hidden", by === "boosts" && "text-[var(--brand-bright)]")}>Boosts</span>
         <span className="text-right max-lg:hidden">Boosting since</span>
-        <span className={cn("text-right max-md:hidden", by === "invites" && "text-[var(--text)]")}>Invites</span>
+        <span className={cn("text-right max-md:hidden", by === "invites" && "text-[var(--brand-bright)]")}>Invites</span>
         <span className="max-md:hidden" aria-hidden="true" />
-        <span className="text-right text-[var(--text)] md:hidden">{by === "boosts" ? "Boosts" : "Invites"}</span>
+        <span className="text-right text-[var(--brand-bright)] md:hidden">{by === "boosts" ? "Boosts" : "Invites"}</span>
       </div>
 
       {firstLoad ? (
