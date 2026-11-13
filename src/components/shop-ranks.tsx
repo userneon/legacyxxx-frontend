@@ -150,7 +150,7 @@ export function ShopRanks({ catalogue, qa = false }: { catalogue: PerkCatalogue;
         </section>
       )}
 
-      <ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 scrollbar-hidden md:mx-0 md:grid md:snap-none md:grid-cols-[repeat(auto-fill,minmax(240px,1fr))] md:overflow-visible md:px-0 [&>li]:w-[min(86vw,330px)] [&>li]:shrink-0 [&>li]:snap-start md:[&>li]:w-auto">
+      <div className="@container"><ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 scrollbar-hidden [&>li]:w-[min(72vw,210px)] [&>li]:shrink-0 [&>li]:snap-start @[860px]:mx-0 @[860px]:grid @[860px]:snap-none @[860px]:grid-cols-5 @[860px]:overflow-visible @[860px]:px-0 @[860px]:[&>li]:w-auto">
         {catalogue.tiers.map((tier) => {
           const days = daysOf(tier)
           const price = tier.prices[String(days)]
@@ -164,25 +164,25 @@ export function ShopRanks({ catalogue, qa = false }: { catalogue: PerkCatalogue;
             "Renew before it ends and pick your commands again",
           ]
           return (
-            <li key={tier.key} className="flex min-w-0 flex-col gap-2">
+            <li key={tier.key} className="@container flex min-w-0 flex-col gap-2">
               {/* The gem card: the art fills it, the text sits on its empty lower panel. */}
               <div className={cn("relative isolate overflow-hidden rounded-[26px]", mineHere && "ring-2 ring-[var(--brand)]")} style={{ aspectRatio: "388 / 698" }}>
                 {TIER_ART[tier.key] && <img src={TIER_ART[tier.key]} alt="" aria-hidden="true" loading="lazy" draggable={false} className="absolute inset-0 size-full object-cover" />}
-                <div className="absolute inset-x-0 bottom-0 flex h-[37%] flex-col justify-center gap-2.5 px-[7%] pb-[3%]">
+                <div className="absolute inset-x-0 bottom-0 flex h-[37%] flex-col justify-center gap-[clamp(5px,3cqw,10px)] px-[7%] pb-[3%]">
                   <div>
-                    <h3 className="text-[26px] font-bold leading-none text-white">{tier.name}</h3>
-                    <p className="mt-1.5 text-[13px] text-white/75">{tier.quota} {tier.quota === 1 ? "command" : "commands"} of your choice</p>
+                    <h3 className="text-[clamp(15px,9cqw,26px)] font-bold leading-none text-white">{tier.name}</h3>
+                    <p className="mt-1 text-[clamp(10px,5.4cqw,13px)] leading-tight text-white/75">{tier.quota} {tier.quota === 1 ? "command" : "commands"} of your choice</p>
                   </div>
-                  <ChoiceSelect<PerkDays> ariaLabel={`How long, ${tier.name}`} value={days} onChange={(next) => setLengths((current) => ({ ...current, [tier.key]: next }))} options={catalogue.days.filter((value) => tier.prices[String(value)]).map((value) => ({ value, label: `${value} days`, hint: mnt(tier.prices[String(value)] as number) }))} />
+                  <ChoiceSelect<PerkDays> className="@max-[230px]:h-7 @max-[230px]:text-[12px]" ariaLabel={`How long, ${tier.name}`} value={days} onChange={(next) => setLengths((current) => ({ ...current, [tier.key]: next }))} options={catalogue.days.filter((value) => tier.prices[String(value)]).map((value) => ({ value, label: `${value} days`, hint: mnt(tier.prices[String(value)] as number) }))} />
                   <div className="flex items-center justify-between gap-2">
                     <span className="lx-shop-price">{price ? mnt(price) : "Not for sale"}</span>
-                    <button type="button" disabled={(!qa && (!price || !catalogue.available)) || busy !== null || (otherRunning && !qa)} onClick={() => void (qa ? getFree(tier.key) : buy(tier.key, days))} className="lx-primary-button inline-flex h-8 items-center justify-center rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50">{busy === tier.key ? "Opening…" : qa ? (mineHere ? "Picks" : "Get free") : mineHere ? "Renew" : "Buy"}</button>
+                    <button type="button" disabled={(!qa && (!price || !catalogue.available)) || busy !== null || (otherRunning && !qa)} onClick={() => void (qa ? getFree(tier.key) : buy(tier.key, days))} className="lx-primary-button inline-flex h-8 items-center justify-center rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50 @max-[230px]:h-7 @max-[230px]:px-3 @max-[230px]:text-[12px]">{busy === tier.key ? "Opening…" : qa ? (mineHere ? "Picks" : "Get free") : mineHere ? "Renew" : "Buy"}</button>
                   </div>
                   {otherRunning && !qa && <span className="text-[11px] text-white/65">Another rank is running. It must end first.</span>}
                 </div>
               </div>
               <details open={benefitsOpen} onToggle={(event) => setBenefitsOpen(event.currentTarget.open)} className="group lx-shop-glass rounded-xl border border-[var(--glass-line)] px-3 py-2 text-[12px] text-[var(--text-muted)]">
-                <summary className="flex cursor-pointer list-none items-center justify-between text-[var(--text-2)] [&::-webkit-details-marker]:hidden">Benefits and how it looks<ChevronDown className="size-3.5 transition-transform group-open:rotate-180" aria-hidden="true" /></summary>
+                <summary className="flex cursor-pointer list-none items-center justify-between text-[var(--text-2)] [&::-webkit-details-marker]:hidden"><span className="@max-[230px]:hidden">Benefits and how it looks</span><span className="hidden @max-[230px]:inline">Benefits</span><ChevronDown className="size-3.5 transition-transform group-open:rotate-180" aria-hidden="true" /></summary>
                 <div className="mt-2">
                   {/* What the rank puts on a profile: its banner, badge and title, shown on a sample name. */}
                   <div aria-label={`${tier.name} on a profile`} className="relative isolate h-[72px] overflow-hidden rounded-lg border border-[var(--line-soft)]">
@@ -201,7 +201,7 @@ export function ShopRanks({ catalogue, qa = false }: { catalogue: PerkCatalogue;
             </li>
           )
         })}
-      </ul>
+      </ul></div>
       {!catalogue.available && <p className="text-[12px] text-[var(--text-dim)]">Payment is not set up yet.</p>}
 
       <details className="text-[13px] text-[var(--text-muted)]">
