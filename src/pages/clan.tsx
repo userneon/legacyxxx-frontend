@@ -659,6 +659,7 @@ function CreateClanForm({ onCreated }: { onCreated: (clan: ClanDetail) => void }
   const [maxPlayers, setMaxPlayers] = useState(10)
   const [files, setFiles] = useState<Partial<Record<ClanArtKind, { file: File; url: string }>>>({})
   const [submitting, setSubmitting] = useState(false)
+  const [artProblem, setArtProblem] = useState("")
   const [error, setError] = useState("")
   const valid = name.trim().length >= 3 && /^[A-Za-z0-9]{2,5}$/.test(tag) && maxPlayers >= 2 && maxPlayers <= 50
 
@@ -685,12 +686,29 @@ function CreateClanForm({ onCreated }: { onCreated: (clan: ClanDetail) => void }
 
   return (
     <form className="mt-2 flex flex-col gap-4" onSubmit={(event) => void submit(event)}>
-      {/* A live preview of the card: the name and tag as typed, the member count, the way in. */}
-      <div aria-hidden="true" className="relative isolate flex h-[132px] flex-col justify-end gap-1.5 overflow-hidden rounded-[20px] border border-white/10 p-4" style={{ background: "radial-gradient(1.2px 1.2px at 8px 8px, rgb(255 255 255 / 0.12), transparent) 0 0 / 16px 16px" }}>
-        <Swords className="absolute right-6 top-3 -z-10 size-[104px] text-[var(--brand)] opacity-70" strokeWidth={1.6} />
+      {/* A live preview of the card: the name and tag as typed, the member count, the way in. The logo tile and "Add a banner" upload right here. */}
+      <div className="relative isolate flex h-[190px] flex-col justify-end gap-1.5 overflow-hidden rounded-[20px] border border-white/10 p-4" style={{ background: "radial-gradient(1.2px 1.2px at 8px 8px, rgb(255 255 255 / 0.12), transparent) 0 0 / 16px 16px" }}>
+        {files.banner ? <img src={files.banner.url} alt="" className="absolute inset-0 -z-20 size-full object-cover" /> : <Swords aria-hidden="true" className="absolute right-6 top-12 -z-10 size-[104px] text-[var(--brand)] opacity-70" strokeWidth={1.6} />}
+        {files.banner && <span aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-[#1b1b1d] via-[#1b1b1d]/50 to-transparent" />}
+        <button type="button" onClick={() => document.getElementById("clan-art-banner")?.click()} className="absolute right-4 top-3 text-[12px] font-semibold text-[var(--text-2)] hover:text-[var(--text)]">{files.banner ? "Change banner" : "Add a banner"}</button>
+        {files.banner && <button type="button" aria-label="Remove banner" onClick={() => setFiles((current) => ({ ...current, banner: undefined }))} className="absolute right-4 top-9 text-[11px] text-[var(--text-dim)] hover:text-[var(--text)]">Remove</button>}
+        <button type="button" onClick={() => document.getElementById("clan-art-logo")?.click()} aria-label={files.logo ? "Change avatar" : "Add an avatar"} className="absolute left-4 top-4 grid size-[76px] place-items-center overflow-hidden rounded-[18px] border border-white/10 bg-[#0e0e0f] text-center text-[12px] font-bold hover:border-white/25">
+          {files.logo ? <img src={files.logo.url} alt="" className="size-full object-cover" /> : <><Swords aria-hidden="true" className="absolute size-9 text-[var(--brand)] opacity-60" strokeWidth={1.6} /><span className="relative px-1 leading-tight">Add an avatar</span></>}
+        </button>
         <span className="flex items-center gap-2"><b className="truncate text-[24px] leading-none">{name.trim() || "Name"}</b><span className="rounded-full border border-white/25 px-2 py-0.5 text-[10px] font-semibold text-[var(--text-2)]">{tag || "TAG"}</span></span>
         <span className="flex items-center gap-3 text-[13px] text-[var(--text-2)]"><span className="inline-flex items-center gap-1.5"><Users className="size-3.5" />1/{maxPlayers || 0}</span><span>{joinMode === "open" ? "Open" : "By request"}</span></span>
+        {(["logo", "banner"] as const).map((kind) => (
+          <input key={kind} id={`clan-art-${kind}`} type="file" accept={CLAN_ART_RULES[kind].types.join(",")} className="hidden" onChange={(event) => {
+            const file = event.target.files?.[0]
+            event.target.value = ""
+            if (!file) return
+            const issue = clanArtProblem(kind, file)
+            setArtProblem(issue ?? "")
+            if (!issue) setFiles((current) => ({ ...current, [kind]: { file, url: URL.createObjectURL(file) } }))
+          }} />
+        ))}
       </div>
+      {artProblem && <p role="alert" className="-mt-2 text-[13px] text-[var(--status-red)]">{artProblem}</p>}
       <div className="grid gap-3 sm:grid-cols-[1.4fr_1fr]">
         <label className="flex flex-col gap-1.5"><span className="text-[13px] font-semibold">Clan name <span className="text-[var(--status-red)]">*</span></span>
           <span className="lx-field"><input id="clan-name" placeholder="Enter the clan name" minLength={3} maxLength={24} required value={name} onChange={(event) => setName(event.target.value)} /><span className="lx-count">{name.length}/24</span></span></label>
@@ -707,9 +725,6 @@ function CreateClanForm({ onCreated }: { onCreated: (clan: ClanDetail) => void }
       </fieldset>
       <label className="flex flex-col gap-1.5"><span className="text-[13px] font-semibold">Max players</span>
         <span className="lx-field"><input id="clan-max" type="number" min={2} max={50} value={maxPlayers} onChange={(event) => setMaxPlayers(Math.max(0, Math.min(50, Math.floor(Number(event.target.value) || 0))))} /><span className="lx-count">2-50</span></span></label>
-      {(["logo", "banner"] as const).map((kind) => (
-        <ArtSlot key={kind} kind={kind} preview={files[kind]?.url ?? null} onPick={(file) => setFiles((current) => ({ ...current, [kind]: { file, url: URL.createObjectURL(file) } }))} onRemove={() => setFiles((current) => ({ ...current, [kind]: undefined }))} />
-      ))}
       {error && <p role="alert" className="text-[13px] text-[var(--status-red)]">{error}</p>}
       <button type="submit" disabled={!valid || submitting} className="lx-primary-button inline-flex h-[46px] w-full items-center justify-center gap-2 rounded-[14px] text-[14px] font-bold disabled:opacity-50">
         <Coins className="size-4" aria-hidden="true" />
