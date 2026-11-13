@@ -21,6 +21,8 @@ import { cn } from "@/lib/utils"
 
 const mnt = (value: number) => `${value.toLocaleString()}₮`
 /** The owner-supplied card art of each tier (owner request 2026-11-13, "make the Shop like this"): a gem on a pedestal over a dark rounded panel left empty for the card's text. Copper Prime, steel Prestige, violet Imperial, gold Eternal, diamond Sovereign. */
+/** Each tier's own glow behind its gem (the metals and stones of the art: copper, steel, amethyst, gold, diamond). */
+const TIER_GLOW: Record<string, string> = { tier4: "#b86b45", tier1: "#9aa6b6", tier2: "#8b5cf6", tier3: "#d4a843", tier5: "#8fb4e8" } // palette-exempt
 const TIER_ART: Record<string, string> = { tier1: prestige, tier2: imperial, tier3: eternal, tier4: prime, tier5: sovereign }
 const MODE_LABEL: Record<string, string> = { fun: "Fun servers", pro: "Pro League servers", "5x5": "5x5 servers" }
 const secondary = "inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3.5 text-[13px] text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] disabled:opacity-50"
@@ -166,29 +168,27 @@ export function ShopRanks({ catalogue, qa = false }: { catalogue: PerkCatalogue;
           return (
             <li key={tier.key} className="@container flex min-w-0 flex-col gap-2">
               {/* One card: the gem art with its text, length, price and Buy on its lower panel, and Benefits as the card's own bottom section (owner request 2026-11-13: everything inside the card). */}
-              <div className={cn("flex flex-1 flex-col overflow-hidden rounded-[26px] border border-white/10", mineHere && "ring-2 ring-[var(--brand)]")}>
-              {/* The art is cut at the lower panel and the panel is stretched (owner request 2026-11-13): the top 88% of the picture is drawn as it is, then a thin strip of the empty panel is stretched to the extra height, so the text has room. */}
-              <div className="relative isolate overflow-hidden" style={{ height: "178.3cqw" }}>
+              <div className={cn("flex flex-1 flex-col overflow-hidden rounded-[22px] border border-white/10", mineHere && "ring-2 ring-[var(--brand)]")} style={{ background: `linear-gradient(180deg, color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} 20%, #0d0d0f), #0d0d0f 78%)` }}>
+              {/* Only the gem and its pedestal are taken from the art, small, on the tier's own glow; the edges of the picture fade out so no frame or panel of the art shows (owner request 2026-11-13: smaller, cleaner). */}
+              <div aria-hidden="true" className="relative isolate overflow-hidden" style={{ height: "64cqw" }}>
+                <div className="absolute inset-0" style={{ background: `radial-gradient(60% 55% at 50% 52%, color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} 38%, transparent), transparent 75%)` }} />
                 {TIER_ART[tier.key] && (
-                  <>
-                    <div aria-hidden="true" className="absolute inset-x-0 top-0" style={{ height: "158.3cqw", backgroundImage: `url(${TIER_ART[tier.key]})`, backgroundSize: "100% auto", backgroundPosition: "0 -10cqw" }} />
-                    <div aria-hidden="true" className="absolute inset-x-0 bottom-0" style={{ top: "158.3cqw", backgroundImage: `url(${TIER_ART[tier.key]})`, backgroundSize: "100% 1000cqw", backgroundPosition: "0 -880cqw" }} />
-                  </>
+                  <div className="absolute left-1/2 -translate-x-1/2" style={{ width: "58cqw", height: "104cqw", top: "-8cqw", backgroundImage: `url(${TIER_ART[tier.key]})`, backgroundSize: "100% 100%", WebkitMaskImage: "radial-gradient(ellipse 52% 36% at 50% 48%, #000 55%, transparent 100%)", maskImage: "radial-gradient(ellipse 52% 36% at 50% 48%, #000 55%, transparent 100%)" }} />
                 )}
-                <div className="absolute inset-x-0 bottom-4 top-[115cqw] flex flex-col justify-end gap-[clamp(6px,3cqw,10px)] px-[7%] pb-[1%]">
-                  <div>
-                    <h3 className="text-[clamp(16px,10cqw,28px)] font-bold leading-none text-white">{tier.name}</h3>
-                    <p className="mt-1 text-[clamp(11px,6cqw,14px)] font-medium leading-tight text-white/90">{tier.quota} {tier.quota === 1 ? "command" : "commands"} of your choice</p>
-                  </div>
-                  <ChoiceSelect<PerkDays> className="!h-10 !rounded-xl !border-white/25 !bg-white/[0.14] !text-[14px] !font-semibold !text-white [&_svg]:!text-white/80 shadow-[inset_0_1px_0_rgb(255_255_255/0.18)] backdrop-blur-md hover:!bg-white/[0.2] @max-[230px]:!h-9 @max-[230px]:!text-[13px]" ariaLabel={`How long, ${tier.name}`} value={days} onChange={(next) => setLengths((current) => ({ ...current, [tier.key]: next }))} options={catalogue.days.filter((value) => tier.prices[String(value)]).map((value) => ({ value, label: `${value} days`, hint: mnt(tier.prices[String(value)] as number) }))} />
-                  <div className="flex items-stretch gap-1.5">
-                    <span className="grid place-items-center rounded-xl bg-black/40 px-3 text-[clamp(12px,6.4cqw,15px)] font-bold text-[var(--text)] [text-shadow:none]">{price ? mnt(price) : "Not for sale"}</span>
-                    <button type="button" disabled={(!qa && (!price || !catalogue.available)) || busy !== null || (otherRunning && !qa)} onClick={() => void (qa ? getFree(tier.key) : buy(tier.key, days))} className="lx-primary-button lx-rank-buy inline-flex h-11 min-w-0 flex-1 items-center justify-center rounded-xl px-3 text-[15px] font-bold disabled:opacity-50 @max-[230px]:h-9 @max-[230px]:text-[13px]">{busy === tier.key ? "Opening…" : qa ? (mineHere ? "Picks" : "Get free") : mineHere ? "Renew" : "Buy"}</button>
-                  </div>
-                  {otherRunning && !qa && <span className="text-[11px] text-white/65">Another rank is running. It must end first.</span>}
-                </div>
               </div>
-              <div className="group relative -mt-4 flex-1 bg-white/[0.07] px-3 pt-4 backdrop-blur-md text-[12px] text-[var(--text-muted)]" data-open={benefitsOpen}>
+              <div className="flex flex-col gap-2 px-[7%] pb-3 pt-1">
+                <div>
+                  <h3 className="text-[clamp(15px,9cqw,24px)] font-bold leading-none text-white">{tier.name}</h3>
+                  <p className="mt-1 text-[clamp(11px,5.6cqw,13px)] font-medium leading-tight text-white/75">{tier.quota} {tier.quota === 1 ? "command" : "commands"} of your choice</p>
+                </div>
+                <ChoiceSelect<PerkDays> className="!h-9 !rounded-xl !border-white/20 !bg-white/[0.1] !text-[13px] !font-semibold !text-white [&_svg]:!text-white/80 hover:!bg-white/[0.16]" ariaLabel={`How long, ${tier.name}`} value={days} onChange={(next) => setLengths((current) => ({ ...current, [tier.key]: next }))} options={catalogue.days.filter((value) => tier.prices[String(value)]).map((value) => ({ value, label: `${value} days`, hint: mnt(tier.prices[String(value)] as number) }))} />
+                <div className="flex items-stretch gap-1.5">
+                  <span className="grid place-items-center rounded-xl bg-black/40 px-2.5 text-[clamp(12px,6cqw,14px)] font-bold text-[var(--text)]">{price ? mnt(price) : "Not for sale"}</span>
+                  <button type="button" disabled={(!qa && (!price || !catalogue.available)) || busy !== null || (otherRunning && !qa)} onClick={() => void (qa ? getFree(tier.key) : buy(tier.key, days))} className="lx-primary-button lx-rank-buy inline-flex h-9 min-w-0 flex-1 items-center justify-center rounded-xl px-3 text-[14px] font-bold disabled:opacity-50">{busy === tier.key ? "Opening…" : qa ? (mineHere ? "Picks" : "Get free") : mineHere ? "Renew" : "Buy"}</button>
+                </div>
+                {otherRunning && !qa && <span className="text-[11px] text-white/65">Another rank is running. It must end first.</span>}
+              </div>
+              <div className="group relative flex-1 border-t border-white/10 bg-black/20 px-3 text-[12px] text-[var(--text-muted)]" data-open={benefitsOpen}>
                 <button type="button" aria-expanded={benefitsOpen} onClick={() => setBenefitsOpen((open) => !open)} className="flex h-8 w-full cursor-pointer items-center justify-between text-[var(--text-2)]"><span className="@max-[230px]:hidden">Benefits and how it looks</span><span className="hidden @max-[230px]:inline">Benefits</span><ChevronDown className="size-3.5 transition-transform group-data-[open=true]:rotate-180" aria-hidden="true" /></button>
                 <div className="grid transition-[grid-template-rows,opacity] duration-300 ease-out [grid-template-rows:0fr] opacity-0 group-data-[open=true]:[grid-template-rows:1fr] group-data-[open=true]:opacity-100 motion-reduce:transition-none">
                   <div className="min-h-0 overflow-hidden">
