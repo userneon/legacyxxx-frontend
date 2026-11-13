@@ -13,9 +13,10 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
 
 import { Skeleton } from "@/components/ui/skeleton"
 import { offsetOnPlane, pointOnPlane, type SlotFrame } from "@/lib/studio-layout"
+import { wornSticker } from "@/lib/sticker-wear"
 import type { WeaponModelChoice } from "@/lib/weapon-models"
 
-export interface StageSticker { slot: number; imageUrl: string | null; offsetX: number; offsetY: number; scale: number; rotation: number; wear: number }
+export interface StageSticker { slot: number; kit?: number | null; imageUrl: string | null; offsetX: number; offsetY: number; scale: number; rotation: number; wear: number }
 export interface StageCharm { imageUrl: string | null; offsetX: number; offsetY: number; offsetZ: number }
 export type StageSelection = { kind: "sticker"; slot: number } | { kind: "charm" } | null
 
@@ -436,7 +437,7 @@ export default function StudioStage3D({ choice, stickers, charm, selection, labe
       }
       context.loader.load(url, done, undefined, viaProxy)
     }
-    const put = (id: string, pick: Pick, build: () => THREE.BufferGeometry, url: string | null, opacity: number, order: number, wear = 0) => {
+    const put = (id: string, pick: Pick, build: () => THREE.BufferGeometry, url: string | null, opacity: number, order: number, wear = 0, kit: number | null = null) => {
       wanted.add(id)
       let mesh = context.items.get(id)
       if (!mesh) {
@@ -455,7 +456,17 @@ export default function StudioStage3D({ choice, stickers, charm, selection, labe
       const key = url ? `${url}|${wearKey}|${id}` : null
       if (url && material.userData.url !== key) {
         material.userData.url = key
-        texture(url, (plain) => { const loaded = wearKey > 0 ? scratchedTexture(plain, wearKey / 20, order) : plain; if (material.userData.url === key) { if (material.map instanceof THREE.CanvasTexture) material.map.dispose(); material.map = loaded; material.color.set(0xffffff); material.needsUpdate = true } }, () => { material.color.set(0x888888); material.needsUpdate = true })
+        const use = (loaded: THREE.Texture) => { if (material.userData.url !== key) return; if (material.map instanceof THREE.CanvasTexture) material.map.dispose(); material.map = loaded; material.color.set(0xffffff); material.needsUpdate = true }
+        // Not the game's data (or it could not be read): the sticker's own picture, scraped by an approximation.
+        const approximate = () => texture(url, (plain) => use(wearKey > 0 ? scratchedTexture(plain, wearKey / 20, order) : plain), () => { if (material.userData.url === key) { material.color.set(0x888888); material.needsUpdate = true } })
+        if (wearKey > 0 && kit !== null) {
+          void wornSticker(kit, wearKey / 20).then((canvas) => {
+            if (!canvas) { approximate(); return }
+            const worn = new THREE.CanvasTexture(canvas)
+            worn.colorSpace = THREE.SRGBColorSpace
+            use(worn)
+          })
+        } else approximate()
       }
     }
 
@@ -468,7 +479,7 @@ export default function StudioStage3D({ choice, stickers, charm, selection, labe
       // A box laid over the gun's right side, deep enough to catch its surface: the sticker is cut out of the surface inside it.
       const position = new THREE.Vector3(point[0], point[1], slotFrame.position[2] - depth / 2)
       const orientation = new THREE.Euler(0, 0, THREE.MathUtils.degToRad(sticker.rotation))
-      put(`sticker:${sticker.slot}`, { kind: "sticker", slot: sticker.slot }, () => new DecalGeometry(geometry.target, position, orientation, new THREE.Vector3(edge, edge, depth)), sticker.imageUrl, 1 - sticker.wear * 0.2, 5 + sticker.slot, sticker.wear)
+      put(`sticker:${sticker.slot}`, { kind: "sticker", slot: sticker.slot }, () => new DecalGeometry(geometry.target, position, orientation, new THREE.Vector3(edge, edge, depth)), sticker.imageUrl, 1, 5 + sticker.slot, sticker.wear, sticker.kit ?? null)
     }
     if (charm) {
       const edge = size.x * 0.09

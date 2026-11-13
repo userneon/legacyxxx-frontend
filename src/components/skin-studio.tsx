@@ -233,7 +233,7 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
                   label={weapon.display_name}
                   selection={selection}
                   onSelect={selectSlot}
-                  stickers={stickers.map((entry) => ({ slot: entry.slot, imageUrl: imageOf(accessories[entry.catalogItemId]), offsetX: entry.offsetX ?? 0, offsetY: entry.offsetY ?? 0, scale: entry.scale ?? 1, rotation: entry.rotation ?? 0, wear: entry.wear ?? 0 }))}
+                  stickers={stickers.map((entry) => ({ slot: entry.slot, kit: accessories[entry.catalogItemId]?.weapon_defindex ?? null, imageUrl: imageOf(accessories[entry.catalogItemId]), offsetX: entry.offsetX ?? 0, offsetY: entry.offsetY ?? 0, scale: entry.scale ?? 1, rotation: entry.rotation ?? 0, wear: entry.wear ?? 0 }))}
                   charm={charm ? { imageUrl: imageOf(accessories[charm.catalogItemId]), offsetX: charm.offsetX ?? 0, offsetY: charm.offsetY ?? 0, offsetZ: charm.offsetZ ?? 0 } : null}
                   onMove={(pick, offsetX, offsetY) => (pick.kind === "charm" ? setOptions((current) => (current.charm ? { ...current, charm: { ...current.charm, offsetX, offsetY } } : current)) : setSticker(pick.slot, { offsetX, offsetY }))}
                 />
