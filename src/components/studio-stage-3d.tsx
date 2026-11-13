@@ -403,9 +403,11 @@ export default function StudioStage3D({ choice, stickers, charm, selection, labe
 
     const texture = (url: string | null, apply: (texture: THREE.Texture) => void, fail: () => void) => {
       if (!url) return
+      // The same picture is already on the page as a plain <img> (the slot tiles), cached without a CORS answer; a CDN that adds `Access-Control-Allow-Origin` only to requests with an Origin would then fail here. Another address keeps the two apart.
+      const cors = `${url}${url.includes("?") ? "&" : "?"}cors=3d`
       const cached = context.textures.get(url)
       if (cached) apply(cached)
-      else context.loader.load(url, (loaded) => { loaded.colorSpace = THREE.SRGBColorSpace; context.textures.set(url, loaded); apply(loaded) }, undefined, () => { setPictureFailed(true); fail() })
+      else context.loader.load(cors, (loaded) => { loaded.colorSpace = THREE.SRGBColorSpace; context.textures.set(url, loaded); apply(loaded) }, undefined, () => { setPictureFailed(true); fail() })
     }
     const put = (id: string, pick: Pick, build: () => THREE.BufferGeometry, url: string | null, opacity: number, order: number, wear = 0) => {
       wanted.add(id)
