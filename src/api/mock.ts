@@ -1010,9 +1010,11 @@ export async function mockResponse(method: string, path: string, query: Query, b
   }
   // Design preview only: the Shop's ranks (sample names and prices; the real ones come from the API).
   if (path === "/api/v1/public/perks") return { available: true, days: [14, 30, 90], modes: ["fun"], tiers: [
+    { key: "tier4", name: "Prime", quota: 1, prices: { "14": 12000, "30": 20000, "90": 50000 } },
     { key: "tier1", name: "Prestige", quota: 3, prices: { "14": 24000, "30": 40000, "90": 100000 } },
     { key: "tier2", name: "Imperial", quota: 5, prices: { "14": 42000, "30": 70000, "90": 175000 } },
     { key: "tier3", name: "Eternal", quota: 10, prices: { "14": 72000, "30": 120000, "90": 300000 } },
+    { key: "tier5", name: "Sovereign", quota: 15, prices: { "14": 120000, "30": 200000, "90": 500000 } },
   ], pool: ["freeze", "blind", "bury", "drug", "glow", "noclip", "god"].map((name) => ({ name, group: name === "noclip" || name === "god" ? "Cheats" : "Fun", summary: "" })) }
   if (path === "/api/v1/public/events/active") return { event: null }
   if (path === "/api/v1/staff/events") return { today: "2026-11-08", runningId: null, events: [] }

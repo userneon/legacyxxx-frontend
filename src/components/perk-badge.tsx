@@ -2,12 +2,14 @@ import ShinyText from "@/components/reactbits/shiny-text"
 import prestige from "@/assets/ranks/emblem-prestige.webp"
 import imperial from "@/assets/ranks/emblem-imperial.webp"
 import eternal from "@/assets/ranks/emblem-eternal.webp"
+import prime from "@/assets/ranks/emblem-prime.webp"
+import sovereign from "@/assets/ranks/emblem-sovereign.webp"
 
-export const PERK_EMBLEM: Record<string, string> = { tier1: prestige, tier2: imperial, tier3: eternal }
+export const PERK_EMBLEM: Record<string, string> = { tier1: prestige, tier2: imperial, tier3: eternal, tier4: prime, tier5: sovereign }
 
 /**
  * The mark of a paid rank on the profile (owner request 2026-11-07): the tier's emblem (the owner-supplied crown and laurels, transparent) and its name, in the tier's own
- * look: Prestige silver, Imperial violet and gold, Eternal gold and red. Shown only while the rank runs (the API sends `perk` then).
+ * look: Prime copper, Prestige silver, Imperial violet and gold, Eternal gold and red, Sovereign diamond. Shown only while the rank runs (the API sends `perk` then).
  */
 export function PerkBadge({ tier, name }: { tier: string; name: string }) {
   return (
@@ -25,6 +27,8 @@ const SHINE: Record<string, { color: string; shine: string; glow: string }> = {
   tier1: { color: "#a1a1aa", shine: "#ffffff", glow: "#e5e5e5" }, // palette-exempt: Prestige silver
   tier2: { color: "#b69cf7", shine: "#f2cd72", glow: "#8b5cf6" }, // palette-exempt: Imperial violet and gold
   tier3: { color: "#e2b04a", shine: "#ff6b6b", glow: "#dc2626" }, // palette-exempt: Eternal gold and red
+  tier4: { color: "#c98a63", shine: "#f3d2bb", glow: "#b7673c" }, // palette-exempt: Prime copper
+  tier5: { color: "#cfe0f5", shine: "#ffffff", glow: "#8fb4e8" }, // palette-exempt: Sovereign diamond
 }
 
 /**

@@ -2271,6 +2271,14 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
   --perk: #dc2626; /* palette-exempt: Eternal red */
   --perk-edge: #f2cd72; /* palette-exempt: gold */
 }
+.lx-perk-badge[data-tier="tier4"], .lx-profile-perk[data-tier="tier4"] {
+  --perk: #b7673c; /* palette-exempt: Prime copper */
+  --perk-edge: #f0c8a8; /* palette-exempt */
+}
+.lx-perk-badge[data-tier="tier5"], .lx-profile-perk[data-tier="tier5"] {
+  --perk: #8fb4e8; /* palette-exempt: Sovereign diamond */
+  --perk-edge: #f4f9ff; /* palette-exempt */
+}
 .lx-perk-badge {
   border: 1px solid transparent;
   background:
@@ -2329,6 +2337,19 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
   --banner-b: #5a0f0f; /* palette-exempt */
   --banner-line: #f2cd72; /* palette-exempt: gold */
   --banner-glow: #dc2626; /* palette-exempt */
+}
+
+.lx-banner-perk-4 {
+  --banner-a: #1a0d07; /* palette-exempt: Prime copper silk */
+  --banner-b: #5c2f19; /* palette-exempt */
+  --banner-line: #f0c8a8; /* palette-exempt */
+  --banner-glow: #b7673c; /* palette-exempt */
+}
+.lx-banner-perk-5 {
+  --banner-a: #0b1220; /* palette-exempt: Sovereign diamond */
+  --banner-b: #2a3f63; /* palette-exempt */
+  --banner-line: #f4f9ff; /* palette-exempt */
+  --banner-glow: #8fb4e8; /* palette-exempt */
 }
 
 /* A banner behind a list row or card: softer, and fading out to the left so names and numbers stay readable. */

@@ -6,6 +6,8 @@ import { toast } from "sonner"
 import prestige from "@/assets/ranks/gem-prestige.webp"
 import imperial from "@/assets/ranks/gem-imperial.webp"
 import eternal from "@/assets/ranks/gem-eternal.webp"
+import prime from "@/assets/ranks/gem-prime.webp"
+import sovereign from "@/assets/ranks/gem-sovereign.webp"
 import { ChoiceSelect } from "@/components/choice-select"
 import { perksService, type PerkCatalogue, type PerkDays, type PerkGrant, type PerkInvoice, type PerkMine } from "@/api/perks"
 import { PERK_EMBLEM, PerkBadge, PerkTitle } from "@/components/perk-badge"
@@ -18,8 +20,8 @@ import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
 
 const mnt = (value: number) => `${value.toLocaleString()}₮`
-/** The owner-supplied card art of each tier (owner request 2026-11-13, "make the Shop like this"): a gem on a pedestal over a dark rounded panel left empty for the card's text. Steel Prestige, violet Imperial, gold Eternal. */
-const TIER_ART: Record<string, string> = { tier1: prestige, tier2: imperial, tier3: eternal }
+/** The owner-supplied card art of each tier (owner request 2026-11-13, "make the Shop like this"): a gem on a pedestal over a dark rounded panel left empty for the card's text. Copper Prime, steel Prestige, violet Imperial, gold Eternal, diamond Sovereign. */
+const TIER_ART: Record<string, string> = { tier1: prestige, tier2: imperial, tier3: eternal, tier4: prime, tier5: sovereign }
 const MODE_LABEL: Record<string, string> = { fun: "Fun servers", pro: "Pro League servers", "5x5": "5x5 servers" }
 const secondary = "inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3.5 text-[13px] text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] disabled:opacity-50"
 const daysLeft = (iso: string) => Math.max(0, Math.ceil((Date.parse(iso) - Date.now()) / 86_400_000))
@@ -148,14 +150,14 @@ export function ShopRanks({ catalogue, qa = false }: { catalogue: PerkCatalogue;
         </section>
       )}
 
-      <ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 scrollbar-hidden md:mx-0 md:grid md:snap-none md:grid-cols-3 md:overflow-visible md:px-0 [&>li]:w-[min(86vw,330px)] [&>li]:shrink-0 [&>li]:snap-start md:[&>li]:w-auto">
+      <ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 scrollbar-hidden md:mx-0 md:grid md:snap-none md:grid-cols-[repeat(auto-fill,minmax(240px,1fr))] md:overflow-visible md:px-0 [&>li]:w-[min(86vw,330px)] [&>li]:shrink-0 [&>li]:snap-start md:[&>li]:w-auto">
         {catalogue.tiers.map((tier) => {
           const days = daysOf(tier)
           const price = tier.prices[String(days)]
           const mineHere = grant?.tier === tier.key
           const otherRunning = Boolean(grant) && !mineHere
           const benefits = [
-            `${tier.quota} commands you pick yourself, from fun and cheat commands`,
+            `${tier.quota} ${tier.quota === 1 ? "command" : "commands"} you pick yourself, from fun and cheat commands`,
             `Works on ${modes}`,
             "Your emblem and name beside your name in Tab, chat, Leaders and reviews",
             "On your profile: a badge, a banner, the rank as your title and a soft light",
@@ -169,7 +171,7 @@ export function ShopRanks({ catalogue, qa = false }: { catalogue: PerkCatalogue;
                 <div className="absolute inset-x-0 bottom-0 flex h-[37%] flex-col justify-center gap-2.5 px-[7%] pb-[3%]">
                   <div>
                     <h3 className="text-[26px] font-bold leading-none text-white">{tier.name}</h3>
-                    <p className="mt-1.5 text-[13px] text-white/75">{tier.quota} commands of your choice</p>
+                    <p className="mt-1.5 text-[13px] text-white/75">{tier.quota} {tier.quota === 1 ? "command" : "commands"} of your choice</p>
                   </div>
                   <ChoiceSelect<PerkDays> ariaLabel={`How long, ${tier.name}`} value={days} onChange={(next) => setLengths((current) => ({ ...current, [tier.key]: next }))} options={catalogue.days.filter((value) => tier.prices[String(value)]).map((value) => ({ value, label: `${value} days`, hint: mnt(tier.prices[String(value)] as number) }))} />
                   <div className="flex items-center justify-between gap-2">
