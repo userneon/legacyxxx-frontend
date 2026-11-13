@@ -4,7 +4,7 @@ import { ArrowUp, Clock, Flame, Gavel, Gem, Plus, RotateCcw, Send, Trophy, Users
 
 import { walletService, type Wallet, type WalletTransaction } from "@/api"
 import { AnimatedNumber } from "@/components/animated-number"
-import { PageBar, PageTabs } from "@/components/page-tabs"
+import { PageTabs } from "@/components/page-tabs"
 import { RelativeTime } from "@/components/relative-time"
 import { SendLx } from "@/components/send-lx"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -136,16 +136,21 @@ export function WalletPage() {
 
   return (
     <div className="lx-calm lx-noir flex min-h-0 flex-1 flex-col">
-      {!wallet && (
-        <PageBar>
-          <PageTabs<Tab> ariaLabel="Wallet sections" value={tab} onChange={setTab} options={TABS} />
-        </PageBar>
-      )}
       <div className="min-h-0 flex-1 overflow-y-auto px-8 py-7 max-md:px-4">
-        {tab === "topup" && !wallet ? (
-          <ShopTopUp />
-        ) : loading && !wallet ? (
-          <div className="grid gap-5 lg:grid-cols-[440px_minmax(0,1fr)]"><Skeleton className="h-[236px] rounded-2xl" /><Skeleton className="h-[236px] rounded-xl" /></div>
+        {loading && !wallet ? (
+          <div className="grid items-start gap-8 lg:grid-cols-[400px_minmax(0,1fr)]">
+            <div className="flex min-w-0 flex-col gap-4">
+              <Skeleton className="h-[200px] rounded-2xl" />
+              <Skeleton className="h-[72px] rounded-2xl" />
+              <Skeleton className="h-[88px] rounded-2xl" />
+            </div>
+            <div className="flex min-w-0 flex-col gap-4">
+              <div className="border-b border-[var(--glass-line)]">
+                <PageTabs<Tab> ariaLabel="Wallet sections" value={tab} onChange={setTab} options={TABS} />
+              </div>
+              {tab === "topup" ? <ShopTopUp /> : <Skeleton className="h-[236px] rounded-2xl" />}
+            </div>
+          </div>
         ) : error || !wallet ? (
           <p className="flex items-center justify-center gap-3 py-24 text-[13px] text-[var(--text-dim)]">Could not load your wallet.<button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>
         ) : (

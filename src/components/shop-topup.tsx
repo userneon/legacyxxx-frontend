@@ -102,7 +102,7 @@ export function ShopTopUp() {
     if (status === "paid") toast.success("Paid. The FOL$ are in your wallet.")
   }
 
-  if (products.loading) return <div className="mx-auto flex w-full max-w-[920px] flex-col gap-6"><Skeleton className="h-[240px] rounded-2xl" /><Skeleton className="h-[140px] rounded-xl" /></div>
+  if (products.loading) return <div className="mx-auto flex w-full max-w-[920px] flex-col gap-6"><Skeleton className="h-[190px] rounded-2xl" /><div className="grid grid-cols-2 gap-3 @[500px]:grid-cols-5">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[112px] rounded-2xl" />)}</div><Skeleton className="h-[130px] rounded-2xl" /></div>
   if (products.error || !products.data) {
     return <p className="flex items-center justify-center gap-3 py-24 text-[13px] text-[var(--text-dim)]">Could not load the packages.<button type="button" onClick={products.refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>
   }
