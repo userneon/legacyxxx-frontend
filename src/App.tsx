@@ -149,8 +149,8 @@ export function App() {
 
   // A narrow window, or the "Start with sidebar collapsed" setting, starts on the icon rail.
   return (
-    // Two sidebars that are always open (owner request 2026-11-13: "dual sidebar, remove the top bar, two sidebars without a toggle"): the menu on the left, the account on the right.
-    <SidebarProvider open onOpenChange={() => {}} style={{ "--sidebar-width": "264px", "--sidebar-width-icon": "62px" } as CSSProperties}>
+    // Two sidebars, always closed to their icons (owner requests 2026-11-13: "dual sidebar, remove the top bar, without a toggle", then "always closed"): the menu on the left, the account on the right.
+    <SidebarProvider open={false} onOpenChange={() => {}} style={{ "--sidebar-width": "264px", "--sidebar-width-icon": "62px" } as CSSProperties}>
       <EventLayer />
       <SnowLayer />
       <ProfileScene scene={currentPage === "profile" ? profileScene : null} />

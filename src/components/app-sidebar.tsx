@@ -146,6 +146,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
             <img src="/logolegacyx.webp" alt="" aria-hidden="true" className="size-6 shrink-0 drop-" />
             <span>LEGACY-<span className="text-[var(--brand-bright)]">X</span></span>
           </span>
+          {collapsed && <img src="/logolegacyx.webp" alt="LEGACY-X" className="mx-auto size-6 shrink-0" />}
 
         </div>
 
