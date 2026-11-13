@@ -148,7 +148,7 @@ export function RingStat({ segments, value, label, title }: { segments: Segment[
       </svg>
       <div className="min-w-0">
         <div className="text-[19px] font-bold leading-tight text-[var(--text)]">{value}</div>
-        <div className="truncate text-[11px] text-[var(--text-muted)]">{label}</div>
+        <div className="text-[11px] leading-tight text-[var(--text-muted)]">{label}</div>
       </div>
     </div>
   )

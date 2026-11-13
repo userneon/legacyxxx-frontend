@@ -2607,3 +2607,9 @@ body::after { content: ""; position: fixed; left: 0; right: 0; bottom: 0; height
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
+/* The right-hand account sidebar wears the same solid panel as the left one. */
+.lx-side-panel {
+  background: linear-gradient(180deg, #19191b 0%, #141416 100%); /* palette-exempt: card greys */
+  border: 1px solid rgb(255 255 255 / 0.07);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 10px 30px -14px rgb(0 0 0 / 0.7);
+}

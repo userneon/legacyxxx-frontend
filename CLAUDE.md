@@ -40,6 +40,10 @@ A new card uses `.lx-glass`.
 
 **Design checklist fixes (owner checklist 2026-11-13: clutter, contrast, alignment, typography, cards, consistency, usability, navigation):** the sidebar is solid (`.lx-glass-sidebar`, the card greys), `--text-dim` is `#8f8f8f` (about 5:1 on the `#1b1b1d` cards; it was `#737373`, 3.7:1) and `--text-faint` `#6b6b6b`, and the Profile's seven stat cards fill whole rows (three, then four; `ProfileRings`) instead of leaving one alone.
 
+## Two sidebars, no top bar (owner request 2026-11-13: "dual sidebar, remove the top bar, two sidebars without a toggle", option "left + right") — wins over the shell paragraphs below
+
+The website's frame is the menu sidebar on the left (`AppSidebar`, always open: `SidebarProvider open`, its collapse button and the Settings → Website "Start with sidebar collapsed" switch are gone) and the **account sidebar** on the right (`components/account-sidebar.tsx`, `.lx-side-panel`, the same solid grey): your avatar, name, rank and EXP bar, the notifications bell, the FOL$ balance with Top up, Profile / Settings / Discord, the live player count of each mode (`/public` home stats, real numbers, a mode click opens it), Tutorial and Sign out; signed out it is a Steam sign-in. There is **no top bar** from 560 px up; between 560 and 1100 px the right sidebar is a 76 px column of icons (balance, avatar menu, bell, Tutorial); under 560 px (a phone, no sidebars on screen) the small top bar stays with the menu button. The public chat button sits left of the right sidebar (`--lx-panel-right`). Because the page panel is narrower now, the bento pages (Home, Profile, Clan, Penalties) go two-column from `@3xl` (was `@4xl`), Home's mode cards are two a row until `@5xl`, and the Profile's stat cards fill whole rows at every width (3 + 2 + 2 on a mid-size panel, 3 + 4 on a wide one, `ProfileRings`).
+
 ## Design tokens (`src/index.css`)
 
 Neutral surfaces, white as the workhorse accent, and **violet as the brand accent** (owner decision

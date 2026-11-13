@@ -54,15 +54,15 @@ export function HomePage({ onNavigate }: HomePageProps) {
   return (
     <div className="lx-glass-page lx-calm @container flex flex-1 flex-col p-4 @2xl:p-6">
       {greeting && <div className="mb-3"><span className="lx-event-greeting">{greeting}</span></div>}
-      <div className="lx-bento grid flex-1 grid-cols-1 gap-3 @4xl:grid-cols-12 @4xl:[grid-template-rows:minmax(auto,1fr)_auto_minmax(auto,1fr)]">
-        <HeroSlider className="@4xl:col-span-8" />
-        <div className="flex flex-col gap-3 @4xl:col-span-4">
+      <div className="lx-bento grid flex-1 grid-cols-1 gap-3 @3xl:grid-cols-12 @3xl:[grid-template-rows:minmax(auto,1fr)_auto_minmax(auto,1fr)]">
+        <HeroSlider className="@3xl:col-span-8" />
+        <div className="flex flex-col gap-3 @3xl:col-span-4">
           <FindPlayerPill />
           <RankPanel />
         </div>
 
         {/* Mode cards: the same four cards, equal width, each with its real status. */}
-        <div className="grid grid-cols-1 gap-3 @md:grid-cols-2 @4xl:col-span-12 @4xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 @md:grid-cols-2 @3xl:col-span-12 @5xl:grid-cols-4">
           {MODE_CARDS.map((mode, index) => {
             const status = modeStatus(mode.key)
             return (
@@ -91,8 +91,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
           })}
         </div>
 
-        <TopPlayers className="@4xl:col-span-8" onOpenProfile={(steamId) => navigate(`/profile/${encodeURIComponent(steamId)}`)} onViewAll={() => onNavigate("leaders")} />
-        <div className="flex flex-col gap-3 @4xl:col-span-4">
+        <TopPlayers className="@3xl:col-span-8" onOpenProfile={(steamId) => navigate(`/profile/${encodeURIComponent(steamId)}`)} onViewAll={() => onNavigate("leaders")} />
+        <div className="flex flex-col gap-3 @3xl:col-span-4">
           <HomeReviewsCard onOpen={() => onNavigate("feedback")} className="flex-[0.6]" />
           <TikTokCard className="flex-1" />
           <DiscordCard className="flex-1" />

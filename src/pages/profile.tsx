@@ -475,10 +475,14 @@ function ProfileRings({ overview }: { overview: ProfileOverview }) {
   if (cards.length === 0) return null
   // Full rows, never one card left alone (owner checklist 2026-11-13, "poor alignment"): three in the first row, the rest share the second.
   const rest = cards.length - 3
-  const restSpan = rest === 4 ? "@xl:col-span-3" : rest === 3 ? "@xl:col-span-4" : rest === 2 ? "@xl:col-span-6" : rest === 1 ? "@xl:col-span-12" : "@xl:col-span-4"
+  // Narrow (a 6-column grid): three in the first row, the rest two to a row; wide (12 columns): three, then the rest in one row; a phone: two to a row, the first one wide when the count is odd.
+  const midSpan = { 4: "@lg:col-span-3", 3: "@lg:col-span-2", 2: "@lg:col-span-3", 1: "@lg:col-span-6" }[rest] ?? "@lg:col-span-2"
+  const wideSpan = { 4: "@3xl:col-span-3", 3: "@3xl:col-span-4", 2: "@3xl:col-span-6", 1: "@3xl:col-span-12" }[rest] ?? "@3xl:col-span-4"
   return (
-    <section aria-label="Rings" className="grid grid-cols-2 gap-3 @xl:grid-cols-12">
-      {cards.map((card, index) => <div key={index} className={cn("grid", cards.length <= 3 || index < 3 ? "@xl:col-span-4" : restSpan)}>{card}</div>)}
+    <section aria-label="Rings" className="grid grid-cols-2 gap-3 @lg:grid-cols-6 @3xl:grid-cols-12">
+      {cards.map((card, index) => (
+        <div key={index} className={cn("grid min-w-0", index === 0 && cards.length % 2 === 1 && "col-span-2", cards.length <= 3 || index < 3 ? "@lg:col-span-2 @3xl:col-span-4" : cn(midSpan, wideSpan))}>{card}</div>
+      ))}
     </section>
   )
 }
@@ -806,9 +810,9 @@ export function ProfilePage({ userId }: { userId?: string }) {
     <div ref={topRef}>
       {true && (
       <div className="@container lx-profile-calm px-6 pb-8 pt-5 max-md:px-4">
-        <div className="lx-bento grid gap-4 @4xl:grid-cols-12">
+        <div className="lx-bento grid gap-4 @3xl:grid-cols-12">
           {/* Who this is: the banner, the avatar, the name, the badges and the buttons, in one card that stays in view. */}
-          <aside className="flex min-w-0 flex-col gap-3 @4xl:col-span-4">
+          <aside className="flex min-w-0 flex-col gap-3 @3xl:col-span-4">
             <section aria-label="Profile" className="lx-glass relative overflow-hidden rounded-2xl">
               <ProfileBanner fx={banner} fade className="h-[190px]" />
               <div className={cn("relative px-5 pb-6 max-md:px-4", banner ? "pt-[64px]" : "pt-7")}>
@@ -821,7 +825,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
             {data.banned ? (showFaceit && faceit ? <CensoredCard label="FACEIT" rows={3} /> : null) : hidden.has("faceit") ? <HiddenCard section="faceit" /> : showFaceit && faceit && <FaceitCard faceit={faceit} />}
             <PenaltyHistory penalties={data.penalties} total={data.penaltyCount} steamId={data.user.steamId} onOpen={setOpenPenalty} />
           </aside>
-          <div className="@container flex min-w-0 flex-col gap-3 @4xl:col-span-8">
+          <div className="@container flex min-w-0 flex-col gap-3 @3xl:col-span-8">
             <div className="lx-glass rounded-2xl px-5">
               <PageTabs<"stats" | "configs" | "appearance" | "settings"> ariaLabel="Profile sections" value={tab === "profile" ? view : tab} onChange={(next) => { if (next === "stats" || next === "configs") { setView(next); setTab("profile") } else setTab(next) }} options={own ? [{ value: "stats", label: "Stats" }, { value: "configs", label: "Configs" }, { value: "appearance", label: "Appearance" }, { value: "settings", label: "Settings" }] : [{ value: "stats", label: "Stats" }, { value: "configs", label: "Configs" }]} />
             </div>

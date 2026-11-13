@@ -13,10 +13,10 @@ import { ShellNav } from "@/components/app-rail"
 import { SHELL } from "@/lib/shell"
 import { ProfileBlock } from "@/components/profile-block"
 import { SiteTourButton } from "@/components/site-tour"
+import { AccountSidebar } from "@/components/account-sidebar"
 import { PublicChat } from "@/components/public-chat"
 import { HomePage } from "@/pages/home"
 import { PlayPage } from "@/pages/play"
-import { getWebsitePreferences } from "@/lib/preferences"
 import { LeadersPage } from "@/pages/leaders"
 import { ProfilePage } from "@/pages/profile"
 import { ProtectedPage } from "@/components/protected-page"
@@ -149,7 +149,8 @@ export function App() {
 
   // A narrow window, or the "Start with sidebar collapsed" setting, starts on the icon rail.
   return (
-    <SidebarProvider defaultOpen={typeof window === "undefined" || (!getWebsitePreferences().sidebarCollapsed && window.innerWidth >= 1280)} style={{ "--sidebar-width": "264px", "--sidebar-width-icon": "62px" } as CSSProperties}>
+    // Two sidebars that are always open (owner request 2026-11-13: "dual sidebar, remove the top bar, two sidebars without a toggle"): the menu on the left, the account on the right.
+    <SidebarProvider open onOpenChange={() => {}} style={{ "--sidebar-width": "264px", "--sidebar-width-icon": "62px" } as CSSProperties}>
       <EventLayer />
       <SnowLayer />
       <ProfileScene scene={currentPage === "profile" ? profileScene : null} />
@@ -158,7 +159,8 @@ export function App() {
       <div className={SHELL === "pill" ? "lx-frame" : "contents"}>
       <ShellNav currentPage={currentPage} onNavigate={handleNavigate} />
       <SidebarInset className={cn("m-0 flex min-w-0 flex-col gap-2 bg-transparent", SHELL === "pill" ? "lx-frame-main max-[559px]:h-svh max-[559px]:p-2" : "h-svh p-2 pl-0 max-[559px]:pl-2")}>
-        <header className={cn("lx-glass-shell relative z-[3] flex h-14 shrink-0 items-center gap-4 pl-4 pr-2 max-md:pl-2 max-sm:gap-1.5", SHELL === "pill" ? "lx-frame-header" : "rounded-[14px]")}>
+        {/* The top bar is gone on wider windows (its parts live in the right sidebar); a phone keeps it, since it has neither sidebar on screen. */}
+        <header className={cn("lx-glass-shell relative z-[3] flex h-14 shrink-0 items-center gap-4 pl-4 pr-2 max-md:pl-2 max-sm:gap-1.5 min-[560px]:hidden", SHELL === "pill" ? "lx-frame-header" : "rounded-[14px]")}>
           {/* On a phone the sidebar is a sheet, so the top bar carries its only trigger. */}
           <SidebarTrigger className="size-9 shrink-0 rounded-[10px] text-[var(--text-muted)] hover:bg-[var(--raised)] hover:text-[var(--text)] min-[560px]:hidden" />
           <div className="flex min-w-0 flex-1 items-center gap-2 text-[13px]">
@@ -245,6 +247,7 @@ export function App() {
           </div>
         </div>
       </SidebarInset>
+      <AccountSidebar onNavigate={handleNavigate} />
       </div>
       <PublicChat />
     </SidebarProvider>

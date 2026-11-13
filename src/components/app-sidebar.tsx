@@ -69,20 +69,6 @@ export const SKIN_VIEWS: Array<{ id: SkinchangerView; label: string }> = [
 const EASE = "ease-[cubic-bezier(0.2,0,0,1)]"
 
 /**
- * The sidebar button's icon, drawn so it moves with the sidebar: a window with a side panel. Open, the panel is filled and its divider sits
- * at the panel's edge; collapsed, the fill slides away and the divider glides to the left edge. Pressing it squeezes it for a moment.
- */
-function SidebarToggleIcon({ collapsed }: { collapsed: boolean }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="size-[18px] overflow-visible">
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <rect x="3" y="3" width="6" height="18" rx="1" fill="currentColor" stroke="none" className={cn("origin-left transition-[transform,opacity] duration-300 motion-reduce:transition-none", EASE, collapsed ? "scale-x-0 opacity-0" : "scale-x-100 opacity-30")} />
-      <path d="M9 3v18" className={cn("transition-transform duration-300 motion-reduce:transition-none", EASE, collapsed ? "-translate-x-[3px]" : "translate-x-0")} />
-    </svg>
-  )
-}
-
-/**
  * Every row keeps its icon at the same x in both states: the rail narrows around it, so collapsing
  * never makes an icon jump. The row is 40px tall and, collapsed, a 40px square.
  * Hover has no fill (it would sit flat on the glass): a thin white tick at the left edge and the label
@@ -120,7 +106,7 @@ function RailTip({ label, show, children }: { label: string; show: boolean; chil
 }
 
 export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
-  const { state, toggleSidebar, isMobile } = useSidebar()
+  const { state, isMobile } = useSidebar()
   const collapsed = state === "collapsed" && !isMobile
   const { isAuthenticated } = useAuth()
   // The groups start closed; the one you are inside starts open so the current page is visible.
@@ -160,15 +146,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
             <img src="/logolegacyx.webp" alt="" aria-hidden="true" className="size-6 shrink-0 drop-" />
             <span>LEGACY-<span className="text-[var(--brand-bright)]">X</span></span>
           </span>
-<RailTip label="Open sidebar" show={collapsed}><button
-            type="button"
-            onClick={toggleSidebar}
-            aria-expanded={!collapsed}
-            aria-label="Toggle sidebar"
-            className="flex size-8 shrink-0 items-center justify-center rounded-lg text-[var(--text-muted)] transition-[color,background-color,scale] duration-150 active:scale-90 motion-reduce:transition-none hover:bg-[var(--raised)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
-          >
-            <SidebarToggleIcon collapsed={collapsed} />
-          </button></RailTip>
+
         </div>
 
         <nav aria-label="Main" className="flex flex-col gap-0.5">

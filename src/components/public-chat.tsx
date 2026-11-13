@@ -114,7 +114,7 @@ export function PublicChat() {
   if (present && introIds.current === null && data) introIds.current = new Set(data.map((message) => message.id))
 
   return (
-    <div className="fixed bottom-4 right-4 z-40 flex flex-col items-end gap-3 max-sm:bottom-3 max-sm:right-3">
+    <div style={{ right: "calc(var(--lx-panel-right, 0px) + 16px)" }} className="fixed bottom-4 z-40 flex flex-col items-end gap-3 max-sm:bottom-3">
       {present && (
         <section aria-label="Community chat" aria-hidden={!open} className={cn("flex h-[480px] max-h-[calc(100dvh-6rem)] w-[360px] max-w-[calc(100vw-1.5rem)] origin-bottom-right flex-col overflow-hidden rounded-2xl border border-[var(--glass-line)] bg-[var(--panel)] shadow-[0_24px_48px_-20px_rgb(0_0_0/0.8)] transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none", shown && open ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none translate-y-2 scale-[0.97] opacity-0")}>
           <header className="flex h-12 shrink-0 items-center gap-2 border-b border-[var(--line-soft)] px-4">

@@ -368,9 +368,6 @@ function Website() {
   }
   return (
     <Section id="website" index={2} title="Website" description="How LEGACY-X looks and behaves on this device. Changes apply right away." aside={saved.node}>
-      <Row title="Start with sidebar collapsed" description="Open the site with the icon-only sidebar.">
-        <Switch label="Start with sidebar collapsed" checked={prefs.sidebarCollapsed} onChange={(next) => set("sidebarCollapsed", next)} />
-      </Row>
       <Row title="Winter snow" description="Falling snow and a little snow on the cards from November to February, and during New Year.">
         <Switch label="Winter snow" checked={prefs.snow} onChange={(next) => set("snow", next)} />
       </Row>

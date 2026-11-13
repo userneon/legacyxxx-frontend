@@ -227,8 +227,8 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
             <ClanAppearancePanel clanId={String(mine.clan.id)} tag={mine.clan.tag} leader={mine.role === "leader"} />
           ) : (
             /* The clans as a bento (owner request 2026-11-09): your place and the totals on the left, the clans on the right. */
-            <div className="lx-bento grid gap-3 @4xl:grid-cols-12">
-              <aside className="flex min-w-0 flex-col gap-3 @4xl:col-span-4">
+            <div className="lx-bento grid gap-3 @3xl:grid-cols-12">
+              <aside className="flex min-w-0 flex-col gap-3 @3xl:col-span-4">
                 {mineKnown && (mine ? (
                   <button type="button" onClick={() => onClanNavigate(String(mine.clan.number ?? mine.clan.id))} className="lx-glass flex items-center gap-4 rounded-2xl p-4 text-left transition-colors hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
                     <ClanMark logo={mine.clan.logo} tag={mine.clan.tag} className="size-14 text-[14px]" />
@@ -251,7 +251,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
                 ))}
                 {invites.length > 0 && !mine && <Invitations invites={invites} onChanged={changed} />}
                 {!loading && !error && !q && list.length > 0 && (
-                  <div className="grid grid-cols-1 gap-3 @md:grid-cols-2 @4xl:grid-cols-1">
+                  <div className="grid grid-cols-1 gap-3 @md:grid-cols-2 @3xl:grid-cols-1">
                     <RingStat value={`${Math.round((members / Math.max(1, members + open)) * 100)}%`} label="Slots filled" title={`${members} of ${members + open} member slots`} segments={[{ pct: (members / Math.max(1, members + open)) * 100, tone: "green" }]} />
                     <div className="lx-glass grid grid-cols-3 gap-2 rounded-2xl px-4 py-3">
                       {[{ label: "Clans", value: list.length }, { label: "Members", value: members }, { label: "Open", value: open }].map((stat) => (
@@ -265,7 +265,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
                 )}
               </aside>
 
-              <div className="flex min-w-0 flex-col gap-3 @4xl:col-span-8">
+              <div className="flex min-w-0 flex-col gap-3 @3xl:col-span-8">
                 <QueryState loading={loading && list.length === 0} skeleton={<ClanListSkeleton />} error={error} empty={!loading && !error && list.length === 0} emptyMessage={q ? "No clan has that name." : "No clans yet."} onRetry={refetch} />
                 {!error && list.length > 0 && (
                   <div className="grid gap-3 @2xl:grid-cols-2">
@@ -544,8 +544,8 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
           {!loading && !error && clan && (
             <>
               {/* The clan as a bento (owner request 2026-11-09): who the clan is on the left, with what its managers answer and do, and the roster, stats and bank on the right. */}
-              <div className="lx-bento grid gap-3 @4xl:grid-cols-12">
-              <aside className="flex min-w-0 flex-col gap-3 @4xl:col-span-4">
+              <div className="lx-bento grid gap-3 @3xl:grid-cols-12">
+              <aside className="flex min-w-0 flex-col gap-3 @3xl:col-span-4">
               <section className="lx-glass relative overflow-hidden rounded-2xl">
               <ClanBannerStrip banner={clan.thumbnail} name={clan.name} />
               <div className="relative flex flex-col gap-4 p-5">
@@ -563,7 +563,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
               {isManager && shown === "roster" && <InvitePanel clanId={clanId} />}
               {isManager && shown === "roster" && <ActivityPanel clanId={clanId} />}
               </aside>
-              <div className="flex min-w-0 flex-col gap-3 @4xl:col-span-8">
+              <div className="flex min-w-0 flex-col gap-3 @3xl:col-span-8">
               <ClanSectionTabs value={shown} onChange={setSection} member={Boolean(role)} />
               {shown === "stats" && <ClanStatsPanel clanId={clanId} onProfileNavigate={onProfileNavigate} />}
               {shown === "bank" && <ClanBankPanel clan={clan} role={role} onChanged={() => void refetch()} onProfileNavigate={onProfileNavigate} />}
