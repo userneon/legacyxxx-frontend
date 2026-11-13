@@ -158,6 +158,7 @@ export default function StudioStage3D({ choice, stickers, charm, selection, labe
   const host = useRef<HTMLDivElement>(null)
   const ctx = useRef<Ctx | null>(null)
   const [state, setState] = useState<"loading" | "ready" | "error">("loading")
+  const [pictureFailed, setPictureFailed] = useState(false)
   const [attempt, setAttempt] = useState(0)
   const live = useRef({ choice, onSelect, onMove })
   live.current = { choice, onSelect, onMove }
@@ -395,7 +396,7 @@ export default function StudioStage3D({ choice, stickers, charm, selection, labe
       if (!url) return
       const cached = context.textures.get(url)
       if (cached) apply(cached)
-      else context.loader.load(url, (loaded) => { loaded.colorSpace = THREE.SRGBColorSpace; context.textures.set(url, loaded); apply(loaded) }, undefined, fail)
+      else context.loader.load(url, (loaded) => { loaded.colorSpace = THREE.SRGBColorSpace; context.textures.set(url, loaded); apply(loaded) }, undefined, () => { setPictureFailed(true); fail() })
     }
     const put = (id: string, pick: Pick, build: () => THREE.BufferGeometry, url: string | null, opacity: number, order: number, wear = 0) => {
       wanted.add(id)
@@ -472,6 +473,7 @@ export default function StudioStage3D({ choice, stickers, charm, selection, labe
   return (
     <div className="relative size-full" role="img" aria-label={`${label}, 3D view. Drag a sticker or the charm to move it; drag the gun to turn it.`}>
       <div ref={host} className="size-full cursor-grab active:cursor-grabbing" />
+      {pictureFailed && state === "ready" && <p className="pointer-events-none absolute inset-x-0 bottom-2 text-center text-[11px] text-[var(--text-dim)]">A sticker or charm picture could not be loaded.</p>}
       {state === "loading" && <Skeleton className="pointer-events-none absolute inset-0 rounded-xl bg-[var(--line-soft)]" />}
       {state === "error" && (
         <p className="absolute inset-0 flex items-center justify-center gap-3 text-[13px] text-[var(--text-dim)]">
