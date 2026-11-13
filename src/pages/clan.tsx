@@ -34,6 +34,7 @@ import { PlayerAvatar } from "@/components/player-avatar"
 import { nameProps } from "@/lib/cosmetics"
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -283,14 +284,18 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
       </div>
 
       <Dialog open={creating} onOpenChange={setCreating}>
-        <DialogContent className="lx-add-box rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2.5"><span className="lx-add-icon"><Users className="size-4" /></span>Create a clan</DialogTitle>
-            <DialogDescription>
-              {fee != null ? `${fee.toLocaleString()} FOL$` : "FOL$"} are taken from your wallet when the clan is created.
-            </DialogDescription>
-          </DialogHeader>
-          <CreateClanForm onCreated={(clan) => { setCreating(false); changed(); onClanNavigate(String(clan.number ?? clan.id)) }} />
+        <DialogContent showCloseButton={false} className="mt-6 max-w-[500px] rounded-[28px] border-white/10 bg-[#1b1b1d] p-0">
+          {/* The close button floats round above the window (as on the site this was taken from, owner request 2026-11-13). */}
+          <DialogClose aria-label="Close" className="absolute -top-14 left-1/2 grid size-11 -translate-x-1/2 place-items-center rounded-full bg-[#1b1b1d] text-[var(--text)] shadow-lg ring-1 ring-white/10 hover:bg-[#262628]"><X className="size-5" /></DialogClose>
+          <div className="max-h-[calc(100dvh-8rem)] overflow-y-auto p-6">
+            <DialogHeader>
+              <DialogTitle className="text-[22px]">Create a clan</DialogTitle>
+              <DialogDescription>
+                {fee != null ? `${fee.toLocaleString()} FOL$` : "FOL$"} are taken from your wallet when the clan is created.
+              </DialogDescription>
+            </DialogHeader>
+            <CreateClanForm onCreated={(clan) => { setCreating(false); changed(); onClanNavigate(String(clan.number ?? clan.id)) }} />
+          </div>
         </DialogContent>
       </Dialog>
     </div>
@@ -363,63 +368,10 @@ function RosterSub({ joinedAt, exp, total }: { joinedAt?: string | null; exp: nu
 }
 
 /** What a clan's card tells besides its name, all from the API: a line about it, its numbers, and who is in it. Left out piece by piece when the API has nothing. */
-function ClanCardPreview({ clan, accent, tint }: { clan: ClanCard; accent: string; tint: (percent: number) => string }) {
-  const preview = clan.preview
-  if (!preview) return null
-  const winRate = preview.matches > 0 ? Math.round((preview.wins / preview.matches) * 100) : null
-  const stats: Array<{ label: string; value: string }> = [
-    { label: "Level", value: clan.level != null ? String(clan.level) : "–" },
-    { label: "Total EXP", value: preview.totalExp > 0 ? preview.totalExp.toLocaleString() : "–" },
-    { label: "Win rate", value: winRate != null ? `${winRate}%` : "–" },
-  ]
-  const more = Math.max(0, clan.currentPlayers - preview.members.length)
-  return (
-    <div className="flex flex-col gap-3">
-      {preview.blurb && <p className="line-clamp-2 text-[12px] leading-snug text-[var(--text-muted)]">{preview.blurb}</p>}
-      {/* Small facts, each only when the API has it: where it plays and whether it is looking for players. */}
-      <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-medium uppercase tracking-wide text-[var(--text-dim)]">
-        {clan.region && <span title="Region" className="inline-flex items-center gap-1 rounded-full border border-[var(--line)] bg-[var(--card-surface)]/70 px-2 py-0.5"><Globe className="size-3" aria-hidden="true" />{clan.region}</span>}
-        {clan.recruit && <span title="This clan reads answers before accepting" className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5" style={{ borderColor: tint(45), color: accent }}><UserPlus className="size-3" aria-hidden="true" />Recruiting</span>}
-        {clan.currentPlayers >= clan.maxPlayers && <span className="inline-flex items-center gap-1 rounded-full border border-[var(--line)] px-2 py-0.5">Full</span>}
-      </div>
-      <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-lg" style={{ background: tint(18) }}>
-        {stats.map((stat) => (
-          <div key={stat.label} className="flex flex-col gap-0.5 bg-[var(--card-surface)]/85 px-2.5 py-2">
-            <dt className="text-[10px] uppercase tracking-wide text-[var(--text-dim)]">{stat.label}</dt>
-            <dd className="text-[15px] font-semibold leading-none text-[var(--text)]">{stat.value}</dd>
-          </div>
-        ))}
-      </dl>
-      {preview.matches > 0 && (
-        <div className="flex flex-col gap-1" title={`${preview.wins} wins in ${preview.matches} ranked matches`}>
-          <div className="flex items-center justify-between text-[10px] text-[var(--text-dim)]"><span>Ranked record</span><span>{preview.wins} W · {preview.matches - preview.wins} other</span></div>
-          <div className="h-1 overflow-hidden rounded-full bg-[var(--raised)]"><div className="h-full rounded-full" style={{ width: `${Math.round((preview.wins / preview.matches) * 100)}%`, background: "var(--status-green)" }} /></div>
-        </div>
-      )}
-      {preview.topPlayer && (
-        <div className="flex items-center gap-2 text-[11px] text-[var(--text-dim)]" title="The member with the most EXP">
-          <Trophy className="size-3.5 shrink-0" style={{ color: accent }} aria-hidden="true" />
-          <span className="min-w-0 truncate"><span className="text-[var(--text-2)]">{preview.topPlayer.name}</span> · {preview.topPlayer.exp.toLocaleString()} EXP</span>
-        </div>
-      )}
-      <div className="flex items-center justify-between gap-3">
-        <span className="flex items-center" aria-label={`${preview.members.length} of ${clan.currentPlayers} members shown`}>
-          {preview.members.map((member, index) => (
-            <PlayerAvatar key={`${member.name}${index}`} avatar={member.avatar} name={member.name} style={{ width: 26, height: 26, fontSize: 10, marginLeft: index === 0 ? 0 : -8, boxShadow: `0 0 0 2px var(--card-surface)` }} className="relative shrink-0" />
-          ))}
-          {more > 0 && <span className="ml-1.5 text-[11px] text-[var(--text-dim)]">+{more}</span>}
-        </span>
-        {preview.leader && <span className="min-w-0 truncate text-[11px] text-[var(--text-dim)]" title={`Led by ${preview.leader.name}`}>Led by <span style={{ color: accent }}>{preview.leader.name}</span></span>}
-      </div>
-    </div>
-  )
-}
-
 function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged }: { clan: ClanCard; mine: MyClanState["membership"]; pending: boolean; canJoin: boolean; onClanNavigate: (clanId: string) => void; onChanged: () => void }) {
   const { isAuthenticated, loginWithSteam } = useAuth()
   const isFull = clan.currentPlayers >= clan.maxPlayers
   const isMine = mine?.clan.id === clan.id
-  const fill = Math.round((clan.currentPlayers / Math.max(1, clan.maxPlayers)) * 100)
   const banner = clanArtSrc(clan.thumbnail)
   const [busy, setBusy] = useState(false)
 
@@ -447,15 +399,13 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
     }, "Could not join the clan")
   }
 
-  const buttonClass = "relative inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-medium transition-colors hover:border-[var(--line-strong)] disabled:cursor-not-allowed disabled:opacity-50"
   // Cards on the Clans list carry no accent colour (owner request 2026-11-13): no coloured hairline, no coloured glow, a neutral tag and bar.
   const wash = backdropStyle(clan.look?.backdrop)
   const accent = "var(--text-2)"
   const baseTag = clanTagProps(clan.look, "w-fit text-[13px] font-semibold tracking-wide")
   const tagProps = clan.look?.tagColor ? baseTag : { ...baseTag, style: { ...baseTag.style, color: accent } }
-  const tint = (percent: number) => `color-mix(in srgb, ${accent} ${percent}%, transparent)`
   return (
-    <div className="lx-fx-card group relative isolate flex min-h-[270px] flex-col overflow-hidden rounded-2xl border border-[var(--line-soft)] bg-[var(--card-surface)] transition-colors hover:border-[var(--line-strong)]">
+    <div className="lx-fx-card group relative isolate flex min-h-[236px] flex-col overflow-hidden rounded-[22px] border border-[var(--line-soft)] bg-[var(--card-surface)] transition-colors hover:border-[var(--line-strong)]">
       <Dialog open={asking} onOpenChange={setAsking}>
         <DialogContent className="rounded-2xl">
           <DialogHeader><DialogTitle>Join {clan.name}</DialogTitle><DialogDescription>The leader reads your answers before accepting.</DialogDescription></DialogHeader>
@@ -480,43 +430,35 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
         <div aria-hidden="true" className="absolute inset-0 -z-10 opacity-50" style={{ background: wash ?? "transparent" }} />
       )}
       <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-[var(--card-surface)] via-[var(--card-surface)]/75 to-[var(--card-surface)]/5" />
-      <div className="relative flex flex-1 flex-col gap-4 p-5">
-        <div className="flex items-center justify-between gap-2">
-          {clan.number != null ? <span className="rounded-full border border-[var(--line-strong)] bg-[var(--card-surface)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--text-2)]">#{clan.number}</span> : <span />}
-          <JoinModeLabel mode={clan.joinMode} className="rounded-full border border-[var(--line)] bg-[var(--card-surface)] px-2.5 py-0.5" />
+      <div className="relative flex flex-1 flex-col p-4">
+        {/* The way in is a small control top right; the whole card opens the clan (OneTake-style card, owner request 2026-11-13). */}
+        <div className="flex items-start justify-between gap-2">
+          <button type="button" aria-label={`Open ${clan.name}`} onClick={() => onClanNavigate(String(clan.number ?? clan.id))} className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
+            <ClanMark logo={clan.logo} tag={clan.tag} className="size-[76px] rounded-2xl" style={{ boxShadow: "0 8px 24px rgba(0,0,0,.5), 0 0 0 1px rgb(255 255 255 / 0.1)" }} />
+          </button>
+          {isMine ? (
+            <span className="inline-flex h-8 items-center gap-1.5 rounded-full bg-black/45 px-3 text-[12px] text-[var(--text-2)]"><Check className="size-3.5" aria-hidden="true" />Your clan</span>
+          ) : pending ? (
+            <button type="button" disabled={busy} onClick={() => void act(() => clansService.cancelRequest(clan.id), "Could not cancel the request")} className="inline-flex h-8 items-center gap-1.5 rounded-full bg-black/45 px-3 text-[12px] text-[var(--text-2)] hover:bg-black/60"><X className="size-3.5" aria-hidden="true" />Requested · cancel</button>
+          ) : (
+            <button type="button" disabled={isFull || busy || (isAuthenticated && !canJoin)} onClick={join} className={cn("inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[12px] font-semibold transition-colors", isFull ? "bg-black/45 text-[var(--text-dim)]" : "lx-primary-button")}>
+              <UserPlus className="size-3.5" aria-hidden="true" />
+              {isFull ? "Full" : busy ? "Sending…" : clan.joinMode === "request" ? "Request" : "Join"}
+            </button>
+          )}
         </div>
-        <button type="button" onClick={() => onClanNavigate(String(clan.number ?? clan.id))} className="mt-auto flex items-end gap-3.5 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-          <ClanMark logo={clan.logo} tag={clan.tag} className="size-[68px] rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.5)]" style={{ boxShadow: "0 8px 24px rgba(0,0,0,.5), 0 0 0 1px rgb(255 255 255 / 0.1)" }} />
-          <span className="flex min-w-0 flex-col gap-1">
-            <span className="truncate text-[19px] font-bold leading-tight" title={clan.name}>{clan.name}</span>
-            <span {...tagProps}>[{clan.tag}]</span>
+        <button type="button" onClick={() => onClanNavigate(String(clan.number ?? clan.id))} className="mt-auto flex flex-col items-start gap-2 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
+          <span className="flex max-w-full items-center gap-2">
+            <span className="truncate text-[20px] font-bold leading-tight" title={clan.name}>{clan.name}</span>
+            <span {...tagProps} className="shrink-0 rounded-full border border-white/25 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-[var(--text-2)]">{clan.tag}</span>
           </span>
+          <span className="flex items-center gap-4 text-[13px] text-[var(--text-2)]">
+            <span className="inline-flex items-center gap-1.5" title="Members"><Users className="size-3.5" aria-hidden="true" />{clan.currentPlayers}/{clan.maxPlayers}</span>
+            {clan.preview && clan.preview.totalExp > 0 && <span className="inline-flex items-center gap-1.5" title="Total EXP"><Trophy className="size-3.5" aria-hidden="true" />{clan.preview.totalExp.toLocaleString()}</span>}
+            {clan.level != null && <span className="inline-flex items-center gap-1.5" title="Level"><Crown className="size-3.5" aria-hidden="true" />{clan.level}</span>}
+          </span>
+          <JoinModeLabel mode={clan.joinMode} className="text-[13px] text-[var(--text-2)]" />
         </button>
-
-        {clan.preview && <ClanCardPreview clan={clan} accent={accent} tint={tint} />}
-
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center justify-between text-[11px] text-[var(--text-dim)]">
-            <span className="inline-flex items-center gap-1.5"><Users className="size-3.5" aria-hidden="true" /> Members</span>
-            <span className={cn("font-semibold", isFull ? "text-[var(--text)]" : "text-[var(--text-dim)]")}>{clan.currentPlayers}/{clan.maxPlayers}</span>
-          </div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-[var(--raised)]">
-            <div className="h-full rounded-full" style={{ width: `${fill}%`, background: accent }} />
-          </div>
-        </div>
-
-        {isMine ? (
-          <span className={cn(buttonClass, "text-[var(--text-dim)]")}><Check className="size-4" aria-hidden="true" /> Your clan</span>
-        ) : pending ? (
-          <button type="button" disabled={busy} onClick={() => void act(() => clansService.cancelRequest(clan.id), "Could not cancel the request")} className={buttonClass}>
-            <X className="size-4" aria-hidden="true" /> Requested · cancel
-          </button>
-        ) : (
-          <button type="button" disabled={isFull || busy || (isAuthenticated && !canJoin)} onClick={join} className={cn(buttonClass, !isFull && "lx-primary-button border-transparent font-semibold")}>
-            <UserPlus className="size-4" aria-hidden="true" />
-            {isFull ? "Full" : busy ? "Sending…" : clan.joinMode === "request" ? "Request to join" : "Join"}
-          </button>
-        )}
       </div>
     </div>
   )
