@@ -403,11 +403,15 @@ export default function StudioStage3D({ choice, stickers, charm, selection, labe
 
     const texture = (url: string | null, apply: (texture: THREE.Texture) => void, fail: () => void) => {
       if (!url) return
-      // The same picture is already on the page as a plain <img> (the slot tiles), cached without a CORS answer; a CDN that adds `Access-Control-Allow-Origin` only to requests with an Origin would then fail here. Another address keeps the two apart.
-      const cors = `${url}${url.includes("?") ? "&" : "?"}cors=3d`
       const cached = context.textures.get(url)
-      if (cached) apply(cached)
-      else context.loader.load(cors, (loaded) => { loaded.colorSpace = THREE.SRGBColorSpace; context.textures.set(url, loaded); apply(loaded) }, undefined, () => { setPictureFailed(true); fail() })
+      if (cached) { apply(cached); return }
+      const done = (loaded: THREE.Texture) => { loaded.colorSpace = THREE.SRGBColorSpace; context.textures.set(url, loaded); apply(loaded) }
+      // WebGL may only read a picture whose host answers with CORS headers, and Steam's CDN does not: then the picture comes through an image proxy that does (wsrv.nl, game art only, no personal data).
+      const viaProxy = () => {
+        const plain = url.replace(/[?&]catalog_item_id=[^&]*/, "")
+        context.loader.load(`https://wsrv.nl/?url=${encodeURIComponent(plain)}&output=png`, done, undefined, () => { setPictureFailed(true); fail() })
+      }
+      context.loader.load(url, done, undefined, viaProxy)
     }
     const put = (id: string, pick: Pick, build: () => THREE.BufferGeometry, url: string | null, opacity: number, order: number, wear = 0) => {
       wanted.add(id)
