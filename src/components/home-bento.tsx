@@ -111,44 +111,23 @@ export function FindPlayerPill() {
   )
 }
 
-/* ───────── Ring stats ───────── */
+/* ───────── Stat cells ───────── */
 
 export type Segment = { pct: number; tone: "green" | "red" | "grey" }
 const TONE: Record<Segment["tone"], string> = { green: "var(--status-green)", red: "var(--status-red)", grey: "var(--text-faint)" }
-const RADIUS = 19
-const CIRC = 2 * Math.PI * RADIUS
 
-/** One stat card: a thin ring (green, red and grey parts), the number and its name. */
+/**
+ * One stat (owner request 2026-11-13, "fix everything" after the design audit: the rings read as decoration and a red ring looked like an error): the name, the
+ * number large, and under it a thin bar made of the same green, red and grey parts. Keeps its old name so Home, Profile and Clans need no change.
+ */
 export function RingStat({ segments, value, label, title }: { segments: Segment[]; value: string; label: string; title?: string }) {
-  let offset = 0
+  const parts = segments.filter((segment) => segment.pct > 0)
   return (
-    <div title={title} style={{ ["--t" as string]: TONE[segments.find((x) => x.pct > 0)?.tone ?? "grey"] }} className="lx-glass lx-ring-card flex items-center gap-3 rounded-2xl px-3.5 py-3">
-      <svg viewBox="0 0 48 48" width="46" height="46" className="shrink-0" aria-hidden="true">
-        <circle cx="24" cy="24" r={RADIUS} fill="none" strokeWidth="4" style={{ stroke: "var(--line)" }} />
-        {segments.filter((segment) => segment.pct > 0).map((segment, position) => {
-          const start = offset
-          offset += segment.pct
-          return (
-            <circle
-              key={position}
-              className="lx-ring-seg"
-              cx="24"
-              cy="24"
-              r={RADIUS}
-              fill="none"
-              strokeWidth="4"
-              strokeLinecap="round"
-              style={{ stroke: TONE[segment.tone], animationDelay: `${120 + position * 60}ms` }}
-              strokeDasharray={`${Math.max((CIRC * segment.pct) / 100 - 4, 0.1).toFixed(1)} ${CIRC.toFixed(1)}`}
-              strokeDashoffset={(-(CIRC * start) / 100).toFixed(1)}
-              transform="rotate(-90 24 24)"
-            />
-          )
-        })}
-      </svg>
-      <div className="min-w-0">
-        <div className="text-[19px] font-bold leading-tight text-[var(--text)]">{value}</div>
-        <div className="truncate text-[11px] text-[var(--text-muted)]">{label}</div>
+    <div title={title} className="lx-glass flex flex-col gap-2.5 px-4 py-3.5">
+      <div className="truncate text-[11px] font-medium text-[var(--text-dim)]">{label}</div>
+      <div className="mt-auto text-[22px] font-bold leading-none text-[var(--text)]">{value}</div>
+      <div className="flex h-1 gap-0.5 overflow-hidden rounded-full bg-[var(--line-soft)]" aria-hidden="true">
+        {parts.map((segment, position) => <span key={position} className="h-full rounded-full" style={{ width: `${Math.min(100, segment.pct)}%`, background: TONE[segment.tone] }} />)}
       </div>
     </div>
   )
@@ -219,7 +198,7 @@ export function RankPanel() {
 
   return (
     <div className="flex flex-1 flex-col gap-3">
-      <div className="lx-glass lx-calm-brand flex items-center gap-4 rounded-2xl px-4 py-3.5">
+      <div className="lx-glass flex items-center gap-4 px-4 py-3.5">
         <CompetitiveRankBadge rankId={profile.rank_id} rankName={profile.rank_name} imageKey={profile.rank_image_key} size={60} className="shrink-0" />
         <div className="min-w-0 flex-1">
           <div className="truncate text-[22px] font-bold leading-tight" style={{ color: rankTierColor(profile.rank_id) }}>{profile.rank_name}</div>

@@ -10,7 +10,7 @@ import { OptimizedImage } from "@/components/optimized-image"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
 
-const card = "rounded-[24px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-6"
+const card = "rounded-2xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-6"
 const label = "text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]"
 const button = "inline-flex h-10 items-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--raised)] px-4 text-[13px] font-semibold text-[var(--text)] transition-colors hover:border-[var(--line-strong)] disabled:cursor-not-allowed disabled:opacity-50"
 
@@ -64,7 +64,7 @@ export function CreatorTikTok({ onChanged }: { onChanged?: () => void }) {
     }
   }
 
-  if (info.loading && !info.data) return <Skeleton className="h-[140px] rounded-[24px]" aria-hidden="true" />
+  if (info.loading && !info.data) return <Skeleton className="h-[140px] rounded-2xl" aria-hidden="true" />
   if (info.error && !info.data) {
     return <p className={`${card} flex items-center gap-3 text-[13px] text-[var(--text-dim)]`}>Could not load your TikTok.<button type="button" onClick={info.refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" aria-hidden="true" />Retry</button></p>
   }

@@ -111,7 +111,7 @@ export function NotificationsMenu() {
         {unread > 0 && <span aria-hidden="true" className="absolute right-2.5 top-2.5 size-[7px] rounded-full bg-[var(--accent-solid)] ring-2 ring-[var(--raised)]" />}
       </PopoverTrigger>
 
-      <PopoverContent align="end" sideOffset={8} className="w-[360px] overflow-hidden rounded-[20px] border-[var(--line-strong)] bg-[var(--card-surface)] p-0 shadow-[0_18px_50px_rgba(0,0,0,0.55)]">
+      <PopoverContent align="end" sideOffset={8} className="w-[360px] overflow-hidden rounded-2xl border-[var(--line-strong)] bg-[var(--card-surface)] p-0 shadow-[0_18px_50px_rgba(0,0,0,0.55)]">
         <div className="flex h-12 items-center justify-between gap-3 border-b border-[var(--line-soft)] px-4">
           <h2 className="text-sm font-semibold text-[var(--text)]">Notifications</h2>
           <button

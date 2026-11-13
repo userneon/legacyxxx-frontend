@@ -28,12 +28,11 @@ function ClanTopCard({ clan, onOpen }: { clan: ClanRankEntry; onOpen: () => void
       style={{ order: slot, animationDelay: `${first ? 60 : 160 + slot * 60}ms` }}
       className={cn(
         "lx-fx-card group relative isolate flex min-w-0 flex-col gap-4 overflow-hidden rounded-xl border bg-[var(--glass-fill)] p-[18px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
-        first ? "border-[var(--brand)]/45" : "mt-6 border-[var(--line-soft)]",
+        first ? "border-[var(--line-strong)]" : "mt-6 border-[var(--line-soft)]",
       )}
     >
-      {first && <span aria-hidden="true" className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-transparent via-[var(--brand-bright)] to-transparent" />}
       <span className="flex items-center gap-2">
-        {first && <Crown aria-hidden="true" className="size-6 fill-[var(--brand)]/30 text-[var(--brand-bright)]" />}
+        {first && <Crown aria-hidden="true" className="size-6 text-[var(--text-2)]" />}
         <span className={cn("font-bold leading-none tracking-[-1px]", first ? "text-[34px] text-[var(--text)]" : "text-[28px] text-[var(--text-2)]")}>#{clan.rank}</span>
       </span>
       <span className="flex min-w-0 items-center gap-3">
@@ -46,7 +45,7 @@ function ClanTopCard({ clan, onOpen }: { clan: ClanRankEntry; onOpen: () => void
       <span className="flex items-end justify-between border-t border-[var(--line-soft)] pt-3.5">
         <span className="flex flex-col gap-1.5">
           <span className="text-[11px] text-[var(--text-dim)]">Total EXP</span>
-          <span className={cn("font-bold leading-none", first ? "text-[22px] text-[var(--brand-bright)]" : "text-lg text-[var(--text)]")}>{clan.totalExp.toLocaleString()}</span>
+          <span className={cn("font-bold leading-none", first ? "text-[22px] text-[var(--text)]" : "text-lg text-[var(--text)]")}>{clan.totalExp.toLocaleString()}</span>
         </span>
         <span className="flex gap-3.5">
           <span className="flex flex-col items-end gap-1.5"><span className="text-[11px] text-[var(--text-dim)]">Matches</span><span className="text-xs text-[var(--text-2)]">{clan.matches.toLocaleString()}</span></span>
@@ -69,14 +68,14 @@ function ClanRow({ clan, onOpen, you, index = 0 }: { clan: ClanRankEntry; onOpen
         CLAN_GRID,
         "lx-layer group relative w-full text-left transition-[background-color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] hover:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50",
         you
-          ? "h-[60px] shrink-0 border-t border-[var(--brand)]/40 bg-[linear-gradient(90deg,color-mix(in_oklab,var(--brand)_16%,var(--card-surface)),var(--card-surface)_45%)]"
+          ? "h-[60px] shrink-0 border-t border-[var(--line-strong)] bg-[var(--raised)]"
           : "lx-row-in h-14 border-b border-[var(--raised)] hover:bg-[var(--raised)]",
       )}
     >
       <span aria-hidden="true" className={cn("absolute bottom-2 left-0 top-2 w-[3px] origin-center rounded-r-full bg-[var(--brand-bright)] transition-[scale,opacity] duration-500", you ? "opacity-100" : "scale-y-0 opacity-0 group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300")} />
-      <span className={cn("text-sm font-semibold", you ? "text-[var(--brand-bright)]" : "text-[var(--text-muted)] transition-colors duration-300 group-hover:text-[var(--text)]")}>{clan.rank}</span>
+      <span className={cn("text-sm font-semibold", you ? "text-[var(--text)]" : "text-[var(--text-muted)] transition-colors duration-300 group-hover:text-[var(--text)]")}>{clan.rank}</span>
       <span className="flex min-w-0 items-center gap-3 transition-[translate] duration-500 group-hover:translate-x-1 group-hover:duration-300">
-        <ClanMark logo={clan.logo} tag={clan.tag} className={cn("size-8 rounded-[9px] text-[10px]", you && "ring-2 ring-[var(--brand)]/80")} />
+        <ClanMark logo={clan.logo} tag={clan.tag} className={cn("size-8 rounded-lg text-[10px]", false)} />
         <span className="min-w-0 truncate text-[13px] font-medium text-[var(--text)]" title={clan.name}>{you ? "Your clan" : clan.name}</span>
         <span {...clanTagProps(clan.look, "shrink-0 text-[11px] font-semibold text-[var(--text-dim)]")}>[{clan.tag}]</span>
       </span>
@@ -117,7 +116,7 @@ export function ClanLadder({ search }: { search: string }) {
           <span>#</span>
           <span>Clan</span>
           <span className="text-right">Members</span>
-          <span className="text-right text-[var(--brand-bright)]">Total EXP</span>
+          <span className="text-right text-[var(--text)]">Total EXP</span>
           <span className="text-right">Matches</span>
           <span className="text-right">Win rate</span>
           <span className="text-right">Wins</span>

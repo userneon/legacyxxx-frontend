@@ -64,26 +64,13 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
       style={{ "--tier": rankTierColor(player.rank_id), order: slot, animationDelay: `${first ? 60 : 160 + slot * 60}ms` } as CSSProperties}
       className={cn(
         "lx-fx-card group relative isolate flex min-w-0 flex-col gap-4 overflow-hidden rounded-xl border bg-[var(--glass-fill)] p-[18px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
-        first ? "border-[var(--brand)]/45" : "mt-6 border-[var(--line-soft)]",
+        first ? "border-[var(--line-strong)]" : "mt-6 border-[var(--line-soft)]",
       )}
     >
       <NameBanner fx={player.banner} />
-      <span
-        aria-hidden="true"
-        className={cn(
-          "pointer-events-none absolute -right-10 -top-12 -z-10 size-44 rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--tier)_22%,transparent)_0%,transparent_70%)] transition-opacity duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:opacity-100 group-hover:duration-500",
-          first ? "opacity-70" : "opacity-0",
-        )}
-      />
-      {first && (
-        <>
-          <span aria-hidden="true" className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-transparent via-[var(--brand-bright)] to-transparent" />
-          <span aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10 -z-10 opacity-50" />
-        </>
-      )}
       <span className="flex items-center justify-between">
         <span className="flex items-center gap-2">
-          {first && <Crown aria-hidden="true" className="size-6 fill-[var(--brand)]/30 text-[var(--brand-bright)] drop-" />}
+          {first && <Crown aria-hidden="true" className="size-6 text-[var(--text-2)]" />}
           <span className={cn("font-bold leading-none tracking-[-1px]", first ? "text-[34px] text-[var(--text)]" : "text-[28px] text-[var(--text-2)]")}>#{player.position}</span>
         </span>
         <CompetitiveRankBadge rankId={player.rank_id} rankName={player.rank_name} imageKey={player.rank_image_key} currentExp={player.current_exp} size={first ? 48 : 40} />
@@ -96,9 +83,9 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
             frame={player.frame}
             frameLook={player.frame_look}
             className={cn(
-              "lx-layer relative z-0 shrink-0 text-base transition-[scale] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-105 group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
-              first ? "size-[60px] rounded-[15px]" : "size-[52px] rounded-[13px]",
-              first && !player.frame && "ring-2 ring-[var(--brand)]/70 ring-offset-2 ring-offset-[var(--card-surface)]",
+              "lx-layer relative z-0 shrink-0 text-base",
+              first ? "size-[60px] rounded-2xl" : "size-[52px] rounded-2xl",
+              
             )}
           />
         </span>
@@ -115,7 +102,7 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
       <span className="flex items-end justify-between border-t border-[var(--line-soft)] pt-3.5">
         <span className="flex flex-col gap-1.5">
           <span className="text-[11px] text-[var(--text-dim)]">{SORTS.find((entry) => entry.value === sort)!.metric}</span>
-          <span key={sort} className={cn("lx-swap-in font-bold leading-none", first ? "text-[22px] text-[var(--brand-bright)]" : "text-lg text-[var(--text)]")}>{METRIC[sort](player)}</span>
+          <span key={sort} className={cn("lx-swap-in font-bold leading-none", first ? "text-[22px] text-[var(--text)]" : "text-lg text-[var(--text)]")}>{METRIC[sort](player)}</span>
         </span>
         <span className="flex gap-3.5">
           <span className="flex flex-col items-end gap-1.5">
@@ -147,7 +134,7 @@ function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: Competiti
         // fixed layer keeps a podium hover from re-creating (and repainting) the row below it.
         "lx-layer group relative isolate w-full text-left transition-[background-color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] hover:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50",
         you
-          ? "h-[60px] shrink-0 border-t border-[var(--brand)]/40 bg-[linear-gradient(90deg,color-mix(in_oklab,var(--brand)_16%,var(--card-surface)),var(--card-surface)_45%)]"
+          ? "h-[60px] shrink-0 border-t border-[var(--line-strong)] bg-[var(--raised)]"
           : "lx-row-in h-14 border-b border-[var(--raised)] hover:bg-[var(--raised)]",
       )}
     >
@@ -160,15 +147,15 @@ function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: Competiti
           you ? "opacity-100" : "scale-y-0 opacity-0 group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
         )}
       />
-      <span className={cn("text-sm font-semibold", you ? "text-[var(--brand-bright)]" : "text-[var(--text-muted)] transition-colors duration-300 group-hover:text-[var(--text)]")}>{player.position}</span>
-      <span className="flex min-w-0 items-center gap-3 transition-[translate] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:translate-x-1 group-hover:duration-300 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]">
+      <span className={cn("text-sm font-semibold", you ? "text-[var(--text)]" : "text-[var(--text-muted)] transition-colors duration-300 group-hover:text-[var(--text)]")}>{player.position}</span>
+      <span className="flex min-w-0 items-center gap-3">
         <span className="relative shrink-0">
           <PlayerAvatar
             avatar={player.avatar}
             name={player.username}
             frame={player.frame}
             frameLook={player.frame_look}
-            className={cn("relative z-0 size-8 shrink-0 rounded-[9px] text-xs", you && !player.frame && "ring-2 ring-[var(--brand)]/80")}
+            className={cn("relative z-0 size-8 shrink-0 rounded-lg text-xs", false)}
           />
         </span>
         <span {...nameProps(you ? null : player.name_style, "min-w-0 truncate text-[13px] font-medium text-[var(--text)]")} title={player.username}>{you ? "You" : <PlayerNameText name={player.username} />}</span>
@@ -229,7 +216,7 @@ function TableHeader({ sort }: { sort: LeaderboardSort }) {
             }}
             className={cn(
               "font-semibold transition-colors duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
-              column.key === sort ? "text-[var(--brand-bright)]" : "text-[var(--text-dim)]",
+              column.key === sort ? "text-[var(--text)]" : "text-[var(--text-dim)]",
             )}
           >
             {column.label}
@@ -255,7 +242,7 @@ function TopCardSkeleton() {
         <Skeleton className="size-10 rounded-full bg-[var(--line-soft)]" />
       </div>
       <div className="flex items-center gap-3">
-        <Skeleton className="size-[52px] rounded-[13px] bg-[var(--line)]" />
+        <Skeleton className="size-[52px] rounded-2xl bg-[var(--line)]" />
         <div className="flex flex-1 flex-col gap-2">
           <Skeleton className="h-3 w-3/5 rounded-full bg-[var(--line-strong)]" />
           <Skeleton className="h-2 w-1/3 rounded-full bg-[var(--line-soft)]" />
@@ -274,7 +261,7 @@ function RowSkeleton() {
     <div className={cn(GRID, "h-14 border-b border-[var(--raised)]")} aria-hidden="true">
       <Skeleton className="h-2.5 w-4 rounded-full bg-[var(--line-soft)]" />
       <span className="flex items-center gap-3">
-        <Skeleton className="size-8 rounded-[9px] bg-[var(--line-soft)]" />
+        <Skeleton className="size-8 rounded-lg bg-[var(--line-soft)]" />
         <Skeleton className="h-2.5 w-[45%] rounded-full bg-[var(--line)]" />
       </span>
       <span className="flex items-center gap-2 max-md:hidden">

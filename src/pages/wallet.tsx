@@ -53,7 +53,7 @@ function Activity({ entries, empty }: { entries: WalletTransaction[]; empty: str
         const gain = entry.amount > 0
         return (
           <li key={entry.id} className="flex items-center gap-3 px-5 py-3">
-            <span className={cn("grid size-[34px] shrink-0 place-items-center rounded-[9px] border", gain ? "border-[var(--status-green)]/30 bg-[var(--status-green)]/10 text-[var(--status-green)]" : "border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]")}>{lineIcon(entry)}</span>
+            <span className={cn("grid size-[34px] shrink-0 place-items-center rounded-lg border", gain ? "border-[var(--status-green)]/30 bg-[var(--status-green)]/10 text-[var(--status-green)]" : "border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]")}>{lineIcon(entry)}</span>
             <span className="flex min-w-0 flex-1 flex-col gap-0.5">
               <span className="truncate text-[13px] font-semibold text-[var(--text)]" title={entry.reason}>{entry.reason}</span>
               <RelativeTime value={entry.at} className="text-[11px] text-[var(--text-dim)]" />
@@ -125,7 +125,7 @@ export function WalletPage() {
       <div className="px-4 py-3"><span className={label}>How to earn</span></div>
       {(wallet?.earn ?? []).map((rule) => (
         <div key={rule.id} className="flex h-11 items-center gap-3 border-t border-[var(--line-soft)] px-6 text-[13px]">
-          <span className="grid size-[34px] shrink-0 place-items-center rounded-[9px] border border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]">{rule.id.startsWith("streak") ? <Flame className="size-4" aria-hidden="true" /> : <ArrowUp className="size-4" aria-hidden="true" />}</span>
+          <span className="grid size-[34px] shrink-0 place-items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]">{rule.id.startsWith("streak") ? <Flame className="size-4" aria-hidden="true" /> : <ArrowUp className="size-4" aria-hidden="true" />}</span>
           <span className="min-w-0 flex-1 truncate">{rule.label}</span>
           <b className="text-[var(--text)]">+{rule.coins}</b>
         </div>
@@ -135,7 +135,7 @@ export function WalletPage() {
   )
 
   return (
-    <div className="lx-calm lx-noir flex min-h-0 flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <div className="min-h-0 flex-1 overflow-y-auto px-8 py-7 max-md:px-4">
         {loading && !wallet ? (
           <div className="grid items-start gap-8 lg:grid-cols-[400px_minmax(0,1fr)]">
@@ -158,7 +158,7 @@ export function WalletPage() {
             <div className="flex min-w-0 flex-col gap-4">
               <section
                 aria-label="Balance"
-                className="lx-glass lx-noir-balance relative flex h-[200px] flex-col overflow-hidden rounded-2xl border border-[var(--line-strong)] p-6"
+                className="lx-glass relative flex h-[200px] flex-col overflow-hidden rounded-2xl border border-[var(--line-strong)] p-6"
                 style={{ backgroundImage: "radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,.16), transparent 55%), repeating-linear-gradient(115deg, rgba(255,255,255,.035) 0 1px, transparent 1px 9px), linear-gradient(160deg, #1d1d1f, #0e0e0f)" }}
               >
                 <span aria-hidden="true" className="absolute -bottom-[90px] -right-[70px] size-[300px] rounded-full border border-white/[0.07] shadow-[0_0_0_26px_rgba(255,255,255,.02),0_0_0_54px_rgba(255,255,255,.015)]" />
@@ -177,9 +177,9 @@ export function WalletPage() {
               </section>
 
               <div className="flex gap-2.5">
-                {[{ label: "Top up", icon: Plus, to: "/wallet/top-up", c: ["#8b5cf6", "#5b3bc4"] }, { label: "Send", icon: Send, to: "send", c: ["#22c55e", "#127a3a"] }, { label: "Shop", icon: Gem, to: "/shop", c: ["#d4d4d8", "#6b6b73"] }, { label: "Clan", icon: Users, to: "/clans", c: ["#ef4444", "#8f1d1d"] }, { label: "History", icon: Clock, to: "", c: ["#8b5cf6", "#5b3bc4"] }].map((action) => (
+                {[{ label: "Top up", icon: Plus, to: "/wallet/top-up" }, { label: "Send", icon: Send, to: "send" }, { label: "Shop", icon: Gem, to: "/shop" }, { label: "Clan", icon: Users, to: "/clans" }, { label: "History", icon: Clock, to: "" }].map((action) => (
                   <button key={action.label} type="button" onClick={() => (action.to === "send" ? setSendOpen(true) : action.to ? navigate(action.to) : setTab("history"))} className="lx-glass flex h-[86px] flex-1 flex-col items-center justify-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--glass-fill)] text-xs font-semibold text-[var(--text-2)] transition-colors hover:bg-[var(--raised)]">
-                    <span className="lx-glass-icon" style={{ "--c1": action.c[0], "--c2": action.c[1] } as React.CSSProperties}><action.icon className="size-[18px]" aria-hidden="true" /></span>{action.label}
+                    <span className="lx-glass-icon"><action.icon className="size-[18px]" aria-hidden="true" /></span>{action.label}
                   </button>
                 ))}
               </div>

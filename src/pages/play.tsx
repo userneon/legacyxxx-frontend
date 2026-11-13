@@ -41,7 +41,7 @@ const MODES: Record<PlayPageMode, { mode: PlayMode; title: string; description: 
 const secondary = "inline-flex h-[34px] items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] font-medium text-[var(--text)] transition-[background-color,border-color,transform] duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 disabled:pointer-events-none disabled:opacity-50"
 const primary = "lx-primary-button inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 disabled:pointer-events-none disabled:opacity-40 disabled:saturate-50"
 /** On/off switches in the same tray as the Segmented control (Leaders' EXP / K/D / Win rate). */
-const toggleItem = "inline-flex h-[30px] items-center gap-1.5 rounded-[7px] px-3 text-[13px] font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
+const toggleItem = "inline-flex h-[30px] items-center gap-1.5 rounded-lg px-3 text-[13px] font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
 const toggleOn = "bg-[var(--line)] text-[var(--text)]"
 const toggleOff = "text-[var(--text-muted)] hover:text-[var(--text)]"
 
@@ -514,7 +514,7 @@ function ServerDetail({ server, gate }: { server: PlayServer; gate: PlayGate }) 
   const watchable = server.status === "live" && isServerAddress(watchAddress)
   const reason = server.status === "offline" ? "Server is offline" : server.status === "full" || server.players >= server.maxPlayers ? "Server is full" : "No connection address"
   return (
-    <section aria-label={server.name} className="lx-play-panel flex min-h-0 flex-col overflow-hidden rounded-[24px] border border-[var(--line)] bg-[var(--card-surface)]">
+    <section aria-label={server.name} className="lx-play-panel flex min-h-0 flex-col overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--card-surface)]">
       <MapArt key={server.id} map={live?.map ?? server.map} className="h-[210px] shrink-0">
         <span aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,10,10,0.05),rgba(10,10,10,0.35)_50%,var(--card-surface))]" />
         <div className="absolute inset-x-[22px] bottom-4 z-10 flex items-end justify-between gap-3">
@@ -707,7 +707,7 @@ function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode;
         </header>
 
         <div className={cn("grid gap-4", wide ? "min-h-0 flex-1 grid-cols-[400px_minmax(0,1fr)]" : "grid-cols-1")}>
-          <div className={cn("lx-play-panel flex flex-col gap-2 rounded-[24px] border border-[var(--line)] bg-[var(--card-surface)] p-3", wide && "min-h-0")}>
+          <div className={cn("lx-play-panel flex flex-col gap-2 rounded-2xl border border-[var(--line)] bg-[var(--card-surface)] p-3", wide && "min-h-0")}>
             <div className="flex items-center gap-2 p-1">
               <Popover>
                 <PopoverTrigger asChild>
@@ -769,7 +769,7 @@ function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode;
             <div className={cn(wide && "scrollbar-hidden min-h-0 flex-1 overflow-y-auto")}>{list}</div>
           </div>
           {wide && (shown ? <ServerDetail server={shown} gate={gate} /> : (
-            <div className="lx-play-panel flex items-center justify-center rounded-[24px] border border-[var(--line)] bg-[var(--card-surface)] text-[13px] text-[var(--text-dim)]">{data ? "Pick a server on the left." : ""}</div>
+            <div className="lx-play-panel flex items-center justify-center rounded-2xl border border-[var(--line)] bg-[var(--card-surface)] text-[13px] text-[var(--text-dim)]">{data ? "Pick a server on the left." : ""}</div>
           ))}
         </div>
         {!wide && <ServerSheet server={picked} gate={gate} onClose={() => update({ server: null })} />}

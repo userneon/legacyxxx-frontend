@@ -48,7 +48,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ReportPlayerDialog } from "@/components/report-player-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 
-const card = "lx-pcard rounded-[24px] border border-[var(--glass-line)] bg-[var(--glass-fill)]"
+const card = "lx-pcard rounded-2xl border border-[var(--glass-line)] bg-[var(--glass-fill)]"
 const outline = "inline-flex h-[34px] items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] font-medium text-[var(--text)] transition-[background-color,border-color,transform] duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
 
 const SECTION_LABEL: Record<ProfileSection, string> = { stats: "Stats", matches: "Recent matches", faceit: "FACEIT stats", loadout: "Loadout" }
@@ -658,7 +658,7 @@ function ProfileSkeleton() {
       <div className="px-6 pt-6 max-md:px-4 max-md:pt-4">
         {/* The header: avatar, name, a line of facts and the buttons, all centred. */}
         <section className={cn(card, "flex h-[299px] flex-col items-center px-5 pt-7 max-md:px-4")}>
-          <Skeleton className="size-[104px] rounded-[26px] bg-[var(--line)]" />
+          <Skeleton className="size-[104px] rounded-2xl bg-[var(--line)]" />
           <Skeleton className="mt-5 h-7 w-56 max-w-full rounded-full bg-[var(--line-strong)]" />
           <Skeleton className={cn("mt-3 h-3 w-64 max-w-full", bar)} />
           <div className="mt-5 flex gap-2">
@@ -798,7 +798,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
   return (
     <div ref={topRef}>
       {true && (
-      <div className="@container lx-profile-calm px-6 pb-8 pt-5 max-md:px-4">
+      <div className="@container px-6 pb-8 pt-5 max-md:px-4">
         <div className="lx-bento grid gap-4 @4xl:grid-cols-12">
           {/* Who this is: the banner, the avatar, the name, the badges and the buttons, in one card that stays in view. */}
           <aside className="flex min-w-0 flex-col gap-3 @4xl:col-span-4">

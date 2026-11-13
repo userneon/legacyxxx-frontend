@@ -12,7 +12,7 @@ import { CreatorApply } from "@/components/creator-apply"
 import { CreatorTikTok } from "@/components/creator-tiktok"
 import { useApiQuery } from "@/hooks/use-api-query"
 
-const card = "rounded-[24px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-6"
+const card = "rounded-2xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-6"
 const label = "text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]"
 
 export function CreatorPanel({ onAboutSaved }: { onAboutSaved?: () => void }) {
@@ -26,7 +26,7 @@ export function CreatorPanel({ onAboutSaved }: { onAboutSaved?: () => void }) {
     return <p className="flex items-center justify-center gap-3 py-16 text-[13px] text-[var(--text-dim)]">Could not load your panel.<button type="button" onClick={info.refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>
   }
   if (!data) {
-    return <div className="grid gap-4 lg:grid-cols-12" aria-hidden="true"><Skeleton className="h-[200px] rounded-[24px] lg:col-span-5" /><Skeleton className="h-[200px] rounded-[24px] lg:col-span-7" /></div>
+    return <div className="grid gap-4 lg:grid-cols-12" aria-hidden="true"><Skeleton className="h-[200px] rounded-2xl lg:col-span-5" /><Skeleton className="h-[200px] rounded-2xl lg:col-span-7" /></div>
   }
   return (
     <div className="grid gap-4 lg:grid-cols-12">

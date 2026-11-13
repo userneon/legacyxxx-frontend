@@ -740,7 +740,7 @@ export function ShopPage() {
   ) : null
 
   const railBody = (
-    <div className="relative flex min-h-0 flex-col overflow-hidden rounded-[14px] border border-[var(--glass-line)] bg-[var(--card-surface)] lg:max-h-[calc(100dvh-11rem)]">
+    <div className="relative flex min-h-0 flex-col overflow-hidden rounded-2xl border border-[var(--glass-line)] bg-[var(--card-surface)] lg:max-h-[calc(100dvh-11rem)]">
         <div className="scrollbar-hidden flex min-h-0 flex-col gap-3 overflow-y-auto p-3.5">
           {previewStage()}
           {customizerBlock(false)}
@@ -783,7 +783,7 @@ export function ShopPage() {
    * Phones keep the bottom sheet.
    */
   const spotlight = selected ? (
-    <div style={{ top: barsHeight, backgroundColor: "var(--panel)" }} className="lx-shop-glass sticky z-10 hidden overflow-hidden rounded-[14px] border border-[var(--glass-line)] bg-[var(--panel)] lg:block">
+    <div style={{ top: barsHeight, backgroundColor: "var(--panel)" }} className="lx-shop-glass sticky z-10 hidden overflow-hidden rounded-2xl border border-[var(--glass-line)] bg-[var(--panel)] lg:block">
       <div className="flex items-stretch">
       <div className={cn("relative flex shrink-0 items-center justify-center border-r border-[var(--line-soft)] [&>div]:w-full", hasModelPicture(selected) ? "w-[400px]" : "w-[240px]", selected.kind === "background" ? "min-h-[150px]" : hasModelPicture(selected) ? "" : "px-3")}>{previewStage(true)}</div>
       {tab === "name" && combo.name_color && combo.name_glow
@@ -815,7 +815,7 @@ export function ShopPage() {
       )}
       {/* Not a scroller itself: the page panel around it scrolls, and a sticky rail sticks to the nearest scroller (an inner overflow-y-auto that never scrolled kept it from sticking). */}
       <div className="flex min-h-0 flex-1">
-      <div className="lx-glass-page lx-shop-root min-h-0 min-w-0 flex-1 px-6 py-5 max-md:px-4">
+      <div className="lx-shop-root min-h-0 min-w-0 flex-1 px-6 py-5 max-md:px-4">
         {tab === "featured" && (
           <div className="mb-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl border border-[var(--line-soft)] px-4 py-3 text-[12px] leading-relaxed text-[var(--text-dim)]">
             <span>Cosmetics are paid in FOL$ (earn it by playing, or top it up). Ranks are paid in ₮ with QPay or any bank app.</span>
@@ -833,7 +833,7 @@ export function ShopPage() {
           </section>
         )}
         {loading && !data ? (
-          <div className="flex flex-col gap-5"><Skeleton className="h-[170px] rounded-[14px] max-lg:hidden" /><Skeleton className="h-[480px] rounded-xl" /></div>
+          <div className="flex flex-col gap-5"><Skeleton className="h-[170px] rounded-2xl max-lg:hidden" /><Skeleton className="h-[480px] rounded-xl" /></div>
         ) : error || !data ? (
           <p className="flex items-center justify-center gap-3 py-24 text-[13px] text-[var(--text-dim)]">Could not load the shop.<button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>
         ) : (
@@ -868,7 +868,7 @@ export function ShopPage() {
                   {/* One Filter dropdown, the same as on Play (owner report 2026-11-13: the filter did not match the other pages). */}
                   <Popover>
                     <PopoverTrigger asChild>
-                      <button type="button" aria-label="Filter items" className={cn("group inline-flex h-[30px] items-center gap-1.5 rounded-[7px] border border-[var(--line)] px-3 text-[13px] font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60", (show !== "all" || sort !== SORTS[0].value) ? "bg-[var(--line)] text-[var(--text)]" : "text-[var(--text-muted)] hover:text-[var(--text)]")}>
+                      <button type="button" aria-label="Filter items" className={cn("group inline-flex h-[30px] items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60", (show !== "all" || sort !== SORTS[0].value) ? "bg-[var(--line)] text-[var(--text)]" : "text-[var(--text-muted)] hover:text-[var(--text)]")}>
                         <SlidersHorizontal className="size-3.5" />
                         Filter
                         {((show !== "all" ? 1 : 0) + (sort !== SORTS[0].value ? 1 : 0)) > 0 && <span className="flex size-4 items-center justify-center rounded-full bg-[var(--text)] text-[10px] font-semibold text-[var(--bg)]">{(show !== "all" ? 1 : 0) + (sort !== SORTS[0].value ? 1 : 0)}</span>}

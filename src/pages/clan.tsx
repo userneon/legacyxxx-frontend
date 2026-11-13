@@ -405,7 +405,7 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
   const baseTag = clanTagProps(clan.look, "w-fit text-[13px] font-semibold tracking-wide")
   const tagProps = clan.look?.tagColor ? baseTag : { ...baseTag, style: { ...baseTag.style, color: accent } }
   return (
-    <div className="lx-fx-card group relative isolate flex min-h-[190px] flex-col overflow-hidden rounded-[20px] border border-white/10 bg-[#1b1b1d] transition-colors hover:border-white/25" style={{ backgroundImage: "radial-gradient(1.2px 1.2px at 8px 8px, rgb(255 255 255 / 0.12), transparent)", backgroundSize: "16px 16px" }}>
+    <div className="lx-fx-card group relative isolate flex min-h-[190px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#1b1b1d] transition-colors hover:border-white/25" style={{ backgroundImage: "radial-gradient(1.2px 1.2px at 8px 8px, rgb(255 255 255 / 0.12), transparent)", backgroundSize: "16px 16px" }}>
       <Dialog open={asking} onOpenChange={setAsking}>
         <DialogContent className="rounded-2xl">
           <DialogHeader><DialogTitle>Join {clan.name}</DialogTitle><DialogDescription>The leader reads your answers before accepting.</DialogDescription></DialogHeader>
@@ -429,7 +429,7 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
       ) : (
         <>
           {wash && <div aria-hidden="true" className="absolute inset-0 -z-10 opacity-50" style={{ background: wash }} />}
-          <Swords aria-hidden="true" className="absolute right-6 top-10 -z-10 size-[104px] text-[var(--brand)] opacity-70" strokeWidth={1.6} />
+          <Swords aria-hidden="true" className="absolute right-6 top-10 -z-10 size-[104px] text-[var(--text-faint)] opacity-60" strokeWidth={1.6} />
         </>
       )}
       {banner && <div aria-hidden="true" className="absolute -inset-px -z-10 bg-gradient-to-t from-[#1b1b1d] via-[#1b1b1d]/60 to-transparent" />}
@@ -437,7 +437,7 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
         {/* The way in is a small control top right; the whole card opens the clan (OneTake-style card, owner request 2026-11-13). */}
         <div className="flex items-start justify-between gap-2">
           <button type="button" aria-label={`Open ${clan.name}`} onClick={() => onClanNavigate(String(clan.number ?? clan.id))} className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-            <ClanMark logo={clan.logo} tag={clan.tag} className="size-[76px] rounded-[18px]" style={{ boxShadow: "0 0 0 1px rgb(255 255 255 / 0.1)" }} />
+            <ClanMark logo={clan.logo} tag={clan.tag} className="size-[76px] rounded-2xl" style={{ boxShadow: "0 0 0 1px rgb(255 255 255 / 0.1)" }} />
           </button>
           {isMine ? (
             <span className="inline-flex h-8 items-center gap-1.5 rounded-full bg-black/45 px-3 text-[12px] text-[var(--text-2)]"><Check className="size-3.5" aria-hidden="true" />Your clan</span>
@@ -586,7 +586,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                           <button type="button" onClick={() => onProfileNavigate(member.steamId || member.id)} className="flex h-full min-w-0 flex-1 items-center gap-3 px-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--brand)]/60">
                             <RoleIcon role={member.role} />
                             {/* A roster is a plain list: no frame light and no name glow (owner request 2026-11-02); the name keeps its colour. */}
-                            <PlayerAvatar avatar={member.avatar} name={member.name} className="size-8 shrink-0 rounded-[9px] text-xs" />
+                            <PlayerAvatar avatar={member.avatar} name={member.name} className="size-8 shrink-0 rounded-lg text-xs" />
                             <span className="flex min-w-0 flex-col gap-0.5">
                               <span {...nameProps(member.nameStyle ? { ...member.nameStyle, glow: null, glowFx: null } : null, "min-w-0 truncate text-[13px] font-medium leading-tight")}>{member.name}{member.id === user?.id ? " (you)" : ""}</span>
                               <PerkMark perk={member.perk} compact size={18} />
@@ -605,7 +605,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                     {Array.from({ length: Math.min(Math.max(clan.maxPlayers - members.length, 0), 3) }, (_, index) => (
                       <li key={`open-${index}`} className="flex h-14 items-center gap-3 border-b border-[var(--raised)] px-4 text-[var(--text-faint)] last:border-b-0">
                         <User className="size-4 w-5 shrink-0" aria-hidden="true" />
-                        <span className="grid size-8 place-items-center rounded-[9px] border border-dashed border-[var(--line)]"><UserPlus className="size-3.5" aria-hidden="true" /></span>
+                        <span className="grid size-8 place-items-center rounded-lg border border-dashed border-[var(--line)]"><UserPlus className="size-3.5" aria-hidden="true" /></span>
                         <span className="text-[13px]">{index === 2 && clan.maxPlayers - members.length > 3 ? `+${clan.maxPlayers - members.length - 2} open slots` : "Open slot"}</span>
                       </li>
                     ))}
@@ -690,13 +690,13 @@ function CreateClanForm({ onCreated }: { onCreated: (clan: ClanDetail) => void }
   return (
     <form className="mt-2 flex flex-col gap-4" onSubmit={(event) => void submit(event)}>
       {/* A live preview of the card: the name and tag as typed, the member count, the way in. The logo tile and "Add a banner" upload right here. */}
-      <div className="relative isolate flex h-[190px] flex-col justify-end gap-1.5 overflow-hidden rounded-[20px] border border-white/10 p-4" style={{ background: "radial-gradient(1.2px 1.2px at 8px 8px, rgb(255 255 255 / 0.12), transparent) 0 0 / 16px 16px" }}>
-        {files.banner ? <img src={files.banner.url} alt="" className="absolute inset-0 -z-20 size-full object-cover" /> : <Swords aria-hidden="true" className="absolute right-6 top-12 -z-10 size-[104px] text-[var(--brand)] opacity-70" strokeWidth={1.6} />}
+      <div className="relative isolate flex h-[190px] flex-col justify-end gap-1.5 overflow-hidden rounded-2xl border border-white/10 p-4" style={{ background: "radial-gradient(1.2px 1.2px at 8px 8px, rgb(255 255 255 / 0.12), transparent) 0 0 / 16px 16px" }}>
+        {files.banner ? <img src={files.banner.url} alt="" className="absolute inset-0 -z-20 size-full object-cover" /> : <Swords aria-hidden="true" className="absolute right-6 top-12 -z-10 size-[104px] text-[var(--text-faint)] opacity-60" strokeWidth={1.6} />}
         {files.banner && <span aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-[#1b1b1d] via-[#1b1b1d]/50 to-transparent" />}
         <button type="button" onClick={() => document.getElementById("clan-art-banner")?.click()} className="absolute right-4 top-3 text-[12px] font-semibold text-[var(--text-2)] hover:text-[var(--text)]">{files.banner ? "Change banner" : "Add a banner"}</button>
         {files.banner && <button type="button" aria-label="Remove banner" onClick={() => setFiles((current) => ({ ...current, banner: undefined }))} className="absolute right-4 top-9 text-[11px] text-[var(--text-dim)] hover:text-[var(--text)]">Remove</button>}
-        <button type="button" onClick={() => document.getElementById("clan-art-logo")?.click()} aria-label={files.logo ? "Change avatar" : "Add an avatar"} className="absolute left-4 top-4 grid size-[76px] place-items-center overflow-hidden rounded-[18px] border border-white/10 bg-[#0e0e0f] text-center text-[12px] font-bold hover:border-white/25">
-          {files.logo ? <img src={files.logo.url} alt="" className="size-full object-cover" /> : <><Swords aria-hidden="true" className="absolute size-9 text-[var(--brand)] opacity-60" strokeWidth={1.6} /><span className="relative px-1 leading-tight">Add an avatar</span></>}
+        <button type="button" onClick={() => document.getElementById("clan-art-logo")?.click()} aria-label={files.logo ? "Change avatar" : "Add an avatar"} className="absolute left-4 top-4 grid size-[76px] place-items-center overflow-hidden rounded-2xl border border-white/10 bg-[#0e0e0f] text-center text-[12px] font-bold hover:border-white/25">
+          {files.logo ? <img src={files.logo.url} alt="" className="size-full object-cover" /> : <><Swords aria-hidden="true" className="absolute size-9 text-[var(--text-faint)] opacity-60" strokeWidth={1.6} /><span className="relative px-1 leading-tight">Add an avatar</span></>}
         </button>
         <span className="flex items-center gap-2"><b className="truncate text-[24px] leading-none">{name.trim() || "Name"}</b><span className="rounded-full border border-white/25 px-2 py-0.5 text-[10px] font-semibold text-[var(--text-2)]">{tag || "TAG"}</span></span>
         <span className="flex items-center gap-3 text-[13px] text-[var(--text-2)]"><span className="inline-flex items-center gap-1.5"><Users className="size-3.5" />1/{maxPlayers || 0}</span><span>{joinMode === "open" ? "Open" : "By request"}</span></span>
@@ -729,7 +729,7 @@ function CreateClanForm({ onCreated }: { onCreated: (clan: ClanDetail) => void }
       <label className="flex flex-col gap-1.5"><span className="text-[13px] font-semibold">Max players</span>
         <span className="lx-field"><input id="clan-max" type="number" min={2} max={50} value={maxPlayers} onChange={(event) => setMaxPlayers(Math.max(0, Math.min(50, Math.floor(Number(event.target.value) || 0))))} /><span className="lx-count">2-50</span></span></label>
       {error && <p role="alert" className="text-[13px] text-[var(--status-red)]">{error}</p>}
-      <button type="submit" disabled={!valid || submitting} className="lx-primary-button inline-flex h-[46px] w-full items-center justify-center gap-2 rounded-[14px] text-[14px] font-bold disabled:opacity-50">
+      <button type="submit" disabled={!valid || submitting} className="lx-primary-button inline-flex h-[46px] w-full items-center justify-center gap-2 rounded-2xl text-[14px] font-bold disabled:opacity-50">
         <Coins className="size-4" aria-hidden="true" />
         {submitting ? "Creating…" : `Create${fee != null ? ` for ${fee.toLocaleString()} FOL$` : ""}`}
       </button>

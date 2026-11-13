@@ -158,7 +158,7 @@ export function App() {
       <div className={SHELL === "pill" ? "lx-frame" : "contents"}>
       <ShellNav currentPage={currentPage} onNavigate={handleNavigate} />
       <SidebarInset className={cn("m-0 flex min-w-0 flex-col gap-2 bg-transparent", SHELL === "pill" ? "lx-frame-main max-[559px]:h-svh max-[559px]:p-2" : "h-svh p-2 pl-0 max-[559px]:pl-2")}>
-        <header className={cn("lx-glass-shell relative z-[3] flex h-14 shrink-0 items-center gap-4 pl-4 pr-2 max-md:pl-2 max-sm:gap-1.5", SHELL === "pill" ? "lx-frame-header" : "rounded-[14px]")}>
+        <header className={cn("lx-glass-shell relative z-[3] flex h-14 shrink-0 items-center gap-4 pl-4 pr-2 max-md:pl-2 max-sm:gap-1.5", SHELL === "pill" ? "lx-frame-header" : "rounded-2xl")}>
           {/* On a phone the sidebar is a sheet, so the top bar carries its only trigger. */}
           <SidebarTrigger className="size-9 shrink-0 rounded-[10px] text-[var(--text-muted)] hover:bg-[var(--raised)] hover:text-[var(--text)] min-[560px]:hidden" />
           <div className="flex min-w-0 flex-1 items-center gap-2 text-[13px]">
@@ -180,7 +180,7 @@ export function App() {
         >
           <ArrowUp className="size-5" aria-hidden="true" />
         </button>
-        <div ref={panelRef} className={cn("lx-glass-shell scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-clip max-sm:pb-16", SHELL === "pill" ? "lx-frame-panel" : "rounded-[14px]")}>
+        <div ref={panelRef} className={cn("lx-glass-shell scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-clip max-sm:pb-16", SHELL === "pill" ? "lx-frame-panel" : "rounded-2xl")}>
           {/* Leaders scrolls its table inside the panel (sticky header, your row pinned under it), so it gets the panel's height instead of growing past it. */}
           <div key={shownSection} className={cn("page-enter flex flex-col", shownSection === "/leaders" ? "h-full" : "min-h-full", leaving && "page-leave")}>
             <RouteErrorBoundary resetKey={shownLocation.pathname}>

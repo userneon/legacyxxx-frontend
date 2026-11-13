@@ -28,6 +28,22 @@ get wrong (like the accent-color exception below).
 - **Escape all user text.** Names, review text, penalty reasons — anything a player
   typed — renders as escaped text, never raw HTML.
 
+## One card system (owner request 2026-11-13, "fix everything" after a design audit) — this wins over older paragraphs below
+
+The audit found 25 card classes, 14 corner radii, a violet fog behind every page, rings for every number, frost, sweeps and glowing edges: the site read as
+cluttered, "AI-made" and flat. Since then:
+- **Every card is the same object** (`/* ==== One card system` block at the end of `src/index.css`): solid `--glass-fill` `#0f0f11`, one `--glass-line` hairline,
+  `--card-radius` 14px, no shadow, no blur, no light. It is unlayered CSS, so it wins over Tailwind utilities on `.lx-glass`, `.glass`, `.lx-pcard`,
+  `.lx-people-card`, `.lx-team-card`, `.lx-play-panel`, `.lx-shop-tile`, `.lx-shop-glass`, `.lx-frost`. Hover only brightens the hairline; nothing lifts, glows or sweeps.
+  `.lx-calm`, `.lx-noir`, `.lx-profile-calm`, `.lx-glass-page`, the light sweep, the violet edge on `.lx-fx-card`, the Shop tile frost and glows, the frosted
+  people cards and the `body::after` violet fog are deleted. A new card uses `.lx-glass` and nothing else.
+- **Radii**: 8 (`rounded-lg`, controls), 10–16 (`rounded-[10px]`, `rounded-xl`, `rounded-2xl`, cards), full (pills). The odd 7/9/13/14/15/18/20/22/24/26px values were folded in.
+- **Violet** only on: the active sidebar item and tab underline, the wordmark X, rank / EXP progress, a picked item's border, the Add-box icon tile, the rank cards' own art. Leaders' #1, your row and the sort header, Reviews' average, the clan swords and the own-review card are neutral now.
+- **Numbers, not rings**: `RingStat` (`home-bento.tsx`, used on Home, Profile, Clans) is a stat cell: name, the number large, a thin bar in the same green / red / grey parts.
+- **Wallet's action icons** are plain tiles (`.lx-glass-icon`), no coloured glass plates. On the website a `.lx-tone` card has no wash or top line (the staff site keeps them).
+- **Snow is off by default** (`lib/preferences.ts`); a visitor can switch it on in Settings → Website.
+- **Not changed**: the five rank gem cards (owner art, cursor glow in the tier colour), status colours, rank emblem colours, brand colours of Discord/TikTok, the staff site.
+
 ## Design tokens (`src/index.css`)
 
 Neutral surfaces, white as the workhorse accent, and **violet as the brand accent** (owner decision

@@ -49,7 +49,7 @@ function YourStatus({ penalties, loading, onDetails }: { penalties: PenaltyEntry
   }
   if (!active) {
     return (
-      <section aria-label="Your status" className="lx-swap-in flex items-center gap-3.5 rounded-xl border border-[var(--status-green)]/30 bg-[linear-gradient(90deg,color-mix(in_oklab,var(--status-green)_7%,transparent),transparent_60%)] bg-[var(--glass-fill)] px-[18px] py-4">
+      <section aria-label="Your status" className="lx-swap-in flex items-center gap-3.5 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] px-[18px] py-4">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-[var(--status-green)]/10 text-[var(--status-green)]">
           <ShieldCheck className="size-[18px]" />
         </span>
@@ -118,7 +118,7 @@ function PenaltyRow({ penalty, onOpen, index }: { penalty: PenaltyEntry; onOpen:
         className="absolute bottom-2 left-0 top-2 w-[3px] scale-y-0 rounded-r-full bg-[var(--text-2)] opacity-0 transition-[scale,opacity] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]"
       />
       <span className="flex min-w-0 items-center gap-3 transition-[translate] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:translate-x-1 group-hover:duration-300 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]">
-        <PlayerModerationAvatar avatar={penalty.avatar} name={penalty.player} status={penalty.moderationStatus} className="size-8 shrink-0 rounded-[9px] text-xs" />
+        <PlayerModerationAvatar avatar={penalty.avatar} name={penalty.player} status={penalty.moderationStatus} className="size-8 shrink-0 rounded-lg text-xs" />
         <span className="min-w-0 truncate text-[13px] font-medium text-[var(--text)]" title={penalty.player}>{penalty.player}</span>
       </span>
       <span><TypePill type={penalty.type} /></span>
@@ -175,7 +175,7 @@ function RowSkeleton() {
   return (
     <div className={cn(GRID, "h-14 border-b border-[var(--raised)]")} aria-hidden="true">
       <span className="flex items-center gap-3">
-        <Skeleton className="size-8 rounded-[9px] bg-[var(--line-soft)]" />
+        <Skeleton className="size-8 rounded-lg bg-[var(--line-soft)]" />
         <Skeleton className="h-2.5 w-[55%] rounded-full bg-[var(--line)]" />
       </span>
       <Skeleton className="h-5 w-12 rounded-full bg-[var(--raised)]" />

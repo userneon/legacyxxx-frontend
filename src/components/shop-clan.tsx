@@ -135,7 +135,7 @@ export function ClanLooksShop({ clanId, canWear = true, tag, balance, onChanged,
     const parts = coloursOf(selected)
     const worn = wearing(selected)
     return (
-      <aside className="lx-add-box relative flex flex-col overflow-hidden rounded-[14px] border">
+      <aside className="lx-add-box relative flex flex-col overflow-hidden rounded-2xl border">
         <div className="relative p-3.5">
           <span aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 aspect-square w-[120%] -translate-x-1/2 -translate-y-1/2 opacity-20" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} />
           <div className="relative"><Preview item={shownOf(selected)} also={partnerOf(selected)} tag={tag} big /></div>

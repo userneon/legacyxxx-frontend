@@ -8,12 +8,12 @@ export type TimeFormat = "24h" | "12h"
 export interface WebsitePreferences {
   sidebarCollapsed: boolean
   timeFormat: TimeFormat
-  /** Winter snow over the site (on by default; it only shows in winter or during a New Year event). */
+  /** Winter snow over the site (off by default since 2026-11-13: the flakes read as dust; a visitor can switch it on in Settings → Website). */
   snow: boolean
 }
 
 export const WEBSITE_PREFS_KEY = "legacyx.website-prefs"
-const DEFAULTS: WebsitePreferences = { sidebarCollapsed: false, timeFormat: "24h", snow: true }
+const DEFAULTS: WebsitePreferences = { sidebarCollapsed: false, timeFormat: "24h", snow: false }
 
 function read(): WebsitePreferences {
   try {

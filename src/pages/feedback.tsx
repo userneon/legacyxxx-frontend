@@ -194,7 +194,7 @@ function ReviewCard({ entry, own, fresh, index, onOpenProfile, onEdit, onChanged
       style={{ animationDelay: `${fresh ? 0 : Math.min(index, 10) * 50}ms` }}
       className={cn(
         "lx-fx-card group relative isolate flex flex-col gap-3 overflow-hidden rounded-xl border bg-[var(--glass-fill)] px-5 py-[18px]",
-        own ? "border-[var(--line-strong)] bg-[linear-gradient(160deg,color-mix(in_oklab,var(--brand)_10%,var(--card-surface)),var(--card-surface)_55%)]" : "border-[var(--line-soft)]",
+        own ? "border-[var(--line-strong)] bg-[var(--card-surface)]" : "border-[var(--line-soft)]",
       )}
     >
       <NameBanner fx={entry.banner} />
@@ -584,7 +584,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
 
       <aside aria-label="Summary" className="scrollbar-hidden flex w-[340px] shrink-0 flex-col gap-5 overflow-y-auto border-l border-[var(--line-soft)] p-6 max-lg:w-full max-lg:overflow-visible max-lg:border-l-0 max-lg:border-t">
         <div className="lx-swap-in relative flex items-center gap-4 overflow-hidden rounded-xl border border-[var(--line-strong)] bg-[var(--glass-fill)] p-5">
-          <span className="lx-brand-text relative text-5xl font-bold leading-none tracking-[-1.5px]">{average.toFixed(1)}</span>
+          <span className="relative text-5xl text-[var(--text)] font-bold leading-none tracking-[-1.5px]">{average.toFixed(1)}</span>
           <span className="relative flex flex-col gap-2">
             <Stars value={average} size={17} />
             <span className="text-xs text-[var(--text-muted)]">{total.toLocaleString()} review{total === 1 ? "" : "s"}</span>

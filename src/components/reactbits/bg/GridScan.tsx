@@ -1118,7 +1118,7 @@ export const GridScan = ({
         <div
           className={
             showPreview
-              ? 'pointer-events-none absolute bottom-3 right-3 aspect-[4/3] w-[168px] overflow-hidden rounded-[14px] bg-[#0b0b0e] shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_8px_24px_rgba(0,0,0,0.35)]'
+              ? 'pointer-events-none absolute bottom-3 right-3 aspect-[4/3] w-[168px] overflow-hidden rounded-2xl bg-[#0b0b0e] shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_8px_24px_rgba(0,0,0,0.35)]'
               : 'pointer-events-none absolute h-px w-px overflow-hidden opacity-0'
           }
         >
