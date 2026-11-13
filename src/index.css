@@ -552,7 +552,7 @@
   -webkit-backdrop-filter: blur(12px) saturate(140%);
   transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
-/* The item's own light under the pointer (owner request 2026-11-13): a violet light shines INTO the tile from above, behind the picture and the text, instead of a shadow under it. */
+/* The item's own light under the pointer (owner request 2026-11-13): a violet light shines INTO the tile from its top-right corner, fading out towards the bottom-left, behind the picture and the text, instead of a shadow under it. */
 .lx-shop-tile { isolation: isolate; }
 .lx-shop-tile::after {
   content: "";
@@ -563,7 +563,7 @@
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.25s ease;
-  background: radial-gradient(78% 62% at 50% -6%, color-mix(in oklch, var(--brand) 40%, transparent), transparent 72%);
+  background: radial-gradient(90% 75% at 104% -6%, color-mix(in oklch, var(--brand) 44%, transparent), transparent 70%);
 }
 .lx-shop-tile:hover::after,
 .lx-shop-tile:focus-visible::after { opacity: 1; }
