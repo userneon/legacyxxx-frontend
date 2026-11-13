@@ -84,11 +84,11 @@ export function CreatorLinks({ links, className, tiktokVerified }: { links: Crea
 }
 
 /** A creator's name (in the look they wear), rank and tier, linking to their profile. */
-function CreatorHead({ creator, size }: { creator: Creator; size: number }) {
+function CreatorHead({ creator, size, center }: { creator: Creator; size: number; center?: boolean }) {
   return (
-    <Link to={`/profile/${creator.steamId}`} className="group flex min-w-0 items-center gap-3">
+    <Link to={`/profile/${creator.steamId}`} className={cn("group flex min-w-0 gap-3", center ? "flex-col items-center text-center" : "items-center")}>
       <FramedAvatar avatar={creator.avatar ?? undefined} name={creator.username} frame={creator.frame} look={creator.frameLook} size={size} />
-      <span className="flex min-w-0 flex-col gap-1">
+      <span className={cn("flex min-w-0 flex-col gap-1", center && "items-center")}>
         <span {...nameProps(creator.nameStyle as NameLook | null, cn("truncate font-bold text-[var(--text)] underline-offset-4 group-hover:underline", size > 60 ? "text-[22px] leading-tight" : "text-[15px]"))} title={creator.username}>{creator.username}</span>
         <PerkMark perk={creator.perk} compact />
         {creator.rank && (
@@ -105,7 +105,7 @@ function CreatorHead({ creator, size }: { creator: Creator; size: number }) {
 /** A Main Content Creator: one wide card, like the Owner's on the Staff page. */
 function MainCard({ creator }: { creator: Creator }) {
   return (
-    <article className="flex flex-col gap-4 rounded-2xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-5 transition-colors hover:border-[var(--line-strong)] sm:flex-row sm:items-center">
+    <article className="lx-people-card flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
       <div className="flex min-w-0 flex-col gap-2.5 sm:w-[300px] sm:shrink-0">
         <CreatorHead creator={creator} size={72} />
         <span><CreatorBadge tier={creator.tier} label={creator.label} /></span>
@@ -121,10 +121,11 @@ function MainCard({ creator }: { creator: Creator }) {
 /** A Content Creator: a compact card in the grid. */
 function CreatorCard({ creator }: { creator: Creator }) {
   return (
-    <article className="flex h-full flex-col gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4 transition-colors hover:border-[var(--line-strong)]">
-      <CreatorHead creator={creator} size={48} />
+    <article className="lx-people-card flex h-full flex-col items-center gap-3 p-4 pb-5 text-center">
+      <CreatorHead creator={creator} size={72} center />
+      <span><CreatorBadge tier={creator.tier} label={creator.label} /></span>
       {creator.bio && <p className="line-clamp-2 text-[13px] leading-relaxed text-[var(--text-muted)]">{creator.bio}</p>}
-      <CreatorLinks links={creator.links} tiktokVerified={Boolean(creator.tiktok)} className="mt-auto" />
+      <CreatorLinks links={creator.links} tiktokVerified={Boolean(creator.tiktok)} className="mt-auto justify-center" />
     </article>
   )
 }

@@ -2223,8 +2223,12 @@
 /* ---- Staff page: the team as calm user cards (owner request 2026-11-13, taken from a users grid the owner sent: a dark rounded card, the small things on a top row,
    a round avatar in the middle, the name and the role under it). The role's colour (data-tone, the staff-site tones) is only the avatar's thin ring, the role text and
    the arrow on hover; no holo frame, numerals or sheen any more. The Owner's card is the same card laid out wide. ---- */
-.lx-team-card { --tone: var(--tone-violet); list-style: none; border-radius: 20px; border: 1px solid var(--glass-line); background: var(--card-surface);
-  transition: translate 200ms var(--ease-out), border-color 200ms var(--ease-out); }
+.lx-team-card { --tone: var(--tone-violet); list-style: none; }
+/* The frosted card the Staff and Creators pages share (owner request 2026-11-13, "frosted, the content creators the same"): soft see-through glass with a light top edge. */
+.lx-people-card, .lx-team-card { border-radius: 20px; border: 1px solid rgb(255 255 255 / 0.09); background: rgb(255 255 255 / 0.045); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
+  backdrop-filter: blur(22px) saturate(150%); -webkit-backdrop-filter: blur(22px) saturate(150%);
+  transition: translate 200ms var(--ease-out), border-color 200ms var(--ease-out), background-color 200ms var(--ease-out); }
+.lx-people-card:hover, .lx-team-card:hover { border-color: rgb(255 255 255 / 0.18); background: rgb(255 255 255 / 0.07); }
 .lx-team-card[data-tone="red"], .lx-stat-cell[data-tone="red"] { --tone: var(--tone-red); }
 .lx-team-card[data-tone="amber"], .lx-stat-cell[data-tone="amber"] { --tone: var(--tone-amber); }
 .lx-team-card[data-tone="green"], .lx-stat-cell[data-tone="green"] { --tone: var(--tone-green); }
@@ -2233,15 +2237,15 @@
 .lx-stat-cell[data-tone="violet"], section[data-tone="violet"] { --tone: var(--tone-violet); }
 section[data-tone="red"] { --tone: var(--tone-red); } section[data-tone="sky"] { --tone: var(--tone-sky); } section[data-tone="green"] { --tone: var(--tone-green); } section[data-tone="amber"] { --tone: var(--tone-amber); }
 .lx-team-dot { background: var(--tone); }
-.lx-team-card:hover { translate: 0 -2px; border-color: var(--line-strong); }
+.lx-team-card:hover, .lx-creator-grid .lx-people-card:hover { translate: 0 -2px; }
 .lx-team-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
 @media (max-width: 639px) { .lx-team-grid { gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); } .lx-team-grid .lx-team-face { width: 64px !important; height: 64px !important; } }
 .lx-team-hero:hover { translate: none; }
 .lx-team-inner { position: relative; display: flex; height: 100%; flex-direction: column; align-items: center; gap: 12px; padding: 14px 14px 16px; border-radius: 19px; }
 .lx-team-inner:focus-visible { outline: 2px solid var(--accent-solid); outline-offset: 2px; }
 .lx-team-hero .lx-team-inner { padding: 20px; }
-.lx-team-face { flex-shrink: 0; border-radius: 999px; object-fit: cover; background: var(--raised); box-shadow: 0 0 0 2px color-mix(in srgb, var(--tone) 55%, var(--card-surface)); }
-.lx-team-go { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 999px; background: var(--raised); color: var(--text-faint); transition: color 200ms var(--ease-out); }
+.lx-team-face { flex-shrink: 0; border-radius: 999px; object-fit: cover; background: rgb(255 255 255 / 0.08); box-shadow: 0 0 0 2px color-mix(in srgb, var(--tone) 55%, transparent); }
+.lx-team-go { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 999px; background: rgb(255 255 255 / 0.07); color: var(--text-faint); transition: color 200ms var(--ease-out); }
 .lx-team-card:hover .lx-team-go { color: var(--tone); }
 @media (prefers-reduced-motion: reduce) { .lx-team-card { transition: none; } .lx-team-card:hover { translate: none; } }
 
