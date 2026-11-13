@@ -8,6 +8,7 @@ import { AppSidebar, COMMERCE_ITEMS, COMMUNITY_ITEMS, NAV_ITEMS, PLAY_ITEMS, SKI
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useSidebar } from "@/components/ui/sidebar"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { SHELL } from "@/lib/shell"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { useModerationAccess } from "@/components/penalty-staff"
@@ -32,7 +33,7 @@ interface Props {
  */
 export function ShellNav({ currentPage, onNavigate }: Props) {
   const { isMobile } = useSidebar()
-  return isMobile ? <AppSidebar currentPage={currentPage} onNavigate={onNavigate} /> : <AppRail currentPage={currentPage} onNavigate={onNavigate} />
+  return SHELL === "classic" || isMobile ? <AppSidebar currentPage={currentPage} onNavigate={onNavigate} /> : <AppRail currentPage={currentPage} onNavigate={onNavigate} />
 }
 
 function AppRail({ currentPage, onNavigate }: Props) {
