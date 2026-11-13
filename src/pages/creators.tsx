@@ -105,8 +105,7 @@ function CreatorHead({ creator, size, center }: { creator: Creator; size: number
 /** A Main Content Creator: one wide card, like the Owner's on the Staff page. */
 function MainCard({ creator }: { creator: Creator }) {
   return (
-    <article data-accent="violet" className="lx-people-card lx-accent flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
-      <Star aria-hidden="true" className="lx-accent-wm !h-[150px] !w-[150px]" />
+    <article className="lx-people-card flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
       <div className="flex min-w-0 flex-col gap-2.5 sm:w-[300px] sm:shrink-0">
         <CreatorHead creator={creator} size={72} />
         <span><CreatorBadge tier={creator.tier} label={creator.label} /></span>
@@ -122,8 +121,7 @@ function MainCard({ creator }: { creator: Creator }) {
 /** A Content Creator: a compact card in the grid. */
 function CreatorCard({ creator }: { creator: Creator }) {
   return (
-    <article className="lx-people-card lx-accent flex h-full flex-col items-center gap-3 p-4 pb-5 text-center">
-      <Clapperboard aria-hidden="true" className="lx-accent-wm" />
+    <article className="lx-people-card flex h-full flex-col items-center gap-3 p-4 pb-5 text-center">
       <CreatorHead creator={creator} size={72} center />
       <span><CreatorBadge tier={creator.tier} label={creator.label} /></span>
       {creator.bio && <p className="line-clamp-2 text-[13px] leading-relaxed text-[var(--text-muted)]">{creator.bio}</p>}

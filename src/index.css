@@ -2251,15 +2251,6 @@ section[data-tone="red"] { --tone: var(--tone-red); } section[data-tone="sky"] {
 @media (prefers-reduced-motion: reduce) { .lx-team-card { transition: none; } .lx-team-card:hover { translate: none; } }
 
 /* Creators page (owner request 2026-10-26, "like the other pages"): the Content Creators fill the width like the Staff page's team. */
-/* Accent cards (owner request 2026-11-13, a corner-light card the owner sent, then "the content creator cards too"): a coloured light in the top-right corner and the card's own
-   logo as a big faint watermark inside it. `--c` is the colour: brand violet for Main Content Creators, a neutral light for Content Creators. No particles. */
-.lx-accent { --c: #d4d4d8; position: relative; isolation: isolate; overflow: hidden; }
-.lx-accent[data-accent="violet"] { --c: var(--brand); }
-.lx-accent::before { content: ""; position: absolute; inset: 0; z-index: -2; pointer-events: none;
-  background: radial-gradient(90% 120% at 100% 0%, color-mix(in srgb, var(--c) 42%, transparent), color-mix(in srgb, var(--c) 12%, transparent) 42%, transparent 70%); }
-.lx-accent-wm { position: absolute; right: -14px; top: -14px; z-index: -1; width: 128px; height: 128px; pointer-events: none; color: color-mix(in srgb, var(--c) 70%, white); opacity: 0.26; filter: blur(1.2px); transform: rotate(8deg);
-  stroke-width: 1.4; -webkit-mask-image: radial-gradient(75% 75% at 70% 30%, #000 25%, transparent 85%); mask-image: radial-gradient(75% 75% at 70% 30%, #000 25%, transparent 85%); }
-.lx-accent-title { color: var(--c); }
 .lx-creator-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
 
 /* Detail sheets (owner request 2026-10-26): every detail view rises from the bottom and covers the screen (`components/detail-sheet.tsx`). */
@@ -2574,5 +2565,3 @@ body::after { content: ""; position: fixed; left: 0; right: 0; bottom: 0; height
 .lx-radio > i { flex: none; width: 22px; height: 22px; border-radius: 999px; background: rgb(255 255 255 / 0.07); border: 1px solid rgb(255 255 255 / 0.12); display: grid; place-items: center; transition: background-color 150ms var(--ease-out); }
 .lx-radio[aria-checked="true"] > i { background: color-mix(in srgb, var(--brand) 28%, transparent); border-color: color-mix(in srgb, var(--brand) 55%, transparent); }
 .lx-radio[aria-checked="true"] > i::after { content: ""; width: 10px; height: 10px; border-radius: 999px; background: var(--brand-bright); }
-/* A card's big faint logo (Steam, Discord), as on the Trust card. */
-.lx-watermark { position: absolute; right: -14px; top: -14px; width: 120px; height: 120px; color: rgb(255 255 255 / 0.05); pointer-events: none; }

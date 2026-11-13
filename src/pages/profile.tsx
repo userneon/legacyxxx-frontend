@@ -362,8 +362,7 @@ function TrustCard({ overview, onOpenPenalty }: { overview: ProfileOverview; onO
   const { trust } = overview
   const row = "flex h-[34px] items-center justify-between border-b border-[var(--line-soft)] last:border-b-0"
   return (
-    <section aria-label="Trust" className={cn(card, "relative isolate flex flex-col overflow-hidden px-[18px] py-3.5")}>
-      <DiscordIcon className="lx-watermark -z-10" />
+    <section aria-label="Trust" className={cn(card, "flex flex-col px-[18px] py-3.5")}>
       <div className="mb-1"><SectionTitle>Trust</SectionTitle></div>
       {trust.steamAccountCreatedAt && (
         <div className={row}><span className="text-[13px] text-[var(--text-muted)]">Steam account</span><span className="text-[13px] font-medium text-[var(--text)]">{yearsSince(trust.steamAccountCreatedAt)}</span></div>
