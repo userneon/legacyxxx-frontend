@@ -2225,10 +2225,11 @@
    the arrow on hover; no holo frame, numerals or sheen any more. The Owner's card is the same card laid out wide. ---- */
 .lx-team-card { --tone: var(--tone-violet); list-style: none; }
 /* The frosted card the Staff and Creators pages share (owner request 2026-11-13, "frosted, the content creators the same"): soft see-through glass with a light top edge. */
-.lx-people-card, .lx-team-card { border-radius: 20px; border: 1px solid rgb(255 255 255 / 0.09); background: rgb(255 255 255 / 0.045); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
-  backdrop-filter: blur(22px) saturate(150%); -webkit-backdrop-filter: blur(22px) saturate(150%);
+.lx-people-card, .lx-team-card { border-radius: 20px; border: 1px solid rgb(255 255 255 / 0.14); background: linear-gradient(160deg, rgb(255 255 255 / 0.11), rgb(255 255 255 / 0.04) 60%, rgb(255 255 255 / 0.06));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), inset 0 0 24px rgb(255 255 255 / 0.03), 0 10px 30px -14px rgb(0 0 0 / 0.6);
+  backdrop-filter: blur(30px) saturate(170%); -webkit-backdrop-filter: blur(30px) saturate(170%);
   transition: translate 200ms var(--ease-out), border-color 200ms var(--ease-out), background-color 200ms var(--ease-out); }
-.lx-people-card:hover, .lx-team-card:hover { border-color: rgb(255 255 255 / 0.18); background: rgb(255 255 255 / 0.07); }
+.lx-people-card:hover, .lx-team-card:hover { border-color: rgb(255 255 255 / 0.26); background: linear-gradient(160deg, rgb(255 255 255 / 0.15), rgb(255 255 255 / 0.06) 60%, rgb(255 255 255 / 0.09)); }
 .lx-team-card[data-tone="red"], .lx-stat-cell[data-tone="red"] { --tone: var(--tone-red); }
 .lx-team-card[data-tone="amber"], .lx-stat-cell[data-tone="amber"] { --tone: var(--tone-amber); }
 .lx-team-card[data-tone="green"], .lx-stat-cell[data-tone="green"] { --tone: var(--tone-green); }
