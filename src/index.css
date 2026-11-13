@@ -2557,3 +2557,22 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
 .lx-glass-icon > svg { position: relative; z-index: 1; color: #fff; }
 button:hover > .lx-glass-icon::before, button:focus-visible > .lx-glass-icon::before { transform: rotate(22deg) translate(7px, -5px); }
 @media (prefers-reduced-motion: reduce) { .lx-fx-ring, .lx-fx-spot { transition: none; } .lx-glass-icon::before { transition: none; } }
+
+
+/* ---- onetake.ru-inspired details (owner request 2026-11-13, "keep the sidebar, do the others") ---- */
+/* One big soft violet light along the bottom of the window, behind the page; the shell and the cards stay transparent over it. */
+body::after { content: ""; position: fixed; left: 0; right: 0; bottom: 0; height: 46vh; z-index: -1; pointer-events: none;
+  background: radial-gradient(75% 100% at 50% 100%, rgb(109 61 196 / 0.34), rgb(109 61 196 / 0.1) 45%, transparent 72%); } /* palette-exempt: the brand violet, deeper */
+@media print { body::after { display: none; } }
+/* Fields with the counter inside them, and a radio group (the Create clan form). */
+.lx-field { position: relative; }
+.lx-field input { width: 100%; height: 46px; border-radius: 14px; border: 0; background: rgb(255 255 255 / 0.07); padding: 0 56px 0 16px; font-size: 14px; color: var(--text); }
+.lx-field input::placeholder { color: var(--text-faint); }
+.lx-field input:focus-visible { outline: 2px solid rgb(139 92 246 / 0.55); outline-offset: 0; }
+.lx-field .lx-count { position: absolute; right: 14px; top: 50%; translate: 0 -50%; font-size: 12px; font-weight: 700; color: var(--text); pointer-events: none; }
+.lx-radio { display: flex; width: 100%; align-items: center; gap: 12px; padding: 6px 4px; text-align: left; font-size: 14px; color: var(--text); }
+.lx-radio > i { flex: none; width: 22px; height: 22px; border-radius: 999px; background: rgb(255 255 255 / 0.07); border: 1px solid rgb(255 255 255 / 0.12); display: grid; place-items: center; transition: background-color 150ms var(--ease-out); }
+.lx-radio[aria-checked="true"] > i { background: color-mix(in srgb, var(--brand) 28%, transparent); border-color: color-mix(in srgb, var(--brand) 55%, transparent); }
+.lx-radio[aria-checked="true"] > i::after { content: ""; width: 10px; height: 10px; border-radius: 999px; background: var(--brand-bright); }
+/* A card's big faint logo (Steam, Discord), as on the Trust card. */
+.lx-watermark { position: absolute; right: -14px; top: -14px; width: 120px; height: 120px; color: rgb(255 255 255 / 0.05); pointer-events: none; }

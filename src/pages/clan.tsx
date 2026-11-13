@@ -9,7 +9,7 @@ import { useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { usePathTab } from "@/hooks/use-url-tab"
 import { useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft, ArrowRight, Check, Coins, Crown, Flag, Globe, Lock, Pencil, Plus, Search, ShieldCheck, Trophy, Upload, User, UserPlus, Users, X } from "lucide-react"
+import { ArrowLeft, ArrowRight, Check, Coins, Crown, Flag, Globe, Lock, Pencil, Plus, Search, ShieldCheck, Swords, Trophy, Upload, User, UserPlus, Users, X } from "lucide-react"
 import { toast } from "sonner"
 
 
@@ -290,7 +290,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
               {fee != null ? `${fee.toLocaleString()} FOL$` : "FOL$"} are taken from your wallet when the clan is created.
             </DialogDescription>
           </DialogHeader>
-          <CreateClanForm onClose={() => setCreating(false)} onCreated={(clan) => { setCreating(false); changed(); onClanNavigate(String(clan.number ?? clan.id)) }} />
+          <CreateClanForm onCreated={(clan) => { setCreating(false); changed(); onClanNavigate(String(clan.number ?? clan.id)) }} />
         </DialogContent>
       </Dialog>
     </div>
@@ -721,7 +721,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
   )
 }
 
-function CreateClanForm({ onClose, onCreated }: { onClose: () => void; onCreated: (clan: ClanDetail) => void }) {
+function CreateClanForm({ onCreated }: { onCreated: (clan: ClanDetail) => void }) {
   const fee = useClanFee()
   const [name, setName] = useState("")
   const [tag, setTag] = useState("")
@@ -755,26 +755,36 @@ function CreateClanForm({ onClose, onCreated }: { onClose: () => void; onCreated
 
   return (
     <form className="mt-2 flex flex-col gap-4" onSubmit={(event) => void submit(event)}>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="clan-name">Clan name</Label>
-        <Input id="clan-name" placeholder="3-24 characters" minLength={3} maxLength={24} required value={name} onChange={(event) => setName(event.target.value)} />
+      {/* A live preview of the card: the name and tag as typed, the member count, the way in. */}
+      <div aria-hidden="true" className="relative isolate flex h-[132px] flex-col justify-end gap-1.5 overflow-hidden rounded-[20px] border border-white/10 p-4" style={{ background: "radial-gradient(1.2px 1.2px at 8px 8px, rgb(255 255 255 / 0.12), transparent) 0 0 / 16px 16px" }}>
+        <Swords className="absolute right-6 top-3 -z-10 size-[104px] text-[var(--brand)] opacity-70" strokeWidth={1.6} />
+        <span className="flex items-center gap-2"><b className="truncate text-[24px] leading-none">{name.trim() || "Name"}</b><span className="rounded-full border border-white/25 px-2 py-0.5 text-[10px] font-semibold text-[var(--text-2)]">{tag || "TAG"}</span></span>
+        <span className="flex items-center gap-3 text-[13px] text-[var(--text-2)]"><span className="inline-flex items-center gap-1.5"><Users className="size-3.5" />1/{maxPlayers || 0}</span><span>{joinMode === "open" ? "Open" : "By request"}</span></span>
       </div>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="clan-tag">Clan tag</Label>
-        <Input id="clan-tag" placeholder="e.g. WOLF" minLength={2} maxLength={5} required value={tag} onChange={(event) => setTag(event.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase())} />
+      <div className="grid gap-3 sm:grid-cols-[1.4fr_1fr]">
+        <label className="flex flex-col gap-1.5"><span className="text-[13px] font-semibold">Clan name <span className="text-[var(--status-red)]">*</span></span>
+          <span className="lx-field"><input id="clan-name" placeholder="Enter the clan name" minLength={3} maxLength={24} required value={name} onChange={(event) => setName(event.target.value)} /><span className="lx-count">{name.length}/24</span></span></label>
+        <label className="flex flex-col gap-1.5"><span className="text-[13px] font-semibold">Tag <span className="text-[var(--status-red)]">*</span></span>
+          <span className="lx-field"><input id="clan-tag" placeholder="e.g. WOLF" minLength={2} maxLength={5} required value={tag} onChange={(event) => setTag(event.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase())} /><span className="lx-count">{tag.length}/5</span></span></label>
       </div>
-      <JoinSettings joinMode={joinMode} maxPlayers={maxPlayers} onMode={setJoinMode} onMax={setMaxPlayers} />
+      <fieldset className="flex flex-col gap-1 rounded-2xl border border-white/10 px-4 pb-3 pt-1">
+        <legend className="px-2 text-[13px] text-[var(--text-dim)]">Privacy</legend>
+        <div role="radiogroup" aria-label="Who can join" className="flex flex-col">
+          {([["open", "Open"], ["request", "Closed (by request)"]] as const).map(([mode, label]) => (
+            <button key={mode} type="button" role="radio" aria-checked={joinMode === mode} onClick={() => setJoinMode(mode)} className="lx-radio"><i aria-hidden="true" />{label}</button>
+          ))}
+        </div>
+      </fieldset>
+      <label className="flex flex-col gap-1.5"><span className="text-[13px] font-semibold">Max players</span>
+        <span className="lx-field"><input id="clan-max" type="number" min={2} max={50} value={maxPlayers} onChange={(event) => setMaxPlayers(Math.max(0, Math.min(50, Math.floor(Number(event.target.value) || 0))))} /><span className="lx-count">2-50</span></span></label>
       {(["logo", "banner"] as const).map((kind) => (
         <ArtSlot key={kind} kind={kind} preview={files[kind]?.url ?? null} onPick={(file) => setFiles((current) => ({ ...current, [kind]: { file, url: URL.createObjectURL(file) } }))} onRemove={() => setFiles((current) => ({ ...current, [kind]: undefined }))} />
       ))}
       {error && <p role="alert" className="text-[13px] text-[var(--status-red)]">{error}</p>}
-      <div className="mt-2 flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onClose} disabled={submitting}><X className="size-4" /> Cancel</Button>
-        <button type="submit" disabled={!valid || submitting} className="lx-primary-button inline-flex h-9 items-center gap-2 rounded-lg px-3.5 text-[13px] font-semibold disabled:opacity-50">
-          <Coins className="size-4" aria-hidden="true" />
-          {submitting ? "Creating…" : `Create${fee != null ? ` · ${fee.toLocaleString()} FOL$` : ""}`}
-        </button>
-      </div>
+      <button type="submit" disabled={!valid || submitting} className="lx-primary-button inline-flex h-[46px] w-full items-center justify-center gap-2 rounded-[14px] text-[14px] font-bold disabled:opacity-50">
+        <Coins className="size-4" aria-hidden="true" />
+        {submitting ? "Creating…" : `Create${fee != null ? ` for ${fee.toLocaleString()} FOL$` : ""}`}
+      </button>
     </form>
   )
 }
