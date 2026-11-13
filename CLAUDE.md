@@ -38,6 +38,8 @@ a 20px corner, no frost, gradient or shadow, on `.lx-glass`, `.glass`, `.lx-pcar
 A new card uses `.lx-glass`.
 **Not flat (owner request the same day, "stop the flat design"; a CS2-menu trial and an open, box-less trial on Home were both taken back):** the card fill is a top-to-bottom gradient (`#232326` → `#1b1b1d` → `#161618`), the top edge has a thin inner light, and a layered black shadow lifts the card off the page; a pressable card rises 2px on hover with a larger shadow (still for reduced motion).
 
+**Design checklist fixes (owner checklist 2026-11-13: clutter, contrast, alignment, typography, cards, consistency, usability, navigation):** the sidebar is solid (`.lx-glass-sidebar`, the card greys), `--text-dim` is `#8f8f8f` (about 5:1 on the `#1b1b1d` cards; it was `#737373`, 3.7:1) and `--text-faint` `#6b6b6b`, and the Profile's seven stat cards fill whole rows (three, then four; `ProfileRings`) instead of leaving one alone.
+
 ## Design tokens (`src/index.css`)
 
 Neutral surfaces, white as the workhorse accent, and **violet as the brand accent** (owner decision

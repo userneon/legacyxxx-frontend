@@ -62,8 +62,8 @@
   --text: #fafafa;
   --text-2: #d4d4d4;
   --text-muted: #a3a3a3;
-  --text-dim: #737373;
-  --text-faint: #525252;
+  --text-dim: #8f8f8f; /* readable on the #1b1b1d cards (owner checklist 2026-11-13, "poor contrast"): about 5:1, was #737373 at 3.7:1 */
+  --text-faint: #6b6b6b;
   /* White stays the neutral emphasis; violet is the brand accent (owner request 2026-09-27). */
   --accent-solid: #fafafa;
   --accent-on: #0a0a0a;

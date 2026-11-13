@@ -473,7 +473,14 @@ function ProfileRings({ overview }: { overview: ProfileOverview }) {
     cards.push(<RingStat key="week" value={`${Math.round(share(limits.week.used, limits.week.cap))}%`} label="EXP this week" title={`${limits.week.used.toLocaleString()} of ${limits.week.cap.toLocaleString()} EXP this week`} segments={[{ pct: share(limits.week.used, limits.week.cap), tone: limits.week.used >= limits.week.cap ? "red" : "green" }]} />)
   }
   if (cards.length === 0) return null
-  return <section aria-label="Rings" className="grid grid-cols-2 gap-3 @xl:grid-cols-3 @3xl:grid-cols-4">{cards}</section>
+  // Full rows, never one card left alone (owner checklist 2026-11-13, "poor alignment"): three in the first row, the rest share the second.
+  const rest = cards.length - 3
+  const restSpan = rest === 4 ? "@xl:col-span-3" : rest === 3 ? "@xl:col-span-4" : rest === 2 ? "@xl:col-span-6" : rest === 1 ? "@xl:col-span-12" : "@xl:col-span-4"
+  return (
+    <section aria-label="Rings" className="grid grid-cols-2 gap-3 @xl:grid-cols-12">
+      {cards.map((card, index) => <div key={index} className={cn("grid", cards.length <= 3 || index < 3 ? "@xl:col-span-4" : restSpan)}>{card}</div>)}
+    </section>
+  )
 }
 
 function RecentMatches({ matches, kdAverage, onOpen }: { matches: ProfileMatchRow[]; kdAverage: number | null; onOpen: (match: ProfileMatchRow) => void }) {
