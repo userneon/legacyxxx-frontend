@@ -338,17 +338,6 @@ function JoinModeLabel({ mode, className }: { mode: ClanCard["joinMode"]; classN
   )
 }
 
-/** A clan's colour: the one it bought for its backdrop, else one of five calm hues picked from its tag (violet, orchid, emerald, teal, ruby). */
-function clanAccent(clan: ClanCard): string {
-  const own = clan.look?.backdrop?.from
-  if (own && /^#[0-9a-fA-F]{6}$/.test(own)) return own
-  let hash = 0
-  for (const char of `${clan.tag}${clan.id}`) hash = (hash * 31 + char.charCodeAt(0)) >>> 0
-  // A clan that bought no backdrop has no colour of its own any more (owner request 2026-11-09, "too much colour"): a calm grey.
-  void hash
-  return "hsl(0 0% 72%)"
-}
-
 /** Under a member's name in the roster: when they joined, and their share of the clan's EXP as a thin bar (both from the API's real numbers; left out when unknown). */
 /** A member's role as an icon in the first column of the roster (owner request 2026-11-09): crown for the leader, shield for a manager, flag for a captain, a person for a member. */
 function RoleIcon({ role }: { role: string }) {
@@ -459,8 +448,9 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
   }
 
   const buttonClass = "relative inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-medium transition-colors hover:border-[var(--line-strong)] disabled:cursor-not-allowed disabled:opacity-50"
+  // Cards on the Clans list carry no accent colour (owner request 2026-11-13): no coloured hairline, no coloured glow, a neutral tag and bar.
   const wash = backdropStyle(clan.look?.backdrop)
-  const accent = clanAccent(clan)
+  const accent = "var(--text-2)"
   const baseTag = clanTagProps(clan.look, "w-fit text-[13px] font-semibold tracking-wide")
   const tagProps = clan.look?.tagColor ? baseTag : { ...baseTag, style: { ...baseTag.style, color: accent } }
   const tint = (percent: number) => `color-mix(in srgb, ${accent} ${percent}%, transparent)`
@@ -487,18 +477,16 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
       {banner ? (
         <BannerArt src={banner} className="absolute inset-0 -z-10 transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
       ) : (
-        <div aria-hidden="true" className="absolute inset-0 -z-10 opacity-50" style={{ background: wash ?? `radial-gradient(120% 90% at 100% 0%, ${tint(45)}, transparent 62%)` }} />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 opacity-50" style={{ background: wash ?? "transparent" }} />
       )}
-      <span aria-hidden="true" className="absolute inset-x-0 top-0 z-[1] h-[3px]" style={{ background: `linear-gradient(90deg, ${accent}, transparent 85%)` }} />
       <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-[var(--card-surface)] via-[var(--card-surface)]/75 to-[var(--card-surface)]/5" />
-      <div aria-hidden="true" className="absolute inset-0 -z-10 opacity-70 transition-opacity duration-300 group-hover:opacity-100" style={{ background: `radial-gradient(80% 55% at 85% 0%, ${tint(38)}, transparent 70%)` }} />
       <div className="relative flex flex-1 flex-col gap-4 p-5">
         <div className="flex items-center justify-between gap-2">
           {clan.number != null ? <span className="rounded-full border border-[var(--line-strong)] bg-[var(--card-surface)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--text-2)]">#{clan.number}</span> : <span />}
           <JoinModeLabel mode={clan.joinMode} className="rounded-full border border-[var(--line)] bg-[var(--card-surface)] px-2.5 py-0.5" />
         </div>
         <button type="button" onClick={() => onClanNavigate(String(clan.number ?? clan.id))} className="mt-auto flex items-end gap-3.5 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-          <ClanMark logo={clan.logo} tag={clan.tag} className="size-[68px] rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.5)]" style={{ boxShadow: `0 8px 24px rgba(0,0,0,.5), 0 0 0 2px ${tint(55)}` }} />
+          <ClanMark logo={clan.logo} tag={clan.tag} className="size-[68px] rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.5)]" style={{ boxShadow: "0 8px 24px rgba(0,0,0,.5), 0 0 0 1px rgb(255 255 255 / 0.1)" }} />
           <span className="flex min-w-0 flex-col gap-1">
             <span className="truncate text-[19px] font-bold leading-tight" title={clan.name}>{clan.name}</span>
             <span {...tagProps}>[{clan.tag}]</span>
