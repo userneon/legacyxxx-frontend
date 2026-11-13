@@ -171,7 +171,7 @@ export function ShopRanks({ catalogue, qa = false }: { catalogue: PerkCatalogue;
               <div className="relative isolate overflow-hidden" style={{ height: "178.3cqw" }}>
                 {TIER_ART[tier.key] && (
                   <>
-                    <div aria-hidden="true" className="absolute inset-x-0 top-0" style={{ height: "158.3cqw", backgroundImage: `url(${TIER_ART[tier.key]})`, backgroundSize: "100% auto", backgroundPosition: "top" }} />
+                    <div aria-hidden="true" className="absolute inset-x-0 top-0" style={{ height: "158.3cqw", backgroundImage: `url(${TIER_ART[tier.key]})`, backgroundSize: "100% auto", backgroundPosition: "0 -10cqw" }} />
                     <div aria-hidden="true" className="absolute inset-x-0 bottom-0" style={{ top: "158.3cqw", backgroundImage: `url(${TIER_ART[tier.key]})`, backgroundSize: "100% 1000cqw", backgroundPosition: "0 -880cqw" }} />
                   </>
                 )}
