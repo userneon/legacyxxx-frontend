@@ -2598,3 +2598,12 @@ body::after { content: ""; position: fixed; left: 0; right: 0; bottom: 0; height
 }
 @media (prefers-reduced-motion: reduce) { :is(.lx-glass, .glass, .lx-pcard, .lx-people-card, .lx-team-card, .lx-shop-tile, .lx-frost, .lx-fx-card):hover { transform: none !important; } }
 .lx-frost[aria-checked="true"], .lx-shop-tile[aria-pressed="true"], .lx-shop-tile[data-worn="true"] { border-color: rgb(255 255 255 / 0.5) !important; }
+
+/* The sidebar is solid (owner report 2026-11-13, "the sidebar is too transparent"): the same grey family as the cards, so the page's glow and snow no longer show through it. */
+.lx-glass-sidebar > [data-sidebar="sidebar"] {
+  background: linear-gradient(180deg, #19191b 0%, #141416 100%) !important; /* palette-exempt: card greys */
+  border: 1px solid rgb(255 255 255 / 0.07) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 10px 30px -14px rgb(0 0 0 / 0.7) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
