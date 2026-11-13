@@ -45,6 +45,7 @@ import { AccountSettings, AppearanceSettings } from "@/pages/settings"
 import { copyText, steamProfileUrl } from "@/components/profile-ids"
 import { RelativeTime } from "@/components/relative-time"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { ReportPlayerDialog } from "@/components/report-player-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 
 const card = "lx-pcard rounded-[24px] border border-[var(--glass-line)] bg-[var(--glass-fill)]"
@@ -167,6 +168,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
   const { user, competitive, viewer, presence } = overview
   const { user: me } = useAuth()
   const navigate = useNavigate()
+  const [reporting, setReporting] = useState(false)
   // Signed in and looking at someone else: one click puts the two of you side by side.
   const canCompare = isFeatureEnabled("compare") && Boolean(me?.steamId) && !viewer.isOwner && Boolean(user.steamId)
   const copyLink = async () => {
@@ -224,18 +226,21 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
         {user.steamId && (
           <a href={steamProfileUrl(user.steamId) ?? undefined} target="_blank" rel="noreferrer" aria-label="Steam profile" className={outline}><ExternalLink className="size-3.5" /></a>
         )}
-        {!viewer.isOwner && LINKS.discordReports && (
-          <Popover>
-            <PopoverTrigger asChild>
-              <button type="button" aria-label="More" className={outline}><MoreHorizontal className="size-4" /></button>
-            </PopoverTrigger>
-            <PopoverContent align="end" sideOffset={8} className="w-44 rounded-xl border-[var(--line)] bg-[var(--panel)] p-1">
-              <a href={LINKS.discordReports} target="_blank" rel="noreferrer" className="flex h-9 items-center gap-2 rounded-lg px-2.5 text-[13px] text-[var(--text)] transition-colors hover:bg-[var(--raised)]">
-                <ShieldAlert className="size-4 text-[var(--text-muted)]" />
-                Report player
-              </a>
-            </PopoverContent>
-          </Popover>
+        {!viewer.isOwner && Boolean(me?.id) && (
+          <>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button type="button" aria-label="More" className={outline}><MoreHorizontal className="size-4" /></button>
+              </PopoverTrigger>
+              <PopoverContent align="end" sideOffset={8} className="w-44 rounded-xl border-[var(--line)] bg-[var(--panel)] p-1">
+                <button type="button" onClick={() => setReporting(true)} className="flex h-9 w-full items-center gap-2 rounded-lg px-2.5 text-left text-[13px] text-[var(--text)] transition-colors hover:bg-[var(--raised)]">
+                  <ShieldAlert className="size-4 text-[var(--text-muted)]" />
+                  Report player
+                </button>
+              </PopoverContent>
+            </Popover>
+            <ReportPlayerDialog open={reporting} onOpenChange={setReporting} userId={user.id} name={user.username} />
+          </>
         )}
         </div>
       </div>

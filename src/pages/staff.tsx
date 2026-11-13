@@ -33,15 +33,18 @@ import { CardIcon, STAFF_BODY, STAFF_CARD, STAFF_GRID, StaffEmpty, StaffSection 
 import { StaffCreators } from "@/components/staff-creators"
 import { StaffHost } from "@/components/staff-host"
 import { StaffRoles } from "@/components/staff-roles"
+import { StaffReports } from "@/components/staff-reports"
 import { StaffSettings } from "@/components/staff-settings"
 import { StaffShop } from "@/components/staff-shop"
 import { StaffTeam } from "@/components/staff-team"
+import { reportsService, type StaffReport } from "@/api/reports"
 
-type StaffTab = "overview" | "checks" | "penalties" | "players" | "clans" | "creators" | "shop" | "team" | "servers" | "roles" | "host" | "settings"
+type StaffTab = "overview" | "checks" | "reports" | "penalties" | "players" | "clans" | "creators" | "shop" | "team" | "servers" | "roles" | "host" | "settings"
 
 const TABS: Array<{ value: StaffTab; label: string }> = [
   { value: "overview", label: "Overview" },
   { value: "checks", label: "Checks" },
+  { value: "reports", label: "Reports" },
   { value: "penalties", label: "Penalties" },
   { value: "players", label: "Players" },
   { value: "clans", label: "Clans" },
@@ -61,12 +64,12 @@ const STEAM_ID = /^7656119\d{10}$/
  * a Manager adds clans, creators, the shop and the server console; the Owner adds the team and the settings. The API enforces the same
  * lines; hiding a tab only spares someone a page that would refuse them.
  */
-const ADMIN_TABS: StaffTab[] = ["overview", "checks", "penalties", "players"]
+const ADMIN_TABS: StaffTab[] = ["overview", "checks", "reports", "penalties", "players"]
 const MANAGER_TABS: StaffTab[] = [...ADMIN_TABS, "clans", "creators", "shop", "servers"]
 const OWNER_TABS: StaffTab[] = [...MANAGER_TABS, "team", "roles", "host", "settings"]
 /** How the staff site's menu groups its pages. */
 const GROUPS: Array<{ title: string; tabs: StaffTab[] }> = [
-  { title: "Work", tabs: ["overview", "checks", "penalties", "players"] },
+  { title: "Work", tabs: ["overview", "checks", "reports", "penalties", "players"] },
   { title: "Community", tabs: ["clans", "creators", "shop"] },
   { title: "Servers", tabs: ["servers", "roles", "host"] },
   { title: "Team", tabs: ["team", "settings"] },
@@ -77,7 +80,7 @@ const tabsFor = (role: string | null | undefined): ReadonlySet<StaffTab> => new 
 export function StaffPage({ initialTab = "overview" }: { initialTab?: StaffTab } = {}) {
   const { isAuthenticated } = useAuth()
   const { data: access, loading } = useApiQuery<ModerationAccess>((signal) => penaltyAdminService.getAccess({ signal }), { enabled: isAuthenticated, queryKey: `staff-access:${isAuthenticated}` })
-  const [asked, setTab] = usePathTab<StaffTab>("/staff", { overview: "", checks: "checks", penalties: "penalties", players: "players", clans: "clans", creators: "creators", shop: "shop", team: "team", servers: "servers", roles: "roles", host: "host", settings: "settings" }, initialTab)
+  const [asked, setTab] = usePathTab<StaffTab>("/staff", { overview: "", checks: "checks", reports: "reports", penalties: "penalties", players: "players", clans: "clans", creators: "creators", shop: "shop", team: "team", servers: "servers", roles: "roles", host: "host", settings: "settings" }, initialTab)
   const allowed = tabsFor(access?.role)
   const tab: StaffTab = allowed.has(asked) ? asked : "overview"
   const [params, setParams] = useSearchParams()
@@ -89,9 +92,11 @@ export function StaffPage({ initialTab = "overview" }: { initialTab?: StaffTab }
   const requests = useApiQuery<LiftRequest[]>((signal) => penaltyAdminService.getLiftRequests({ signal }), { enabled: decider, queryKey: `staff-lift:${access?.role}` })
   const applications = useApiQuery<{ applications: StaffCreatorApplication[] }>((signal) => creatorsService.applications({ signal }), { enabled: decider, queryKey: `staff-applications:${decider}` })
   const orders = useApiQuery<StaffGoodsOrder[]>((signal) => shopGoodsService.staffOrders(undefined, { signal }), { enabled: decider, queryKey: `staff-orders:${decider}` })
+  const reports = useApiQuery<StaffReport[]>((signal) => reportsService.list("open", { signal }), { enabled: staffOn, queryKey: `staff-reports-count:${staffOn}` })
   const servers = useApiQuery<StaffPanelOverview>((signal) => staffPanelService.overview({ signal }), { enabled: staffOn, queryKey: `staff-servers:${staffOn}` })
   const counts: Partial<Record<StaffTab, number>> = {
     checks: (checks.data ?? []).filter((check) => check.status === "pending" || needsReading(check)).length,
+    reports: reports.data?.length ?? 0,
     penalties: requests.data?.length ?? 0,
     creators: applications.data?.applications.length ?? 0,
     shop: orders.data?.length ?? 0,
@@ -125,6 +130,7 @@ export function StaffPage({ initialTab = "overview" }: { initialTab?: StaffTab }
       <div className="min-h-full">
         {tab === "overview" && <Overview access={access} allowed={allowed} onGo={setTab} onCase={openCase} checks={checks.data} requests={requests.data} applications={applications.data?.applications ?? null} orders={orders.data} servers={servers.data} />}
         {tab === "checks" && <ChecksPage embedded />}
+        {tab === "reports" && <StaffReports onCase={openCase} onChanged={reports.refetch} />}
         {tab === "penalties" && <PenaltiesTab access={access} onCase={openCase} />}
         {tab === "players" && <PlayersTab access={access} caseId={params.get("case")} onFind={() => setFinding(true)} onBack={() => setParams((current) => { const next = new URLSearchParams(current); next.delete("case"); return next })} onChecks={() => setTab("checks")} />}
         {tab === "clans" && <ClansTab />}

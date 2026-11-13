@@ -959,6 +959,18 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path === "/api/v1/staffpanel/access") return { role: "OWNER", username: "LegacyTester", capabilities: [] }
   if (path === "/api/v1/staffpanel/overview") return { role: "OWNER", servers: [{ server_id: "s1", name: "5x5 #1", map_name: "de_mirage", mode: "5vs5", player_count: 7, last_heartbeat_at: new Date().toISOString() }, { server_id: "s2", name: "Fun #1", map_name: "de_dust2", mode: "fun", player_count: 0, last_heartbeat_at: null }], pendingActions: [{ id: "a1", status: "pending", action_type: "ban", server_id: "s1", created_at: new Date().toISOString() }] }
   if (path === "/api/v1/staffpanel/database") return { tables: [{ name: "users", count: 8 }, { name: "penalties", count: 3 }, { name: "clans", count: 3 }, { name: "player_checks", count: 4 }] }
+  if (path === "/api/v1/moderation/reports") {
+    const person = (username: string, steamId: string) => ({ username, avatar: null, steamId })
+    const base = { staffNote: null, handledAt: null }
+    return query?.status === "closed"
+      ? [{ ...base, id: "rp3", category: "toxic", reason: "Insults in voice chat for the whole match", evidenceUrl: null, status: "dismissed", staffNote: "Heard the clip, banter between friends", createdAt: new Date(Date.now() - 86_400_000).toISOString(), handledAt: new Date(Date.now() - 3_600_000).toISOString(), reporter: person("Temuulen", "76561198000000011"), reported: { ...person("Gansukh", "76561198000000013"), openReports: 0, banned: false } }]
+      : [
+        { ...base, id: "rp1", category: "cheating", reason: "Walls in round 4 on Mirage, he pre-aimed every angle and tracked me through the smoke", evidenceUrl: "https://youtu.be/example", status: "open", createdAt: new Date(Date.now() - 1_800_000).toISOString(), reporter: person("Temuulen", "76561198000000011"), reported: { ...person("Khuslen_AWP", "76561198000000012"), openReports: 3, banned: false } },
+        { ...base, id: "rp2", category: "griefing", reason: "Team flashed the whole team every round and blocked the bombsite", evidenceUrl: null, status: "open", createdAt: new Date(Date.now() - 7_200_000).toISOString(), reporter: person("Gansukh", "76561198000000013"), reported: { ...person("Enkh.", "76561198000000014"), openReports: 1, banned: true } },
+      ]
+  }
+  if (path.startsWith("/api/v1/moderation/reports/")) return undefined
+  if (path === "/api/v1/reports") return { id: "rp9" }
   if (path === "/api/v1/moderation/lift-requests") return [{ id: "r1", penaltyId: "p1", type: "ban", player: "Enkh.", avatar: "", penaltyReason: "Aimbot", reason: null, requestedBy: "Admin", at: new Date(Date.now() - 2 * HOUR).toISOString() }]
   if (path.startsWith("/api/v1/feedback/") && path.endsWith("/reaction")) return { reactions: { like: 3, love: 1, funny: 0 }, myReaction: (body as { reaction: string | null } | undefined)?.reaction ?? null }
   if (path === "/api/v1/discord/pings") {
