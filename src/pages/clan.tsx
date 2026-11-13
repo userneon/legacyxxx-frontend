@@ -9,7 +9,7 @@ import { useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { usePathTab } from "@/hooks/use-url-tab"
 import { useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft, ArrowRight, Check, Coins, Crown, Flag, Globe, Lock, Pencil, Plus, Search, ShieldCheck, Swords, Trophy, Upload, User, UserPlus, Users, X } from "lucide-react"
+import { ArrowLeft, ArrowRight, Check, Coins, Crown, Flag, Globe, Lock, Pencil, Plus, Search, ShieldCheck, Star, Swords, Trophy, Upload, User, UserPlus, Users, X } from "lucide-react"
 import { toast } from "sonner"
 
 
@@ -405,7 +405,7 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
   const baseTag = clanTagProps(clan.look, "w-fit text-[13px] font-semibold tracking-wide")
   const tagProps = clan.look?.tagColor ? baseTag : { ...baseTag, style: { ...baseTag.style, color: accent } }
   return (
-    <div className="lx-fx-card group relative isolate flex min-h-[236px] flex-col overflow-hidden rounded-[22px] border border-[var(--line-soft)] bg-[var(--card-surface)] transition-colors hover:border-[var(--line-strong)]">
+    <div className="lx-fx-card group relative isolate flex min-h-[190px] flex-col overflow-hidden rounded-[20px] border border-white/10 bg-[#1b1b1d] transition-colors hover:border-white/25" style={{ backgroundImage: "radial-gradient(1.2px 1.2px at 8px 8px, rgb(255 255 255 / 0.12), transparent)", backgroundSize: "16px 16px" }}>
       <Dialog open={asking} onOpenChange={setAsking}>
         <DialogContent className="rounded-2xl">
           <DialogHeader><DialogTitle>Join {clan.name}</DialogTitle><DialogDescription>The leader reads your answers before accepting.</DialogDescription></DialogHeader>
@@ -427,14 +427,17 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
       {banner ? (
         <BannerArt src={banner} className="absolute inset-0 -z-10 transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
       ) : (
-        <div aria-hidden="true" className="absolute inset-0 -z-10 opacity-50" style={{ background: wash ?? "transparent" }} />
+        <>
+          {wash && <div aria-hidden="true" className="absolute inset-0 -z-10 opacity-50" style={{ background: wash }} />}
+          <Swords aria-hidden="true" className="absolute right-6 top-10 -z-10 size-[104px] text-[var(--brand)] opacity-70" strokeWidth={1.6} />
+        </>
       )}
-      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-[var(--card-surface)] via-[var(--card-surface)]/75 to-[var(--card-surface)]/5" />
+      {banner && <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-[#1b1b1d] via-[#1b1b1d]/60 to-transparent" />}
       <div className="relative flex flex-1 flex-col p-4">
         {/* The way in is a small control top right; the whole card opens the clan (OneTake-style card, owner request 2026-11-13). */}
         <div className="flex items-start justify-between gap-2">
           <button type="button" aria-label={`Open ${clan.name}`} onClick={() => onClanNavigate(String(clan.number ?? clan.id))} className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-            <ClanMark logo={clan.logo} tag={clan.tag} className="size-[76px] rounded-2xl" style={{ boxShadow: "0 8px 24px rgba(0,0,0,.5), 0 0 0 1px rgb(255 255 255 / 0.1)" }} />
+            <ClanMark logo={clan.logo} tag={clan.tag} className="size-[76px] rounded-[18px]" style={{ boxShadow: "0 0 0 1px rgb(255 255 255 / 0.1)" }} />
           </button>
           {isMine ? (
             <span className="inline-flex h-8 items-center gap-1.5 rounded-full bg-black/45 px-3 text-[12px] text-[var(--text-2)]"><Check className="size-3.5" aria-hidden="true" />Your clan</span>
@@ -455,7 +458,7 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
           <span className="flex items-center gap-4 text-[13px] text-[var(--text-2)]">
             <span className="inline-flex items-center gap-1.5" title="Members"><Users className="size-3.5" aria-hidden="true" />{clan.currentPlayers}/{clan.maxPlayers}</span>
             {clan.preview && clan.preview.totalExp > 0 && <span className="inline-flex items-center gap-1.5" title="Total EXP"><Trophy className="size-3.5" aria-hidden="true" />{clan.preview.totalExp.toLocaleString()}</span>}
-            {clan.level != null && <span className="inline-flex items-center gap-1.5" title="Level"><Crown className="size-3.5" aria-hidden="true" />{clan.level}</span>}
+            {clan.level != null && <span className="inline-flex items-center gap-1.5" title="Level"><Star className="size-3.5" aria-hidden="true" />{clan.level}</span>}
           </span>
           <JoinModeLabel mode={clan.joinMode} className="text-[13px] text-[var(--text-2)]" />
         </button>
