@@ -2565,3 +2565,19 @@ body::after { content: ""; position: fixed; left: 0; right: 0; bottom: 0; height
 .lx-radio > i { flex: none; width: 22px; height: 22px; border-radius: 999px; background: rgb(255 255 255 / 0.07); border: 1px solid rgb(255 255 255 / 0.12); display: grid; place-items: center; transition: background-color 150ms var(--ease-out); }
 .lx-radio[aria-checked="true"] > i { background: color-mix(in srgb, var(--brand) 28%, transparent); border-color: color-mix(in srgb, var(--brand) 55%, transparent); }
 .lx-radio[aria-checked="true"] > i::after { content: ""; width: 10px; height: 10px; border-radius: 999px; background: var(--brand-bright); }
+
+/* ==== Every card in the Create a clan look (owner request 2026-11-13, "put all cards in the clan create type") ====
+   The surface only: the Create a clan window's solid #1b1b1d grey, a white 10% hairline and a 20px corner, with no frost, gradient or shadow.
+   What sits inside a card (rings, colours, pictures) is unchanged. The !important is deliberate: older page-scoped rules (.lx-calm, .lx-noir,
+   .lx-profile-calm, the Shop tiles, the people cards) set their own fills with higher specificity, and this look is meant to win over all of them. */
+:root { --glass-fill: #1b1b1d; --glass-line: rgb(255 255 255 / 0.1); --clan-card: #1b1b1d; } /* palette-exempt: the Create a clan grey */
+:is(.lx-glass, .glass, .lx-pcard, .lx-people-card, .lx-team-card, .lx-play-panel, .lx-shop-tile, .lx-shop-glass, .lx-frost, .lx-ring-card, .lx-add-box):not(.rounded-full) {
+  background: var(--clan-card) !important;
+  border: 1px solid rgb(255 255 255 / 0.1) !important;
+  border-radius: 20px !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+:is(.lx-glass, .glass, .lx-pcard, .lx-people-card, .lx-team-card, .lx-shop-tile, .lx-frost, .lx-fx-card):is(a, button, li, article, [role="button"]):hover { border-color: rgb(255 255 255 / 0.22) !important; }
+.lx-frost[aria-checked="true"], .lx-shop-tile[aria-pressed="true"], .lx-shop-tile[data-worn="true"] { border-color: rgb(255 255 255 / 0.5) !important; }

@@ -28,6 +28,15 @@ get wrong (like the accent-color exception below).
 - **Escape all user text.** Names, review text, penalty reasons — anything a player
   typed — renders as escaped text, never raw HTML.
 
+## Every card in the Create a clan look (owner request 2026-11-13) — wins over older card paragraphs below
+
+After a one-card-system cleanup and a tiered variant were both reverted the same day ("too flat", then "even more AI generic"), the owner asked for every
+card to take the Create a clan window's look. Only the card **surface** changed (last block of `src/index.css`): solid `#1b1b1d`, a white 10% hairline,
+a 20px corner, no frost, gradient or shadow, on `.lx-glass`, `.glass`, `.lx-pcard`, `.lx-people-card`, `.lx-team-card`, `.lx-play-panel`, `.lx-shop-tile`,
+`.lx-shop-glass`, `.lx-frost`, `.lx-ring-card`, `.lx-add-box` (and `--glass-fill` / `--glass-line`, so plain `bg-[var(--glass-fill)]` boxes follow). It uses
+`!important` on purpose to win over the page-scoped rules. What is inside the cards (rings, colours, pictures, the violet accents, snow) is untouched.
+A new card uses `.lx-glass`.
+
 ## Design tokens (`src/index.css`)
 
 Neutral surfaces, white as the workhorse accent, and **violet as the brand accent** (owner decision
