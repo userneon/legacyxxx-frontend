@@ -53,7 +53,7 @@ interface Ctx {
   charm: CharmRig | null
 }
 
-/** The sticker's picture worn the way the game wears it: random scratches and scuffs rub the ink away, more of them the higher the wear. */
+/** The sticker's picture worn the way the game wears it: the ink is scraped off in ragged streaks and speckles along one direction, more and more as the wear rises, with a few fine scratches across. */
 function scratchedTexture(source: THREE.Texture, wear: number, seed: number): THREE.Texture {
   const image = source.image as CanvasImageSource & { width: number; height: number }
   const width = Math.max(64, Math.min(256, image.width || 256))
@@ -61,32 +61,55 @@ function scratchedTexture(source: THREE.Texture, wear: number, seed: number): TH
   const canvas = document.createElement("canvas")
   canvas.width = width
   canvas.height = height
-  const context = canvas.getContext("2d")
+  const context = canvas.getContext("2d", { willReadFrequently: true })
   if (!context) return source
   context.drawImage(image, 0, 0, width, height)
+  const pixels = context.getImageData(0, 0, width, height)
+  const data = pixels.data
+  const hash = (x: number, y: number, k: number) => {
+    let h = (Math.imul(x, 374761393) + Math.imul(y, 668265263) + Math.imul(k + seed * 31, 1274126177)) | 0
+    h = Math.imul(h ^ (h >>> 13), 1274126177)
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967296
+  }
+  const smooth = (t: number) => t * t * (3 - 2 * t)
+  const value = (x: number, y: number, k: number) => {
+    const ix = Math.floor(x), iy = Math.floor(y)
+    const fx = smooth(x - ix), fy = smooth(y - iy)
+    const a = hash(ix, iy, k), b = hash(ix + 1, iy, k), c = hash(ix, iy + 1, k), d = hash(ix + 1, iy + 1, k)
+    return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy
+  }
+  const fbm = (x: number, y: number, k: number) => value(x, y, k) * 0.55 + value(x * 2.1, y * 2.1, k + 7) * 0.3 + value(x * 4.3, y * 4.3, k + 13) * 0.15
+  const angle = hash(1, 2, 3) * Math.PI
+  const cos = Math.cos(angle), sin = Math.sin(angle)
+  const threshold = 0.3 + wear * 0.38
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const u = x * cos + y * sin
+      const v = -x * sin + y * cos
+      const streak = fbm(u * 0.035, v * 0.3, 1)
+      const grain = fbm(x * 0.28, y * 0.28, 2)
+      const level = streak * 0.6 + grain * 0.4
+      const keep = Math.min(1, Math.max(0, (level - threshold + 0.05) / 0.1))
+      const index = (y * width + x) * 4 + 3
+      data[index] = data[index]! * keep
+    }
+  }
+  context.putImageData(pixels, 0, 0)
+  // A few fine, thin scratches across the worn picture.
   context.globalCompositeOperation = "destination-out"
-  let state = (seed + 1) * 2654435761 >>> 0
-  const random = () => { state = (state * 1664525 + 1013904223) >>> 0; return state / 4294967296 }
-  const lines = Math.round(wear * 46)
-  for (let i = 0; i < lines; i += 1) {
-    context.globalAlpha = 0.55 + random() * 0.45
-    context.lineWidth = 0.6 + random() * 1.8
-    context.lineCap = "round"
-    const x = random() * width
-    const y = random() * height
-    const angle = random() * Math.PI
-    const length = 10 + random() * width * 0.45
+  context.lineCap = "round"
+  const scratches = Math.round(wear * 12)
+  for (let i = 0; i < scratches; i += 1) {
+    context.globalAlpha = 0.5 + hash(i, 5, 6) * 0.5
+    context.lineWidth = 0.5 + hash(i, 7, 8) * 0.9
+    const x = hash(i, 9, 10) * width
+    const y = hash(i, 11, 12) * height
+    const direction = angle + (hash(i, 13, 14) - 0.5) * 0.9
+    const length = 20 + hash(i, 15, 16) * width * 0.5
     context.beginPath()
     context.moveTo(x, y)
-    context.lineTo(x + Math.cos(angle) * length, y + Math.sin(angle) * length)
+    context.lineTo(x + Math.cos(direction) * length, y + Math.sin(direction) * length)
     context.stroke()
-  }
-  const scuffs = Math.round(wear * 140)
-  for (let i = 0; i < scuffs; i += 1) {
-    context.globalAlpha = 0.5 + random() * 0.5
-    context.beginPath()
-    context.arc(random() * width, random() * height, 0.5 + random() * (1 + wear * 3), 0, Math.PI * 2)
-    context.fill()
   }
   const worn = new THREE.CanvasTexture(canvas)
   worn.colorSpace = THREE.SRGBColorSpace
