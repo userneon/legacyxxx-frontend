@@ -130,7 +130,7 @@ The site's frame (`App.tsx`, `.lx-frame` in `index.css`): one **solid frame** (`
 
 ### Flat outline (owner pick 2026-10-05, replaces the glass look of 2026-09-28)
 
-The whole app sits on a near-black backdrop (`body::before`) with a slow grey `<Aurora />` light (`components/ui/aurora.tsx`, its own greys, intensity 0.14, owner request 2026-11-01, drifting with transforms only). The white `<BackgroundBeams />` of 2026-09-30 were taken out (owner request 2026-11-09, "remove the beams"; `components/background-beams.tsx` deleted). The shell — sidebar, top bar and
+The whole app sits on a near-black backdrop (`body::before`) and nothing else behind the frame. The grey `<Aurora />` light (owner request 2026-11-01) and the white `<BackgroundBeams />` of 2026-09-30 are gone: the beams were taken out on request (2026-11-09), and an audit the same day (owner request, "another background still runs behind the website") showed the Aurora, three large animated blurred circles, sat completely behind the solid frame (removing it changed 0 pixels) while still animating all the time, so it was deleted with its component, its demo and its keyframes; the near-black base is the `html` background only (the `body::before` copy was removed too). The shell — sidebar, top bar and
 page panel — is `.lx-glass-shell`: transparent with a 1px `--glass-shell-line` hairline, no fill, no blur. Cards inside use `--glass-fill` (transparent)
 (`bg-[var(--glass-fill)]`, `.glass`, `.lx-glass`) with a `--glass-line` hairline. The token and class names keep their old "glass" prefix so everything
 follows from `src/index.css`. Nothing may use `backdrop-filter` on the page itself. What scrolls under something (`.glass-strong` sticky toolbars) or floats over
@@ -440,4 +440,6 @@ Fewer layers in the top bar (owner report 2026-11-09, "too many layers"): the Tu
 No white disc on the rail (owner request 2026-11-09, "remove the white"): the page you are on is still the tab that joins the panel, but its icon is drawn in `--text` straight on the panel's colour; the light `#d4d4d4` disc (`.lx-rail-disc`) is now transparent. (The earlier paragraphs that call it a light disc describe the look before this change.)
 
 Phone polish from an audit of every main page (owner request 2026-11-13, "improve the website we have"): the Shop's one-line price note reads as one sentence on a phone (the LX coin is inline instead of a flex item that broke the line), and the page panel keeps 64px of room at its end under 640px so the round chat and back-to-top buttons never sit on the last card.
+
+Background audit of 2026-11-09: what still runs behind the page is the snow canvas (`z-[20]`, above everything) and the event layer; the profile has its own `ProfileScene` and `ProfileBackdrop` only while a profile is open. Idle cost measured on Home (1440x900, dev mode): about 133 ms of main-thread time per second before this change, of which the snow was about 70 and the CSS animations the rest.
 
