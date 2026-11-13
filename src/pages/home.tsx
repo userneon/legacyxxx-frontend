@@ -15,7 +15,6 @@ import rankedArt from "@/assets/home/mode-ranked.webp"
 import funArt from "@/assets/home/mode-fun.webp"
 import proArt from "@/assets/home/mode-pro.webp"
 import eventsArt from "@/assets/home/mode-events.webp"
-import hudBackdrop from "@/assets/maps/de_mirage.webp"
 import { useActiveEvent } from "@/hooks/use-active-event"
 import { eventGreeting } from "@/lib/site-events"
 
@@ -53,9 +52,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
   }
 
   return (
-    <div className="lx-glass-page lx-calm lx-hud @container relative isolate flex flex-1 flex-col p-4 @2xl:p-6">
-      {/* CS2 menu look (owner trial 2026-11-13): a map's own artwork behind the page, the panels float over it. */}
-      <div aria-hidden="true" className="lx-hud-bg"><img src={hudBackdrop} alt="" /></div>
+    <div className="lx-glass-page lx-calm @container flex flex-1 flex-col p-4 @2xl:p-6">
       {greeting && <div className="mb-3"><span className="lx-event-greeting">{greeting}</span></div>}
       <div className="lx-bento grid flex-1 grid-cols-1 gap-3 @4xl:grid-cols-12 @4xl:[grid-template-rows:minmax(auto,1fr)_auto_minmax(auto,1fr)]">
         <HeroSlider className="@4xl:col-span-8" />

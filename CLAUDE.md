@@ -36,10 +36,7 @@ a 20px corner, no frost, gradient or shadow, on `.lx-glass`, `.glass`, `.lx-pcar
 `.lx-shop-glass`, `.lx-frost`, `.lx-ring-card`, `.lx-add-box` (and `--glass-fill` / `--glass-line`, so plain `bg-[var(--glass-fill)]` boxes follow). It uses
 `!important` on purpose to win over the page-scoped rules. What is inside the cards (rings, colours, pictures, the violet accents, snow) is untouched.
 A new card uses `.lx-glass`.
-
-**CS2 menu look on Home (owner trial 2026-11-13, "let's see the way you recommended"; replaces the open layout on Home, whose `.lx-open` CSS stays for comparison):** Home's root carries `lx-hud` and a `.lx-hud-bg` with a map's own artwork (`assets/maps/de_mirage.webp`) across the top of the page, fading into the dark at the bottom and the sides. The content floats over it in translucent dark panels (`rgb(12 12 14 / 0.5)`, blur 16px, no outline, a faint top highlight, 6px corners), the section headings are short uppercase labels with wide letter spacing and the mode names are uppercase, like the game's own menu. Rings, colours and pictures inside are unchanged. If the owner approves it, the other pages get the same.
-
-**Open layout on Home (owner pick 2026-11-13, "stop the flat design, stop the box design", option "no boxes, open"):** inside `.lx-open` (Home's root only, for now) a card is not a box: no fill, outline or corner; each section starts at a full-width hairline, side-by-side items (the mode cards, the rank stats) are split by a hairline between them, and headings are 18px bold. Pictures (the hero, the agents) and the brand cards (TikTok, Discord) keep their shape. If the owner approves it, the other pages get `lx-open` too.
+**Not flat (owner request the same day, "stop the flat design"; a CS2-menu trial and an open, box-less trial on Home were both taken back):** the card fill is a top-to-bottom gradient (`#232326` → `#1b1b1d` → `#161618`), the top edge has a thin inner light, and a layered black shadow lifts the card off the page; a pressable card rises 2px on hover with a larger shadow (still for reduced motion).
 
 ## Design tokens (`src/index.css`)
 

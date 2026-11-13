@@ -2566,63 +2566,35 @@ body::after { content: ""; position: fixed; left: 0; right: 0; bottom: 0; height
 .lx-radio[aria-checked="true"] > i { background: color-mix(in srgb, var(--brand) 28%, transparent); border-color: color-mix(in srgb, var(--brand) 55%, transparent); }
 .lx-radio[aria-checked="true"] > i::after { content: ""; width: 10px; height: 10px; border-radius: 999px; background: var(--brand-bright); }
 
-/* ==== Every card in the Create a clan look (owner request 2026-11-13, "put all cards in the clan create type") ====
-   The surface only: the Create a clan window's solid #1b1b1d grey, a white 10% hairline and a 20px corner, with no frost, gradient or shadow.
-   What sits inside a card (rings, colours, pictures) is unchanged. The !important is deliberate: older page-scoped rules (.lx-calm, .lx-noir,
-   .lx-profile-calm, the Shop tiles, the people cards) set their own fills with higher specificity, and this look is meant to win over all of them. */
-:root { --glass-fill: #1b1b1d; --glass-line: rgb(255 255 255 / 0.1); --clan-card: #1b1b1d; } /* palette-exempt: the Create a clan grey */
+/* ==== Every card in the Create a clan look, with depth (owner requests 2026-11-13: "put all cards in the clan create type", then "stop the flat design") ====
+   The Create a clan grey and 20px corner, but no longer flat: the fill runs from a lighter grey at the top to a darker one at the bottom, the top edge
+   catches a thin light, and the card casts a layered shadow onto the page, so it sits above it. A card you can press rises 2px and its shadow grows.
+   No frost, no outline colour, no violet. The !important is deliberate: older page-scoped rules (.lx-calm, .lx-noir, .lx-profile-calm, the Shop tiles,
+   the people cards) set their own fills with higher specificity, and this look is meant to win over all of them. */
+:root { --glass-fill: #1b1b1d; --glass-line: rgb(255 255 255 / 0.08); --clan-card: #1b1b1d; } /* palette-exempt: the Create a clan grey */
 :is(.lx-glass, .glass, .lx-pcard, .lx-people-card, .lx-team-card, .lx-play-panel, .lx-shop-tile, .lx-shop-glass, .lx-frost, .lx-ring-card, .lx-add-box):not(.rounded-full) {
-  background: var(--clan-card) !important;
-  border: 1px solid rgb(255 255 255 / 0.1) !important;
+  background: linear-gradient(180deg, #232326 0%, #1b1b1d 38%, #161618 100%) !important; /* palette-exempt: card greys */
+  border: 1px solid rgb(255 255 255 / 0.07) !important;
   border-radius: 20px !important;
-  box-shadow: none !important;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.07),
+    0 1px 2px rgb(0 0 0 / 0.45),
+    0 6px 14px -6px rgb(0 0 0 / 0.55),
+    0 18px 40px -18px rgb(0 0 0 / 0.75) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
-:is(.lx-glass, .glass, .lx-pcard, .lx-people-card, .lx-team-card, .lx-shop-tile, .lx-frost, .lx-fx-card):is(a, button, li, article, [role="button"]):hover { border-color: rgb(255 255 255 / 0.22) !important; }
+:is(.lx-glass, .glass, .lx-pcard, .lx-people-card, .lx-team-card, .lx-shop-tile, .lx-frost, .lx-fx-card):is(a, button, li, article, [role="button"]):not(.rounded-full) {
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1), border-color 220ms ease;
+}
+:is(.lx-glass, .glass, .lx-pcard, .lx-people-card, .lx-team-card, .lx-shop-tile, .lx-frost, .lx-fx-card):is(a, button, li, article, [role="button"]):not(.rounded-full):hover {
+  transform: translateY(-2px);
+  border-color: rgb(255 255 255 / 0.13) !important;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.09),
+    0 2px 4px rgb(0 0 0 / 0.45),
+    0 12px 24px -8px rgb(0 0 0 / 0.6),
+    0 28px 56px -20px rgb(0 0 0 / 0.8) !important;
+}
+@media (prefers-reduced-motion: reduce) { :is(.lx-glass, .glass, .lx-pcard, .lx-people-card, .lx-team-card, .lx-shop-tile, .lx-frost, .lx-fx-card):hover { transform: none !important; } }
 .lx-frost[aria-checked="true"], .lx-shop-tile[aria-pressed="true"], .lx-shop-tile[data-worn="true"] { border-color: rgb(255 255 255 / 0.5) !important; }
-
-/* ==== Open layout, no boxes (owner pick 2026-11-13, "stop the flat design, stop the box design"; tried on Home first) ====
-   Inside .lx-open a card is not a box: no fill, no outline, no corner. A section starts at a hairline across the full width and is told apart by its
-   heading and the space around it. Pictures (the hero, the mode agents) keep their own shape. */
-.lx-open :is(.lx-glass, .glass, .lx-ring-card, .lx-fx-card):not(.rounded-full):not([aria-roledescription="carousel"]) {
-  background: transparent !important;
-  border: 0 !important;
-  border-top: 1px solid rgb(255 255 255 / 0.09) !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-}
-.lx-open :is(.lx-glass, .lx-ring-card, .lx-calm-brand)::before,
-.lx-open :is(.lx-glass, .lx-ring-card)::after { display: none !important; }
-.lx-open :is(.lx-glass, .lx-fx-card):is(a, button):hover { background: rgb(255 255 255 / 0.03) !important; }
-.lx-open h2 { font-size: 18px; font-weight: 700; }
-.lx-open h2 > span[aria-hidden="true"]:first-child { display: none; }
-/* Side by side items (the mode cards, the rank stats) are split by a hairline down between them instead of each sitting in its own box. */
-.lx-open .lx-ring-card:nth-child(even) { border-left: 1px solid rgb(255 255 255 / 0.09) !important; }
-@media (min-width: 1100px) { .lx-open .lx-fx-card + .lx-fx-card { border-left: 1px solid rgb(255 255 255 / 0.09) !important; } }
-.lx-open .grid:has(> .lx-fx-card), .lx-open .grid:has(> .lx-ring-card) { gap: 0 !important; }
-
-/* ==== CS2 menu look (trial on Home, owner request 2026-11-13: "let's see the way you recommended") ====
-   Like the game's own main menu: a map's artwork fills the top of the page and fades into the dark, and the content sits on it in translucent dark
-   panels with no outline (a faint top highlight only), small 6px corners and short uppercase headings. Pictures keep their shape. */
-.lx-hud-bg { position: absolute; inset: 0 0 auto 0; height: min(900px, 100%); z-index: -1; overflow: hidden; pointer-events: none; }
-.lx-hud-bg img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; opacity: 0.85; filter: saturate(0.9); }
-.lx-hud-bg::after { content: ""; position: absolute; inset: 0; background:
-  linear-gradient(180deg, rgb(7 7 8 / 0.15) 0%, rgb(7 7 8 / 0.45) 50%, rgb(7 7 8) 100%),
-  linear-gradient(90deg, rgb(7 7 8 / 0.55), transparent 40%, transparent 60%, rgb(7 7 8 / 0.55)); } /* palette-exempt: the page base */
-.lx-hud.lx-calm::after { display: none; }
-.lx-hud :is(.lx-glass, .glass, .lx-ring-card, .lx-fx-card):not(.rounded-full) {
-  background: rgb(12 12 14 / 0.5) !important;
-  border: 0 !important;
-  border-radius: 6px !important;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07) !important;
-  backdrop-filter: blur(16px) saturate(120%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(120%) !important;
-}
-.lx-hud .lx-glass.rounded-full { background: rgb(12 12 14 / 0.62) !important; border-color: rgb(255 255 255 / 0.08) !important; backdrop-filter: blur(16px) !important; }
-.lx-hud :is(.lx-glass, .lx-ring-card)::before, .lx-hud :is(.lx-glass, .lx-ring-card)::after { display: none !important; }
-.lx-hud :is(.lx-glass, .lx-fx-card):is(a, button):hover { background: rgb(22 22 26 / 0.72) !important; }
-.lx-hud :is(.lx-discord-card, .lx-tiktok-card) { border-radius: 6px !important; }
-.lx-hud :is(h2, .lx-hud-h) { font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-2); }
-.lx-hud h2 > span[aria-hidden="true"]:first-child { display: none; }
-.lx-hud .lx-fx-card h3 { font-size: 17px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; }

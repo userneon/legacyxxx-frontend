@@ -111,7 +111,7 @@ export function HomeReviewsCard({ onOpen, className }: { onOpen: () => void; cla
       className={cn("lx-glass group flex flex-col gap-2 rounded-2xl p-4 text-left transition-colors hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50", className)}
       aria-label="Reviews"
     >
-      <span className="lx-hud-h flex items-center justify-between gap-2 text-sm font-semibold">
+      <span className="flex items-center justify-between gap-2 text-sm font-semibold">
         Reviews
         <ArrowRight className="size-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
       </span>
