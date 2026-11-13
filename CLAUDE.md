@@ -453,3 +453,5 @@ The five rank cards sit in ONE row (owner request 2026-11-13, "all 5 in one row"
 
 The violet light behind the pages is smaller (owner report 2026-11-13, "the pink/violet glow is too big"): `.lx-glass-page::before` in `index.css` draws a 32% x 22% light in the top-right corner (15% brand) and a 26% x 20% one bottom-left (6%), where it was 55% x 40% (22%) and 45% x 35% (10%).
 
+Shop tiles light up from above (owner request 2026-11-13, "on hover make the violet light inside the card come from the item, from the side or the top, not from the bottom"): under the pointer (or focus) a `.lx-shop-tile` fades in a violet light that shines into the tile from its top edge, behind the picture and the text (`.lx-shop-tile::after`, `--brand`, radial from the top, 0.25 s), the border turns violet and a thin bright line runs along the top; the shadow that fell under the tile is gone (the 2px lift stays). Still for reduced motion apart from the opacity fade.
+
