@@ -1,3 +1,4 @@
+import { FxRing } from "@/components/fx-ring"
 import { useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import { Check, ChevronDown, Lock } from "lucide-react"
@@ -168,7 +169,8 @@ export function ShopRanks({ catalogue, qa = false }: { catalogue: PerkCatalogue;
           return (
             <li key={tier.key} className="@container flex min-w-0 flex-col gap-2">
               {/* One card: the gem art with its text, length, price and Buy on its lower panel, and Benefits as the card's own bottom section (owner request 2026-11-13: everything inside the card). */}
-              <div className={cn("flex flex-1 flex-col overflow-hidden rounded-[22px] border border-white/10", mineHere && "ring-2 ring-[var(--brand)]")} style={{ background: `linear-gradient(180deg, color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} 20%, #0d0d0f), #0d0d0f 78%)` }}>
+              <div data-fx="glow" className={cn("relative flex flex-1 flex-col overflow-hidden rounded-[22px] border border-white/10", mineHere && "ring-2 ring-[var(--brand)]")} style={{ "--fx": `color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} 90%, white)`, "--fx-c": TIER_GLOW[tier.key] ?? "#888", background: `linear-gradient(180deg, color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} 20%, #0d0d0f), #0d0d0f 78%)` } as React.CSSProperties}>
+              <FxRing />
               {/* Only the gem and its pedestal are taken from the art, small, on the tier's own glow; the edges of the picture fade out so no frame or panel of the art shows (owner request 2026-11-13: smaller, cleaner). */}
               <div aria-hidden="true" className="relative isolate overflow-hidden" style={{ height: "64cqw" }}>
                 <div className="absolute inset-0" style={{ background: `radial-gradient(60% 55% at 50% 52%, color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} 38%, transparent), transparent 75%)` }} />

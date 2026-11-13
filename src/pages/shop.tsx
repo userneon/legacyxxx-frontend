@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
+import { FxRing } from "@/components/fx-ring"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
 import { Check, ChevronDown, Crosshair, Heart, Lock, RotateCcw, Search, ShoppingBag, SlidersHorizontal, Star, Sword, Undo2, X } from "lucide-react"
@@ -445,8 +446,9 @@ export function ShopPage() {
                 aria-pressed={active}
                 aria-label={item.name}
                 style={{ "--acc": accentOf(shown) } as React.CSSProperties}
-                className="lx-shop-tile relative flex w-full flex-col overflow-hidden rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60"
+                data-fx="glow" className="lx-shop-tile relative flex w-full flex-col overflow-hidden rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60"
               >
+                <FxRing />
                 {/* The rarity as a thin line along the bottom, never a surface. */}
                 <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: rarityOf(item.rarity).color }} />
                 <div className="lx-tile-panel relative">

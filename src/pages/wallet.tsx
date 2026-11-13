@@ -177,9 +177,9 @@ export function WalletPage() {
               </section>
 
               <div className="flex gap-2.5">
-                {[{ label: "Top up", icon: Plus, to: "/wallet/top-up" }, { label: "Send", icon: Send, to: "send" }, { label: "Shop", icon: Gem, to: "/shop" }, { label: "Clan", icon: Users, to: "/clans" }, { label: "History", icon: Clock, to: "" }].map((action) => (
-                  <button key={action.label} type="button" onClick={() => (action.to === "send" ? setSendOpen(true) : action.to ? navigate(action.to) : setTab("history"))} className="lx-glass flex h-[64px] flex-1 flex-col items-center justify-center gap-1 rounded-xl border border-[var(--line)] bg-[var(--glass-fill)] text-xs font-semibold text-[var(--text-2)] transition-colors hover:bg-[var(--raised)]">
-                    <action.icon className="size-5 opacity-80" aria-hidden="true" />{action.label}
+                {[{ label: "Top up", icon: Plus, to: "/wallet/top-up", c: ["#8b5cf6", "#5b3bc4"] }, { label: "Send", icon: Send, to: "send", c: ["#22c55e", "#127a3a"] }, { label: "Shop", icon: Gem, to: "/shop", c: ["#d4d4d8", "#6b6b73"] }, { label: "Clan", icon: Users, to: "/clans", c: ["#ef4444", "#8f1d1d"] }, { label: "History", icon: Clock, to: "", c: ["#8b5cf6", "#5b3bc4"] }].map((action) => (
+                  <button key={action.label} type="button" onClick={() => (action.to === "send" ? setSendOpen(true) : action.to ? navigate(action.to) : setTab("history"))} className="lx-glass flex h-[86px] flex-1 flex-col items-center justify-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--glass-fill)] text-xs font-semibold text-[var(--text-2)] transition-colors hover:bg-[var(--raised)]">
+                    <span className="lx-glass-icon" style={{ "--c1": action.c[0], "--c2": action.c[1] } as React.CSSProperties}><action.icon className="size-[18px]" aria-hidden="true" /></span>{action.label}
                   </button>
                 ))}
               </div>

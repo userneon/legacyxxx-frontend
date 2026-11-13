@@ -5,9 +5,12 @@ import { BrowserRouter } from "react-router-dom"
 import "./index.css"
 import "./event-themes.css"
 import App from "./App.tsx"
+import { installCursorFx } from "@/lib/cursor-fx"
 import { ThemeProvider } from "@/components/theme-provider.tsx"
 import { AuthProvider } from "@/hooks/use-auth.tsx"
 import { Toaster } from "@/components/ui/sonner"
+
+installCursorFx()
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
