@@ -2581,3 +2581,23 @@ body::after { content: ""; position: fixed; left: 0; right: 0; bottom: 0; height
 }
 :is(.lx-glass, .glass, .lx-pcard, .lx-people-card, .lx-team-card, .lx-shop-tile, .lx-frost, .lx-fx-card):is(a, button, li, article, [role="button"]):hover { border-color: rgb(255 255 255 / 0.22) !important; }
 .lx-frost[aria-checked="true"], .lx-shop-tile[aria-pressed="true"], .lx-shop-tile[data-worn="true"] { border-color: rgb(255 255 255 / 0.5) !important; }
+
+/* ==== Open layout, no boxes (owner pick 2026-11-13, "stop the flat design, stop the box design"; tried on Home first) ====
+   Inside .lx-open a card is not a box: no fill, no outline, no corner. A section starts at a hairline across the full width and is told apart by its
+   heading and the space around it. Pictures (the hero, the mode agents) keep their own shape. */
+.lx-open :is(.lx-glass, .glass, .lx-ring-card, .lx-fx-card):not(.rounded-full):not([aria-roledescription="carousel"]) {
+  background: transparent !important;
+  border: 0 !important;
+  border-top: 1px solid rgb(255 255 255 / 0.09) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.lx-open :is(.lx-glass, .lx-ring-card, .lx-calm-brand)::before,
+.lx-open :is(.lx-glass, .lx-ring-card)::after { display: none !important; }
+.lx-open :is(.lx-glass, .lx-fx-card):is(a, button):hover { background: rgb(255 255 255 / 0.03) !important; }
+.lx-open h2 { font-size: 18px; font-weight: 700; }
+.lx-open h2 > span[aria-hidden="true"]:first-child { display: none; }
+/* Side by side items (the mode cards, the rank stats) are split by a hairline down between them instead of each sitting in its own box. */
+.lx-open .lx-ring-card:nth-child(even) { border-left: 1px solid rgb(255 255 255 / 0.09) !important; }
+@media (min-width: 1100px) { .lx-open .lx-fx-card + .lx-fx-card { border-left: 1px solid rgb(255 255 255 / 0.09) !important; } }
+.lx-open .grid:has(> .lx-fx-card), .lx-open .grid:has(> .lx-ring-card) { gap: 0 !important; }

@@ -37,6 +37,8 @@ a 20px corner, no frost, gradient or shadow, on `.lx-glass`, `.glass`, `.lx-pcar
 `!important` on purpose to win over the page-scoped rules. What is inside the cards (rings, colours, pictures, the violet accents, snow) is untouched.
 A new card uses `.lx-glass`.
 
+**Open layout on Home (owner pick 2026-11-13, "stop the flat design, stop the box design", option "no boxes, open"):** inside `.lx-open` (Home's root only, for now) a card is not a box: no fill, outline or corner; each section starts at a full-width hairline, side-by-side items (the mode cards, the rank stats) are split by a hairline between them, and headings are 18px bold. Pictures (the hero, the agents) and the brand cards (TikTok, Discord) keep their shape. If the owner approves it, the other pages get `lx-open` too.
+
 ## Design tokens (`src/index.css`)
 
 Neutral surfaces, white as the workhorse accent, and **violet as the brand accent** (owner decision
