@@ -5,7 +5,7 @@
 import { clanTagProps } from "@/lib/cosmetics"
 import { useState } from "react"
 import { Link } from "react-router-dom"
-import { MessageCircle, RotateCcw, Search, X } from "lucide-react"
+import { ArrowUpRight, MessageCircle, RotateCcw, Search, X } from "lucide-react"
 
 import { teamService, type TeamMember, type TeamRole } from "@/api/team"
 import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
@@ -16,7 +16,6 @@ import { cn } from "@/lib/utils"
 
 /** Each role's colour, the same as on the staff site (Owner violet, Manager red, Admin sky, Developer green, Designer amber). */
 const ROLE_TONE: Record<TeamRole, string> = { Owner: "violet", Manager: "red", Admin: "sky", Developer: "green", Designer: "amber", QA: "grey" }
-const NUMERAL: Record<TeamRole, string> = { Owner: "I", Manager: "II", Admin: "III", Developer: "IV", Designer: "V", QA: "VI" }
 const ROLES: TeamRole[] = ["Manager", "Admin", "Developer", "Designer", "QA"]
 const PLURAL: Record<TeamRole, string> = { Owner: "Owner", Manager: "Managers", Admin: "Admins", Developer: "Developers", Designer: "Designers", QA: "QA" }
 /** What each role does, from what each one can do on the staff site. */
@@ -67,8 +66,7 @@ function OwnerCard({ member }: { member: TeamMember }) {
   return (
     <div className="lx-team-card lx-team-hero" data-tone={ROLE_TONE.Owner}>
       <Link to={`/profile/${member.steamId}`} className="lx-team-inner flex-row! items-center gap-5 p-5 max-sm:flex-col! max-sm:text-center" aria-label={`${member.username}, Owner`}>
-        <span aria-hidden="true" className="lx-team-numeral">{NUMERAL.Owner}</span>
-        <Face member={member} size={104} />
+        <Face member={member} size={96} />
         <span className="flex min-w-0 flex-1 flex-col gap-2 max-sm:items-center">
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--tone)]">Owner</span>
           <Name member={member} className="text-[26px] leading-tight" />
@@ -85,26 +83,28 @@ function OwnerCard({ member }: { member: TeamMember }) {
   )
 }
 
+/** One teammate, calm like a user card: the rank at the top left, an arrow that says the card opens the profile, a round avatar, the name, the role in its colour, then the real ranked numbers. */
 function TeamCard({ member }: { member: TeamMember }) {
   const since = sinceText(member.since)
   const cells = statCells(member)
   return (
     <li className="lx-team-card" data-tone={ROLE_TONE[member.role]}>
       <Link to={`/profile/${member.steamId}`} className="lx-team-inner" aria-label={`${member.username}, ${member.role}`}>
-        <span aria-hidden="true" className="lx-team-numeral">{NUMERAL[member.role]}</span>
-        <span aria-hidden="true" className="lx-team-role">{member.role}</span>
-        <Face member={member} size={84} />
-        <span className="mt-3"><RankLine member={member} /></span>
-        <span className="lx-team-foot">
-          <Name member={member} className="justify-center text-[15px]" />
-          <span aria-hidden="true" className="lx-team-bar" />
-          {cells.length ? (
-            <span className="grid grid-cols-3 gap-1 text-center">
-              {cells.map(([label, value]) => <span key={label} className="flex flex-col"><span className="text-[13px] font-semibold text-[var(--text)]">{value}</span><span className="text-[10px] uppercase tracking-[0.08em] text-[var(--text-dim)]">{label}</span></span>)}
-            </span>
-          ) : <span className="block text-[11px] text-[var(--text-dim)]">No ranked matches yet</span>}
-          {since && <span className="mt-2 block text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">Since {since}</span>}
+        <span className="flex w-full items-center justify-between">
+          {member.rank ? <span title={member.rank.name}><CompetitiveRankBadge rankId={member.rank.id} rankName={member.rank.name} imageKey={member.rank.imageKey} size={22} /></span> : <span aria-hidden="true" className="size-[22px]" />}
+          <span aria-hidden="true" className="lx-team-go"><ArrowUpRight className="size-3.5" /></span>
         </span>
+        <Face member={member} size={76} />
+        <span className="flex w-full min-w-0 flex-col items-center gap-0.5">
+          <Name member={member} className="justify-center text-[15px]" />
+          <span className="text-[12px] font-medium text-[var(--tone)]">{member.role}</span>
+        </span>
+        {cells.length ? (
+          <span className="mt-auto grid w-full grid-cols-3 gap-1 border-t border-[var(--line-soft)] pt-3 text-center">
+            {cells.map(([label, value]) => <span key={label} className="flex flex-col"><span className="text-[13px] font-semibold text-[var(--text)]">{value}</span><span className="text-[10px] text-[var(--text-dim)]">{label}</span></span>)}
+          </span>
+        ) : <span className="mt-auto w-full border-t border-[var(--line-soft)] pt-3 text-center text-[11px] text-[var(--text-dim)]">No ranked matches yet</span>}
+        {since && <span className="text-[10px] text-[var(--text-faint)]">Since {since}</span>}
       </Link>
     </li>
   )
