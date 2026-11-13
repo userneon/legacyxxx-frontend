@@ -8,7 +8,7 @@ import { DiscordLinkedMark } from "@/components/discord-linked-mark"
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
-import { ArrowLeftRight, Ban, ChevronRight, Copy, Crown, ExternalLink, Eye, EyeOff, Info, MessageCircle, MoreHorizontal, Play, RotateCcw, ShieldAlert, ShieldCheck, Shield } from "lucide-react"
+import { ArrowLeftRight, Ban, ChevronRight, Copy, Crown, ExternalLink, EyeOff, Info, MessageCircle, MoreHorizontal, Play, RotateCcw, ShieldAlert, ShieldCheck, Shield } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -645,7 +645,7 @@ function LoadoutCard({ loadout }: { loadout: NonNullable<ProfileOverview["loadou
   )
 }
 
-function ProfileSkeleton({ own }: { own: boolean }) {
+function ProfileSkeleton() {
   const bar = "rounded-full bg-[var(--line-soft)]"
   return (
     <div aria-hidden="true">
@@ -772,7 +772,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
         </p>
       )
     }
-    return <ProfileSkeleton own={identity === "me" || Boolean(me && (identity === me.id || identity === me.steamId))} />
+    return <ProfileSkeleton />
   }
 
   const hidden = new Set(data.hidden)

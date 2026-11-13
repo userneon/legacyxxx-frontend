@@ -151,7 +151,7 @@ function BgPreview({ id, look }: { id: string; look: BgLook }) {
 }
 
 /** A soft light in the item's own colour behind the art, and a shadow on the floor under it. A background's picture fills the whole box instead. */
-function Spot({ accent, height, children, fill }: { accent: string; height: number; children: React.ReactNode; fill?: boolean }) {
+function Spot({ height, children, fill }: { height: number; children: React.ReactNode; fill?: boolean }) {
   if (fill) return <div className="relative overflow-hidden rounded-lg" style={{ height }}>{children}</div>
   return (
     <div className="relative flex items-center justify-center overflow-hidden" style={{ height }}>
@@ -418,8 +418,6 @@ export function ShopPage() {
     }
   }
 
-  const pill = (active: boolean) => cn("inline-flex h-[26px] items-center rounded-full border px-2.5 text-xs transition-colors", active ? "border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text)]" : "border-[var(--line)] text-[var(--text-dim)] hover:text-[var(--text)]")
-
   /** A tile shows a design nobody has coloured yet in a sample colour, so the designs tell apart; the preview starts grey. */
   const onTile = (item: ShopItem, index: number): ShopItem => {
     if (!item.custom) return item
@@ -452,7 +450,7 @@ export function ShopPage() {
                 {/* The rarity as a thin line along the bottom, never a surface. */}
                 <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: rarityOf(item.rarity).color }} />
                 <div className="lx-tile-panel relative">
-                  <Spot accent={accentOf(shown)} height={dense ? 80 : 96} fill={shown.kind === "background" || hasModelPicture(shown)}><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={dense ? 46 : 56} /></Spot>
+                  <Spot height={dense ? 80 : 96} fill={shown.kind === "background" || hasModelPicture(shown)}><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={dense ? 46 : 56} /></Spot>
                 </div>
                 <div className="flex flex-col items-start gap-1 px-3 pb-2.5 pt-1.5">
                   <span className="line-clamp-2 w-full text-[13px] font-semibold leading-[1.25] text-[var(--text)]">{(item.rarity ?? 1) >= 3 && <Star className="mr-1 inline size-3 -translate-y-px fill-current text-[var(--text-2)]" aria-label={`${rarityOf(item.rarity).label} item`} />}{item.name}</span>
@@ -507,7 +505,7 @@ export function ShopPage() {
           <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-3.5">
             {trayItems.map((item) => (
               <li key={item.id} className="lx-shop-glass grid grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-3 rounded-[10px] border p-2">
-                <Spot accent={accentOf(item)} height={64}><ItemArt item={item} avatar={user?.avatar} username={username} orb={data?.frameLook} size={34} /></Spot>
+                <Spot height={64}><ItemArt item={item} avatar={user?.avatar} username={username} orb={data?.frameLook} size={34} /></Spot>
                 <div className="flex min-w-0 flex-col gap-1.5">
                   <span className="truncate text-[13px] font-semibold text-[var(--text)]">{item.name}</span>
                   <span className="text-[11px] text-[var(--text-dim)]">{KIND_WORD[item.kind] ?? "Item"}</span>
@@ -758,7 +756,6 @@ export function ShopPage() {
   )
 
   const soon = endingSoon(all)
-  const countOf = (target: ShopTab) => all.filter((item) => (isModelKind(item.kind as CosmeticKind) ? "model" : tabOfKind(item.kind)) === target).length
   const tabOfKind = (kind: ShopKind): ShopTab => (kind === "name_color" || kind === "name_glow" ? "name" : kind === "smoke_color" || kind === "grenade_trail" ? "smoke_color" : kind === "frame" ? "frame" : kind === "background" ? "background" : "featured")
   /**
    * The Spotlight bar (owner pick "S8", 2026-10-26): on a wide screen the picked item sits in one bar across the top of the list, stuck while the

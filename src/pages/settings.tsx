@@ -207,7 +207,6 @@ function Appearance() {
 
   // The preview shows what you would look like: the item you are looking at, plus whatever you already wear of the other kinds.
   const previewOf = (of: CosmeticKind) => (of === kind ? selected : lists[of].find((item) => item.id === worn[of])) ?? null
-  const previewFrame = previewOf("frame")
   const previewColor = previewOf("name_color")
   const previewGlow = previewOf("name_glow")
   const previewLook = { color: previewColor?.color ?? null, colorFx: previewColor?.fx ?? null, glow: previewGlow?.glow ?? null, glowFx: previewGlow?.fx ?? null }

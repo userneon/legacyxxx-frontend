@@ -7,7 +7,6 @@ import { Check, ExternalLink, RotateCcw } from "lucide-react"
 
 import { walletService, type TopUp, type TopUpInvoice } from "@/api/wallet"
 import qpayLogo from "@/assets/payments/qpay.svg"
-import { LxMark } from "@/components/lx-mark"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 const mnt = (value: number) => `${value.toLocaleString()}₮`
