@@ -244,7 +244,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
                     <p className="text-[13px] text-[var(--text-dim)]">Gather a team, share a roster and climb together.</p>
                     <button type="button" onClick={() => (isAuthenticated ? setCreating(true) : loginWithSteam())} className="lx-primary-button inline-flex h-9 items-center gap-2 rounded-lg px-3.5 text-[13px] font-semibold">
                       <Plus className="size-4" aria-hidden="true" />
-                      Create clan{fee != null ? ` · ${fee.toLocaleString()} LX` : ""}
+                      Create clan{fee != null ? ` · ${fee.toLocaleString()} FOL$` : ""}
                     </button>
                   </div>
                 ))}
@@ -287,7 +287,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2.5"><span className="lx-add-icon"><Users className="size-4" /></span>Create a clan</DialogTitle>
             <DialogDescription>
-              {fee != null ? `${fee.toLocaleString()} LX` : "LX"} are taken from your wallet when the clan is created.
+              {fee != null ? `${fee.toLocaleString()} FOL$` : "FOL$"} are taken from your wallet when the clan is created.
             </DialogDescription>
           </DialogHeader>
           <CreateClanForm onClose={() => setCreating(false)} onCreated={(clan) => { setCreating(false); changed(); onClanNavigate(String(clan.number ?? clan.id)) }} />
@@ -688,7 +688,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                   <DialogHeader>
                     <DialogTitle>Delete {clan.name}?</DialogTitle>
                     <DialogDescription>
-                      The clan and its members are removed for good. LX spent is not given back.
+                      The clan and its members are removed for good. FOL$ spent is not given back.
                     </DialogDescription>
                   </DialogHeader>
                   <form
@@ -772,7 +772,7 @@ function CreateClanForm({ onClose, onCreated }: { onClose: () => void; onCreated
         <Button type="button" variant="outline" onClick={onClose} disabled={submitting}><X className="size-4" /> Cancel</Button>
         <button type="submit" disabled={!valid || submitting} className="lx-primary-button inline-flex h-9 items-center gap-2 rounded-lg px-3.5 text-[13px] font-semibold disabled:opacity-50">
           <Coins className="size-4" aria-hidden="true" />
-          {submitting ? "Creating…" : `Create${fee != null ? ` · ${fee.toLocaleString()} LX` : ""}`}
+          {submitting ? "Creating…" : `Create${fee != null ? ` · ${fee.toLocaleString()} FOL$` : ""}`}
         </button>
       </div>
     </form>
@@ -952,7 +952,7 @@ function EditLook({ clan, isLeader, onChanged }: { clan: ClanDetail; isLeader: b
       <ArtSlot kind="logo" busy={busy} preview={clanArtSrc(clan.logo)} onPick={(file) => void run(() => clansService.uploadArt(clan.id, "logo", file), "Logo saved")} onRemove={() => void run(() => clansService.removeArt(clan.id, "logo"), "Logo removed")} />
       <ArtSlot kind="banner" busy={busy} preview={clanArtSrc(clan.thumbnail)} onPick={(file) => void run(() => clansService.uploadArt(clan.id, "banner", file), "Banner saved")} onRemove={() => void run(() => clansService.removeArt(clan.id, "banner"), "Banner removed")} />
         </>)}
-        {isLeader && section("edit-name", "Name and tag", "Renaming costs LX and can be done once a week.", <RenameForm clan={clan} onChanged={onChanged} />)}
+        {isLeader && section("edit-name", "Name and tag", "Renaming costs FOL$ and can be done once a week.", <RenameForm clan={clan} onChanged={onChanged} />)}
       </div>
       {isLeader && (
       <footer className="flex shrink-0 flex-wrap items-center justify-end gap-3 border-t border-[var(--line-soft)] bg-[var(--panel)] px-6 py-3 max-sm:px-4">

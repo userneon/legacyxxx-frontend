@@ -238,6 +238,22 @@ function TeamRows({ players, side }: { players: ServerLiveMatchPlayer[]; side?: 
   )
 }
 
+/** One side as a panel (owner idea 2026-11-13, after a server page seen elsewhere): its emblem and name, how many of 5 are in, the players, and dashed "Free" slots for the empty places. */
+function TeamPanel({ side, players }: { side: TeamSide; players: ServerLiveMatchPlayer[] }) {
+  const free = Math.max(0, 5 - players.length)
+  return (
+    <div className="flex min-w-0 flex-col gap-2 rounded-2xl bg-white/[0.03] p-3">
+      <div className="flex items-center gap-2 px-1">
+        <TeamIcon side={side} className="size-5" />
+        <span className="text-[14px] font-bold text-[var(--text)]">{side === "t" ? "Terrorists" : "Counter-Terrorists"}</span>
+        <span className="ml-auto text-[12px] font-semibold text-[var(--text-dim)]">{players.length}/5</span>
+      </div>
+      {players.length > 0 && <TeamRows side={side} players={players} />}
+      {Array.from({ length: free }, (_, index) => <div key={index} className="flex h-[38px] items-center justify-center rounded-xl border border-dashed border-white/10 text-[12px] text-[var(--text-faint)]">Free</div>)}
+    </div>
+  )
+}
+
 /** The open server's live match (teams, score, round), refreshed every 5 s while it is shown. */
 function useLiveMatch(serverId: string) {
   const { data, loading, error, refetch } = useApiQuery<ServerLiveMatch>((signal) => serversService.getLiveMatch(serverId, { signal }), {
@@ -254,7 +270,7 @@ function useLiveMatch(serverId: string) {
 }
 
 /** Scoreboard of the open server: both teams in a live match, else who is connected, else a short note. */
-function Scoreboard({ live, loading, error, refetch }: ReturnType<typeof useLiveMatch>) {
+function Scoreboard({ live, loading, error, refetch, hideScore = false }: ReturnType<typeof useLiveMatch> & { hideScore?: boolean }) {
   const header = (
     <div className={cn(SCORE_COLUMNS, "px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--text-dim)]")}>
       <span />
@@ -268,16 +284,18 @@ function Scoreboard({ live, loading, error, refetch }: ReturnType<typeof useLive
   )
   if (live && live.availability === "live_snapshot") {
     return (
-      <div className="flex flex-col gap-2">
-        {header}
-        <TeamRows side="t" players={live.teams.t} />
-        {/* The score between the teams, as in the CS2 scoreboard. */}
-        <div className="flex items-center justify-center gap-4 py-1.5">
-          <span key={`t${live.score?.t}`} className="lx-swap-in min-w-8 text-right text-[28px] font-bold leading-none text-[var(--team-t)]">{live.score ? live.score.t : "—"}</span>
-          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-faint)]">{live.round ? `Round ${live.round}` : "Score"}</span>
-          <span key={`ct${live.score?.ct}`} className="lx-swap-in min-w-8 text-[28px] font-bold leading-none text-[var(--team-ct)]">{live.score ? live.score.ct : "—"}</span>
+      <div className="flex flex-col gap-3">
+        {!hideScore && (
+          <div className="flex items-center justify-center gap-4 py-1">
+            <span className="min-w-8 text-right text-[26px] font-bold leading-none text-[var(--team-t)]">{live.score ? live.score.t : "—"}</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-faint)]">{live.round ? `Round ${live.round}` : "Score"}</span>
+            <span className="min-w-8 text-[26px] font-bold leading-none text-[var(--team-ct)]">{live.score ? live.score.ct : "—"}</span>
+          </div>
+        )}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <TeamPanel side="t" players={live.teams.t} />
+          <TeamPanel side="ct" players={live.teams.ct} />
         </div>
-        <TeamRows side="ct" players={live.teams.ct} />
       </div>
     )
   }
@@ -442,7 +460,7 @@ function ServerListItem({ server, selected, favourite, onFavourite, onSelect }: 
   const art = cs2MapArtwork(server.map)
   const unavailable = server.status === "offline"
   return (
-    <div className={cn("group relative flex items-center gap-3 overflow-hidden rounded-[10px] border px-3 py-2.5 transition-[border-color] duration-150", selected ? "border-[var(--line-strong)]" : "border-transparent hover:border-[var(--line)]", unavailable && !selected && "opacity-60")}>
+    <div className={cn("group relative flex items-center gap-3 overflow-hidden rounded-2xl border px-4 py-3 transition-[border-color] duration-150", selected ? "border-[var(--line-strong)]" : "border-transparent hover:border-[var(--line)]", unavailable && !selected && "opacity-60")}>
       {/* The map fills the row and fades out from left to right. */}
       {art && <img src={art} alt="" aria-hidden="true" className={cn("lx-map-img lx-list-art pointer-events-none absolute inset-0 size-full object-cover transition-opacity duration-300", selected ? "opacity-70" : "opacity-45 group-hover:opacity-60")} />}
       <button type="button" onClick={onSelect} aria-current={selected ? "true" : undefined} className="relative flex min-w-0 flex-1 items-center gap-3 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
@@ -496,7 +514,7 @@ function ServerDetail({ server, gate }: { server: PlayServer; gate: PlayGate }) 
   const watchable = server.status === "live" && isServerAddress(watchAddress)
   const reason = server.status === "offline" ? "Server is offline" : server.status === "full" || server.players >= server.maxPlayers ? "Server is full" : "No connection address"
   return (
-    <section aria-label={server.name} className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--card-surface)]">
+    <section aria-label={server.name} className="lx-play-panel flex min-h-0 flex-col overflow-hidden rounded-[24px] border border-[var(--line)] bg-[var(--card-surface)]">
       <MapArt key={server.id} map={live?.map ?? server.map} className="h-[210px] shrink-0">
         <span aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,10,10,0.05),rgba(10,10,10,0.35)_50%,var(--card-surface))]" />
         <div className="absolute inset-x-[22px] bottom-4 z-10 flex items-end justify-between gap-3">
@@ -514,35 +532,43 @@ function ServerDetail({ server, gate }: { server: PlayServer; gate: PlayGate }) 
           </div>
         </div>
       </MapArt>
-      <div className="scrollbar-hidden flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-[22px] py-4">
-        <Scoreboard {...liveMatch} />
-      </div>
-      <div className="flex shrink-0 gap-2.5 border-t border-[var(--line-soft)] px-[22px] py-4">
-        <button type="button" disabled={!address} onClick={() => void copyAddress(address)} className={cn(secondary, "h-11 flex-1")}>
-          <Copy className="size-3.5" />
-          Copy IP
-        </button>
-        {watchable && (
-          <button type="button" onClick={() => watch(watchAddress, server.name)} className={cn(secondary, "h-11 flex-1")}>
-            <Eye className="size-3.5" />
-            Watch
-          </button>
-        )}
+      {/* The action strip: Connect on the left, the score in the middle, the address on the right. */}
+      <div className="mx-[22px] mt-4 flex shrink-0 flex-wrap items-center gap-3 rounded-2xl bg-white/[0.04] p-2">
         {connectable && gate.reason === null ? (
-          <button type="button" onClick={() => connect(address, server.name)} className={cn(primary, "h-11 flex-[2] text-[14px]")}>
+          <button type="button" onClick={() => connect(address, server.name)} className={cn(primary, "lx-play-connect h-11 rounded-xl px-5 text-[14px]")}>
             <Play className="size-4 fill-current" />
             Connect
           </button>
         ) : (
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="flex flex-[2]" tabIndex={0}>
-                <button type="button" disabled className={cn(secondary, "h-11 w-full")}><Play className="size-4" />Connect</button>
+              <span className="flex" tabIndex={0}>
+                <button type="button" disabled className={cn(secondary, "h-11 rounded-xl px-5")}><Play className="size-4" />Connect</button>
               </span>
             </TooltipTrigger>
             <TooltipContent>{gate.reason ?? reason}</TooltipContent>
           </Tooltip>
         )}
+        {watchable && (
+          <button type="button" onClick={() => watch(watchAddress, server.name)} className={cn(secondary, "h-11 rounded-xl px-4")}>
+            <Eye className="size-3.5" />
+            Watch
+          </button>
+        )}
+        {live?.availability === "live_snapshot" && (
+          <span className="flex flex-1 items-center justify-center gap-3 text-[28px] font-bold leading-none">
+            <span className="text-[var(--team-t)]">{live.score ? live.score.t : "—"}</span>
+            <span className="text-[var(--text-faint)]">:</span>
+            <span className="text-[var(--team-ct)]">{live.score ? live.score.ct : "—"}</span>
+          </span>
+        )}
+        <button type="button" disabled={!address} onClick={() => void copyAddress(address)} className="ml-auto inline-flex h-11 min-w-0 items-center gap-2 rounded-xl px-3 text-[13px] text-[var(--text-2)] transition-colors hover:bg-white/[0.06] hover:text-[var(--text)] disabled:opacity-50" aria-label="Copy IP">
+          <span className="truncate font-mono">{address ?? "No address"}</span>
+          <Copy className="size-3.5 shrink-0" />
+        </button>
+      </div>
+      <div className="scrollbar-hidden flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-[22px] py-4">
+        <Scoreboard {...liveMatch} hideScore />
       </div>
       {gate.reason !== null && <GateNote gate={gate} className="border-t border-[var(--line-soft)] px-[22px] py-3" />}
     </section>
@@ -681,7 +707,7 @@ function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode;
         </header>
 
         <div className={cn("grid gap-4", wide ? "min-h-0 flex-1 grid-cols-[400px_minmax(0,1fr)]" : "grid-cols-1")}>
-          <div className={cn("flex flex-col gap-2 rounded-xl border border-[var(--line)] bg-[var(--card-surface)] p-2", wide && "min-h-0")}>
+          <div className={cn("lx-play-panel flex flex-col gap-2 rounded-[24px] border border-[var(--line)] bg-[var(--card-surface)] p-3", wide && "min-h-0")}>
             <div className="flex items-center gap-2 p-1">
               <Popover>
                 <PopoverTrigger asChild>
@@ -743,7 +769,7 @@ function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode;
             <div className={cn(wide && "scrollbar-hidden min-h-0 flex-1 overflow-y-auto")}>{list}</div>
           </div>
           {wide && (shown ? <ServerDetail server={shown} gate={gate} /> : (
-            <div className="flex items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--card-surface)] text-[13px] text-[var(--text-dim)]">{data ? "Pick a server on the left." : ""}</div>
+            <div className="lx-play-panel flex items-center justify-center rounded-[24px] border border-[var(--line)] bg-[var(--card-surface)] text-[13px] text-[var(--text-dim)]">{data ? "Pick a server on the left." : ""}</div>
           ))}
         </div>
         {!wide && <ServerSheet server={picked} gate={gate} onClose={() => update({ server: null })} />}

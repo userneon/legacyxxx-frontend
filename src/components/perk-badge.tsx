@@ -1,14 +1,14 @@
 import ShinyText from "@/components/reactbits/shiny-text"
-import prestige from "@/assets/ranks/emblem-prestige.webp"
-import imperial from "@/assets/ranks/emblem-imperial.webp"
-import eternal from "@/assets/ranks/emblem-eternal.webp"
-import prime from "@/assets/ranks/emblem-prime.webp"
-import sovereign from "@/assets/ranks/emblem-sovereign.webp"
+import prestige from "@/assets/ranks/badge-prestige.webp"
+import imperial from "@/assets/ranks/badge-imperial.webp"
+import eternal from "@/assets/ranks/badge-eternal.webp"
+import prime from "@/assets/ranks/badge-prime.webp"
+import sovereign from "@/assets/ranks/badge-sovereign.webp"
 
 export const PERK_EMBLEM: Record<string, string> = { tier1: prestige, tier2: imperial, tier3: eternal, tier4: prime, tier5: sovereign }
 
 /**
- * The mark of a paid rank on the profile (owner request 2026-11-07): the tier's emblem (the owner-supplied crown and laurels, transparent) and its name, in the tier's own
+ * The mark of a paid rank on the profile (owner request 2026-11-07): the tier's emblem (the owner-supplied translucent gem, cut from its sheet on 2026-11-13) and its name, in the tier's own
  * look: Prime copper, Prestige silver, Imperial violet and gold, Eternal gold and red, Sovereign diamond. Shown only while the rank runs (the API sends `perk` then).
  */
 export function PerkBadge({ tier, name }: { tier: string; name: string }) {

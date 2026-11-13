@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
-import { Check, ChevronDown, Crosshair, Heart, Lock, RotateCcw, Search, ShoppingBag, SlidersHorizontal, Sword, Undo2, X } from "lucide-react"
+import { Check, ChevronDown, Crosshair, Heart, Lock, RotateCcw, Search, ShoppingBag, SlidersHorizontal, Star, Sword, Undo2, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -155,7 +155,6 @@ function Spot({ accent, height, children, fill }: { accent: string; height: numb
   if (fill) return <div className="relative overflow-hidden rounded-lg" style={{ height }}>{children}</div>
   return (
     <div className="relative flex items-center justify-center overflow-hidden" style={{ height }}>
-      <span aria-hidden="true" className="absolute inset-0 opacity-40" style={{ background: `radial-gradient(closest-side ellipse at 50% 46%, ${accent} 0%, transparent 100%)` }} />
       <span aria-hidden="true" className="absolute bottom-2.5 left-1/2 h-2.5 w-[56%] -translate-x-1/2" style={{ background: "radial-gradient(ellipse, rgba(0,0,0,.65), transparent 70%)" }} />
       <div className="relative z-[1] flex max-w-full items-center justify-center">{children}</div>
     </div>
@@ -175,7 +174,7 @@ function ShopGrid({ list, card, tight = false }: { list: ShopItem[]; tight?: boo
   const dense = tight || list.length > 12
   return (
     <>
-      <ul className={cn("grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4", dense ? "xl:grid-cols-7 2xl:grid-cols-8" : "xl:grid-cols-6 2xl:grid-cols-7")}>{visible.map((item, index) => card(item, index, dense))}</ul>
+      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">{visible.map((item, index) => card(item, index, dense))}</ul>
       {list.length > limit && (
         <button type="button" onClick={() => setLimit((current) => current + FIRST_BATCH)} className="mx-auto mt-4 flex h-9 items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] px-4 text-[13px] text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]">
           Show {Math.min(FIRST_BATCH, list.length - limit)} more · {list.length - limit} left
@@ -392,7 +391,7 @@ export function ShopPage() {
     try {
       for (const item of items) await cosmeticsService.undoBuy(item.id)
       window.dispatchEvent(new Event("legacyx:wallet-changed"))
-      toast.success("Purchases undone, your LX are back")
+      toast.success("Purchases undone, your FOL$ are back")
       await Promise.all([refetch(), refetchWallet()])
       window.dispatchEvent(new Event("legacyx:appearance-changed"))
     } catch (caught) {
@@ -410,7 +409,7 @@ export function ShopPage() {
     try {
       await cosmeticsService.undoBuy(item.id)
       window.dispatchEvent(new Event("legacyx:wallet-changed"))
-      toast.success(`${item.name} purchase undone, your LX are back`)
+      toast.success(`${item.name} purchase undone, your FOL$ are back`)
       await Promise.all([refetch(), refetchWallet()])
     } catch (caught) {
       toast.error("Could not undo it", { description: caught instanceof Error ? caught.message : "Try again in a moment." })
@@ -452,12 +451,11 @@ export function ShopPage() {
               >
                 {/* The rarity as a thin line along the bottom, never a surface. */}
                 <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: rarityOf(item.rarity).color }} />
-                <div className="relative">
-                  {KIND_WORD[item.kind] && <span aria-hidden="true" className="absolute left-2 top-2 z-[1] rounded-md border border-[var(--line)] bg-[var(--card-surface)]/80 px-1.5 py-px text-[9px] font-semibold uppercase tracking-[0.8px] text-[var(--text-dim)]">{KIND_WORD[item.kind]}</span>}
+                <div className="lx-tile-panel relative">
                   <Spot accent={accentOf(shown)} height={dense ? 80 : 96} fill={shown.kind === "background" || hasModelPicture(shown)}><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={dense ? 46 : 56} /></Spot>
                 </div>
-                <div className="flex flex-col items-start gap-1 px-3 pb-2.5 pt-0.5">
-                  <span className="line-clamp-2 w-full text-[11px] font-medium leading-[1.25] text-[var(--text-2)]">{item.name}</span>
+                <div className="flex flex-col items-start gap-1 px-3 pb-2.5 pt-1.5">
+                  <span className="line-clamp-2 w-full text-[13px] font-semibold leading-[1.25] text-[var(--text)]">{(item.rarity ?? 1) >= 3 && <Star className="mr-1 inline size-3 -translate-y-px fill-current text-[var(--text-2)]" aria-label={`${rarityOf(item.rarity).label} item`} />}{item.name}</span>
                   {action}
                 </div>
               </button>
@@ -514,7 +512,7 @@ export function ShopPage() {
                   <span className="truncate text-[13px] font-semibold text-[var(--text)]">{item.name}</span>
                   <span className="text-[11px] text-[var(--text-dim)]">{KIND_WORD[item.kind] ?? "Item"}</span>
                   {lengthsOf(item).length > 1 ? (
-                    <ChoiceSelect<CosmeticDuration> ariaLabel={`How long, ${item.name}`} value={durationFor(item)} onChange={(next) => setItemLength((current) => ({ ...current, [item.id]: next }))} options={lengthsOf(item).map((length) => ({ value: length.value, label: length.label, hint: `${priceFor(item, length.value).toLocaleString()} LX` }))} className="w-[150px]" />
+                    <ChoiceSelect<CosmeticDuration> ariaLabel={`How long, ${item.name}`} value={durationFor(item)} onChange={(next) => setItemLength((current) => ({ ...current, [item.id]: next }))} options={lengthsOf(item).map((length) => ({ value: length.value, label: length.label, hint: `${priceFor(item, length.value).toLocaleString()}$` }))} className="w-[150px]" />
                   ) : <span className="text-[12px] text-[var(--text-2)]">{COSMETIC_DURATIONS.find((length) => length.value === durationFor(item))?.label}</span>}
                 </div>
                 <div className="flex flex-col items-end gap-2">
@@ -528,10 +526,10 @@ export function ShopPage() {
             {balance !== null && <div className="flex justify-between text-[var(--text-dim)]"><span>Your balance</span><span className="inline-flex items-center gap-1"><LxMark size={12} />{balance.toLocaleString()}</span></div>}
             <div className="flex items-baseline justify-between"><span className="text-[var(--text-dim)]">Total</span><span className="inline-flex items-center gap-1 text-[16px] font-bold text-[var(--text)]"><LxMark size={14} />{outfit.total.toLocaleString()}</span></div>
             {balance !== null && (outfit.affordable
-              ? <p className="flex justify-between text-[12px] text-[var(--status-green)]"><span className="inline-flex items-center gap-1"><Check className="size-3" />Enough LX</span><span>Left after: {after?.toLocaleString()} LX</span></p>
-              : <p className="text-[12px] text-[var(--status-red)]">You need {(outfit.total - balance).toLocaleString()} more LX.</p>)}
+              ? <p className="flex justify-between text-[12px] text-[var(--status-green)]"><span className="inline-flex items-center gap-1"><Check className="size-3" />Enough FOL$</span><span>Left after: {after?.toLocaleString()} FOL$</span></p>
+              : <p className="text-[12px] text-[var(--status-red)]">You need {(outfit.total - balance).toLocaleString()}$ more.</p>)}
             <button type="button" disabled={busy} onClick={() => (outfit.affordable ? (setOutfitOpen(false), void buyMany(trayItems)) : (setOutfitOpen(false), navigate("/wallet/top-up")))} className="lx-primary-button inline-flex h-11 w-full items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-60">
-              {outfit.affordable ? `Buy all · ${outfit.total.toLocaleString()} LX` : "Top up LX"}
+              {outfit.affordable ? `Buy all · ${outfit.total.toLocaleString()}$` : "Top up FOL$"}
             </button>
             <button type="button" onClick={() => { setTray([]); setOutfitOpen(false) }} className="text-center text-[12px] text-[var(--text-dim)] hover:text-[var(--text)]">Empty the outfit</button>
             <p className="text-center text-[11px] text-[var(--text-faint)]">After buying you can undo it for a few seconds.</p>
@@ -618,12 +616,12 @@ export function ShopPage() {
                 duration={5}
                 trailLength={0.28}
                 glow={0.35}
-                color="#c4b5fd"
+                color="#e5e5e5"
                 backgroundColor="#262626"
                 borderColor="#404040"
                 textColor="#fafafa"
               >
-                <ShinyText speed={3.2} delay={1.4} shineWidth={0.35} color="#fafafa" shineColor="#a78bfa">{afford ? <>{item.owned ? "Extend" : "Buy"} for <CountNumber value={cost} /> LX</> : <>Top up <CountNumber value={cost - (balance ?? 0)} /> more LX</>}</ShinyText>
+                <ShinyText speed={3.2} delay={1.4} shineWidth={0.35} color="#fafafa" shineColor="#8a8a93">{afford ? <>{item.owned ? "Extend" : "Buy"} for <CountNumber value={cost} />$</> : <>Top up <CountNumber value={cost - (balance ?? 0)} />$ more</>}</ShinyText>
               </StarBorder>
             )}
             {!undoing && !item.owned && item.unlock === "coin" && (
@@ -658,10 +656,10 @@ export function ShopPage() {
           ) : selected && isModelKind(selected.kind) ? (
             <div className={cn("relative flex items-center justify-center", !hasModelPicture(selected) && "py-6")}><ModelArt id={selected.id} kind={selected.kind} mode="preview" /></div>
           ) : selected?.kind === "smoke_color" ? (
-            <div className="relative flex items-center justify-center py-4"><span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} /><SmokePuff color={tried(selected).color} color2={tried(selected).color2} className={effect} /></div>
+            <div className="relative flex items-center justify-center py-4"><span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, rgb(255 255 255 / 0.5) 0%, transparent 60%)" }} /><SmokePuff color={tried(selected).color} color2={tried(selected).color2} className={effect} /></div>
           ) : (
             <div className="relative flex flex-col items-center gap-3 py-4">
-              <span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 60%)" }} />
+              <span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, rgb(255 255 255 / 0.5) 0%, transparent 60%)" }} />
               <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} look={orbDraft ?? data?.frameLook} live={selected?.id === ORB_ID} size={compact ? 88 : 120} />
               <span {...nameProps(previewLook, cn("max-w-full truncate font-bold text-[var(--text)]", compact ? "text-[15px]" : "text-[19px]"))}>{username}</span>
             </div>
@@ -744,7 +742,7 @@ export function ShopPage() {
   ) : null
 
   const railBody = (
-    <div className="lx-add-box relative flex min-h-0 flex-col overflow-hidden rounded-[14px] border lg:max-h-[calc(100dvh-11rem)]">
+    <div className="relative flex min-h-0 flex-col overflow-hidden rounded-[14px] border border-[var(--glass-line)] bg-[var(--card-surface)] lg:max-h-[calc(100dvh-11rem)]">
         <div className="scrollbar-hidden flex min-h-0 flex-col gap-3 overflow-y-auto p-3.5">
           {previewStage()}
           {customizerBlock(false)}
@@ -768,7 +766,7 @@ export function ShopPage() {
    * Phones keep the bottom sheet.
    */
   const spotlight = selected ? (
-    <div className="lx-add-box lx-shop-glass sticky top-0 z-10 hidden overflow-hidden rounded-[14px] border bg-[var(--panel)]/80 lg:block">
+    <div className="lx-shop-glass sticky top-0 z-10 hidden overflow-hidden rounded-[14px] border border-[var(--glass-line)] bg-[var(--panel)]/80 lg:block">
       <div className="flex items-stretch">
       <div className={cn("relative flex shrink-0 items-center justify-center border-r border-[var(--line-soft)] [&>div]:w-full", hasModelPicture(selected) ? "w-[400px]" : "w-[240px]", selected.kind === "background" ? "min-h-[150px]" : hasModelPicture(selected) ? "" : "px-3")}>{previewStage(true)}</div>
       {tab === "name" && combo.name_color && combo.name_glow
@@ -794,40 +792,18 @@ export function ShopPage() {
         )}
       </PageBar>
       {PROFILE_TABS.includes(tab) && (
-        <PageBar className="lg:hidden">
+        <PageBar>
           <PageTabs<ShopTab> ariaLabel="Profile items" value={tab} onChange={setTab} options={TABS.filter((entry) => PROFILE_TABS.includes(entry.value))} />
         </PageBar>
       )}
       {/* Not a scroller itself: the page panel around it scrolls, and a sticky rail sticks to the nearest scroller (an inner overflow-y-auto that never scrolled kept it from sticking). */}
       <div className="flex min-h-0 flex-1">
-      {/* A list of every kind on wide screens (owner request 2026-11-07): what is in each, at a glance; phones keep the tabs above. */}
-      <nav aria-label="Shop categories" className="hidden w-[210px] shrink-0 border-r border-[var(--glass-line)] px-3 py-5 lg:block">
-        <div className="sticky top-4 flex flex-col gap-0.5">
-          {([
-            { value: "featured", label: "All items", count: all.length, group: "" },
-            { value: "frame", label: "Frames", count: countOf("frame"), group: "Profile" },
-            { value: "background", label: "Backgrounds", count: countOf("background"), group: "" },
-            { value: "name", label: "Names", count: countOf("name"), group: "" },
-            { value: "smoke_color", label: "Grenades", count: countOf("smoke_color"), group: "" },
-            { value: "model", label: "Weapons", count: countOf("model"), group: "" },
-            { value: "clan", label: "Clan looks", count: null, group: "Clan" },
-          ] as Array<{ value: ShopTab; label: string; count: number | null; group: string }>).map((entry) => (
-            <div key={entry.value} className="contents">
-              {entry.group && <span className="px-2.5 pb-1 pt-4 text-[10px] font-medium uppercase tracking-[0.8px] text-[var(--text-faint)]">{entry.group}</span>}
-              <button type="button" aria-current={tab === entry.value ? "page" : undefined} onClick={() => setTab(entry.value)} className={cn("flex h-9 items-center justify-between rounded-lg px-2.5 text-[13px] transition-colors", tab === entry.value ? "bg-[var(--raised)] text-[var(--text)] shadow-[inset_2px_0_0_var(--brand)]" : "text-[var(--text-dim)] hover:bg-[var(--raised)]/60 hover:text-[var(--text)]")}>
-                {entry.label}
-                {entry.count !== null && entry.count > 0 && <span className="text-[11px] text-[var(--text-faint)]">{entry.count}</span>}
-              </button>
-            </div>
-          ))}
-        </div>
-      </nav>
-      <div className="lx-glass-page min-h-0 min-w-0 flex-1 px-6 py-5 max-md:px-4">
+      <div className="lx-glass-page lx-shop-root min-h-0 min-w-0 flex-1 px-6 py-5 max-md:px-4">
         {tab === "featured" && (
-          <p className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] leading-relaxed text-[var(--text-dim)]">
-            <span>Cosmetics cost <span className="inline-block align-[-2px]"><LxMark size={13} /></span> LX. Ranks are paid in ₮ with QPay or any bank app.</span>
-            <button type="button" onClick={() => navigate("/wallet/top-up")} className="font-semibold text-[var(--text-2)] underline-offset-2 hover:text-[var(--text)] hover:underline">Top up LX</button>
-          </p>
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl border border-[var(--line-soft)] px-4 py-3 text-[12px] leading-relaxed text-[var(--text-dim)]">
+            <span>Cosmetics are paid in FOL$ (earn it by playing, or top it up). Ranks are paid in ₮ with QPay or any bank app.</span>
+            <button type="button" onClick={() => navigate("/wallet/top-up")} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[12px] font-semibold text-[var(--text)] transition-colors hover:border-[var(--line-strong)]">Top up FOL$</button>
+          </div>
         )}
         {tab === "featured" && (perks ? perks.tiers.length > 0 : true) && (
           <section aria-label="Ranks" className="mb-6 flex flex-col gap-2.5">
@@ -864,7 +840,7 @@ export function ShopPage() {
               {tab === "featured" && featured.length > 0 && (
                 <section aria-label="Featured">
                   <div className="lx-shop-heading mb-2.5">Featured</div>
-                  <ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 scrollbar-hidden sm:mx-0 sm:grid sm:snap-none sm:grid-cols-3 sm:overflow-visible sm:px-0 xl:grid-cols-7 [&>li]:w-[130px] [&>li]:shrink-0 [&>li]:snap-start sm:[&>li]:w-auto">{featured.map((item, index) => card(item, index, true))}</ul>
+                  <ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 scrollbar-hidden sm:mx-0 sm:grid sm:snap-none sm:grid-cols-3 sm:overflow-visible sm:px-0 lg:grid-cols-5 [&>li]:w-[150px] [&>li]:shrink-0 [&>li]:snap-start sm:[&>li]:w-auto">{featured.map((item, index) => card(item, index, true))}</ul>
                 </section>
               )}
               <section aria-label="Items">
@@ -872,26 +848,41 @@ export function ShopPage() {
                   {/* Name and Grenades head each of their sections instead, so they get no empty heading here. */}
                   {tab !== "name" && tab !== "smoke_color" && tab !== "model" && <span className="lx-shop-heading">{tab === "featured" ? "All items" : TABS.find((entry) => entry.value === tab)?.label}</span>}
                   <span className="flex-1" />
-                  <div role="radiogroup" aria-label="Show" className="flex items-center gap-1.5">
-                    {([["all", "All"], ["available", "Not owned"], ["owned", "Owned"], ["saved", "Saved"]] as const).map(([value, label]) => (
-                      <button key={value} type="button" role="radio" aria-checked={show === value} onClick={() => setShow(value)} className={pill(show === value)}>{label}</button>
-                    ))}
-                  </div>
+                  {/* One Filter dropdown, the same as on Play (owner report 2026-11-13: the filter did not match the other pages). */}
                   <Popover>
                     <PopoverTrigger asChild>
-                      <button type="button" aria-label="Sort" className={cn(pill(false), "group gap-1.5 text-[var(--text-2)]")}>
-                        {SORTS.find((option) => option.value === sort)?.label}
+                      <button type="button" aria-label="Filter items" className={cn("group inline-flex h-[30px] items-center gap-1.5 rounded-[7px] border border-[var(--line)] px-3 text-[13px] font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60", (show !== "all" || sort !== SORTS[0].value) ? "bg-[var(--line)] text-[var(--text)]" : "text-[var(--text-muted)] hover:text-[var(--text)]")}>
+                        <SlidersHorizontal className="size-3.5" />
+                        Filter
+                        {((show !== "all" ? 1 : 0) + (sort !== SORTS[0].value ? 1 : 0)) > 0 && <span className="flex size-4 items-center justify-center rounded-full bg-[var(--text)] text-[10px] font-semibold text-[var(--bg)]">{(show !== "all" ? 1 : 0) + (sort !== SORTS[0].value ? 1 : 0)}</span>}
                         <ChevronDown className="size-3.5 transition-transform duration-200 group-data-[state=open]:rotate-180" />
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent align="end" sideOffset={8} className="w-[200px] rounded-xl border-[var(--line)] bg-[var(--panel)] p-1.5 shadow-[0_18px_44px_rgba(0,0,0,0.55)]">
-                      <div role="radiogroup" aria-label="Sort" className="flex flex-col">
-                        {SORTS.map((option) => (
-                          <button key={option.value} type="button" role="radio" aria-checked={sort === option.value} onClick={() => setSort(option.value)} className="flex h-8 items-center justify-between rounded-lg px-2.5 text-left text-[13px] text-[var(--text-2)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)] aria-checked:text-[var(--text)]">
-                            {option.label}
-                            {sort === option.value && <Check className="size-3.5" aria-hidden="true" />}
-                          </button>
+                    <PopoverContent align="end" sideOffset={8} className="w-[232px] rounded-xl border-[var(--line)] bg-[var(--panel)] p-2 shadow-[0_18px_44px_rgba(0,0,0,0.55)]">
+                      <div className="flex flex-col gap-2.5">
+                        {([
+                          { label: "Show", value: show, options: [["all", "All"], ["available", "Not owned"], ["owned", "Owned"], ["saved", "Saved"]] as const, change: (value: string) => setShow(value as typeof show) },
+                          { label: "Sort by", value: sort, options: SORTS.map((option) => [option.value, option.label] as const), change: (value: string) => setSort(value as typeof sort) },
+                        ]).map((group, index) => (
+                          <div key={group.label} className="flex flex-col gap-0.5">
+                            {index > 0 && <span aria-hidden="true" className="mb-2 h-px bg-[var(--line-soft)]" />}
+                            <span className="px-2 pb-1 text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--text-dim)]">{group.label}</span>
+                            <div role="radiogroup" aria-label={group.label} className="flex flex-col gap-0.5">
+                              {group.options.map(([value, label]) => (
+                                <button key={value} type="button" role="radio" aria-checked={group.value === value} onClick={() => group.change(value)} className={cn("flex h-8 items-center justify-between gap-2 rounded-lg px-2 text-[13px] transition-colors", group.value === value ? "bg-[var(--line)] text-[var(--text)]" : "text-[var(--text-muted)] hover:bg-[var(--raised)] hover:text-[var(--text)]")}>
+                                  {label}
+                                  {group.value === value && <span aria-hidden="true" className="size-1.5 rounded-full bg-[var(--text)]" />}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
                         ))}
+                        {(show !== "all" || sort !== SORTS[0].value) && (
+                          <button type="button" onClick={() => { setShow("all"); setSort(SORTS[0].value) }} className="mt-0.5 flex h-8 items-center justify-center gap-1.5 rounded-lg text-[13px] text-[var(--text-muted)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)]">
+                            <RotateCcw className="size-3.5" />
+                            Reset
+                          </button>
+                        )}
                       </div>
                     </PopoverContent>
                   </Popover>

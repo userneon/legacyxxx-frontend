@@ -31,7 +31,7 @@ const REASONS: Record<string, string> = {
   clan_full: "The clan is full.",
   clan_cooldown: "Wait a day after leaving a clan before joining another.",
   clan_requests_limit: "You can have 3 open requests at a time. Withdraw one first.",
-  clan_no_coins: "Your wallet is short on LX.",
+  clan_no_coins: "Your wallet is short on FOL$.",
   clan_forbidden: "You are not allowed to do that.",
   clan_rename_cooldown: "A clan can change its name or tag once a week.",
   clan_player_not_found: "No player has that name.",
@@ -309,7 +309,7 @@ export function RenameForm({ clan, onChanged }: { clan: ClanDetail; onChanged: (
         <Input aria-label="Clan tag" className="w-24" maxLength={5} value={tag} onChange={(event) => setTag(event.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase())} />
       </div>
       <div>
-        <Button type="button" variant="outline" size="sm" disabled={!changed || !valid || busy} onClick={() => void save()}><Coins className="size-3.5" /> Change{renameFee != null ? ` · ${renameFee.toLocaleString()} LX` : ""}</Button>
+        <Button type="button" variant="outline" size="sm" disabled={!changed || !valid || busy} onClick={() => void save()}><Coins className="size-3.5" /> Change{renameFee != null ? ` · ${renameFee.toLocaleString()} FOL$` : ""}</Button>
         <span className="ml-3 text-[11px] text-[var(--text-dim)]">Once a week</span>
       </div>
     </div>

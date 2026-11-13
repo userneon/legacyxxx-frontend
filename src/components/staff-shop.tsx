@@ -143,7 +143,7 @@ export function StaffShop() {
             <div className="grid gap-3 sm:grid-cols-4">
               <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Type
                 <select className={input} value={draft.kind} onChange={(event) => setDraft({ ...draft, kind: event.target.value as Draft["kind"] })}>
-                  <option value="charm">NFC charm</option><option value="sticker">Sticker</option><option value="other">Other</option><option value="lx">LX top-up package</option><option value="founder">Genesis pack (In stock = number of packs)</option>
+                  <option value="charm">NFC charm</option><option value="sticker">Sticker</option><option value="other">Other</option><option value="lx">FOL$ top-up package</option><option value="founder">Genesis pack (In stock = number of packs)</option>
                 </select>
               </label>
               <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Price (₮)
@@ -157,7 +157,7 @@ export function StaffShop() {
               </label>
             </div>
             {draft.kind === "lx" && (
-              <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">LX the package gives (credited once when the order is marked Paid)
+              <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">FOL$ the package gives (credited once when the order is marked Paid)
                 <input className={input} type="number" min={0} value={draft.grantsLx} onChange={(event) => setDraft({ ...draft, grantsLx: Math.max(0, Math.floor(Number(event.target.value) || 0)) })} />
               </label>
             )}
@@ -198,7 +198,7 @@ export function StaffShop() {
                   </span>
                   <span className={cn("shrink-0 rounded-full border px-2 py-0.5 text-[11px]", product.enabled ? "border-[var(--status-green)]/45 text-[var(--status-green)]" : "border-[var(--line)] text-[var(--text-dim)]")}>{product.enabled ? "Shown" : "Hidden"}</span>
                 </div>
-                <p className="text-xs text-[var(--text-dim)]">{product.kind === "lx" ? `Gives ${product.grantsLx.toLocaleString()} LX` : `${product.stock} in stock`}</p>
+                <p className="text-xs text-[var(--text-dim)]">{product.kind === "lx" ? `Gives ${product.grantsLx.toLocaleString()} FOL$` : `${product.stock} in stock`}</p>
                 <button type="button" onClick={() => edit(product)} className={cn(secondary, "mt-auto")}><Pencil className="size-4" />Edit</button>
               </li>
             ))}

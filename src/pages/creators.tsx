@@ -1,5 +1,5 @@
 /** LEGACY-X Creators: the community's content creators, Main Content Creators first, each with their channels. */
-import { BrandIcon } from "@/components/brand-icons"
+import { BrandIcon, TIKTOK_PATH } from "@/components/brand-icons"
 import { PerkMark } from "@/components/perk-badge"
 import { useState } from "react"
 import { Link } from "react-router-dom"
@@ -9,6 +9,8 @@ import { creatorsService, CREATOR_PLATFORMS, type Creator, type CreatorTier } fr
 import { CreatorApply } from "@/components/creator-apply"
 import { CreatorCode } from "@/components/creator-code"
 import { CreatorKit } from "@/components/creator-kit"
+import { CreatorPanel } from "@/components/creator-panel"
+import { useAuth } from "@/hooks/use-auth"
 import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
 import { FramedAvatar } from "@/components/framed-avatar"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
@@ -17,7 +19,7 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { nameProps, type NameLook } from "@/lib/cosmetics"
 import { cn } from "@/lib/utils"
 
-type CreatorsTab = "all" | CreatorTier
+type CreatorsTab = "all" | CreatorTier | "panel"
 
 /** The badge a creator carries here and on their profile. Main is white-outlined, Content Creator neutral. */
 export function CreatorBadge({ tier, label, violet }: { tier: CreatorTier; label: string; violet?: boolean }) {
@@ -29,7 +31,6 @@ export function CreatorBadge({ tier, label, violet }: { tier: CreatorTier; label
   )
 }
 
-const TIKTOK_PATH = "M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"
 
 /** The TikTok note drawn three times, cyan and red offset under white, like TikTok's own logo. */
 function TikTokMark() {
@@ -130,6 +131,9 @@ function CreatorCard({ creator }: { creator: Creator }) {
 export function CreatorsPage() {
   const [tab, setTab] = useState<CreatorsTab>("all")
   const [search, setSearch] = useState("")
+  const { isAuthenticated } = useAuth()
+  const mineApp = useApiQuery((signal) => (isAuthenticated ? creatorsService.myApplication({ signal }) : Promise.resolve(null)), { queryKey: `creator-panel-app-${isAuthenticated}` })
+  const isCreator = Boolean(mineApp.data?.isCreator)
   const { data, loading, error, refetch } = useApiQuery((signal) => creatorsService.list({ signal }), { queryKey: "creators" })
   const creators = data?.creators ?? []
   const query = search.trim().toLowerCase()
@@ -143,7 +147,7 @@ export function CreatorsPage() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <PageBar>
-        <PageTabs<CreatorsTab> ariaLabel="Creators" value={tab} onChange={setTab} options={[{ value: "all", label: "Everyone", count: data ? creators.length : undefined }, { value: "main", label: "Main", count: data ? count("main") : undefined }, { value: "creator", label: "Creators", count: data ? count("creator") : undefined }]} />
+        <PageTabs<CreatorsTab> ariaLabel="Creators" value={tab} onChange={setTab} options={[{ value: "all", label: "Everyone", count: data ? creators.length : undefined }, { value: "main", label: "Main", count: data ? count("main") : undefined }, { value: "creator", label: "Creators", count: data ? count("creator") : undefined }, ...(isCreator ? [{ value: "panel" as const, label: "My panel" }] : [])]} />
         <PageBarEnd>
           <label className={cn(pageSearchClass, "max-md:hidden")}>
             <Search className="size-4 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />
@@ -157,7 +161,9 @@ export function CreatorsPage() {
       </PageBar>
       <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 py-6 max-md:px-4">
         <div className="mx-auto flex max-w-[1320px] flex-col gap-7">
-          {loading && !data ? (
+          {tab === "panel" && isCreator ? (
+            <CreatorPanel onAboutSaved={refetch} />
+          ) : loading && !data ? (
             <div className="flex flex-col gap-3" aria-hidden="true">
               <div className="grid gap-3 xl:grid-cols-2">{[0, 1].map((index) => <Skeleton key={index} className="h-[130px] rounded-2xl bg-[var(--card-surface)]" />)}</div>
               <div className="lx-creator-grid">{Array.from({ length: 4 }, (_, index) => <Skeleton key={index} className="h-[150px] rounded-xl bg-[var(--card-surface)]" />)}</div>

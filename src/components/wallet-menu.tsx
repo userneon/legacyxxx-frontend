@@ -5,9 +5,9 @@
  */
 import { useEffect } from "react"
 import { Link } from "react-router-dom"
+import { Wallet as WalletIcon } from "lucide-react"
 
 import { walletService } from "@/api"
-import { LxMark } from "@/components/lx-mark"
 import { AnimatedNumber } from "@/components/animated-number"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
@@ -29,10 +29,10 @@ export function WalletMenu() {
   return (
     <Link
       to="/wallet"
-      aria-label={`Wallet: ${wallet.balance.toLocaleString()} LX`}
+      aria-label={`Wallet: ${wallet.balance.toLocaleString()} FOL$`}
       className="flex h-9 shrink-0 items-center gap-2 rounded-full px-3.5 text-[13px] font-semibold text-[var(--text)] transition-colors hover:bg-[var(--line-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
     >
-      <LxMark size={18} />
+      <WalletIcon className="size-[18px] text-[var(--text-2)]" aria-hidden="true" />
       <AnimatedNumber value={wallet.balance} durationMs={600} />
     </Link>
   )

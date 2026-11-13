@@ -125,7 +125,7 @@ export function DiscordPage() {
           <div className="min-w-0 flex-1">
             <h2 className="text-[15px] font-semibold text-[var(--text)]">Link your Discord to your profile</h2>
             <p className="mt-0.5 text-[13px] text-[var(--text-dim)]">
-              {!isAuthenticated ? "Sign in with Steam first, then link Discord." : link.loading && !link.data ? "Checking…" : link.data?.link ? `Linked as ${link.data.link.discordName}.` : "Your rank role, pings, the Booster badge and your place on Leaders → Boosters need it. You also get 50 LX once."}
+              {!isAuthenticated ? "Sign in with Steam first, then link Discord." : link.loading && !link.data ? "Checking…" : link.data?.link ? `Linked as ${link.data.link.discordName}.` : "Your rank role, pings, the Booster badge and your place on Leaders → Boosters need it. You also get 50 FOL$ once."}
             </p>
           </div>
           {!isAuthenticated ? null : link.loading && !link.data ? (

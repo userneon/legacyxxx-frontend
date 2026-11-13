@@ -51,11 +51,11 @@ export function SendLx({ balance, onSent, bare = false }: { balance: number; onS
     if (!rules) return null
     if (rules.blocked) return rules.blocked
     if (amount <= 0) return null
-    if (amount < rules.min) return `The smallest transfer is ${rules.min} LX.`
-    if (amount > rules.max) return `One transfer can be at most ${rules.max.toLocaleString()} LX.`
-    if (amount > balance) return "You do not have that much LX."
+    if (amount < rules.min) return `The smallest transfer is ${rules.min} FOL$.`
+    if (amount > rules.max) return `One transfer can be at most ${rules.max.toLocaleString()} FOL$.`
+    if (amount > balance) return "You do not have that much FOL$."
     if (rules.sentLastHour >= rules.perHour) return `You can make ${rules.perHour} transfers an hour. Try again later.`
-    if (amount > rules.remainingToday) return `${rules.remainingToday.toLocaleString()} LX left to send today.`
+    if (amount > rules.remainingToday) return `${rules.remainingToday.toLocaleString()} FOL$ left to send today.`
     return null
   }, [rules, amount, balance])
   const ready = Boolean(picked) && amount > 0 && !problem
@@ -65,7 +65,7 @@ export function SendLx({ balance, onSent, bare = false }: { balance: number; onS
     setBusy(true)
     try {
       const result = await walletService.transfer({ userId: picked.id, amount })
-      toast.success(`Sent ${result.sent.toLocaleString()} LX to ${result.to}`, { description: `They received ${result.received.toLocaleString()} LX (fee ${result.fee.toLocaleString()}).` })
+      toast.success(`Sent ${result.sent.toLocaleString()} FOL$ to ${result.to}`, { description: `They received ${result.received.toLocaleString()} FOL$ (fee ${result.fee.toLocaleString()}).` })
       setPicked(null); setQuery(""); setAmountText(""); setConfirming(false)
       onSent()
       refetch()
@@ -83,10 +83,10 @@ export function SendLx({ balance, onSent, bare = false }: { balance: number; onS
   }
 
   return (
-    <section aria-label="Send LX" className={cn("flex flex-col gap-4", !bare && "max-w-xl rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-5")}>
+    <section aria-label="Send FOL$" className={cn("flex flex-col gap-4", !bare && "max-w-xl rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-5")}>
       <div className="flex flex-col gap-1">
-        <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">Send LX</span>
-        <p className="text-[13px] text-[var(--text-muted)]">Send LX to another player. {rules.feePercent}% of it is kept as a fee, so they receive a little less.</p>
+        <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">Send FOL$</span>
+        <p className="text-[13px] text-[var(--text-muted)]">Send FOL$ to another player. {rules.feePercent}% of it is kept as a fee, so they receive a little less.</p>
       </div>
 
       {rules.blocked && <p role="status" className="rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 py-2 text-[13px] text-[var(--text-muted)]">{rules.blocked}</p>}
@@ -152,7 +152,7 @@ export function SendLx({ balance, onSent, bare = false }: { balance: number; onS
         {confirming ? (
           <>
             <button type="button" disabled={busy || !ready} onClick={() => void send()} className="lx-primary-button inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-lg text-[13px] font-semibold disabled:opacity-60">
-              {busy ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Check className="size-4" aria-hidden="true" />}Confirm: send {amount.toLocaleString()} LX to {picked?.name}
+              {busy ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Check className="size-4" aria-hidden="true" />}Confirm: send {amount.toLocaleString()} FOL$ to {picked?.name}
             </button>
             <button type="button" disabled={busy} onClick={() => setConfirming(false)} className="h-10 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-4 text-[13px] text-[var(--text-2)]">Cancel</button>
           </>
@@ -164,7 +164,7 @@ export function SendLx({ balance, onSent, bare = false }: { balance: number; onS
       </div>
 
       <p className="text-[11px] leading-relaxed text-[var(--text-dim)]">
-        {rules.min}–{rules.max.toLocaleString()} LX a transfer, up to {rules.dailyMax.toLocaleString()} LX a day ({rules.remainingToday.toLocaleString()} left today), {rules.perHour} transfers an hour. A new account can receive LX but needs a ranked match before it can send. A sent transfer cannot be taken back.
+        {rules.min}–{rules.max.toLocaleString()} FOL$ a transfer, up to {rules.dailyMax.toLocaleString()} FOL$ a day ({rules.remainingToday.toLocaleString()} left today), {rules.perHour} transfers an hour. A new account can receive FOL$ but needs a ranked match before it can send. A sent transfer cannot be taken back.
       </p>
     </section>
   )

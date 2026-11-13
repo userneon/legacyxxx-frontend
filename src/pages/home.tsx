@@ -6,6 +6,7 @@ import type { HomeStats, PageId } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { HomeReviewsCard } from "@/components/home-reviews"
 import { DiscordCard } from "@/components/discord-strip"
+import { TikTokCard } from "@/components/home-tiktok"
 import { FindPlayerPill, HeroSlider, RankPanel } from "@/components/home-bento"
 import { TopPlayers } from "@/components/home-top-players"
 import { useNavigate } from "react-router-dom"
@@ -51,7 +52,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
   }
 
   return (
-    <div className="lx-glass-page @container flex flex-1 flex-col p-4 @2xl:p-6">
+    <div className="lx-glass-page lx-calm @container flex flex-1 flex-col p-4 @2xl:p-6">
       {greeting && <div className="mb-3"><span className="lx-event-greeting">{greeting}</span></div>}
       <div className="lx-bento grid flex-1 grid-cols-1 gap-3 @4xl:grid-cols-12 @4xl:[grid-template-rows:minmax(auto,1fr)_auto_minmax(auto,1fr)]">
         <HeroSlider className="@4xl:col-span-8" />
@@ -92,8 +93,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
         <TopPlayers className="@4xl:col-span-8" onOpenProfile={(steamId) => navigate(`/profile/${encodeURIComponent(steamId)}`)} onViewAll={() => onNavigate("leaders")} />
         <div className="flex flex-col gap-3 @4xl:col-span-4">
-          <HomeReviewsCard onOpen={() => onNavigate("feedback")} className="flex-[0.8]" />
-          <DiscordCard className="flex-[1.3]" />
+          <HomeReviewsCard onOpen={() => onNavigate("feedback")} className="flex-[0.6]" />
+          <TikTokCard className="flex-1" />
+          <DiscordCard className="flex-1" />
         </div>
       </div>
     </div>

@@ -8,7 +8,7 @@
  * the payment succeeded. Everything comes from the API.
  */
 import { useEffect, useMemo, useState } from "react"
-import { Check, Pencil, RotateCcw, ShieldPlus, SlidersHorizontal, Users } from "lucide-react"
+import { Check, Minus, Pencil, Plus, RotateCcw, ShieldPlus, Users } from "lucide-react"
 import { toast } from "sonner"
 import { useSearchParams } from "react-router-dom"
 
@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils"
 
 const mnt = (value: number) => `${value.toLocaleString()}₮`
 
-const STATE_LABEL: Record<TopUp["status"], string> = { pending: "Waiting for payment", paid: "Paid · LX added", expired: "Expired", failed: "Failed" }
+const STATE_LABEL: Record<TopUp["status"], string> = { pending: "Waiting for payment", paid: "Paid · FOL$ added", expired: "Expired", failed: "Failed" }
 
 export function ShopTopUp() {
   const { user } = useAuth()
@@ -63,6 +63,7 @@ export function ShopTopUp() {
   const base = packages[0] ?? null
   const customLx = base ? Math.floor((customMnt * base.grantsLx) / base.priceMnt) : 0
   const offer = picked === "custom" && range && base ? { grantsLx: customLx, priceMnt: customMnt } : selected
+  const [typedAmount, setTypedAmount] = useState<string | null>(null)
   const setAmount = (value: number) => { if (range) setCustomMnt(Math.min(range.maxMnt, Math.max(range.minMnt, Math.round(value / range.stepMnt) * range.stepMnt))) }
 
   const start = async () => {
@@ -87,8 +88,8 @@ export function ShopTopUp() {
     let cancelled = false
     void walletService.topUp(returned).then((result) => {
       if (cancelled) return
-      if (result.status === "paid") toast.success(`Paid. ${result.grantsLx.toLocaleString()} LX are in your wallet.`)
-      else if (result.status === "pending") toast("Waiting for the payment to arrive. The LX are added as soon as it does.")
+      if (result.status === "paid") toast.success(`Paid. ${result.grantsLx.toLocaleString()} FOL$ are in your wallet.`)
+      else if (result.status === "pending") toast("Waiting for the payment to arrive. The FOL$ are added as soon as it does.")
       void wallet.refetch()
       void topUpsQuery.refetch()
     }).catch(() => undefined).finally(() => { if (!cancelled) setParams((current) => { const next = new URLSearchParams(current); next.delete("topup"); return next }, { replace: true }) })
@@ -98,7 +99,7 @@ export function ShopTopUp() {
   const settled = (status: TopUp["status"]) => {
     void wallet.refetch()
     void topUpsQuery.refetch()
-    if (status === "paid") toast.success("Paid. The LX are in your wallet.")
+    if (status === "paid") toast.success("Paid. The FOL$ are in your wallet.")
   }
 
   if (products.loading) return <div className="mx-auto flex w-full max-w-[920px] flex-col gap-6"><Skeleton className="h-[240px] rounded-2xl" /><Skeleton className="h-[140px] rounded-xl" /></div>
@@ -108,9 +109,6 @@ export function ShopTopUp() {
   if (packages.length === 0) return <p className="py-8 text-[13px] text-[var(--text-dim)]">No top-up packages right now.</p>
 
   const after = balance != null && offer ? balance + offer.grantsLx : null
-  // The preview's coin stack: 1 to 5 coins by how big the choice is among the real packages (a picture only, no numbers).
-  const position = picked === "custom" && range ? (customMnt - range.minMnt) / Math.max(1, range.maxMnt - range.minMnt) : packages.length > 1 ? Math.max(0, packages.findIndex((pack) => pack.id === picked)) / (packages.length - 1) : 0.5
-  const coins = 1 + Math.round(position * 4)
   const goal = clanPrice != null && after != null ? Math.max(clanPrice, after, balance ?? 0) : after ?? 0
   const percent = (value: number) => (goal > 0 ? Math.min(100, (value / goal) * 100) : 0)
   const buys = wallet.data?.clanPrices
@@ -119,31 +117,23 @@ export function ShopTopUp() {
 
   return (
     <div className="mx-auto flex w-full max-w-[920px] flex-col gap-6 pb-24 lg:pb-6">
-      <section aria-label="Preview" className="relative overflow-hidden rounded-2xl border border-[var(--glass-line)] bg-[var(--card-surface)]">
-        <span aria-hidden="true" className="pointer-events-none absolute -left-10 top-1/2 aspect-square w-[320px] -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, #e5e5e5 0%, transparent 62%)" }} />
-        <div className="relative grid items-center gap-6 p-5 sm:grid-cols-[200px_minmax(0,1fr)] sm:p-7">
-          <div className="grid h-[170px] place-items-center" aria-hidden="true">
-            <div key={coins} className="relative h-[150px] w-[110px] animate-[lx-coin-drop_.45s_ease-out_backwards] motion-reduce:animate-none">
-              {Array.from({ length: coins }, (_, index) => (
-                <span key={index} className="absolute left-1/2 -translate-x-1/2 drop-shadow-[0_6px_10px_rgba(0,0,0,.55)]" style={{ bottom: index * 22, zIndex: index }}><LxMark size={index === coins - 1 ? 84 : 76} /></span>
-              ))}
-            </div>
-          </div>
+      <section aria-label="Preview" className="lx-glass lx-noir-hero relative overflow-hidden rounded-2xl border border-[var(--glass-line)] bg-[var(--card-surface)]">
+        <div className="relative grid items-center gap-6 p-5 sm:p-6">
           <div className="flex min-w-0 flex-col gap-5">
             <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
-              <span className="flex items-baseline gap-2"><span className="text-[44px] font-bold leading-none text-[var(--text)]">+<AnimatedNumber value={offer?.grantsLx ?? 0} durationMs={450} /></span><span className="text-[15px] font-semibold text-[var(--text-muted)]">LX</span></span>
+              <span className="flex items-baseline gap-2"><span className="text-[34px] font-bold leading-none text-[var(--text)]">+<AnimatedNumber value={offer?.grantsLx ?? 0} durationMs={450} /></span><span className="text-[15px] font-semibold text-[var(--text-muted)]">FOL$</span></span>
               {offer && <span className="flex items-center gap-2 text-[22px] font-bold text-[var(--text)]">{mnt(offer.priceMnt)}<img src={qpayLogo} alt="QPay" className="h-4 w-10 opacity-80" draggable={false} /></span>}
             </div>
             {balance != null && after != null && (
               <div className="flex flex-col gap-2">
-                <div className="relative h-3 overflow-hidden rounded-full bg-[var(--line)]" role="img" aria-label={`Balance ${balance.toLocaleString()} LX, ${after.toLocaleString()} LX after the top-up`}>
-                  <span className="absolute inset-y-0 left-0 rounded-full bg-[var(--text-faint)] transition-[width] duration-500" style={{ width: `${percent(after)}%` }} />
+                <div className="relative h-3 overflow-hidden rounded-full bg-[var(--line)]" role="img" aria-label={`Balance ${balance.toLocaleString()} FOL$, ${after.toLocaleString()} FOL$ after the top-up`}>
+                  <span className="absolute inset-y-0 left-0 rounded-full bg-[var(--status-green)]/70 transition-[width] duration-500" style={{ width: `${percent(after)}%` }} />
                   <span className="absolute inset-y-0 left-0 rounded-full bg-[var(--accent-solid)] transition-[width] duration-500" style={{ width: `${percent(balance)}%` }} />
                   {clanPrice != null && <span className="absolute inset-y-0 w-0.5 bg-[var(--bg)]" style={{ left: `calc(${percent(clanPrice)}% - 1px)` }} />}
                 </div>
                 <div className="flex items-center justify-between text-[12px] text-[var(--text-muted)]">
                   <span className="flex items-center gap-1.5"><LxMark size={14} />{balance.toLocaleString()}</span>
-                  <span className="flex items-center gap-1.5 font-semibold text-[var(--text)]">→ <LxMark size={14} /><AnimatedNumber value={after} durationMs={450} /></span>
+                  <span className="flex items-center gap-1.5 font-semibold text-[var(--status-green)]">→ <LxMark size={14} /><AnimatedNumber value={after} durationMs={450} /></span>
                 </div>
               </div>
             )}
@@ -155,34 +145,58 @@ export function ShopTopUp() {
         </div>
       </section>
 
-      <section aria-label="Packages" className="flex flex-col gap-3">
-        <div role="radiogroup" aria-label="LX packages" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {packages.map((pack, index) => {
+      <section aria-label="Packages" className="@container flex flex-col gap-3">
+        <div role="radiogroup" aria-label="FOL$ packages" className="grid grid-cols-2 gap-3 @[500px]:grid-cols-5">
+          {packages.map((pack) => {
             const on = pack.id === picked
             const bonus = bonusOf(pack)
-            const stack = 1 + Math.round((packages.length > 1 ? index / (packages.length - 1) : 0.5) * 4)
             return (
-              <button key={pack.id} type="button" role="radio" aria-checked={on} onClick={() => setPicked(pack.id)} className={cn("group relative flex flex-col items-center gap-2 overflow-hidden rounded-xl border bg-[var(--card-surface)] px-3 pb-3 pt-4 text-center transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 motion-reduce:transition-none motion-reduce:hover:translate-y-0", on ? "border-[var(--text)] bg-[var(--raised)]" : "border-[var(--line-soft)] hover:border-[var(--line-strong)]")}>
-                {pack.imageUrl ? <img src={pack.imageUrl} alt="" loading="lazy" className="size-14 rounded-lg object-cover" /> : (
-                  <span className="relative h-14 w-12" aria-hidden="true">{Array.from({ length: stack }, (_, i) => <span key={i} className="absolute left-1/2 -translate-x-1/2" style={{ bottom: i * 7, zIndex: i }}><LxMark size={32} /></span>)}</span>
-                )}
-                <span className="flex items-baseline gap-1"><span className="text-[20px] font-bold leading-none text-[var(--text)]">{pack.grantsLx.toLocaleString()}</span><span className="text-[11px] font-semibold text-[var(--text-muted)]">LX</span></span>
+              <button key={pack.id} type="button" role="radio" aria-checked={on} onClick={() => setPicked(pack.id)} className={cn("lx-frost group relative flex flex-col items-center gap-2 overflow-hidden rounded-xl border bg-[var(--card-surface)] min-h-[104px] px-2 pb-3 pt-2.5 text-center transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 motion-reduce:transition-none motion-reduce:hover:translate-y-0", on ? "border-[var(--text)] bg-[var(--raised)]" : "border-[var(--line-soft)] hover:border-[var(--line-strong)]")}>
+                <span className="flex h-5 w-full items-center justify-between" aria-hidden={!bonus && bestValue?.id !== pack.id && !on}>
+                  {bonus > 0 ? <span className="rounded-full border border-[var(--status-green)]/40 bg-[var(--status-green)]/10 text-[var(--status-green)] px-1.5 py-px text-[10px] font-semibold">+{bonus}%</span>
+                    : bestValue?.id === pack.id ? <span className="rounded-full border border-[var(--status-green)]/40 bg-[var(--status-green)]/10 text-[var(--status-green)] px-1.5 py-px text-[10px] font-semibold">Best</span> : <span />}
+                  {on ? <span className="grid size-5 place-items-center rounded-full bg-[var(--text)] text-[var(--bg)]"><Check className="size-3.5" aria-hidden="true" /></span> : <span />}
+                </span>
+                {pack.imageUrl ? <img src={pack.imageUrl} alt="" loading="lazy" className="size-14 rounded-lg object-cover" /> : null}
+                <span className="mt-2 flex items-baseline gap-1.5"><span className="text-[22px] font-bold leading-none text-[var(--text)]">{pack.grantsLx.toLocaleString()}</span><span className="text-[11px] font-semibold text-[var(--text-muted)]">FOL$</span></span>
                 <span className="text-[13px] text-[var(--text-2)]">{mnt(pack.priceMnt)}</span>
-                {bonus > 0 && <span className="absolute left-2 top-2 rounded-full border border-[var(--line-strong)] bg-[var(--bg)] px-1.5 py-px text-[10px] font-semibold text-[var(--text)]">+{bonus}%</span>}
-                {bestValue?.id === pack.id && !bonus && <span className="absolute left-2 top-2 rounded-full border border-[var(--line-strong)] bg-[var(--bg)] px-1.5 py-px text-[10px] text-[var(--text-2)]">Best</span>}
-                {on && <span className="absolute right-2 top-2 grid size-5 place-items-center rounded-full bg-[var(--text)] text-[var(--bg)]"><Check className="size-3.5" aria-hidden="true" /></span>}
+                <span className="mt-auto h-1 w-full overflow-hidden rounded-full bg-[var(--line)]" aria-hidden="true"><span className="block h-full rounded-full bg-[var(--text-faint)] transition-colors group-hover:bg-[var(--text-2)]" style={{ width: `${Math.max(6, (pack.grantsLx / Math.max(...packages.map((item) => item.grantsLx), 1)) * 100)}%`, ...(on ? { background: "var(--text)" } : null) }} /></span>
               </button>
             )
           })}
         </div>
         {range && base && (
-          <div onClick={() => setPicked("custom")} className={cn("flex flex-col gap-3 rounded-xl border bg-[var(--card-surface)] p-4 transition-colors", picked === "custom" ? "border-[var(--text)]" : "border-dashed border-[var(--line)] hover:border-[var(--line-strong)]")}>
-            <div className="flex items-center justify-between gap-3">
-              <span className="flex items-center gap-2 text-[13px] font-semibold text-[var(--text)]"><SlidersHorizontal className="size-4 text-[var(--text-2)]" aria-hidden="true" />Your own amount</span>
-              <span className="flex items-baseline gap-1.5"><b className="text-[18px] leading-none text-[var(--text)]">{mnt(customMnt)}</b><span className="text-[12px] text-[var(--text-dim)]">≈ {customLx.toLocaleString()} LX</span></span>
+          <div onClick={() => setPicked("custom")} className={cn("lx-frost flex flex-col gap-4 rounded-xl border bg-[var(--card-surface)] p-5 transition-colors", picked === "custom" ? "border-[var(--text)]" : "border-[var(--line)] hover:border-[var(--line-strong)]")}>
+            <div className="flex flex-wrap items-end justify-between gap-6">
+              <label className="flex flex-col gap-2 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]" htmlFor="topup-own-amount">
+                Your own amount
+                <span className="flex h-10 items-center gap-1 rounded-lg border border-[var(--line)] bg-[var(--bg)] pl-4 pr-2 normal-case tracking-normal focus-within:border-[var(--text)]">
+                  <input
+                    id="topup-own-amount"
+                    inputMode="numeric"
+                    value={typedAmount ?? customMnt.toLocaleString()}
+                    onFocus={(event) => { const input = event.currentTarget; setPicked("custom"); setTypedAmount(String(customMnt)); requestAnimationFrame(() => input.select()) }}
+                    onChange={(event) => { setPicked("custom"); setTypedAmount(event.target.value.replace(/[^0-9]/g, "")) }}
+                    onBlur={() => { if (typedAmount != null) setAmount(Number(typedAmount || 0)); setTypedAmount(null) }}
+                    onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur() }}
+                    className="w-32 bg-transparent text-[18px] font-bold text-[var(--text)] outline-none"
+                  />
+                  <span className="text-[18px] font-semibold text-[var(--text-2)]">₮</span>
+                  <span className="ml-1 flex items-center">
+                    <button type="button" aria-label="Less" onClick={(event) => { event.stopPropagation(); setPicked("custom"); setAmount(customMnt - range.stepMnt * 5) }} className="grid size-8 place-items-center rounded-md text-[var(--text-2)] hover:bg-[var(--raised)]"><Minus className="size-4" aria-hidden="true" /></button>
+                    <button type="button" aria-label="More" onClick={(event) => { event.stopPropagation(); setPicked("custom"); setAmount(customMnt + range.stepMnt * 5) }} className="grid size-8 place-items-center rounded-md text-[var(--text-2)] hover:bg-[var(--raised)]"><Plus className="size-4" aria-hidden="true" /></button>
+                  </span>
+                </span>
+              </label>
+              <div className="flex flex-col items-end gap-1">
+                <span className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]">You get</span>
+                <span className="flex items-baseline gap-1.5"><b className="text-[22px] leading-none text-[var(--text)]">{customLx.toLocaleString()}</b><span className="text-[12px] font-semibold text-[var(--text-muted)]">FOL$</span></span>
+              </div>
             </div>
-            <input type="range" aria-label="Amount in tugrik" min={range.minMnt} max={range.maxMnt} step={range.stepMnt} value={customMnt} onChange={(event) => { setPicked("custom"); setAmount(Number(event.target.value)) }} className="h-2 w-full cursor-pointer accent-[var(--text)]" />
-            <div className="flex justify-between text-[11px] text-[var(--text-dim)]"><span>{mnt(range.minMnt)}</span><span>{mnt(range.maxMnt)}</span></div>
+            <div className="flex flex-col gap-2">
+              <input type="range" aria-label="Amount in tugrik" min={range.minMnt} max={range.maxMnt} step={range.stepMnt} value={customMnt} onChange={(event) => { setPicked("custom"); setAmount(Number(event.target.value)) }} className="lx-range w-full" style={{ ["--fill" as string]: `${((customMnt - range.minMnt) / Math.max(1, range.maxMnt - range.minMnt)) * 100}%` }} />
+              <div className="flex justify-between text-[11px] text-[var(--text-dim)]"><span>{mnt(range.minMnt)}</span><span>{mnt(range.maxMnt)}</span></div>
+            </div>
           </div>
         )}
       </section>
@@ -193,10 +207,10 @@ export function ShopTopUp() {
             const enough = after >= item.price
             const Icon = item.icon
             return (
-              <div key={item.name} className="flex flex-col items-center gap-2 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] px-2 py-3 text-center">
+              <div key={item.name} className="lx-frost flex flex-col items-center gap-2 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] px-2 py-3 text-center">
                 <span className="relative grid size-11 place-items-center">
-                  <svg viewBox="0 0 44 44" className="absolute inset-0 -rotate-90" aria-hidden="true"><circle cx="22" cy="22" r="19" fill="none" stroke="var(--line)" strokeWidth="3" /><circle cx="22" cy="22" r="19" fill="none" stroke="var(--accent-solid)" strokeWidth="3" strokeLinecap="round" strokeDasharray={`${Math.min(1, after / item.price) * 119.4} 119.4`} className="transition-[stroke-dasharray] duration-500" /></svg>
-                  {enough ? <Check className="size-4 text-[var(--text)]" aria-hidden="true" /> : <Icon className="size-4 text-[var(--text-2)]" aria-hidden="true" />}
+                  <svg viewBox="0 0 44 44" className="absolute inset-0 -rotate-90" aria-hidden="true"><circle cx="22" cy="22" r="19" fill="none" stroke="var(--line)" strokeWidth="3" /><circle cx="22" cy="22" r="19" fill="none" stroke={enough ? "var(--status-green)" : "var(--accent-solid)"} strokeWidth="3" strokeLinecap="round" strokeDasharray={`${Math.min(1, after / item.price) * 119.4} 119.4`} className="transition-[stroke-dasharray] duration-500" /></svg>
+                  {enough ? <Check className="size-4 text-[var(--status-green)]" aria-hidden="true" /> : <Icon className="size-4 text-[var(--text-2)]" aria-hidden="true" />}
                 </span>
                 <span className="text-[12px] font-semibold text-[var(--text)]">{item.name}</span>
                 <span className="flex items-center gap-1 text-[11px] text-[var(--text-dim)]"><LxMark size={12} />{item.price.toLocaleString()}</span>
@@ -209,11 +223,11 @@ export function ShopTopUp() {
       {user && topUps.length > 0 && (
         <section aria-label="My top-ups" className="flex flex-col gap-2">
           {topUps.slice(0, 5).map((topUp) => (
-            <div key={topUp.id} className="flex items-center gap-3 rounded-xl border border-[var(--glass-line)] px-4 py-2.5">
+            <div key={topUp.id} className="lx-frost flex items-center gap-3 rounded-xl border border-[var(--glass-line)] px-4 py-3">
               <LxMark size={18} />
               <span className="flex min-w-0 flex-1 items-baseline gap-2"><b className="text-[13px] text-[var(--text)]">{topUp.grantsLx.toLocaleString()}</b><span className="text-[12px] text-[var(--text-dim)]">{mnt(topUp.amountMnt)}</span></span>
               <RelativeTime value={topUp.createdAt} className="hidden text-[11px] text-[var(--text-dim)] sm:inline" />
-              <span className={cn("rounded-full border px-2 py-0.5 text-[11px]", topUp.status === "paid" ? "border-[var(--text-2)] text-[var(--text)]" : "border-[var(--line)] text-[var(--text-dim)]")}>{STATE_LABEL[topUp.status]}</span>
+              <span className={cn("rounded-full border px-2 py-0.5 text-[11px]", topUp.status === "paid" ? "border-[var(--status-green)]/40 bg-[var(--status-green)]/10 text-[var(--status-green)]" : topUp.status === "failed" ? "border-[var(--status-red)]/40 bg-[var(--status-red)]/10 text-[var(--status-red)]" : "border-[var(--line)] text-[var(--text-dim)]")}>{STATE_LABEL[topUp.status]}</span>
             </div>
           ))}
         </section>

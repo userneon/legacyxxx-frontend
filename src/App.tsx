@@ -145,7 +145,7 @@ export function App() {
 
   const profileScene = useProfileScene()
   // A profile with a Steam background gets it behind the whole window; one without keeps the Grid Scan (dev) or the beams.
-  const profileGrid = currentPage === "profile" && isFeatureEnabled("profileGrid") && !profileScene
+  const profileGrid = false // the grid behind the profile was taken out (owner request 2026-11-13)
 
   // A narrow window, or the "Start with sidebar collapsed" setting, starts on the icon rail.
   return (

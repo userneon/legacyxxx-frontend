@@ -12,7 +12,7 @@ const input = "h-9 w-full rounded-lg border border-[var(--line)] bg-[var(--bg)] 
 const secondary = "inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] disabled:opacity-50"
 
 const KIND_LABEL: Record<CosmeticKindId, string> = { frame: "Frames", name_color: "Name colours", name_glow: "Name glows", banner: "Banners", title: "Titles", smoke_color: "Smoke colours", grenade_trail: "Grenade trails", grenade_light: "Grenade lights", flash_effect: "Flash effects", model_knife: "Knife models", model_deagle: "Deagle models", model_ak47: "AK-47 models" }
-const UNLOCK_LABEL: Record<CosmeticUnlock, string> = { free: "Free", coin: "LX", achievement: "Earned" }
+const UNLOCK_LABEL: Record<CosmeticUnlock, string> = { free: "Free", coin: "FOL$", achievement: "Earned" }
 const UNLOCK_TONE: Record<CosmeticUnlock, Tone> = { free: "green", coin: "sky", achievement: "violet" }
 
 /** Staff → Shop → Cosmetics: price, names, how it is unlocked and on/off for every cosmetic. Art and colours stay in the code. */
@@ -63,7 +63,7 @@ export function StaffCosmetics() {
                 ))}
               </div>
             </div>
-            <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Price for 30 days (LX)<input className={input} type="number" min={0} disabled={edit.draft.unlock !== "coin"} value={edit.draft.price} onChange={(event) => setDraft({ price: Math.max(0, Math.floor(Number(event.target.value) || 0)) })} /><span className="text-[11px] text-[var(--text-faint)]">1 day costs 25% of this, 7 days 60%, forever 300%.</span></label>
+            <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Price for 30 days (FOL$)<input className={input} type="number" min={0} disabled={edit.draft.unlock !== "coin"} value={edit.draft.price} onChange={(event) => setDraft({ price: Math.max(0, Math.floor(Number(event.target.value) || 0)) })} /><span className="text-[11px] text-[var(--text-faint)]">1 day costs 25% of this, 7 days 60%, forever 300%.</span></label>
             <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Order in the list<input className={input} type="number" value={edit.draft.sort} onChange={(event) => setDraft({ sort: Math.floor(Number(event.target.value) || 0) })} /></label>
           </div>
           <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Line for earned items (how to get it)<input className={input} maxLength={80} value={edit.draft.requirement} onChange={(event) => setDraft({ requirement: event.target.value })} /></label>
@@ -90,7 +90,7 @@ export function StaffCosmetics() {
                   <span className="truncate text-[13px] font-semibold text-[var(--text)]" title={item.nameEn}>{item.nameEn}</span>
                   <span className="truncate text-xs text-[var(--text-dim)]">{item.nameMn} · {KIND_LABEL[item.kind]}</span>
                 </span>
-                <span className="lx-tone-text shrink-0 rounded-full border border-[color-mix(in_oklab,var(--tone)_45%,transparent)] px-2 py-0.5 text-[11px] font-semibold">{item.unlock === "coin" ? `${item.price.toLocaleString()} LX` : UNLOCK_LABEL[item.unlock]}</span>
+                <span className="lx-tone-text shrink-0 rounded-full border border-[color-mix(in_oklab,var(--tone)_45%,transparent)] px-2 py-0.5 text-[11px] font-semibold">{item.unlock === "coin" ? `${item.price.toLocaleString()} FOL$` : UNLOCK_LABEL[item.unlock]}</span>
               </div>
               <p className="text-xs text-[var(--text-dim)]">{item.owners.toLocaleString()} owner{item.owners === 1 ? "" : "s"}{item.requirement ? ` · ${item.requirement}` : ""}{item.enabled ? "" : " · off"}</p>
               <button type="button" onClick={() => setEdit({ id: item.id, draft: { nameEn: item.nameEn, nameMn: item.nameMn, unlock: item.unlock, price: item.price, requirement: item.requirement, sort: item.sort, enabled: item.enabled } })} className={cn(secondary, "mt-auto")}><Pencil className="size-4" />Edit</button>

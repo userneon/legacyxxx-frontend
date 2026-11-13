@@ -4,7 +4,6 @@ import { ArrowUp, Clock, Flame, Gavel, Gem, Plus, RotateCcw, Send, Trophy, Users
 
 import { walletService, type Wallet, type WalletTransaction } from "@/api"
 import { AnimatedNumber } from "@/components/animated-number"
-import { LxMark } from "@/components/lx-mark"
 import { PageBar, PageTabs } from "@/components/page-tabs"
 import { RelativeTime } from "@/components/relative-time"
 import { SendLx } from "@/components/send-lx"
@@ -27,7 +26,7 @@ const TABS: Array<{ value: Tab; label: string }> = [
 ]
 
 const label = "text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]"
-const card = "rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]"
+const card = "lx-glass rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]"
 
 const WEEKDAY = ["S", "M", "T", "W", "T", "F", "S"]
 
@@ -53,14 +52,14 @@ function Activity({ entries, empty }: { entries: WalletTransaction[]; empty: str
       {entries.map((entry) => {
         const gain = entry.amount > 0
         return (
-          <li key={entry.id} className="flex items-center gap-3 px-4 py-2.5">
+          <li key={entry.id} className="flex items-center gap-3 px-5 py-3">
             <span className={cn("grid size-[34px] shrink-0 place-items-center rounded-[9px] border", gain ? "border-[var(--status-green)]/30 bg-[var(--status-green)]/10 text-[var(--status-green)]" : "border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]")}>{lineIcon(entry)}</span>
             <span className="flex min-w-0 flex-1 flex-col gap-0.5">
               <span className="truncate text-[13px] font-semibold text-[var(--text)]" title={entry.reason}>{entry.reason}</span>
               <RelativeTime value={entry.at} className="text-[11px] text-[var(--text-dim)]" />
             </span>
             <span className="flex flex-col items-end gap-0.5">
-              <span className={cn("text-sm font-bold", gain ? "text-[var(--status-green)]" : entry.kind === "penalty" ? "text-[var(--status-red)]" : "text-[var(--text)]")}>{gain ? "+" : "−"}{Math.abs(entry.amount).toLocaleString()} LX</span>
+              <span className={cn("text-sm font-bold", gain ? "text-[var(--status-green)]" : entry.kind === "penalty" ? "text-[var(--status-red)]" : "text-[var(--text)]")}>{gain ? "+" : "−"}{Math.abs(entry.amount).toLocaleString()} FOL$</span>
               <span className="text-[11px] text-[var(--text-dim)]">{entry.balanceAfter.toLocaleString()}</span>
             </span>
           </li>
@@ -85,14 +84,14 @@ function EarningsChart({ daily }: { daily: Array<{ day: string; earned: number }
   const max = Math.max(1, ...daily.map((entry) => entry.earned))
   const total = daily.reduce((sum, entry) => sum + entry.earned, 0)
   return (
-    <section className={cn(card, "flex flex-col gap-3 p-4")} aria-label="Earned in the last 14 days">
+    <section className={cn(card, "flex flex-col gap-4 p-5")} aria-label="Earned in the last 14 days">
       <div className="flex items-center">
         <span className={label}>Earned · last 14 days</span>
-        <span className="ml-auto text-xs text-[var(--text-muted)]">Total <b className="text-[var(--text)]">+{total.toLocaleString()} LX</b></span>
+        <span className="ml-auto text-xs text-[var(--text-muted)]">Total <b className="text-[var(--text)]">+{total.toLocaleString()} FOL$</b></span>
       </div>
-      <div className="flex h-[120px] items-end gap-2" role="img" aria-label={`${total} LX earned in the last 14 days`}>
+      <div className="flex h-[120px] items-end gap-2" role="img" aria-label={`${total} FOL$ earned in the last 14 days`}>
         {daily.map((entry, index) => (
-          <div key={entry.day} className="flex h-full flex-1 items-end" title={`${entry.day}: +${entry.earned} LX`}>
+          <div key={entry.day} className="flex h-full flex-1 items-end" title={`${entry.day}: +${entry.earned} FOL$`}>
             <div
               className={cn("w-full rounded-[4px]", entry.earned === 0 ? "bg-[var(--line)]" : index === daily.length - 1 ? "bg-[var(--status-green)]" : "bg-[var(--line-strong)]")}
               style={{ height: entry.earned === 0 ? 3 : `${Math.max(8, (entry.earned / max) * 100)}%` }}
@@ -125,7 +124,7 @@ export function WalletPage() {
     <section className={cn(card, "flex flex-col overflow-hidden")} aria-label="How to earn">
       <div className="px-4 py-3"><span className={label}>How to earn</span></div>
       {(wallet?.earn ?? []).map((rule) => (
-        <div key={rule.id} className="flex h-11 items-center gap-3 border-t border-[var(--line-soft)] px-4 text-[13px]">
+        <div key={rule.id} className="flex h-11 items-center gap-3 border-t border-[var(--line-soft)] px-6 text-[13px]">
           <span className="grid size-[34px] shrink-0 place-items-center rounded-[9px] border border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]">{rule.id.startsWith("streak") ? <Flame className="size-4" aria-hidden="true" /> : <ArrowUp className="size-4" aria-hidden="true" />}</span>
           <span className="min-w-0 flex-1 truncate">{rule.label}</span>
           <b className="text-[var(--text)]">+{rule.coins}</b>
@@ -136,40 +135,35 @@ export function WalletPage() {
   )
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <PageBar>
-        <PageTabs<Tab> ariaLabel="Wallet sections" value={tab} onChange={setTab} options={TABS} />
-      </PageBar>
-      <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 max-md:px-4">
-        {tab === "topup" ? (
+    <div className="lx-calm lx-noir flex min-h-0 flex-1 flex-col">
+      {!wallet && (
+        <PageBar>
+          <PageTabs<Tab> ariaLabel="Wallet sections" value={tab} onChange={setTab} options={TABS} />
+        </PageBar>
+      )}
+      <div className="min-h-0 flex-1 overflow-y-auto px-8 py-7 max-md:px-4">
+        {tab === "topup" && !wallet ? (
           <ShopTopUp />
         ) : loading && !wallet ? (
           <div className="grid gap-5 lg:grid-cols-[440px_minmax(0,1fr)]"><Skeleton className="h-[236px] rounded-2xl" /><Skeleton className="h-[236px] rounded-xl" /></div>
         ) : error || !wallet ? (
           <p className="flex items-center justify-center gap-3 py-24 text-[13px] text-[var(--text-dim)]">Could not load your wallet.<button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>
-        ) : tab === "history" ? (
-          <section className={cn(card, "max-w-3xl overflow-hidden")}>
-            <div className="flex items-center gap-2 border-b border-[var(--line-soft)] px-4 py-3"><span className={cn(label, "mr-auto")}>History</span><Chips value={filter} onChange={setFilter} /></div>
-            <Activity entries={entries} empty="Nothing here yet." />
-          </section>
-        ) : tab === "earn" ? (
-          <div className="max-w-xl">{earnRules}</div>
         ) : (
-          <div className="grid items-start gap-5 lg:grid-cols-[440px_minmax(0,1fr)]">
-            <div className="flex min-w-0 flex-col gap-3.5">
+          <div className="grid items-start gap-8 lg:grid-cols-[400px_minmax(0,1fr)]">
+            <div className="flex min-w-0 flex-col gap-4">
               <section
                 aria-label="Balance"
-                className="relative flex h-[236px] flex-col overflow-hidden rounded-2xl border border-[var(--line-strong)] p-6"
+                className="lx-glass lx-noir-balance relative flex h-[200px] flex-col overflow-hidden rounded-2xl border border-[var(--line-strong)] p-6"
                 style={{ backgroundImage: "radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,.16), transparent 55%), repeating-linear-gradient(115deg, rgba(255,255,255,.035) 0 1px, transparent 1px 9px), linear-gradient(160deg, #1d1d1f, #0e0e0f)" }}
               >
                 <span aria-hidden="true" className="absolute -bottom-[90px] -right-[70px] size-[300px] rounded-full border border-white/[0.07] shadow-[0_0_0_26px_rgba(255,255,255,.02),0_0_0_54px_rgba(255,255,255,.015)]" />
                 <div className="relative flex items-center justify-between">
-                  <span className="flex items-center gap-2.5 font-bold tracking-[0.4px]"><LxMark size={30} />LX WALLET</span>
+                  <span className="flex items-center gap-2.5 font-bold tracking-[0.4px]">FOL$ WALLET</span>
                   <span className="text-[11px] tracking-[1.4px] text-[var(--text-muted)]">LEGACY-X</span>
                 </div>
                 <div className="relative mt-auto">
                   <span className="text-xs font-semibold tracking-[1.2px] text-[var(--text-muted)]">BALANCE</span>
-                  <div className="mt-0.5 flex items-baseline gap-2.5"><span className="text-[54px] font-bold leading-none tracking-[-1.6px]"><AnimatedNumber value={wallet.balance} durationMs={700} /></span><span className="text-xl font-bold text-[var(--text-2)]">LX</span></div>
+                  <div className="mt-0.5 flex items-baseline gap-2.5"><span className="text-[44px] font-bold leading-none tracking-[-1.6px]"><AnimatedNumber value={wallet.balance} durationMs={700} /></span><span className="text-xl font-bold text-[var(--text-2)]">FOL$</span></div>
                 </div>
                 <div className="relative mt-4 flex items-center gap-2.5 text-[13px] font-semibold">
                   <span className="truncate">{user?.username}</span>
@@ -177,9 +171,9 @@ export function WalletPage() {
                 </div>
               </section>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2.5">
                 {[{ label: "Top up", icon: Plus, to: "/wallet/top-up" }, { label: "Send", icon: Send, to: "send" }, { label: "Shop", icon: Gem, to: "/shop" }, { label: "Clan", icon: Users, to: "/clans" }, { label: "History", icon: Clock, to: "" }].map((action) => (
-                  <button key={action.label} type="button" onClick={() => (action.to === "send" ? setSendOpen(true) : action.to ? navigate(action.to) : setTab("history"))} className="flex h-[60px] flex-1 flex-col items-center justify-center gap-1 rounded-xl border border-[var(--line)] bg-[var(--glass-fill)] text-xs font-semibold text-[var(--text-2)] transition-colors hover:bg-[var(--raised)]">
+                  <button key={action.label} type="button" onClick={() => (action.to === "send" ? setSendOpen(true) : action.to ? navigate(action.to) : setTab("history"))} className="lx-glass flex h-[64px] flex-1 flex-col items-center justify-center gap-1 rounded-xl border border-[var(--line)] bg-[var(--glass-fill)] text-xs font-semibold text-[var(--text-2)] transition-colors hover:bg-[var(--raised)]">
                     <action.icon className="size-5 opacity-80" aria-hidden="true" />{action.label}
                   </button>
                 ))}
@@ -193,35 +187,49 @@ export function WalletPage() {
                       { name: "This week", value: `+${summary.weekEarned.toLocaleString()}`, hint: playEarning ? `${summary.weekMatches} ${summary.weekMatches === 1 ? "match" : "matches"}` : "", green: false },
                       { name: "Spent", value: summary.spentTotal.toLocaleString(), hint: `${summary.spentCount} ${summary.spentCount === 1 ? "purchase" : "purchases"}`, green: false },
                     ].map((stat) => (
-                      <div key={stat.name} className="flex flex-col gap-1 px-4 py-3.5">
+                      <div key={stat.name} className="flex flex-col gap-1 px-5 py-4">
                         <span className={label}>{stat.name}</span>
                         <b className={cn("text-[22px] leading-none", stat.green && "text-[var(--status-green)]")}>{stat.value}</b>
                         <span className="text-[11px] text-[var(--text-dim)]">{stat.hint}</span>
                       </div>
                     ))}
                   </div>
-                  {playEarning && <section className={cn(card, "flex flex-col gap-2.5 p-4")} aria-label="Play streak">
+                  {playEarning && <section className={cn(card, "flex flex-col gap-3 p-5")} aria-label="Play streak">
                     <div className="flex items-center gap-2"><Flame className="size-4 text-[var(--text-2)]" aria-hidden="true" /><span className={label}>Play streak</span><span className="ml-auto text-xs text-[var(--text-muted)]"><b className="text-[var(--text)]">{summary.streakDays}</b> {summary.streakDays === 1 ? "day" : "days"}</span></div>
                     <div className="flex items-center gap-1.5">
                       {summary.week.map((entry) => (
                         <span key={entry.day} title={entry.day} className={cn("grid size-[26px] place-items-center rounded-full border text-[10px] font-bold", entry.played ? "border-[var(--text)] bg-[var(--text)] text-[var(--bg)]" : "border-[var(--line)] text-[var(--text-dim)]")}>{dayLetter(entry.day)}</span>
                       ))}
-                      {streakSeven != null && <span className="ml-auto text-[11px] text-[var(--text-dim)]">+{streakSeven.toLocaleString()} LX on day 7</span>}
+                      {streakSeven != null && <span className="ml-auto text-[11px] text-[var(--text-dim)]">+{streakSeven.toLocaleString()} FOL$ on day 7</span>}
                     </div>
                   </section>}
                 </>
               )}
             </div>
 
-            <div className="flex min-w-0 flex-col gap-3.5">
-              {summary && <EarningsChart daily={summary.daily} />}
-              <div className="grid items-start gap-3.5 xl:grid-cols-[1.25fr_1fr]">
-                <section className={cn(card, "overflow-hidden")} aria-label="Activity">
-                  <div className="flex items-center gap-2 border-b border-[var(--line-soft)] px-4 py-3"><span className={cn(label, "mr-auto")}>Activity</span><Chips value={filter} onChange={setFilter} /></div>
-                  <Activity entries={entries.slice(0, 8)} empty="No LX activity yet." />
-                </section>
-                {earnRules}
+            <div className="flex min-w-0 flex-col gap-4">
+              <div className="border-b border-[var(--glass-line)]">
+                <PageTabs<Tab> ariaLabel="Wallet sections" value={tab} onChange={setTab} options={TABS} />
               </div>
+              {tab === "topup" ? <ShopTopUp /> : tab === "history" ? (
+                <section className={cn(card, "overflow-hidden")}>
+                  <div className="flex items-center gap-2 border-b border-[var(--line-soft)] px-5 py-4"><span className={cn(label, "mr-auto")}>History</span><Chips value={filter} onChange={setFilter} /></div>
+                  <Activity entries={entries} empty="Nothing here yet." />
+                </section>
+              ) : tab === "earn" ? (
+                <div className="max-w-xl">{earnRules}</div>
+              ) : (
+                <>
+                  {summary && <EarningsChart daily={summary.daily} />}
+                  <div className="grid items-start gap-4 xl:grid-cols-[1.25fr_1fr]">
+                    <section className={cn(card, "overflow-hidden")} aria-label="Activity">
+                      <div className="flex items-center gap-2 border-b border-[var(--line-soft)] px-5 py-4"><span className={cn(label, "mr-auto")}>Activity</span><Chips value={filter} onChange={setFilter} /></div>
+                      <Activity entries={entries.slice(0, 8)} empty="No FOL$ activity yet." />
+                    </section>
+                    {earnRules}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -230,7 +238,7 @@ export function WalletPage() {
         <Dialog open={sendOpen} onOpenChange={(open) => { setSendOpen(open); if (!open && tab === "send") setTab("overview") }}>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>Send LX</DialogTitle>
+              <DialogTitle>Send FOL$</DialogTitle>
               <DialogDescription className="sr-only">Pick a player, type an amount and confirm.</DialogDescription>
             </DialogHeader>
             <SendLx bare balance={wallet.balance} onSent={refetch} />

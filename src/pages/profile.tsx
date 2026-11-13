@@ -39,14 +39,15 @@ import { RingFrame } from "@/components/ring-frame"
 import { isRingFrame } from "@/lib/ring-frames"
 import { CreatorBadge, CreatorLinks } from "@/pages/creators"
 import { clanTagProps, nameProps } from "@/lib/cosmetics"
-import { PageBar, PageTabs } from "@/components/page-tabs"
+import type { NameStyle } from "@/api/cosmetics"
+import { PageTabs } from "@/components/page-tabs"
 import { AccountSettings, AppearanceSettings } from "@/pages/settings"
 import { copyText, steamProfileUrl } from "@/components/profile-ids"
 import { RelativeTime } from "@/components/relative-time"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Skeleton } from "@/components/ui/skeleton"
 
-const card = "rounded-2xl border border-[var(--glass-line)] bg-[var(--glass-fill)]"
+const card = "lx-pcard rounded-[24px] border border-[var(--glass-line)] bg-[var(--glass-fill)]"
 const outline = "inline-flex h-[34px] items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] font-medium text-[var(--text)] transition-[background-color,border-color,transform] duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
 
 const SECTION_LABEL: Record<ProfileSection, string> = { stats: "Stats", matches: "Recent matches", faceit: "FACEIT stats", loadout: "Loadout" }
@@ -54,8 +55,7 @@ const SECTION_LABEL: Record<ProfileSection, string> = { stats: "Stats", matches:
 /** Card title with the violet marker used across the site. */
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
-      <span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--text-faint)]" />
+    <h2 className="flex items-center gap-3 text-[16px] font-bold text-[var(--text)] after:h-px after:flex-1 after:bg-gradient-to-r after:from-white/15 after:to-transparent">
       {children}
     </h2>
   )
@@ -144,27 +144,22 @@ function PrivacyPopover({ visibility, onSaved }: { visibility: Record<ProfileSec
     { key: "loadout", label: "Loadout" },
   ]
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button type="button" className={outline}><Eye className="size-3.5" />Profile settings</button>
-      </PopoverTrigger>
-      <PopoverContent align="end" sideOffset={8} className="w-[300px] rounded-xl border-[var(--line)] bg-[var(--panel)] px-4 py-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.5)]">
-        <div className="flex flex-col gap-[3px] border-b border-[var(--line-soft)] pb-2">
-          <span className="text-sm font-semibold text-[var(--text)]">What others can see</span>
-          <span className="text-xs text-[var(--text-dim)]">Applies to everyone except you and staff.</span>
-        </div>
-        <div className="pt-1">
-          {rows.map((row) => (
-            <div key={row.key} className="flex h-10 items-center gap-3">
-              <span className="flex-1 text-[13px] text-[var(--text)]">{row.label}</span>
-              <Switch label={`Show ${row.label}`} checked={state[row.key]} onChange={(next) => void toggle(row.key, next)} />
-            </div>
-          ))}
-        </div>
-        {error && <p role="alert" className="text-xs text-[var(--text-2)]">{error}</p>}
-        <div className="mt-2 border-t border-[var(--line-soft)] pt-2.5 text-xs leading-[1.5] text-[var(--text-dim)]">Rank, leaderboard position and penalty history are always public.</div>
-      </PopoverContent>
-    </Popover>
+    <section aria-label="Profile visibility" className={cn(card, "flex flex-col gap-1 px-5 py-4")}>
+      <div className="flex flex-col gap-[3px] border-b border-[var(--line-soft)] pb-3">
+        <span className="text-[15px] font-semibold text-[var(--text)]">Profile visibility</span>
+        <span className="text-xs text-[var(--text-dim)]">What others can see. Applies to everyone except you and staff.</span>
+      </div>
+      <div className="pt-1">
+        {rows.map((row) => (
+          <div key={row.key} className="flex h-11 items-center gap-3">
+            <span className="flex-1 text-[13px] text-[var(--text)]">{row.label}</span>
+            <Switch label={`Show ${row.label}`} checked={state[row.key]} onChange={(next) => void toggle(row.key, next)} />
+          </div>
+        ))}
+      </div>
+      {error && <p role="alert" className="text-xs text-[var(--text-2)]">{error}</p>}
+      <div className="border-t border-[var(--line-soft)] pt-3 text-xs leading-[1.5] text-[var(--text-dim)]">Rank, leaderboard position and penalty history are always public.</div>
+    </section>
   )
 }
 
@@ -184,7 +179,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
       <div className="flex min-w-0 max-w-full flex-1 flex-col items-center gap-3">
         <div className="flex min-w-0 max-w-full flex-col items-center gap-1">
           <div className="flex min-w-0 max-w-full items-center justify-center gap-2.5">
-            <h1 {...nameProps(user.nameStyle, "truncate text-[30px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]")} title={user.username}><PlayerNameText name={user.username} /></h1>
+            <h1 {...nameProps(user.nameStyle, "-mx-5 -my-3 truncate px-5 py-3 text-[30px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]")} title={user.username}><PlayerNameText name={user.username} /></h1>
             <DiscordLinkedMark linked={overview.discordLinked} focusable className="shrink-0 [&_svg]:size-[18px]" />
           </div>
           {overview.banned
@@ -221,7 +216,6 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
             Join
           </a>
         )}
-        {viewer.isOwner && overview.visibility && <PrivacyPopover visibility={overview.visibility} onSaved={onVisibilityChange} />}
         <ProfileStaffMenu steamId={user.steamId} name={user.username} onChanged={onVisibilityChange} />
         {canCompare && (
           <button type="button" onClick={() => navigate(`/compare?a=${encodeURIComponent(me!.steamId)}&b=${encodeURIComponent(user.steamId)}`)} className={outline}><ArrowLeftRight className="size-3.5" />Compare with me</button>
@@ -656,13 +650,6 @@ function ProfileSkeleton({ own }: { own: boolean }) {
   return (
     <div aria-hidden="true">
       {/* Your own profile has the tab row on top; it is held in place so nothing moves when the page arrives. */}
-      {own && (
-        <PageBar className="max-md:px-4">
-          <div className="flex h-12 items-center gap-6">
-            {[44, 84, 56].map((width) => <Skeleton key={width} className={cn("h-3", bar)} style={{ width }} />)}
-          </div>
-        </PageBar>
-      )}
       <div className="px-6 pt-6 max-md:px-4 max-md:pt-4">
         {/* The header: avatar, name, a line of facts and the buttons, all centred. */}
         <section className={cn(card, "flex h-[299px] flex-col items-center px-5 pt-7 max-md:px-4")}>
@@ -744,6 +731,13 @@ export function ProfilePage({ userId }: { userId?: string }) {
     window.addEventListener("legacyx:appearance-changed", onChange)
     return () => window.removeEventListener("legacyx:appearance-changed", onChange)
   }, [refetch, refreshUser])
+  // The name look being tried in Appearance, shown live on the profile card.
+  const [previewName, setPreviewName] = useState<{ name: NameStyle; banner?: string | null; frame?: string | null } | null>(null)
+  useEffect(() => {
+    const onPreview = (event: Event) => setPreviewName((event as CustomEvent<{ name: NameStyle; banner?: string | null; frame?: string | null } | null>).detail ?? null)
+    window.addEventListener("legacyx:appearance-preview", onPreview)
+    return () => window.removeEventListener("legacyx:appearance-preview", onPreview)
+  }, [])
   const faceitHidden = data?.hidden.includes("faceit") ?? true
   const { data: faceit } = useApiQuery<FaceitProfileData>((signal) => profileService.getFaceitProfile(data!.user.id, { signal }), { enabled: Boolean(data) && !faceitHidden, queryKey: `profile-faceit:${data?.user.id ?? ""}` })
   // The player's Steam background is drawn by the app shell behind the whole window; it goes away with the page.
@@ -792,23 +786,21 @@ export function ProfilePage({ userId }: { userId?: string }) {
   const setTab = setPathTab
 
   // A paid rank's banner (owner request 2026-11-07), unless the player picked another one.
-  const banner = data.user.banner ?? (data.perk ? `perk-${data.perk.tier}` : null)
+  const previewOn = Boolean(previewName && own)
+  const previewData = previewOn && previewName ? { ...data, user: { ...data.user, nameStyle: previewName.name, ...(previewName.frame !== undefined ? { frame: previewName.frame } : {}) } } : data
+  const bannerPick = previewOn && previewName && previewName.banner !== undefined ? previewName.banner : data.user.banner
+  const banner = bannerPick ?? (data.perk ? `perk-${data.perk.tier}` : null)
   return (
     <div ref={topRef}>
-      {own && (
-        <PageBar className="max-md:px-4">
-          <PageTabs<ProfileTab> ariaLabel="Profile sections" value={tab} onChange={setTab} options={[{ value: "profile", label: "Profile" }, { value: "appearance", label: "Appearance" }, { value: "settings", label: "Settings" }]} />
-        </PageBar>
-      )}
-      {tab === "profile" && (
-      <div className="@container px-6 pb-8 pt-5 max-md:px-4">
-        <div className="lx-bento grid gap-3 @4xl:grid-cols-12">
+      {true && (
+      <div className="@container lx-profile-calm px-6 pb-8 pt-5 max-md:px-4">
+        <div className="lx-bento grid gap-4 @4xl:grid-cols-12">
           {/* Who this is: the banner, the avatar, the name, the badges and the buttons, in one card that stays in view. */}
           <aside className="flex min-w-0 flex-col gap-3 @4xl:col-span-4">
             <section aria-label="Profile" className="lx-glass relative overflow-hidden rounded-2xl">
-              <ProfileBanner fx={banner} fade className="h-[130px]" />
+              <ProfileBanner fx={banner} fade className="h-[190px]" />
               <div className={cn("relative px-5 pb-6 max-md:px-4", banner ? "pt-[64px]" : "pt-7")}>
-                <Header overview={data} onVisibilityChange={refetch} />
+                <Header overview={previewData} onVisibilityChange={refetch} />
               </div>
             </section>
             {data.user.role === "Owner" && <OwnerPanel overview={data} />}
@@ -819,9 +811,13 @@ export function ProfilePage({ userId }: { userId?: string }) {
           </aside>
           <div className="@container flex min-w-0 flex-col gap-3 @4xl:col-span-8">
             <div className="lx-glass rounded-2xl px-5">
-              <PageTabs<"stats" | "configs"> ariaLabel="Profile views" value={view} onChange={setView} options={[{ value: "stats", label: "Stats" }, { value: "configs", label: "Configs" }]} />
+              <PageTabs<"stats" | "configs" | "appearance" | "settings"> ariaLabel="Profile sections" value={tab === "profile" ? view : tab} onChange={(next) => { if (next === "stats" || next === "configs") { setView(next); setTab("profile") } else setTab(next) }} options={own ? [{ value: "stats", label: "Stats" }, { value: "configs", label: "Configs" }, { value: "appearance", label: "Appearance" }, { value: "settings", label: "Settings" }] : [{ value: "stats", label: "Stats" }, { value: "configs", label: "Configs" }]} />
             </div>
-            {view === "configs" ? (
+            {tab === "appearance" ? (
+              <div key="appearance" className="lx-flow-stack"><AppearanceSettings /></div>
+            ) : tab === "settings" ? (
+              <div key="settings" className="lx-flow-stack flex flex-col gap-4">{data.visibility && <PrivacyPopover visibility={data.visibility} onSaved={refetch} />}<AccountSettings /></div>
+            ) : view === "configs" ? (
               <div key="configs" className="lx-flow-stack"><ProfileConfigs userId={data.user.steamId || data.user.id} isOwner={data.viewer.isOwner} /></div>
             ) : (
               <>
@@ -852,9 +848,6 @@ export function ProfilePage({ userId }: { userId?: string }) {
           </div>
         </div>
       </div>
-      )}
-      {tab !== "profile" && (
-        <div key={tab} className="lx-flow-stack px-6 pb-8 pt-6 max-md:px-4 max-md:pt-4"><div className={cn("mx-auto w-full", tab === "appearance" ? "max-w-none" : "max-w-4xl")}>{tab === "appearance" ? <AppearanceSettings /> : <AccountSettings />}</div></div>
       )}
 
       {openMatch?.matchId && (

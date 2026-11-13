@@ -122,7 +122,7 @@ const CIRC = 2 * Math.PI * RADIUS
 export function RingStat({ segments, value, label, title }: { segments: Segment[]; value: string; label: string; title?: string }) {
   let offset = 0
   return (
-    <div title={title} className="lx-glass flex items-center gap-3 rounded-2xl px-3.5 py-3">
+    <div title={title} style={{ ["--t" as string]: TONE[segments.find((x) => x.pct > 0)?.tone ?? "grey"] }} className="lx-glass lx-ring-card flex items-center gap-3 rounded-2xl px-3.5 py-3">
       <svg viewBox="0 0 48 48" width="46" height="46" className="shrink-0" aria-hidden="true">
         <circle cx="24" cy="24" r={RADIUS} fill="none" strokeWidth="4" style={{ stroke: "var(--line)" }} />
         {segments.filter((segment) => segment.pct > 0).map((segment, position) => {
@@ -219,7 +219,7 @@ export function RankPanel() {
 
   return (
     <div className="flex flex-1 flex-col gap-3">
-      <div className="lx-glass flex items-center gap-4 rounded-2xl px-4 py-3.5">
+      <div className="lx-glass lx-calm-brand flex items-center gap-4 rounded-2xl px-4 py-3.5">
         <CompetitiveRankBadge rankId={profile.rank_id} rankName={profile.rank_name} imageKey={profile.rank_image_key} size={60} className="shrink-0" />
         <div className="min-w-0 flex-1">
           <div className="truncate text-[22px] font-bold leading-tight" style={{ color: rankTierColor(profile.rank_id) }}>{profile.rank_name}</div>

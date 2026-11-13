@@ -112,7 +112,7 @@ function DiscordConnection() {
     <ConnectionRow
       icon={<DiscordGlyph />}
       title="Discord"
-      description={data?.link ? `${data.link.discordName} · rank role, pings and /stats in Discord` : "Link Discord for your rank role and /stats, and get 50 LX once."}
+      description={data?.link ? `${data.link.discordName} · rank role, pings and /stats in Discord` : "Link Discord for your rank role and /stats, and get 50 FOL$ once."}
       action={
         loading ? <Skeleton className="h-[34px] w-24 rounded-lg" />
         : error ? <button type="button" onClick={refetch} className={button}>Retry</button>
@@ -244,6 +244,12 @@ function Appearance() {
     return <span className="text-[10px] text-[var(--text-dim)]">{item.unlock === "free" ? "Free" : item.expiresAt ? timeLeft(item.expiresAt) : "Owned"}</span>
   }
   const sampleName = user?.username ?? "Player"
+  // The profile card beside this tab shows the name look being tried, live (owner request 2026-11-13); it clears when the tab closes.
+  const previewKey = JSON.stringify({ name: previewLook, banner: kind === "banner" ? (selected?.fx ?? null) : undefined, frame: kind === "frame" ? (selected?.id ?? null) : undefined })
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("legacyx:appearance-preview", { detail: JSON.parse(previewKey) }))
+    return () => { window.dispatchEvent(new CustomEvent("legacyx:appearance-preview", { detail: null })) }
+  }, [previewKey])
 
   return (
     <div className="@container flex flex-col gap-3">
@@ -252,22 +258,7 @@ function Appearance() {
       ) : error || !data ? (
         <p className="flex items-center gap-3 text-[13px] text-[var(--text-dim)]">Could not load your appearance.<button type="button" onClick={refetch} className="inline-flex h-[34px] items-center gap-1.5 rounded-lg border border-[var(--line)] px-3.5 text-[13px] font-medium text-[var(--text-2)] hover:bg-[var(--raised)]"><RotateCcw className="size-3.5" />Retry</button></p>
       ) : (
-        <div className="lx-bento grid gap-3 @3xl:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]">
-          <div className="lx-glass flex flex-col items-center gap-3 self-start rounded-2xl p-5 @3xl:sticky @3xl:top-4">
-            <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} look={data.frameLook} size={108} />
-            <span {...nameProps(previewLook, "max-w-full truncate text-[15px] font-bold text-[var(--text)]")}>{sampleName}</span>
-            {kind === "background" && selected && <div className="relative h-[110px] w-full overflow-hidden rounded-lg bg-[var(--card-surface)] [&>div]:size-full"><BackgroundScene key={selected.id} id={selected.id} look={bgDrafts[selected.id] ?? data.backgroundLooks?.[selected.id] ?? {}} /></div>}
-            {kind === "smoke_color" && selected && <SmokePuff color={selected.color} color2={selected.color2} className="w-[150px]" />}
-            {kind === "grenade_trail" && selected && <GrenadeTrail key={selected.id} color={selected.color} shape={selected.fx} className="w-[150px]" />}
-            {kind === "flash_effect" && selected && <FlashEffect key={selected.id} color={selected.color} shape={selected.fx} className="w-[150px]" />}
-            {kind === "grenade_light" && selected && <GrenadeLight color={selected.color} className="w-[150px]" />}
-            <div className="flex w-full flex-col items-center gap-1 text-center">
-              <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--text-dim)]">Preview</span>
-              <span className="text-[15px] font-semibold text-[var(--text)]">{selected?.name ?? `No ${noun}`}</span>
-              {selected && <span className="text-xs text-[var(--text-dim)]">{note(selected)}</span>}
-            </div>
-            {selected && <div className="w-full">{action(selected)}</div>}
-          </div>
+        <div className="lx-bento grid gap-3">
           <div className="flex min-w-0 flex-col gap-3">
             <div role="radiogroup" aria-label="What to change" className="lx-glass flex flex-col gap-2.5 rounded-2xl p-4">
               <div className="flex items-center justify-between gap-3"><h2 className="text-[15px] font-semibold text-[var(--text)]">Appearance</h2>{saved.node}</div>
@@ -290,6 +281,19 @@ function Appearance() {
                   ))}
                 </div>
               ))}
+            </div>
+            {/* What is picked: the effects that the profile card cannot show are drawn here; the name, banner and frame show on the card on the left. */}
+            <div className="lx-glass flex flex-wrap items-center gap-x-5 gap-y-3 rounded-2xl p-4">
+              {kind === "background" && selected && <div className="relative h-[90px] w-[180px] overflow-hidden rounded-lg bg-[var(--card-surface)] [&>div]:size-full"><BackgroundScene key={selected.id} id={selected.id} look={bgDrafts[selected.id] ?? data.backgroundLooks?.[selected.id] ?? {}} /></div>}
+              {kind === "smoke_color" && selected && <SmokePuff color={selected.color} color2={selected.color2} className="w-[130px]" />}
+              {kind === "grenade_trail" && selected && <GrenadeTrail key={selected.id} color={selected.color} shape={selected.fx} className="w-[130px]" />}
+              {kind === "flash_effect" && selected && <FlashEffect key={selected.id} color={selected.color} shape={selected.fx} className="w-[130px]" />}
+              {kind === "grenade_light" && selected && <GrenadeLight color={selected.color} className="w-[130px]" />}
+              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span className="text-[15px] font-semibold text-[var(--text)]">{selected?.name ?? `No ${noun}`}</span>
+                {selected && <span className="text-xs text-[var(--text-dim)]">{note(selected)}</span>}
+              </div>
+              {selected && <div className="w-full sm:w-[180px]">{action(selected)}</div>}
             </div>
             {(kind === "grenade_trail" || kind === "grenade_light") && <NadeSlots kind={kind} items={frames} defaultId={worn[kind]} slots={data.nadeSlots} busy={busy} onChange={(nade, value) => void wearOn(nade, value)} />}
             {kind === "background" && selected && bgById(selected.id) && (

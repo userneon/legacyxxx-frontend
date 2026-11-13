@@ -59,13 +59,13 @@ export function TopUpPayDialog({ invoice, onClose, onSettled }: { invoice: TopUp
       <DialogContent className="max-h-[92dvh] overflow-y-auto rounded-2xl sm:max-w-[420px]">
         <DialogHeader>
           <DialogTitle>{invoice ? `Pay ${mnt(invoice.amountMnt)}` : ""}</DialogTitle>
-          <DialogDescription>{invoice ? `${invoice.grantsLx.toLocaleString()} LX arrive the moment it is paid.` : ""}</DialogDescription>
+          <DialogDescription>{invoice ? `${invoice.grantsLx.toLocaleString()} FOL$ arrive the moment it is paid.` : ""}</DialogDescription>
         </DialogHeader>
         {invoice && status === "paid" && (
           <div className="flex flex-col items-center gap-3 py-8 text-center" role="status">
             <span className="grid size-14 place-items-center rounded-full bg-[var(--status-green)] text-[var(--bg)]"><Check className="size-7" aria-hidden="true" /></span>
-            <span className="flex items-center gap-1.5 text-[22px] font-bold text-[var(--text)]"><LxMark size={22} />+{invoice.grantsLx.toLocaleString()} LX</span>
-            <span className="text-[13px] text-[var(--text-muted)]">Paid. The LX are in your wallet.</span>
+            <span className="flex items-center gap-1.5 text-[22px] font-bold text-[var(--text)]">+{invoice.grantsLx.toLocaleString()} FOL$</span>
+            <span className="text-[13px] text-[var(--text-muted)]">Paid. The FOL$ are in your wallet.</span>
             <button type="button" onClick={onClose} className="lx-primary-button mt-1 inline-flex h-10 items-center rounded-lg px-5 text-[13px] font-semibold">Done</button>
           </div>
         )}

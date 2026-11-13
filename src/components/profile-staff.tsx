@@ -29,16 +29,16 @@ function CoinsDialog({ open, onOpenChange, steamId, name, mode }: { open: boolea
     try {
       if (mode === "grant") {
         const result = await walletService.grant({ steamId, amount: value, reason: reason.trim() })
-        toast.success(`${name} has ${result.balance.toLocaleString()} LX now`)
+        toast.success(`${name} has ${result.balance.toLocaleString()} FOL$ now`)
       } else {
         const result = await walletService.penalize({ steamId, amount: value, reason: reason.trim() })
-        toast.success(`${result.taken.toLocaleString()} LX taken from ${name}`, { description: `${result.balance.toLocaleString()} left` })
+        toast.success(`${result.taken.toLocaleString()} FOL$ taken from ${name}`, { description: `${result.balance.toLocaleString()} left` })
       }
       setAmount(""); setReason("")
       onOpenChange(false)
     } catch (error) {
       const status = (error as Partial<ApiError> | null)?.status
-      toast.error("That did not work", { description: status === 403 ? "Only an Owner can change LX." : "Try again in a moment." })
+      toast.error("That did not work", { description: status === 403 ? "Only an Owner can change FOL$." : "Try again in a moment." })
     } finally {
       setBusy(false)
     }
@@ -47,12 +47,12 @@ function CoinsDialog({ open, onOpenChange, steamId, name, mode }: { open: boolea
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="rounded-2xl">
         <DialogHeader>
-          <DialogTitle>{mode === "grant" ? "Give LX" : "Take LX"} · {name}</DialogTitle>
-          <DialogDescription>{mode === "grant" ? "Adds LX to their wallet." : "Takes up to this many LX; a wallet never goes below zero."} It is written to the audit log.</DialogDescription>
+          <DialogTitle>{mode === "grant" ? "Give FOL$" : "Take FOL$"} · {name}</DialogTitle>
+          <DialogDescription>{mode === "grant" ? "Adds FOL$ to their wallet." : "Takes up to this many FOL$; a wallet never goes below zero."} It is written to the audit log.</DialogDescription>
         </DialogHeader>
         <form className="mt-2 flex flex-col gap-4" onSubmit={(event) => void submit(event)}>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="coins-amount">LX</Label>
+            <Label htmlFor="coins-amount">FOL$</Label>
             <Input id="coins-amount" type="number" min={1} max={1_000_000} className="w-40" value={amount} onChange={(event) => setAmount(event.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
@@ -147,8 +147,8 @@ export function ProfileStaffMenu({ steamId, name, onChanged }: { steamId: string
           {canIssue && <button type="button" className={item} onClick={() => { setOpen(false); setIssuing(true) }}><Gavel className="size-4 text-[var(--text-muted)]" aria-hidden="true" /> New penalty</button>}
           <button type="button" className={item} onClick={() => { setOpen(false); setNotifying(true) }}><Bell className="size-4 text-[var(--text-muted)]" aria-hidden="true" /> Send notification</button>
           {mayCheck && <button type="button" className={item} onClick={() => { setOpen(false); setChecking(true) }}><ScanSearch className="size-4 text-[var(--text-muted)]" aria-hidden="true" /> Ask for a check</button>}
-          {isOwner && <button type="button" className={item} onClick={() => { setOpen(false); setCoins("grant") }}><PlusCircle className="size-4 text-[var(--text-muted)]" aria-hidden="true" /> Give LX</button>}
-          {isOwner && <button type="button" className={item} onClick={() => { setOpen(false); setCoins("take") }}><MinusCircle className="size-4 text-[var(--text-muted)]" aria-hidden="true" /> Take LX</button>}
+          {isOwner && <button type="button" className={item} onClick={() => { setOpen(false); setCoins("grant") }}><PlusCircle className="size-4 text-[var(--text-muted)]" aria-hidden="true" /> Give FOL$</button>}
+          {isOwner && <button type="button" className={item} onClick={() => { setOpen(false); setCoins("take") }}><MinusCircle className="size-4 text-[var(--text-muted)]" aria-hidden="true" /> Take FOL$</button>}
         </PopoverContent>
       </Popover>
       {canIssue && <IssuePenaltyDialog open={issuing} onOpenChange={setIssuing} access={access} initialSteamId={steamId} onIssued={onChanged} />}

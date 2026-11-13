@@ -40,7 +40,7 @@ function MyCode() {
         <DialogContent className="bg-[var(--panel)] sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Your creator code</DialogTitle>
-            <DialogDescription>Share it with your viewers. A new player who enters it after their first ranked match gets LX, and so do you.</DialogDescription>
+            <DialogDescription>Share it with your viewers. A new player who enters it after their first ranked match gets FOL$, and so do you.</DialogDescription>
           </DialogHeader>
           {info.error ? (
             <p className="text-[13px] text-[var(--text-dim)]">Could not load your code{info.error.message ? ` (${info.error.status ? `${info.error.status}: ` : ""}${info.error.message})` : ""}. <button type="button" onClick={info.refetch} className="text-[var(--text-2)] underline">Retry</button></p>
@@ -54,7 +54,7 @@ function MyCode() {
               </div>
               <div className="grid grid-cols-2 gap-3 text-center">
                 <div className="rounded-lg border border-[var(--line-soft)] px-3 py-2"><p className="text-[18px] font-semibold text-[var(--text)]">{data.count.toLocaleString()}</p><p className="text-[11px] text-[var(--text-dim)]">Players used it</p></div>
-                <div className="rounded-lg border border-[var(--line-soft)] px-3 py-2"><p className="text-[18px] font-semibold text-[var(--text)]">{data.earned.toLocaleString()} LX</p><p className="text-[11px] text-[var(--text-dim)]">Earned</p></div>
+                <div className="rounded-lg border border-[var(--line-soft)] px-3 py-2"><p className="text-[18px] font-semibold text-[var(--text)]">{data.earned.toLocaleString()} FOL$</p><p className="text-[11px] text-[var(--text-dim)]">Earned</p></div>
               </div>
               {data.recent.length > 0 ? (
                 <ul className="flex flex-col gap-1.5">
@@ -87,7 +87,7 @@ function EnterCode() {
     try {
       const result = await creatorsService.redeemReferral(code.trim())
       window.dispatchEvent(new Event("legacyx:wallet-changed"))
-      toast.success(result.reward > 0 ? `Code accepted: ${result.reward.toLocaleString()} LX are yours` : "Code accepted")
+      toast.success(result.reward > 0 ? `Code accepted: ${result.reward.toLocaleString()} FOL$ are yours` : "Code accepted")
       setOpen(false)
       status.refetch()
     } catch (caught) {
@@ -103,7 +103,7 @@ function EnterCode() {
         <DialogContent className="bg-[var(--panel)] sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Enter a creator's code</DialogTitle>
-            <DialogDescription>{info.rewardNew > 0 ? `You get ${info.rewardNew.toLocaleString()} LX and the creator is thanked. ` : ""}It works once, in your account's first {info.windowDays} days, after your first ranked match.</DialogDescription>
+            <DialogDescription>{info.rewardNew > 0 ? `You get ${info.rewardNew.toLocaleString()} FOL$ and the creator is thanked. ` : ""}It works once, in your account's first {info.windowDays} days, after your first ranked match.</DialogDescription>
           </DialogHeader>
           <input value={code} onChange={(event) => setCode(event.target.value.slice(0, 8))} onKeyDown={(event) => { if (event.key === "Enter" && info.canRedeem && code.trim() && !busy) void submit() }} placeholder="Code" aria-label="Creator code" autoFocus spellCheck={false} className={field} />
           {!info.canRedeem && info.reason && <p className="text-[12px] text-[var(--text-dim)]">{WHY[info.reason] ?? "You cannot enter a code right now."}</p>}

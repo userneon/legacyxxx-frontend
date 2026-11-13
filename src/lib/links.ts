@@ -14,6 +14,8 @@ export const LINKS = {
   /** Where the checker lives on the site itself when no link is set: put the file there (see legacyxxx-plugins/LegacyX-Checker/README.md) and the button appears. */
   checkerDownloadDefault: "/downloads/LegacyX-Checker.zip",
   discordInvite: DISCORD_INVITE,
+  /** LEGACY-X's TikTok page (VITE_TIKTOK_URL). No link, no card on Home. */
+  tiktok: read("VITE_TIKTOK_URL"),
   /** Where a player appeals a penalty (a ticket channel or the server). */
   discordAppeals: read("VITE_DISCORD_APPEALS_URL") ?? DISCORD_INVITE,
   /** Where a player reports another player. */

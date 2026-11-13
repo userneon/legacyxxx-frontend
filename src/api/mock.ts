@@ -776,6 +776,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
   }
   if (path === "/api/v1/creators/me/links" && method === "PUT") return { links: (body as { links: Record<string, string> }).links }
   if (path === "/api/v1/creators/me/about" && method === "PUT") { mockCreatorAbout = String((body as { bio: string }).bio); return { about: mockCreatorAbout } }
+  if (path === "/api/v1/creators/me/referral") return { code: "XK7Q2M", count: 18, earned: 3600, recent: [{ id: "r1", name: "Temuulen", steamId: "76561198000000011", avatar: null, at: new Date(Date.now() - 2 * 864e5).toISOString() }, { id: "r2", name: "Khuslen_AWP", steamId: "76561198000000012", avatar: null, at: new Date(Date.now() - 4 * 864e5).toISOString() }, { id: "r3", name: "Gansukh", steamId: "76561198000000013", avatar: null, at: new Date(Date.now() - 6 * 864e5).toISOString() }] }
   if (path === "/api/v1/creators/applications/me") {
     // Design preview only: set localStorage legacyx_mock_creator=1 to see a creator's "Edit my about".
     const creator = (() => { try { return typeof localStorage !== "undefined" && localStorage.getItem("legacyx_mock_creator") === "1" } catch { return false } })()
@@ -791,7 +792,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path === "/api/v1/staff/shop/products" && method === "GET") return { products: [
     { id: "p1", slug: "genesis", name: "Genesis pack", description: "", kind: "founder", priceMnt: 30000, imageUrl: null, stock: 500, grantsLx: 0, enabled: true, sort: 0 },
     { id: "p2", slug: "nfc-charm", name: "LEGACY-X NFC charm", description: "", kind: "charm", priceMnt: 12000, imageUrl: null, stock: 40, grantsLx: 0, enabled: true, sort: 1 },
-    { id: "p3", slug: "lx-5000", name: "5,000 LX", description: "", kind: "lx", priceMnt: 15000, imageUrl: null, stock: 0, grantsLx: 5000, enabled: false, sort: 2 },
+    { id: "p3", slug: "lx-5000", name: "5,000 FOL$", description: "", kind: "lx", priceMnt: 15000, imageUrl: null, stock: 0, grantsLx: 5000, enabled: false, sort: 2 },
   ] }
   if (path === "/api/v1/moderation/roster") {
     const needle = String(query?.query ?? "").trim().toLowerCase()
@@ -909,6 +910,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (method === "POST" && path === "/api/v1/skinchanger/collections") return { id: "col-new" }
   if (method === "DELETE" && path.startsWith("/api/v1/skinchanger/collections/")) return { removed: true }
   if (path === "/api/v1/clans") return MOCK_CLANS
+  if (path === "/api/v1/public/social/tiktok") return { tiktok: { url: "https://www.tiktok.com/@legacyx", handle: "@legacyx", followers: 2840, videos: 37, updatedAt: new Date().toISOString() } }
   if (path === "/api/v1/public/discord/community") {
     const people = [["Temuulen", 6, 41], ["xBataa", 4, 18], ["Khuslen_AWP", 3, 27], ["Enkh.", 2, 9], ["Gansukh", 1, 3], ["Bold", 1, 2], ["Ariunaa", 0, 0], ["Nomin", 0, 0]] as const
     const by = query?.sort === "invites" ? 2 : 1
@@ -969,10 +971,10 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path.startsWith("/api/v1/moderation/penalties") && method !== "GET") return path === "/api/v1/moderation/penalties" ? { penaltyId: "new" } : undefined
   if (path === "/api/v1/shop/founder/buy" && method === "POST") { mockFrameState.owned.add("founder"); return { number: 38, label: "#0038" } }
   if (path === "/api/v1/shop/products") {
-    const lx = (id: string, grantsLx: number, priceMnt: number) => ({ id, slug: id, name: `${grantsLx.toLocaleString()} LX`, description: "", kind: "lx", priceMnt, imageUrl: null, stock: 100000, grantsLx })
+    const lx = (id: string, grantsLx: number, priceMnt: number) => ({ id, slug: id, name: `${grantsLx.toLocaleString()} FOL$`, description: "", kind: "lx", priceMnt, imageUrl: null, stock: 100000, grantsLx })
     return { products: [lx("lx-750", 750, 5000), lx("lx-1500", 1500, 10000), lx("lx-3000", 3000, 20000), lx("lx-3300", 3300, 20000), lx("lx-8500", 8500, 50000), { id: "founder-pack", slug: "founder-pack", name: "LEGACY-X Genesis", description: "", kind: "founder", priceMnt: 30000, imageUrl: null, stock: 500, grantsLx: 0, founder: { limit: 500, taken: 37, remaining: 463, endsAt: "2026-11-30T15:59:59Z", open: true, priceLx: 4500 } }, { id: "charm", slug: "charm", name: "LEGACY-X NFC charm", description: "Tap it to open your profile.", kind: "charm", priceMnt: 15000, imageUrl: null, stock: 12, grantsLx: 0 }] }
   }
-  if (path === "/api/v1/shop/orders/me") return { orders: [{ id: "o1", productId: "lx-3000", productName: "3,000 LX", productKind: "lx", grantsLx: 3000, quantity: 1, unitPriceMnt: 20000, status: "contacted", createdAt: new Date(Date.now() - 3 * HOUR).toISOString() }, { id: "o2", productId: "lx-750", productName: "750 LX", productKind: "lx", grantsLx: 750, quantity: 1, unitPriceMnt: 5000, status: "paid", createdAt: new Date(Date.now() - 30 * HOUR).toISOString() }] }
+  if (path === "/api/v1/shop/orders/me") return { orders: [{ id: "o1", productId: "lx-3000", productName: "3,000 FOL$", productKind: "lx", grantsLx: 3000, quantity: 1, unitPriceMnt: 20000, status: "contacted", createdAt: new Date(Date.now() - 3 * HOUR).toISOString() }, { id: "o2", productId: "lx-750", productName: "750 FOL$", productKind: "lx", grantsLx: 750, quantity: 1, unitPriceMnt: 5000, status: "paid", createdAt: new Date(Date.now() - 30 * HOUR).toISOString() }] }
   if (path === "/api/v1/staff/shop/orders") return { orders: [] }
   if (path === "/api/v1/staff/shop/products") return { products: [] }
   if (path.startsWith("/api/v1/cosmetics")) {
@@ -1021,7 +1023,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path === "/api/v1/perks/me") return { grant: null, pending: null }
   if (path === "/api/v1/wallet/topup/status") return { available: true, custom: { minMnt: 1000, maxMnt: 500000, stepMnt: 1000 } }
   if (path === "/api/v1/wallet/topups") return { topups: [{ id: "t1", productId: "lx-750", amountMnt: 5000, grantsLx: 750, status: "paid", createdAt: new Date(Date.now() - 30 * HOUR).toISOString(), paidAt: new Date(Date.now() - 30 * HOUR + 60_000).toISOString() }] }
-  if (path === "/api/v1/wallet/topup" && method === "POST") return { id: "t2", productId: "lx-3000", amountMnt: 20000, grantsLx: 3000, status: "pending", createdAt: new Date().toISOString(), paidAt: null, name: "3,000 LX", checkoutUrl: "https://pay.wire.mn/c/mock", expiresInMinutes: 12 }
+  if (path === "/api/v1/wallet/topup" && method === "POST") return { id: "t2", productId: "lx-3000", amountMnt: 20000, grantsLx: 3000, status: "pending", createdAt: new Date().toISOString(), paidAt: null, name: "3,000 FOL$", checkoutUrl: "https://pay.wire.mn/c/mock", expiresInMinutes: 12 }
   if (path.startsWith("/api/v1/wallet/topup/")) return { id: "t2", productId: "lx-3000", amountMnt: 20000, grantsLx: 3000, status: "pending", createdAt: new Date().toISOString(), paidAt: null }
   // Design preview only (dev mock): what the API tells a player about sending LX.
   if (path === "/api/v1/wallet/transfer/rules") return { feePercent: 5, min: 10, max: 5000, dailyMax: 20000, perHour: 5, minRankedMatches: 1, sentToday: 1200, sentLastHour: 1, rankedMatches: 12, remainingToday: 18800, blocked: null }
@@ -1113,7 +1115,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
     case "/api/v1/skinchanger/collections":
       return skinCollections(query)
     case "/api/v1/public/staff":
-      return { team: [["Owner", 0], ["Manager", 1], ["Manager", 2], ["Admin", 3], ["Admin", 4], ["Admin", 5], ["Developer", 6], ["Designer", 7]].map(([role, index]) => ({ steamId: `7656119800000010${index}`, username: NAMES[index as number], avatar: "", role, since: new Date(Date.UTC(2026, 6 + ((index as number) % 4), 3)).toISOString(), clanTag: (index as number) % 3 === 0 ? "LX" : null, rank: { id: RANKS[index as number][0], name: RANKS[index as number][1], imageKey: null }, stats: index === 7 ? null : { matches: 40 + (index as number) * 17, wins: 22 + (index as number) * 8, kills: 600 + (index as number) * 90, deaths: 480 + (index as number) * 70 } })) }
+      return { team: [["Owner", 0], ["Manager", 1], ["Manager", 2], ["Admin", 3], ["Admin", 4], ["Admin", 5], ["Developer", 6], ["Designer", 7]].map(([role, index]) => ({ steamId: `7656119800000010${index}`, username: NAMES[index as number], avatar: "", role, since: new Date(Date.UTC(2026, 6 + ((index as number) % 4), 3)).toISOString(), clanTag: (index as number) % 3 === 0 ? "FOL$" : null, rank: { id: RANKS[index as number][0], name: RANKS[index as number][1], imageKey: null }, stats: index === 7 ? null : { matches: 40 + (index as number) * 17, wins: 22 + (index as number) * 8, kills: 600 + (index as number) * 90, deaths: 480 + (index as number) * 70 } })) }
     case "/api/v1/public/creators":
       return { creators: [
         { userId: "u1", steamId: "76561198000000001", username: "Temuulen", avatar: null, tier: "main", label: "Main Content Creator", bio: "CS2 streams every evening on LEGACY-X servers.", links: { twitch: "https://twitch.tv/temuulen", youtube: "https://youtube.com/@temuulen" }, rank: { id: 16, name: "Apex III", imageKey: null }, frame: null, nameStyle: null },

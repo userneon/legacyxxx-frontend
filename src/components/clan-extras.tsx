@@ -167,19 +167,19 @@ export function ClanBankPanel({ clan, role, onChanged, onProfileNavigate }: { cl
       <section data-tone="grey" className="lx-tone flex flex-wrap items-end gap-4 overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4">
         <div className="flex min-w-[140px] flex-1 flex-col gap-1">
           <span className="lx-stat-label lx-tone-text">Clan bank</span>
-          <span className="flex items-center gap-2 text-[22px] font-semibold leading-none"><Coins className="lx-tone-text size-5" aria-hidden="true" />{data.balance.toLocaleString()} LX</span>
+          <span className="flex items-center gap-2 text-[22px] font-semibold leading-none"><Coins className="lx-tone-text size-5" aria-hidden="true" />{data.balance.toLocaleString()} FOL$</span>
           <span className="text-[11px] text-[var(--text-dim)]">Given by members. The leader spends it on the clan.</span>
         </div>
-        <form className="flex items-end gap-2" onSubmit={(event) => { event.preventDefault(); if (valid) void run(() => clansService.donate(clan.id, amount), `You gave ${amount.toLocaleString()} LX`) }}>
+        <form className="flex items-end gap-2" onSubmit={(event) => { event.preventDefault(); if (valid) void run(() => clansService.donate(clan.id, amount), `You gave ${amount.toLocaleString()} FOL$`) }}>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="bank-amount">Give LX</Label>
+            <Label htmlFor="bank-amount">Give FOL$</Label>
             <Input id="bank-amount" type="number" min={10} max={100000} step={10} value={amount} onChange={(event) => setAmount(Math.floor(Number(event.target.value) || 0))} className="w-28" />
           </div>
           <button type="submit" disabled={busy || !valid} className="lx-primary-button inline-flex h-9 items-center rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50">Give</button>
         </form>
         {role === "leader" && (
           <button type="button" disabled={busy || data.balance < data.slotPrice} onClick={() => void run(() => clansService.buySlots(clan.id, "bank"), "Two more member slots")} className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] hover:border-[var(--line-strong)] disabled:opacity-50">
-            <Users className="size-4" aria-hidden="true" />+2 slots · {data.slotPrice.toLocaleString()} LX from the bank
+            <Users className="size-4" aria-hidden="true" />+2 slots · {data.slotPrice.toLocaleString()} FOL$ from the bank
           </button>
         )}
       </section>
@@ -194,7 +194,7 @@ export function ClanBankPanel({ clan, role, onChanged, onProfileNavigate }: { cl
                     <span className="lx-tone-text w-5 text-center text-[13px] font-semibold">{index + 1}</span>
                     <PlayerAvatar avatar={donor.avatar} name={donor.name} className="size-8 rounded-lg text-xs" />
                     <span className="min-w-0 flex-1 truncate text-[13px]">{donor.name}</span>
-                    <span className="text-[13px] font-semibold">{donor.total.toLocaleString()} LX</span>
+                    <span className="text-[13px] font-semibold">{donor.total.toLocaleString()} FOL$</span>
                   </button>
                 </li>
               ))}

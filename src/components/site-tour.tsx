@@ -20,18 +20,18 @@ interface Step {
 }
 
 const STEPS: Step[] = [
-  { title: "Welcome to LEGACY-X", body: "A short tour of the site: where to play, change your skins, spend LX and find people. Use the arrow keys or the buttons, and Esc to stop at any time." },
+  { title: "Welcome to LEGACY-X", body: "A short tour of the site: where to play, change your skins, spend FOL$ and find people. Use the arrow keys or the buttons, and Esc to stop at any time." },
   { target: 'nav button[aria-label="Home"]', sidebar: true, title: "Home", body: "Who is online right now, the best players, and the game modes with a Play now button." },
   { target: 'nav button[aria-label="Play"]', sidebar: true, title: "Play", body: "Pick a mode (5x5, Fun, Pro League, Tournaments), see its servers live and press Connect or Quick play. Pro League needs a sign-in and a high enough rank." },
   { target: 'nav button[aria-label="Skinchanger"]', sidebar: true, title: "Skinchanger", body: "Choose your weapon skins, knives and gloves on the site. In game, type !rs to load the change." },
   { target: 'nav button[aria-label="Compare"]', sidebar: true, title: "Compare", body: "Put two players, or two clans, side by side and see who is ahead on each stat." },
-  { target: 'nav button[aria-label="Commerce"]', sidebar: true, title: "Commerce", body: "The Shop, where you spend LX on name looks, smoke, grenade trails and clan looks (you pick the colours yourself, and everything you own is worn from your profile), and the Market, where players sell things to each other with photos, a price and a phone number." },
+  { target: 'nav button[aria-label="Commerce"]', sidebar: true, title: "Commerce", body: "The Shop, where you spend FOL$ on name looks, smoke, grenade trails and clan looks (you pick the colours yourself, and everything you own is worn from your profile), and the Market, where players sell things to each other with photos, a price and a phone number." },
   { target: 'nav button[aria-label="Leaders"]', sidebar: true, title: "Leaders", body: "The ladders: top players, clans and Discord boosters." },
   { target: 'nav button[aria-label="Community"]', sidebar: true, title: "Community", body: "Clans to join or start, the staff team, and the content creators." },
   { target: 'nav button[aria-label="Penalties"]', sidebar: true, title: "Penalties", body: "Who is banned or muted, and why. If a penalty is yours, you can ask staff to lift it from here." },
   { target: 'nav button[aria-label="Reviews"]', sidebar: true, title: "Reviews", body: "What players say about the community, and a place to write your own." },
   { target: 'nav button[aria-label="Explore"]', sidebar: true, title: "Explore", body: "Search any player by name or Steam ID and open their profile." },
-  { target: 'header [aria-label^="Wallet"]', title: "Your wallet", body: "Your LX. You earn it by playing ranked matches and spend it in the Shop; tap it to see where it came from or to top up." },
+  { target: 'header [aria-label^="Wallet"]', title: "Your wallet", body: "Your FOL$. You earn it by playing ranked matches and spend it in the Shop; tap it to see where it came from or to top up." },
   { target: 'header [aria-label^="Notifications"]', title: "Notifications", body: "Penalties, clan news and messages from staff land here. Tap one to open what it is about." },
   { target: 'button[aria-label="Open the community chat"]', title: "Community chat", body: "Everyone can read the chat. Sign in to write." },
   { title: "That is the tour", body: "You can start it again from the Tutorial button in the top bar whenever you like." },
