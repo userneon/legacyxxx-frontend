@@ -757,13 +757,33 @@ export function ShopPage() {
 
   const soon = endingSoon(all)
   const tabOfKind = (kind: ShopKind): ShopTab => (kind === "name_color" || kind === "name_glow" ? "name" : kind === "smoke_color" || kind === "grenade_trail" ? "smoke_color" : kind === "frame" ? "frame" : kind === "background" ? "background" : "featured")
+  // The page bars (sections, and the profile items under them) stick to the top of the panel; stack them one under the other and let the picked item's
+  // spotlight stick right under them, instead of all of them sticking at 0 and covering each other.
+  const rootRef = useRef<HTMLDivElement>(null)
+  const [barsHeight, setBarsHeight] = useState(0)
+  useEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+    const measure = () => {
+      let top = 0
+      for (const bar of Array.from(root.querySelectorAll<HTMLElement>(":scope > [data-pagebar]"))) {
+        bar.style.top = `${top}px`
+        top += bar.offsetHeight
+      }
+      setBarsHeight(top)
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    root.querySelectorAll(":scope > [data-pagebar]").forEach((bar) => observer.observe(bar))
+    return () => observer.disconnect()
+  }, [tab])
   /**
    * The Spotlight bar (owner pick "S8", 2026-10-26): on a wide screen the picked item sits in one bar across the top of the list, stuck while the
    * list scrolls under it: the item on you at the left, then its colours, length and Buy (the name colour and glow side by side when both are picked).
    * Phones keep the bottom sheet.
    */
   const spotlight = selected ? (
-    <div className="lx-shop-glass sticky top-0 z-10 hidden overflow-hidden rounded-[14px] border border-[var(--glass-line)] bg-[var(--panel)]/80 lg:block">
+    <div style={{ top: barsHeight, backgroundColor: "var(--panel)" }} className="lx-shop-glass sticky z-10 hidden overflow-hidden rounded-[14px] border border-[var(--glass-line)] bg-[var(--panel)] lg:block">
       <div className="flex items-stretch">
       <div className={cn("relative flex shrink-0 items-center justify-center border-r border-[var(--line-soft)] [&>div]:w-full", hasModelPicture(selected) ? "w-[400px]" : "w-[240px]", selected.kind === "background" ? "min-h-[150px]" : hasModelPicture(selected) ? "" : "px-3")}>{previewStage(true)}</div>
       {tab === "name" && combo.name_color && combo.name_glow
@@ -775,7 +795,7 @@ export function ShopPage() {
   ) : null
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div ref={rootRef} className="flex h-full min-h-0 flex-col">
       <PageBar>
         <PageTabs<(typeof TOP_TABS)[number]["value"]> ariaLabel="Shop sections" value={PROFILE_TABS.includes(tab) ? "profile" : (tab as "featured" | "clan")} onChange={(next) => setTab(next === "profile" ? lastProfileTab : next)} options={TOP_TABS} />
         {(tab === "featured" || tab === "frame" || tab === "background" || tab === "name" || tab === "smoke_color" || tab === "model") && (

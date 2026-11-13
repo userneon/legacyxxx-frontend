@@ -6,7 +6,7 @@ import type { SegmentOption } from "@/components/segmented"
 /** The first row of a page: tabs on the left, a hint and the page's controls on the right, one hairline underneath. */
 export function PageBar({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn("z-10 shrink-0 border-b sm:sticky sm:top-0 border-[var(--glass-line)] bg-[var(--lx-panel-bg,var(--card-surface))] px-6 max-sm:px-4", className)}>
+    <div data-pagebar="" className={cn("z-10 shrink-0 border-b sm:sticky sm:top-0 border-[var(--glass-line)] bg-[var(--lx-panel-bg,var(--card-surface))] px-6 max-sm:px-4", className)}>
       <div className="flex flex-wrap items-center gap-x-6 gap-y-1">{children}</div>
     </div>
   )
