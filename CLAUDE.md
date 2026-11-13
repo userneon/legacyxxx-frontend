@@ -451,3 +451,5 @@ Rank cards are gem cards (owner request 2026-11-13, "make the Shop like this", t
 
 The five rank cards sit in ONE row (owner request 2026-11-13, "all 5 in one row"): when the Ranks block is 860px wide or more (a laptop with the category list and the sidebar open, or any wider window) it is a five-column grid and the text on each card scales with the card (container queries, `clamp()` on the name and the line under it, a compact length dropdown, price and Buy, "Benefits" instead of "Benefits and how it looks" under about 230px); narrower, the same five cards stay in one row that scrolls sideways, each about 210px wide. This replaces the auto-fill "three then two" grid of the paragraph above.
 
+The violet light behind the pages is smaller (owner report 2026-11-13, "the pink/violet glow is too big"): `.lx-glass-page::before` in `index.css` draws a 32% x 22% light in the top-right corner (15% brand) and a 26% x 20% one bottom-left (6%), where it was 55% x 40% (22%) and 45% x 35% (10%).
+
