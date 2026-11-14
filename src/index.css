@@ -1739,7 +1739,7 @@ html { background: radial-gradient(70% 38vh at 50% 0%, rgb(255 255 255 / 0.05), 
 /* Quiet bars (progress fills) give off a little light of their own. */
 .lx-stat-fill, [role="progressbar"] > div { box-shadow: 0 0 12px rgb(255 255 255 / 0.25); }
 
-/* The side menu: every icon has its own colour for what it means, and the open page is not boxed. Its icon lights up and a light line stands on the wall of the menu,
+/* The side menu: only the open page's icon takes its own colour (the rest are grey), and the open page is not boxed. Its icon lights up and a light line stands on the wall of the menu,
    not beside the icon. */
 .lxc-shell .lx-glass-sidebar nav :is(button, a) { --ic: #d4d4d4; color: #b5b5b5; }
 .lxc-shell .lx-glass-sidebar nav [aria-label="Home"] { --ic: #60a5fa; }
@@ -1753,9 +1753,9 @@ html { background: radial-gradient(70% 38vh at 50% 0%, rgb(255 255 255 / 0.05), 
 .lxc-shell .lx-glass-sidebar nav [aria-label="Reviews"] { --ic: #facc15; }
 .lxc-shell .lx-glass-sidebar nav [aria-label="Explore"] { --ic: #38bdf8; }
 .lxc-shell .lx-glass-sidebar nav [aria-label="Staff panel"] { --ic: #818cf8; }
-.lxc-shell .lx-glass-sidebar nav :is(button, a) > svg:first-child { color: color-mix(in srgb, var(--ic) 78%, #8a8a8a); transition: color 150ms, filter 150ms; }
+.lxc-shell .lx-glass-sidebar nav :is(button, a) > svg:first-child { color: #9a9a9a; transition: color 150ms, filter 150ms; }
 .lxc-shell .lx-glass-sidebar nav :is(button, a):hover { background: transparent; color: #ececec; }
-.lxc-shell .lx-glass-sidebar nav :is(button, a):hover > svg:first-child { color: var(--ic); }
+.lxc-shell .lx-glass-sidebar nav :is(button, a):hover > svg:first-child { color: #ececec; }
 .lxc-shell .lx-glass-sidebar nav :is(button, a).font-semibold { background: transparent; box-shadow: none; color: #ececec; }
 .lxc-shell .lx-glass-sidebar nav :is(button, a).font-semibold > svg:first-child { color: var(--ic); filter: drop-shadow(0 0 7px color-mix(in srgb, var(--ic) 70%, transparent)); }
 .lxc-shell .lx-glass-sidebar nav :is(button, a).font-semibold::before { background: var(--ic); box-shadow: 0 0 12px var(--ic); }
