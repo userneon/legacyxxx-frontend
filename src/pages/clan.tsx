@@ -53,10 +53,6 @@ function PageWash({ page }: { page: ClanLook["page"] | undefined }) {
 }
 
 /** A clan card's banner: the picture covers the whole box. (The clan page shows it whole instead: ClanBannerStrip.) */
-function BannerArt({ src, alt = "", className, eager }: { src: string; alt?: string; className?: string; eager?: boolean }) {
-  return <div className={cn("relative overflow-hidden bg-[var(--raised)]", className)}><img src={src} alt={alt} loading={eager ? "eager" : "lazy"} decoding="async" className="size-full object-cover" /></div>
-}
-
 /**
  * The clan's banner, whole and unfaded above the header, at the picture's own shape. It used to sit in a fixed 5:1 strip, which on a phone
  * was a sliver (about 70px tall at 360px wide) and made any other shape tiny. A very tall picture is capped (520px) and sits over its own blurred copy.
@@ -67,7 +63,7 @@ function ClanBannerStrip({ banner, name }: { banner?: string | null; name: strin
   return (
     <div className="relative overflow-hidden border-b border-[var(--glass-line)] bg-[var(--raised)]">
       <img src={src} alt="" aria-hidden="true" loading="eager" decoding="async" className="absolute inset-0 size-full scale-125 object-cover opacity-60 blur-2xl" />
-      <img src={src} alt={`${name} banner`} loading="eager" decoding="async" className="relative mx-auto block h-auto max-h-[200px] w-full object-cover" />
+      <img src={src} alt={`${name} banner`} loading="eager" decoding="async" className="relative mx-auto block h-auto max-h-[120px] w-full object-cover" />
     </div>
   )
 }
@@ -239,9 +235,11 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
                     <ArrowRight className="size-4 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />
                   </button>
                 ) : (
-                  <div className="lx-glass flex flex-col items-start gap-3 rounded-2xl p-4">
-                    <span className="text-[15px] font-semibold text-[var(--text)]">Start your own clan</span>
-                    <p className="text-[13px] text-[var(--text-dim)]">Gather a team, share a roster and climb together.</p>
+                  <div className="lx-glass flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl p-4">
+                    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span className="text-[15px] font-semibold text-[var(--text)]">Start your own clan</span>
+                      <p className="text-[13px] text-[var(--text-dim)]">Gather a team, share a roster and climb together.</p>
+                    </div>
                     <button type="button" onClick={() => (isAuthenticated ? setCreating(true) : loginWithSteam())} className="lx-primary-button inline-flex h-9 items-center gap-2 rounded-lg px-3.5 text-[13px] font-semibold">
                       <Plus className="size-4" aria-hidden="true" />
                       Create clan{fee != null ? ` · ${fee.toLocaleString()} FOL$` : ""}
@@ -267,7 +265,7 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
               <div className="flex min-w-0 flex-col gap-3">
                 <QueryState loading={loading && list.length === 0} skeleton={<ClanListSkeleton />} error={error} empty={!loading && !error && list.length === 0} emptyMessage={q ? "No clan has that name." : "No clans yet."} onRetry={refetch} />
                 {!error && list.length > 0 && (
-                  <div className="grid gap-3 @2xl:grid-cols-2">
+                  <div className="grid gap-3 @2xl:grid-cols-2 @6xl:grid-cols-3">
                     {list.map((clan) => (
                       <ClanCardItem key={clan.id} clan={clan} mine={mine} pending={pending.includes(clan.id)} canJoin={!mine} onClanNavigate={onClanNavigate} onChanged={changed} />
                     ))}
@@ -404,7 +402,7 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
   const baseTag = clanTagProps(clan.look, "w-fit text-[13px] font-semibold tracking-wide")
   const tagProps = clan.look?.tagColor ? baseTag : { ...baseTag, style: { ...baseTag.style, color: accent } }
   return (
-    <div className="lx-fx-card group relative isolate flex min-h-[190px] flex-col overflow-hidden rounded-[20px] border border-white/10 bg-[#1b1b1d] transition-colors hover:border-white/25" style={{ backgroundImage: "radial-gradient(1.2px 1.2px at 8px 8px, rgb(255 255 255 / 0.12), transparent)", backgroundSize: "16px 16px" }}>
+    <div className="group relative flex flex-col overflow-hidden rounded-xl bg-[var(--glass-fill)] transition-colors hover:bg-[var(--raised)]">
       <Dialog open={asking} onOpenChange={setAsking}>
         <DialogContent className="rounded-2xl">
           <DialogHeader><DialogTitle>Join {clan.name}</DialogTitle><DialogDescription>The leader reads your answers before accepting.</DialogDescription></DialogHeader>
@@ -424,43 +422,36 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
         </DialogContent>
       </Dialog>
       {banner ? (
-        <BannerArt src={banner} className="absolute -inset-px -z-10 bg-transparent" />
-      ) : (
-        <>
-          {wash && <div aria-hidden="true" className="absolute inset-0 -z-10 opacity-50" style={{ background: wash }} />}
-          <Swords aria-hidden="true" className="absolute right-6 top-10 -z-10 size-[104px] text-[var(--brand)] opacity-70" strokeWidth={1.6} />
-        </>
-      )}
-      {banner && <div aria-hidden="true" className="absolute -inset-px -z-10 bg-gradient-to-t from-[#1b1b1d] via-[#1b1b1d]/60 to-transparent" />}
-      <div className="relative flex flex-1 flex-col p-4">
-        {/* The way in is a small control top right; the whole card opens the clan (OneTake-style card, owner request 2026-11-13). */}
-        <div className="flex items-start justify-between gap-2">
-          <button type="button" aria-label={`Open ${clan.name}`} onClick={() => onClanNavigate(String(clan.number ?? clan.id))} className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-            <ClanMark logo={clan.logo} tag={clan.tag} className="size-[76px] rounded-[18px]" style={{ boxShadow: "0 0 0 1px rgb(255 255 255 / 0.1)" }} />
-          </button>
-          {isMine ? (
-            <span className="inline-flex h-8 items-center gap-1.5 rounded-full bg-black/45 px-3 text-[12px] text-[var(--text-2)]"><Check className="size-3.5" aria-hidden="true" />Your clan</span>
-          ) : pending ? (
-            <button type="button" disabled={busy} onClick={() => void act(() => clansService.cancelRequest(clan.id), "Could not cancel the request")} className="inline-flex h-8 items-center gap-1.5 rounded-full bg-black/45 px-3 text-[12px] text-[var(--text-2)] hover:bg-black/60"><X className="size-3.5" aria-hidden="true" />Requested · cancel</button>
-          ) : (
-            <button type="button" disabled={isFull || busy || (isAuthenticated && !canJoin)} onClick={join} className={cn("inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[12px] font-semibold transition-colors", isFull ? "bg-black/45 text-[var(--text-dim)]" : "lx-primary-button")}>
-              <UserPlus className="size-3.5" aria-hidden="true" />
-              {isFull ? "Full" : busy ? "Sending…" : clan.joinMode === "request" ? "Request" : "Join"}
-            </button>
-          )}
-        </div>
-        <button type="button" onClick={() => onClanNavigate(String(clan.number ?? clan.id))} className="mt-auto flex flex-col items-start gap-2 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-          <span className="flex max-w-full items-center gap-2">
-            <span className="truncate text-[20px] font-bold leading-tight" title={clan.name}>{clan.name}</span>
-            <span {...tagProps} className="shrink-0 rounded-full border border-white/25 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-[var(--text-2)]">{clan.tag}</span>
-          </span>
-          <span className="flex items-center gap-4 text-[13px] text-[var(--text-2)]">
-            <span className="inline-flex items-center gap-1.5" title="Members"><Users className="size-3.5" aria-hidden="true" />{clan.currentPlayers}/{clan.maxPlayers}</span>
-            {clan.preview && clan.preview.totalExp > 0 && <span className="inline-flex items-center gap-1.5" title="Total EXP"><Trophy className="size-3.5" aria-hidden="true" />{clan.preview.totalExp.toLocaleString()}</span>}
-            {clan.level != null && <span className="inline-flex items-center gap-1.5" title="Level"><Star className="size-3.5" aria-hidden="true" />{clan.level}</span>}
-          </span>
-          <JoinModeLabel mode={clan.joinMode} className="text-[13px] text-[var(--text-2)]" />
+        <img src={banner} alt="" aria-hidden="true" loading="lazy" decoding="async" className="h-16 w-full object-cover" />
+      ) : wash ? (
+        <div aria-hidden="true" className="h-16 w-full opacity-40" style={{ background: wash }} />
+      ) : null}
+      <div className="flex items-center gap-3.5 p-4">
+        <button type="button" aria-label={`Open ${clan.name}`} onClick={() => onClanNavigate(String(clan.number ?? clan.id))} className={cn("shrink-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60", (banner || wash) && "-mt-9")}>
+          <ClanMark logo={clan.logo} tag={clan.tag} className="size-14 rounded-xl text-[13px]" />
         </button>
+        <button type="button" onClick={() => onClanNavigate(String(clan.number ?? clan.id))} className="flex min-w-0 flex-1 flex-col items-start gap-1 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
+          <span className="flex max-w-full items-center gap-2">
+            <span className="truncate text-[16px] font-semibold leading-tight text-[var(--text)]" title={clan.name}>{clan.name}</span>
+            <span {...tagProps} className="shrink-0 rounded-md bg-[var(--raised)] px-1.5 py-0.5 text-[11px] font-semibold tracking-wide text-[var(--text-2)]">{clan.tag}</span>
+          </span>
+          <span className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[12px] text-[var(--text-dim)]">
+            <span className="inline-flex items-center gap-1" title="Members"><Users className="size-3.5" aria-hidden="true" />{clan.currentPlayers}/{clan.maxPlayers}</span>
+            {clan.preview && clan.preview.totalExp > 0 && <span className="inline-flex items-center gap-1" title="Total EXP"><Trophy className="size-3.5" aria-hidden="true" />{clan.preview.totalExp.toLocaleString()}</span>}
+            {clan.level != null && <span className="inline-flex items-center gap-1" title="Level"><Star className="size-3.5" aria-hidden="true" />Lv {clan.level}</span>}
+            <JoinModeLabel mode={clan.joinMode} className="text-[12px] text-[var(--text-dim)]" />
+          </span>
+        </button>
+        {isMine ? (
+          <span className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-[var(--raised)] px-3 text-[12px] text-[var(--text-2)]"><Check className="size-3.5" aria-hidden="true" />Yours</span>
+        ) : pending ? (
+          <button type="button" disabled={busy} onClick={() => void act(() => clansService.cancelRequest(clan.id), "Could not cancel the request")} className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-[var(--raised)] px-3 text-[12px] text-[var(--text-2)] hover:text-[var(--text)]"><X className="size-3.5" aria-hidden="true" />Cancel</button>
+        ) : (
+          <button type="button" disabled={isFull || busy || (isAuthenticated && !canJoin)} onClick={join} className={cn("inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-3.5 text-[13px] font-semibold transition-colors", isFull ? "bg-[var(--raised)] text-[var(--text-dim)]" : "lx-primary-button")}>
+            <UserPlus className="size-4" aria-hidden="true" />
+            {isFull ? "Full" : busy ? "Sending…" : clan.joinMode === "request" ? "Request" : "Join"}
+          </button>
+        )}
       </div>
     </div>
   )
@@ -546,8 +537,8 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
               <div className="flex min-w-0 flex-col gap-3">
               <section className="lx-glass relative overflow-hidden rounded-2xl">
               <ClanBannerStrip banner={clan.thumbnail} name={clan.name} />
-              <div className="relative flex flex-col gap-4 p-5">
-                <ClanMark logo={clan.logo} tag={clan.tag} className="size-16 text-[15px]" />
+              <div className="relative flex flex-wrap items-start gap-x-5 gap-y-3 p-5">
+                <ClanMark logo={clan.logo} tag={clan.tag} className={cn("size-[72px] shrink-0 rounded-2xl text-[15px]", clan.thumbnail && "-mt-14")} />
                 <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                   <h1 className="flex min-w-0 items-center gap-2 text-[22px] font-semibold leading-tight"><span className="truncate">{clan.name} <span className="text-[13px] font-medium text-[var(--text-dim)]">[{clan.tag}]</span></span>{clan.level ? <span title="Clan level" className="shrink-0 rounded-full border border-[var(--line-strong)] px-2 py-0.5 text-[11px] font-semibold text-[var(--text-2)]">Lv {clan.level}</span> : null}</h1>
                   <p className="flex flex-wrap items-center gap-x-3 text-[13px] text-[var(--text-dim)]"><span>{clan.region} · {clan.currentPlayers}/{clan.maxPlayers} members</span><JoinModeLabel mode={clan.joinMode} /></p>
@@ -558,8 +549,6 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
               </div>
               </section>
               {isManager && shown === "roster" && <JoinRequests clanId={clanId} onAccepted={() => void refetch()} />}
-              {isManager && shown === "roster" && <InvitePanel clanId={clanId} />}
-              {isManager && shown === "roster" && <ActivityPanel clanId={clanId} />}
               </div>
               <div className="flex min-w-0 flex-col gap-3">
               <ClanSectionTabs value={shown} onChange={setSection} member={Boolean(role)} />
@@ -610,7 +599,12 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                   </ul>
                 )}
               </section>
-
+              {isManager && (
+                <div className="grid gap-3 @3xl:grid-cols-2">
+                  <InvitePanel clanId={clanId} />
+                  <ActivityPanel clanId={clanId} />
+                </div>
+              )}
               </>}
               </div>
               </div>
