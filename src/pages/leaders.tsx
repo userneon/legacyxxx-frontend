@@ -8,7 +8,7 @@ import { GRID } from "@/pages/leaders-grid"
 import { DiscordLinkedMark } from "@/components/discord-linked-mark"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react"
-import { Trophy, LoaderCircle, RotateCcw, Search } from "lucide-react"
+import { LoaderCircle, RotateCcw, Search } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { competitiveService } from "@/api"
@@ -65,7 +65,6 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
       <NameBanner fx={player.banner} image={player.bannerImage} />
       <span className="flex items-center justify-between">
         <span className="flex items-center gap-2 text-[13px] font-bold tracking-[0.4px]" style={{ color: MEDAL[player.position] }}>
-          {player.position === 1 && <Trophy aria-hidden="true" className="size-4" />}
           #{player.position}
         </span>
         <CompetitiveRankBadge rankId={player.rank_id} rankName={player.rank_name} imageKey={player.rank_image_key} currentExp={player.current_exp} size={36} />
