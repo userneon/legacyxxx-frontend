@@ -23,7 +23,7 @@ import { LINKS } from "@/lib/links"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { formatDate, useWebsitePreferences } from "@/lib/preferences"
 import { PAGE_ROUTES, PAGE_TITLES, documentTitle } from "@/lib/routes"
-import { RingStat } from "@/components/home-bento"
+import { RingStat } from "@/components/home-parts"
 import { CompetitiveRankBadge, RankLabel, RankPill } from "@/components/competitive-rank-badge"
 import { FaceitLevelBadge } from "@/components/faceit-level-badge"
 import { MatchDetailsDialog } from "@/components/match-details-dialog"
@@ -857,24 +857,17 @@ export function ProfilePage({ userId }: { userId?: string }) {
   const banner = bannerPick ?? (data.perk ? `perk-${data.perk.tier}` : null)
   return (
     <div ref={topRef}>
-      {true && (
-      <div className="@container lx-profile-calm px-6 pb-8 pt-5 max-md:px-4">
-        <div className="lx-bento grid gap-4 @3xl:grid-cols-12">
-          {/* Who this is: the banner, the avatar, the name, the badges and the buttons, in one card that stays in view. */}
-          <aside className="flex min-w-0 flex-col gap-3 @3xl:col-span-4">
-            <section aria-label="Profile" className="lx-glass relative overflow-hidden rounded-2xl">
-              <ProfileBanner fx={banner} fade className="h-[190px]" />
-              <div className={cn("relative px-5 pb-6 max-md:px-4", banner ? "pt-[64px]" : "pt-7")}>
-                <Header overview={previewData} onVisibilityChange={refetch} />
-              </div>
-            </section>
-            {data.user.role === "Owner" && <OwnerPanel overview={data} />}
-            <div {...rise(1)} className={rise(1).className}><TrustCard overview={data} onOpenPenalty={(id) => setOpenPenalty(penaltyById(id))} /></div>
-            {hidden.has("loadout") ? <HiddenCard section="loadout" /> : data.loadout && <LoadoutCard loadout={data.loadout} />}
-            {data.banned ? (showFaceit && faceit ? <CensoredCard label="FACEIT" rows={3} /> : null) : hidden.has("faceit") ? <HiddenCard section="faceit" /> : showFaceit && faceit && <FaceitCard faceit={faceit} />}
-            <PenaltyHistory penalties={data.penalties} total={data.penaltyCount} steamId={data.user.steamId} onOpen={setOpenPenalty} />
-          </aside>
-          <div className="@container flex min-w-0 flex-col gap-3 @3xl:col-span-8">
+      <div className="@container px-6 pb-8 pt-5 max-md:px-4">
+        <div className="lx-stack flex flex-col gap-4">
+          {/* Who this is: the banner, the avatar, the name, the badges and the buttons. */}
+          <section aria-label="Profile" className="lx-glass relative overflow-hidden rounded-2xl">
+            <ProfileBanner fx={banner} fade className="h-[190px]" />
+            <div className={cn("relative px-5 pb-6 max-md:px-4", banner ? "pt-[64px]" : "pt-7")}>
+              <Header overview={previewData} onVisibilityChange={refetch} />
+            </div>
+          </section>
+          {data.user.role === "Owner" && <OwnerPanel overview={data} />}
+          <div className="flex min-w-0 flex-col gap-3">
             <div className="lx-glass rounded-2xl px-5">
               <PageTabs<"stats" | "configs" | "appearance" | "settings"> ariaLabel="Profile sections" value={tab === "profile" ? view : tab} onChange={(next) => { if (next === "stats" || next === "configs") { setView(next); setTab("profile") } else setTab(next) }} options={own ? [{ value: "stats", label: "Stats" }, { value: "configs", label: "Configs" }, { value: "appearance", label: "Appearance" }, { value: "settings", label: "Settings" }] : [{ value: "stats", label: "Stats" }, { value: "configs", label: "Configs" }]} />
             </div>
@@ -911,9 +904,16 @@ export function ProfilePage({ userId }: { userId?: string }) {
               </>
             )}
           </div>
+          {tab === "profile" && view === "stats" && (
+            <div className="grid min-w-0 gap-3 @3xl:grid-cols-2">
+              <div {...rise(1)} className={rise(1).className}><TrustCard overview={data} onOpenPenalty={(id) => setOpenPenalty(penaltyById(id))} /></div>
+              {hidden.has("loadout") ? <HiddenCard section="loadout" /> : data.loadout && <LoadoutCard loadout={data.loadout} />}
+              {data.banned ? (showFaceit && faceit ? <CensoredCard label="FACEIT" rows={3} /> : null) : hidden.has("faceit") ? <HiddenCard section="faceit" /> : showFaceit && faceit && <FaceitCard faceit={faceit} />}
+              <PenaltyHistory penalties={data.penalties} total={data.penaltyCount} steamId={data.user.steamId} onOpen={setOpenPenalty} />
+            </div>
+          )}
         </div>
       </div>
-      )}
 
       {openMatch?.matchId && (
         <MatchDetailsDialog matchId={openMatch.matchId} mapNumber={openMatch.mapNumber ?? 1} highlightSteamId={data.user.steamId} exp={openMatch} onOpenChange={(open) => { if (!open) setOpenMatch(null) }} />

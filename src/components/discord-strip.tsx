@@ -84,7 +84,7 @@ export function DiscordStrip() {
   )
 }
 
-/** Home's Discord card (bento): the server's blue, the 3D mark, how many are online and a few of their faces (the public widget; no count when it is off). */
+/** Home's Discord card: the server's blue, the 3D mark, how many are online and a few of their faces (the public widget; no count when it is off). */
 export function DiscordCard({ className }: { className?: string }) {
   const widget = useDiscordWidget()
   // Our own public list of members who linked Discord (the bot fills it): it still says something when the server widget is switched off.

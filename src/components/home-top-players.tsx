@@ -12,7 +12,7 @@ import { CompetitiveRankBadge, rankTierColor } from "@/components/competitive-ra
 import { PlayerAvatar } from "@/components/player-avatar"
 import { nameProps } from "@/lib/cosmetics"
 import { Skeleton } from "@/components/ui/skeleton"
-import { RankMedal } from "@/components/home-bento"
+import { RankMedal } from "@/components/home-parts"
 
 function SectionHeader({ title, subtitle, action, onAction }: { title: string; subtitle?: string; action?: string; onAction?: () => void }) {
   return (

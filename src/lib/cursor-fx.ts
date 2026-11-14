@@ -1,5 +1,5 @@
 /**
- * Cursor effects (owner request 2026-11-13, "holo card, tile, bento and the others"): an element with `data-fx` is "hot" while the
+ * Cursor effects (owner request 2026-11-13, "holo card, tile"): an element with `data-fx` is "hot" while the
  * pointer is over it, and gets the pointer's place as `--x` / `--y` (px from its corner); `data-fx~="tilt"` also gets `--rx` / `--ry` (a few degrees toward the pointer)
  * and `--hx` (the holo sheen's place). Everything visible is CSS (`.lx-fx-*`, `[data-hot]` in `index.css`). One passive listener, one frame at a time; not installed on touch
  * screens.

@@ -836,19 +836,19 @@
   }
 }
 
-/* Bento pages (owner request 2026-11-09, "every page flows down into place, one after another"): each cell of a bento grid, then the cards stacked in a column, flow down in turn. Transforms and opacity only, `backwards` fill, still for reduced motion. */
-.page-enter .lx-bento > *,
-.page-enter .lx-bento > * > * {
+/* Page parts flow down in turn: each part of a page stack, then the cards inside it. Transforms and opacity only, `backwards` fill, still for reduced motion. */
+.page-enter .lx-stack > *,
+.page-enter .lx-stack > * > * {
   animation: lx-flow-down 380ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
-.page-enter .lx-bento > :nth-child(2) { animation-delay: 25ms; }
-.page-enter .lx-bento > :nth-child(3) { animation-delay: 50ms; }
-.page-enter .lx-bento > :nth-child(n + 4) { animation-delay: 75ms; }
-.page-enter .lx-bento > * > :nth-child(2) { animation-delay: 25ms; }
-.page-enter .lx-bento > * > :nth-child(3) { animation-delay: 50ms; }
-.page-enter .lx-bento > * > :nth-child(n + 4) { animation-delay: 75ms; }
+.page-enter .lx-stack > :nth-child(2) { animation-delay: 25ms; }
+.page-enter .lx-stack > :nth-child(3) { animation-delay: 50ms; }
+.page-enter .lx-stack > :nth-child(n + 4) { animation-delay: 75ms; }
+.page-enter .lx-stack > * > :nth-child(2) { animation-delay: 25ms; }
+.page-enter .lx-stack > * > :nth-child(3) { animation-delay: 50ms; }
+.page-enter .lx-stack > * > :nth-child(n + 4) { animation-delay: 75ms; }
 @media (prefers-reduced-motion: reduce) {
-  .page-enter .lx-bento > *, .page-enter .lx-bento > * > * { animation: none; }}
+  .page-enter .lx-stack > *, .page-enter .lx-stack > * > * { animation: none; }}
 
 /* The ring stats (Home, Profile, Clans) draw themselves in: each coloured part grows from its start to its length, one after another (owner request 2026-11-09). `backwards`, still for reduced motion. */
 .lx-ring-seg { animation: lx-ring-draw 900ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }

@@ -1,4 +1,4 @@
-/** LEGACY-X Home (bento, owner pick 2026-11-09): a slider (today one slide: the Scanner and Anti-Cheat), the player's rank and rings, the four modes, the top of the ladder, reviews and Discord. */
+/** Home: the slider, the player's rank, the four modes, the top of the ladder, then reviews, TikTok and Discord, one section under another. */
 import { cn } from "@/lib/utils"
 import { serversService } from "@/api"
 import { tournamentsService } from "@/api/tournaments"
@@ -7,7 +7,7 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { HomeReviewsCard } from "@/components/home-reviews"
 import { DiscordCard } from "@/components/discord-strip"
 import { TikTokCard } from "@/components/home-tiktok"
-import { FindPlayerPill, HeroSlider, RankPanel } from "@/components/home-bento"
+import { FindPlayerPill, HeroSlider, RankPanel } from "@/components/home-parts"
 import { TopPlayers } from "@/components/home-top-players"
 import { useNavigate } from "react-router-dom"
 import { formatDate } from "@/lib/preferences"
@@ -52,17 +52,15 @@ export function HomePage({ onNavigate }: HomePageProps) {
   }
 
   return (
-    <div className="lx-glass-page lx-calm lx-faceit @container flex flex-1 flex-col p-4 @2xl:p-6">
+    <div className="@container flex flex-1 flex-col p-4 @2xl:p-6">
       {greeting && <div className="mb-3"><span className="lx-event-greeting">{greeting}</span></div>}
-      <div className="lx-bento grid flex-1 grid-cols-1 gap-3 @3xl:grid-cols-12 @3xl:[grid-template-rows:minmax(auto,1fr)_auto_minmax(auto,1fr)]">
-        <HeroSlider className="@3xl:col-span-8" />
-        <div className="flex flex-col gap-3 @3xl:col-span-4">
-          <FindPlayerPill />
-          <RankPanel />
-        </div>
+      <div className="lx-stack flex flex-1 flex-col gap-3">
+        <HeroSlider />
+        <FindPlayerPill />
+        <RankPanel />
 
         {/* Mode cards: the same four cards, equal width, each with its real status. */}
-        <div className="grid grid-cols-1 gap-3 @md:grid-cols-2 @3xl:col-span-12 @5xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 @md:grid-cols-2 @5xl:grid-cols-4">
           {MODE_CARDS.map((mode, index) => {
             const status = modeStatus(mode.key)
             return (
@@ -91,11 +89,11 @@ export function HomePage({ onNavigate }: HomePageProps) {
           })}
         </div>
 
-        <TopPlayers className="@3xl:col-span-8" onOpenProfile={(steamId) => navigate(`/profile/${encodeURIComponent(steamId)}`)} onViewAll={() => onNavigate("leaders")} />
-        <div className="flex flex-col gap-3 @3xl:col-span-4">
-          <HomeReviewsCard onOpen={() => onNavigate("feedback")} className="flex-[0.6]" />
-          <TikTokCard className="flex-1" />
-          <DiscordCard className="flex-1" />
+        <TopPlayers onOpenProfile={(steamId) => navigate(`/profile/${encodeURIComponent(steamId)}`)} onViewAll={() => onNavigate("leaders")} />
+        <div className="grid grid-cols-1 gap-3 @2xl:grid-cols-3">
+          <HomeReviewsCard onOpen={() => onNavigate("feedback")} />
+          <TikTokCard />
+          <DiscordCard />
         </div>
       </div>
     </div>

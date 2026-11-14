@@ -1,4 +1,4 @@
-/** Home bento parts (owner request 2026-11-09): the map slider, the signed-in player's rank and four ring stats, the four mode cards and the rank medals. Real data only. */
+/** Home parts: the map slider, the signed-in player's rank and four ring stats, the four mode cards and the rank medals. Real data only. */
 import { useId, useState } from "react"
 import { ChevronLeft, ChevronRight, RotateCcw, Search } from "lucide-react"
 import { useNavigate } from "react-router-dom"

@@ -257,7 +257,7 @@ function Appearance() {
       ) : error || !data ? (
         <p className="flex items-center gap-3 text-[13px] text-[var(--text-dim)]">Could not load your appearance.<button type="button" onClick={refetch} className="inline-flex h-[34px] items-center gap-1.5 rounded-lg border border-[var(--line)] px-3.5 text-[13px] font-medium text-[var(--text-2)] hover:bg-[var(--raised)]"><RotateCcw className="size-3.5" />Retry</button></p>
       ) : (
-        <div className="lx-bento grid gap-3">
+        <div className="lx-stack grid gap-3">
           <div className="flex min-w-0 flex-col gap-3">
             <div role="radiogroup" aria-label="What to change" className="lx-glass flex flex-col gap-2.5 rounded-2xl p-4">
               <div className="flex items-center justify-between gap-3"><h2 className="text-[15px] font-semibold text-[var(--text)]">Appearance</h2>{saved.node}</div>

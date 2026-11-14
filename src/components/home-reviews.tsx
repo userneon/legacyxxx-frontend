@@ -97,7 +97,7 @@ export function HomeReviews({ onWriteReview }: { onWriteReview: () => void }) {
   )
 }
 
-/** Home's small reviews card (bento): the average and count, and the latest review in the player's own words. */
+/** Home's small reviews card: the average and count, and the latest review in the player's own words. */
 export function HomeReviewsCard({ onOpen, className }: { onOpen: () => void; className?: string }) {
   const { data, loading, error, refetch } = useApiQuery<FeedbackEntry[]>((signal) => feedbackService.getFeedback({ signal }), { queryKey: "home-reviews-card" })
   const reviews = [...(data ?? [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
