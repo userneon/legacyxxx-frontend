@@ -64,7 +64,7 @@ export const COMMUNITY_ITEMS: NavItem[] = enabledNav([
 export const SKIN_VIEWS: Array<{ id: SkinchangerView; label: string }> = [
   { id: "loadout", label: "Loadout" },
   { id: "collections", label: "Collections" },
-  { id: "advanced", label: "Advanced" },
+  ...(isFeatureEnabled("skinAdvanced") ? [{ id: "advanced" as const, label: "Advanced" }] : []),
 ]
 
 const EASE = "ease-[cubic-bezier(0.2,0,0,1)]"

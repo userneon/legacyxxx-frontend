@@ -20,6 +20,8 @@ export const FEATURES = {
   profileGrid: import.meta.env.DEV || import.meta.env.VITE_FEATURE_PROFILE_GRID === "1",
   /** Community skin collections on the Skinchanger page. The server needs the skin_collections migration and a deploy. */
   skinCollections: true,
+  /** Skinchanger → Advanced (the craft studio): hidden while it is rebuilt. The code and the saved crafts stay. */
+  skinAdvanced: false,
   /** Two players side by side. */
   compare: true,
   /** The Shop: frames, name colours and glows bought with LX. The server needs the cosmetics migrations. */

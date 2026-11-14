@@ -224,7 +224,8 @@ function cascadeTiles(root: HTMLElement | null, selector: string) {
 
 export function SkinchangerPage() {
   const [collection, setCollection] = useState<CollectionId>("skins")
-  const view = useSkinchangerView()
+  const chosenView = useSkinchangerView()
+  const view = chosenView === "advanced" && !isFeatureEnabled("skinAdvanced") ? "loadout" : chosenView
   const [skinGroup, setSkinGroup] = useState<SkinchangerFirearmGroup | "agents">("Rifles")
   const [query, setQuery] = useState("")
   const [weaponClass, setWeaponClass] = useState("")
