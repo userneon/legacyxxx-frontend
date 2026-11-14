@@ -1688,7 +1688,7 @@ body::after { content: ""; position: fixed; left: 0; right: 0; bottom: 0; height
 html, body { background: #060606; }
 body::after, body::before, .lx-glass-page::before, .lx-calm::after { display: none; }
 :is(.lx-glass, .glass, .lx-pcard, .lx-people-card, .lx-team-card, .lx-play-panel, .lx-shop-tile, .lx-shop-glass, .lx-frost, .lx-ring-card, .lx-add-box, .lx-fx-card):not(.rounded-full) {
-  background: #111111; border: 1px solid #1f1f1f; border-radius: 8px; box-shadow: none;
+  background: #111111; border: 1px solid transparent; border-radius: 8px; box-shadow: none;
   backdrop-filter: none; -webkit-backdrop-filter: none;
 }
 :is(.lx-glass, .glass, .lx-pcard, .lx-people-card, .lx-team-card, .lx-shop-tile, .lx-frost, .lx-fx-card):is(a, button, li, article, [role="button"]):not(.rounded-full):hover {
@@ -1769,3 +1769,8 @@ html { background: radial-gradient(70% 38vh at 50% 0%, rgb(255 255 255 / 0.05), 
   background-position: 0 0;
   background-attachment: local;
 }
+
+/* No outlines on cards (owner request 2026-11-14: "they look like a mistake"): a card is told apart by its lighter fill alone. */
+:is(.lx-glass, .glass, .lx-pcard, .lx-people-card, .lx-team-card, .lx-play-panel, .lx-shop-tile, .lx-shop-glass, .lx-frost, .lx-ring-card, .lx-add-box, .lx-fx-card, .lx-tile-panel, .lx-boost),
+[class*="bg-[var(--glass-fill)]"], [class*="bg-[var(--card-surface)]"]:not(button, input, select, textarea) { border-color: transparent; }
+:is(.lx-glass, .glass, .lx-pcard, .lx-people-card, .lx-team-card, .lx-shop-tile, .lx-frost, .lx-fx-card):is(a, button, li, article, [role="button"]):not(.rounded-full):hover { border-color: transparent; }

@@ -63,7 +63,7 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
         <PopoverTrigger
           aria-haspopup="menu"
           aria-label={user.username}
-          className="relative z-[1] size-9 shrink-0 overflow-hidden rounded-full border border-[var(--line-strong)] bg-[var(--line)] transition-colors hover:border-[var(--text-dim)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
+          className="relative z-[1] size-9 shrink-0 overflow-hidden rounded-full bg-[var(--line)] transition-colors hover:border-[var(--text-dim)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
         >
           <Avatar user={user} />
         </PopoverTrigger>
@@ -71,7 +71,7 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
         <PopoverContent align="end" sideOffset={8} role="menu" className="w-[280px] overflow-hidden rounded-[20px] border-[var(--line-strong)] bg-[var(--card-surface)] p-0 shadow-[0_18px_50px_rgba(0,0,0,0.55)]">
           <div className="flex flex-col gap-3 border-b border-[var(--line-soft)] p-4">
             <div className="flex items-center gap-3">
-              <span className="size-11 shrink-0 overflow-hidden rounded-full border border-[var(--line-strong)] bg-[var(--line)]"><Avatar user={user} /></span>
+              <span className="size-11 shrink-0 overflow-hidden rounded-full bg-[var(--line)]"><Avatar user={user} /></span>
               <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                 <div className="truncate text-sm font-semibold text-[var(--text)]" title={user.username}>{user.username}</div>
                 {competitive && <RankLabel rankId={competitive.rank_id} rankName={competitive.rank_name} imageKey={competitive.rank_image_key} currentExp={competitive.current_exp} size={16} nameClassName="text-xs" />}
