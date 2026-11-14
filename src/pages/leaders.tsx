@@ -68,19 +68,6 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
       )}
     >
       <NameBanner fx={player.banner} />
-      <span
-        aria-hidden="true"
-        className={cn(
-          "pointer-events-none absolute -right-10 -top-12 -z-10 size-44 rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--tier)_22%,transparent)_0%,transparent_70%)] transition-opacity duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:opacity-100 group-hover:duration-500",
-          first ? "opacity-70" : "opacity-0",
-        )}
-      />
-      {first && (
-        <>
-          <span aria-hidden="true" className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-transparent via-[var(--brand-bright)] to-transparent" />
-          <span aria-hidden="true" className="lx-hero-glow pointer-events-none absolute -inset-10 -z-10 opacity-50" />
-        </>
-      )}
       <span className="flex items-center justify-between">
         <span className="flex items-center gap-2">
           {first && <Crown aria-hidden="true" className="size-6 fill-[var(--brand)]/30 text-[var(--brand-bright)] drop-" />}
@@ -147,7 +134,7 @@ function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: Competiti
         // fixed layer keeps a podium hover from re-creating (and repainting) the row below it.
         "lx-layer group relative isolate w-full text-left transition-[background-color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] hover:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50",
         you
-          ? "h-[60px] shrink-0 border-t border-[var(--brand)]/40 bg-[linear-gradient(90deg,color-mix(in_oklab,var(--brand)_16%,var(--card-surface)),var(--card-surface)_45%)]"
+          ? "h-[60px] shrink-0 border-t border-[var(--brand)]/40 bg-[var(--card-surface)]"
           : "lx-row-in h-14 border-b border-[var(--raised)] hover:bg-[var(--raised)]",
       )}
     >

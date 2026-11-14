@@ -31,7 +31,6 @@ function ClanTopCard({ clan, onOpen }: { clan: ClanRankEntry; onOpen: () => void
         first ? "border-[var(--brand)]/45" : "mt-6 border-[var(--line-soft)]",
       )}
     >
-      {first && <span aria-hidden="true" className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-transparent via-[var(--brand-bright)] to-transparent" />}
       <span className="flex items-center gap-2">
         {first && <Crown aria-hidden="true" className="size-6 fill-[var(--brand)]/30 text-[var(--brand-bright)]" />}
         <span className={cn("font-bold leading-none tracking-[-1px]", first ? "text-[34px] text-[var(--text)]" : "text-[28px] text-[var(--text-2)]")}>#{clan.rank}</span>
@@ -69,7 +68,7 @@ function ClanRow({ clan, onOpen, you, index = 0 }: { clan: ClanRankEntry; onOpen
         CLAN_GRID,
         "lx-layer group relative w-full text-left transition-[background-color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] hover:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50",
         you
-          ? "h-[60px] shrink-0 border-t border-[var(--brand)]/40 bg-[linear-gradient(90deg,color-mix(in_oklab,var(--brand)_16%,var(--card-surface)),var(--card-surface)_45%)]"
+          ? "h-[60px] shrink-0 border-t border-[var(--brand)]/40 bg-[var(--card-surface)]"
           : "lx-row-in h-14 border-b border-[var(--raised)] hover:bg-[var(--raised)]",
       )}
     >

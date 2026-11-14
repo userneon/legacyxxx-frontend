@@ -194,7 +194,7 @@ function ReviewCard({ entry, own, fresh, index, onOpenProfile, onEdit, onChanged
       style={{ animationDelay: `${fresh ? 0 : Math.min(index, 10) * 50}ms` }}
       className={cn(
         "lx-fx-card group relative isolate flex flex-col gap-3 overflow-hidden rounded-xl border bg-[var(--glass-fill)] px-5 py-[18px]",
-        own ? "border-[var(--line-strong)] bg-[linear-gradient(160deg,color-mix(in_oklab,var(--brand)_10%,var(--card-surface)),var(--card-surface)_55%)]" : "border-[var(--line-soft)]",
+        own ? "border-[var(--line-strong)] bg-[var(--glass-fill)]" : "border-[var(--line-soft)]",
       )}
     >
       <NameBanner fx={entry.banner} />

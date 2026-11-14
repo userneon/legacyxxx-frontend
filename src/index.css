@@ -306,51 +306,6 @@
 .lx-glass {
   background: var(--glass-fill);
   border: 1px solid var(--glass-line);
-  box-shadow: var(--glass-highlight);
-}
-/* Light sweep: when the pointer enters a card, one soft band of light glides across it, left to right, and fades out at the
-   end. It is a pseudo-element with its own transitions, so the card's own transitions, borders and shadows are untouched.
-   Cards get it when they are an article, link, button or list item, or already react to hover (a class with "hover:");
-   big panels (plain sections and divs) do not, so a whole page never flashes. Any element can opt in with .lx-sweep.
-   The band eases in and out (slow start, slow finish), its edges are feathered in several steps, and on leaving it fades
-   first and only then jumps back, so there is never a visible snap. */
-:is(:is([class*="glass-fill"], .glass, .lx-glass):is(article, a, button, li, [role="button"], [class*="hover:"]), .lx-sweep):not(textarea, input, [class~="absolute"], [class~="fixed"], [class~="sticky"]) {
-  position: relative;
-  isolation: isolate;
-}
-:is(:is([class*="glass-fill"], .glass, .lx-glass):is(article, a, button, li, [role="button"], [class*="hover:"]), .lx-sweep):not(textarea, input)::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  /* Behind the content (the map art and text), above the card's own background: the band never hazes the picture. */
-  z-index: -1;
-  border-radius: inherit;
-  pointer-events: none;
-  opacity: 0;
-  background: linear-gradient(
-    102deg,
-    transparent 28%,
-    rgba(255, 255, 255, 0.012) 38%,
-    rgba(255, 255, 255, 0.05) 46%,
-    rgba(255, 255, 255, 0.085) 50%,
-    rgba(255, 255, 255, 0.05) 54%,
-    rgba(255, 255, 255, 0.012) 62%,
-    transparent 72%
-  ) no-repeat;
-  background-size: 220% 100%;
-  background-position: 112.5% 0;
-  /* Leaving: fade out, then (after the fade) reset the position. */
-  transition: opacity 380ms ease-out, background-position 0s linear 380ms;
-}
-:is(:is([class*="glass-fill"], .glass, .lx-glass):is(article, a, button, li, [role="button"], [class*="hover:"]), .lx-sweep):not(textarea, input):hover::after {
-  opacity: 1;
-  background-position: -12.5% 0;
-  /* Entering: fade in fast while the band glides slowly, easing at both ends. */
-  transition: opacity 260ms ease-out, background-position 1500ms cubic-bezier(0.45, 0.05, 0.25, 1);
-}
-@media (prefers-reduced-motion: reduce) {
-  :is(:is([class*="glass-fill"], .glass, .lx-glass):is(article, a, button, li, [role="button"], [class*="hover:"]), .lx-sweep):not(textarea, input)::after,
-  :is(:is([class*="glass-fill"], .glass, .lx-glass):is(article, a, button, li, [role="button"], [class*="hover:"]), .lx-sweep):not(textarea, input):hover::after { transition: none; opacity: 0; }
 }
 /* Play list rows: the map fills the row and fades out from left to right. */
 .lx-list-art {
@@ -1265,9 +1220,6 @@
 }
 .lx-boost {
   border-color: color-mix(in oklab, var(--boost) 30%, var(--line-soft));
-  background:
-    radial-gradient(120% 90% at 100% 0%, color-mix(in oklab, var(--boost) 16%, transparent), transparent 60%),
-    var(--glass-fill);
 }
 .lx-boost-first {
   border-color: color-mix(in oklab, var(--boost) 55%, transparent);
@@ -1773,7 +1725,6 @@ body::after, body::before, .lx-glass-page::before, .lx-calm::after { display: no
 .lx-tile-panel > * { position: relative; z-index: 1; }
 .lx-glass-icon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 8px; border: 1px solid #1f1f1f; background: color-mix(in srgb, var(--c1, #444) 22%, #111111); }
 .lx-glass-icon > svg { color: #dedede; }
-.lx-fx-ring, .lx-fx-spot { display: none; }
 
 /* The closed rail: each icon sits in the middle of its button, and the labels that are only for the open rail take no room. */
 .lxc-shell [data-state="collapsed"] nav :is(button, a) { justify-content: center; padding-left: 0; padding-right: 0; gap: 0; }
@@ -1781,20 +1732,7 @@ body::after, body::before, .lx-glass-page::before, .lx-calm::after { display: no
 .lxc-shell [data-state="collapsed"] nav :is(button, a) > .absolute { display: block; }
 .lxc-shell [data-state="collapsed"] nav :is(button, a) > svg:not(:first-child) { display: none; }
 
-/* ==== Light (owner request 2026-11-14, after a phone-app screenshot: "give it that nice glow") ====
-   The glow comes from four things, all white (no colour accent): a lit rim along the top edge of a card, a soft pool of light in the corner the light "comes from",
-   a faint glow round what is picked, and a lit, glossy primary button. Nothing blurs the page behind it and nothing moves. */
-:root { --lx-rim: rgb(255 255 255 / 0.1); --lx-pool: rgb(255 255 255 / 0.07); }
-:is(.lx-glass, .glass, .lx-pcard, .lx-people-card, .lx-team-card, .lx-play-panel, .lx-shop-tile, .lx-shop-glass, .lx-frost, .lx-ring-card, .lx-add-box, .lx-fx-card):not(.rounded-full) {
-  background: radial-gradient(120% 90% at 0% 0%, var(--lx-pool), transparent 60%), linear-gradient(180deg, rgb(255 255 255 / 0.025), transparent 40%), #111111;
-  border-top-color: #2e2e2e;
-  box-shadow: inset 0 1px 0 var(--lx-rim), 0 10px 30px -18px rgb(255 255 255 / 0.14);
-}
-:is(.lx-glass, .glass, .lx-pcard, .lx-people-card, .lx-team-card, .lx-shop-tile, .lx-frost, .lx-fx-card):is(a, button, li, article, [role="button"]):not(.rounded-full):hover {
-  background: radial-gradient(120% 90% at 0% 0%, rgb(255 255 255 / 0.11), transparent 62%), linear-gradient(180deg, rgb(255 255 255 / 0.035), transparent 40%), #151515;
-  border-color: #333333;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 12px 34px -16px rgb(255 255 255 / 0.22);
-}
+/* ==== Light: cards stay flat (no rim, no gloss, no frost); only the page, the primary button and the open menu page glow softly. ==== */
 /* The page itself: a wide, soft light falling from the top edge of the window. */
 html { background: radial-gradient(70% 38vh at 50% 0%, rgb(255 255 255 / 0.05), transparent 70%), #060606; background-attachment: fixed; }
 /* The primary button is lit: a glossy top, a glow round it. */
@@ -1805,4 +1743,3 @@ html { background: radial-gradient(70% 38vh at 50% 0%, rgb(255 255 255 / 0.05), 
 .lxc-shell .lx-glass-sidebar nav :is(button, a).font-semibold > svg { filter: drop-shadow(0 0 6px rgb(255 255 255 / 0.45)); }
 /* Quiet bars (progress fills) give off a little light of their own. */
 .lx-stat-fill, [role="progressbar"] > div { box-shadow: 0 0 12px rgb(255 255 255 / 0.25); }
-@media print { :root { --lx-rim: transparent; --lx-pool: transparent; } }

@@ -55,7 +55,6 @@ function TopCard({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen:
       )}
     >
       {first && <span aria-hidden="true" className="lx-boost-orbit" />}
-      {first && <span aria-hidden="true" className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-transparent via-[var(--boost)] to-transparent" />}
       <img src={first ? boostGem : boostSquare} alt="" aria-hidden="true" className="lx-boost-gem pointer-events-none absolute right-4 top-[58px] -z-10 w-[76px] opacity-30 transition-[opacity,translate] duration-500 group-hover:opacity-55" />
       <span className="flex items-center justify-between gap-2">
        <span className="flex items-center gap-2">
@@ -91,7 +90,7 @@ function TopCard({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen:
 
 function Row({ entry, by, onOpen, you }: { entry: CommunityEntry; by: By; onOpen: () => void; you?: boolean }) {
   return (
-    <div className={cn(GRID, "lx-boost-row lx-layer group relative w-full overflow-hidden text-left transition-colors", you ? "h-[60px] shrink-0 border-t border-[var(--brand)]/40 bg-[linear-gradient(90deg,color-mix(in_oklab,var(--brand)_16%,var(--card-surface)),var(--card-surface)_45%)]" : "h-14 border-b border-[var(--raised)]", entry.boosting && "lx-boost-row-on")} aria-label={you ? "Your position" : undefined}>
+    <div className={cn(GRID, "lx-boost-row lx-layer group relative w-full overflow-hidden text-left transition-colors", you ? "h-[60px] shrink-0 border-t border-[var(--brand)]/40 bg-[var(--card-surface)]" : "h-14 border-b border-[var(--raised)]", entry.boosting && "lx-boost-row-on")} aria-label={you ? "Your position" : undefined}>
       {entry.boosting && <span aria-hidden="true" className="lx-boost-star left-[78px] top-[10px]" style={{ animationDelay: "0.4s", width: 8, height: 8 }} />}
       {entry.boosting && <span aria-hidden="true" className="lx-boost-star left-[228px] top-[38px]" style={{ animationDelay: "1.6s", width: 7, height: 7 }} />}
       <span className={cn("text-sm font-semibold", you ? "text-[var(--brand-bright)]" : "text-[var(--text-muted)] group-hover:text-[var(--text)]")}>{entry.position}</span>

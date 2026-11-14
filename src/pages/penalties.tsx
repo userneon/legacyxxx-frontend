@@ -49,7 +49,7 @@ function YourStatus({ penalties, loading, onDetails }: { penalties: PenaltyEntry
   }
   if (!active) {
     return (
-      <section aria-label="Your status" className="lx-swap-in flex items-center gap-3.5 rounded-xl border border-[var(--status-green)]/30 bg-[linear-gradient(90deg,color-mix(in_oklab,var(--status-green)_7%,transparent),transparent_60%)] bg-[var(--glass-fill)] px-[18px] py-4">
+      <section aria-label="Your status" className="lx-swap-in flex items-center gap-3.5 rounded-xl border border-[var(--status-green)]/30 bg-[var(--glass-fill)] px-[18px] py-4">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-[var(--status-green)]/10 text-[var(--status-green)]">
           <ShieldCheck className="size-[18px]" />
         </span>
