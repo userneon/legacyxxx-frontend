@@ -1,6 +1,6 @@
 import type React from "react"
 import { useEffect, useState, type ComponentType, type ReactNode } from "react"
-import { ArrowLeftRight, Gem, DoorOpen, Swords, MountainSnow, Scale, ScrollText, Telescope, Users, Lock, ChevronDown, ShieldCheck, Clapperboard, Store } from "lucide-react"
+import { ArrowLeftRight, Gem, House, Swords, Trophy, Gavel, MessageSquareQuote, Compass, Palette, Users, Lock, ChevronDown, ShieldCheck, Clapperboard, Store } from "lucide-react"
 
 import { isFeatureEnabled, isPageEnabled } from "@/lib/features"
 import { competitiveService } from "@/api"
@@ -13,7 +13,6 @@ import { useAuth } from "@/hooks/use-auth"
 import { Sidebar, SidebarContent, useSidebar } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
 import { setSkinchangerView, useSkinchangerView, type SkinchangerView } from "@/lib/skinchanger-view"
-import { KnifeIcon } from "@/components/knife-icon"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
 
@@ -38,13 +37,13 @@ export const PLAY_ITEMS: NavItem[] = enabledNav([
 ])
 
 export const NAV_ITEMS: NavItem[] = enabledNav([
-  { id: "skinchanger", label: "Skinchanger", icon: KnifeIcon },
+  { id: "skinchanger", label: "Skinchanger", icon: Palette },
   { id: "compare", label: "Compare", icon: ArrowLeftRight },
   { id: "shop", label: "Shop", icon: Gem },
-  { id: "leaders", label: "Leaders", icon: MountainSnow },
-  { id: "penalties", label: "Penalties", icon: Scale },
-  { id: "feedback", label: "Reviews", icon: ScrollText },
-  { id: "explore", label: "Explore", icon: Telescope },
+  { id: "leaders", label: "Leaders", icon: Trophy },
+  { id: "penalties", label: "Penalties", icon: Gavel },
+  { id: "feedback", label: "Reviews", icon: MessageSquareQuote },
+  { id: "explore", label: "Explore", icon: Compass },
 ])
 
 // Commerce (owner request 2026-11-07): the Shop and the Market under one row that opens like Play.
@@ -175,7 +174,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
         <nav aria-label="Main" className="flex flex-col gap-0.5">
           <div className="relative">
             <RailTip label="Home" show={collapsed}><button type="button" onClick={() => onNavigate("home")} aria-label="Home" className={cn(rowClass, isActive("home") && activeRowClass)}>
-              <DoorOpen className="size-[18px] shrink-0" />
+              <House className="size-[18px] shrink-0" />
               <span className={labelClass(collapsed)}>Home</span>
             </button></RailTip>
           </div>
@@ -201,7 +200,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                     collapsed ? "opacity-0" : "opacity-100",
                   )}
                 />
-                {collapsed && anyoneOnline && <span aria-hidden="true" className="absolute right-2 top-2 size-1.5 rounded-full bg-[var(--status-green)]" />}
+                {collapsed && anyoneOnline && <span aria-hidden="true" className="absolute right-1 top-1 size-1.5 rounded-full bg-[var(--status-green)]" />}
               </button></RailTip>
               </RailFlyout>
 

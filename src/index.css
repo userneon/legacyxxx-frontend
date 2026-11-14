@@ -1779,3 +1779,4 @@ body::after, body::before, .lx-glass-page::before, .lx-calm::after { display: no
 .lxc-shell [data-state="collapsed"] nav :is(button, a) { justify-content: center; padding-left: 0; padding-right: 0; gap: 0; }
 .lxc-shell [data-state="collapsed"] nav :is(button, a) > :not(svg) { display: none; }
 .lxc-shell [data-state="collapsed"] nav :is(button, a) > .absolute { display: block; }
+.lxc-shell [data-state="collapsed"] nav :is(button, a) > svg:not(:first-child) { display: none; }
