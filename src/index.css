@@ -2672,3 +2672,10 @@ body::after, body::before, .lx-glass-page::before, .lx-calm::after { display: no
 .lxc-shell [data-slot="sidebar-container"] { padding: 0 !important; }
 .lxc-shell .lx-glass-sidebar > [data-sidebar="sidebar"] { background: #111111 !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; }
 .lxc-shell [data-slot="sidebar-gap"] { background: transparent; }
+
+/* No violet and no snow in the LXC frame; the rail's icons are readable and the open page is marked. */
+:root, .dark { --brand: #dcdcdc; --brand-bright: #dcdcdc; --brand-deep: #2a2a2a; --brand-on: #0a0a0a; }
+.lxc-shell .lx-glass-sidebar nav :is(button, a):not(.font-semibold) { color: #b5b5b5; }
+.lxc-shell .lx-glass-sidebar nav :is(button, a):not(.font-semibold):hover { color: #ececec; background: #1a1a1a; }
+.lxc-shell .lx-glass-sidebar nav :is(button, a).font-semibold { background: #1f1f1f; color: #ececec; }
+[data-winter="on"] [data-snow]::before { display: none !important; }

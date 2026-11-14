@@ -155,7 +155,7 @@ export function App() {
     // Two sidebars, always closed to their icons (owner requests 2026-11-13: "dual sidebar, remove the top bar, without a toggle", then "always closed"): the menu on the left, the account on the right.
     <SidebarProvider open={false} onOpenChange={() => {}} style={{ "--sidebar-width": "264px", "--sidebar-width-icon": "62px" } as CSSProperties}>
       <EventLayer />
-      <SnowLayer />
+      {SHELL === "lxc" ? null : <SnowLayer />}
       <ProfileScene scene={currentPage === "profile" ? profileScene : null} />
       <ProfileBackdrop active={profileGrid} />
       {/* The shell (owner pick 2026-11-09): one solid frame holding the rail, a pill header and the page panel. A phone keeps the sidebar sheet and the older layout. */}
@@ -176,7 +176,7 @@ export function App() {
           <ProfileBlock onNavigate={handleNavigate} tab={SHELL === "pill" && (location.pathname === "/profile" || location.pathname === "/discord")} />
         </header>
 
-        {SHELL === "lxc" ? <LxcHeader currentPage={currentPage} onNavigate={handleNavigate} className="max-[559px]:hidden" /> : null}
+        {SHELL === "lxc" ? <LxcHeader onNavigate={handleNavigate} className="max-[559px]:hidden" /> : null}
         <SectionTabs currentPage={currentPage} onNavigate={handleNavigate} />
 
         <button

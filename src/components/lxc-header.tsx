@@ -5,34 +5,22 @@
  */
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { Gem, Home, Crosshair, Search, ShoppingBag, Trophy, Users, MessageSquare } from "lucide-react"
+import { Search } from "lucide-react"
 
 import { serversService } from "@/api"
 import type { HomeStats, PageId } from "@/api/types"
 import { ProfileBlock } from "@/components/profile-block"
 import { useApiQuery } from "@/hooks/use-api-query"
-import { PAGE_ROUTES, PAGE_TITLES } from "@/lib/routes"
-import { isPageEnabled } from "@/lib/features"
+import { PAGE_ROUTES } from "@/lib/routes"
 import { cn } from "@/lib/utils"
 
-const CARDS: Array<{ id: PageId; icon: typeof Home; label?: string; match: (page: PageId) => boolean }> = [
-  { id: "home", icon: Home, match: (page) => page === "home" },
-  { id: "play-5vs5", icon: Crosshair, label: "Play", match: (page) => page.startsWith("play-") },
-  { id: "skinchanger", icon: Gem, match: (page) => page === "skinchanger" },
-  { id: "leaders", icon: Trophy, match: (page) => page === "leaders" },
-  { id: "clan", icon: Users, label: "Clans", match: (page) => page === "clan" || page === "team" || page === "creators" },
-  { id: "shop", icon: ShoppingBag, match: (page) => page === "shop" || page === "market" },
-  { id: "feedback", icon: MessageSquare, label: "Reviews", match: (page) => page === "feedback" },
-]
-
-export function LxcHeader({ currentPage, onNavigate, className }: { currentPage: PageId; onNavigate: (page: PageId) => void; className?: string }) {
+export function LxcHeader({ onNavigate, className }: { onNavigate: (page: PageId) => void; className?: string }) {
   const navigate = useNavigate()
   const [query, setQuery] = useState("")
   const { data: stats } = useApiQuery<HomeStats>((signal) => serversService.getHomeStats({ signal }), { queryKey: "lxc-header-stats", keepPreviousData: true })
-  const cards = CARDS.filter((card) => isPageEnabled(card.id))
   return (
-    <div className={cn("shrink-0 border-b border-[var(--line)] bg-[var(--bg)]", className)}>
-      <header className="mx-auto flex w-full max-w-[1320px] flex-wrap items-center gap-3 px-6 py-2.5">
+    <div className={cn("shrink-0 bg-[var(--bg)]", className)}>
+      <header className="mx-auto flex w-full max-w-[1320px] flex-wrap items-center gap-3 px-6 py-3">
         <Link to={PAGE_ROUTES.home} aria-label="LXC, home" className="text-[26px] font-bold leading-none tracking-[0.02em] text-[var(--text)] min-[560px]:hidden">LXC</Link>
         {typeof stats?.playersOnline === "number" ? (
           <span className="inline-flex h-8 items-center gap-2 rounded-full bg-[color-mix(in_srgb,var(--status-green)_12%,transparent)] px-3 text-[13px] font-bold text-[var(--status-green)]" title="Players online">
@@ -51,26 +39,6 @@ export function LxcHeader({ currentPage, onNavigate, className }: { currentPage:
         </form>
         <ProfileBlock onNavigate={onNavigate} />
       </header>
-      <nav aria-label="Sections" className="mx-auto flex w-full max-w-[1320px] gap-2.5 overflow-x-auto px-6 pb-4 pt-1">
-        {cards.map((card) => {
-          const active = card.match(currentPage)
-          const Icon = card.icon
-          return (
-            <Link
-              key={card.id}
-              to={PAGE_ROUTES[card.id]}
-              aria-current={active ? "page" : undefined}
-              className={cn(
-                "flex h-14 min-w-[132px] flex-1 items-center justify-center gap-2.5 rounded-lg border bg-[var(--card-surface)] text-[14px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60",
-                active ? "border-2 border-[var(--accent-solid)] text-[var(--text)]" : "border-[var(--line)] text-[var(--text-dim)] hover:bg-[var(--raised)] hover:text-[var(--text)]",
-              )}
-            >
-              <Icon className="size-[18px]" />
-              {card.label ?? PAGE_TITLES[card.id]}
-            </Link>
-          )
-        })}
-      </nav>
     </div>
   )
 }

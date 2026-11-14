@@ -24,8 +24,30 @@ export function SectionTabs({ currentPage, onNavigate }: { currentPage: PageId; 
     tabs = SKIN_VIEWS.map((view) => ({ key: view.id, label: view.label, active: skinView === view.id, go: () => { setSkinchangerView(view.id as SkinchangerView); onNavigate("skinchanger") } }))
   }
   if (tabs.length < 2) return null
+  // The LXC frame (owner decision 2026-11-14, "look through the user's eyes"): the rail is the one place that lists every page, so this row lists only the pages of
+  // the section you are in, as cards under the top bar (Play: 5x5, Fun, Pro, Tournaments), the open one outlined.
+  if (SHELL === "lxc") {
+    return (
+      <nav aria-label={title} className="mx-auto flex w-full max-w-[1320px] shrink-0 gap-2.5 overflow-x-auto px-6 pb-4 pt-1 max-[559px]:hidden">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={tab.go}
+            aria-current={tab.active ? "page" : undefined}
+            className={cn(
+              "flex h-12 min-w-[132px] flex-1 items-center justify-center rounded-lg border bg-[var(--card-surface)] px-4 text-[14px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60",
+              tab.active ? "border-2 border-[var(--accent-solid)] text-[var(--text)]" : "border-[var(--line)] text-[var(--text-dim)] hover:bg-[var(--raised)] hover:text-[var(--text)]",
+            )}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
+    )
+  }
   return (
-    <nav aria-label={title} className={cn("lx-glass-shell flex h-12 shrink-0 items-center gap-1 rounded-[14px] px-3 max-[559px]:hidden", SHELL === "lxc" && "mx-auto w-full max-w-[1320px] rounded-none px-6")}>
+    <nav aria-label={title} className={cn("lx-glass-shell flex h-12 shrink-0 items-center gap-1 rounded-[14px] px-3 max-[559px]:hidden")}>
       <span className="mr-3 px-1 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-dim)]">{title}</span>
       {tabs.map((tab) => (
         <button
