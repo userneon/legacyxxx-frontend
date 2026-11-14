@@ -596,7 +596,7 @@
 /* The ring stats (Home, Profile, Clans) draw themselves in: each coloured part grows from its start to its length, one after another (owner request 2026-11-09). `backwards`, still for reduced motion. */
 .lx-ring-seg { animation: lx-ring-draw 900ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
 @keyframes lx-ring-draw {
-  from { stroke-dasharray: 0.1 200; opacity: 0.4; }
+  from { opacity: 0.4; }
 }
 @media (prefers-reduced-motion: reduce) { .lx-ring-seg { animation: none; }
 }
@@ -604,8 +604,8 @@
 /* The Shop's model picture: the new one slides in from the right while the old one slides out to the left and fades (owner request 2026-11-09). Transform and opacity only, still for reduced motion. */
 .lx-model-in { animation: lx-model-in 420ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
 .lx-model-out { animation: lx-model-out 420ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-@keyframes lx-model-in { from { opacity: 0; transform: translateX(28px) scale(1.04); } }
-@keyframes lx-model-out { to { opacity: 0; transform: translateX(-28px) scale(0.98); } }
+@keyframes lx-model-in { from { opacity: 0; } }
+@keyframes lx-model-out { to { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .lx-model-in, .lx-model-out { animation: none; }
 }
 
@@ -635,8 +635,8 @@
   }
 
   @keyframes query-state-fade-in {
-    from { opacity: 0; transform: translateY(4px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   /* API lists: rows and cards arrive one after another when data finishes loading. */
@@ -656,8 +656,8 @@
   .stagger-in > :nth-child(n + 11) { animation-delay: 400ms; }
 
   @keyframes stagger-item-in {
-    from { opacity: 0; transform: translateY(10px) scale(0.985); filter: blur(2px); }
-    to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   /* Tactile press on every shadcn button. */
@@ -672,8 +672,8 @@
   }
 
   @keyframes tab-content-in {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   /* Cards further down the page ease in as they scroll into view (Chromium/Safari; others just show them). */
@@ -686,8 +686,8 @@
     }
 
     @keyframes scroll-reveal-in {
-      from { opacity: 0; transform: translateY(24px) scale(0.98); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
 }
@@ -755,8 +755,8 @@
   }
 
   @keyframes profile-name-in {
-    from { opacity: 0; transform: translateX(-10px); filter: blur(4px); }
-    to { opacity: 1; transform: translateX(0); filter: blur(0); }
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   .profile-rise {
@@ -764,8 +764,8 @@
   }
 
   @keyframes profile-rise-in {
-    from { opacity: 0; transform: translateY(14px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   .profile-ring {
@@ -1085,8 +1085,8 @@
   animation: lx-swap-in 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 @keyframes lx-swap-in {
-  from { opacity: 0; transform: translateY(-10px); filter: blur(3px); }
-  to { opacity: 1; transform: none; filter: none; }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Table rows arrive in a quick cascade (Leaders). */
@@ -1094,8 +1094,8 @@
   animation: lx-row-in 450ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 @keyframes lx-row-in {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: none; }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* A bar that grows from zero to its width once, on first paint. */
@@ -1545,8 +1545,8 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
 /* Notifications flow down into the bell's list one after another, the newest first (owner request 2026-11-07). */
 .lx-flow-down { animation: lx-flow-down 0.38s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
 @keyframes lx-flow-down {
-  from { opacity: 0; transform: translateY(-14px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) { .lx-flow-down { animation: none; }
 }
