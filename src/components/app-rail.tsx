@@ -44,15 +44,14 @@ function AppRail({ currentPage, onNavigate }: Props) {
 
   // Live player counts for the Play menu, refreshed every 30 s while the tab is visible (the same two reads as the sidebar).
   const { data: competitive, refetch: refetchCompetitive } = useApiQuery<PlayServerList>((signal) => playService.getServers("5x5", { signal }), { queryKey: "sidebar-play-5x5", keepPreviousData: true })
-  const { data: fun, refetch: refetchFun } = useApiQuery<PlayServerList>((signal) => playService.getServers("fun", { signal }), { queryKey: "sidebar-play-fun", keepPreviousData: true })
   useEffect(() => {
-    const timer = window.setInterval(() => { if (document.visibilityState === "visible") { refetchCompetitive(); refetchFun() } }, 30_000)
+    const timer = window.setInterval(() => { if (document.visibilityState === "visible") { refetchCompetitive() } }, 30_000)
     return () => window.clearInterval(timer)
-  }, [refetchCompetitive, refetchFun])
+  }, [refetchCompetitive])
   const { data: access } = useApiQuery<CompetitiveAccess>((signal) => competitiveService.getMyAccess({ signal }), { enabled: isAuthenticated, queryKey: `sidebar-access:${isAuthenticated}` })
   const proLeagueLocked = !access?.proLeagueUnlocked
-  const playersIn = (id: PageId) => (id === "play-5vs5" ? competitive?.players : id === "play-fun" ? fun?.players : 0) ?? 0
-  const anyoneOnline = playersIn("play-5vs5") + playersIn("play-fun") > 0
+  const playersIn = (id: PageId) => (id === "play-5vs5" ? competitive?.players : 0) ?? 0
+  const anyoneOnline = playersIn("play-5vs5") > 0
 
   const entries = useMemo<Entry[]>(() => {
     const nav = (id: PageId) => NAV_ITEMS.find((item) => item.id === id)
@@ -64,7 +63,7 @@ function AppRail({ currentPage, onNavigate }: Props) {
     if (PLAY_ITEMS.length > 0) {
       list.push({
         key: "play", label: "Play", icon: Swords, pages: PLAY_ITEMS.map((item) => item.id), live: anyoneOnline,
-        menu: PLAY_ITEMS.map((item) => ({ key: item.id, label: item.label, page: item.id, count: item.id === "play-5vs5" || item.id === "play-fun" ? playersIn(item.id) : 0, locked: item.id === "play-proleague" && proLeagueLocked })),
+        menu: PLAY_ITEMS.map((item) => ({ key: item.id, label: item.label, page: item.id, count: item.id === "play-5vs5" ? playersIn(item.id) : 0, locked: item.id === "play-proleague" && proLeagueLocked })),
       })
     }
     const skin = nav("skinchanger")
@@ -80,7 +79,7 @@ function AppRail({ currentPage, onNavigate }: Props) {
     if (mayCheck) list.push({ key: "staff", label: "Staff panel", icon: ShieldCheck, pages: [], href: ADMIN_URL })
     return list
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [anyoneOnline, competitive?.players, fun?.players, proLeagueLocked, mayCheck])
+  }, [anyoneOnline, competitive?.players, proLeagueLocked, mayCheck])
 
   const active = entries.find((entry) => entry.pages.includes(currentPage)) ?? null
 

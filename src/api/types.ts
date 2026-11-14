@@ -48,7 +48,6 @@ export interface ApiError {
 export type PageId =
   | "home"
   | "play-5vs5"
-  | "play-fun"
   | "play-proleague"
   | "play-tournaments"
   | "leaders"
@@ -328,7 +327,7 @@ export interface MatchDetail {
  * Play / matches
  * ------------------------------------------------------------------------- */
 
-export type PlaySubMode = "5vs5" | "fun" | "proleague" | "tournaments"
+export type PlaySubMode = "5vs5" | "proleague" | "tournaments"
 
 /* ----------------------------------------------------------------------------
  * Servers

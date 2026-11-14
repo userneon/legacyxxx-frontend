@@ -35,7 +35,6 @@ type PlayPageMode = Exclude<PlaySubMode, "tournaments">
 
 const MODES: Record<PlayPageMode, { mode: PlayMode; title: string; description: string; pickRule: string; heroMap: string }> = {
   "5vs5": { mode: "5x5", title: "5x5 Matches", description: "Competitive 5v5. Every match counts toward your rank.", pickRule: "We pick the open server closest to starting, on your maps.", heroMap: "de_mirage" },
-  fun: { mode: "fun", title: "Fun Mode", description: "Casual servers — jump in and out anytime. No rank changes.", pickRule: "We pick the busiest server with a free slot.", heroMap: "de_vertigo" },
   proleague: { mode: "pro", title: "Pro League", description: "Ranked 5v5 for high-rank players only.", pickRule: "We pick the open Pro server closest to starting, on your maps.", heroMap: "de_inferno" },
 }
 
@@ -642,7 +641,7 @@ function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode;
     try {
       const server = await playService.quickJoin(mode, favouriteMaps)
       if (server) connect(server.connectAddress, server.name)
-      else toast("No open servers right now", { description: mode === "fun" ? "Try again in a moment." : "Fun Mode usually has room." })
+      else toast("No open servers right now", { description: "Try again in a moment." })
     } catch {
       toast.error("Could not find a server. Try again.")
     } finally {

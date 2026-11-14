@@ -31,7 +31,6 @@ function enabledNav(items: NavItem[]): NavItem[] {
 // The Play submenu rows show no icon; the type only needs one for the other rows.
 export const PLAY_ITEMS: NavItem[] = enabledNav([
   { id: "play-5vs5", label: "5x5 Matches", icon: Swords },
-  { id: "play-fun", label: "Fun Mode", icon: Swords },
   { id: "play-proleague", label: "Pro League", icon: Swords },
   { id: "play-tournaments", label: "Tournaments", icon: Swords },
 ])
@@ -124,17 +123,16 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
 
   // Live player counts next to the Play rows, refreshed every 30s while the tab is visible.
   const { data: competitive, refetch: refetchCompetitive } = useApiQuery<PlayServerList>((signal) => playService.getServers("5x5", { signal }), { queryKey: "sidebar-play-5x5", keepPreviousData: true })
-  const { data: fun, refetch: refetchFun } = useApiQuery<PlayServerList>((signal) => playService.getServers("fun", { signal }), { queryKey: "sidebar-play-fun", keepPreviousData: true })
   useEffect(() => {
-    const timer = window.setInterval(() => { if (document.visibilityState === "visible") { refetchCompetitive(); refetchFun() } }, 30_000)
+    const timer = window.setInterval(() => { if (document.visibilityState === "visible") { refetchCompetitive() } }, 30_000)
     return () => window.clearInterval(timer)
-  }, [refetchCompetitive, refetchFun])
+  }, [refetchCompetitive])
 
   const { data: access } = useApiQuery<CompetitiveAccess>((signal) => competitiveService.getMyAccess({ signal }), { enabled: isAuthenticated, queryKey: `sidebar-access:${isAuthenticated}` })
   const proLeagueLocked = !access?.proLeagueUnlocked
 
-  const playersIn = (id: PageId) => (id === "play-5vs5" ? competitive?.players : id === "play-fun" ? fun?.players : 0) ?? 0
-  const anyoneOnline = playersIn("play-5vs5") + playersIn("play-fun") > 0
+  const playersIn = (id: PageId) => (id === "play-5vs5" ? competitive?.players : 0) ?? 0
+  const anyoneOnline = playersIn("play-5vs5") > 0
   const isActive = (id: PageId) => currentPage === id
   const playActive = currentPage.startsWith("play-")
 
@@ -198,7 +196,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                     {PLAY_ITEMS.map((item) => {
                       const active = isActive(item.id)
                       const locked = item.id === "play-proleague" && proLeagueLocked
-                      const count = item.id === "play-5vs5" || item.id === "play-fun" ? playersIn(item.id) : 0
+                      const count = item.id === "play-5vs5" ? playersIn(item.id) : 0
                       return (
                         <button
                           key={item.id}

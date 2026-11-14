@@ -193,7 +193,8 @@ export function App() {
             <Routes location={shownLocation}>
               <Route path="/" element={<HomePage onNavigate={handleNavigate} />} />
               <Route path="/play/5x5" element={<PlayPage mode="5vs5" />} />
-              <Route path="/play/fun" element={<PlayPage mode="fun" />} />
+              {/* Fun Mode was closed (owner decision 2026-11-14: community servers go, matchmaking comes); its address moves to 5x5. */}
+              <Route path="/play/fun" element={<Navigate to="/play/5x5" replace />} />
               <Route path="/play/pro" element={<PlayPage mode="proleague" />} />
               {/* Earlier addresses of the Play pages. */}
               <Route path="/play/5vs5" element={<Navigate to="/play/5x5" replace />} />

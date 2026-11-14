@@ -51,8 +51,8 @@ export function PlayStrip() {
       )}
       {stats?.modes && (
         <Tile label="Playing now">
-          <div className="grid grid-cols-3 gap-2">
-            {([["5x5", "5x5"], ["fun", "Fun"], ["pro", "Pro"]] as const).map(([key, label]) => {
+          <div className="grid grid-cols-2 gap-2">
+            {([["5x5", "5x5"], ["pro", "Pro"]] as const).map(([key, label]) => {
               const players = stats.modes?.[key] ?? 0
               return (
                 <div key={key} className="flex flex-col">

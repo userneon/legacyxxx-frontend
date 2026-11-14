@@ -50,6 +50,8 @@ The website's frame is two icon columns and the page between them, with **no top
 
 **Play overview strip (owner request 2026-11-14, a FACEIT matchmaking screenshot):** above the server list each Play page (wide windows) shows three small labelled tiles in a row (`components/play-strip.tsx`, `PlayStrip`): **Skill level** (your rank emblem and name, EXP, a progress bar to the next rank with both thresholds), **Playing now** (players on 5x5, Fun and Pro) and **EXP today** (used of the daily limit, red when reached). All real API numbers; a tile whose data is missing (signed out: no skill or EXP tile) is left out. FACEIT's missions, party slots and monthly ladders have no counterpart here and are not invented.
 
+**Fun Mode is closed (owner decision 2026-11-14: "close the community servers and go to a queue, real fights"):** the website has no Fun page, tab, Home card, sidebar count or Play strip count any more; `/play/fun` redirects to `/play/5x5` (`PlaySubMode`, `PLAY_ITEMS`, `MODES` lost `fun`). Play is now 5x5 Matches, Pro League and Tournaments. The API's `fun` mode type and the staff-side server kinds (Roles, Host) are left as they are so servers that still report it do not break. The 5x5 page keeps its server list and Quick play until the matchmaking queue (Find match: queue, accept, server hand-off through MatchZy `matchzy_loadmatch`; backend + plugin work, planned) replaces it. The iOS app and the Discord bot still list Fun until they are changed.
+
 ## Design tokens (`src/index.css`)
 
 Neutral surfaces, white as the workhorse accent, and **violet as the brand accent** (owner decision

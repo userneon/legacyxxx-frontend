@@ -12,7 +12,6 @@ import { TopPlayers } from "@/components/home-top-players"
 import { useNavigate } from "react-router-dom"
 import { formatDate } from "@/lib/preferences"
 import rankedArt from "@/assets/home/mode-ranked.webp"
-import funArt from "@/assets/home/mode-fun.webp"
 import proArt from "@/assets/home/mode-pro.webp"
 import eventsArt from "@/assets/home/mode-events.webp"
 import { useActiveEvent } from "@/hooks/use-active-event"
@@ -25,7 +24,6 @@ interface HomePageProps {
 type ModeKey = "5x5" | "fun" | "pro" | "tournaments"
 const MODE_CARDS: { id: PageId; key: ModeKey; label: string; tag: string; art: string }[] = [
   { id: "play-5vs5", key: "5x5", label: "5x5 Matches", tag: "Ranked", art: rankedArt },
-  { id: "play-fun", key: "fun", label: "Fun Mode", tag: "Casual", art: funArt },
   { id: "play-proleague", key: "pro", label: "Pro League", tag: "High rank", art: proArt },
   { id: "play-tournaments", key: "tournaments", label: "Tournaments", tag: "Events", art: eventsArt },
 ]
@@ -62,7 +60,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
         </div>
 
         {/* Mode cards: the same four cards, equal width, each with its real status. */}
-        <div className="grid grid-cols-1 gap-3 @md:grid-cols-2 @3xl:col-span-12 @5xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 @md:grid-cols-3 @3xl:col-span-12 @3xl:grid-cols-3">
           {MODE_CARDS.map((mode, index) => {
             const status = modeStatus(mode.key)
             return (

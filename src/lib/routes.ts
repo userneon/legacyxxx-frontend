@@ -4,7 +4,6 @@ import { isPageEnabled } from "@/lib/features"
 export const PAGE_ROUTES: Record<PageId, string> = {
   home: "/",
   "play-5vs5": "/play/5x5",
-  "play-fun": "/play/fun",
   "play-proleague": "/play/pro",
   "play-tournaments": "/tournaments",
   leaders: "/leaders",
@@ -34,7 +33,6 @@ export const ROUTE_PAGES: Record<string, PageId> = Object.fromEntries(
 export const PAGE_TITLES: Record<PageId, string> = {
   home: "Home",
   "play-5vs5": "5x5 Matches",
-  "play-fun": "Fun Mode",
   "play-proleague": "Pro League",
   "play-tournaments": "Tournaments",
   leaders: "Leaders",
