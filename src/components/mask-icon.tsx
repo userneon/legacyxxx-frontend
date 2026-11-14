@@ -11,3 +11,5 @@ export function MaskIcon({ src, className }: { src: string; className?: string }
 
 export const CompareIcon = ({ className }: { className?: string }) => <MaskIcon src="/compare-icon.webp" className={className} />
 export const LeaderIcon = ({ className }: { className?: string }) => <MaskIcon src="/clan-leader.webp" className={className} />
+export const LeadersIcon = ({ className }: { className?: string }) => <MaskIcon src="/leaders-icon.webp" className={className} />
+export const CommunityIcon = ({ className }: { className?: string }) => <MaskIcon src="/community-icon.webp" className={className} />
