@@ -2,7 +2,6 @@
 @import "tw-animate-css";
 @import "./name-effects.css";
 
-
 @custom-variant dark (&:is(.dark *));
 /* Animations always run in full (no Motion setting): motion-reduce: utilities never apply. */
 @custom-variant motion-reduce (&:where(.lx-motion-reduce-never *));
@@ -207,7 +206,8 @@
 
   input[type="range"] {
     cursor: ew-resize;
-  }}
+  }
+}
 
 /*
  * Site cursor (owner request 2026-09-29): a small tail-less white arrow with a dark edge, readable on
@@ -223,7 +223,8 @@
   :root {
     --lx-cursor: image-set(url("/cursors/lx-cursor-default.png") 1x, url("/cursors/lx-cursor-default@2x.png") 2x) 6 5, default;
     --lx-cursor-link: image-set(url("/cursors/lx-cursor-link.png") 1x, url("/cursors/lx-cursor-link@2x.png") 2x) 6 5, pointer;
-  }}
+  }
+}
 /* Tailwind's own cursor utilities would bring the system pointer and arrow back. */
 .cursor-pointer {
   cursor: var(--lx-cursor-link);
@@ -279,10 +280,7 @@
   animation: lx-verified-ring 800ms 120ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 /* The top-up preview's coin stack settles down into place when the package changes. */
-@keyframes lx-coin-drop {
-  from { opacity: 0; transform: translateY(-14px); }
-  to { opacity: 1; transform: none; }
-}
+
 @keyframes lx-verified-pop {
   from { transform: scale(0) rotate(-35deg); opacity: 0; }
   to { transform: scale(1) rotate(0); opacity: 1; }
@@ -296,21 +294,6 @@
   to { transform: scale(2.4); opacity: 0; }
 }
 
-/* The light on a beam: a short dash gliding along the curve; each beam has its own length of time and offset. */
-.lx-beam-lit {
-  stroke-dasharray: 0.1 1.2;
-  animation: lx-beam-dash var(--d, 20s) linear infinite;
-  animation-delay: var(--b, 0s);
-}
-.lx-beams[data-resting] .lx-beam-lit {
-  animation-play-state: paused;
-}
-@keyframes lx-beam-dash {
-  from { stroke-dashoffset: 0.1; }
-  to { stroke-dashoffset: -1.1; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .lx-beam-lit { animation: none; }}
 @keyframes lx-beams-in {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -318,11 +301,7 @@
 /* The shell (owner pick 2026-11-09, the preview with the disc): one solid frame holding the rail, a pill header and the page panel.
    Radius scale of the shell: frame 36, page panel 28, header and rail pills 999. The page and its cards keep the scale below. */
 :root { --lx-frame: #101010; --lx-r-frame: 36px; --lx-r-panel: 28px; --lx-panel-bg: var(--bg); }
-/* A phone's page panel is solid too (owner report: "many problems on mobile"): the backdrop lines no longer run behind the text. */
-@media (max-width: 559px) {
-  .lx-frame .lx-frame-panel { background: var(--card-surface); }
-}
-@keyframes lx-disc-icon { from { opacity: 0; } to { opacity: 1; } }
+
 .glass,
 .lx-glass {
   background: var(--glass-fill);
@@ -371,7 +350,8 @@
 }
 @media (prefers-reduced-motion: reduce) {
   :is(:is([class*="glass-fill"], .glass, .lx-glass):is(article, a, button, li, [role="button"], [class*="hover:"]), .lx-sweep):not(textarea, input)::after,
-  :is(:is([class*="glass-fill"], .glass, .lx-glass):is(article, a, button, li, [role="button"], [class*="hover:"]), .lx-sweep):not(textarea, input):hover::after { transition: none; opacity: 0; }}
+  :is(:is([class*="glass-fill"], .glass, .lx-glass):is(article, a, button, li, [role="button"], [class*="hover:"]), .lx-sweep):not(textarea, input):hover::after { transition: none; opacity: 0; }
+}
 /* Play list rows: the map fills the row and fades out from left to right. */
 .lx-list-art {
   -webkit-mask-image: linear-gradient(90deg, #000 0%, rgba(0, 0, 0, 0.55) 45%, transparent 100%);
@@ -404,7 +384,8 @@
   50% { transform: translate(-2.5px, -0.5px); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .lx-tiktok:hover .lx-tiktok-word, .lx-tiktok:hover .lx-tiktok-cyan { animation: none; }}
+  .lx-tiktok:hover .lx-tiktok-word, .lx-tiktok:hover .lx-tiktok-cyan { animation: none; }
+}
 /*
  * "Add" boxes (owner pick "A", 2026-10-12): new penalty, add staff, add creator, create a clan, write a review. A violet hairline
  * along the top, a soft violet light in the top right corner and under the box, a violet icon tile, and violet for the field being
@@ -500,24 +481,23 @@
 /* Grenade trail preview: the arc draws itself once. */
 .lx-trail-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: lx-trail-draw 0.9s ease-out forwards; }
 @keyframes lx-trail-draw { to { stroke-dashoffset: 0; } }
-@media (prefers-reduced-motion: reduce) { .lx-trail-draw { animation: none; stroke-dashoffset: 0; }}
+@media (prefers-reduced-motion: reduce) { .lx-trail-draw { animation: none; stroke-dashoffset: 0; }
+}
 .lx-light-pulse { transform-origin: 100px 56px; animation: lx-light-pulse 1.8s ease-in-out infinite; }
 @keyframes lx-light-pulse { 50% { opacity: 0.75; transform: scale(0.94); } }
-@media (prefers-reduced-motion: reduce) { .lx-light-pulse { animation: none; }}
+@media (prefers-reduced-motion: reduce) { .lx-light-pulse { animation: none; }
+}
 /* What a trail leaves on its way (flares, sparks, stars) twinkles once the line is drawn. */
 .lx-trail-fx { animation: lx-trail-fx 1.6s ease-in-out 0.6s infinite both; }
 @keyframes lx-trail-fx { 0% { opacity: 0; } 30% { opacity: 1; } 70% { opacity: 0.55; } 100% { opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { .lx-trail-fx { animation: none; }}
+@media (prefers-reduced-motion: reduce) { .lx-trail-fx { animation: none; }
+}
 .lx-kill-play { transform-box: fill-box; transform-origin: 50% 100%; animation: lx-kill-play 2.2s ease-out infinite; }
 /* Never fades out fully, so a row of cards always shows what each effect is. */
 @keyframes lx-kill-play { 0% { opacity: 0.45; transform: scale(0.8); } 12% { opacity: 1; transform: scale(1); } 55% { opacity: 1; } 80%, 100% { opacity: 0.45; } }
 .lx-kill-ring { transform-box: fill-box; transform-origin: center; animation: lx-kill-ring 2.2s ease-out infinite both; }
 @keyframes lx-kill-ring { 0% { transform: scale(0.3); } 40%, 100% { transform: scale(1); } }
-@media (prefers-reduced-motion: reduce) { .lx-kill-play, .lx-kill-ring { animation: none; }}
-
-.glass-strong {
-  background: var(--panel);
-  border: 1px solid var(--glass-line);
+@media (prefers-reduced-motion: reduce) { .lx-kill-play, .lx-kill-ring { animation: none; }
 }
 
 .glass-sidebar {
@@ -549,117 +529,13 @@
   color: var(--text-muted);
 }
 
-/* Profile avatar media: GIF/WebP URLs play natively inside PlayerAvatar. */
-.profile-avatar-frame {
-  position: relative;
-  overflow: hidden;
-  background: conic-gradient(from 20deg, var(--chart-4), var(--chart-1), var(--chart-2), var(--chart-4));
-  box-shadow: 0 0 18px color-mix(in oklch, var(--chart-4) 22%, transparent);
-}
+@media all {
 
-.profile-avatar-frame > * {
-  position: relative;
-  z-index: 1;
 }
 
 @media all {
-  .profile-avatar-frame::before {
-    content: "";
-    position: absolute;
-    inset: -50%;
-    background: conic-gradient(from 0deg, var(--chart-4), var(--chart-1), var(--chart-2), var(--chart-4));
-    animation: profile-avatar-border-spin 5s linear infinite;
-  }
 
-  @keyframes profile-avatar-border-spin {
-    to { transform: rotate(1turn); }
-  }}
-
-/* Reviews star rating: hover previews rise in sequence, a click fills the row in a wave and the chosen star bursts. */
-.star-burst {
-  display: none;
 }
-
-@media all {
-  .star-rating-icon {
-    transition:
-      transform 220ms cubic-bezier(0.23, 1, 0.32, 1),
-      filter 220ms cubic-bezier(0.23, 1, 0.32, 1),
-      color 180ms ease,
-      fill 180ms ease;
-    transition-delay: calc(var(--star-i, 0) * 28ms);
-  }
-
-  .star-rating-preview {
-    transform: translateY(-2px) scale(1.06);
-    filter: drop-shadow(0 0 5px oklch(0.88 0.16 90 / 0.35));
-  }
-
-  .star-rating-button:hover .star-rating-icon {
-    transform: translateY(-2px) scale(1.16) rotate(-6deg);
-    filter: drop-shadow(0 0 8px oklch(0.88 0.16 90 / 0.55));
-    transition-delay: 0ms;
-  }
-
-  .star-rating-button:active .star-rating-icon {
-    transform: scale(0.88);
-    transition-duration: 90ms;
-  }
-
-  .star-rating-pop {
-    animation: star-rating-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
-    animation-delay: calc(var(--star-i, 0) * 55ms);
-  }
-
-  @keyframes star-rating-pop {
-    0% { transform: scale(0.6) rotate(-18deg); filter: drop-shadow(0 0 0 transparent); }
-    55% { transform: scale(1.28) rotate(6deg); filter: drop-shadow(0 0 10px oklch(0.88 0.16 90 / 0.7)); }
-    100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 0 transparent); }
-  }
-
-  .star-burst {
-    display: block;
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-  }
-
-  .star-burst > span {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 4px;
-    height: 4px;
-    margin: -2px;
-    border-radius: 999px;
-    background: oklch(0.88 0.16 90);
-    box-shadow: 0 0 6px oklch(0.88 0.16 90 / 0.8);
-    opacity: 0;
-    animation: star-burst-fly 560ms cubic-bezier(0.2, 0.8, 0.3, 1) 120ms forwards;
-    --dist: -24px;
-  }
-
-  .star-burst > span:nth-child(even) {
-    width: 3px;
-    height: 3px;
-    --dist: -17px;
-  }
-
-  @keyframes star-burst-fly {
-    0% { opacity: 1; transform: rotate(var(--angle)) translateY(0) scale(1); }
-    100% { opacity: 0; transform: rotate(var(--angle)) translateY(var(--dist)) scale(0.3); }
-  }
-
-  /* Published reviews: each row's stars pop in left to right as the list arrives. */
-  .review-star {
-    animation: review-star-in 360ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
-    animation-delay: calc(180ms + var(--star-i, 0) * 60ms);
-  }
-
-  @keyframes review-star-in {
-    from { opacity: 0; transform: scale(0.3) rotate(-30deg); }
-    to { opacity: 1; transform: scale(1) rotate(0deg); }
-  }}
 
 /* ========================================
    Shiny shimmer effect — cycles every 3s
@@ -690,36 +566,6 @@
 }
 
 @keyframes shiny-sweep {
-  0% { background-position: 240% 0; }
-  100% { background-position: -140% 0; }
-}
-
-/* Longer 4s variant for larger elements */
-.shiny-slow {
-  position: relative;
-  overflow: hidden;
-}
-
-.shiny-slow::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    105deg,
-    transparent 30%,
-    color-mix(in oklch, var(--foreground) 6%, transparent) 45%,
-    color-mix(in oklch, var(--foreground) 14%, transparent) 50%,
-    color-mix(in oklch, var(--foreground) 6%, transparent) 55%,
-    transparent 70%
-  );
-  background-size: 240% 100%;
-  background-position: 240% 0;
-  animation: shiny-sweep-slow 8s linear infinite;
-  will-change: background-position;
-  pointer-events: none;
-}
-
-@keyframes shiny-sweep-slow {
   0% { background-position: 240% 0; }
   100% { background-position: -140% 0; }
 }
@@ -761,14 +607,6 @@
     0 0 40px oklch(0.696 0.17 162.48 / 0.06);
 }
 
-/* Hover lift — subtle, for interactive cards. Eases in and out slowly so the lift feels weighted, not twitchy. */
-.hover-lift {
-  transition: transform 0.55s cubic-bezier(0.33, 1, 0.68, 1), box-shadow 0.55s cubic-bezier(0.33, 1, 0.68, 1), border-color 0.4s ease;
-}
-.hover-lift:hover {
-  transform: translateY(-2px);
-}
-
 /* ========================================
    Custom scrollbar
    ======================================== */
@@ -788,15 +626,6 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: color-mix(in oklch, var(--muted-foreground) 50%, transparent);
-}
-
-/* Hide scrollbar for specific elements */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
 }
 
 /* ========================================
@@ -848,123 +677,38 @@
 .page-enter .lx-stack > * > :nth-child(3) { animation-delay: 50ms; }
 .page-enter .lx-stack > * > :nth-child(n + 4) { animation-delay: 75ms; }
 @media (prefers-reduced-motion: reduce) {
-  .page-enter .lx-stack > *, .page-enter .lx-stack > * > * { animation: none; }}
+  .page-enter .lx-stack > *, .page-enter .lx-stack > * > * { animation: none; }
+}
 
 /* The ring stats (Home, Profile, Clans) draw themselves in: each coloured part grows from its start to its length, one after another (owner request 2026-11-09). `backwards`, still for reduced motion. */
 .lx-ring-seg { animation: lx-ring-draw 900ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
 @keyframes lx-ring-draw {
   from { stroke-dasharray: 0.1 200; opacity: 0.4; }
 }
-@media (prefers-reduced-motion: reduce) { .lx-ring-seg { animation: none; }}
+@media (prefers-reduced-motion: reduce) { .lx-ring-seg { animation: none; }
+}
 
 /* The Shop's model picture: the new one slides in from the right while the old one slides out to the left and fades (owner request 2026-11-09). Transform and opacity only, still for reduced motion. */
 .lx-model-in { animation: lx-model-in 420ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
 .lx-model-out { animation: lx-model-out 420ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 @keyframes lx-model-in { from { opacity: 0; transform: translateX(28px) scale(1.04); } }
 @keyframes lx-model-out { to { opacity: 0; transform: translateX(-28px) scale(0.98); } }
-@media (prefers-reduced-motion: reduce) { .lx-model-in, .lx-model-out { animation: none; }}
+@media (prefers-reduced-motion: reduce) { .lx-model-in, .lx-model-out { animation: none; }
+}
 
 /* Play filtering: filtered cards fill into their final positions in a short, staggered pass. */
 @media all {
-  .play-filter-result {
-    position: relative;
-    animation: play-filter-fill-in 250ms cubic-bezier(0.23, 1, 0.32, 1) backwards;
-    animation-delay: var(--filter-delay, 0ms);
-  }
 
-  .play-filter-result::after {
-    content: "";
-    pointer-events: none;
-    position: absolute;
-    inset: 0;
-    z-index: 20;
-    border-radius: 1rem;
-    background: linear-gradient(100deg, transparent 0%, color-mix(in oklch, var(--chart-2) 14%, transparent) 42%, color-mix(in oklch, var(--foreground) 12%, transparent) 52%, transparent 72%);
-    background-size: 300% 100%;
-    background-repeat: no-repeat;
-    /* Sweeps via background-position so the wrapper needs no overflow clipping (card hover lift and glow stay visible). */
-    animation: play-filter-fill-sweep 390ms cubic-bezier(0.23, 1, 0.32, 1) both;
-    animation-delay: var(--filter-delay, 0ms);
-  }
-
-  @keyframes play-filter-fill-in {
-    from { opacity: 0; transform: translateY(8px) scale(0.985); filter: brightness(0.78); }
-    65% { opacity: 1; transform: translateY(0) scale(1); filter: brightness(1.08); }
-    to { opacity: 1; transform: translateY(0) scale(1); filter: brightness(1); }
-  }
-
-  @keyframes play-filter-fill-sweep {
-    from { background-position: 100% 0; opacity: 0.9; }
-    to { background-position: 0% 0; opacity: 0; }
-  }
 }
 
 /* ========================================
    Sidebar dropdown — smooth height transition
    ======================================== */
-.submenu-animated {
-  transition: max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.22s ease;
-}
-
-.submenu-stagger-item {
-  opacity: 0;
-  transform: translateY(-4px);
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.submenu-animated[style*="opacity: 1"] .submenu-stagger-item {
-  opacity: 1;
-  transform: translateY(0);
-}
 
 /* Play filter dropdowns: fall open from the trigger, items cascade in, and fold back up on close.
    The close keyframes run while AnimatedSelect (play.tsx) holds the content open via [data-closing]. */
 @media all {
-  .play-dropdown-content[data-state="open"] {
-    transform-origin: var(--radix-select-content-transform-origin, top center);
-    animation: play-dropdown-open 220ms cubic-bezier(0.23, 1, 0.32, 1) both;
-  }
 
-  .play-dropdown-content[data-state="open"][data-closing] {
-    pointer-events: none;
-    animation: play-dropdown-close 170ms cubic-bezier(0.4, 0, 1, 1) both;
-  }
-
-  .play-dropdown-content[data-state="open"] [data-slot="select-item"] {
-    animation: play-dropdown-item-in 260ms cubic-bezier(0.23, 1, 0.32, 1) backwards;
-  }
-
-  .play-dropdown-content [data-slot="select-item"]:nth-child(2) { animation-delay: 18ms; }
-  .play-dropdown-content [data-slot="select-item"]:nth-child(3) { animation-delay: 36ms; }
-  .play-dropdown-content [data-slot="select-item"]:nth-child(4) { animation-delay: 54ms; }
-  .play-dropdown-content [data-slot="select-item"]:nth-child(5) { animation-delay: 72ms; }
-  .play-dropdown-content [data-slot="select-item"]:nth-child(6) { animation-delay: 90ms; }
-  .play-dropdown-content [data-slot="select-item"]:nth-child(7) { animation-delay: 108ms; }
-  .play-dropdown-content [data-slot="select-item"]:nth-child(n + 8) { animation-delay: 126ms; }
-
-  .play-dropdown-trigger [class*="chevron-down"] {
-    transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
-  }
-
-  .play-dropdown-trigger[data-state="open"]:not([data-closing]) [class*="chevron-down"] {
-    transform: rotate(180deg);
-  }
-
-  @keyframes play-dropdown-open {
-    from { opacity: 0; transform: translateY(-8px) scale(0.96); filter: blur(4px); }
-    to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-  }
-
-  @keyframes play-dropdown-close {
-    from { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-    to { opacity: 0; transform: translateY(-6px) scale(0.97); filter: blur(3px); }
-  }
-
-  @keyframes play-dropdown-item-in {
-    from { opacity: 0; transform: translateX(-6px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
 }
 
 /* ========================================
@@ -1032,7 +776,8 @@
       from { opacity: 0; transform: translateY(24px) scale(0.98); }
       to { opacity: 1; transform: translateY(0) scale(1); }
     }
-  }
+
+}
 }
 
 /* Checkbox: squish on press, pop + ring pulse when checked, tick draws itself in and shrinks away on uncheck.
@@ -1079,12 +824,6 @@
 /* ========================================
    Profile page
    ======================================== */
-.profile-cover-fallback {
-  background:
-    radial-gradient(120% 140% at 12% 0%, color-mix(in oklch, var(--chart-4) 30%, transparent) 0%, transparent 55%),
-    radial-gradient(90% 120% at 88% 10%, color-mix(in oklch, var(--chart-1) 28%, transparent) 0%, transparent 60%),
-    linear-gradient(135deg, color-mix(in oklch, var(--card) 90%, black) 0%, var(--background) 100%);
-}
 
 @media all {
   /* Cover slowly drifts so the banner feels alive without competing with content. */
@@ -1096,15 +835,6 @@
   @keyframes profile-cover-drift {
     from { transform: scale(1.04) translate3d(-1%, 0, 0); }
     to { transform: scale(1.12) translate3d(1%, -2%, 0); }
-  }
-
-  .profile-avatar-pop {
-    animation: profile-avatar-pop 560ms cubic-bezier(0.34, 1.56, 0.64, 1) 80ms backwards;
-  }
-
-  @keyframes profile-avatar-pop {
-    from { opacity: 0; transform: translateY(12px) scale(0.8); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
   }
 
   .profile-name {
@@ -1125,51 +855,17 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  .profile-progress-bar {
-    position: relative;
-    transition: width 1100ms cubic-bezier(0.22, 1, 0.36, 1) 150ms;
-  }
-
-  /* Light glint travelling along the filled part of the EXP bar. */
-  .profile-progress-bar::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, transparent 0%, rgb(255 255 255 / 0.55) 50%, transparent 100%);
-    background-size: 40% 100%;
-    background-repeat: no-repeat;
-    animation: profile-progress-glint 2.8s ease-in-out 1.3s infinite;
-    background-position: -60% 0;
-  }
-
-  @keyframes profile-progress-glint {
-    0% { background-position: -60% 0; }
-    60%, 100% { background-position: 160% 0; }
-  }
-
   .profile-ring {
     transition: stroke-dashoffset 1100ms cubic-bezier(0.22, 1, 0.36, 1) 250ms;
   }
 
-  .profile-rank-badge {
-    animation: profile-badge-float 4.5s ease-in-out infinite;
-    filter: drop-shadow(0 6px 18px oklch(0.83 0.16 85 / 0.18));
-  }
-
-  @keyframes profile-badge-float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-4px); }
-  }}
+}
 
 /* ========================================
    Play match cards
    ======================================== */
 .match-card {
   transition: border-color 400ms ease;
-}
-
-.match-join-button {
-  transition: background-color 350ms ease, border-color 350ms ease, color 350ms ease;
 }
 
 @media all {
@@ -1179,80 +875,6 @@
       translate 650ms cubic-bezier(0.33, 1, 0.68, 1),
       box-shadow 650ms cubic-bezier(0.33, 1, 0.68, 1),
       border-color 450ms ease;
-  }
-
-  .match-card-bg {
-    transition: scale 1600ms cubic-bezier(0.33, 1, 0.68, 1), opacity 900ms ease;
-  }
-
-  .match-join-button {
-    transition: background-color 350ms ease, border-color 350ms ease, color 350ms ease, scale 160ms ease;
-  }
-
-  /* Diagonal light sweep across the card on hover. */
-  .match-card-shine {
-    background: linear-gradient(115deg, transparent 35%, rgb(255 255 255 / 0.07) 50%, transparent 65%);
-    background-size: 250% 100%;
-    background-position: 130% 0;
-    transition: background-position 1400ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .match-card:hover .match-card-shine {
-    background-position: -30% 0;
-  }
-
-  /* Live matches breathe with a soft emerald edge. */
-  .match-card-live {
-    animation: match-live-glow 2.8s ease-in-out infinite;
-  }
-
-  @keyframes match-live-glow {
-    0%, 100% { box-shadow: 0 0 0 1px rgb(110 231 183 / 0.10), 0 0 0 0 rgb(110 231 183 / 0); }
-    50% { box-shadow: 0 0 0 1px rgb(110 231 183 / 0.28), 0 0 22px -4px rgb(110 231 183 / 0.35); }
-  }
-
-  .match-live-dot {
-    position: relative;
-  }
-
-  .match-live-dot::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: inherit;
-    animation: match-live-ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
-  }
-
-  @keyframes match-live-ping {
-    0% { transform: scale(1); opacity: 0.8; }
-    80%, 100% { transform: scale(2.8); opacity: 0; }
-  }
-
-  /* "Waiting for players..." with a typing ellipsis. */
-  .match-waiting-dots::after {
-    content: "";
-    display: inline-block;
-    width: 1.2em;
-    text-align: left;
-    animation: match-waiting-dots 1.4s steps(4, end) infinite;
-  }
-
-  @keyframes match-waiting-dots {
-    0% { content: ""; }
-    25% { content: "."; }
-    50% { content: ".."; }
-    75%, 100% { content: "..."; }
-  }
-
-  .match-fav-pop {
-    animation: match-fav-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-
-  @keyframes match-fav-pop {
-    0% { transform: scale(0.5) rotate(-25deg); }
-    60% { transform: scale(1.35) rotate(8deg); }
-    100% { transform: scale(1) rotate(0deg); }
   }
 
   /* Seats fill left to right when a card appears. */
@@ -1268,33 +890,7 @@
     to { transform: scaleX(1); opacity: 1; }
   }
 
-  /* Join button: a light glint runs across it on hover. */
-  .match-join-button:not(:disabled)::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.22) 50%, transparent 70%);
-    transform: translateX(-120%);
-    transition: transform 1100ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .match-join-button:not(:disabled):hover::after {
-    transform: translateX(120%);
-  }
-
-  .filter-tab-indicator {
-    transition: left 320ms cubic-bezier(0.22, 1, 0.36, 1), width 320ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .count-bump {
-    animation: count-bump 360ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-
-  @keyframes count-bump {
-    0% { transform: scale(0.6); }
-    60% { transform: scale(1.2); }
-    100% { transform: scale(1); }
-  }}
+}
 
 /* FACEIT level badge: the coloured gauge fills to the level, then the number pops in. */
 @media all {
@@ -1319,7 +915,8 @@
     transform-box: fill-box;
     transform-origin: center;
     animation: faceit-level-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) 150ms backwards;
-  }}
+  }
+}
 
 /* Match details dialog: the final score pops in and team comparison bars slide from 50/50 to their real split. */
 @media all {
@@ -1339,14 +936,7 @@
 
 /* Penalties: active penalties breathe with a soft green ping. */
 @media all {
-  .penalty-active-dot {
-    animation: penalty-active-pulse 1.8s ease-in-out infinite;
-  }
 
-  @keyframes penalty-active-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgb(110 231 183 / 0.55); }
-    60% { box-shadow: 0 0 0 5px rgb(110 231 183 / 0); }
-  }
 }
 
 /* Home review strip: the first copy scrolls past, then its duplicate takes its place. Hover pauses it. */
@@ -1364,22 +954,9 @@
   }
 }
 
-/* Top bar kill feed: one copy scrolls out while its duplicate follows. Hover pauses it. */
-.kill-feed {
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
-}
 @media all {
-  .kill-feed-track {
-    animation: kill-feed 40s linear infinite;
-  }
-  .kill-feed:hover .kill-feed-track {
-    animation-play-state: paused;
-  }
-  @keyframes kill-feed {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
-  }}
+
+}
 
 /* Skinchanger wear slider: the track is painted with the wear bands (inline style); a plain white thumb sits on it. */
 .wear-range {
@@ -1495,15 +1072,6 @@
   to { transform: translate3d(-3%, 2%, 0) scale(1.06); opacity: 1; }
 }
 
-/* Faint grid over the hero for depth. */
-.lx-hero-grid {
-  background-image:
-    linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
-  background-size: 44px 44px;
-  mask-image: radial-gradient(80% 100% at 70% 0%, black, transparent 75%);
-}
-
 /*
  * Hover without flicker: anything that moves or scales on hover keeps its own compositor layer at
  * rest too. Otherwise Chrome promotes it when the hover transition starts and demotes it when the
@@ -1555,19 +1123,12 @@
   from { transform: scale(1); opacity: 0.7; }
   to { transform: scale(2.8); opacity: 0; }
 }
-@keyframes lx-fx-card-in {
-  from { opacity: 0; transform: translate3d(0, 8px, 0); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
-}
 
 /* A violet light runs around the edge while hovered (no glow around the card). */
 @property --lx-edge-angle {
   syntax: "<angle>";
   initial-value: 0deg;
   inherits: false;
-}
-@keyframes lx-edge-spin {
-  to { --lx-edge-angle: 360deg; }
 }
 
 /* Map artwork slowly pans so the cards never sit still. */
@@ -1585,11 +1146,6 @@
 @keyframes lx-map-drift {
   from { transform: scale(1.04) translate3d(-1.5%, 0, 0); }
   to { transform: scale(1.1) translate3d(1.5%, -2%, 0); }
-}
-
-/* Play: filled player slot lights up violet. */
-.lx-slot-on {
-  background: var(--text-2);
 }
 
 /* Progress fill with a light sweep (fun capacity, Pro League EXP). */
@@ -1619,13 +1175,6 @@
   from { opacity: 0; transform: translateY(-10px); filter: blur(3px); }
   to { opacity: 1; transform: none; filter: none; }
 }
-.lx-swap-fade {
-  animation: lx-swap-fade 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-@keyframes lx-swap-fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
 
 /* Table rows arrive in a quick cascade (Leaders). */
 .lx-row-in {
@@ -1644,15 +1193,6 @@
 @keyframes lx-bar-grow {
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
-}
-
-/* Login gate: a thin, still ring around the lock. */
-.lx-gate-ring {
-  padding: 1px;
-  background: var(--line-strong);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
 }
 
 /* ========================================
@@ -1794,7 +1334,8 @@
 @keyframes lx-boost-twinkle-soft { 0%, 100% { opacity: 0.75; } 50% { opacity: 1; filter: drop-shadow(0 0 4px var(--boost)); } }
 @media (prefers-reduced-motion: reduce) {
   .lx-boost-orbit, .lx-boost::after, .lx-boost-name, .lx-boost-gem, .lx-boost-star, .lx-boost-row .lx-boost-gem-sm { animation: none; }
-  .lx-boost-star { opacity: 0; }}
+  .lx-boost-star { opacity: 0; }
+}
 
 /* A row of a member who boosts right now gets the same Nitro motion in small: a pink sheen, a shining name and twinkling stars. */
 .lx-boost-row-on::after {
@@ -1809,7 +1350,8 @@
   animation: lx-boost-sheen 8s ease-in-out infinite;
 }
 .lx-boost-row-on { box-shadow: inset 2px 0 0 var(--boost); }
-@media (prefers-reduced-motion: reduce) { .lx-boost-row-on::after { animation: none; }}
+@media (prefers-reduced-motion: reduce) { .lx-boost-row-on::after { animation: none; }
+}
 
 /* The Booster mark next to a name on the profile: Discord's boost pink, only while the player boosts. A pink-to-violet edge, a soft glow,
    a glowing gem and a slow sheen; the sheen and the twinkle stand still for reduced motion. */
@@ -1842,7 +1384,8 @@
   filter: drop-shadow(0 0 5px color-mix(in oklab, var(--boost) 80%, transparent));
 }
 @media (prefers-reduced-motion: reduce) {
-  .lx-boost-badge::after { animation: none; }}
+  .lx-boost-badge::after { animation: none; }
+}
 
 /* A top booster's badge wears the place it holds: gold, silver or bronze (owner request 2026-10-23). The same badge, recoloured through --boost. */
 .lx-boost-badge[data-place="1"] {
@@ -1891,28 +1434,10 @@
   mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.6) 35%, rgba(0, 0, 0, 0.25) 70%, transparent 100%);
   box-shadow: none;
 }
-/* Genesis badge: the gold pill with the player's number. */
-.lx-founder-badge {
-  color: var(--founder-ink);
-  background: linear-gradient(180deg, var(--founder-1), var(--founder-2) 50%, var(--founder-3));
-  box-shadow: 0 2px 10px color-mix(in oklab, var(--founder-2) 35%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.6);
-}
+
 .lx-profile-title-founder {
   color: var(--founder-2);
 }
-
-/* The bar under a profile stat grows from the left once; still for reduced motion. */
-@media (prefers-reduced-motion: no-preference) {
-  .lx-stat-fill {
-    animation: lx-stat-grow 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
-}
-@keyframes lx-stat-grow {
-  from {
-    width: 0;
-  }
-}
-
 
 /* A staff card carries its kind in colour: a hairline along the top, a faint wash under it and a tinted icon tile. */
 .lx-tone { --tone: var(--text-faint); position: relative; background-image: linear-gradient(180deg, color-mix(in oklab, var(--tone) 8%, transparent), transparent 60%); }
@@ -1970,10 +1495,11 @@
   100% { box-shadow: 0 0 0 14px rgba(250, 250, 250, 0); scale: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .lx-like-pop, .lx-count-in, .lx-bought, .lx-row-in, .lx-swap-in { animation: none; }} /* palette-exempt: QA grey */
+  .lx-like-pop, .lx-count-in, .lx-bought, .lx-row-in, .lx-swap-in { animation: none; }
+} /* palette-exempt: QA grey */
 .lx-stat-cell[data-tone="violet"], section[data-tone="violet"] { --tone: var(--tone-violet); }
 section[data-tone="red"] { --tone: var(--tone-red); } section[data-tone="sky"] { --tone: var(--tone-sky); } section[data-tone="green"] { --tone: var(--tone-green); } section[data-tone="amber"] { --tone: var(--tone-amber); }
-.lx-team-dot { background: var(--tone); }
+
 .lx-team-hero:hover { translate: none; }
 .lx-team-face { flex-shrink: 0; border-radius: 999px; object-fit: cover; background: rgb(255 255 255 / 0.08); box-shadow: 0 0 0 2px color-mix(in srgb, var(--tone) 55%, transparent); }
 .lx-team-go { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 999px; background: rgb(255 255 255 / 0.07); color: var(--text-faint); transition: color 200ms var(--ease-out); }
@@ -1983,7 +1509,8 @@ section[data-tone="red"] { --tone: var(--tone-red); } section[data-tone="sky"] {
 
 /* Detail sheets (owner request 2026-10-26): every detail view rises from the bottom and covers the screen (`components/detail-sheet.tsx`). */
 .lx-detail-sheet .lx-sheet { box-shadow: 0 -24px 60px rgba(0, 0, 0, 0.55), 0 0 0 1px var(--line-strong); }
-@media (prefers-reduced-motion: reduce) { .lx-detail-sheet { animation-duration: 1ms; }}
+@media (prefers-reduced-motion: reduce) { .lx-detail-sheet { animation-duration: 1ms; }
+}
 
 /* Premium grenade trail previews (owner request 2026-10-26): the lightning flickers, the pulse puffs swell, the stardust twinkles. Off for reduced motion. */
 .lx-trail-flicker { animation: lx-trail-flicker 1.1s steps(1, end) infinite; }
@@ -1992,7 +1519,8 @@ section[data-tone="red"] { --tone: var(--tone-red); } section[data-tone="sky"] {
 @keyframes lx-trail-flicker { 0%, 100% { opacity: 1; } 20% { opacity: 0.45; } 24% { opacity: 1; } 61% { opacity: 0.6; } 64% { opacity: 1; } }
 @keyframes lx-trail-pulse { 0%, 100% { transform: scale(0.85); } 50% { transform: scale(1.15); } }
 @keyframes lx-trail-twinkle { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { .lx-trail-flicker, .lx-trail-pulse, .lx-trail-twinkle { animation: none; }}
+@media (prefers-reduced-motion: reduce) { .lx-trail-flicker, .lx-trail-pulse, .lx-trail-twinkle { animation: none; }
+}
 
 /* Number fields: no browser spin arrows (they ignore the theme); fields that need steps draw their own − / + buttons. */
 input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
@@ -2067,7 +1595,8 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
   background-repeat: no-repeat;
   animation: lx-boost-sheen 6.5s ease-in-out infinite;
 }
-@media (prefers-reduced-motion: reduce) { .lx-banner-perk::after { animation: none; }}
+@media (prefers-reduced-motion: reduce) { .lx-banner-perk::after { animation: none; }
+}
 .lx-banner-perk-2 {
   --banner-a: #12061f; /* palette-exempt: Imperial silk */
   --banner-b: #3b1580; /* palette-exempt */
@@ -2109,7 +1638,8 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
   from { opacity: 0; transform: translateY(-14px); }
   to { opacity: 1; transform: translateY(0); }
 }
-@media (prefers-reduced-motion: reduce) { .lx-flow-down { animation: none; }}
+@media (prefers-reduced-motion: reduce) { .lx-flow-down { animation: none; }
+}
 
 /* A tab's content: its parts flow down into place one after another. Key the element by the tab so it replays on a switch. */
 .lx-flow-stack > * { animation: lx-flow-down 0.42s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
@@ -2118,35 +1648,26 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
 .lx-flow-stack > :nth-child(4) { animation-delay: 135ms; }
 .lx-flow-stack > :nth-child(5) { animation-delay: 180ms; }
 .lx-flow-stack > :nth-child(n + 6) { animation-delay: 225ms; }
-@media (prefers-reduced-motion: reduce) { .lx-flow-stack > * { animation: none; }}
+@media (prefers-reduced-motion: reduce) { .lx-flow-stack > * { animation: none; }
+}
 
 /* Ring frames (owner request 2026-11-08): pure CSS rings round the round avatar, see lib/ring-frames.ts. The ring overflows the avatar's box by 12%.
    Only the ring turns (transform), never a blurred layer, so a list of them stays cheap. Still for reduced motion. */
 .lx-ring { position: absolute; inset: var(--lx-ring-inset, -12%); border-radius: 9999px; pointer-events: none; z-index: 1; }
 .lx-ring-glow { position: absolute; inset: 9%; border-radius: 9999px; box-shadow: 0 0 calc(var(--lx-ring-size, 40px) * 0.28) var(--ring-b); opacity: 0.55; }
 .lx-ring-spin { position: absolute; inset: 0; border-radius: 9999px; animation: lx-ring-turn 5s linear infinite; }
-.lx-ring-gradient .lx-ring-spin {
-  background: conic-gradient(var(--ring-a), var(--ring-b), var(--ring-c), var(--ring-a));
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 2px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 2px));
-}
-.lx-ring-beam::after { content: ""; position: absolute; inset: 0; border-radius: 9999px; border: 1px solid var(--ring-a); opacity: 0.55; }
-.lx-ring-beam .lx-ring-glow { opacity: 0.3; }
-.lx-ring-beam .lx-ring-spin {
-  background: conic-gradient(from 0deg, transparent 0 62%, var(--ring-a) 78%, var(--ring-b) 92%, var(--ring-c) 100%);
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 2px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 2px));
-  animation-duration: 3.2s;
-}
+
 @keyframes lx-ring-turn { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .lx-ring-spin { animation: none; }}
+@media (prefers-reduced-motion: reduce) { .lx-ring-spin { animation: none; }
+}
 
 /* Home's Discord card: the server's own blue (third-party brand colours, palette-exempt). */
 .lx-discord-card {
   background: linear-gradient(135deg, #232a6e 0%, #3340b8 55%, #5865f2 100%); /* palette-exempt: Discord brand */
   border: 1px solid #5865f2; /* palette-exempt: Discord brand */
 }
-@media (prefers-reduced-motion: reduce) { .lx-discord-card img { transition: none; }}
+@media (prefers-reduced-motion: reduce) { .lx-discord-card img { transition: none; }
+}
 /* Home's TikTok card: TikTok's black with a cyan light at the top left and a red one at the bottom right. Palette-exempt: TikTok brand. */
 .lx-tiktok-card {
   background:
@@ -2157,7 +1678,8 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
   transition: border-color 200ms ease-out;
 }
 .lx-tiktok-card:hover { border-color: #3d3d3d; }
-@media (prefers-reduced-motion: reduce) { .lx-tiktok-card img { transition: none; }}
+@media (prefers-reduced-motion: reduce) { .lx-tiktok-card img { transition: none; }
+}
 /* Wallet → Top up, the own-amount slider: a thin track filled up to the thumb (--fill), a round white thumb. */
 .lx-range { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 999px; cursor: pointer; background: linear-gradient(to right, var(--text) var(--fill, 0%), var(--line) var(--fill, 0%)); outline: none; }
 .lx-range::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--text); border: 3px solid var(--bg); box-shadow: 0 0 0 1px var(--line-strong); }
@@ -2181,12 +1703,12 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
 .lx-play-connect { background: rgb(255 255 255 / 0.14); border-color: rgb(255 255 255 / 0.28); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18); backdrop-filter: blur(6px); }
 .lx-play-connect:hover:not(:disabled) { background: rgb(255 255 255 / 0.22); }
 
-
 /* ---- onetake.ru-inspired details (owner request 2026-11-13, "keep the sidebar, do the others") ---- */
 /* One big soft violet light along the bottom of the window, behind the page; the shell and the cards stay transparent over it. */
 body::after { content: ""; position: fixed; left: 0; right: 0; bottom: 0; height: 46vh; z-index: -1; pointer-events: none;
   background: radial-gradient(75% 100% at 50% 100%, rgb(109 61 196 / 0.34), rgb(109 61 196 / 0.1) 45%, transparent 72%); } /* palette-exempt: the brand violet, deeper */
-@media print { body::after { display: none; } }
+@media print { body::after { display: none; }
+}
 /* Fields with the counter inside them, and a radio group (the Create clan form). */
 .lx-field { position: relative; }
 .lx-field input { width: 100%; height: 46px; border-radius: 14px; border: 0; background: rgb(255 255 255 / 0.07); padding: 0 56px 0 16px; font-size: 14px; color: var(--text); }
@@ -2242,7 +1764,8 @@ body::after, body::before, .lx-glass-page::before, .lx-calm::after { display: no
 
 /* Layout parts kept from the older pages after the old looks were deleted (owner, 2026-11-14: "delete the whole old design"). */
 .lx-team-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
-@media (max-width: 639px) { .lx-team-grid { gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); } .lx-team-grid .lx-team-face { width: 64px; height: 64px; } }
+@media (max-width: 639px) { .lx-team-grid { gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); } .lx-team-grid .lx-team-face { width: 64px; height: 64px; }
+}
 .lx-team-inner { position: relative; display: flex; height: 100%; flex-direction: column; align-items: center; gap: 12px; padding: 14px 14px 16px; border-radius: 8px; }
 .lx-team-inner:focus-visible { outline: 2px solid var(--accent-solid); outline-offset: 2px; }
 .lx-team-hero .lx-team-inner { padding: 20px; }
