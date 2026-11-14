@@ -43,8 +43,8 @@ export function StatusPill({ penalty, className }: { penalty: PenaltyEntry; clas
   const live = penaltyStatus(penalty) === "active"
   return (
     <span
-      className={cn("inline-flex h-5 items-center gap-1.5 rounded-full border px-2 text-[11px] font-semibold", className)}
-      style={{ color, borderColor: `color-mix(in oklab, ${color} 35%, transparent)`, backgroundColor: `color-mix(in oklab, ${color} 10%, transparent)` }}
+      className={cn("inline-flex h-5 items-center gap-1.5 rounded-full px-2 text-[11px] font-semibold", className)}
+      style={{ color, backgroundColor: `color-mix(in oklab, ${color} 10%, transparent)` }}
     >
       <span className={cn("size-1.5 rounded-full", live && "animate-pulse motion-reduce:animate-none")} style={{ backgroundColor: color }} />
       {penaltyStatusLabel(penalty)}
@@ -108,8 +108,8 @@ export function TypePill({ type }: { type: PenaltyType }) {
   const Icon = meta.icon
   return (
     <span
-      className="inline-flex h-5 items-center gap-1 rounded-full border px-2 text-[11px] font-semibold"
-      style={{ color: meta.color, borderColor: `color-mix(in oklab, ${meta.color} 35%, transparent)`, backgroundColor: `color-mix(in oklab, ${meta.color} 10%, transparent)` }}
+      className="inline-flex h-5 items-center gap-1 rounded-full px-2 text-[11px] font-semibold"
+      style={{ color: meta.color, backgroundColor: `color-mix(in oklab, ${meta.color} 10%, transparent)` }}
     >
       <Icon className="size-3" />
       {meta.label}

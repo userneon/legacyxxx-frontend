@@ -38,7 +38,7 @@ function YourStatus({ penalties, loading, onDetails }: { penalties: PenaltyEntry
   const active = penalties.find((penalty) => penaltyStatus(penalty) === "active")
   if (loading && penalties.length === 0) {
     return (
-      <div className="flex items-center gap-3.5 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] px-[18px] py-4" aria-hidden="true">
+      <div className="flex items-center gap-3.5 rounded-xl bg-[var(--glass-fill)] px-[18px] py-4" aria-hidden="true">
         <Skeleton className="size-10 rounded-[10px] bg-[var(--line-soft)]" />
         <div className="flex flex-1 flex-col gap-2">
           <Skeleton className="h-3 w-40 rounded-full bg-[var(--line)]" />
@@ -49,7 +49,7 @@ function YourStatus({ penalties, loading, onDetails }: { penalties: PenaltyEntry
   }
   if (!active) {
     return (
-      <section aria-label="Your status" className="lx-swap-in flex items-center gap-3.5 rounded-xl border border-[var(--status-green)]/30 bg-[var(--glass-fill)] px-[18px] py-4">
+      <section aria-label="Your status" className="lx-swap-in flex items-center gap-3.5 rounded-xl bg-[var(--glass-fill)] px-[18px] py-4">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-[var(--status-green)]/10 text-[var(--status-green)]">
           <ShieldCheck className="size-[18px]" />
         </span>
@@ -63,8 +63,7 @@ function YourStatus({ penalties, loading, onDetails }: { penalties: PenaltyEntry
   return (
     <section
       aria-label="Your status"
-      className="lx-swap-in flex flex-wrap items-center gap-3.5 rounded-xl border bg-[var(--glass-fill)] px-[18px] py-4"
-      style={{ borderColor: `color-mix(in oklab, ${penaltyStatusColor(active)} 45%, transparent)`, backgroundImage: `linear-gradient(90deg, color-mix(in oklab, ${penaltyStatusColor(active)} 8%, transparent), transparent 60%)` }}
+      className="lx-swap-in flex flex-wrap items-center gap-3.5 rounded-xl bg-[var(--glass-fill)] px-[18px] py-4"
     >
       <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px]" style={{ color: penaltyStatusColor(active), backgroundColor: `color-mix(in oklab, ${penaltyStatusColor(active)} 14%, transparent)` }}>
         <ShieldAlert className="size-[18px]" />
@@ -113,11 +112,7 @@ function PenaltyRow({ penalty, onOpen, index }: { penalty: PenaltyEntry; onOpen:
         "hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50",
       )}
     >
-      <span
-        aria-hidden="true"
-        className="absolute bottom-2 left-0 top-2 w-[3px] scale-y-0 rounded-r-full bg-[var(--text-2)] opacity-0 transition-[scale,opacity] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]"
-      />
-      <span className="flex min-w-0 items-center gap-3 transition-[translate] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:translate-x-1 group-hover:duration-300 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]">
+      <span className="flex min-w-0 items-center gap-3">
         <PlayerModerationAvatar avatar={penalty.avatar} name={penalty.player} status={penalty.moderationStatus} className="size-8 shrink-0 rounded-[9px] text-xs" />
         <span className="min-w-0 truncate text-[13px] font-medium text-[var(--text)]" title={penalty.player}>{penalty.player}</span>
       </span>
@@ -126,7 +121,7 @@ function PenaltyRow({ penalty, onOpen, index }: { penalty: PenaltyEntry; onOpen:
       <span className="min-w-0 truncate text-[13px] text-[var(--text-2)] @max-2xl:hidden" title={reason}>{reason}</span>
       <TermLabel penalty={penalty} className="text-[13px] font-medium @max-2xl:hidden" />
       <span className="text-[13px] text-[var(--text-muted)] @max-2xl:hidden" title={formatPenaltyDate(penalty.date, true)}>{formatPenaltyDate(penalty.date)}</span>
-      <ChevronRight className="size-4 @max-2xl:hidden text-[var(--text-faint)] transition-[translate,color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:translate-x-1 group-hover:text-[var(--text)] group-hover:duration-300" />
+      <ChevronRight className="size-4 @max-2xl:hidden text-[var(--text-faint)] transition-colors group-hover:text-[var(--text)]" />
     </button>
   )
 }
@@ -157,12 +152,11 @@ function SummaryCell({ label, value, color, selected, pulse, onClick }: {
       aria-pressed={selected}
       style={{ "--tile": color } as CSSProperties}
       className={cn(
-        "lx-stat-cell relative text-left transition-colors duration-200 hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50",
-        selected && "bg-[color-mix(in_oklab,var(--tile)_10%,var(--card-surface))] hover:bg-[color-mix(in_oklab,var(--tile)_14%,var(--card-surface))]",
+        "relative flex min-w-0 flex-col gap-2 rounded-xl bg-[var(--glass-fill)] px-4 py-3.5 text-left transition-colors duration-200 hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50",
+        selected && "bg-[var(--raised)]",
       )}
     >
-      {selected && <span aria-hidden="true" className="absolute inset-x-0 top-0 h-[2px] bg-[var(--tile)]" />}
-      <span className="lx-stat-label flex items-center gap-1.5">
+      <span className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.04em] text-[var(--text-muted)]">
         <span className={cn("size-1.5 rounded-full bg-[var(--tile)]", pulse && Boolean(value) && "lx-live-dot")} />
         {label}
       </span>
@@ -269,8 +263,8 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
               aria-pressed={status === "active"}
               onClick={() => update({ status: status === "active" ? null : "active" })}
               className={cn(
-                "inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-[13px] transition-colors duration-200",
-                status === "active" ? "border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text)]" : "border-[var(--glass-line)] text-[var(--text-muted)] hover:text-[var(--text)]",
+                "inline-flex h-9 items-center gap-2 rounded-lg px-3 text-[13px] transition-colors duration-200",
+                status === "active" ? "bg-[var(--raised)] text-[var(--text)]" : "text-[var(--text-muted)] hover:text-[var(--text)]",
               )}
             >
               Active only
@@ -291,7 +285,7 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
 
         <div className="scrollbar-hidden @container min-h-0 flex-1 overflow-y-auto">
           <div className="lx-stack flex flex-col gap-3 px-6 pb-4 pt-4">
-            <div className="lx-stat-grid grid-cols-2 @2xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 @2xl:grid-cols-4">
               <SummaryCell label="Active now" value={firstLoad ? null : activeTotal} color="var(--text-2)" pulse selected={status === "active" && type === "all"} onClick={() => update({ status: status === "active" && type === "all" ? null : "active", type: null })} />
               <SummaryCell label="Bans" value={firstLoad ? null : counts.ban} color="var(--text-2)" selected={type === "ban"} onClick={() => update({ type: type === "ban" ? null : "ban" })} />
               <SummaryCell label="Mutes" value={firstLoad ? null : counts.comm} color="var(--text-2)" selected={type === "comm"} onClick={() => update({ type: type === "comm" ? null : "comm" })} />
@@ -301,7 +295,7 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
             {access && <LiftRequests access={access} onDecided={refetch} />}
 
             {user && <YourStatus penalties={mine ?? []} loading={mineLoading} onDetails={(penalty) => update({ penalty: penalty.id })} />}
-            <section aria-label="Penalties" className="@container lx-glass min-w-0 overflow-hidden rounded-2xl">
+            <section aria-label="Penalties" className="@container min-w-0 overflow-hidden rounded-xl bg-[var(--glass-fill)]">
           <div className={cn(GRID, "sticky top-0 z-[2] h-[38px] border-y border-[var(--line-soft)] bg-[var(--panel)] text-xs font-medium text-[var(--text-dim)]")}>
             <span>Player</span>
             <span>Type</span>

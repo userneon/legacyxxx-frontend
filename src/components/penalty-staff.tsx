@@ -118,7 +118,7 @@ export function LiftRequests({ access, onDecided }: { access: ModerationAccess; 
       <h2 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-dim)]">Unban requests · {requests.length}</h2>
       <div className="grid gap-3">
         {requests.map((request) => (
-          <div key={request.id} data-tone="red" className="lx-tone relative flex min-w-0 flex-col gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4 transition-colors">
+          <div key={request.id} className="relative flex min-w-0 flex-col gap-3 rounded-xl bg-[var(--glass-fill)] p-4">
             <div className="flex items-start gap-3">
               <PlayerAvatar avatar={request.avatar} name={request.player} className="size-10 shrink-0 rounded-[10px] text-sm" />
               <span className="min-w-0 flex-1">
