@@ -16,3 +16,6 @@ export const CommunityIcon = ({ className }: { className?: string }) => <MaskIco
 export const ReviewsIcon = ({ className }: { className?: string }) => <MaskIcon src="/reviews-icon.webp" className={className} />
 export const PlayIcon = ({ className }: { className?: string }) => <MaskIcon src="/play-icon.webp" className={className} />
 export const PenaltiesIcon = ({ className }: { className?: string }) => <MaskIcon src="/penalties-icon.webp" className={className} />
+export const HomeIcon = ({ className }: { className?: string }) => <MaskIcon src="/home-icon.webp" className={className} />
+export const ShopIcon = ({ className }: { className?: string }) => <MaskIcon src="/shop-icon.webp" className={className} />
+export const ExploreIcon = ({ className }: { className?: string }) => <MaskIcon src="/explore-icon.webp" className={className} />

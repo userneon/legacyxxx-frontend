@@ -1,6 +1,6 @@
 import type React from "react"
 import { useEffect, useState, type ComponentType, type ReactNode } from "react"
-import { Gem, House, Compass, Lock, ChevronDown, ShieldCheck, Clapperboard, Store, Swords } from "lucide-react"
+import { Lock, ChevronDown, ShieldCheck, Clapperboard, Store, Swords } from "lucide-react"
 
 import { isFeatureEnabled, isPageEnabled } from "@/lib/features"
 import { competitiveService } from "@/api"
@@ -16,7 +16,7 @@ import { setSkinchangerView, useSkinchangerView, type SkinchangerView } from "@/
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { KnifeIcon } from "@/components/knife-icon"
 import { ClanIcon } from "@/components/clan-icon"
-import { CommunityIcon, CompareIcon, LeadersIcon, PenaltiesIcon, PlayIcon, ReviewsIcon } from "@/components/mask-icon"
+import { CommunityIcon, CompareIcon, ExploreIcon, HomeIcon, LeadersIcon, PenaltiesIcon, PlayIcon, ReviewsIcon, ShopIcon } from "@/components/mask-icon"
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
 
 interface AppSidebarProps {
@@ -42,16 +42,16 @@ export const PLAY_ITEMS: NavItem[] = enabledNav([
 export const NAV_ITEMS: NavItem[] = enabledNav([
   { id: "skinchanger", label: "Skinchanger", icon: KnifeIcon },
   { id: "compare", label: "Compare", icon: CompareIcon },
-  { id: "shop", label: "Shop", icon: Gem },
+  { id: "shop", label: "Shop", icon: ShopIcon },
   { id: "leaders", label: "Leaders", icon: LeadersIcon },
   { id: "penalties", label: "Penalties", icon: PenaltiesIcon },
   { id: "feedback", label: "Reviews", icon: ReviewsIcon },
-  { id: "explore", label: "Explore", icon: Compass },
+  { id: "explore", label: "Explore", icon: ExploreIcon },
 ])
 
 // Commerce (owner request 2026-11-07): the Shop and the Market under one row that opens like Play.
 export const COMMERCE_ITEMS: NavItem[] = enabledNav([
-  { id: "shop", label: "Shop", icon: Gem },
+  { id: "shop", label: "Shop", icon: ShopIcon },
   { id: "market", label: "Market", icon: Store },
 ])
 
@@ -176,7 +176,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
         <nav aria-label="Main" className="flex flex-col gap-0.5">
           <div className="relative">
             <RailTip label="Home" show={collapsed}><button type="button" onClick={() => onNavigate("home")} aria-label="Home" className={cn(rowClass, isActive("home") && activeRowClass)}>
-              <House className="size-[18px] shrink-0" />
+              <HomeIcon className="size-[19px]" />
               <span className={labelClass(collapsed)}>Home</span>
             </button></RailTip>
           </div>
@@ -289,7 +289,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                       aria-expanded={collapsed ? undefined : commerceOpen}
                       className={cn(rowClass, collapsed && commerceActive && activeRowClass)}
                     >
-                      <Gem className="size-[18px] shrink-0" />
+                      <ShopIcon className="size-[19px]" />
                       <span className={cn(labelClass(collapsed), "flex-1")}>Commerce</span>
                       <ChevronDown aria-hidden="true" className={cn("size-4 shrink-0 text-[var(--text-dim)] transition-[rotate,opacity] duration-300 motion-reduce:transition-none", EASE, commerceOpen ? "rotate-180" : "rotate-0", collapsed ? "opacity-0" : "opacity-100")} />
                     </button></RailTip>
