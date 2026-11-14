@@ -33,7 +33,7 @@ export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
           className="pointer-events-none absolute bottom-0 left-[-20.6%] w-[133.8%] max-w-none opacity-[0.22] [mask-image:linear-gradient(to_top,black_45%,transparent_100%)]"
         />
         <div className="relative">
-        <img src="/logolegacyx.webp" alt="" aria-hidden="true" className="mx-auto mb-4 size-10" />
+        <img src="/lxc-logo.webp" alt="LXC" className="mx-auto mb-5 h-7 w-auto" />
         <h1 className="text-xl font-semibold tracking-[-0.3px] text-[var(--text)]">Sign in to open {pageName}</h1>
         <p className="mx-auto mt-2 max-w-[300px] text-[13px] leading-[1.55] text-[var(--text-muted)]">
           Your LEGACY-X account is your Steam account.
