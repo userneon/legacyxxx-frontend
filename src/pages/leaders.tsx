@@ -47,51 +47,34 @@ const readSort = (value: string | null): LeaderboardSort => (value === "kd" || v
 type LadderView = LeaderboardSort | "clans" | "boosters"
 const VIEWS: { value: LadderView; label: string }[] = [...SORTS.map(({ value, label }) => ({ value, label })), { value: "clans", label: "Clans" }, { value: "boosters", label: "Boosters" }]
 
-/** Podium order on screen: silver, gold, bronze. */
-const PODIUM_ORDER = [2, 1, 3]
 
 /** Feeds the pointer position to a card's spotlight (--mx / --my). */
 
+const MEDAL = ["", "#e3b341", "#b8c0cc", "#c98b5a"]
+
+/** A podium tile: flat, the same size for all three; the place is a small coloured numeral, the figure being ranked sits on the right. */
 function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry; sort: LeaderboardSort; onOpen: () => void }) {
-  const first = player.position === 1
-  const slot = PODIUM_ORDER.indexOf(player.position)
   return (
     <button
       type="button"
       onClick={onOpen}
       aria-label={`Open ${player.username} profile`}
-      // The player's rank tier colour tints the corner glow (--tier); the podium spot sets the order and height.
-      style={{ "--tier": rankTierColor(player.rank_id), order: slot, animationDelay: `${first ? 60 : 160 + slot * 60}ms` } as CSSProperties}
-      className={cn(
-        "lx-fx-card group relative isolate flex min-w-0 flex-col gap-4 overflow-hidden rounded-xl border bg-[var(--glass-fill)] p-[18px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
-        first ? "border-[var(--brand)]/45" : "mt-6 border-[var(--line-soft)]",
-      )}
+      style={{ animationDelay: `${(player.position - 1) * 60}ms` } as CSSProperties}
+      className="lx-row-in group relative isolate flex min-w-0 flex-col gap-5 overflow-hidden rounded-xl bg-[var(--glass-fill)] p-5 text-left transition-colors duration-300 hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
     >
       <NameBanner fx={player.banner} image={player.bannerImage} />
       <span className="flex items-center justify-between">
-        <span className="flex items-center gap-2">
-          {first && <Crown aria-hidden="true" className="size-6 fill-[var(--brand)]/30 text-[var(--brand-bright)] drop-" />}
-          <span className={cn("font-bold leading-none tracking-[-1px]", first ? "text-[34px] text-[var(--text)]" : "text-[28px] text-[var(--text-2)]")}>#{player.position}</span>
+        <span className="flex items-center gap-2 text-[13px] font-bold tracking-[0.4px]" style={{ color: MEDAL[player.position] }}>
+          {player.position === 1 && <Crown aria-hidden="true" className="size-4" />}
+          #{player.position}
         </span>
-        <CompetitiveRankBadge rankId={player.rank_id} rankName={player.rank_name} imageKey={player.rank_image_key} currentExp={player.current_exp} size={first ? 48 : 40} />
+        <CompetitiveRankBadge rankId={player.rank_id} rankName={player.rank_name} imageKey={player.rank_image_key} currentExp={player.current_exp} size={36} />
       </span>
-      <span className="flex min-w-0 items-center gap-3">
-        <span className="relative shrink-0">
-          <PlayerAvatar
-            avatar={player.avatar}
-            name={player.username}
-            frame={player.frame}
-            frameLook={player.frame_look}
-            className={cn(
-              "lx-layer relative z-0 shrink-0 text-base transition-[scale] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:scale-105 group-hover:duration-500 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
-              first ? "size-[60px] rounded-[15px]" : "size-[52px] rounded-[13px]",
-              first && !player.frame && "ring-2 ring-[var(--brand)]/70 ring-offset-2 ring-offset-[var(--card-surface)]",
-            )}
-          />
-        </span>
+      <span className="flex min-w-0 items-center gap-3.5">
+        <PlayerAvatar avatar={player.avatar} name={player.username} frame={player.frame} frameLook={player.frame_look} className="relative z-0 size-14 shrink-0 rounded-[14px] text-base" />
         <span className="flex min-w-0 flex-col gap-1.5">
           <span className="flex min-w-0 items-center gap-1.5">
-            <span {...nameProps(player.name_style, cn("truncate font-semibold text-[var(--text)]", first ? "text-base" : "text-sm"))} title={player.username}><PlayerNameText name={player.username} /></span>
+            <span {...nameProps(player.name_style, "truncate text-[15px] font-semibold text-[var(--text)]")} title={player.username}><PlayerNameText name={player.username} /></span>
             <PerkMark perk={player.perk} />
             {player.clan_tag && <span {...clanTagProps(player.clan_look, "shrink-0 text-[11px] font-semibold text-[var(--text-dim)]")}>[{player.clan_tag}]</span>}
             <DiscordLinkedMark linked={player.discord_linked} />
@@ -99,20 +82,14 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
           <span className="truncate text-xs font-medium" style={{ color: rankTierColor(player.rank_id) }}>{player.rank_name}</span>
         </span>
       </span>
-      <span className="flex items-end justify-between border-t border-[var(--line-soft)] pt-3.5">
+      <span className="flex items-end justify-between">
         <span className="flex flex-col gap-1.5">
           <span className="text-[11px] text-[var(--text-dim)]">{SORTS.find((entry) => entry.value === sort)!.metric}</span>
-          <span key={sort} className={cn("lx-swap-in font-bold leading-none", first ? "text-[22px] text-[var(--brand-bright)]" : "text-lg text-[var(--text)]")}>{METRIC[sort](player)}</span>
+          <span key={sort} className="lx-swap-in text-[26px] font-bold leading-none text-[var(--text)]">{METRIC[sort](player)}</span>
         </span>
-        <span className="flex gap-3.5">
-          <span className="flex flex-col items-end gap-1.5">
-            <span className="text-[11px] text-[var(--text-dim)]">Matches</span>
-            <span className="text-xs text-[var(--text-2)]">{player.matches_completed.toLocaleString()}</span>
-          </span>
-          <span className="flex flex-col items-end gap-1.5">
-            <span className="text-[11px] text-[var(--text-dim)]">Win rate</span>
-            <span className="text-xs text-[var(--text-2)]">{formatWinRate(player)}</span>
-          </span>
+        <span className="flex gap-4 text-right">
+          <span className="flex flex-col gap-1.5"><span className="text-[11px] text-[var(--text-dim)]">Matches</span><span className="text-xs text-[var(--text-2)]">{player.matches_completed.toLocaleString()}</span></span>
+          <span className="flex flex-col gap-1.5"><span className="text-[11px] text-[var(--text-dim)]">Win rate</span><span className="text-xs text-[var(--text-2)]">{formatWinRate(player)}</span></span>
         </span>
       </span>
     </button>
@@ -134,28 +111,20 @@ function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: Competiti
         // fixed layer keeps a podium hover from re-creating (and repainting) the row below it.
         "lx-layer group relative isolate w-full text-left transition-[background-color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] hover:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50",
         you
-          ? "h-[60px] shrink-0 border-t border-[var(--brand)]/40 bg-[var(--card-surface)]"
+          ? "h-[60px] shrink-0 bg-[var(--raised)]"
           : "lx-row-in h-14 border-b border-[var(--raised)] hover:bg-[var(--raised)]",
       )}
     >
       {!you && <NameBanner fx={player.banner} image={player.bannerImage} />}
-      {/* Violet marker: always on your pinned row, slides in on hover for the others. */}
-      <span
-        aria-hidden="true"
-        className={cn(
-          "absolute bottom-2 left-0 top-2 w-[3px] origin-center rounded-r-full bg-[var(--brand-bright)] transition-[scale,opacity] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)]",
-          you ? "opacity-100" : "scale-y-0 opacity-0 group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
-        )}
-      />
-      <span className={cn("text-sm font-semibold", you ? "text-[var(--brand-bright)]" : "text-[var(--text-muted)] transition-colors duration-300 group-hover:text-[var(--text)]")}>{player.position}</span>
-      <span className="flex min-w-0 items-center gap-3 transition-[translate] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] group-hover:translate-x-1 group-hover:duration-300 group-hover:ease-[cubic-bezier(0.22,1,0.36,1)]">
+      <span className={cn("text-sm font-semibold", you ? "text-[var(--text)]" : "text-[var(--text-muted)] transition-colors duration-300 group-hover:text-[var(--text)]")}>{player.position}</span>
+      <span className="flex min-w-0 items-center gap-3 ">
         <span className="relative shrink-0">
           <PlayerAvatar
             avatar={player.avatar}
             name={player.username}
             frame={player.frame}
             frameLook={player.frame_look}
-            className={cn("relative z-0 size-8 shrink-0 rounded-[9px] text-xs", you && !player.frame && "ring-2 ring-[var(--brand)]/80")}
+            className={cn("relative z-0 size-8 shrink-0 rounded-[9px] text-xs", )}
           />
         </span>
         <span {...nameProps(you ? null : player.name_style, "min-w-0 truncate text-[13px] font-medium text-[var(--text)]")} title={player.username}>{you ? "You" : <PlayerNameText name={player.username} />}</span>
@@ -216,7 +185,7 @@ function TableHeader({ sort }: { sort: LeaderboardSort }) {
             }}
             className={cn(
               "font-semibold transition-colors duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
-              column.key === sort ? "text-[var(--brand-bright)]" : "text-[var(--text-dim)]",
+              column.key === sort ? "text-[var(--text)]" : "text-[var(--text-dim)]",
             )}
           >
             {column.label}
@@ -226,7 +195,7 @@ function TableHeader({ sort }: { sort: LeaderboardSort }) {
       {bar && (
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute -bottom-px left-0 h-0.5 rounded-full bg-[var(--brand-bright)] transition-[translate,width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+          className="pointer-events-none absolute -bottom-px left-0 h-0.5 rounded-full bg-[var(--text)] transition-[translate,width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
           style={{ translate: `${bar.x - 6}px 0`, width: bar.width + 12 }}
         />
       )}
@@ -350,7 +319,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
           {/* pt-3 leaves room above the podium: cards lift 5px on hover and the scroll area clips anything above its top.
               The podium is its own layer, so the cards' lift and shadow never re-layer the table rows they overlap. */}
           {(firstLoad || topThree.length > 0) && (
-            <section aria-label="Top 3" className="lx-layer isolate flex snap-x gap-3 overflow-x-auto px-4 pb-5 pt-3 [&>*]:min-w-[78%] [&>*]:snap-center md:grid md:grid-cols-3 md:items-start md:overflow-visible md:px-6 md:[&>*]:min-w-0">
+            <section aria-label="Top 3" className="lx-layer isolate flex snap-x gap-3 overflow-x-auto px-4 pb-5 pt-3 [&>*]:min-w-[78%] [&>*]:snap-center md:grid md:grid-cols-3 md:items-stretch md:overflow-visible md:px-6 md:[&>*]:min-w-0">
               {firstLoad
                 ? [0, 1, 2].map((index) => <TopCardSkeleton key={index} />)
                 : topThree.map((player) => <TopCard key={player.user_id} player={player} sort={sort} onOpen={() => open(player)} />)}

@@ -54,6 +54,7 @@ import defaultMusicKit from "@/assets/skinchanger/default-music-kit.webp"
 import { VerifiedBadge } from "@/components/verified-badge"
 import { setSkinchangerView, useSkinchangerView } from "@/lib/skinchanger-view"
 import { SkinCollections } from "@/components/skin-collections"
+import { InGameLoadout } from "@/components/ingame-loadout"
 import { isFeatureEnabled } from "@/lib/features"
 import teamTIcon from "@/assets/skinchanger/team-t.webp"
 import teamCtIcon from "@/assets/skinchanger/team-ct.webp"
@@ -1384,11 +1385,11 @@ export function SkinchangerPage() {
             <div className="flex flex-col gap-[22px]">{weaponSection("SMGS", "SMGs")}</div>
             <div className="flex flex-col gap-[22px]">
               {weaponSection("RIFLES", "Rifles")}
+              <InGameLoadout renderSection={renderSection} />
             </div>
             <div className="flex flex-col gap-[22px]">
               {weaponSection("SNIPER RIFLES", "Sniper Rifles")}
               {weaponSection("HEAVY", "Heavy")}
-              {weaponSection("EQUIPMENT", "Equipment")}
             </div>
             <div className="flex flex-col gap-[22px]">
               {renderSection("AGENT", [agentCard()])}
@@ -1396,6 +1397,7 @@ export function SkinchangerPage() {
               {showKnives && renderSection("KNIFE", [slotCard("knife")])}
               {renderSection("MUSIC KIT", [singleCard("music_kit", viewTeam)])}
               {renderSection("PIN", [singleCard("pin", viewTeam)])}
+              {weaponSection("ZEUS", "Equipment")}
             </div>
           </div>
         )}

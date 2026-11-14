@@ -22,6 +22,7 @@ export function LxcHeader({ onNavigate, className }: { onNavigate: (page: PageId
     <div className={cn("shrink-0 bg-[var(--bg)] px-11", className)}>
       <header className="mx-auto flex w-full max-w-[1320px] flex-wrap items-center gap-4 border-b border-[var(--line)] py-2.5">
         <Link to={PAGE_ROUTES.home} aria-label="LXC, home" className="min-[560px]:hidden"><img src="/lxc-logo.webp" alt="LXC" className="h-5 w-auto" /></Link>
+        <Link to={PAGE_ROUTES.home} aria-label="LXC, home" className="hidden min-[560px]:block"><img src="/lxc-wordmark.webp" alt="LXC" className="h-[18px] w-auto" /></Link>
         {typeof stats?.playersOnline === "number" ? (
           <span className="inline-flex h-8 items-center gap-2 text-[13px] font-bold text-[var(--status-green)]" title="Players online">
             <span aria-hidden="true" className="size-2 rounded-full bg-[var(--status-green)]" />
