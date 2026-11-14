@@ -4,17 +4,20 @@
  * unknown (loading, or an API without a wallet), never shown as a made-up zero.
  */
 import { useEffect } from "react"
-import { Link } from "react-router-dom"
-import { Wallet as WalletIcon } from "lucide-react"
+import { Link, useLocation } from "react-router-dom"
 
 import { walletService } from "@/api"
 import { AnimatedNumber } from "@/components/animated-number"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
+import { MaskIcon } from "@/components/mask-icon"
+import { cn } from "@/lib/utils"
 import type { Wallet } from "@/api"
 
 export function WalletMenu() {
   const { user } = useAuth()
+  // On the wallet pages the whole entry is green; it goes back to normal when you leave them.
+  const onWallet = useLocation().pathname.startsWith("/wallet")
   const { data: wallet, refetch } = useApiQuery<Wallet>(
     (signal) => walletService.getMine({ signal }),
     { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" },
@@ -29,11 +32,20 @@ export function WalletMenu() {
   return (
     <Link
       to="/wallet"
+      data-wallet=""
       aria-label={`Wallet: ${wallet.balance.toLocaleString()} FOL$`}
-      className="flex h-9 shrink-0 items-center gap-2 rounded-full px-3.5 text-[13px] font-semibold text-[var(--text)] transition-colors hover:bg-[var(--line-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
+      aria-current={onWallet ? "page" : undefined}
+      className={cn(
+        "flex h-9 shrink-0 items-center gap-2 rounded-full px-3.5 text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
+        onWallet ? "bg-[color-mix(in_srgb,var(--status-green)_14%,transparent)] text-[var(--status-green)]" : "text-[var(--text)] hover:bg-[var(--line-soft)]",
+      )}
     >
-      <WalletIcon className="size-[18px] text-[var(--text-2)]" aria-hidden="true" />
-      <AnimatedNumber value={wallet.balance} durationMs={600} />
+      <MaskIcon src="/wallet-icon.webp" className={cn("size-[18px]", onWallet ? "text-[var(--status-green)]" : "text-[var(--text-2)]")} />
+      {/* The balance turns over into the word "Wallet" while the pointer is on it (or the link has focus). */}
+      <span className="lx-wallet-flip">
+        <span className="lx-wallet-front"><AnimatedNumber value={wallet.balance} durationMs={600} /></span>
+        <span className="lx-wallet-back" aria-hidden="true">Wallet</span>
+      </span>
     </Link>
   )
 }
