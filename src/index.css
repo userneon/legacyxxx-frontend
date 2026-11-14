@@ -1761,3 +1761,11 @@ html { background: radial-gradient(70% 38vh at 50% 0%, rgb(255 255 255 / 0.05), 
 .lxc-shell .lx-glass-sidebar nav :is(button, a).font-semibold::before { background: var(--ic); box-shadow: 0 0 12px var(--ic); }
 .lxc-shell [data-state="collapsed"] nav :is(button, a) { overflow: visible; }
 .lxc-shell [data-state="collapsed"] nav :is(button, a)::before { left: -12px; width: 3px; top: 8px; bottom: 8px; border-radius: 0 3px 3px 0; }
+
+/* The main content sits on a grid of small dots (owner request 2026-11-14); it scrolls with the content, so the dots stay under the cards. */
+.lx-dotgrid {
+  background-image: radial-gradient(circle at center, rgb(255 255 255 / 0.12) 1px, transparent 1.4px);
+  background-size: 22px 22px;
+  background-position: 0 0;
+  background-attachment: local;
+}
