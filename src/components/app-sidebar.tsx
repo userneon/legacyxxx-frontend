@@ -1,6 +1,6 @@
 import type React from "react"
 import { useEffect, useState, type ComponentType, type ReactNode } from "react"
-import { ArrowLeftRight, Gem, House, Play, MountainSnow, Gavel, MessageSquareQuote, Compass, Lock, ChevronDown, ShieldCheck, Clapperboard, Store, Swords } from "lucide-react"
+import { Gem, House, Play, MountainSnow, Gavel, MessageSquareQuote, Compass, Lock, ChevronDown, ShieldCheck, Clapperboard, Store, Swords } from "lucide-react"
 
 import { isFeatureEnabled, isPageEnabled } from "@/lib/features"
 import { competitiveService } from "@/api"
@@ -16,6 +16,7 @@ import { setSkinchangerView, useSkinchangerView, type SkinchangerView } from "@/
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { KnifeIcon } from "@/components/knife-icon"
 import { ClanIcon } from "@/components/clan-icon"
+import { CompareIcon } from "@/components/mask-icon"
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
 
 interface AppSidebarProps {
@@ -40,7 +41,7 @@ export const PLAY_ITEMS: NavItem[] = enabledNav([
 
 export const NAV_ITEMS: NavItem[] = enabledNav([
   { id: "skinchanger", label: "Skinchanger", icon: KnifeIcon },
-  { id: "compare", label: "Compare", icon: ArrowLeftRight },
+  { id: "compare", label: "Compare", icon: CompareIcon },
   { id: "shop", label: "Shop", icon: Gem },
   { id: "leaders", label: "Leaders", icon: MountainSnow },
   { id: "penalties", label: "Penalties", icon: Gavel },

@@ -1,4 +1,5 @@
 import { VerifiedClan } from "@/components/verified-clan"
+import { LeaderIcon } from "@/components/mask-icon"
 import { DetailSheetContent } from "@/components/detail-sheet"
 import { NameBanner } from "@/components/name-banner"
 import { PerkMark } from "@/components/perk-badge"
@@ -10,7 +11,7 @@ import { useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { usePathTab } from "@/hooks/use-url-tab"
 import { useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft, ArrowRight, Check, Coins, Crown, Flag, Globe, Lock, Pencil, Plus, Search, ShieldCheck, Star, Swords, Trophy, Upload, User, UserPlus, Users, X } from "lucide-react"
+import { ArrowLeft, ArrowRight, Check, Coins, Flag, Globe, Lock, Pencil, Plus, Search, ShieldCheck, Star, Swords, Trophy, Upload, User, UserPlus, Users, X } from "lucide-react"
 import { toast } from "sonner"
 
 
@@ -344,7 +345,7 @@ function JoinModeLabel({ mode, className }: { mode: ClanCard["joinMode"]; classN
 /** Under a member's name in the roster: when they joined, and their share of the clan's EXP as a thin bar (both from the API's real numbers; left out when unknown). */
 /** A member's role as an icon in the first column of the roster (owner request 2026-11-09): crown for the leader, shield for a manager, flag for a captain, a person for a member. */
 function RoleIcon({ role }: { role: string }) {
-  const Icon = role === "leader" ? Crown : role === "co-leader" ? ShieldCheck : role === "captain" ? Flag : User
+  const Icon = role === "leader" ? LeaderIcon : role === "co-leader" ? ShieldCheck : role === "captain" ? Flag : User
   const tone = role === "leader" ? "text-[var(--text)]" : role === "co-leader" ? "text-[var(--text-2)]" : role === "captain" ? "text-[var(--text-muted)]" : "text-[var(--text-faint)]"
   return <span title={roleLabel(role)} className="flex w-5 shrink-0 justify-center"><Icon className={cn("size-4", tone)} aria-label={roleLabel(role)} /></span>
 }

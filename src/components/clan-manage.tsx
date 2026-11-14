@@ -1,5 +1,6 @@
 import { useState } from "react"
-import { ArrowRight, Coins, Crown, Send, ShieldAlert, Trash2, UserMinus, X } from "lucide-react"
+import { LeaderIcon } from "@/components/mask-icon"
+import { ArrowRight, Coins, Send, ShieldAlert, Trash2, UserMinus, X } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -207,7 +208,7 @@ export function ManagersSection({ clan, viewerRole, onChanged }: { clan: ClanDet
                   ))}
                 </span>
               )}
-              {isLeader && <button type="button" disabled={busy === member.id} onClick={() => setHanding(member)} className={button} title={`Hand the clan to ${member.name}`}><Crown className="size-3.5" aria-hidden="true" />Make leader</button>}
+              {isLeader && <button type="button" disabled={busy === member.id} onClick={() => setHanding(member)} className={button} title={`Hand the clan to ${member.name}`}><LeaderIcon className="size-3.5" />Make leader</button>}
               {mayRemove(member) && <button type="button" disabled={busy === member.id} onClick={() => { if (window.confirm(`Remove ${member.name} from the clan?`)) void run(member, () => clansService.removeMember(clan.id, member.id), `${member.name} was removed`) }} className={cn(button, "text-[var(--status-red)]")} title={`Remove ${member.name}`}><UserMinus className="size-3.5" aria-hidden="true" />Remove</button>}
             </li>
           ))}
