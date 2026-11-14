@@ -6,7 +6,6 @@
 import { useSkinchangerView, setSkinchangerView, type SkinchangerView } from "@/lib/skinchanger-view"
 import type { PageId } from "@/api/types"
 import { COMMERCE_ITEMS, COMMUNITY_ITEMS, PLAY_ITEMS, SKIN_VIEWS } from "@/components/app-sidebar"
-import { SHELL } from "@/lib/shell"
 import { cn } from "@/lib/utils"
 
 interface Tab { key: string; label: string; active: boolean; go: () => void }
@@ -26,7 +25,6 @@ export function SectionTabs({ currentPage, onNavigate }: { currentPage: PageId; 
   if (tabs.length < 2) return null
   // The LXC frame (owner decision 2026-11-14, "look through the user's eyes"): the rail is the one place that lists every page, so this row lists only the pages of
   // the section you are in, as cards under the top bar (Play: 5x5, Fun, Pro, Tournaments), the open one outlined.
-  if (SHELL === "lxc") {
     return (
       <nav aria-label={title} className="mx-auto flex w-full max-w-[1320px] shrink-0 gap-2.5 overflow-x-auto px-6 pb-4 pt-1 max-[559px]:hidden">
         {tabs.map((tab) => (
@@ -45,24 +43,4 @@ export function SectionTabs({ currentPage, onNavigate }: { currentPage: PageId; 
         ))}
       </nav>
     )
-  }
-  return (
-    <nav aria-label={title} className={cn("lx-glass-shell flex h-12 shrink-0 items-center gap-1 rounded-[14px] px-3 max-[559px]:hidden")}>
-      <span className="mr-3 px-1 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-dim)]">{title}</span>
-      {tabs.map((tab) => (
-        <button
-          key={tab.key}
-          type="button"
-          onClick={tab.go}
-          aria-current={tab.active ? "page" : undefined}
-          className={cn(
-            "relative h-12 px-3 text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/60",
-            tab.active ? "text-[var(--text)] after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-[var(--brand-bright)]" : "text-[var(--text-muted)] hover:text-[var(--text)]",
-          )}
-        >
-          {tab.label}
-        </button>
-      ))}
-    </nav>
-  )
 }

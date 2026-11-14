@@ -362,15 +362,12 @@ function Appearance() {
 function Website() {
   const prefs = useWebsitePreferences()
   const saved = useSavedFlash()
-  const set = <K extends "sidebarCollapsed" | "timeFormat" | "snow">(key: K, value: Parameters<typeof setWebsitePreference<K>>[1]) => {
+  const set = <K extends "sidebarCollapsed" | "timeFormat">(key: K, value: Parameters<typeof setWebsitePreference<K>>[1]) => {
     setWebsitePreference(key, value)
     saved.flash()
   }
   return (
     <Section id="website" index={2} title="Website" description="How LEGACY-X looks and behaves on this device. Changes apply right away." aside={saved.node}>
-      <Row title="Winter snow" description="Falling snow and a little snow on the cards from November to February, and during New Year.">
-        <Switch label="Winter snow" checked={prefs.snow} onChange={(next) => set("snow", next)} />
-      </Row>
       <Row title="Time format" description="Used for match times, countdowns and dates.">
         <Segmented<TimeFormat>
           ariaLabel="Time format"

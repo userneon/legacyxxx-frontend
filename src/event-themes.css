@@ -70,20 +70,3 @@
 @media (prefers-reduced-motion: reduce) {
   .lx-event-layer { display: none; }
 }
-
-/* Winter snow (owner request 2026-11-09, components/snow-layer.tsx): the canvas does the falling, so the New Year flecks step aside, and the cards carry
-   a little snow on their top edge (the snow layer marks real cards with `data-snow`). Every colour line carries palette-exempt (the lint skips it); the cap is still, so it stays for reduced motion. */
-:root[data-winter="on"][data-event="new-year"] .lx-event-layer { display: none; }
-:root[data-winter="on"] [data-snow]::before {
-  /* The whole card's shape (its own radius), of which only the top band shows: the snow follows the rounded corners right to the edge. */
-  content: "";
-  position: absolute;
-  inset: -1px;
-  z-index: 3;
-  pointer-events: none;
-  border-radius: inherit;
-  background: linear-gradient(#e9eff6, rgba(219, 229, 240, 0.35) 60%, transparent) 0 0 / 100% 3px no-repeat; /* palette-exempt */
-  -webkit-mask-image: linear-gradient(#000 3px, transparent 3px);
-  mask-image: linear-gradient(#000 3px, transparent 3px);
-  opacity: 0.7;
-}
