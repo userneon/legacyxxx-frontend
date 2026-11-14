@@ -49,7 +49,7 @@ export function RankMedal({ place, size = 28 }: { place: 1 | 2 | 3; size?: numbe
 /** The slides: a picture and the line written on it. Add a slide here (and its picture in src/assets/home); the arrows and dots appear with the second one. */
 const SLIDES: { key: string; src: string; label: string; alt: string; focus?: string }[] = [
   { key: "scanner", src: scannerSlide, label: "LEGACY-X Scanner x Anti-Cheat", alt: "A detective's board with a map, photos and notes, and a computer showing a scan" },
-  { key: "caught", src: caughtSlide, label: "Баридахгүй гэж бодов уу?", focus: "50% 30%", alt: "Two officers in a metro carriage arrest a masked man while another holds a second man down, seen through a camera viewfinder" },
+  { key: "caught", src: caughtSlide, label: "Did you think you wouldn't get caught?", focus: "50% 30%", alt: "Two officers in a metro carriage arrest a masked man while another holds a second man down, seen through a camera viewfinder" },
 ]
 
 export function HeroSlider({ className }: { className?: string }) {
