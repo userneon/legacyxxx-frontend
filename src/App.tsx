@@ -134,6 +134,7 @@ export function App() {
       root.style.setProperty("--lx-panel-bottom", `${Math.round(window.innerHeight - rect.bottom)}px`)
     }
     root.classList.add("lx-shell")
+    if (SHELL === "lxc") root.classList.add("lxc-shell")
     publish()
     const observer = new ResizeObserver(publish)
     observer.observe(node)
@@ -141,7 +142,7 @@ export function App() {
     return () => {
       observer.disconnect()
       window.removeEventListener("resize", publish)
-      root.classList.remove("lx-shell")
+      root.classList.remove("lx-shell", "lxc-shell")
     }
   }, [])
 
@@ -159,8 +160,8 @@ export function App() {
       <ProfileBackdrop active={profileGrid} />
       {/* The shell (owner pick 2026-11-09): one solid frame holding the rail, a pill header and the page panel. A phone keeps the sidebar sheet and the older layout. */}
       <div className={SHELL === "pill" ? "lx-frame" : "contents"}>
-      <div className={SHELL === "lxc" ? "min-[560px]:hidden" : "contents"}><ShellNav currentPage={currentPage} onNavigate={handleNavigate} /></div>
-      <SidebarInset className={cn("m-0 flex min-w-0 flex-col gap-2 bg-transparent", SHELL === "pill" ? "lx-frame-main max-[559px]:h-svh max-[559px]:p-2" : SHELL === "lxc" ? "h-svh gap-0 max-[559px]:gap-2 max-[559px]:p-2" : "h-svh p-2 pl-0 max-[559px]:pl-2")}>
+      <ShellNav currentPage={currentPage} onNavigate={handleNavigate} />
+      <SidebarInset className={cn("m-0 flex min-w-0 flex-col gap-2 bg-transparent", SHELL === "pill" ? "lx-frame-main max-[559px]:h-svh max-[559px]:p-2" : SHELL === "lxc" ? "h-svh gap-0 bg-[#060606] min-[560px]:rounded-l-[16px] min-[560px]:overflow-hidden max-[559px]:gap-2 max-[559px]:p-2" : "h-svh p-2 pl-0 max-[559px]:pl-2")}>
         {/* The top bar is gone on wider windows (its parts live in the right sidebar); a phone keeps it, since it has neither sidebar on screen. */}
         <header className={cn("lx-glass-shell relative z-[3] flex h-14 shrink-0 items-center gap-4 pl-4 pr-2 max-md:pl-2 max-sm:gap-1.5 min-[560px]:hidden", SHELL === "pill" ? "lx-frame-header" : "rounded-[14px]")}>
           {/* On a phone the sidebar is a sheet, so the top bar carries its only trigger. */}

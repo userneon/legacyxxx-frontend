@@ -33,7 +33,7 @@ export function LxcHeader({ currentPage, onNavigate, className }: { currentPage:
   return (
     <div className={cn("shrink-0 border-b border-[var(--line)] bg-[var(--bg)]", className)}>
       <header className="mx-auto flex w-full max-w-[1320px] flex-wrap items-center gap-3 px-6 py-2.5">
-        <Link to={PAGE_ROUTES.home} aria-label="LXC, home" className="text-[26px] font-bold leading-none tracking-[0.02em] text-[var(--text)]">LXC</Link>
+        <Link to={PAGE_ROUTES.home} aria-label="LXC, home" className="text-[26px] font-bold leading-none tracking-[0.02em] text-[var(--text)] min-[560px]:hidden">LXC</Link>
         {typeof stats?.playersOnline === "number" ? (
           <span className="inline-flex h-8 items-center gap-2 rounded-full bg-[color-mix(in_srgb,var(--status-green)_12%,transparent)] px-3 text-[13px] font-bold text-[var(--status-green)]" title="Players online">
             <span aria-hidden="true" className="size-2 rounded-full bg-[var(--status-green)]" />

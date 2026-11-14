@@ -2665,3 +2665,10 @@ body::after, body::before, .lx-glass-page::before, .lx-calm::after { display: no
 .lx-primary-button { background: #dcdcdc; color: #0a0a0a; box-shadow: none; font-weight: 700; }
 .lx-primary-button:hover { background: #ececec; box-shadow: none; }
 .lx-sheet, .lx-sheet-overlay { --card-surface: #111111; }
+
+/* The left rail belongs to the frame (owner request 2026-11-14: "bring the sidebar back, but together with the frame, not a separate box"): it sits straight on the
+   #111111 base from the top to the bottom with no gap and no outline of its own, and the page area is the #060606 sheet with a rounded left edge laid against it. */
+.lxc-shell, .lxc-shell body { background: #111111; }
+.lxc-shell [data-slot="sidebar-container"] { padding: 0 !important; }
+.lxc-shell .lx-glass-sidebar > [data-sidebar="sidebar"] { background: #111111 !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; }
+.lxc-shell [data-slot="sidebar-gap"] { background: transparent; }

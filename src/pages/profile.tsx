@@ -487,65 +487,114 @@ function ProfileRings({ overview }: { overview: ProfileOverview }) {
   )
 }
 
+/** Match history (the LXC design, 2026-11-14): a filter, the last ten as tiles, matches in day groups and a panel that shows the picked one. Every figure is the API's. */
 function RecentMatches({ matches, kdAverage, onOpen }: { matches: ProfileMatchRow[]; kdAverage: number | null; onOpen: (match: ProfileMatchRow) => void }) {
   useWebsitePreferences()
-  const form = matches.slice(0, 10)
-  const grid = "grid grid-cols-[minmax(0,1fr)_70px_70px_60px_70px_80px] items-center gap-3 px-4 max-md:grid-cols-[minmax(0,1fr)_60px_60px_70px]"
+  const [filter, setFilter] = useState<"all" | "Win" | "Loss">("all")
+  const [picked, setPicked] = useState<number>(0)
+  const wins = matches.filter((match) => match.result === "Win").length
+  const losses = matches.filter((match) => match.result === "Loss").length
+  const visible = matches.map((match, index) => ({ match, index })).filter(({ match }) => filter === "all" || match.result === filter)
+  const selected = visible.find(({ index }) => index === picked) ?? visible[0] ?? null
+  const dayOf = (value?: string | null) => (value ? new Date(value).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }) : "Earlier")
+  const days: Array<{ title: string; rows: typeof visible; total: number }> = []
+  for (const row of visible) {
+    const title = dayOf(row.match.playedAt)
+    let group = days.find((entry) => entry.title === title)
+    if (!group) { group = { title, rows: [], total: 0 }; days.push(group) }
+    group.rows.push(row)
+    group.total += row.match.expDelta ?? 0
+  }
+  const sign = (value: number) => (value > 0 ? `+${value}` : value < 0 ? `\u2212${Math.abs(value)}` : "0")
+  const tone = (value: number) => (value > 0 ? "text-[var(--status-green)]" : value < 0 ? "text-[var(--status-red)]" : "text-[var(--text-dim)]")
+  const resultTone = (result: string) => (result === "Win" ? "text-[var(--status-green)]" : result === "Loss" ? "text-[var(--status-red)]" : "text-[var(--text-muted)]")
+  const resultPill = (result: string) => (result === "Win" ? "bg-[color-mix(in_srgb,var(--status-green)_12%,transparent)]" : result === "Loss" ? "bg-[color-mix(in_srgb,var(--status-red)_12%,transparent)]" : "bg-[var(--raised)]")
+  const kdTone = (kd: string) => {
+    const value = Number(kd)
+    return kdAverage !== null && Number.isFinite(value) ? (value > kdAverage ? "text-[var(--status-green)]" : value < kdAverage ? "text-[var(--status-red)]" : "text-[var(--text)]") : "text-[var(--text)]"
+  }
+  const chip = (value: "all" | "Win" | "Loss", label: string, count: number) => (
+    <button key={value} type="button" aria-pressed={filter === value} onClick={() => setFilter(value)} className={cn("h-10 rounded-full border px-4 text-[14px] font-semibold transition-colors", filter === value ? "border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text)]" : "border-[var(--line)] text-[var(--text-muted)] hover:bg-[var(--card-surface)]")}>
+      {label} <span className="ml-1 font-medium text-[var(--text-dim)]">{count}</span>
+    </button>
+  )
   return (
-    <section aria-label="Recent matches" className={cn(card, "overflow-hidden")}>
-      <div className="flex flex-col gap-3 p-4">
-        <div className="flex items-center justify-between">
-          <SectionTitle>Recent matches</SectionTitle>
-        </div>
-        {form.length > 0 && (
-          <div className="flex items-center gap-2.5">
-            <span className="text-xs text-[var(--text-dim)]">Form</span>
-            <div aria-label="Last 10 results" className="flex gap-1">
-              {form.map((match, index) => (
-                <span key={index} title={match.result} className={cn("flex size-[22px] items-center justify-center rounded-md border text-[10px] font-bold", match.result === "Win" ? "border-[var(--result-win)]/45 bg-[var(--result-win)]/20 text-[var(--result-win)]" : match.result === "Loss" ? "border-[var(--result-loss)]/40 bg-[var(--result-loss)]/10 text-[var(--result-loss)]" : "border-[var(--line-strong)] text-[var(--text-dim)]")}>
-                  {match.result === "Win" ? "W" : match.result === "Loss" ? "L" : "D"}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+    <section aria-label="Recent matches" className="@container flex flex-col gap-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <SectionTitle>Recent matches</SectionTitle>
+        <span className="flex-1" />
+        {matches.length > 0 ? <>{chip("all", "All", matches.length)}{chip("Win", "Wins", wins)}{chip("Loss", "Losses", losses)}</> : null}
       </div>
       {matches.length === 0 ? (
-        <p className="border-t border-[var(--line-soft)] px-4 py-8 text-center text-[13px] text-[var(--text-dim)]">No matches yet</p>
+        <p className="rounded-lg border border-[var(--line)] bg-[var(--card-surface)] px-4 py-8 text-center text-[14px] text-[var(--text-dim)]">No matches yet</p>
       ) : (
         <>
-          <div className={cn(grid, "h-8 text-[11px] font-medium text-[var(--text-dim)]")}>
-            <span>Map</span><span>Result</span><span>Score</span><span className="max-md:hidden">K/D</span><span>EXP</span><span className="max-md:hidden">Date</span>
+          <div className="flex flex-col gap-2.5">
+            <div className="flex items-baseline justify-between"><span className="text-[14px] font-semibold text-[var(--text)]">Last {Math.min(10, matches.length)} matches</span><span className="text-[13px] text-[var(--text-dim)]">{visible.length} shown{typeof selected?.match.expDelta === "number" ? "" : ""}</span></div>
+            <div aria-label="Last results, newest first" className="flex gap-1.5">
+              {matches.slice(0, 10).map((match, index) => {
+                const shown = visible.some((row) => row.index === index)
+                return (
+                  <button key={index} type="button" onClick={() => { setFilter("all"); setPicked(index) }} title={`${cs2MapLabel(match.map)} ${match.score} ${match.result}`} aria-label={`${cs2MapLabel(match.map)} ${match.score}, ${match.result}`}
+                    className={cn("h-8 flex-1 rounded-[4px] border-t-[3px] transition-[transform,opacity] hover:-translate-y-0.5", match.result === "Win" ? "border-[var(--status-green)] bg-[color-mix(in_srgb,var(--status-green)_10%,transparent)]" : match.result === "Loss" ? "border-[var(--status-red)] bg-[color-mix(in_srgb,var(--status-red)_10%,transparent)]" : "border-[var(--line-strong)] bg-[var(--raised)]", !shown && "opacity-30", selected?.index === index && "outline outline-2 outline-[var(--accent-solid)]")} />
+                )
+              })}
+            </div>
           </div>
-          {matches.map((match, index) => {
-            const art = cs2MapArtwork(match.map)
-            const clickable = Boolean(match.matchId)
-            return (
-              <button
-                key={`${match.matchId ?? index}-${index}`}
-                type="button"
-                disabled={!clickable}
-                onClick={() => onOpen(match)}
-                className={cn(grid, "group relative isolate h-[52px] w-full overflow-hidden border-t border-[var(--raised)] text-left text-[13px] transition-[background-color] duration-500 enabled:hover:bg-[var(--raised)] enabled:hover:duration-200 disabled:cursor-default")}
-              >
-                <span aria-hidden="true" className="absolute bottom-2 left-0 top-2 w-[3px] scale-y-0 rounded-r-full bg-[var(--text-2)] opacity-0 transition-[scale,opacity] duration-500 group-enabled:group-hover:scale-y-100 group-enabled:group-hover:opacity-100 group-hover:duration-300" />
-                {art && <img src={art} alt="" aria-hidden="true" className="lx-list-art pointer-events-none absolute inset-0 -z-10 size-full object-cover opacity-45 transition-opacity duration-300 group-enabled:group-hover:opacity-60" />}
-                <span className="flex min-w-0 items-center gap-2.5">
-                  <span className="truncate font-medium text-[var(--text)]">{cs2MapLabel(match.map)}</span>
-                </span>
-                <span className={cn("font-medium", match.result === "Win" ? "text-[var(--result-win)]" : match.result === "Loss" ? "text-[var(--result-loss)]" : "text-[var(--text-muted)]")}>{match.result}</span>
-                <span className="text-[var(--text-2)]">{match.score}</span>
-                {(() => {
-                  // A match K/D above the community average (see the stats row) is green, below it red; with no average it stays plain.
-                  const value = Number(match.kd)
-                  const tone = kdAverage !== null && Number.isFinite(value) ? (value > kdAverage ? "text-[var(--result-win)]" : value < kdAverage ? "text-[var(--result-loss)]" : "text-[var(--text-2)]") : "text-[var(--text-2)]"
-                  return <span title={kdAverage !== null ? `Community average ${kdAverage.toFixed(2)}` : undefined} className={cn("max-md:hidden", tone)}>{match.kd}</span>
-                })()}
-                <span className={cn("font-medium", (match.expDelta ?? 0) > 0 ? "text-[var(--result-win)]" : (match.expDelta ?? 0) < 0 ? "text-[var(--result-loss)]" : "text-[var(--text-dim)]")}>{typeof match.expDelta === "number" ? `${match.expDelta > 0 ? "+" : ""}${match.expDelta}` : "—"}{match.expBreakdown?.limited && <span title={match.expBreakdown.limited === "weekly" ? "Weekly EXP limit: no EXP until Monday" : "Daily EXP limit: this gain counted for a quarter"} className="ml-1.5 text-[10px] font-semibold uppercase text-[var(--status-red)]">{match.expBreakdown.limited === "weekly" ? "stop" : "×¼"}</span>}</span>
-                <span className="truncate text-xs text-[var(--text-dim)] max-md:hidden">{match.playedAt ? <RelativeTime value={match.playedAt} /> : "—"}</span>
-              </button>
-            )
-          })}
+          <div className="grid items-start gap-4 @3xl:grid-cols-[minmax(0,3fr)_minmax(260px,2fr)]">
+            <div className="flex min-w-0 flex-col gap-5">
+              {days.length === 0 ? <p className="py-8 text-center text-[14px] text-[var(--text-dim)]">No matches here.</p> : null}
+              {days.map((day) => (
+                <div key={day.title} className="lx-swap-in flex flex-col gap-2">
+                  <div className="flex items-baseline gap-2.5 px-0.5">
+                    <span className="text-[14px] font-semibold text-[var(--text)]">{day.title}</span>
+                    <span className="text-[13px] text-[var(--text-dim)]">{day.rows.length} {day.rows.length === 1 ? "match" : "matches"}</span>
+                    <span className={cn("ml-auto text-[13px] font-semibold", tone(day.total))}>{sign(day.total)} EXP</span>
+                  </div>
+                  {day.rows.map(({ match, index }) => {
+                    const art = cs2MapArtwork(match.map)
+                    const on = selected?.index === index
+                    return (
+                      <button key={`${match.matchId ?? index}-${index}`} type="button" onClick={() => setPicked(index)} aria-pressed={on}
+                        className={cn("flex min-h-[68px] w-full items-center gap-4 rounded-lg border px-3.5 py-2.5 text-left transition-[background-color,border-color,transform] duration-150 hover:translate-x-0.5 hover:bg-[var(--raised)]", on ? "border-[var(--line-strong)] bg-[var(--raised)]" : "border-[var(--line)] bg-[var(--card-surface)]")}>
+                        <span aria-hidden="true" className="relative h-11 w-[68px] shrink-0 overflow-hidden rounded-md bg-[var(--raised)]">{art ? <img src={art} alt="" loading="lazy" className="size-full object-cover" /> : null}</span>
+                        <span className="flex w-[84px] shrink-0 flex-col"><span className={cn("text-[20px] font-bold leading-tight", resultTone(match.result))}>{match.score}</span><span className="text-[13px] text-[var(--text-dim)]">{match.playedAt ? new Date(match.playedAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : ""}</span></span>
+                        <span className="flex min-w-0 flex-1 flex-col gap-1">
+                          <span className="flex items-center gap-2"><span className="truncate font-semibold text-[var(--text)]">{cs2MapLabel(match.map)}</span><span className={cn("inline-flex h-[22px] items-center rounded-full px-2 text-[12px] font-semibold", resultTone(match.result), resultPill(match.result))}>{match.result}</span></span>
+                          <span className="text-[13px] text-[var(--text-muted)]">K/D <b className={cn("font-semibold", kdTone(match.kd))}>{match.kd}</b></span>
+                        </span>
+                        <span className={cn("min-w-[56px] shrink-0 text-right font-bold", tone(match.expDelta ?? 0))}>{typeof match.expDelta === "number" ? sign(match.expDelta) : "\u2014"}{match.expBreakdown?.limited ? <span title={match.expBreakdown.limited === "weekly" ? "Weekly EXP limit: no EXP until Monday" : "Daily EXP limit: this gain counted for a quarter"} className="ml-1.5 text-[11px] font-semibold text-[var(--status-red)]">{match.expBreakdown.limited === "weekly" ? "stop" : "\u00d7\u00bc"}</span> : null}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              ))}
+            </div>
+            {selected ? (
+              <aside aria-label="Selected match" className="lx-swap-in overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--card-surface)] @3xl:sticky @3xl:top-4">
+                <div className="relative flex h-24 items-end bg-[var(--raised)] px-4 pb-2.5">
+                  {cs2MapArtwork(selected.match.map) ? <img src={cs2MapArtwork(selected.match.map)!} alt="" aria-hidden="true" className="absolute inset-0 size-full object-cover opacity-60" /> : null}
+                  <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[var(--card-surface)] to-transparent" />
+                  <span className="relative text-[22px] font-bold text-[var(--text)]">{cs2MapLabel(selected.match.map)}</span>
+                </div>
+                <div className="flex flex-col gap-1 border-b border-[var(--line)] px-4 py-3">
+                  <span className="text-[13px] text-[var(--text-dim)]">{selected.match.playedAt ? new Date(selected.match.playedAt).toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "Date unknown"}</span>
+                  <div className="flex items-center gap-3"><span className={cn("text-[32px] font-bold leading-none", resultTone(selected.match.result))}>{selected.match.score}</span><span className={cn("ml-auto inline-flex h-6 items-center rounded-full px-2.5 text-[13px] font-semibold", resultTone(selected.match.result), resultPill(selected.match.result))}>{selected.match.result}</span></div>
+                </div>
+                <div className="flex flex-col gap-3 px-4 py-4 text-[14px]">
+                  <div className="flex justify-between"><span className="text-[var(--text-dim)]">K/D</span><b className={cn("font-semibold", kdTone(selected.match.kd))}>{selected.match.kd}</b></div>
+                  {typeof selected.match.expAfter === "number" ? (
+                    <div className="flex justify-between"><span className="text-[var(--text-dim)]">EXP</span><span className="font-semibold text-[var(--text)]">{typeof selected.match.expBefore === "number" ? `${selected.match.expBefore.toLocaleString()} \u2192 ` : ""}{selected.match.expAfter.toLocaleString()}{typeof selected.match.expDelta === "number" ? <span className={cn("ml-1.5", tone(selected.match.expDelta))}>({sign(selected.match.expDelta)})</span> : null}</span></div>
+                  ) : null}
+                  {selected.match.rankAfter ? (
+                    <div className="flex justify-between"><span className="text-[var(--text-dim)]">Rank</span><span className="font-semibold text-[var(--text)]">{selected.match.rankBefore && selected.match.rankBefore.id !== selected.match.rankAfter.id ? `${selected.match.rankBefore.name} \u2192 ` : ""}{selected.match.rankAfter.name}</span></div>
+                  ) : null}
+                  {selected.match.expBreakdown?.limited ? <p className="m-0 text-[13px] text-[var(--status-red)]">{selected.match.expBreakdown.limited === "weekly" ? "Weekly limit: no EXP until Monday." : "Daily limit: this gain counted for a quarter."}</p> : null}
+                  <button type="button" disabled={!selected.match.matchId} onClick={() => onOpen(selected.match)} className="mt-1 flex h-11 items-center justify-center rounded-md border border-[var(--line-strong)] font-semibold text-[var(--text)] transition-colors hover:bg-[var(--raised)] disabled:cursor-default disabled:opacity-40">Open full match</button>
+                </div>
+              </aside>
+            ) : null}
+          </div>
         </>
       )}
     </section>
