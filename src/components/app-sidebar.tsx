@@ -30,8 +30,7 @@ function enabledNav(items: NavItem[]): NavItem[] {
 
 // The Play submenu rows show no icon; the type only needs one for the other rows.
 export const PLAY_ITEMS: NavItem[] = enabledNav([
-  { id: "play-5vs5", label: "5x5 Matches", icon: Swords },
-  { id: "play-proleague", label: "Pro League", icon: Swords },
+  { id: "play-5vs5", label: "Matchmaking", icon: Swords },
   { id: "play-tournaments", label: "Tournaments", icon: Swords },
 ])
 

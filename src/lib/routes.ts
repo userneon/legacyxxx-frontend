@@ -32,7 +32,7 @@ export const ROUTE_PAGES: Record<string, PageId> = Object.fromEntries(
 /** One name per page: the sidebar label, the page heading and the browser tab title all use it. */
 export const PAGE_TITLES: Record<PageId, string> = {
   home: "Home",
-  "play-5vs5": "5x5 Matches",
+  "play-5vs5": "Matchmaking",
   "play-proleague": "Pro League",
   "play-tournaments": "Tournaments",
   leaders: "Leaders",

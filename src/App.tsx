@@ -195,10 +195,11 @@ export function App() {
               <Route path="/play/5x5" element={<PlayPage mode="5vs5" />} />
               {/* Fun Mode was closed (owner decision 2026-11-14: community servers go, matchmaking comes); its address moves to 5x5. */}
               <Route path="/play/fun" element={<Navigate to="/play/5x5" replace />} />
-              <Route path="/play/pro" element={<PlayPage mode="proleague" />} />
+              {/* One queue for everybody: Pro League is gone as a separate mode. */}
+              <Route path="/play/pro" element={<Navigate to="/play/5x5" replace />} />
               {/* Earlier addresses of the Play pages. */}
               <Route path="/play/5vs5" element={<Navigate to="/play/5x5" replace />} />
-              <Route path="/play/proleague" element={<Navigate to="/play/pro" replace />} />
+              <Route path="/play/proleague" element={<Navigate to="/play/5x5" replace />} />
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/tournaments" element={<TournamentsPage onProfileNavigate={handleProfileNavigate} />} />
               <Route path="/leaders" element={<LeadersPage onProfileNavigate={handleProfileNavigate} />} />

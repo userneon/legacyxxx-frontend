@@ -12,7 +12,6 @@ import { TopPlayers } from "@/components/home-top-players"
 import { useNavigate } from "react-router-dom"
 import { formatDate } from "@/lib/preferences"
 import rankedArt from "@/assets/home/mode-ranked.webp"
-import proArt from "@/assets/home/mode-pro.webp"
 import eventsArt from "@/assets/home/mode-events.webp"
 import { useActiveEvent } from "@/hooks/use-active-event"
 import { eventGreeting } from "@/lib/site-events"
@@ -23,8 +22,7 @@ interface HomePageProps {
 
 type ModeKey = "5x5" | "fun" | "pro" | "tournaments"
 const MODE_CARDS: { id: PageId; key: ModeKey; label: string; tag: string; art: string }[] = [
-  { id: "play-5vs5", key: "5x5", label: "5x5 Matches", tag: "Ranked", art: rankedArt },
-  { id: "play-proleague", key: "pro", label: "Pro League", tag: "High rank", art: proArt },
+  { id: "play-5vs5", key: "5x5", label: "Matchmaking", tag: "Ranked 5v5", art: rankedArt },
   { id: "play-tournaments", key: "tournaments", label: "Tournaments", tag: "Events", art: eventsArt },
 ]
 

@@ -5,7 +5,7 @@
  * Every number comes from the queue API (`/queue/status`); nothing is invented.
  */
 import { useEffect, useState } from "react"
-import { LoaderCircle, Play, X } from "lucide-react"
+import { LoaderCircle, X } from "lucide-react"
 import { toast } from "sonner"
 
 import type { QueueMode, QueueStatus } from "@/api/queue"
@@ -16,7 +16,7 @@ import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { steamConnect } from "@/lib/steam-connect"
 import { cn } from "@/lib/utils"
 
-const TITLES: Record<QueueMode, string> = { "5x5": "5x5 Matches", pro: "Pro League" }
+const TITLES: Record<QueueMode, string> = { "5x5": "Ranked 5v5", pro: "Ranked 5v5" }
 
 function useClock(active: boolean) {
   const [now, setNow] = useState(() => Date.now())
@@ -37,7 +37,7 @@ export function PlayQueue({ mode }: { mode: QueueMode }) {
   const now = useClock(state === "queued" || state === "found")
   const inQueue = status?.counts[mode] ?? 0
 
-  const shell = "lx-glass @container relative flex min-h-[340px] flex-col items-center justify-center gap-5 overflow-hidden px-6 py-10 text-center"
+  const shell = "@container relative flex flex-col items-center justify-center gap-6 px-2 py-8 text-center"
 
   if (!isAuthenticated) {
     return (
@@ -56,7 +56,7 @@ export function PlayQueue({ mode }: { mode: QueueMode }) {
     const left = Math.max(0, Math.ceil((Date.parse(match.acceptDeadline) - now) / 1000))
     const preparing = state === "preparing"
     return (
-      <section aria-label="Match found" className={cn(shell, "border-[var(--brand)]/50")} aria-live="polite">
+      <section aria-label="Match found" className={shell} aria-live="polite">
         <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--brand-bright)]">{preparing ? "Everyone accepted" : "Match found"}</span>
         <h2 className="text-[28px] font-bold leading-tight text-[var(--text)]">{preparing ? "Getting a server ready" : TITLES[match.mode]}</h2>
         <div className="flex items-center gap-1.5" aria-label={`${match.accepted} of ${match.total} accepted`}>
@@ -98,15 +98,15 @@ export function PlayQueue({ mode }: { mode: QueueMode }) {
   const waitsForLeader = inParty && party!.leaderId !== user?.id
   return (
     <section aria-label="Find match" className={shell}>
-      <span className="rounded-full border border-[var(--brand)]/50 px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--brand-bright)]">{TITLES[mode]} queue</span>
+      <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-dim)]">{TITLES[mode]}</span>
       <PartyBar party={party} invitations={status?.invitations ?? []} busy={busy} locked={false} onInvite={(id) => void invite(id)} onKick={(id) => void kick(id)} onLeave={() => void leaveParty()} onAccept={(id) => void acceptInvite(id)} onDecline={(id) => void declineInvite(id)} />
       <button
         type="button"
         disabled={busy || waitsForLeader}
         onClick={() => void join(mode).then(() => undefined)}
-        className="lx-primary-button inline-flex h-14 items-center gap-3 rounded-2xl px-14 text-[17px] font-bold disabled:opacity-60"
+        className="lx-primary-button inline-flex h-14 items-center gap-3 rounded-xl px-16 text-[17px] font-bold disabled:opacity-60"
       >
-        {busy ? <LoaderCircle className="size-5 animate-spin" /> : <Play className="size-5 fill-current" />}
+        {busy ? <LoaderCircle className="size-5 animate-spin" /> : null}
         Find match
       </button>
       <span className="text-[12px] text-[var(--text-dim)]">Players queueing: <b className="font-semibold text-[var(--text-2)]">{inQueue}</b></span>
@@ -121,7 +121,7 @@ function ReadyMatch({ match }: { match: NonNullable<QueueStatus["match"]> }) {
     if (!steamConnect(match.connectAddress ?? undefined)) toast.error("No server address yet", { description: "Wait a few seconds and try again." })
   }
   return (
-    <section aria-label="Your match" className="lx-glass flex flex-col overflow-hidden">
+    <section aria-label="Your match" className="flex flex-col overflow-hidden rounded-2xl border border-[var(--line)]">
       <div className="relative flex min-h-[170px] flex-col justify-end gap-1 px-6 pb-5 pt-10">
         <img src={cs2MapArtwork(match.map) ?? undefined} alt="" aria-hidden="true" className="absolute inset-0 size-full object-cover opacity-45" />
         <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[var(--glass-fill)] via-[var(--glass-fill)]/60 to-transparent" />
@@ -144,7 +144,7 @@ function ReadyMatch({ match }: { match: NonNullable<QueueStatus["match"]> }) {
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--line)] px-5 py-4">
         <span className="text-[12px] text-[var(--text-dim)]">The server loads your match. Only these ten players can join it.</span>
-        <button type="button" onClick={connect} disabled={!match.connectAddress} className="lx-primary-button inline-flex h-12 items-center gap-2.5 rounded-xl px-10 text-[15px] font-bold disabled:opacity-50"><Play className="size-4 fill-current" />Connect</button>
+        <button type="button" onClick={connect} disabled={!match.connectAddress} className="lx-primary-button inline-flex h-12 items-center gap-2.5 rounded-xl px-10 text-[15px] font-bold disabled:opacity-50">Connect</button>
       </div>
     </section>
   )
