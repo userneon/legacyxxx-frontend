@@ -1,6 +1,6 @@
 import type React from "react"
 import { useEffect, useState, type ComponentType, type ReactNode } from "react"
-import { ArrowLeftRight, Gem, House, Swords, Trophy, Gavel, MessageSquareQuote, Compass, Palette, Users, Lock, ChevronDown, ShieldCheck, Clapperboard, Store } from "lucide-react"
+import { ArrowLeftRight, Gem, House, Play, MountainSnow, Gavel, MessageSquareQuote, Compass, Users, Lock, ChevronDown, ShieldCheck, Clapperboard, Store, Swords } from "lucide-react"
 
 import { isFeatureEnabled, isPageEnabled } from "@/lib/features"
 import { competitiveService } from "@/api"
@@ -14,6 +14,7 @@ import { Sidebar, SidebarContent, useSidebar } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
 import { setSkinchangerView, useSkinchangerView, type SkinchangerView } from "@/lib/skinchanger-view"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { KnifeIcon } from "@/components/knife-icon"
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
 
 interface AppSidebarProps {
@@ -37,10 +38,10 @@ export const PLAY_ITEMS: NavItem[] = enabledNav([
 ])
 
 export const NAV_ITEMS: NavItem[] = enabledNav([
-  { id: "skinchanger", label: "Skinchanger", icon: Palette },
+  { id: "skinchanger", label: "Skinchanger", icon: KnifeIcon },
   { id: "compare", label: "Compare", icon: ArrowLeftRight },
   { id: "shop", label: "Shop", icon: Gem },
-  { id: "leaders", label: "Leaders", icon: Trophy },
+  { id: "leaders", label: "Leaders", icon: MountainSnow },
   { id: "penalties", label: "Penalties", icon: Gavel },
   { id: "feedback", label: "Reviews", icon: MessageSquareQuote },
   { id: "explore", label: "Explore", icon: Compass },
@@ -189,7 +190,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                 aria-expanded={collapsed ? undefined : playOpen}
                 className={cn(rowClass, collapsed && playActive && activeRowClass)}
               >
-                <Swords className="size-[18px] shrink-0" />
+                <Play className="size-[18px] shrink-0" />
                 <span className={cn(labelClass(collapsed), "flex-1")}>Play</span>
                 <ChevronDown
                   aria-hidden="true"
@@ -287,7 +288,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                       aria-expanded={collapsed ? undefined : commerceOpen}
                       className={cn(rowClass, collapsed && commerceActive && activeRowClass)}
                     >
-                      <Store className="size-[18px] shrink-0" />
+                      <Gem className="size-[18px] shrink-0" />
                       <span className={cn(labelClass(collapsed), "flex-1")}>Commerce</span>
                       <ChevronDown aria-hidden="true" className={cn("size-4 shrink-0 text-[var(--text-dim)] transition-[rotate,opacity] duration-300 motion-reduce:transition-none", EASE, commerceOpen ? "rotate-180" : "rotate-0", collapsed ? "opacity-0" : "opacity-100")} />
                     </button></RailTip>
