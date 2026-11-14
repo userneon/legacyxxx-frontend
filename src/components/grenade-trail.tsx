@@ -47,7 +47,7 @@ function jagged(jitter: number[], from: number) {
 }
 
 /**
- * A grenade's flight in the trail a player picked (owner request 2026-11-14, the six designs of the Workshop addon: classic, crack, electric, laser,
+ * A grenade's flight in the trail a player picked (owner request 2026-11-14, a clean neon line with no soft halo, like the game draws it, and never through walls; the six designs of the Workshop addon: classic, crack, electric, laser,
  * water, split), drawn on the thrown arc in the player's colour and fading out behind the grenade, which sits at its head; a spark burst
  * marks where it bounces. The line draws itself once (off for reduced motion). Colour and shape come from the API as a plain #rrggbb and a short
  * key (never a style string).
@@ -70,21 +70,15 @@ export function GrenadeTrail({ color, shape, className }: { color?: string | nul
           <stop offset="50%" stopColor="#ffffff" stopOpacity="0" />
           <stop offset="100%" stopColor="#ffffff" stopOpacity="0.85" />
         </linearGradient>
-        <radialGradient id={`glow-${id}`}>
-          <stop offset="0%" stopColor={tint} stopOpacity="0.55" />
-          <stop offset="100%" stopColor={tint} stopOpacity="0" />
-        </radialGradient>
       </defs>
       {kind === "classic" && (
         <>
-          <path d={ARC} {...common} strokeWidth="14" opacity="0.35" />
-          <path d={ARC} {...common} strokeWidth="7" />
-          <path d={ARC} fill="none" stroke={`url(#core-${id})`} strokeWidth="2.4" strokeLinecap="round" pathLength={1} className="lx-trail-draw" />
+          <path d={ARC} {...common} strokeWidth="4" />
+          <path d={ARC} fill="none" stroke={`url(#core-${id})`} strokeWidth="1.6" strokeLinecap="round" pathLength={1} className="lx-trail-draw" />
         </>
       )}
       {kind === "crack" && (
         <>
-          <path d={jagged(CRACK, 0.12)} fill="none" stroke={tint} strokeWidth="9" strokeLinejoin="miter" opacity="0.25" />
           <path d={jagged(CRACK, 0.12)} {...common} strokeWidth="3.2" strokeLinejoin="miter" />
           <path d={jagged(CRACK.map((offset) => -offset * 0.8), 0.3)} {...common} strokeWidth="1.6" strokeLinejoin="miter" opacity="0.8" />
           <path d={jagged(CRACK, 0.12)} fill="none" stroke="#ffffff" strokeWidth="0.9" strokeLinejoin="miter" opacity="0.85" />
@@ -92,7 +86,6 @@ export function GrenadeTrail({ color, shape, className }: { color?: string | nul
       )}
       {kind === "electric" && (
         <g className="lx-trail-flicker">
-          <path d={jagged(BOLT, 0.18)} fill="none" stroke={tint} strokeWidth="8" strokeLinejoin="miter" opacity="0.3" />
           <path d={jagged(BOLT, 0.18)} {...common} strokeWidth="2.6" strokeLinejoin="miter" />
           <path d={jagged(BOLT.map((offset) => -offset), 0.3)} {...common} strokeWidth="1.6" strokeLinejoin="miter" opacity="0.8" />
           <path d={jagged(BOLT, 0.18)} fill="none" stroke="#ffffff" strokeWidth="1" strokeLinejoin="miter" opacity="0.9" />
@@ -100,15 +93,13 @@ export function GrenadeTrail({ color, shape, className }: { color?: string | nul
       )}
       {kind === "laser" && (
         <>
-          <path d={ARC} {...common} strokeWidth="12" opacity="0.22" />
-          <path d={ARC} {...common} strokeWidth="3" />
+          <path d={ARC} {...common} strokeWidth="2.4" />
           <path d={ARC} fill="none" stroke={`url(#core-${id})`} strokeWidth="1.2" strokeLinecap="round" pathLength={1} className="lx-trail-draw" />
         </>
       )}
       {kind === "water" && (
         <>
-          <path d={strand((t) => Math.sin(t * Math.PI * 6), 4)} {...common} strokeWidth="9" opacity="0.4" />
-          <path d={strand((t) => Math.sin(t * Math.PI * 6), 4)} {...common} strokeWidth="3.6" />
+          <path d={strand((t) => Math.sin(t * Math.PI * 6), 4)} {...common} strokeWidth="3" />
           {[0.35, 0.5, 0.62, 0.74, 0.86].map((t, index) => {
             const p = point(t)
             return <circle key={t} cx={p.x + (index % 2 ? 4 : -3)} cy={p.y + 8 + (index % 3) * 3} r={1.4 + (index % 2) * 0.8} fill={tint} opacity="0.75" />
@@ -127,7 +118,6 @@ export function GrenadeTrail({ color, shape, className }: { color?: string | nul
         const angle = (index / 6) * Math.PI * 2 + 0.4
         return <line key={index} x1={P2.x + Math.cos(angle) * 9} y1={P2.y + Math.sin(angle) * 9} x2={P2.x + Math.cos(angle) * 17} y2={P2.y + Math.sin(angle) * 17} stroke={index % 2 ? "#ffffff" : tint} strokeWidth="1.4" strokeLinecap="round" opacity="0.8" />
       })}
-      <circle cx={P2.x} cy={P2.y} r="16" fill={`url(#glow-${id})`} />
       <circle cx={P2.x} cy={P2.y} r="5.5" fill="#d4d4d4" stroke="#525252" strokeWidth="1.2" />
     </svg>
   )
