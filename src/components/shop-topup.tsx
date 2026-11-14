@@ -29,6 +29,16 @@ const mnt = (value: number) => `${value.toLocaleString()}₮`
 
 const STATE_LABEL: Record<TopUp["status"], string> = { pending: "Waiting for payment", paid: "Paid · FOL$ added", expired: "Expired", failed: "Failed" }
 
+/** A line of light along the bottom edge of a card, and a soft glow rising from it; brighter when the card is picked or hovered (the card must be `relative overflow-hidden` and a `group`). */
+function BottomLight({ on }: { on: boolean }) {
+  return (
+    <>
+      <span aria-hidden="true" className={cn("pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-[radial-gradient(70%_100%_at_50%_100%,rgb(255_255_255/0.16),transparent)] transition-opacity duration-300 group-hover:opacity-100", on ? "opacity-100" : "opacity-40")} />
+      <span aria-hidden="true" className={cn("pointer-events-none absolute inset-x-5 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-white to-transparent transition-opacity duration-300 group-hover:opacity-100", on ? "opacity-90" : "opacity-35")} />
+    </>
+  )
+}
+
 export function ShopTopUp() {
   const { user } = useAuth()
   const products = useApiQuery<GoodsProduct[]>((signal) => shopGoodsService.products({ signal }), { queryKey: "shop-goods" })
@@ -161,12 +171,13 @@ export function ShopTopUp() {
                 <span className="mt-2 flex items-baseline gap-1.5"><span className="text-[22px] font-bold leading-none text-[var(--text)]">{pack.grantsLx.toLocaleString()}</span><span className="text-[11px] font-semibold text-[var(--text-muted)]">FOL$</span></span>
                 <span className="text-[13px] text-[var(--text-2)]">{mnt(pack.priceMnt)}</span>
                 <span className="mt-auto h-1 w-full overflow-hidden rounded-full bg-[var(--line)]" aria-hidden="true"><span className="block h-full rounded-full bg-[var(--text-faint)] transition-colors group-hover:bg-[var(--text-2)]" style={{ width: `${Math.max(6, (pack.grantsLx / Math.max(...packages.map((item) => item.grantsLx), 1)) * 100)}%`, ...(on ? { background: "var(--text)" } : null) }} /></span>
+                <BottomLight on={on} />
               </button>
             )
           })}
         </div>
         {range && base && (
-          <div onClick={() => setPicked("custom")} className={cn("lx-frost flex flex-col gap-4 rounded-xl border bg-[var(--card-surface)] p-5 transition-colors", picked === "custom" ? "border-[var(--text)]" : "border-[var(--line)] hover:border-[var(--line-strong)]")}>
+          <div onClick={() => setPicked("custom")} className={cn("lx-frost group relative flex flex-col gap-4 overflow-hidden rounded-xl border bg-[var(--card-surface)] p-5 transition-colors", picked === "custom" ? "border-[var(--text)]" : "border-[var(--line)] hover:border-[var(--line-strong)]")}>
             <div className="flex flex-wrap items-end justify-between gap-6">
               <label className="flex flex-col gap-2 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]" htmlFor="topup-own-amount">
                 Your own amount
@@ -197,6 +208,7 @@ export function ShopTopUp() {
               <input type="range" aria-label="Amount in tugrik" min={range.minMnt} max={range.maxMnt} step={range.stepMnt} value={customMnt} onChange={(event) => { setPicked("custom"); setAmount(Number(event.target.value)) }} className="lx-range w-full" style={{ ["--fill" as string]: `${((customMnt - range.minMnt) / Math.max(1, range.maxMnt - range.minMnt)) * 100}%` }} />
               <div className="flex justify-between text-[11px] text-[var(--text-dim)]"><span>{mnt(range.minMnt)}</span><span>{mnt(range.maxMnt)}</span></div>
             </div>
+            <BottomLight on={picked === "custom"} />
           </div>
         )}
       </section>
