@@ -1,6 +1,6 @@
 import type React from "react"
 import { useEffect, useState, type ComponentType, type ReactNode } from "react"
-import { Gem, House, Play, Gavel, MessageSquareQuote, Compass, Lock, ChevronDown, ShieldCheck, Clapperboard, Store, Swords } from "lucide-react"
+import { Gem, House, Compass, Lock, ChevronDown, ShieldCheck, Clapperboard, Store, Swords } from "lucide-react"
 
 import { isFeatureEnabled, isPageEnabled } from "@/lib/features"
 import { competitiveService } from "@/api"
@@ -16,7 +16,7 @@ import { setSkinchangerView, useSkinchangerView, type SkinchangerView } from "@/
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { KnifeIcon } from "@/components/knife-icon"
 import { ClanIcon } from "@/components/clan-icon"
-import { CommunityIcon, CompareIcon, LeadersIcon } from "@/components/mask-icon"
+import { CommunityIcon, CompareIcon, LeadersIcon, PenaltiesIcon, PlayIcon, ReviewsIcon } from "@/components/mask-icon"
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
 
 interface AppSidebarProps {
@@ -44,8 +44,8 @@ export const NAV_ITEMS: NavItem[] = enabledNav([
   { id: "compare", label: "Compare", icon: CompareIcon },
   { id: "shop", label: "Shop", icon: Gem },
   { id: "leaders", label: "Leaders", icon: LeadersIcon },
-  { id: "penalties", label: "Penalties", icon: Gavel },
-  { id: "feedback", label: "Reviews", icon: MessageSquareQuote },
+  { id: "penalties", label: "Penalties", icon: PenaltiesIcon },
+  { id: "feedback", label: "Reviews", icon: ReviewsIcon },
   { id: "explore", label: "Explore", icon: Compass },
 ])
 
@@ -191,7 +191,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                 aria-expanded={collapsed ? undefined : playOpen}
                 className={cn(rowClass, collapsed && playActive && activeRowClass)}
               >
-                <Play className="size-[18px] shrink-0" />
+                <PlayIcon className="size-[18px]" />
                 <span className={cn(labelClass(collapsed), "flex-1")}>Play</span>
                 <ChevronDown
                   aria-hidden="true"
