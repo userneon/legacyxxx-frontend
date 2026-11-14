@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
-import { Check, ChevronDown, Crosshair, Heart, Lock, RotateCcw, Search, ShoppingBag, SlidersHorizontal, Star, Sword, Undo2, X } from "lucide-react"
+import { Check, ChevronDown, Crosshair, Heart, Lock, RotateCcw, Search, ShoppingCart, SlidersHorizontal, Star, Sword, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -17,8 +17,6 @@ import { OrbCustomizer } from "@/components/orb-customizer"
 import { BgCustomizer } from "@/components/bg-customizer"
 import { BgThumb } from "@/components/bg-thumb"
 import { BackgroundScene, bgById, type BgLook } from "@/lib/backgrounds"
-import StarBorder from "@/components/reactbits/star-border"
-import ShinyText from "@/components/reactbits/shiny-text"
 import { CountNumber } from "@/components/count-number"
 import { SmokePuff } from "@/components/smoke-puff"
 import { GrenadeLight, GrenadeTrail } from "@/components/grenade-trail"
@@ -222,7 +220,6 @@ export function ShopPage() {
     setCustomDraft2((current) => { const { [id]: _saved, ...rest } = current; return rest })
   }
   // The item bought a moment ago: its card rings once and the buy block turns into "Worn" with a fade.
-  const [justBought, setJustBought] = useState<string | null>(null)
   // The Crystal Orb being tried in the preview (null: the one you saved). It is what the preview draws, live, while you change it.
   const [orbDraft, setOrbDraft] = useState<FrameLook | null>(null)
   // The Crystal Orb and background settings are long: they sit behind a "Customize" strip, closed until asked for, and scroll inside their own box.
@@ -230,20 +227,6 @@ export function ShopPage() {
   const [customizeMounted, setCustomizeMounted] = useState(false)
   // The knobs being tried on the picked background, per background (what the preview draws, live, while you change them).
   const [bgDrafts, setBgDrafts] = useState<Record<string, BgLook>>({})
-  // For a few seconds after a purchase its Buy button is an Undo (the API gives the window in seconds and takes the LX back whole).
-  const [undo, setUndo] = useState<{ id: string; until: number } | null>(null)
-  const [undoLeft, setUndoLeft] = useState(0)
-  const pendingToasts = useRef<Record<string, number>>({})
-  useEffect(() => {
-    if (!undo) return
-    const tick = () => {
-      const left = Math.ceil((undo.until - Date.now()) / 1000)
-      if (left <= 0) { setUndo(null); setUndoLeft(0) } else setUndoLeft(left)
-    }
-    tick()
-    const timer = window.setInterval(tick, 250)
-    return () => window.clearInterval(timer)
-  }, [undo])
   // How long the next purchase rents the item for; the price of each length is the API's.
   const [duration, setDuration] = useState<CosmeticDuration>("30d")
   // Some items are rented for one length only (the Crystal Orb: 30 days); the API lists just the lengths it sells.
@@ -323,31 +306,6 @@ export function ShopPage() {
     }
   }
 
-  const buy = async (item: ShopItem) => {
-    setBusy(true)
-    let bought: Awaited<ReturnType<typeof cosmeticsService.buy>>
-    try {
-      bought = await cosmeticsService.buy(item.id, durationFor(item))
-    } catch (caught) {
-      toast.error("Could not buy it", { description: caught instanceof Error ? caught.message : "Try again in a moment." })
-      setBusy(false)
-      return
-    }
-    // The purchase is made: show Undo and free the button at once; wearing it, keeping what was tried and refreshing run alongside.
-    window.dispatchEvent(new Event("legacyx:wallet-changed"))
-    setUndo({ id: item.id, until: Date.now() + (bought.undoSeconds ?? 7) * 1000 })
-    setJustBought(item.id)
-    window.setTimeout(() => setJustBought((current) => (current === item.id ? null : current)), 1400)
-    setBusy(false)
-    // The "yours" message waits until the Undo window is over (and never comes if it was undone), so it does not say "yours" while Undo is still offered.
-    const message = bought.expiresAt ? `${item.name} is yours for ${COSMETIC_DURATIONS.find((entry) => entry.value === durationFor(item))?.label.toLowerCase()} and now worn` : `${item.name} is yours for good and now worn`
-    window.clearTimeout(pendingToasts.current[item.id])
-    pendingToasts.current[item.id] = window.setTimeout(() => { delete pendingToasts.current[item.id]; toast.success(message) }, (bought.undoSeconds ?? 7) * 1000 + 300)
-    await settle(item)
-    await Promise.all([refetch(), refetchWallet()])
-    window.dispatchEvent(new Event("legacyx:appearance-changed"))
-  }
-
   /** Wear or take off an item you own, right here (the Shop used to send you to your profile for this). */
   const wearHere = async (item: ShopItem, on: boolean) => {
     setBusy(true)
@@ -401,23 +359,6 @@ export function ShopPage() {
     }
   }
 
-  const undoBuy = async (item: ShopItem) => {
-    window.clearTimeout(pendingToasts.current[item.id])
-    delete pendingToasts.current[item.id]
-    setUndo(null)
-    setBusy(true)
-    try {
-      await cosmeticsService.undoBuy(item.id)
-      window.dispatchEvent(new Event("legacyx:wallet-changed"))
-      toast.success(`${item.name} purchase undone, your FOL$ are back`)
-      await Promise.all([refetch(), refetchWallet()])
-    } catch (caught) {
-      toast.error("Could not undo it", { description: caught instanceof Error ? caught.message : "Try again in a moment." })
-    } finally {
-      setBusy(false)
-    }
-  }
-
   /** A tile shows a design nobody has coloured yet in a sample colour, so the designs tell apart; the preview starts grey. */
   const onTile = (item: ShopItem, index: number): ShopItem => {
     if (!item.custom) return item
@@ -425,6 +366,7 @@ export function ShopPage() {
     if ((item[field] ?? PICK_DEFAULT).toLowerCase() !== PICK_DEFAULT) return item
     return { ...item, [field]: demoColour(index), ...(item.twoColours ? { color2: demoColour(index + 3) } : {}) }
   }
+
 
   const card = (item: ShopItem, index = 0, dense = false) => {
     const shown = onTile(item, index)
@@ -438,7 +380,7 @@ export function ShopPage() {
         : <span className="inline-flex items-center gap-1 text-xs text-[var(--text-dim)]"><Lock className="size-3" />Earned</span>
     return (
       // No content-visibility here: it paints only inside the box, which cut off the tile's border and glow when it lifts on hover (the lists are at most 30 tiles anyway).
-      <li key={item.id} className={cn("group/tile relative rounded-xl", justBought === item.id && "lx-bought")}>
+      <li key={item.id} className={cn("group/tile relative rounded-xl",)}>
               <button
                 type="button"
                 onClick={() => choose(item)}
@@ -457,6 +399,9 @@ export function ShopPage() {
                   {action}
                 </div>
               </button>
+            {!item.testing && item.unlock === "coin" && !(item.owned && !item.expiresAt) && (
+              <button type="button" onClick={() => addToCart(item)} aria-pressed={tray.includes(item.id)} aria-label={tray.includes(item.id) ? `${item.name} is in the cart` : `Add ${item.name} to the cart`} className={cn("absolute right-10 top-1.5 z-[2] grid size-7 place-items-center rounded-full bg-[var(--card-surface)]/80 text-[var(--text-dim)] transition-opacity hover:text-[var(--text)] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60", tray.includes(item.id) ? "text-[var(--text)] opacity-100" : "opacity-0 group-hover/tile:opacity-100")}>{tray.includes(item.id) ? <Check className="size-3.5" aria-hidden="true" /> : <ShoppingCart className="size-3.5" aria-hidden="true" />}</button>
+            )}
             <button type="button" onClick={() => toggleSaved(item.id)} aria-pressed={saved.includes(item.id)} aria-label={saved.includes(item.id) ? `Remove ${item.name} from saved` : `Save ${item.name} for later`} className={cn("absolute right-1.5 top-1.5 z-[2] grid size-7 place-items-center rounded-full border border-[var(--line)] bg-[var(--card-surface)]/80 text-[var(--text-dim)] transition-opacity hover:text-[var(--text)] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60", saved.includes(item.id) ? "text-[var(--brand-bright)] opacity-100" : "opacity-0 group-hover/tile:opacity-100")}><Heart className={cn("size-3.5", saved.includes(item.id) && "fill-current")} aria-hidden="true" /></button>
       </li>
     )
@@ -481,8 +426,13 @@ export function ShopPage() {
 
   /** One item per kind in the outfit: adding a second background replaces the first. */
   const toggleTray = (item: ShopItem) => setTray((current) => (current.includes(item.id) ? current.filter((id) => id !== item.id) : [...current.filter((id) => all.find((other) => other.id === id)?.kind !== item.kind), item.id]))
-  const trayItems = tray.map((id) => all.find((item) => item.id === id)).filter((item): item is ShopItem => Boolean(item) && !item!.owned && item!.unlock === "coin")
-  const outfit = outfitTotal(trayItems.map((item) => ({ owned: item.owned, price: priceFor(item) })), balance)
+  const addToCart = (item: ShopItem) => {
+    if (tray.includes(item.id)) { setOutfitOpen(true); return }
+    toggleTray(item)
+    toast.success(`${item.name} is in your cart`, { action: { label: "Open cart", onClick: () => setOutfitOpen(true) } })
+  }
+  const trayItems = tray.map((id) => all.find((item) => item.id === id)).filter((item): item is ShopItem => Boolean(item) && item!.unlock === "coin" && !(item!.owned && !item!.expiresAt))
+  const outfit = outfitTotal(trayItems.map((item) => ({ price: priceFor(item) })), balance)
   const [outfitOpen, setOutfitOpen] = useState(false)
   useEffect(() => { if (trayItems.length === 0) setOutfitOpen(false) }, [trayItems.length])
   const after = balance === null ? null : balance - outfit.total
@@ -490,17 +440,17 @@ export function ShopPage() {
   const outfitPanel = trayItems.length > 0 ? (
     <>
       <div className="fixed inset-x-0 bottom-3 z-30 flex justify-center px-4 max-md:bottom-[72px]">
-        <button type="button" onClick={() => setOutfitOpen(true)} aria-label="Open your outfit" className="lx-sweep lx-shop-glass flex items-center gap-4 rounded-xl border border-[var(--brand)]/60 bg-[var(--panel)]/70 px-4 py-2.5 text-[13px] shadow-[0_10px_40px_rgba(0,0,0,0.6)] transition-colors hover:border-[var(--brand)]">
-          <ShoppingBag className="size-4 text-[var(--brand-bright)]" aria-hidden="true" />
-          <span className="font-semibold text-[var(--text)]">Outfit · {trayItems.length} {trayItems.length === 1 ? "item" : "items"}</span>
+        <button type="button" onClick={() => setOutfitOpen(true)} aria-label="Open your cart" className="lx-sweep lx-shop-glass flex items-center gap-4 rounded-xl border border-[var(--brand)]/60 bg-[var(--panel)]/70 px-4 py-2.5 text-[13px] shadow-[0_10px_40px_rgba(0,0,0,0.6)] transition-colors hover:border-[var(--brand)]">
+          <ShoppingCart className="size-4 text-[var(--brand-bright)]" aria-hidden="true" />
+          <span className="font-semibold text-[var(--text)]">Cart · {trayItems.length} {trayItems.length === 1 ? "item" : "items"}</span>
           <span className="inline-flex items-center gap-1 font-semibold text-[var(--text)]"><LxMark size={13} />{outfit.total.toLocaleString()}</span>
         </button>
       </div>
       <Sheet open={outfitOpen} onOpenChange={setOutfitOpen}>
         <SheetContent side="right" className="flex w-full flex-col gap-0 border-l border-[var(--line)] bg-[var(--panel)] p-0 sm:max-w-[400px]">
           <div className="border-b border-[var(--line-soft)] px-[18px] py-4">
-            <SheetTitle className="text-[15px] font-semibold text-[var(--text)]">Your outfit · {trayItems.length} {trayItems.length === 1 ? "item" : "items"}</SheetTitle>
-            <SheetDescription className="mt-0.5 text-[11px] text-[var(--text-dim)]">Bought together, worn at once.</SheetDescription>
+            <SheetTitle className="text-[15px] font-semibold text-[var(--text)]">Your cart · {trayItems.length} {trayItems.length === 1 ? "item" : "items"}</SheetTitle>
+            <SheetDescription className="mt-0.5 text-[11px] text-[var(--text-dim)]">Everything you buy goes through the cart.</SheetDescription>
           </div>
           <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-3.5">
             {trayItems.map((item) => (
@@ -515,7 +465,7 @@ export function ShopPage() {
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-[var(--text)]"><LxMark size={12} />{priceFor(item).toLocaleString()}</span>
-                  <button type="button" aria-label={`Take ${item.name} out of the outfit`} onClick={() => toggleTray(item)} className="inline-flex items-center gap-1 text-[11px] text-[var(--text-dim)] hover:text-[var(--text)]"><X className="size-3" />Remove</button>
+                  <button type="button" aria-label={`Take ${item.name} out of the cart`} onClick={() => toggleTray(item)} className="inline-flex items-center gap-1 text-[11px] text-[var(--text-dim)] hover:text-[var(--text)]"><X className="size-3" />Remove</button>
                 </div>
               </li>
             ))}
@@ -527,9 +477,9 @@ export function ShopPage() {
               ? <p className="flex justify-between text-[12px] text-[var(--status-green)]"><span className="inline-flex items-center gap-1"><Check className="size-3" />Enough FOL$</span><span>Left after: {after?.toLocaleString()} FOL$</span></p>
               : <p className="text-[12px] text-[var(--status-red)]">You need {(outfit.total - balance).toLocaleString()}$ more.</p>)}
             <button type="button" disabled={busy} onClick={() => (outfit.affordable ? (setOutfitOpen(false), void buyMany(trayItems)) : (setOutfitOpen(false), navigate("/wallet/top-up")))} className="lx-primary-button inline-flex h-11 w-full items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-60">
-              {outfit.affordable ? `Buy all · ${outfit.total.toLocaleString()}$` : "Top up FOL$"}
+              {outfit.affordable ? `Checkout · ${outfit.total.toLocaleString()}$` : "Top up FOL$"}
             </button>
-            <button type="button" onClick={() => { setTray([]); setOutfitOpen(false) }} className="text-center text-[12px] text-[var(--text-dim)] hover:text-[var(--text)]">Empty the outfit</button>
+            <button type="button" onClick={() => { setTray([]); setOutfitOpen(false) }} className="text-center text-[12px] text-[var(--text-dim)] hover:text-[var(--text)]">Empty the cart</button>
             <p className="text-center text-[11px] text-[var(--text-faint)]">After buying you can undo it for a few seconds.</p>
           </div>
         </SheetContent>
@@ -540,10 +490,8 @@ export function ShopPage() {
   const buyBlock = (item: ShopItem, inline = false) => {
     const isWorn = worn[item.kind] === item.id
     // Yours for good: nothing to buy. Anything sold with LX that is not (not owned, or only rented) can be bought or extended.
-    const undoing = undo?.id === item.id && undoLeft > 0
-    const rentable = item.unlock === "coin" && (undoing || !(item.owned && !item.expiresAt))
+    const rentable = item.unlock === "coin" && !(item.owned && !item.expiresAt)
     const cost = priceFor(item)
-    const afford = balance === null || balance >= cost
     return (
       <div className={cn(inline ? "grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_260px] items-center gap-x-6 px-5 py-4" : "flex flex-col gap-2.5 border-t border-[var(--line-soft)] px-4 py-3.5")}>
         <div className="flex min-w-0 flex-col gap-2.5">
@@ -564,8 +512,8 @@ export function ShopPage() {
         )}
         </div>
         <div className="flex min-w-0 flex-col gap-2.5">
-        {item.owned && !undoing && (
-          <div key="owned" className={cn("flex flex-col gap-2.5", justBought === item.id && "lx-swap-in")}>
+        {item.owned && (
+          <div key="owned" className={"flex flex-col gap-2.5"}>
             <p className="text-xs text-[var(--text-dim)]">{isWorn ? "Worn" : "Owned"}{item.expiresAt ? ` · ${timeLeft(item.expiresAt)}` : ""}</p>
             <button type="button" disabled={busy} onClick={() => void wearHere(item, !isWorn)} className="inline-flex h-10 w-full items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-semibold text-[var(--text-2)] hover:border-[var(--line-strong)] disabled:opacity-60">{isWorn ? "Take it off" : "Wear it"}</button>
           </div>
@@ -597,36 +545,10 @@ export function ShopPage() {
               </PopoverContent>
             </Popover>
             )}
-            {/* One place for both: Buy (a React Bits Star Border with Shiny Text) turns into Undo, and Wear it only comes once the Undo time is over. */}
-            {undoing ? (
-              <button type="button" disabled={busy} onClick={() => void undoBuy(item)} className="lx-swap-in inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-[var(--line-strong)] bg-[var(--raised)] text-[13px] font-semibold text-[var(--text)] transition-colors hover:bg-[var(--card-surface)] disabled:opacity-60">
-                <Undo2 className="size-4" />Undo ({undoLeft}s)
-              </button>
-            ) : (
-              <StarBorder
-                as="button"
-                type="button"
-                disabled={busy}
-                onClick={() => (afford ? void buy(item) : (setSheetOpen(false), navigate("/wallet/top-up")))}
-                className="lx-swap-in h-12 w-full text-[15px] font-bold"
-                radius={8}
-                thickness={1}
-                duration={5}
-                trailLength={0.28}
-                glow={0.35}
-                color="#e5e5e5"
-                backgroundColor="#262626"
-                borderColor="#404040"
-                textColor="#fafafa"
-              >
-                <ShinyText speed={3.2} delay={1.4} shineWidth={0.35} color="#fafafa" shineColor="#8a8a93">{afford ? <>{item.owned ? "Extend" : "Buy"} for <CountNumber value={cost} />$</> : <>Top up <CountNumber value={cost - (balance ?? 0)} />$ more</>}</ShinyText>
-              </StarBorder>
-            )}
-            {!undoing && !item.owned && item.unlock === "coin" && (
-              <button type="button" onClick={() => toggleTray(item)} aria-pressed={tray.includes(item.id)} className="inline-flex h-9 w-full items-center justify-center rounded-lg border border-[var(--line)] text-[12px] font-semibold text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)]">
-                {tray.includes(item.id) ? "Remove from outfit" : "Add to outfit"}
-              </button>
-            )}
+            {/* Nothing is bought from here: every item, even a single one, goes into the cart and is paid for there. */}
+            <button type="button" onClick={() => addToCart(item)} className={cn("inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg text-[15px] font-bold transition-colors", tray.includes(item.id) ? "border border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text)] hover:bg-[var(--card-surface)]" : "lx-primary-button")}>
+              {tray.includes(item.id) ? <><Check className="size-4" aria-hidden="true" />In your cart · open it</> : <><ShoppingCart className="size-4" aria-hidden="true" />Add to cart · <LxMark size={14} />{cost.toLocaleString()}</>}
+            </button>
           </>
         ) : !item.owned ? (
           <p className="text-xs text-[var(--text-dim)]">{item.requirement || "Earned in game, not for sale."}</p>
