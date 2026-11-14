@@ -19,8 +19,8 @@ export function LxcHeader({ onNavigate, className }: { onNavigate: (page: PageId
   const [query, setQuery] = useState("")
   const { data: stats } = useApiQuery<HomeStats>((signal) => serversService.getHomeStats({ signal }), { queryKey: "lxc-header-stats", keepPreviousData: true })
   return (
-    <div className={cn("shrink-0 border-b border-[var(--line)] bg-[var(--bg)]", className)}>
-      <header className="mx-auto flex w-full max-w-[1320px] flex-wrap items-center gap-4 px-6 py-2.5">
+    <div className={cn("shrink-0 bg-[var(--bg)] px-11", className)}>
+      <header className="mx-auto flex w-full max-w-[1320px] flex-wrap items-center gap-4 border-b border-[var(--line)] py-2.5">
         <Link to={PAGE_ROUTES.home} aria-label="LXC, home" className="text-[26px] font-bold leading-none tracking-[0.02em] text-[var(--text)] min-[560px]:hidden">LXC</Link>
         {typeof stats?.playersOnline === "number" ? (
           <span className="inline-flex h-8 items-center gap-2 text-[13px] font-bold text-[var(--status-green)]" title="Players online">
