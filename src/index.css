@@ -1683,7 +1683,7 @@ body::after, body::before, .lx-glass-page::before, .lx-calm::after { display: no
 
 /* The closed rail: each icon sits in the middle of its button, and the labels that are only for the open rail take no room. */
 .lxc-shell [data-state="collapsed"] nav :is(button, a) { justify-content: center; padding-left: 0; padding-right: 0; gap: 0; }
-.lxc-shell [data-state="collapsed"] nav :is(button, a) > :not(svg) { display: none; }
+.lxc-shell [data-state="collapsed"] nav :is(button, a) > :not(svg, .lx-mask-icon) { display: none; }
 .lxc-shell [data-state="collapsed"] nav :is(button, a) > .absolute { display: block; }
 .lxc-shell [data-state="collapsed"] nav :is(button, a) > svg:not(:first-child) { display: none; }
 
@@ -1711,11 +1711,11 @@ html { background: radial-gradient(70% 38vh at 50% 0%, rgb(255 255 255 / 0.05), 
 .lxc-shell .lx-glass-sidebar nav [aria-label="Reviews"] { --ic: #facc15; }
 .lxc-shell .lx-glass-sidebar nav [aria-label="Explore"] { --ic: #38bdf8; }
 .lxc-shell .lx-glass-sidebar nav [aria-label="Staff panel"] { --ic: #818cf8; }
-.lxc-shell .lx-glass-sidebar nav :is(button, a) > svg:first-child { color: #9a9a9a; transition: color 150ms, filter 150ms; }
+.lxc-shell .lx-glass-sidebar nav :is(button, a) > :is(svg, .lx-mask-icon):first-child { color: #9a9a9a; transition: color 150ms, filter 150ms; }
 .lxc-shell .lx-glass-sidebar nav :is(button, a):hover { background: transparent; color: #ececec; }
-.lxc-shell .lx-glass-sidebar nav :is(button, a):hover > svg:first-child { color: #ececec; }
+.lxc-shell .lx-glass-sidebar nav :is(button, a):hover > :is(svg, .lx-mask-icon):first-child { color: #ececec; }
 .lxc-shell .lx-glass-sidebar nav :is(button, a).font-semibold { background: transparent; box-shadow: none; color: #ececec; }
-.lxc-shell .lx-glass-sidebar nav :is(button, a).font-semibold > svg:first-child { color: var(--ic); filter: drop-shadow(0 0 7px color-mix(in srgb, var(--ic) 70%, transparent)); }
+.lxc-shell .lx-glass-sidebar nav :is(button, a).font-semibold > :is(svg, .lx-mask-icon):first-child { color: var(--ic); filter: drop-shadow(0 0 7px color-mix(in srgb, var(--ic) 70%, transparent)); }
 .lxc-shell .lx-glass-sidebar nav :is(button, a).font-semibold::before { background: var(--ic); box-shadow: 0 0 12px var(--ic); }
 .lxc-shell [data-state="collapsed"] nav :is(button, a) { overflow: visible; }
 .lxc-shell [data-state="collapsed"] nav :is(button, a)::before { left: -12px; width: 3px; top: 8px; bottom: 8px; border-radius: 0 3px 3px 0; }

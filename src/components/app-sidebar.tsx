@@ -1,6 +1,6 @@
 import type React from "react"
 import { useEffect, useState, type ComponentType, type ReactNode } from "react"
-import { ArrowLeftRight, Gem, House, Play, MountainSnow, Gavel, MessageSquareQuote, Compass, Users, Lock, ChevronDown, ShieldCheck, Clapperboard, Store, Swords } from "lucide-react"
+import { ArrowLeftRight, Gem, House, Play, MountainSnow, Gavel, MessageSquareQuote, Compass, Lock, ChevronDown, ShieldCheck, Clapperboard, Store, Swords } from "lucide-react"
 
 import { isFeatureEnabled, isPageEnabled } from "@/lib/features"
 import { competitiveService } from "@/api"
@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils"
 import { setSkinchangerView, useSkinchangerView, type SkinchangerView } from "@/lib/skinchanger-view"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { KnifeIcon } from "@/components/knife-icon"
+import { ClanIcon } from "@/components/clan-icon"
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
 
 interface AppSidebarProps {
@@ -55,7 +56,7 @@ export const COMMERCE_ITEMS: NavItem[] = enabledNav([
 
 // Community (owner request 2026-10-26): Clans, the Staff page and Creators under one row that opens like Play.
 export const COMMUNITY_ITEMS: NavItem[] = enabledNav([
-  { id: "clan", label: "Clans", icon: Users },
+  { id: "clan", label: "Clans", icon: ClanIcon },
   { id: "team", label: "Staff", icon: ShieldCheck },
   { id: "creators", label: "Creators", icon: Clapperboard },
 ])
@@ -324,7 +325,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                       aria-expanded={collapsed ? undefined : communityOpen}
                       className={cn(rowClass, collapsed && communityActive && activeRowClass)}
                     >
-                      <Users className="size-[18px] shrink-0" />
+                      <ClanIcon className="size-[24px]" />
                       <span className={cn(labelClass(collapsed), "flex-1")}>Community</span>
                       <ChevronDown aria-hidden="true" className={cn("size-4 shrink-0 text-[var(--text-dim)] transition-[rotate,opacity] duration-300 motion-reduce:transition-none", EASE, communityOpen && "rotate-180", collapsed ? "opacity-0" : "opacity-100")} />
                     </button></RailTip>
