@@ -98,7 +98,7 @@ export function PlayQueue({ mode }: { mode: QueueMode }) {
   const waitsForLeader = inParty && party!.leaderId !== user?.id
   return (
     <section aria-label="Find match" className={shell}>
-      <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-dim)]">{TITLES[mode]}</span>
+      <span className="rounded-full border border-[#3a3a3a] px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-2)]">{TITLES[mode]} queue</span>
       <PartyBar party={party} invitations={status?.invitations ?? []} busy={busy} locked={false} onInvite={(id) => void invite(id)} onKick={(id) => void kick(id)} onLeave={() => void leaveParty()} onAccept={(id) => void acceptInvite(id)} onDecline={(id) => void declineInvite(id)} />
       <button
         type="button"
@@ -109,7 +109,7 @@ export function PlayQueue({ mode }: { mode: QueueMode }) {
         {busy ? <LoaderCircle className="size-5 animate-spin" /> : null}
         Find match
       </button>
-      <span className="text-[12px] text-[var(--text-dim)]">Players queueing: <b className="font-semibold text-[var(--text-2)]">{inQueue}</b></span>
+      <div className="flex w-full max-w-[860px] items-center justify-center gap-6 border-t border-[#2c2c2c] pt-4 text-[12px] text-[var(--text-dim)]"><span>Players queueing: <b className="font-semibold text-[var(--text-2)]">{inQueue}</b></span></div>
     </section>
   )
 }

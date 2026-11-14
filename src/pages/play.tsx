@@ -8,7 +8,7 @@ import type { PlaySubMode } from "@/api/types"
  */
 export function PlayPage(_props: { mode?: Exclude<PlaySubMode, "tournaments"> }) {
   return (
-    <div className="lx-swap-in flex min-h-0 flex-1 flex-col gap-6 p-6 @container">
+    <div className="lx-swap-in flex min-h-0 flex-1 flex-col gap-6 bg-black p-6 @container">
       <PlayStrip />
       <PlayQueue mode="5x5" />
     </div>

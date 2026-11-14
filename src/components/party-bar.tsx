@@ -4,11 +4,15 @@
  * a member can leave. Invitations sent to you show above the slots. Every name and number is the API's.
  */
 import { useEffect, useState } from "react"
-import { Crown, Plus, Search, X } from "lucide-react"
+import { Crown, LogOut, Plus, Search, X } from "lucide-react"
 
 import { searchService } from "@/api/search"
 import type { CommunityPlayer } from "@/api/types"
 import type { Party, PartyInvitation } from "@/api/queue"
+import { competitiveService } from "@/api"
+import { useApiQuery } from "@/hooks/use-api-query"
+import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
+import type { CompetitiveProfile } from "@/api/types"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { useAuth } from "@/hooks/use-auth"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -16,7 +20,7 @@ import { cn } from "@/lib/utils"
 
 const SLOTS = 5
 /** A FACEIT-style party card: a tall rounded box, five side by side. */
-const CARD = "grid aspect-[3/4.4] rounded-2xl border border-[var(--line-strong)] bg-[var(--card-surface)]"
+const CARD = "grid aspect-[3/4.4] rounded-xl border border-[#2c2c2c] bg-[#181818]"
 /** Where each member goes: you in the middle, the rest fill outwards (right, left, right, left). */
 const SLOT_ORDER = [2, 3, 1, 4, 0]
 
@@ -38,11 +42,11 @@ function InvitePicker({ exclude, onPick, disabled }: { exclude: Set<string>; onP
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button type="button" disabled={disabled} aria-label="Invite a player" className={cn(CARD, "w-full place-items-center text-[var(--text-dim)] transition-colors hover:border-[var(--text-dim)] hover:text-[var(--text)] disabled:pointer-events-none disabled:opacity-40")}><Plus className="size-9" /></button>
+        <button type="button" disabled={disabled} aria-label="Invite a player" className={cn(CARD, "w-full place-items-center text-[var(--text-dim)] transition-colors hover:border-[var(--text-dim)] hover:text-[var(--text)] disabled:pointer-events-none disabled:opacity-40")}><Plus className="size-10" strokeWidth={3} /></button>
       </PopoverTrigger>
       <PopoverContent align="center" className="w-[280px] rounded-2xl border-[var(--line-strong)] bg-[var(--card-surface)] p-2">
         <label className="flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] px-2.5 text-[13px] text-[var(--text-dim)]">
-          <Search className="size-4 shrink-0" />
+          <Search className="size-4 shrink-0" strokeWidth={2.75} />
           <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a player by name" aria-label="Find a player by name" className="w-full bg-transparent text-[var(--text)] outline-none placeholder:text-[var(--text-dim)]" />
         </label>
         <div className="mt-1.5 flex flex-col">
@@ -71,6 +75,7 @@ export function PartyBar({ party, invitations, busy, locked, onInvite, onKick, o
   onDecline: (partyId: string) => void
 }) {
   const { user } = useAuth()
+  const { data: myProfile } = useApiQuery<CompetitiveProfile>((signal) => competitiveService.getPlayer(user!.id, { signal }), { enabled: Boolean(user?.id), queryKey: `home-rank:${user?.id ?? "guest"}` })
   const myId = user?.id ?? ""
   const members = party?.members ?? (user ? [{ userId: myId, username: user.username, exp: 0 }] : [])
   const isLeader = !party || party.leaderId === myId
@@ -94,6 +99,16 @@ export function PartyBar({ party, invitations, busy, locked, onInvite, onKick, o
           </span>
         </div>
       ))}
+      <div className="flex w-full items-center justify-between gap-3 text-left">
+        <span className="flex min-w-0 items-center gap-2.5">
+          <span className="truncate text-[15px] font-bold text-[var(--text)]">{party && party.members.length > 1 ? `${party.members.find((member) => member.userId === party.leaderId)?.username ?? "Player"}'s party` : "Your party"}</span>
+          <span className="shrink-0 rounded-md bg-[#232323] px-2 py-0.5 text-[11px] font-medium text-[var(--text-muted)]">{members.length} / {SLOTS}</span>
+        </span>
+        <span className="flex items-center gap-3 text-[12px] text-[var(--text-dim)]">
+          {party && party.members.length > 1 ? (isLeader ? "You press Find match for everyone" : "Waiting for the party leader") : null}
+          {party && party.members.length > 1 ? <button type="button" aria-label="Leave party" title="Leave party" disabled={busy || locked} onClick={onLeave} className="grid size-8 place-items-center rounded-lg bg-[#232323] text-[var(--status-red)] transition-colors hover:bg-[#2c2c2c] disabled:opacity-50"><LogOut className="size-4" strokeWidth={2.75} /></button> : null}
+        </span>
+      </div>
       <div className="grid w-full grid-cols-5 items-end gap-2 @xl:gap-4">
         {slots.map((slot, index) => {
           if (slot.kind === "member") {
@@ -102,13 +117,15 @@ export function PartyBar({ party, invitations, busy, locked, onInvite, onKick, o
             const mine = member.userId === myId
             return (
               <div key={member.userId} className="group relative flex flex-col items-center">
-                <span className="mb-1.5 h-4 text-[var(--brand-bright)]">{leader ? <Crown className="size-4" aria-label="Party leader" /> : null}</span>
+                <span className="mb-1.5 h-4 text-[var(--brand-bright)]">{leader ? <Crown className="size-4" strokeWidth={2.75} aria-label="Party leader" /> : null}</span>
                 <div className={cn(CARD, "w-full content-center justify-items-center gap-2 overflow-hidden px-1.5 py-3", mine && "border-[var(--brand)]/60")}>
                   <PlayerAvatar name={member.username} className="size-[clamp(44px,7cqw,84px)]" />
                   <span className="max-w-full truncate text-[clamp(11px,1.6cqw,14px)] font-semibold text-[var(--text)]">{mine ? "You" : member.username}</span>
-                  {member.exp > 0 ? <span className="text-[11px] text-[var(--text-dim)]">{member.exp.toLocaleString()} EXP</span> : null}
+                  {mine && myProfile ? (
+                    <span className="flex items-center gap-1.5 text-[12px] font-semibold text-[var(--text)]"><CompetitiveRankBadge rankId={myProfile.rank_id} rankName={myProfile.rank_name} imageKey={myProfile.rank_image_key} size={18} />{myProfile.current_exp.toLocaleString()}</span>
+                  ) : member.exp > 0 ? <span className="text-[12px] font-semibold text-[var(--text-muted)]">{member.exp.toLocaleString()}</span> : null}
                 </div>
-                {isLeader && !mine && !locked ? <button type="button" aria-label={`Remove ${member.username}`} onClick={() => onKick(member.userId)} className="absolute right-1.5 top-6 grid size-6 place-items-center rounded-full bg-[var(--raised)] text-[var(--text-dim)] opacity-0 transition-opacity hover:text-[var(--text)] focus-visible:opacity-100 group-hover:opacity-100"><X className="size-3.5" /></button> : null}
+                {isLeader && !mine && !locked ? <button type="button" aria-label={`Remove ${member.username}`} onClick={() => onKick(member.userId)} className="absolute right-1.5 top-6 grid size-6 place-items-center rounded-full bg-[var(--raised)] text-[var(--text-dim)] opacity-0 transition-opacity hover:text-[var(--text)] focus-visible:opacity-100 group-hover:opacity-100"><X className="size-3.5" strokeWidth={3} /></button> : null}
               </div>
             )
           }
@@ -121,7 +138,7 @@ export function PartyBar({ party, invitations, busy, locked, onInvite, onKick, o
                   <span className="max-w-full truncate text-[12px] text-[var(--text-muted)]">{slot.name}</span>
                   <span className="text-[11px] text-[var(--text-dim)]">Invited</span>
                 </div>
-                {isLeader && !locked ? <button type="button" aria-label={`Cancel invite for ${slot.name}`} onClick={() => onKick(slot.userId)} className="absolute right-1.5 top-6 grid size-6 place-items-center rounded-full bg-[var(--raised)] text-[var(--text-dim)] opacity-0 transition-opacity hover:text-[var(--text)] focus-visible:opacity-100 group-hover:opacity-100"><X className="size-3.5" /></button> : null}
+                {isLeader && !locked ? <button type="button" aria-label={`Cancel invite for ${slot.name}`} onClick={() => onKick(slot.userId)} className="absolute right-1.5 top-6 grid size-6 place-items-center rounded-full bg-[var(--raised)] text-[var(--text-dim)] opacity-0 transition-opacity hover:text-[var(--text)] focus-visible:opacity-100 group-hover:opacity-100"><X className="size-3.5" strokeWidth={3} /></button> : null}
               </div>
             )
           }
@@ -134,12 +151,6 @@ export function PartyBar({ party, invitations, busy, locked, onInvite, onKick, o
           )
         })}
       </div>
-      {party && party.members.length > 1 ? (
-        <span className="flex items-center gap-3 text-[12px] text-[var(--text-dim)]">
-          {isLeader ? "You are the party leader. You press Find match for everyone." : "Waiting for the party leader to find a match."}
-          <button type="button" disabled={busy || locked} onClick={onLeave} className="underline-offset-2 transition-colors hover:text-[var(--text)] hover:underline disabled:opacity-50">Leave party</button>
-        </span>
-      ) : null}
     </div>
   )
 }

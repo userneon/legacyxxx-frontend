@@ -33,7 +33,7 @@ export function PlayStrip() {
   const playing = stats?.modes ? (stats.modes["5x5"] ?? 0) + (stats.modes.pro ?? 0) : null
   if (!profile && playing === null && !limits) return null
   return (
-    <section aria-label="Overview" className="grid gap-5 border-b border-[var(--line)] pb-6 @2xl:grid-cols-[minmax(0,1.6fr)_auto_minmax(0,1fr)] @2xl:gap-8">
+    <section aria-label="Overview" className="grid gap-5 border-b border-[#2c2c2c] pb-6 @2xl:grid-cols-[minmax(0,1.6fr)_auto_minmax(0,1fr)] @2xl:gap-8">
       {profile && (
         <Stat label="Skill level">
           <div className="flex items-center gap-3">
