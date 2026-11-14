@@ -1,4 +1,4 @@
-/** Home: the slider, the player's rank, the four modes, the top of the ladder, then reviews, TikTok and Discord, one section under another. */
+/** Home, a calm dashboard: the slider, your numbers, your last matches, where to play, the top of the ladder, then the community. One section under another. */
 import { cn } from "@/lib/utils"
 import { serversService } from "@/api"
 import { tournamentsService } from "@/api/tournaments"
@@ -7,7 +7,7 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { HomeReviewsCard } from "@/components/home-reviews"
 import { DiscordCard } from "@/components/discord-strip"
 import { TikTokCard } from "@/components/home-tiktok"
-import { FindPlayerPill, HeroSlider, RankPanel } from "@/components/home-parts"
+import { HeroSlider, LastMatches, StatsRow } from "@/components/home-parts"
 import { TopPlayers } from "@/components/home-top-players"
 import { useNavigate } from "react-router-dom"
 import { formatDate } from "@/lib/preferences"
@@ -54,12 +54,13 @@ export function HomePage({ onNavigate }: HomePageProps) {
   return (
     <div className="@container flex flex-1 flex-col p-4 @2xl:p-6">
       {greeting && <div className="mb-3"><span className="lx-event-greeting">{greeting}</span></div>}
-      <div className="lx-stack flex flex-1 flex-col gap-3">
-        <HeroSlider />
-        <FindPlayerPill />
-        <RankPanel />
+      <div className="lx-stack flex flex-1 flex-col gap-4">
+        <HeroSlider className="h-[220px]" />
+        <StatsRow />
+        <LastMatches />
 
-        {/* Mode cards: the same four cards, equal width, each with its real status. */}
+        {/* Where to play: the four modes, equal width, each with its real status. */}
+        <h2 className="-mb-1.5 text-sm font-semibold text-[var(--text)]">Play</h2>
         <div className="grid grid-cols-1 gap-3 @md:grid-cols-2 @5xl:grid-cols-4">
           {MODE_CARDS.map((mode, index) => {
             const status = modeStatus(mode.key)
@@ -69,14 +70,14 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 type="button"
                 onClick={() => onNavigate(mode.id)}
                 style={{ animationDelay: `${120 + index * 80}ms` }}
-                className="lx-fx-card lx-glass group relative flex h-[124px] min-w-0 flex-col overflow-hidden rounded-2xl p-4 text-left transition-colors hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
+                className="lx-fx-card lx-glass group relative flex h-[104px] min-w-0 flex-col overflow-hidden rounded-xl p-4 text-left transition-colors hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
               >
                 <img
                   src={mode.art}
                   alt=""
                   aria-hidden="true"
                   loading="lazy"
-                  className="pointer-events-none absolute -right-2 bottom-0 h-[112px] w-auto max-w-none object-contain object-bottom [mask-image:linear-gradient(90deg,transparent_0,#000_32%)] transition-transform duration-500 group-hover:-translate-y-0.5"
+                  className="pointer-events-none absolute -right-2 bottom-0 h-[92px] w-auto max-w-none object-contain object-bottom [mask-image:linear-gradient(90deg,transparent_0,#000_32%)] transition-transform duration-500 group-hover:-translate-y-0.5"
                 />
                 <span className="relative text-[11px] font-medium text-[var(--text-dim)]">{mode.tag}</span>
                 <h3 className="relative mt-1 max-w-[55%] text-base font-semibold leading-tight text-[var(--text)]">{mode.label}</h3>

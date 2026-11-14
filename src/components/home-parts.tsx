@@ -1,6 +1,6 @@
 /** Home parts: the map slider, the signed-in player's rank and four ring stats, the four mode cards and the rank medals. Real data only. */
 import { useId, useState } from "react"
-import { ChevronLeft, ChevronRight, RotateCcw, Search } from "lucide-react"
+import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
 import { cn } from "@/lib/utils"
@@ -56,7 +56,7 @@ export function HeroSlider({ className }: { className?: string }) {
   const go = (next: number) => setIndex((next + slides.length) % slides.length)
   const many = slides.length > 1
   return (
-    <section aria-roledescription="carousel" aria-label="LEGACY-X" className={cn("lx-glass relative isolate min-h-[240px] overflow-hidden rounded-2xl", className)}>
+    <section aria-roledescription="carousel" aria-label="LEGACY-X" className={cn("lx-glass relative isolate min-h-[180px] overflow-hidden rounded-xl", className)}>
       {slides.map((slide, position) => (
         <img
           key={slide.key}
@@ -92,22 +92,6 @@ export function HeroSlider({ className }: { className?: string }) {
         )}
       </div>
     </section>
-  )
-}
-
-/* ───────── Find a player ───────── */
-
-export function FindPlayerPill() {
-  const navigate = useNavigate()
-  return (
-    <button
-      type="button"
-      onClick={() => navigate("/search")}
-      className="lx-glass flex h-11 w-full items-center gap-2.5 rounded-full px-4 text-left text-[13px] text-[var(--text-dim)] transition-colors hover:border-[var(--line-strong)] hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50"
-    >
-      <Search className="size-4 shrink-0" />
-      Find a player…
-    </button>
   )
 }
 
@@ -166,44 +150,59 @@ const RANK_TIERS = [
 
 const pct = (part: number, whole: number) => (whole > 0 ? Math.max(0, Math.min(100, (part / whole) * 100)) : 0)
 
-/** The signed-in player's rank with its progress, and four rings: win rate, K/D and EXP against the daily and weekly limits. Signed out: the Steam sign-in. */
-export function RankPanel() {
+/* ───────── Your stats (a row of flat tiles) and your last matches ───────── */
+
+/** One flat stat tile: the number, its name, and a thin bar under it. */
+function StatTile({ value, label, title, share, tone = "green" }: { value: string; label: string; title?: string; share?: number | null; tone?: "green" | "red" | "grey" }) {
+  return (
+    <div title={title} className="lx-glass flex min-w-0 flex-col gap-1 rounded-xl px-4 py-3.5">
+      <span className="truncate text-[11px] font-medium text-[var(--text-dim)]">{label}</span>
+      <span className="text-[24px] font-bold leading-none text-[var(--text)]">{value}</span>
+      {share != null && (
+        <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-[var(--line)]" role="progressbar" aria-valuenow={Math.round(share)} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
+          <span className="block h-full rounded-full" style={{ width: `${share}%`, background: TONE[tone] }} />
+        </span>
+      )}
+    </div>
+  )
+}
+
+/** The signed-in player's numbers, all real: rank with its progress, win rate, K/D and the EXP limits. Signed out: the six ranks and the way in. */
+export function StatsRow() {
   const { user, loading: authLoading } = useAuth()
   const { data: profile, loading, error, refetch } = useApiQuery<CompetitiveProfile>(
     (signal) => competitiveService.getPlayer(user!.id, { signal }),
     { enabled: Boolean(user?.id), queryKey: `home-rank:${user?.id ?? "guest"}` },
   )
-  const { data: overview, loading: overviewLoading } = useApiQuery(
+  const { data: overview } = useApiQuery(
     (signal) => profileOverviewService.get(user!.id, { signal }),
     { enabled: Boolean(user?.id), queryKey: `home-rank-limits:${user?.id ?? "guest"}` },
   )
 
   if (!user) {
-    // Signed out: the six rank tiers with their emblems (nothing made up). The sign-in itself stays in the top bar.
     return (
-      <div className="lx-glass flex flex-1 flex-col items-center justify-center gap-4 rounded-2xl p-5 text-center">
+      <div className="lx-glass flex flex-wrap items-center justify-between gap-4 rounded-xl px-5 py-4">
         <div>
           <div className="text-[15px] font-semibold text-[var(--text)]">Climb the ranks</div>
-          <p className="mt-0.5 text-xs text-[var(--text-dim)]">{authLoading ? "Checking your sign-in…" : "Sign in to see where you stand."}</p>
+          <p className="mt-0.5 text-[13px] text-[var(--text-dim)]">{authLoading ? "Checking your sign-in…" : "Sign in to see where you stand."}</p>
         </div>
-        <ul className="grid w-full grid-cols-3 gap-x-2 gap-y-3">
+        <ul className="flex flex-wrap items-center gap-4">
           {RANK_TIERS.map((tier) => (
-            <li key={tier.name} className="flex flex-col items-center gap-1">
-              <CompetitiveRankBadge rankId={tier.rankId} rankName={tier.name} size={40} />
-              <span className="text-[11px] font-medium" style={{ color: rankTierColor(tier.rankId) }}>{tier.name}</span>
+            <li key={tier.name} className="flex items-center gap-1.5">
+              <CompetitiveRankBadge rankId={tier.rankId} rankName={tier.name} size={28} />
+              <span className="text-[12px] font-medium" style={{ color: rankTierColor(tier.rankId) }}>{tier.name}</span>
             </li>
           ))}
         </ul>
       </div>
     )
   }
-
-  if (loading && !profile) return <div className="flex flex-1 flex-col gap-3"><Skeleton className="h-[120px] rounded-2xl" /><div className="grid flex-1 grid-cols-2 gap-3"><Skeleton className="rounded-2xl" /><Skeleton className="rounded-2xl" /><Skeleton className="rounded-2xl" /><Skeleton className="rounded-2xl" /></div></div>
+  if (loading && !profile) return <div className="grid grid-cols-2 gap-3 @3xl:grid-cols-5">{Array.from({ length: 5 }, (_, index) => <Skeleton key={index} className="h-[88px] rounded-xl" />)}</div>
   if (error || !profile) {
     return (
-      <div className="lx-glass flex flex-1 flex-col items-start justify-center gap-3 rounded-2xl p-5">
-        <p className="text-[13px] text-[var(--text-dim)]">Could not load your rank.</p>
-        <button type="button" onClick={refetch} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-xs font-medium hover:border-[var(--line-strong)]"><RotateCcw className="size-3.5" />Retry</button>
+      <div className="lx-glass flex items-center gap-3 rounded-xl px-5 py-4 text-[13px] text-[var(--text-dim)]">
+        Could not load your rank.
+        <button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" aria-hidden="true" />Retry</button>
       </div>
     )
   }
@@ -213,60 +212,55 @@ export function RankPanel() {
   const next = profile.next_rank_min_exp
   const progress = next ? pct(exp - floor, next - floor) : 100
   const matches = profile.matches_completed
-  const draws = Math.max(0, matches - profile.wins - profile.losses)
   const deaths = profile.deaths
   const limits = overview?.competitive?.expLimits ?? null
-
   return (
-    <div className="flex flex-1 flex-col gap-3">
-      <div className="lx-glass lx-calm-brand flex items-center gap-4 rounded-2xl px-4 py-3.5">
-        <CompetitiveRankBadge rankId={profile.rank_id} rankName={profile.rank_name} imageKey={profile.rank_image_key} size={60} className="shrink-0" />
+    <div className="grid grid-cols-2 gap-3 @3xl:grid-cols-5">
+      <div className="lx-glass col-span-2 flex items-center gap-3 rounded-xl px-4 py-3.5 @3xl:col-span-1">
+        <CompetitiveRankBadge rankId={profile.rank_id} rankName={profile.rank_name} imageKey={profile.rank_image_key} size={48} className="shrink-0" />
         <div className="min-w-0 flex-1">
-          <div className="truncate text-[22px] font-bold leading-tight" style={{ color: rankTierColor(profile.rank_id) }}>{profile.rank_name}</div>
-          <div className="my-1.5 h-1.5 overflow-hidden rounded-full bg-[var(--line-soft)]" role="progressbar" aria-valuenow={Math.round(progress)} aria-valuemin={0} aria-valuemax={100} aria-label="Progress to the next rank">
-            <div className="h-full rounded-full bg-[var(--brand)]" style={{ width: `${progress}%` }} />
-          </div>
-          <div className="text-[11px] text-[var(--text-dim)]">{exp.toLocaleString()} EXP{next ? ` · ${(next - exp).toLocaleString()} to ${profile.next_rank_name ?? "the next rank"}` : ""}</div>
+          <div className="truncate text-[17px] font-bold leading-tight" style={{ color: rankTierColor(profile.rank_id) }}>{profile.rank_name}</div>
+          <div className="my-1.5 h-1 overflow-hidden rounded-full bg-[var(--line)]" role="progressbar" aria-valuenow={Math.round(progress)} aria-valuemin={0} aria-valuemax={100} aria-label="Progress to the next rank"><div className="h-full rounded-full bg-[var(--accent-solid)]" style={{ width: `${progress}%` }} /></div>
+          <div className="truncate text-[11px] text-[var(--text-dim)]">{exp.toLocaleString()} EXP{next ? ` · ${(next - exp).toLocaleString()} to go` : ""}</div>
         </div>
       </div>
-      <div className="grid flex-1 grid-cols-2 gap-3">
-        <RingStat
-          value={matches > 0 ? `${Math.round(pct(profile.wins, matches))}%` : "—"}
-          label="Win rate"
-          title={matches > 0 ? `${profile.wins} wins · ${profile.losses} losses · ${draws} draws` : "No ranked matches yet"}
-          segments={[{ pct: pct(profile.wins, matches), tone: "green" }, { pct: pct(profile.losses, matches), tone: "red" }, { pct: pct(draws, matches), tone: "grey" }]}
-        />
-        {typeof deaths === "number" && (
-          <RingStat
-            value={deaths > 0 ? (profile.kills / deaths).toFixed(2) : profile.kills > 0 ? profile.kills.toFixed(2) : "—"}
-            label="K/D"
-            title={`${profile.kills} kills · ${deaths} deaths`}
-            segments={[{ pct: pct(profile.kills, profile.kills + deaths), tone: "green" }, { pct: pct(deaths, profile.kills + deaths), tone: "red" }]}
-          />
-        )}
-        {!limits && overviewLoading && (
-          <>
-            <Skeleton className="h-[70px] rounded-2xl" />
-            <Skeleton className="h-[70px] rounded-2xl" />
-          </>
-        )}
-        {limits && (
-          <>
-            <RingStat
-              value={`${Math.round(pct(limits.day.used, limits.day.cap))}%`}
-              label="EXP today"
-              title={`${limits.day.used.toLocaleString()} of ${limits.day.cap.toLocaleString()} EXP today`}
-              segments={[{ pct: pct(limits.day.used, limits.day.cap), tone: limits.day.used >= limits.day.cap ? "red" : "green" }]}
-            />
-            <RingStat
-              value={`${Math.round(pct(limits.week.used, limits.week.cap))}%`}
-              label="EXP this week"
-              title={`${limits.week.used.toLocaleString()} of ${limits.week.cap.toLocaleString()} EXP this week`}
-              segments={[{ pct: pct(limits.week.used, limits.week.cap), tone: limits.week.used >= limits.week.cap ? "red" : "green" }]}
-            />
-          </>
-        )}
-      </div>
+      <StatTile label="Win rate" value={matches > 0 ? `${Math.round(pct(profile.wins, matches))}%` : "—"} title={matches > 0 ? `${profile.wins} wins · ${profile.losses} losses` : "No ranked matches yet"} share={matches > 0 ? pct(profile.wins, matches) : null} />
+      {typeof deaths === "number" && <StatTile label="K/D" value={deaths > 0 ? (profile.kills / deaths).toFixed(2) : profile.kills > 0 ? profile.kills.toFixed(2) : "—"} title={`${profile.kills} kills · ${deaths} deaths`} share={pct(profile.kills, profile.kills + deaths)} />}
+      {limits && <StatTile label="EXP today" value={`${limits.day.used.toLocaleString()} / ${limits.day.cap.toLocaleString()}`} share={pct(limits.day.used, limits.day.cap)} tone={limits.day.used >= limits.day.cap ? "red" : "green"} />}
+      {limits && <StatTile label="EXP this week" value={`${limits.week.used.toLocaleString()} / ${limits.week.cap.toLocaleString()}`} share={pct(limits.week.used, limits.week.cap)} tone={limits.week.used >= limits.week.cap ? "red" : "green"} />}
     </div>
+  )
+}
+
+/** The last ranked matches as small win / loss tiles with the map and the EXP change (the API's real rows; nothing when there are none). */
+export function LastMatches() {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const { data: overview } = useApiQuery(
+    (signal) => profileOverviewService.get(user!.id, { signal }),
+    { enabled: Boolean(user?.id), queryKey: `home-rank-limits:${user?.id ?? "guest"}` },
+  )
+  const rows = (overview?.recentMatches ?? []).slice(0, 10)
+  if (!user || rows.length === 0) return null
+  return (
+    <section aria-label="Last matches" className="flex flex-col gap-2.5">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-[var(--text)]">Last matches</h2>
+        <button type="button" onClick={() => navigate("/profile")} className="text-[12px] text-[var(--text-dim)] hover:text-[var(--text)]">All matches →</button>
+      </div>
+      <ul className="grid grid-cols-2 gap-2 @md:grid-cols-5 @4xl:grid-cols-10">
+        {rows.map((row, index) => {
+          const win = row.result === "Win"
+          const loss = row.result === "Loss"
+          return (
+            <li key={row.matchId ?? index} className="lx-glass flex min-w-0 flex-col gap-0.5 rounded-lg px-3 py-2.5">
+              <span className={cn("text-[13px] font-bold", win ? "text-[var(--status-green)]" : loss ? "text-[var(--status-red)]" : "text-[var(--text-dim)]")}>{win ? "Win" : loss ? "Loss" : row.result}</span>
+              <span className="truncate text-[11px] text-[var(--text-muted)]">{row.map}</span>
+              <span className="text-[11px] text-[var(--text-dim)]">{row.score}{typeof row.expDelta === "number" ? ` · ${row.expDelta > 0 ? "+" : ""}${row.expDelta}` : ""}</span>
+            </li>
+          )
+        })}
+      </ul>
+    </section>
   )
 }
