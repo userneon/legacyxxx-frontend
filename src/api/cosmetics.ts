@@ -40,6 +40,10 @@ export interface FrameItem {
   custom?: boolean
   /** The design takes a second colour too (the dual smoke). */
   twoColours?: boolean
+  /** A smoke: the picture it sheds, one of SMOKE_MOTIFS (absent for the plain glowing dot). */
+  motif?: string
+  /** True once the player has picked a colour for this design: the first pick is free, every change after it costs `customChangePrice`. */
+  picked?: boolean
   /** 1 common, 2 rare, 3 epic, 4 legendary (the ones that are earned). Absent from an older API. */
   rarity?: number
   featured?: boolean
@@ -81,7 +85,13 @@ export type NadeSlotKind = "grenade_trail" | "grenade_light"
 /** Grenades that wear something other than the default; null means nothing on that grenade. A grenade that is absent follows the default. */
 export type NadeSlots = Partial<Record<Nade, Partial<Record<NadeSlotKind, string | null>>>>
 
+/** The pictures a smoke can shed (our own set, no uploads); the plain glowing dot is no picture at all. */
+export const SMOKE_MOTIFS = ["star", "heart", "diamond", "bolt", "sparkle"] as const
+export type SmokeMotif = (typeof SMOKE_MOTIFS)[number]
+
 export interface Cosmetics {
+  /** What changing the colour of a design you own costs (FOL$); the first pick is free. */
+  customChangePrice?: number
   /** True for a QA tester: everything is theirs and the ranks switch on for free. */
   qa?: boolean
   /** How many players there are (for "owned by" shares). */
@@ -140,8 +150,8 @@ export const cosmeticsService = {
     return post<{ undone: boolean }>(`/api/v1/cosmetics/${encodeURIComponent(id)}/undo-buy`, {}, options)
   },
   /** Pick the colour (and the dual smoke's second one) of a design you own. */
-  async saveCustom(item: string, color: string, color2?: string | null, options?: CallOptions): Promise<{ kind: CosmeticKind; item: string; color: string }> {
-    return put<{ kind: CosmeticKind; item: string; color: string }>("/api/v1/cosmetics/custom", color2 ? { item, color, color2 } : { item, color }, options)
+  async saveCustom(item: string, pick: { color: string; color2?: string | null; fx?: string | null }, options?: CallOptions): Promise<{ kind: CosmeticKind; item: string; color: string; motif?: string | null; charged: number }> {
+    return put<{ kind: CosmeticKind; item: string; color: string; motif?: string | null; charged: number }>("/api/v1/cosmetics/custom", { item, color: pick.color, ...(pick.color2 ? { color2: pick.color2 } : {}), ...(pick.fx ? { fx: pick.fx } : {}) }, options)
   },
   /** Wear a trail or light on one kind of grenade: an item, null for nothing, or `inherit` to follow the default again. */
   async setNadeSlot(nade: Nade, kind: NadeSlotKind, item: string | null | "inherit", options?: CallOptions): Promise<{ nade: Nade; kind: NadeSlotKind }> {

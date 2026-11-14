@@ -17,10 +17,11 @@ const RANKS: [number, string][] = [
 /** Every item sold with LX carries what each rental length costs, like the API's; what was bought runs out in a week. */
 const mockCustomColours: Record<string, string> = {}
 const mockCustomColours2: Record<string, string> = {}
+const mockCustomMotifs: Record<string, string> = {}
 /** A design the player colours (owner request 2026-10-26): grey until they pick, like the API. */
 function mockDesign(id: string, name: string, price: number, rarity: number, fx?: string, field: "color" | "glow" = "color") {
   const two = fx === "dual"
-  return { id, name, nameMn: name, unlock: "coin" as const, price, requirement: "", owned: mockFrameState.owned.has(id), rarity, featured: id === "name-drift" || id === "trail-electric", owners: (id.length * 3) % 7, custom: true, [field]: mockCustomColours[id] ?? "#d4d4d4", ...(two ? { twoColours: true, color2: mockCustomColours2[id] ?? "#737373" } : {}), ...(fx ? { fx } : {}) } // palette-exempt: the neutral grey every design starts in
+  return { id, name, nameMn: name, unlock: "coin" as const, price, requirement: "", owned: mockFrameState.owned.has(id), rarity, featured: id === "name-drift" || id === "trail-electric", owners: (id.length * 3) % 7, custom: true, picked: Boolean(mockCustomColours[id]), ...(mockCustomMotifs[id] ? { motif: mockCustomMotifs[id] } : {}), [field]: mockCustomColours[id] ?? "#d4d4d4", ...(two ? { twoColours: true, color2: mockCustomColours2[id] ?? "#737373" } : {}), ...(fx ? { fx } : {}) } // palette-exempt: the neutral grey every design starts in
 }
 function withRentals<T extends Record<string, unknown>>(cosmetics: T): T {
   const rent = (list: unknown) => (Array.isArray(list) ? list.map((item) => {
@@ -33,7 +34,7 @@ function withRentals<T extends Record<string, unknown>>(cosmetics: T): T {
 }
 const mockPings = new Set<string>(["updates"])
 const mockNadeSlots: Record<string, Record<string, string | null>> = {}
-const mockFrameState = { equipped: null as string | null, nameColor: null as string | null, nameGlow: null as string | null, smoke: null as string | null, trail: null as string | null, light: null as string | null, kill: null as string | null, flash: null as string | null, he: null as string | null, owned: new Set<string>() }
+const mockFrameState = { equipped: null as string | null, nameColor: null as string | null, nameGlow: null as string | null, smoke: null as string | null, trail: null as string | null, light: null as string | null, kill: null as string | null, flash: null as string | null, he: null as string | null, owned: new Set<string>(["smoke-solid", "smoke-dual", "trail-classic"]) }
 function mockNameItems(kind: "color" | "glow"): Array<{ id: string; name: string; nameMn: string; unlock: "free" | "coin" | "achievement"; price: number; requirement: string; owned: boolean; rarity: number; featured: boolean; owners: number | null; color?: string; glow?: string; fx?: string; custom?: boolean }> {
   if (kind === "color") return [
     mockDesign("name-solid", "Solid", 150, 1), mockDesign("name-gradient", "Gradient", 400, 2, "gradient"), mockDesign("name-fire", "Fire", 500, 3, "fire"), mockDesign("name-chrome", "Chrome", 500, 3, "chrome"), mockDesign("name-foil", "Foil", 600, 3, "foil"), mockDesign("name-drift", "Drift", 700, 4, "drift"),
@@ -1000,11 +1001,13 @@ export async function mockResponse(method: string, path: string, query: Query, b
       return { nade, kind }
     }
     if (method === "PUT" && path.endsWith("/custom")) {
-      const { item, color, color2 } = body as { item: string; color: string; color2?: string }
+      const { item, color, color2, fx } = body as { item: string; color: string; color2?: string; fx?: string }
+      const charged = mockCustomColours[item] && (mockCustomColours[item] !== color || mockCustomColours2[item] !== color2 || mockCustomMotifs[item] !== fx) ? 100 : 0
       mockCustomColours[item] = color
+      mockCustomMotifs[item] = fx ?? ""
       if (color2) mockCustomColours2[item] = color2
       const kind = item.startsWith("name-") ? "name_color" : item.startsWith("glow-") ? "name_glow" : item.startsWith("smoke-") ? "smoke_color" : item.startsWith("trail-") ? "grenade_trail" : item.startsWith("light-") ? "grenade_light" : "flash_effect"
-      return { kind, item, color }
+      return { kind, item, color, motif: fx ?? null, charged }
     }
     if (method === "PUT") {
       const { kind, item } = body as { kind: "frame" | "name_color" | "name_glow" | "smoke_color" | "grenade_trail" | "grenade_light" | "flash_effect"; item: string | null }

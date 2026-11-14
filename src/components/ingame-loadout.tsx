@@ -1,11 +1,15 @@
 /**
  * In-game effects in the Loadout (owner request 2026-11-14): smoke colour, grenade trail, grenade light and flash sit beside the skins and are
  * swapped the same way (a card, then a list to pick from). They are cosmetics, not skins, so a shared loadout never carries them.
+ * A design the player colours themselves opens an editor: a vivid colour picker (two for the dual smoke) and, for the smoke, one of our own pictures
+ * (no uploads). The first pick is free; every change after it costs the price the API names (100 FOL$).
  */
-import { useState, type ReactNode } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import { toast } from "sonner"
+import { walletService } from "@/api"
 
-import { cosmeticsService, type CosmeticKind, type Cosmetics, type FrameItem } from "@/api/cosmetics"
+import { cosmeticsService, SMOKE_MOTIFS, type CosmeticKind, type Cosmetics, type FrameItem } from "@/api/cosmetics"
+import { ColorPicker } from "@/components/color-picker"
 import { FlashEffect } from "@/components/flash-effect"
 import { GrenadeLight, GrenadeTrail } from "@/components/grenade-trail"
 import { SmokePuff } from "@/components/smoke-puff"
@@ -30,11 +34,77 @@ function Art({ kind, item, className }: { kind: NadeKind; item?: FrameItem | nul
   return <GrenadeLight color={color} className={className} />
 }
 
+
+/** The smoke's pictures, drawn small in the current colour. */
+function Motif({ name, className }: { name: string; className?: string }) {
+  const paths: Record<string, string> = {
+    star: "M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.4 6 20.9l1.3-6.7-5-4.7 6.8-.8z",
+    heart: "M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 5 6.4 5c2 0 3.6 1.1 5.6 3.4C14 6.1 15.600 5 17.600 5c3.400 0 5.500 3.400 4 6.800C19.500 16.400 12 21 12 21z",
+    diamond: "M12 2l8 10-8 10L4 12z",
+    bolt: "M13.500 2L5 13.500h6L10 22l9-12h-6z",
+    sparkle: "M12 2c.8 5.200 2.800 7.200 8 8-5.200.8-7.200 2.800-8 8-.8-5.200-2.800-7.200-8-8 5.200-.8 7.200-2.800 8-8z",
+    dot: "M12 7a5 5 0 100 10 5 5 0 000-10z",
+  }
+  return <svg aria-hidden="true" viewBox="0 0 24 24" className={cn("size-5", className)} fill="currentColor"><path d={paths[name] ?? paths.dot} /></svg>
+}
+
+function Editor({ kind, item, price, balance, onBack, onSaved }: { kind: NadeKind; item: FrameItem; price: number; balance: number | null; onBack: () => void; onSaved: () => void }) {
+  const [color, setColor] = useState(item.picked && item.color ? item.color : "#ff3b6b")
+  const [color2, setColor2] = useState(item.picked && item.color2 ? item.color2 : "#3bb8ff")
+  const [motif, setMotif] = useState<string>(item.motif ?? "")
+  const [busy, setBusy] = useState(false)
+  useEffect(() => { setColor(item.picked && item.color ? item.color : "#ff3b6b"); setColor2(item.picked && item.color2 ? item.color2 : "#3bb8ff"); setMotif(item.motif ?? "") }, [item.id, item.color, item.color2, item.motif])
+  const changed = !item.picked || color !== item.color || (item.twoColours && color2 !== item.color2) || motif !== (item.motif ?? "")
+  const costs = Boolean(item.picked) && changed
+  const short = costs && balance != null && balance < price
+  const save = async () => {
+    setBusy(true)
+    try {
+      const result = await cosmeticsService.saveCustom(item.id, { color, color2: item.twoColours ? color2 : null, fx: kind === "smoke_color" && motif ? motif : null })
+      if (result.charged > 0) window.dispatchEvent(new Event("legacyx:wallet-changed"))
+      toast.success(result.charged > 0 ? `Saved · ${result.charged} FOL$` : "Saved")
+      onSaved()
+    } catch {
+      toast.error(costs ? `Could not save it. Changing the colour costs ${price} FOL$.` : "Could not save it")
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <div className="flex flex-col gap-4">
+      <button type="button" onClick={onBack} className="self-start text-[12px] text-[var(--text-dim)] hover:text-[var(--text)]">← Back</button>
+      <div className="flex items-center justify-center rounded-[10px] bg-[var(--glass-fill)] py-4"><Art kind={kind} item={{ ...item, color, color2: item.twoColours ? color2 : item.color2 }} className="w-[150px]" /></div>
+      <div className="flex flex-wrap justify-center gap-5">
+        <ColorPicker vivid value={color} onChange={setColor} />
+        {item.twoColours && <ColorPicker vivid value={color2} onChange={setColor2} />}
+      </div>
+      {kind === "smoke_color" && (
+        <div className="flex flex-col gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.5px] text-[var(--text-dim)]">Picture</span>
+          <div className="flex flex-wrap gap-2">
+            {["", ...SMOKE_MOTIFS].map((name) => (
+              <button key={name || "dot"} type="button" aria-pressed={motif === name} aria-label={name || "dot"} onClick={() => setMotif(name)} className={cn("flex size-11 items-center justify-center rounded-[10px] transition-colors", motif === name ? "bg-[var(--line-strong)] text-[var(--text)]" : "bg-[var(--glass-fill)] text-[var(--text-dim)] hover:text-[var(--text)]")} style={motif === name ? { color } : undefined}>
+                <Motif name={name || "dot"} />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      <button type="button" disabled={busy || (!changed && Boolean(item.picked)) || short} onClick={() => void save()} className="lx-primary-button inline-flex h-10 items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-50">
+        {short ? `Need ${price - (balance ?? 0)} more FOL$` : costs ? `Save and wear · ${price} FOL$` : item.picked ? "Wear" : "Save and wear · free"}
+      </button>
+      <p className="text-center text-[11px] text-[var(--text-dim)]">The first colour is free. Changing it later costs {price} FOL$, as often as you like. Colours are kept vivid.</p>
+    </div>
+  )
+}
+
 export function InGameLoadout({ renderSection }: { renderSection: (title: string, cards: ReactNode[]) => ReactNode }) {
   const { user } = useAuth()
   const { data, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const [open, setOpen] = useState<NadeKind | null>(null)
   const [busy, setBusy] = useState(false)
+  const [editing, setEditing] = useState<string | null>(null)
+  const { data: wallet } = useApiQuery<{ balance: number }>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   if (!data) return null
 
   const spec = KINDS.find((entry) => entry.kind === open)
@@ -67,16 +137,21 @@ export function InGameLoadout({ renderSection }: { renderSection: (title: string
   return (
     <>
       {renderSection("IN-GAME", cards)}
-      <Dialog open={open !== null} onOpenChange={(next) => { if (!next) setOpen(null) }}>
+      <Dialog open={open !== null} onOpenChange={(next) => { if (!next) { setOpen(null); setEditing(null) } }}>
         <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>{spec?.label}</DialogTitle></DialogHeader>
-          {open && (
+          {open && editing && items.find((item) => item.id === editing) && (
+            <div className="max-h-[70vh] overflow-y-auto">
+              <Editor kind={open} item={items.find((item) => item.id === editing)!} price={data.customChangePrice ?? 100} balance={wallet?.balance ?? null} onBack={() => setEditing(null)} onSaved={() => { setEditing(null); void refetch() }} />
+            </div>
+          )}
+          {open && !editing && (
             <ul className="grid max-h-[60vh] grid-cols-3 gap-2 overflow-y-auto">
               {items.map((item) => {
                 const on = data[spec!.worn] === item.id
                 return (
                   <li key={item.id}>
-                    <button type="button" disabled={busy} onClick={() => void wear(open, on ? null : item.id)} className={cn("flex h-28 w-full flex-col items-center justify-center gap-2 rounded-[10px] border bg-[var(--glass-fill)] px-2 transition-colors hover:border-[var(--line-strong)]", on ? "border-[var(--status-green)]" : "border-[var(--glass-line)]")}>
+                    <button type="button" disabled={busy} onClick={() => { if (item.custom) setEditing(item.id); else void wear(open, on ? null : item.id) }} className={cn("flex h-28 w-full flex-col items-center justify-center gap-2 rounded-[10px] border bg-[var(--glass-fill)] px-2 transition-colors hover:border-[var(--line-strong)]", on ? "border-[var(--status-green)]" : "border-[var(--glass-line)]")}>
                       <Art kind={open} item={item} className="w-[72px]" />
                       <span className="w-full truncate text-center text-xs font-medium text-[var(--text)]">{item.name}</span>
                     </button>

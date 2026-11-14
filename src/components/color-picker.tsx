@@ -64,7 +64,8 @@ function Surface({ onMove, className, style, label, children }: { onMove: (x: nu
 }
 
 /** The picker body: shows `value` and calls `onChange` with a "#rrggbb" string while it is dragged or typed. */
-export function ColorPicker({ value, onChange }: { value: string; onChange: (next: string) => void }) {
+/** `vivid` keeps every pick strong (owner request 2026-11-14): at least 60% saturation and 85% brightness, the same limits the API applies. */
+export function ColorPicker({ value, onChange, vivid = false }: { value: string; onChange: (next: string) => void; vivid?: boolean }) {
   const [hsv, setHsv] = useState<Hsv>(() => hexToHsv(value))
   const [text, setText] = useState(value)
   // Follow a colour chosen elsewhere (a swatch), but keep the hue while a grey or black has none of its own.
@@ -75,7 +76,8 @@ export function ColorPicker({ value, onChange }: { value: string; onChange: (nex
     setText(value)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value])
-  const apply = (next: Hsv) => {
+  const apply = (raw: Hsv) => {
+    const next = vivid ? { ...raw, s: Math.max(raw.s, 0.6), v: Math.max(raw.v, 0.85) } : raw
     setHsv(next)
     const hex = hsvToHex(next)
     setText(hex)
