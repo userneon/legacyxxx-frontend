@@ -11,6 +11,7 @@ import { toast } from "sonner"
 import type { QueueMode, QueueStatus } from "@/api/queue"
 import { useAuth } from "@/hooks/use-auth"
 import { useQueue } from "@/hooks/use-queue"
+import { PartyBar } from "@/components/party-bar"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { steamConnect } from "@/lib/steam-connect"
 import { cn } from "@/lib/utils"
@@ -30,8 +31,8 @@ function useClock(active: boolean) {
 const mmss = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(Math.max(0, Math.floor(seconds % 60))).padStart(2, "0")}`
 
 export function PlayQueue({ mode }: { mode: QueueMode }) {
-  const { isAuthenticated, loginWithSteam } = useAuth()
-  const { status, busy, join, leave, accept } = useQueue()
+  const { isAuthenticated, loginWithSteam, user } = useAuth()
+  const { status, busy, join, leave, accept, invite, acceptInvite, declineInvite, leaveParty, kick } = useQueue()
   const state = status?.state ?? "idle"
   const now = useClock(state === "queued" || state === "found")
   const inQueue = status?.counts[mode] ?? 0
@@ -85,12 +86,15 @@ export function PlayQueue({ mode }: { mode: QueueMode }) {
       <section aria-label="Finding match" className={shell} aria-live="polite">
         <span className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]"><LoaderCircle className="size-3.5 animate-spin" />Finding match</span>
         <h2 className="text-[44px] font-bold tabular-nums leading-none text-[var(--text)]">{mmss(waited)}</h2>
-        <p className="text-[13px] text-[var(--text-muted)]">{TITLES[status.queue.mode]} · {status.counts[status.queue.mode]} in the queue. We look for players close to your level.</p>
+        <p className="text-[13px] text-[var(--text-muted)]">{TITLES[status.queue.mode]} · {status.counts[status.queue.mode]} in the queue{status.party && status.party.members.length > 1 ? ` · party of ${status.party.members.length}` : ""}. We look for players close to your level.</p>
         <button type="button" disabled={busy} onClick={() => void leave()} className="inline-flex h-10 items-center gap-2 rounded-xl border border-[var(--line-strong)] px-6 text-[13px] font-semibold text-[var(--text-2)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)]"><X className="size-4" />Cancel</button>
       </section>
     )
   }
 
+  const party = status?.party ?? null
+  const inParty = Boolean(party && party.members.length > 1)
+  const waitsForLeader = inParty && party!.leaderId !== user?.id
   return (
     <section aria-label="Find match" className={shell}>
       <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">{TITLES[mode]}</span>
@@ -98,13 +102,14 @@ export function PlayQueue({ mode }: { mode: QueueMode }) {
       <p className="max-w-[440px] text-[13px] text-[var(--text-muted)]">We put ten players close in level into one match, split the teams evenly and give you a server. No server list: press the button and play.</p>
       <button
         type="button"
-        disabled={busy}
+        disabled={busy || waitsForLeader}
         onClick={() => void join(mode).then(() => undefined)}
         className="lx-primary-button inline-flex h-14 items-center gap-3 rounded-2xl px-14 text-[17px] font-bold disabled:opacity-60"
       >
         {busy ? <LoaderCircle className="size-5 animate-spin" /> : <Play className="size-5 fill-current" />}
         Find match
       </button>
+      <PartyBar party={party} invitations={status?.invitations ?? []} busy={busy} locked={false} onInvite={(id) => void invite(id)} onKick={(id) => void kick(id)} onLeave={() => void leaveParty()} onAccept={(id) => void acceptInvite(id)} onDecline={(id) => void declineInvite(id)} />
       <span className="text-[12px] text-[var(--text-dim)]">{inQueue > 0 ? `${inQueue} in the queue now` : "Nobody in the queue yet. Be the first."}</span>
     </section>
   )

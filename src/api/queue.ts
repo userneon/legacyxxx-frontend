@@ -21,19 +21,32 @@ export interface QueueMatch {
   players?: Array<{ userId: string; username: string; team: 1 | 2; exp: number }>
 }
 
+export interface PartyMember { userId: string; username: string; exp: number }
+export interface Party { id: string; leaderId: string; members: PartyMember[]; invited: Array<{ userId: string; username: string }> }
+export interface PartyInvitation { partyId: string; from: string }
+
 export interface QueueStatus {
   state: QueueState
   counts: Record<QueueMode, number>
   queue?: { mode: QueueMode; joinedAt: string }
   match?: QueueMatch
+  /** The player's party (up to five who queue together) and the invitations waiting for them. */
+  party: Party | null
+  invitations: PartyInvitation[]
 }
 
 export const queueService = {
   async status(options?: CallOptions): Promise<QueueStatus> {
     const response = await get<Partial<QueueStatus>>("/api/v1/queue/status", undefined, options)
-    return { state: response.state ?? "idle", counts: { "5x5": Number(response.counts?.["5x5"]) || 0, pro: Number(response.counts?.pro) || 0 }, queue: response.queue, match: response.match }
+    return { state: response.state ?? "idle", counts: { "5x5": Number(response.counts?.["5x5"]) || 0, pro: Number(response.counts?.pro) || 0 }, queue: response.queue, match: response.match, party: response.party ?? null, invitations: response.invitations ?? [] }
   },
   join: (mode: QueueMode) => post<{ ok: true }>("/api/v1/queue/join", { mode }),
   leave: () => post<{ ok: true }>("/api/v1/queue/leave"),
   accept: (matchId: string) => post<{ ok: true }>("/api/v1/queue/accept", { matchId }),
+
+  partyInvite: (userId: string) => post<{ ok: true }>("/api/v1/party/invite", { userId }),
+  partyAccept: (partyId: string) => post<{ ok: true }>("/api/v1/party/accept", { partyId }),
+  partyDecline: (partyId: string) => post<{ ok: true }>("/api/v1/party/decline", { partyId }),
+  partyLeave: () => post<{ ok: true }>("/api/v1/party/leave"),
+  partyKick: (userId: string) => post<{ ok: true }>("/api/v1/party/kick", { userId }),
 }

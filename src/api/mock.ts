@@ -842,7 +842,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
     return { message }
   }
   if (path.startsWith("/api/v1/staff/chat/") && method === "DELETE") { const at = mockChat.findIndex((entry) => entry.id === path.split("/").pop()); if (at >= 0) mockChat.splice(at, 1); return undefined }
-  if (path.startsWith("/api/v1/queue/")) return mockQueue(path)
+  if (path.startsWith("/api/v1/queue/") || path.startsWith("/api/v1/party")) return mockQueue(path, body)
   if (path === "/api/v1/play/status") return { leavesToday: 0, cooldown: null, next: { cooldownMinutes: 0 } }
   if (path === "/api/v1/notifications" && method === "GET") {
     const ago = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString()
@@ -1154,19 +1154,26 @@ export async function mockResponse(method: string, path: string, query: Query, b
 
 
 /** Design preview of the matchmaking queue: join → 4 s queued → match found → accept → 3 s preparing → ready. */
-const mockQueueState: { joinedAt: number; mode: "5x5" | "pro"; acceptedAt: number | null } = { joinedAt: 0, mode: "5x5", acceptedAt: null }
-function mockQueue(path: string) {
+const mockQueueState: { joinedAt: number; mode: "5x5" | "pro"; acceptedAt: number | null; party: Array<{ userId: string; username: string; exp: number }>; invitations: Array<{ partyId: string; from: string }> } = { joinedAt: 0, mode: "5x5", acceptedAt: null, party: [], invitations: [{ partyId: "00000000-0000-4000-8000-0000000000aa", from: "Temuulen" }] }
+function mockQueue(path: string, body?: unknown) {
   const now = Date.now()
+  const me = { userId: MOCK_USER.id, username: MOCK_USER.username, exp: 1180 }
+  const partyView = () => ({ party: mockQueueState.party.length > 0 ? { id: "00000000-0000-4000-8000-0000000000bb", leaderId: MOCK_USER.id, members: mockQueueState.party, invited: [] } : null, invitations: mockQueueState.invitations })
+  if (path.endsWith("/party/invite")) { const id = String((body as { userId?: string })?.userId ?? "u9"); if (mockQueueState.party.length === 0) mockQueueState.party = [me]; mockQueueState.party.push({ userId: id, username: "Friend " + id.slice(-2), exp: 1100 }); return { ok: true } }
+  if (path.endsWith("/party/accept")) { mockQueueState.party = [{ userId: "leader", username: mockQueueState.invitations[0]?.from ?? "Temuulen", exp: 1250 }, me]; mockQueueState.invitations = []; return { ok: true } }
+  if (path.endsWith("/party/decline")) { mockQueueState.invitations = []; return { ok: true } }
+  if (path.endsWith("/party/leave")) { mockQueueState.party = []; mockQueueState.joinedAt = 0; return { ok: true } }
+  if (path.endsWith("/party/kick")) { const id = String((body as { userId?: string })?.userId); mockQueueState.party = mockQueueState.party.filter((member) => member.userId !== id); if (mockQueueState.party.length <= 1) mockQueueState.party = []; return { ok: true } }
   if (path.endsWith("/join")) { mockQueueState.joinedAt = now; mockQueueState.acceptedAt = null; return { ok: true } }
   if (path.endsWith("/leave")) { mockQueueState.joinedAt = 0; mockQueueState.acceptedAt = null; return { ok: true } }
   if (path.endsWith("/accept")) { mockQueueState.acceptedAt = now; return { ok: true } }
   const counts = { "5x5": 6, pro: 2 }
-  if (!mockQueueState.joinedAt) return { state: "idle", counts }
+  if (!mockQueueState.joinedAt) return { state: "idle", counts, ...partyView() }
   const waited = now - mockQueueState.joinedAt
-  if (waited < 4000) return { state: "queued", counts, queue: { mode: mockQueueState.mode, joinedAt: new Date(mockQueueState.joinedAt).toISOString() } }
+  if (waited < 4000) return { state: "queued", counts, queue: { mode: mockQueueState.mode, joinedAt: new Date(mockQueueState.joinedAt).toISOString() }, ...partyView() }
   const names = ["LegacyTester", "Temuulen", "xBataa", "Khuslen_AWP", "Enkh.", "Gansukh", "ZoloMN", "Nomin", "Anand", "Bilguun"]
   const base = { id: "00000000-0000-4000-8000-000000000001", mode: mockQueueState.mode, map: "de_inferno", acceptDeadline: new Date(mockQueueState.joinedAt + 4000 + 30_000).toISOString(), total: 10 }
-  if (mockQueueState.acceptedAt === null) return { state: "found", counts, match: { ...base, accepted: 4, myAccepted: false } }
-  if (now - mockQueueState.acceptedAt < 3000) return { state: "preparing", counts, match: { ...base, accepted: 10, myAccepted: true } }
-  return { state: "ready", counts, match: { ...base, accepted: 10, myAccepted: true, status: "loading", team: 1, connectAddress: "203.0.113.10:27002", players: names.map((username, index) => ({ userId: `u${index}`, username, team: index % 2 === 0 ? 1 : 2, exp: 1500 - index * 80 })) } }
+  if (mockQueueState.acceptedAt === null) return { state: "found", counts, match: { ...base, accepted: 4, myAccepted: false }, ...partyView() }
+  if (now - mockQueueState.acceptedAt < 3000) return { state: "preparing", counts, match: { ...base, accepted: 10, myAccepted: true }, ...partyView() }
+  return { state: "ready", counts, match: { ...base, accepted: 10, myAccepted: true, status: "loading", team: 1, connectAddress: "203.0.113.10:27002", players: names.map((username, index) => ({ userId: `u${index}`, username, team: index % 2 === 0 ? 1 : 2, exp: 1500 - index * 80 })) }, ...partyView() }
 }

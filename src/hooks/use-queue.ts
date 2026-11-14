@@ -26,5 +26,10 @@ export function useQueue() {
     join: (mode: QueueMode) => run(() => queueService.join(mode)),
     leave: () => run(() => queueService.leave()),
     accept: (matchId: string) => run(() => queueService.accept(matchId)),
+    invite: (userId: string) => run(() => queueService.partyInvite(userId)),
+    acceptInvite: (partyId: string) => run(() => queueService.partyAccept(partyId)),
+    declineInvite: (partyId: string) => run(() => queueService.partyDecline(partyId)),
+    leaveParty: () => run(() => queueService.partyLeave()),
+    kick: (userId: string) => run(() => queueService.partyKick(userId)),
   }
 }
