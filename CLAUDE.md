@@ -46,6 +46,8 @@ The website's frame is two icon columns and the page between them, with **no top
 
 **FACEIT-style Home (owner trial 2026-11-14, "study it like FACEIT"; Home only, the other pages keep the card look above):** `.lx-faceit` on Home's root: flat `#1b1b1f` panels with a 1px `#2a2a30` hairline and 6px corners, no gradient, shadow or frost, short uppercase headings (12px, wide spacing), uppercase mode names, dense rows. faceit.com answered 403 from the sandbox, so this follows its known look, not a capture; its orange is outside the palette, the accent stays violet. If approved, the other pages follow.
 
+**Open tabs at the top of a page (owner request 2026-11-14, FACEIT-style UX: "every page has its tabs open at the top; Play opens 5x5 by default and the tabs pick the mode"):** a sidebar group icon (Play, Skinchanger, Commerce, Community) goes straight to the group's first page (Play → 5x5, Commerce → Shop, Community → Clans, Skinchanger → Loadout); `components/section-tabs.tsx` draws a bar above the page panel (`SectionTabs`, not on a phone) listing the group's pages: Play (5x5 Matches, Fun Mode, Pro League, Tournaments), Skinchanger (Loadout, Collections, Advanced), Commerce (Shop, Market), Community (Clans, Staff, Creators), the open one underlined in violet. Pages outside a group have no bar. The sidebar is always closed to icons, so it never shows a dropdown.
+
 ## Design tokens (`src/index.css`)
 
 Neutral surfaces, white as the workhorse accent, and **violet as the brand accent** (owner decision

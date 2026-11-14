@@ -14,6 +14,7 @@ import { SHELL } from "@/lib/shell"
 import { ProfileBlock } from "@/components/profile-block"
 import { SiteTourButton } from "@/components/site-tour"
 import { AccountSidebar } from "@/components/account-sidebar"
+import { SectionTabs } from "@/components/section-tabs"
 import { PublicChat } from "@/components/public-chat"
 import { HomePage } from "@/pages/home"
 import { PlayPage } from "@/pages/play"
@@ -172,6 +173,8 @@ export function App() {
           <span aria-hidden="true" className="h-6 w-px shrink-0 bg-[var(--line)] max-sm:hidden" />
           <ProfileBlock onNavigate={handleNavigate} tab={SHELL === "pill" && (location.pathname === "/profile" || location.pathname === "/discord")} />
         </header>
+
+        <SectionTabs currentPage={currentPage} onNavigate={handleNavigate} />
 
         <button
           type="button"
