@@ -159,7 +159,7 @@
   }
   body {
     @apply text-foreground;
-    font-family: "Inter", "Exo 2", system-ui, -apple-system, sans-serif;
+    font-family: "Figtree", system-ui, -apple-system, sans-serif;
     -webkit-user-select: none;
     -moz-user-select: none;
     user-select: none;
@@ -2635,3 +2635,33 @@ body::after { content: ""; position: fixed; left: 0; right: 0; bottom: 0; height
 .lx-faceit.lx-calm::after, .lx-faceit.lx-glass-page::before { display: none; }
 .lx-faceit :is(.lx-tiktok-card, .lx-discord-card) { border-radius: 6px !important; }
 .lx-faceit [class*="rounded-2xl"]:not(img, .lx-glass) { border-radius: 6px; }
+
+
+/* ==== The LXC look (owner decision 2026-11-14: a black, flat arena after FACEIT's own dark pages, measured from the owner's screenshots) ====
+   The page is #060606, a card #111111 (lighter than the page, no shadow), the hairline #1f1f1f, the corner 8px (6px small boxes, 4px table rows, 999px chips).
+   The accent is a soft white (#dcdcdc), never a colour; status colours are the real ones (green, red). Icons are the plain rounded lucide set.
+   This block comes last on purpose: it wins over the older card looks (Create-a-clan gradient, FACEIT Home trial, calm/noir) without deleting them. */
+:root, .dark {
+  --bg: #060606; --panel: #0c0c0c; --card-surface: #111111; --raised: #171717;
+  --line-soft: #161616; --line: #1f1f1f; --line-strong: #2c2c2c;
+  --text: #dedede; --text-2: #b5b5b5; --text-muted: #a0a0a0; --text-dim: #8a8a8a; --text-faint: #666666;
+  --accent-solid: #dcdcdc;
+  --status-green: #0fe80c; --status-red: #ff3636; --result-win: #0fe80c; --result-loss: #ff3636;
+  --glass-fill: #111111; --glass-line: #1f1f1f; --glass-shell-line: #1f1f1f; --clan-card: #111111;
+  --lx-panel-bg: #060606;
+  --radius: 8px;
+}
+html, body { background: #060606; }
+body::after, body::before, .lx-glass-page::before, .lx-calm::after { display: none !important; }
+:is(.lx-glass, .glass, .lx-pcard, .lx-people-card, .lx-team-card, .lx-play-panel, .lx-shop-tile, .lx-shop-glass, .lx-frost, .lx-ring-card, .lx-add-box, .lx-fx-card):not(.rounded-full) {
+  background: #111111 !important; border: 1px solid #1f1f1f !important; border-radius: 8px !important; box-shadow: none !important;
+  backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+}
+:is(.lx-glass, .glass, .lx-pcard, .lx-people-card, .lx-team-card, .lx-shop-tile, .lx-frost, .lx-fx-card):is(a, button, li, article, [role="button"]):not(.rounded-full):hover {
+  transform: none !important; background: #171717 !important; border-color: #2c2c2c !important; box-shadow: none !important;
+}
+:is(.lx-glass, .glass).rounded-full { background: #111111 !important; border: 1px solid #1f1f1f !important; box-shadow: none !important; }
+.lx-glass-shell { background: transparent; border: 0; box-shadow: none; }
+.lx-primary-button { background: #dcdcdc; color: #0a0a0a; box-shadow: none; font-weight: 700; }
+.lx-primary-button:hover { background: #ececec; box-shadow: none; }
+.lx-sheet, .lx-sheet-overlay { --card-surface: #111111; }

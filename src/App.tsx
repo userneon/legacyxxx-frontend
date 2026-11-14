@@ -15,6 +15,7 @@ import { ProfileBlock } from "@/components/profile-block"
 import { SiteTourButton } from "@/components/site-tour"
 import { AccountSidebar } from "@/components/account-sidebar"
 import { SectionTabs } from "@/components/section-tabs"
+import { LxcHeader } from "@/components/lxc-header"
 import { PublicChat } from "@/components/public-chat"
 import { HomePage } from "@/pages/home"
 import { PlayPage } from "@/pages/play"
@@ -158,8 +159,8 @@ export function App() {
       <ProfileBackdrop active={profileGrid} />
       {/* The shell (owner pick 2026-11-09): one solid frame holding the rail, a pill header and the page panel. A phone keeps the sidebar sheet and the older layout. */}
       <div className={SHELL === "pill" ? "lx-frame" : "contents"}>
-      <ShellNav currentPage={currentPage} onNavigate={handleNavigate} />
-      <SidebarInset className={cn("m-0 flex min-w-0 flex-col gap-2 bg-transparent", SHELL === "pill" ? "lx-frame-main max-[559px]:h-svh max-[559px]:p-2" : "h-svh p-2 pl-0 max-[559px]:pl-2")}>
+      <div className={SHELL === "lxc" ? "min-[560px]:hidden" : "contents"}><ShellNav currentPage={currentPage} onNavigate={handleNavigate} /></div>
+      <SidebarInset className={cn("m-0 flex min-w-0 flex-col gap-2 bg-transparent", SHELL === "pill" ? "lx-frame-main max-[559px]:h-svh max-[559px]:p-2" : SHELL === "lxc" ? "h-svh gap-0 max-[559px]:gap-2 max-[559px]:p-2" : "h-svh p-2 pl-0 max-[559px]:pl-2")}>
         {/* The top bar is gone on wider windows (its parts live in the right sidebar); a phone keeps it, since it has neither sidebar on screen. */}
         <header className={cn("lx-glass-shell relative z-[3] flex h-14 shrink-0 items-center gap-4 pl-4 pr-2 max-md:pl-2 max-sm:gap-1.5 min-[560px]:hidden", SHELL === "pill" ? "lx-frame-header" : "rounded-[14px]")}>
           {/* On a phone the sidebar is a sheet, so the top bar carries its only trigger. */}
@@ -174,6 +175,7 @@ export function App() {
           <ProfileBlock onNavigate={handleNavigate} tab={SHELL === "pill" && (location.pathname === "/profile" || location.pathname === "/discord")} />
         </header>
 
+        {SHELL === "lxc" ? <LxcHeader currentPage={currentPage} onNavigate={handleNavigate} className="max-[559px]:hidden" /> : null}
         <SectionTabs currentPage={currentPage} onNavigate={handleNavigate} />
 
         <button
@@ -185,9 +187,9 @@ export function App() {
         >
           <ArrowUp className="size-5" aria-hidden="true" />
         </button>
-        <div ref={panelRef} className={cn("lx-glass-shell scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-clip max-sm:pb-16", SHELL === "pill" ? "lx-frame-panel" : "rounded-[14px]")}>
+        <div ref={panelRef} className={cn("lx-glass-shell scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-clip max-sm:pb-16", SHELL === "pill" ? "lx-frame-panel" : SHELL === "lxc" ? "max-[559px]:rounded-[14px]" : "rounded-[14px]")}>
           {/* Leaders scrolls its table inside the panel (sticky header, your row pinned under it), so it gets the panel's height instead of growing past it. */}
-          <div key={shownSection} className={cn("page-enter flex flex-col", shownSection === "/leaders" ? "h-full" : "min-h-full", leaving && "page-leave")}>
+          <div key={shownSection} className={cn("page-enter flex flex-col", SHELL === "lxc" && "mx-auto w-full max-w-[1320px]", shownSection === "/leaders" ? "h-full" : "min-h-full", leaving && "page-leave")}>
             <RouteErrorBoundary resetKey={shownLocation.pathname}>
             <Suspense fallback={<div className="min-h-[40vh]" aria-hidden="true" />}>
             <Routes location={shownLocation}>
@@ -250,7 +252,7 @@ export function App() {
           </div>
         </div>
       </SidebarInset>
-      <AccountSidebar onNavigate={handleNavigate} />
+      {SHELL === "lxc" ? null : <AccountSidebar onNavigate={handleNavigate} />}
       </div>
       <PublicChat />
     </SidebarProvider>

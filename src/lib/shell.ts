@@ -4,4 +4,7 @@
  * "pill" is the 2026-11-09 shell, one solid frame with a pill rail, a pill header and the page-tab panel (kept in the code, switch it back here).
  * The pages themselves (the bento layouts) are the same in both.
  */
-export const SHELL = "classic" as "classic" | "pill"
+/**
+ * "lxc" (owner decision 2026-11-14) is the current frame: a top bar and a row of page cards, no sidebars; a phone keeps the classic sheet and top bar.
+ */
+export const SHELL = "lxc" as "classic" | "pill" | "lxc"

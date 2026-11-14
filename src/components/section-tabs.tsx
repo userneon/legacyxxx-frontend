@@ -6,6 +6,7 @@
 import { useSkinchangerView, setSkinchangerView, type SkinchangerView } from "@/lib/skinchanger-view"
 import type { PageId } from "@/api/types"
 import { COMMERCE_ITEMS, COMMUNITY_ITEMS, PLAY_ITEMS, SKIN_VIEWS } from "@/components/app-sidebar"
+import { SHELL } from "@/lib/shell"
 import { cn } from "@/lib/utils"
 
 interface Tab { key: string; label: string; active: boolean; go: () => void }
@@ -24,7 +25,7 @@ export function SectionTabs({ currentPage, onNavigate }: { currentPage: PageId; 
   }
   if (tabs.length < 2) return null
   return (
-    <nav aria-label={title} className="lx-glass-shell flex h-12 shrink-0 items-center gap-1 rounded-[14px] px-3 max-[559px]:hidden">
+    <nav aria-label={title} className={cn("lx-glass-shell flex h-12 shrink-0 items-center gap-1 rounded-[14px] px-3 max-[559px]:hidden", SHELL === "lxc" && "mx-auto w-full max-w-[1320px] rounded-none px-6")}>
       <span className="mr-3 px-1 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-dim)]">{title}</span>
       {tabs.map((tab) => (
         <button
