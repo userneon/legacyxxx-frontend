@@ -163,12 +163,12 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
   return (
     <Sidebar variant="floating" collapsible="icon" className="lx-glass-sidebar border-none [&>div[data-sidebar=sidebar]]:rounded-[14px]">
       <SidebarContent className="gap-0 overflow-x-hidden px-3 pb-3">
-        <div className={cn("flex h-[60px] shrink-0 items-center transition-[padding] duration-300 motion-reduce:transition-none", EASE, collapsed ? "px-1" : "pl-3 pr-1")}>
-          <span className={cn("flex min-w-0 flex-1 items-center gap-2 overflow-hidden text-base font-bold tracking-[0.3px] text-[var(--text)]", labelClass(collapsed))}>
+        <div className={cn("flex h-[60px] shrink-0 items-center justify-center transition-[padding] duration-300 motion-reduce:transition-none", EASE, !collapsed && "pl-3 pr-1")}>
+          <span className={cn("min-w-0 flex-1 items-center gap-2 overflow-hidden text-base font-bold tracking-[0.3px] text-[var(--text)]", collapsed ? "hidden" : "flex", labelClass(collapsed))}>
             <img src="/logolegacyx.webp" alt="" aria-hidden="true" className="size-6 shrink-0 drop-" />
             <span>LEGACY-<span className="text-[var(--brand-bright)]">X</span></span>
           </span>
-          {collapsed && <img src="/logolegacyx.webp" alt="LEGACY-X" className="mx-auto size-6 shrink-0" />}
+          {collapsed && <img src="/logolegacyx.webp" alt="LEGACY-X" className="size-6 shrink-0" />}
 
         </div>
 

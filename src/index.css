@@ -1774,3 +1774,8 @@ body::after, body::before, .lx-glass-page::before, .lx-calm::after { display: no
 .lx-glass-icon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 8px; border: 1px solid #1f1f1f; background: color-mix(in srgb, var(--c1, #444) 22%, #111111); }
 .lx-glass-icon > svg { color: #dedede; }
 .lx-fx-ring, .lx-fx-spot { display: none; }
+
+/* The closed rail: each icon sits in the middle of its button, and the labels that are only for the open rail take no room. */
+.lxc-shell [data-state="collapsed"] nav :is(button, a) { justify-content: center; padding-left: 0; padding-right: 0; gap: 0; }
+.lxc-shell [data-state="collapsed"] nav :is(button, a) > :not(svg) { display: none; }
+.lxc-shell [data-state="collapsed"] nav :is(button, a) > .absolute { display: block; }
