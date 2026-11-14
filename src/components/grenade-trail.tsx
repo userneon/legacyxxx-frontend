@@ -3,7 +3,7 @@ import { useId } from "react"
 import { cn } from "@/lib/utils"
 
 const HEX = /^#[0-9a-f]{6}$/i
-const SHAPES = new Set(["classic", "crack", "electric", "laser", "water", "prism"])
+const SHAPES = new Set(["classic", "crack", "electric", "laser", "water", "split"])
 // Fixed jitter for the electric bolts and the cracks, so the art never changes between renders.
 const BOLT = [0, 5, -6, 7, -4, 8, -7, 3, -8, 6, -5, 4, 0]
 const CRACK = [0, 3, -4, 5, -2, 6, -5, 2, -6, 4, -3, 3, 0]
@@ -48,7 +48,7 @@ function jagged(jitter: number[], from: number) {
 
 /**
  * A grenade's flight in the trail a player picked (owner request 2026-11-14, the six designs of the Workshop addon: classic, crack, electric, laser,
- * water, prism), drawn on the thrown arc in the player's colour and fading out behind the grenade, which sits at its head; a spark burst
+ * water, split), drawn on the thrown arc in the player's colour and fading out behind the grenade, which sits at its head; a spark burst
  * marks where it bounces. The line draws itself once (off for reduced motion). Colour and shape come from the API as a plain #rrggbb and a short
  * key (never a style string).
  */
@@ -115,7 +115,7 @@ export function GrenadeTrail({ color, shape, className }: { color?: string | nul
           })}
         </>
       )}
-      {kind === "prism" && (
+      {kind === "split" && (
         <>
           <path d={strand(() => 5, 1)} {...common} strokeWidth="3.4" opacity="0.9" style={{ filter: "hue-rotate(-45deg)" }} />
           <path d={strand(() => 0, 1)} {...common} strokeWidth="3.8" />
