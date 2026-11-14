@@ -3,7 +3,7 @@
  *
  * They are game data, not part of the LEGACY-X palette, so they only ever appear as a thin
  * indicator on a skin tile or an equipped card — never as a surface. The colour check skips
- * this file for that reason (see scripts/check-no-blue.mjs).
+ * this file for that reason.
  */
 export const rarityStyles: Record<string, { rank: number; accent: string }> = {
   Covert: { rank: 1, accent: "#eb4b4b" },

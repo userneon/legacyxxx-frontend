@@ -9,7 +9,6 @@
 |---|---|
 | [MANUAL_MN.md](MANUAL_MN.md) ✓ | Бүрэн гарын авлага |
 | [../README.md](../README.md) ⚠ | Англи товч танилцуулга; API зам (`/api/public`), CORS хэсэг хуучин |
-| [../CLAUDE.md](../CLAUDE.md) ✓ | Ажлын дүрэм ба дизайн token (crimson, радиус, текст, товч, glass) |
 
 ## Дизайн
 

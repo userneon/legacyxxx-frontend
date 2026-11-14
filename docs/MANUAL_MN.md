@@ -40,7 +40,6 @@ VITE_API_URL=https://api.legacyx.cc npm run dev    # бодит API-тай
 npm run dev:mock                # mock-ыг шууд заана (VITE_MOCK_API=1)
 npm run preview:mock            # mock-той production-ийн урьдчилсан үзүүлэлт
 npm run typecheck               # tsc --noEmit
-npm run check:colors            # өнгөний шалгагч: commit-ийн өмнө заавал
 npm run build                   # tsc -b && vite build → dist/
 ```
 
@@ -85,9 +84,8 @@ Route-ийн жагсаалт: `src/lib/routes.ts` (хуучин хаягууд 
 | `src/index.css` | Бүх token, glass, animation (`--brand`, `--glass-fill`…) |
 | `src/assets/` | Bundle-д орох зураг (map, skinchanger, rank) |
 | `public/` | Нэрлэсэн статик: `ranks/`, `logolegacyx.webp`, `_redirects` (SPA fallback) |
-| `scripts/` | `check-no-blue.mjs` (`check:colors`), зураг WebP болгох |
+| `scripts/` | зураг WebP болгох |
 | `ops/deploy.sh` | VPS дээр нэг командаар deploy |
-| `docs/design/` | Дэлгэц бүрийн HTML+PNG лавлах |
 
 ## 5. Тохиргоо
 
@@ -115,7 +113,6 @@ Route-ийн жагсаалт: `src/lib/routes.ts` (хуучин хаягууд 
 
 ## 7. Дизайн систем
 
-Бүрэн дүрэм: **[../CLAUDE.md](../CLAUDE.md)** (эх сурвалж). Товчоор:
 
 - **Өнгө:** саарал/хар гадаргуу, цагаан гол accent (`--accent-solid`), **crimson** (`--brand` `#e11d48`, `--brand-bright` `#ff3d6e`) цөөн чухал газарт: wordmark-ийн "-X", идэвхтэй nav, #1 болон өөрийн мөр, Pro League карт, hero-ийн онцлох үг, EXP progress. Бусад нь саарал.
 - **Статус өнгө:** ногоон (live/online), улаан `#ef4444` (EXP хязгаар, ban). Цолны өнгө зөвхөн emblem болон цолны нэрийн хажууд.
@@ -125,7 +122,6 @@ Route-ийн жагсаалт: `src/lib/routes.ts` (хуучин хаягууд 
 - **Гадаргуу:** glass (`--glass-fill`, `.glass`, `.lx-glass`), shell нь `.lx-glass-shell` (бүдгэрсэн). Зурагны дээрх overlay нь тод.
 - **Icon:** зөвхөн `lucide-react`, stroke 2. Emoji, placeholder icon байхгүй.
 - **Хөдөлгөөн:** `prefers-reduced-motion`-ийг хүндэтгэнэ. Background beams нь scroll хийхэд зогсож, 15 frame/сек (гүйцэтгэл).
-- **Шалгагч:** `npm run check:colors` цэнхэр/нил/шар/улбар шар hue-г (`palette-exempt`/`rarity`-аас бусад) зөвшөөрөхгүй. Commit-ийн өмнө заавал.
 - Дэлгэц бүрийн лавлах: [design/README.md](design/README.md) (HTML + PNG).
 
 ## 8. Зураг ба asset
@@ -157,7 +153,6 @@ Nginx: `root /var/www/legacyx`, SPA fallback `try_files $uri /index.html` (эс�
 
 **Хуудас:** `src/pages/<нэр>.tsx` → `src/api/types.ts`-ийн `PageId` → `src/lib/routes.ts`-ийн `PAGE_ROUTES`/`PAGE_TITLES` → sidebar → (унтраалттай эхлэх бол `features.ts`).
 **API дуудлага:** service → `useApiQuery` → дөрвөн төлөв → mock хариу.
-**Өнгө/товч:** CLAUDE.md-ийн жагсаалтыг шалга; шинэ crimson газар нэмэхээс өмнө "чухал газар мөн үү?" гэж асуу; үгүй бол саарал.
 **Commit:** main дээр шууд, нэг логик өөрчлөлт = нэг commit. Commit-ийн нэр нь Discord-д олон нийтэд харагдана (нэг энгийн өгүүлбэр); нууц/аюулгүй байдлын засвар бол `[skip announce]`.
 
 ## 11. Алдаа засах
@@ -167,7 +162,6 @@ Nginx: `root /var/www/legacyx`, SPA fallback `try_files $uri /index.html` (эс�
 | Хуудас хоосон, "Retry" | API хүрэхгүй / CORS | `VITE_API_URL`; API-ийн `FRONTEND_ORIGIN`; DevTools → Network |
 | Нэвтэрсэн ч нэвтрээгүй харагдана | Cookie домэйн, `credentials` | API `AUTH_COOKIE_DOMAIN=.legacyx.cc`; HTTPS |
 | `mock-session` олдлоо, deploy зогсов | Mock-той build хийсэн | `VITE_MOCK_API`-г арилгаж дахин build |
-| `check:colors` унана | Хориотой hue (цэнхэр/шар…) | Token (`var(--…)`) ашигла, шаардлагатай бол `palette-exempt` |
 | Шинэ дизайн харагдахгүй (deploy-ийн дараа) | Browser cache | `Ctrl+Shift+R`; `index.html` шинэчлэгдсэн эсэх |
 | Зураг гарахгүй | Зам, WebP дутуу | `npm run images:webp`; `src/assets` импорт |
 | Удаан, гацна | Beams/blur | `background-beams.tsx`, `index.css`-ийн blur; DevTools Performance |
@@ -177,7 +171,6 @@ Nginx: `root /var/www/legacyx`, SPA fallback `try_files $uri /index.html` (эс�
 
 - `README.md` (язгуур): `/api/public/*`, `FRONTEND_PUBLIC_ORIGINS` гэж бичсэн; одоогийн API нь `/api/v1/*`, CORS нь backend-ийн `FRONTEND_ORIGIN`. §6-г ашигла.
 - `docs/IMAGE_DELIVERY.md`: "local Vite preview" болон `/home/ubuntu/webdev-static-assets` зам Manus-ийн орчинд зориулагдсан.
-- `docs/design/PROMPT.md` §2: crimson-ийн өнөөгийн хэрэглээг `CLAUDE.md` илүү нарийн заана.
 
 ## 13. Бусад баримт
 

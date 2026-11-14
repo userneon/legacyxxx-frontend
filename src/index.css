@@ -48,7 +48,7 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* LEGACY-X design tokens (docs/design references): neutral surfaces, violet brand accent, status green. */
+/* LEGACY-X design tokens: neutral surfaces, violet brand accent, status green. */
 :root, .dark {
   --radius: 0.625rem;
 

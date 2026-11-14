@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 /**
  * A full-screen radial-gradient backdrop: black fading into the brand violet at the bottom.
  * The original snippet used the off-palette `#63e`; it uses `--brand` here so the site's colour check passes.
- * It is not placed on any page yet (CLAUDE.md: no page but Home and the Shop has a glow or hero).
+ * It is not placed on any page yet.
  */
 export const Hero = ({ className }: { className?: string }) => {
   return (
