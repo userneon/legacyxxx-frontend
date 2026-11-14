@@ -7,7 +7,7 @@ The studio needs the game's own weapon models and paint / sticker textures. A br
 2. Find the VPK: `<cs2 install>/game/csgo/pak01_dir.vpk`.
 3. `CLI=./Source2Viewer-CLI VPK=/path/pak01_dir.vpk ./extract.sh list`, then open `out/paths.txt` and check the real folders
    (weapon models, `customization` for stickers, charms and paints). If a path differs, change the filters in `extract.sh`.
-4. `./extract.sh models` and `./extract.sh textures`.
+4. `./extract.sh all` exports every weapon and every paint / sticker in one run (or `models` and `textures` separately). It is run again only after a CS2 update.
 5. Upload `out/` to the asset bucket (Cloudflare R2) with long-lived cache headers.
 
 Valve's models and textures stay Valve's: keep the bucket private to the studio's own domain.

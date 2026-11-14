@@ -5,6 +5,7 @@
 #   CLI=./Source2Viewer-CLI VPK=/path/to/game/csgo/pak01_dir.vpk ./extract.sh list
 #   CLI=... VPK=... ./extract.sh models
 #   CLI=... VPK=... ./extract.sh textures
+#   CLI=... VPK=... ./extract.sh all        <- every weapon, sticker and paint in one run
 #
 # `list` first: it writes out/paths.txt so the real paths can be checked before anything is exported (CS2 paths change between updates).
 set -euo pipefail
@@ -28,8 +29,14 @@ case "${1:-}" in
     # Paint kits, stickers and scratch maps (.vtex_c) become images.
     "$CLI" -i "$VPK" -f "materials/models/weapons/customization/*" -e vtex_c -d -o "$OUT/textures"
     ;;
+  all)
+    # Everything in one go: the normal way to run it (after a CS2 update, run just this).
+    "$0" list
+    "$0" models
+    "$0" textures
+    ;;
   *)
-    echo "usage: $0 list | models | textures" >&2
+    echo "usage: $0 list | models | textures | all" >&2
     exit 1
     ;;
 esac
