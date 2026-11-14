@@ -491,6 +491,8 @@ export interface ClanCard {
   look?: ClanLook | null
   /** Recruitment is on: asking to join means answering these questions (may be none). Absent or null when it is off. */
   recruit?: { questions: string[] } | null
+  /** Verified clan: ten or more members, every one with Discord linked. Computed by the API; absent from an older API. */
+  verified?: boolean
   /** Clan level (from XP its members earn in ranked matches). Absent from an older API. */
   level?: number
   /** What the clan's card shows: its leader, a few members and its members' real ranked totals. Absent from an older API and on cards other than the Clans list. */

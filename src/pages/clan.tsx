@@ -1,3 +1,4 @@
+import { VerifiedClan } from "@/components/verified-clan"
 import { DetailSheetContent } from "@/components/detail-sheet"
 import { NameBanner } from "@/components/name-banner"
 import { PerkMark } from "@/components/perk-badge"
@@ -433,6 +434,7 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
         <button type="button" onClick={() => onClanNavigate(String(clan.number ?? clan.id))} className="flex min-w-0 flex-1 flex-col items-start gap-1 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
           <span className="flex max-w-full items-center gap-2">
             <span className="truncate text-[16px] font-semibold leading-tight text-[var(--text)]" title={clan.name}>{clan.name}</span>
+            {clan.verified && <VerifiedClan />}
             <span {...tagProps} className="shrink-0 rounded-md bg-[var(--raised)] px-1.5 py-0.5 text-[11px] font-semibold tracking-wide text-[var(--text-2)]">{clan.tag}</span>
           </span>
           <span className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[12px] text-[var(--text-dim)]">
@@ -540,7 +542,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
               <div className="relative flex flex-wrap items-start gap-x-5 gap-y-3 p-5">
                 <ClanMark logo={clan.logo} tag={clan.tag} className={cn("size-[72px] shrink-0 rounded-2xl text-[15px]", clan.thumbnail && "-mt-14")} />
                 <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                  <h1 className="flex min-w-0 items-center gap-2 text-[22px] font-semibold leading-tight"><span className="truncate">{clan.name} <span className="text-[13px] font-medium text-[var(--text-dim)]">[{clan.tag}]</span></span>{clan.level ? <span title="Clan level" className="shrink-0 rounded-full border border-[var(--line-strong)] px-2 py-0.5 text-[11px] font-semibold text-[var(--text-2)]">Lv {clan.level}</span> : null}</h1>
+                  <h1 className="flex min-w-0 items-center gap-2 text-[22px] font-semibold leading-tight"><span className="truncate">{clan.name} <span className="text-[13px] font-medium text-[var(--text-dim)]">[{clan.tag}]</span></span>{clan.verified && <VerifiedClan className="size-5" />}{clan.level ? <span title="Clan level" className="shrink-0 rounded-full border border-[var(--line-strong)] px-2 py-0.5 text-[11px] font-semibold text-[var(--text-2)]">Lv {clan.level}</span> : null}</h1>
                   <p className="flex flex-wrap items-center gap-x-3 text-[13px] text-[var(--text-dim)]"><span>{clan.region} · {clan.currentPlayers}/{clan.maxPlayers} members</span><JoinModeLabel mode={clan.joinMode} /></p>
                   {clan.description && <p className="max-w-2xl text-[13px] text-[var(--text-dim)]">{clan.description}</p>}
                   <ClanLinksRow links={clan.links} />
