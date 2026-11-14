@@ -272,7 +272,7 @@ class RouteErrorBoundary extends Component<{ children: ReactNode; resetKey: stri
   }
 }
 
-const PAGE_LEAVE_MS = 160
+const PAGE_LEAVE_MS = 120
 
 /** Pages that share one mounted view: every Play mode is the Play section. */
 function pageSection(pathname: string): string {

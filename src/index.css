@@ -584,56 +584,14 @@
 }
 
 /* ========================================
-   Page transition — fade in on mount
+   Page transition: a calm cross-fade, nothing moves (owner question 2026-11-14: "what is calm and stress-free?").
+   The old page fades out in 120ms, the new one fades in over 180ms. No sliding, no stagger, no scaling.
    ======================================== */
-.page-enter {
-  /* The page grows out of the rail and folds back into it (owner request 2026-11-09). */
-  transform-origin: left center;
-  /* backwards, not both: once it has played nothing of it stays on the page (a held opacity or transform cuts off every backdrop blur inside). */
-  animation: page-flow-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) backwards;
-}
-
-/* Everything flows DOWN into place (owner request 2026-11-07: pages, tabs and sections come in from above, one after another). The outgoing page fades down and out before the next one flows in (App.tsx, 160ms). */
-.page-enter.page-leave {
-  animation: page-flow-out 160ms cubic-bezier(0.4, 0, 1, 1) forwards;
-  pointer-events: none;
-}
-
-/* Route content: sections arrive in a fast, readable sequence after navigation. */
-@media all {
-  .page-enter > * > * {
-    animation: page-section-stagger-in 250ms cubic-bezier(0.23, 1, 0.32, 1) backwards;
-  }
-
-  .page-enter > * > :nth-child(2) { animation-delay: 32ms; }
-  .page-enter > * > :nth-child(3) { animation-delay: 64ms; }
-  .page-enter > * > :nth-child(4) { animation-delay: 96ms; }
-  .page-enter > * > :nth-child(5) { animation-delay: 128ms; }
-  .page-enter > * > :nth-child(6) { animation-delay: 160ms; }
-  .page-enter > * > :nth-child(7) { animation-delay: 192ms; }
-  .page-enter > * > :nth-child(8) { animation-delay: 224ms; }
-  .page-enter > * > :nth-child(n + 9) { animation-delay: 256ms; }
-
-  @keyframes page-section-stagger-in {
-    from { opacity: 0; transform: translateY(-12px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-}
-
-/* Page parts flow down in turn: each part of a page stack, then the cards inside it. Transforms and opacity only, `backwards` fill, still for reduced motion. */
-.page-enter .lx-stack > *,
-.page-enter .lx-stack > * > * {
-  animation: lx-flow-down 380ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
-}
-.page-enter .lx-stack > :nth-child(2) { animation-delay: 25ms; }
-.page-enter .lx-stack > :nth-child(3) { animation-delay: 50ms; }
-.page-enter .lx-stack > :nth-child(n + 4) { animation-delay: 75ms; }
-.page-enter .lx-stack > * > :nth-child(2) { animation-delay: 25ms; }
-.page-enter .lx-stack > * > :nth-child(3) { animation-delay: 50ms; }
-.page-enter .lx-stack > * > :nth-child(n + 4) { animation-delay: 75ms; }
-@media (prefers-reduced-motion: reduce) {
-  .page-enter .lx-stack > *, .page-enter .lx-stack > * > * { animation: none; }
-}
+.page-enter { animation: page-fade-in 180ms ease-out backwards; }
+.page-enter.page-leave { animation: page-fade-out 120ms ease-in forwards; pointer-events: none; }
+@keyframes page-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes page-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .page-enter, .page-enter.page-leave { animation-duration: 1ms; } }
 
 /* The ring stats (Home, Profile, Clans) draw themselves in: each coloured part grows from its start to its length, one after another (owner request 2026-11-09). `backwards`, still for reduced motion. */
 .lx-ring-seg { animation: lx-ring-draw 900ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
