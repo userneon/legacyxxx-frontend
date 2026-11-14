@@ -111,19 +111,6 @@ Route-ийн жагсаалт: `src/lib/routes.ts` (хуучин хаягууд 
 - Шинэ endpoint нэмэхдээ `src/api/<хэсэг>.ts` дотор service, `types.ts` дотор төрөл, `mock.ts` дотор mock хариу нэмнэ.
 - Шинэ талбар backend-д байхгүй бол UI-д зохиож харуулахгүй; талбарыг nullable болгож, байхгүй үед юу ч харуулахгүй/зөв хоосон мессеж.
 
-## 7. Дизайн систем
-
-
-- **Өнгө:** саарал/хар гадаргуу, цагаан гол accent (`--accent-solid`), **crimson** (`--brand` `#e11d48`, `--brand-bright` `#ff3d6e`) цөөн чухал газарт: wordmark-ийн "-X", идэвхтэй nav, #1 болон өөрийн мөр, Pro League карт, hero-ийн онцлох үг, EXP progress. Бусад нь саарал.
-- **Статус өнгө:** ногоон (live/online), улаан `#ef4444` (EXP хязгаар, ban). Цолны өнгө зөвхөн emblem болон цолны нэрийн хажууд.
-- **Радиус:** 8px товч/талбар, 10–12px карт, 14–16px floating, 999px pill.
-- **Текст:** Onest. 10–11 meta, 13 body, 15 онцлол, 22+ гарчиг. `tabular-nums` хэрэглэхгүй.
-- **Товч:** primary = цагаан (`.lx-primary-button`); secondary = хүрээтэй `--raised`; hover саарал. Crimson товч зөвхөн идэвхтэй төлөвт.
-- **Гадаргуу:** glass (`--glass-fill`, `.glass`, `.lx-glass`), shell нь `.lx-glass-shell` (бүдгэрсэн). Зурагны дээрх overlay нь тод.
-- **Icon:** зөвхөн `lucide-react`, stroke 2. Emoji, placeholder icon байхгүй.
-- **Хөдөлгөөн:** `prefers-reduced-motion`-ийг хүндэтгэнэ. Background beams нь scroll хийхэд зогсож, 15 frame/сек (гүйцэтгэл).
-- Дэлгэц бүрийн лавлах: [design/README.md](design/README.md) (HTML + PNG).
-
 ## 8. Зураг ба asset
 
 - Зураг WebP; `OptimizedImage` нь өргөн/өндөр, lazy, async decode, алдааны fallback өгнө. Дэлгэрэнгүй: [IMAGE_DELIVERY.md](IMAGE_DELIVERY.md).
