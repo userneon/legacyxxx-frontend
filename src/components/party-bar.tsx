@@ -4,7 +4,7 @@
  * a member can leave. Invitations sent to you show above the slots. Every name and number is the API's.
  */
 import { useEffect, useState } from "react"
-import { Plus, Search, X } from "lucide-react"
+import { Crown, Plus, Search, X } from "lucide-react"
 
 import { searchService } from "@/api/search"
 import type { CommunityPlayer } from "@/api/types"
@@ -15,6 +15,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils"
 
 const SLOTS = 5
+/** A FACEIT-style party card: a tall rounded box, five side by side. */
+const CARD = "grid aspect-[3/4.4] rounded-2xl border border-[var(--line-strong)] bg-[var(--card-surface)]"
+/** Where each member goes: you in the middle, the rest fill outwards (right, left, right, left). */
+const SLOT_ORDER = [2, 3, 1, 4, 0]
 
 function InvitePicker({ exclude, onPick, disabled }: { exclude: Set<string>; onPick: (userId: string) => void; disabled?: boolean }) {
   const [open, setOpen] = useState(false)
@@ -34,7 +38,7 @@ function InvitePicker({ exclude, onPick, disabled }: { exclude: Set<string>; onP
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button type="button" disabled={disabled} aria-label="Invite a player" className="grid size-12 place-items-center rounded-full border border-dashed border-[var(--line-strong)] text-[var(--text-dim)] transition-colors hover:border-[var(--text-dim)] hover:text-[var(--text)] disabled:pointer-events-none disabled:opacity-40"><Plus className="size-5" /></button>
+        <button type="button" disabled={disabled} aria-label="Invite a player" className={cn(CARD, "w-full place-items-center text-[var(--text-dim)] transition-colors hover:border-[var(--text-dim)] hover:text-[var(--text)] disabled:pointer-events-none disabled:opacity-40")}><Plus className="size-9" /></button>
       </PopoverTrigger>
       <PopoverContent align="center" className="w-[280px] rounded-2xl border-[var(--line-strong)] bg-[var(--card-surface)] p-2">
         <label className="flex h-9 items-center gap-2 rounded-lg border border-[var(--line)] px-2.5 text-[13px] text-[var(--text-dim)]">
@@ -71,11 +75,18 @@ export function PartyBar({ party, invitations, busy, locked, onInvite, onKick, o
   const members = party?.members ?? (user ? [{ userId: myId, username: user.username, exp: 0 }] : [])
   const isLeader = !party || party.leaderId === myId
   const taken = new Set([...members.map((member) => member.userId), ...(party?.invited ?? []).map((invite) => invite.userId)])
-  const empty = Math.max(0, SLOTS - members.length - (party?.invited.length ?? 0))
+  const pending = party?.invited ?? []
+  type Slot = { kind: "member"; member: (typeof members)[number] } | { kind: "invite"; name: string; userId: string } | { kind: "empty" }
+  const slots: Slot[] = Array.from({ length: SLOTS }, () => ({ kind: "empty" }))
+  const leaderId = party?.leaderId ?? myId
+  // The leader sits in the middle; the others fill outwards, the pending invites after them.
+  const people: Slot[] = [...members.filter((member) => member.userId === myId), ...members.filter((member) => member.userId !== myId)].map((member) => ({ kind: "member", member }))
+  ;[...people, ...pending.map((invite): Slot => ({ kind: "invite", name: invite.username, userId: invite.userId }))].forEach((slot, index) => { slots[SLOT_ORDER[index]] = slot })
+  const inviteSlot = slots.map((slot, index) => (slot.kind === "empty" ? index : -1)).filter((index) => index >= 0).sort((a, b) => Math.abs(a - 2) - Math.abs(b - 2) || a - b)[0]
   return (
-    <div aria-label="Party" className="flex w-full max-w-[560px] flex-col items-center gap-3">
+    <div aria-label="Party" className="flex w-full max-w-[860px] flex-col items-center gap-4">
       {invitations.map((invitation) => (
-        <div key={invitation.partyId} className="flex w-full items-center justify-between gap-3 rounded-xl border border-[var(--line-strong)] bg-[var(--raised)]/60 px-4 py-2.5 text-[13px]">
+        <div key={invitation.partyId} className="flex w-full max-w-[560px] items-center justify-between gap-3 rounded-xl border border-[var(--line-strong)] bg-[var(--raised)]/60 px-4 py-2.5 text-[13px]">
           <span className="truncate text-[var(--text)]"><b className="font-semibold">{invitation.from}</b> invited you to a party</span>
           <span className="flex shrink-0 gap-2">
             <button type="button" disabled={busy || locked} onClick={() => onAccept(invitation.partyId)} className="lx-primary-button h-8 rounded-lg px-4 text-[12px] font-semibold disabled:opacity-50">Join</button>
@@ -83,33 +94,45 @@ export function PartyBar({ party, invitations, busy, locked, onInvite, onKick, o
           </span>
         </div>
       ))}
-      <div className="flex items-center justify-center gap-3">
-        {members.map((member) => {
-          const leader = member.userId === (party?.leaderId ?? myId)
-          const mine = member.userId === myId
+      <div className="grid w-full grid-cols-5 items-end gap-2 @xl:gap-4">
+        {slots.map((slot, index) => {
+          if (slot.kind === "member") {
+            const { member } = slot
+            const leader = member.userId === leaderId
+            const mine = member.userId === myId
+            return (
+              <div key={member.userId} className="group relative flex flex-col items-center">
+                <span className="mb-1.5 h-4 text-[var(--brand-bright)]">{leader ? <Crown className="size-4" aria-label="Party leader" /> : null}</span>
+                <div className={cn(CARD, "w-full content-center justify-items-center gap-2 overflow-hidden px-1.5 py-3", mine && "border-[var(--brand)]/60")}>
+                  <PlayerAvatar name={member.username} className="size-[clamp(44px,7cqw,84px)]" />
+                  <span className="max-w-full truncate text-[clamp(11px,1.6cqw,14px)] font-semibold text-[var(--text)]">{mine ? "You" : member.username}</span>
+                  {member.exp > 0 ? <span className="text-[11px] text-[var(--text-dim)]">{member.exp.toLocaleString()} EXP</span> : null}
+                </div>
+                {isLeader && !mine && !locked ? <button type="button" aria-label={`Remove ${member.username}`} onClick={() => onKick(member.userId)} className="absolute right-1.5 top-6 grid size-6 place-items-center rounded-full bg-[var(--raised)] text-[var(--text-dim)] opacity-0 transition-opacity hover:text-[var(--text)] focus-visible:opacity-100 group-hover:opacity-100"><X className="size-3.5" /></button> : null}
+              </div>
+            )
+          }
+          if (slot.kind === "invite") {
+            return (
+              <div key={slot.userId} className="group relative flex flex-col items-center">
+                <span className="mb-1.5 h-4" />
+                <div className={cn(CARD, "w-full content-center justify-items-center gap-2 border-dashed px-1.5 opacity-70")}>
+                  <span className="grid size-[clamp(44px,7cqw,84px)] place-items-center rounded-full border border-dashed border-[var(--line-strong)] text-[12px] text-[var(--text-dim)]">···</span>
+                  <span className="max-w-full truncate text-[12px] text-[var(--text-muted)]">{slot.name}</span>
+                  <span className="text-[11px] text-[var(--text-dim)]">Invited</span>
+                </div>
+                {isLeader && !locked ? <button type="button" aria-label={`Cancel invite for ${slot.name}`} onClick={() => onKick(slot.userId)} className="absolute right-1.5 top-6 grid size-6 place-items-center rounded-full bg-[var(--raised)] text-[var(--text-dim)] opacity-0 transition-opacity hover:text-[var(--text)] focus-visible:opacity-100 group-hover:opacity-100"><X className="size-3.5" /></button> : null}
+              </div>
+            )
+          }
+          const canInvite = isLeader && index === inviteSlot
           return (
-            <div key={member.userId} className="group relative flex w-[64px] flex-col items-center gap-1" title={member.username}>
-              <span className={cn("relative rounded-full", leader && "ring-2 ring-[var(--brand)] ring-offset-2 ring-offset-[var(--card-surface)]")}>
-                <PlayerAvatar name={member.username} className="size-12" />
-                {isLeader && !mine && !locked ? <button type="button" aria-label={`Remove ${member.username}`} onClick={() => onKick(member.userId)} className="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full border border-[var(--line-strong)] bg-[var(--card-surface)] text-[var(--text-dim)] opacity-0 transition-opacity hover:text-[var(--text)] focus-visible:opacity-100 group-hover:opacity-100"><X className="size-3" /></button> : null}
-              </span>
-              <span className="w-full truncate text-center text-[11px] text-[var(--text-muted)]">{mine ? "You" : member.username}</span>
+            <div key={`empty-${index}`} className="flex flex-col items-center">
+              <span className="mb-1.5 h-4" />
+              {canInvite ? <InvitePicker exclude={taken} disabled={busy || locked} onPick={onInvite} /> : <div aria-hidden="true" className={cn(CARD, "w-full border-[var(--line)] opacity-60")} />}
             </div>
           )
         })}
-        {(party?.invited ?? []).map((invite) => (
-          <div key={invite.userId} className="group relative flex w-[64px] flex-col items-center gap-1 opacity-60" title={`${invite.username} (invited)`}>
-            <span className="grid size-12 place-items-center rounded-full border border-dashed border-[var(--line-strong)] text-[11px] text-[var(--text-dim)]">···</span>
-            <span className="w-full truncate text-center text-[11px] text-[var(--text-dim)]">{invite.username}</span>
-            {isLeader && !locked ? <button type="button" aria-label={`Cancel invite for ${invite.username}`} onClick={() => onKick(invite.userId)} className="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full border border-[var(--line-strong)] bg-[var(--card-surface)] text-[var(--text-dim)] opacity-0 transition-opacity hover:text-[var(--text)] focus-visible:opacity-100 group-hover:opacity-100"><X className="size-3" /></button> : null}
-          </div>
-        ))}
-        {Array.from({ length: empty }, (_, index) => (
-          <div key={index} className="flex w-[64px] flex-col items-center gap-1">
-            {index === 0 && isLeader ? <InvitePicker exclude={taken} disabled={busy || locked} onPick={onInvite} /> : <span className="size-12 rounded-full border border-dashed border-[var(--line)]" aria-hidden="true" />}
-            <span className="text-[11px] text-[var(--text-faint)]">{index === 0 && isLeader ? "Invite" : "Free"}</span>
-          </div>
-        ))}
       </div>
       {party && party.members.length > 1 ? (
         <span className="flex items-center gap-3 text-[12px] text-[var(--text-dim)]">

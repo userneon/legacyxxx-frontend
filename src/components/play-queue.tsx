@@ -37,7 +37,7 @@ export function PlayQueue({ mode }: { mode: QueueMode }) {
   const now = useClock(state === "queued" || state === "found")
   const inQueue = status?.counts[mode] ?? 0
 
-  const shell = "lx-glass relative flex min-h-[340px] flex-col items-center justify-center gap-5 overflow-hidden px-6 py-10 text-center"
+  const shell = "lx-glass @container relative flex min-h-[340px] flex-col items-center justify-center gap-5 overflow-hidden px-6 py-10 text-center"
 
   if (!isAuthenticated) {
     return (
@@ -87,6 +87,7 @@ export function PlayQueue({ mode }: { mode: QueueMode }) {
         <span className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]"><LoaderCircle className="size-3.5 animate-spin" />Finding match</span>
         <h2 className="text-[44px] font-bold tabular-nums leading-none text-[var(--text)]">{mmss(waited)}</h2>
         <p className="text-[13px] text-[var(--text-muted)]">{TITLES[status.queue.mode]} · {status.counts[status.queue.mode]} in the queue{status.party && status.party.members.length > 1 ? ` · party of ${status.party.members.length}` : ""}. We look for players close to your level.</p>
+        {status.party && status.party.members.length > 1 ? <PartyBar party={status.party} invitations={[]} busy={busy} locked onInvite={() => undefined} onKick={() => undefined} onLeave={() => undefined} onAccept={() => undefined} onDecline={() => undefined} /> : null}
         <button type="button" disabled={busy} onClick={() => void leave()} className="inline-flex h-10 items-center gap-2 rounded-xl border border-[var(--line-strong)] px-6 text-[13px] font-semibold text-[var(--text-2)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)]"><X className="size-4" />Cancel</button>
       </section>
     )
@@ -97,9 +98,8 @@ export function PlayQueue({ mode }: { mode: QueueMode }) {
   const waitsForLeader = inParty && party!.leaderId !== user?.id
   return (
     <section aria-label="Find match" className={shell}>
-      <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">{TITLES[mode]}</span>
-      <h2 className="max-w-[520px] text-[28px] font-bold leading-tight text-[var(--text)]">{mode === "pro" ? "Ranked 5v5 for the best" : "Ranked 5v5. Every match counts."}</h2>
-      <p className="max-w-[440px] text-[13px] text-[var(--text-muted)]">We put ten players close in level into one match, split the teams evenly and give you a server. No server list: press the button and play.</p>
+      <span className="rounded-full border border-[var(--brand)]/50 px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--brand-bright)]">{TITLES[mode]} queue</span>
+      <PartyBar party={party} invitations={status?.invitations ?? []} busy={busy} locked={false} onInvite={(id) => void invite(id)} onKick={(id) => void kick(id)} onLeave={() => void leaveParty()} onAccept={(id) => void acceptInvite(id)} onDecline={(id) => void declineInvite(id)} />
       <button
         type="button"
         disabled={busy || waitsForLeader}
@@ -109,8 +109,7 @@ export function PlayQueue({ mode }: { mode: QueueMode }) {
         {busy ? <LoaderCircle className="size-5 animate-spin" /> : <Play className="size-5 fill-current" />}
         Find match
       </button>
-      <PartyBar party={party} invitations={status?.invitations ?? []} busy={busy} locked={false} onInvite={(id) => void invite(id)} onKick={(id) => void kick(id)} onLeave={() => void leaveParty()} onAccept={(id) => void acceptInvite(id)} onDecline={(id) => void declineInvite(id)} />
-      <span className="text-[12px] text-[var(--text-dim)]">{inQueue > 0 ? `${inQueue} in the queue now` : "Nobody in the queue yet. Be the first."}</span>
+      <span className="text-[12px] text-[var(--text-dim)]">Players queueing: <b className="font-semibold text-[var(--text-2)]">{inQueue}</b></span>
     </section>
   )
 }
