@@ -5,7 +5,7 @@ import { ProfileConfigs } from "@/components/profile-config"
 import { ProfileBanner } from "@/components/profile-banner"
 import { PlayerNameText } from "@/components/player-name-text"
 import { DiscordLinkedMark } from "@/components/discord-linked-mark"
-import { useEffect, useRef, useState, type ReactNode } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
 import { ArrowLeftRight, Ban, ChevronRight, Copy, Crown, ExternalLink, EyeOff, Info, MessageCircle, MoreHorizontal, Play, RotateCcw, ShieldAlert, ShieldCheck, Shield } from "lucide-react"
@@ -23,7 +23,6 @@ import { LINKS } from "@/lib/links"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { formatDate, useWebsitePreferences } from "@/lib/preferences"
 import { PAGE_ROUTES, PAGE_TITLES, documentTitle } from "@/lib/routes"
-import { RingStat } from "@/components/home-parts"
 import { CompetitiveRankBadge, RankLabel, RankPill } from "@/components/competitive-rank-badge"
 import { FaceitLevelBadge } from "@/components/faceit-level-badge"
 import { MatchDetailsDialog } from "@/components/match-details-dialog"
@@ -176,11 +175,11 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
     if (await copyText(url, "Profile link")) toast.success("Profile link copied")
   }
   return (
-    <header data-tier={overview.perk?.tier} className={cn("lx-swap-in flex flex-col items-center gap-4 text-center", overview.perk && "lx-profile-perk")}>
+    <header data-tier={overview.perk?.tier} className={cn("lx-swap-in flex flex-col gap-5 text-left md:flex-row md:items-center", overview.perk && "lx-profile-perk")}>
       <Avatar user={user} />
-      <div className="flex min-w-0 max-w-full flex-1 flex-col items-center gap-3">
-        <div className="flex min-w-0 max-w-full flex-col items-center gap-1">
-          <div className="flex min-w-0 max-w-full items-center justify-center gap-2.5">
+      <div className="flex min-w-0 max-w-full flex-1 flex-col items-start gap-3">
+        <div className="flex min-w-0 max-w-full flex-col items-start gap-1">
+          <div className="flex min-w-0 max-w-full items-center gap-2.5">
             <h1 {...nameProps(user.nameStyle, "-mx-5 -my-3 truncate px-5 py-3 text-[30px] font-bold leading-[1.1] tracking-[-0.6px] text-[var(--text)]")} title={user.username}><PlayerNameText name={user.username} /></h1>
             <DiscordLinkedMark linked={overview.discordLinked} focusable className="shrink-0 [&_svg]:size-[18px]" />
           </div>
@@ -188,7 +187,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
             ? <span title={overview.banned.reason ?? undefined} className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[3px] text-[var(--status-red)]"><Ban className="size-3.5" aria-hidden="true" />Banned</span>
             : user.title ? <span className={cn("text-[11px] font-semibold uppercase tracking-[3px]", user.title === "Genesis" ? "lx-profile-title-founder" : "text-[var(--text-dim)]")}>{user.title}</span> : overview.perk && <PerkTitle perk={overview.perk} />}
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <RoleBadge role={user.role} />
           {overview.creator && <CreatorBadge tier={overview.creator.tier} label={overview.creator.label} />}
           {overview.perk && <PerkBadge tier={overview.perk.tier} name={overview.perk.name} />}
@@ -206,12 +205,12 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
             </span>
           )}
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-3.5 text-[13px] text-[var(--text-muted)]">
+        <div className="flex flex-wrap items-center gap-3.5 text-[13px] text-[var(--text-muted)]">
           {competitive?.position && <><span title="Leaderboard position" className="font-semibold text-[var(--text-2)]">#{competitive.position}</span><span className="text-[var(--line-strong)]">·</span></>}
           {user.memberSince && <><span title="Member since">Since {formatDate(user.memberSince)}</span><span className="text-[var(--line-strong)]">·</span></>}
           <span title="Last played">{overview.banned ? "Banned" : overview.lastPlayedAt ? <>Active <RelativeTime value={overview.lastPlayedAt} /></> : "No matches yet"}</span>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
         {presence?.connectAddress && (
           <a href={`steam://connect/${presence.connectAddress}`} className="lx-primary-button inline-flex h-[34px] items-center gap-1.5 rounded-lg px-3.5 text-[13px] font-semibold">
             <Play className="size-3.5 fill-current" />
@@ -451,37 +450,41 @@ function EmptyStatsRow() {
 
 /** Rings for the numbers a player cares about (owner request 2026-11-09, "add donuts and circles"): win rate, K/D, headshots and the EXP limits, drawn from the same API numbers as the tiles below. */
 function ProfileRings({ overview }: { overview: ProfileOverview }) {
-  const stat = (key: string) => overview.stats?.find((tile) => tile.key === key)?.value
-  const win = stat("winRate")
-  const kd = stat("kd")
-  const hs = stat("hs")
   const tile = (key: string) => overview.stats?.find((entry) => entry.key === key)
+  const win = tile("winRate")?.value
+  const kd = tile("kd")?.value
+  const hs = tile("hs")?.value
   const matches = tile("matches")
   const avgKills = tile("avgKills")
   const limits = overview.competitive?.expLimits ?? null
   const share = (used: number, cap: number) => (cap > 0 ? Math.max(0, Math.min(100, (used / cap) * 100)) : 0)
-  const cards: ReactNode[] = []
-  // Matches and average kills have no ceiling, so their ring shows how many ranked players the player beats (the API's percentile).
-  const beats = (entry: NonNullable<typeof matches>) => (typeof entry.percentile === "number" ? [{ pct: entry.percentile, tone: "green" as const }] : [])
-  if (matches) cards.push(<RingStat key="matches" value={matches.value.toLocaleString()} label="Matches" title={typeof matches.percentile === "number" ? `More than ${matches.percentile}% of ranked players` : undefined} segments={beats(matches)} />)
-  if (typeof win === "number") cards.push(<RingStat key="win" value={`${Math.round(win)}%`} label="Win rate" segments={[{ pct: win, tone: "green" }]} />)
-  if (typeof kd === "number") cards.push(<RingStat key="kd" value={kd.toFixed(2)} label="K/D" title="Kills against deaths" segments={[{ pct: (kd / (kd + 1)) * 100, tone: "green" }, { pct: (1 / (kd + 1)) * 100, tone: "red" }]} />)
-  if (typeof hs === "number") cards.push(<RingStat key="hs" value={`${Math.round(hs)}%`} label="Headshots" segments={[{ pct: hs, tone: "green" }]} />)
-  if (avgKills) cards.push(<RingStat key="kills" value={avgKills.value.toFixed(1)} label="Avg. kills" title={typeof avgKills.percentile === "number" ? `Better than ${avgKills.percentile}% of ranked players` : undefined} segments={beats(avgKills)} />)
+  type Tone = "green" | "red"
+  const cards: Array<{ key: string; label: string; value: string; title?: string; share: number | null; tone: Tone }> = []
+  // Matches and average kills have no ceiling, so their bar shows how many ranked players the player beats (the API's percentile).
+  if (matches) cards.push({ key: "matches", label: "Matches", value: matches.value.toLocaleString(), title: typeof matches.percentile === "number" ? `More than ${matches.percentile}% of ranked players` : undefined, share: typeof matches.percentile === "number" ? matches.percentile : null, tone: "green" })
+  if (typeof win === "number") cards.push({ key: "win", label: "Win rate", value: `${Math.round(win)}%`, share: win, tone: "green" })
+  if (typeof kd === "number") cards.push({ key: "kd", label: "K/D", value: kd.toFixed(2), title: "Kills against deaths", share: (kd / (kd + 1)) * 100, tone: "green" })
+  if (typeof hs === "number") cards.push({ key: "hs", label: "Headshots", value: `${Math.round(hs)}%`, share: hs, tone: "green" })
+  if (avgKills) cards.push({ key: "kills", label: "Avg. kills", value: avgKills.value.toFixed(1), title: typeof avgKills.percentile === "number" ? `Better than ${avgKills.percentile}% of ranked players` : undefined, share: typeof avgKills.percentile === "number" ? avgKills.percentile : null, tone: "green" })
   if (limits) {
-    cards.push(<RingStat key="day" value={`${Math.round(share(limits.day.used, limits.day.cap))}%`} label="EXP today" title={`${limits.day.used.toLocaleString()} of ${limits.day.cap.toLocaleString()} EXP today`} segments={[{ pct: share(limits.day.used, limits.day.cap), tone: limits.day.used >= limits.day.cap ? "red" : "green" }]} />)
-    cards.push(<RingStat key="week" value={`${Math.round(share(limits.week.used, limits.week.cap))}%`} label="EXP this week" title={`${limits.week.used.toLocaleString()} of ${limits.week.cap.toLocaleString()} EXP this week`} segments={[{ pct: share(limits.week.used, limits.week.cap), tone: limits.week.used >= limits.week.cap ? "red" : "green" }]} />)
+    cards.push({ key: "day", label: "EXP today", value: `${limits.day.used.toLocaleString()} / ${limits.day.cap.toLocaleString()}`, title: `${limits.day.used.toLocaleString()} of ${limits.day.cap.toLocaleString()} EXP today`, share: share(limits.day.used, limits.day.cap), tone: limits.day.used >= limits.day.cap ? "red" : "green" })
+    cards.push({ key: "week", label: "EXP this week", value: `${limits.week.used.toLocaleString()} / ${limits.week.cap.toLocaleString()}`, title: `${limits.week.used.toLocaleString()} of ${limits.week.cap.toLocaleString()} EXP this week`, share: share(limits.week.used, limits.week.cap), tone: limits.week.used >= limits.week.cap ? "red" : "green" })
   }
   if (cards.length === 0) return null
-  // Full rows, never one card left alone (owner checklist 2026-11-13, "poor alignment"): three in the first row, the rest share the second.
-  const rest = cards.length - 3
-  // Narrow (a 6-column grid): three in the first row, the rest two to a row; wide (12 columns): three, then the rest in one row; a phone: two to a row, the first one wide when the count is odd.
-  const midSpan = { 4: "@lg:col-span-3", 3: "@lg:col-span-2", 2: "@lg:col-span-3", 1: "@lg:col-span-6" }[rest] ?? "@lg:col-span-2"
-  const wideSpan = { 4: "@3xl:col-span-3", 3: "@3xl:col-span-4", 2: "@3xl:col-span-6", 1: "@3xl:col-span-12" }[rest] ?? "@3xl:col-span-4"
+  // Rows of four; a row that would be left short lets its last tile stretch, so no tile sits alone.
+  const lastSpan = 4 - ((cards.length - 1) % 4)
   return (
-    <section aria-label="Rings" className="grid grid-cols-2 gap-3 @lg:grid-cols-6 @3xl:grid-cols-12">
-      {cards.map((card, index) => (
-        <div key={index} className={cn("grid min-w-0", index === 0 && cards.length % 2 === 1 && "col-span-2", cards.length <= 3 || index < 3 ? "@lg:col-span-2 @3xl:col-span-4" : cn(midSpan, wideSpan))}>{card}</div>
+    <section aria-label="Stats" className="grid grid-cols-2 gap-3 @3xl:grid-cols-4">
+      {cards.map((entry, index) => (
+        <div key={entry.key} title={entry.title} style={index === cards.length - 1 && lastSpan > 1 ? { gridColumn: `span ${lastSpan}` } : undefined} className="lx-glass flex min-w-0 flex-col gap-1 rounded-xl px-4 py-3.5">
+          <span className="truncate text-[11px] font-medium text-[var(--text-dim)]">{entry.label}</span>
+          <span className="text-[24px] font-bold leading-none text-[var(--text)]">{entry.value}</span>
+          {entry.share != null && (
+            <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-[var(--line)]" role="progressbar" aria-valuenow={Math.round(entry.share)} aria-valuemin={0} aria-valuemax={100} aria-label={entry.label}>
+              <span className="block h-full rounded-full" style={{ width: `${entry.share}%`, background: entry.tone === "red" ? "var(--status-red)" : "var(--status-green)" }} />
+            </span>
+          )}
+        </div>
       ))}
     </section>
   )
@@ -861,8 +864,8 @@ export function ProfilePage({ userId }: { userId?: string }) {
         <div className="lx-stack flex flex-col gap-4">
           {/* Who this is: the banner, the avatar, the name, the badges and the buttons. */}
           <section aria-label="Profile" className="lx-glass relative overflow-hidden rounded-2xl">
-            <ProfileBanner fx={banner} fade className="h-[190px]" />
-            <div className={cn("relative px-5 pb-6 max-md:px-4", banner ? "pt-[64px]" : "pt-7")}>
+            <ProfileBanner fx={banner} fade className="h-[130px]" />
+            <div className={cn("relative px-5 pb-6 max-md:px-4", banner ? "pt-[28px]" : "pt-6")}>
               <Header overview={previewData} onVisibilityChange={refetch} />
             </div>
           </section>
