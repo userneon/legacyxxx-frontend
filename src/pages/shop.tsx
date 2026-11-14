@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
 import { Check, ChevronDown, Crosshair, Heart, Lock, RotateCcw, Search, ShoppingCart, SlidersHorizontal, Star, Sword, X } from "lucide-react"
 import { toast } from "sonner"
@@ -13,24 +13,19 @@ import { frameAccent, nameProps, timeLeft } from "@/lib/cosmetics"
 import { SAVED_KEY, daysLeft, endingSoon, outfitTotal, rarityOf, readSaved } from "@/lib/shop-logic"
 import { ORB_ID, type FrameLook } from "@/lib/frame-look"
 import { isRingFrame } from "@/lib/ring-frames"
-import { OrbCustomizer } from "@/components/orb-customizer"
-import { BgCustomizer } from "@/components/bg-customizer"
 import { BgThumb } from "@/components/bg-thumb"
-import { BackgroundScene, bgById, type BgLook } from "@/lib/backgrounds"
-import { CountNumber } from "@/components/count-number"
 import { SmokePuff } from "@/components/smoke-puff"
 import { GrenadeLight, GrenadeTrail } from "@/components/grenade-trail"
 import { FlashEffect } from "@/components/flash-effect"
 import { ShopClan } from "@/components/shop-clan"
 import { ShopRanks } from "@/components/shop-ranks"
 import { usePerkCatalogue } from "@/hooks/use-perk-catalogue"
-import { ColorRow, PICK_COLORS, PICK_DEFAULT, demoColour } from "@/components/color-row"
+import { PICK_DEFAULT, demoColour } from "@/components/color-row"
 import { FramedAvatar } from "@/components/framed-avatar"
 import { LxMark } from "@/components/lx-mark"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
 import { ChoiceSelect } from "@/components/choice-select"
-import { DetailSheetContent } from "@/components/detail-sheet"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -130,24 +125,6 @@ function accentOf(item: ShopItem) {
   return item.kind === "frame" ? frameAccent(item.id) : item.color ?? item.glow ?? "var(--text-2)"
 }
 
-/**
- * The picked background in the preview: its still picture shows at once while the live one loads, then the picture fades away so the two are never
- * seen on top of each other (a live background can be see-through, and its picture would show behind it).
- */
-function BgPreview({ id, look }: { id: string; look: BgLook }) {
-  const [still, setStill] = useState(true)
-  useEffect(() => {
-    const timer = window.setTimeout(() => setStill(false), 1100)
-    return () => window.clearTimeout(timer)
-  }, [])
-  return (
-    <>
-      <div aria-hidden="true" className={cn("pointer-events-none absolute inset-0 transition-opacity duration-500", still ? "opacity-100" : "opacity-0")}><BgThumb id={id} fill /></div>
-      <div className="absolute inset-0"><BackgroundScene id={id} look={look} /></div>
-    </>
-  )
-}
-
 /** A soft light in the item's own colour behind the art, and a shadow on the floor under it. A background's picture fills the whole box instead. */
 function Spot({ height, children, fill }: { height: number; children: React.ReactNode; fill?: boolean }) {
   if (fill) return <div className="relative overflow-hidden rounded-lg" style={{ height }}>{children}</div>
@@ -185,7 +162,6 @@ function ShopGrid({ list, card, tight = false }: { list: ShopItem[]; tight?: boo
 export function ShopPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [params] = useSearchParams() // an old ?item= link still opens that item; picking one no longer writes it to the address
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
@@ -207,28 +183,9 @@ export function ShopPage() {
     return next
   })
   const [busy, setBusy] = useState(false)
-  const [picked, setPicked] = useState<string | null>(params.get("item"))
   const [search, setSearch] = useState("")
-  const [sheetOpen, setSheetOpen] = useState(false)
-  // The colours being tried on a design before they are saved (anyone can try; buying or saving keeps them).
-  const [customDraft, setCustomDraft] = useState<Record<string, string>>({})
-  const [customDraft2, setCustomDraft2] = useState<Record<string, string>>({})
-  /** An in-game item as it would look with the colours being tried on it. */
-  const tried = (item: ShopItem) => ({ color: customDraft[item.id] ?? item.color, color2: customDraft2[item.id] ?? item.color2, fx: item.fx })
-  const dropDrafts = (id: string) => {
-    setCustomDraft((current) => { const { [id]: _saved, ...rest } = current; return rest })
-    setCustomDraft2((current) => { const { [id]: _saved, ...rest } = current; return rest })
-  }
-  // The item bought a moment ago: its card rings once and the buy block turns into "Worn" with a fade.
-  // The Crystal Orb being tried in the preview (null: the one you saved). It is what the preview draws, live, while you change it.
-  const [orbDraft, setOrbDraft] = useState<FrameLook | null>(null)
-  // The Crystal Orb and background settings are long: they sit behind a "Customize" strip, closed until asked for, and scroll inside their own box.
-  const [customizeOpen, setCustomizeOpen] = useState(false)
-  const [customizeMounted, setCustomizeMounted] = useState(false)
-  // The knobs being tried on the picked background, per background (what the preview draws, live, while you change them).
-  const [bgDrafts, setBgDrafts] = useState<Record<string, BgLook>>({})
   // How long the next purchase rents the item for; the price of each length is the API's.
-  const [duration, setDuration] = useState<CosmeticDuration>("30d")
+  const [duration] = useState<CosmeticDuration>("30d")
   // Some items are rented for one length only (the Crystal Orb: 30 days); the API lists just the lengths it sells.
   const lengthsOf = (item: ShopItem) => { const sold = COSMETIC_DURATIONS.filter((length) => item.prices?.[length.value] !== undefined); return sold.length ? sold : COSMETIC_DURATIONS }
   // A length picked in the outfit belongs to that item alone; without one the item follows the length picked last.
@@ -265,42 +222,10 @@ export function ShopPage() {
     // What you can still buy comes first, then what you own, then what is only earned.
     .sort((a, b) => group(a) - group(b) || (sort === "rarity" ? (b.rarity ?? 0) - (a.rarity ?? 0) || a.price - b.price : sort === "price-up" ? a.price - b.price : b.price - a.price))
 
-  // The picked item counts only on the tab it belongs to: moving to another tab shows that tab's own first item, not the last one you looked at.
-  const selected = inTab.find((item) => item.id === picked) ?? (tab === "featured" ? featured[0] : null) ?? shown[0] ?? featured[0] ?? null
-  useEffect(() => { setCustomizeOpen(false); setCustomizeMounted(false) }, [selected?.id])
-  // The name colour and the name glow being tried together: the preview wears both, and each is bought on its own.
-  const [combo, setCombo] = useState<{ name_color?: string; name_glow?: string }>({})
-  useEffect(() => { setCombo({}) }, [tab])
-  const isPicked = (item: ShopItem) => selected?.id === item.id || (item.kind === "name_color" || item.kind === "name_glow" ? combo[item.kind] === item.id : false)
-  const choose = (item: ShopItem) => {
-    setPicked(item.id)
-    if (item.kind === "name_color" || item.kind === "name_glow") setCombo((current) => ({ ...current, [item.kind]: item.id }))
-    // On a phone the preview and the buy button live in a sheet, so choosing an item never sends you down the page.
-    if (typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches) setSheetOpen(true)
-  }
-
-  // The preview wears the item you look at, and whatever you already wear of the other kinds.
-  const previewOf = (kind: ShopKind) => (kind === "name_color" || kind === "name_glow" ? all.find((item) => item.id === combo[kind]) : undefined) ?? (selected?.kind === kind ? selected : all.find((item) => item.kind === kind && tray.includes(item.id)) ?? all.find((item) => item.kind === kind && item.id === worn[kind])) ?? null
-  const previewFrame = previewOf("frame")
-  const previewColor = previewOf("name_color")
-  const previewGlow = previewOf("name_glow")
-  const previewLook = { color: (previewColor && customDraft[previewColor.id]) || previewColor?.color || null, colorFx: previewColor?.fx ?? null, glow: (previewGlow && customDraft[previewGlow.id]) || previewGlow?.glow || null, glowFx: previewGlow?.fx ?? null }
-
-
-  /** After a purchase: keep what was tried on the item (colours, orb or background settings) and wear it. */
+  /** After a purchase: wear the item. */
   const settle = async (item: ShopItem) => {
     try {
-      const keep: Array<Promise<unknown>> = []
-      if (item.custom && (customDraft[item.id] || customDraft2[item.id])) {
-        keep.push(cosmeticsService.saveCustom(item.id, customDraft[item.id] ?? (item.kind === "name_glow" ? item.glow : item.color) ?? "#d4d4d4", item.twoColours ? customDraft2[item.id] ?? item.color2 : null).then(() => dropDrafts(item.id)))
-      }
-      // What was tried before buying is kept: the orb's or the background's settings are saved the moment it is yours.
-      if (item.id === ORB_ID && orbDraft) keep.push(cosmeticsService.saveFrameLook(orbDraft).then(() => setOrbDraft(null)))
-      if (item.kind === "background" && bgDrafts[item.id]) {
-        keep.push(cosmeticsService.saveBackgroundLook(item.id, bgDrafts[item.id]).then(() => setBgDrafts((current) => { const { [item.id]: _kept, ...rest } = current; return rest })))
-      }
-      keep.push(cosmeticsService.equip(item.kind, item.id))
-      await Promise.all(keep)
+      await cosmeticsService.equip(item.kind, item.id)
     } catch (caught) {
       toast.error("It is yours, but it could not be set up", { description: caught instanceof Error ? caught.message : "Wear it from the Shop in a moment." })
     }
@@ -370,7 +295,6 @@ export function ShopPage() {
 
   const card = (item: ShopItem, index = 0, dense = false) => {
     const shown = onTile(item, index)
-    const active = isPicked(item)
     const action = item.testing
       ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--text-2)]"><Check className="size-3" />Testing<span className="font-medium text-[var(--text-dim)]"> · not on sale</span></span>
       : item.owned
@@ -381,13 +305,11 @@ export function ShopPage() {
     return (
       // No content-visibility here: it paints only inside the box, which cut off the tile's border and glow when it lifts on hover (the lists are at most 30 tiles anyway).
       <li key={item.id} className={cn("group/tile relative rounded-xl",)}>
-              <button
-                type="button"
-                onClick={() => choose(item)}
-                aria-pressed={active}
+              <div
+                role="group"
                 aria-label={item.name}
                 style={{ "--acc": accentOf(shown) } as React.CSSProperties}
-                className="lx-shop-tile relative flex w-full flex-col overflow-hidden rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60"
+                className="lx-shop-tile relative flex w-full flex-col overflow-hidden rounded-xl text-left"
               >
                 {/* The rarity as a thin line along the bottom, never a surface. */}
                 <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: rarityOf(item.rarity).color }} />
@@ -398,7 +320,10 @@ export function ShopPage() {
                   <span className="line-clamp-2 w-full text-[13px] font-semibold leading-[1.25] text-[var(--text)]">{(item.rarity ?? 1) >= 3 && <Star className="mr-1 inline size-3 -translate-y-px fill-current text-[var(--text-2)]" aria-label={`${rarityOf(item.rarity).label} item`} />}{item.name}</span>
                   {action}
                 </div>
-              </button>
+              </div>
+            {item.owned && !item.testing && (
+              <button type="button" disabled={busy} onClick={() => void wearHere(item, worn[item.kind] !== item.id)} style={{ "--acc": accentOf(shown) } as React.CSSProperties} className="absolute bottom-2.5 right-2.5 z-[2] inline-flex h-8 items-center rounded-lg bg-[color-mix(in_srgb,var(--acc)_20%,#111)] px-3 text-[12px] font-semibold text-[var(--acc)] transition-colors hover:bg-[color-mix(in_srgb,var(--acc)_34%,#111)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--acc)] disabled:opacity-60">{worn[item.kind] === item.id ? "Take off" : "Wear"}</button>
+            )}
             {!item.testing && item.unlock === "coin" && !(item.owned && !item.expiresAt) && (
               <button type="button" onClick={() => addToCart(item)} aria-pressed={tray.includes(item.id)} aria-label={tray.includes(item.id) ? `${item.name} is in the cart` : `Add ${item.name} to the cart`} style={{ "--acc": accentOf(shown) } as React.CSSProperties} className={cn("absolute bottom-2.5 right-2.5 z-[2] grid size-8 place-items-center rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--acc)]", tray.includes(item.id) ? "bg-[var(--acc)] text-[#0a0a0a]" : "bg-[color-mix(in_srgb,var(--acc)_20%,#111)] text-[var(--acc)] hover:bg-[color-mix(in_srgb,var(--acc)_34%,#111)]")}>{tray.includes(item.id) ? <Check className="size-4" aria-hidden="true" /> : <ShoppingCart className="size-4" aria-hidden="true" />}</button>
             )}
@@ -407,19 +332,6 @@ export function ShopPage() {
     )
   }
 
-  const saveCustom = async (item: ShopItem) => {
-    setBusy(true)
-    try {
-      await cosmeticsService.saveCustom(item.id, customDraft[item.id] ?? (item.kind === "name_glow" ? item.glow : item.color) ?? "#d4d4d4", item.twoColours ? customDraft2[item.id] ?? item.color2 : null)
-      await refetch()
-      dropDrafts(item.id)
-      toast.success("Saved")
-    } catch (caught) {
-      toast.error("Could not save it", { description: caught instanceof Error ? caught.message : "Try again in a moment." })
-    } finally {
-      setBusy(false)
-    }
-  }
 
   /** A grid of cards, one per design. */
   const grid = (list: ShopItem[], tight = false) => <ShopGrid list={list} card={card} tight={tight} />
@@ -487,202 +399,10 @@ export function ShopPage() {
     </>
   ) : null
 
-  const buyBlock = (item: ShopItem, inline = false) => {
-    const isWorn = worn[item.kind] === item.id
-    // Yours for good: nothing to buy. Anything sold with LX that is not (not owned, or only rented) can be bought or extended.
-    const rentable = item.unlock === "coin" && !(item.owned && !item.expiresAt)
-    const cost = priceFor(item)
-    return (
-      <div className={cn(inline ? "grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_260px] items-center gap-x-6 px-5 py-4" : "flex flex-col gap-2.5 border-t border-[var(--line-soft)] px-4 py-3.5")}>
-        <div className="flex min-w-0 flex-col gap-2.5">
-        <span className="flex items-baseline justify-between gap-2">
-          <span className="min-w-0 truncate text-[15px] font-semibold text-[var(--text)]">{item.name}</span>
-          {/* A real count from the API (players who own it now); nothing when nobody does yet. */}
-          {item.owners ? <span className="shrink-0 text-[11px] text-[var(--text-dim)]">{item.owners.toLocaleString()} {item.owners === 1 ? "player owns" : "players own"} it</span> : null}
-        </span>
-        {/* Every design is coloured by the player: anyone can try colours on here; buying or saving keeps them. */}
-        {item.custom && (
-          <div className="flex flex-col gap-2.5">
-            <ColorRow label={item.kind === "name_glow" ? "Glow" : item.twoColours ? "First" : "Colour"} value={customDraft[item.id] ?? (item.kind === "name_glow" ? item.glow : item.color) ?? "#d4d4d4"} colors={PICK_COLORS} onChange={(next) => setCustomDraft((current) => ({ ...current, [item.id]: next }))} />
-            {item.twoColours && <ColorRow label="Second" value={customDraft2[item.id] ?? item.color2 ?? "#737373"} colors={PICK_COLORS} onChange={(next) => setCustomDraft2((current) => ({ ...current, [item.id]: next }))} />}
-            {item.owned
-              ? <button type="button" disabled={busy || (!customDraft[item.id] && !customDraft2[item.id])} onClick={() => void saveCustom(item)} className="lx-primary-button inline-flex h-9 items-center justify-center self-start rounded-lg px-4 text-xs font-semibold disabled:opacity-50">Save colour</button>
-              : <p className="text-[11px] text-[var(--text-dim)]">Pick any colour; it is kept when you buy it.</p>}
-          </div>
-        )}
-        </div>
-        <div className="flex min-w-0 flex-col gap-2.5">
-        {item.owned && (
-          <div key="owned" className={"flex flex-col gap-2.5"}>
-            <p className="text-xs text-[var(--text-dim)]">{isWorn ? "Worn" : "Owned"}{item.expiresAt ? ` · ${timeLeft(item.expiresAt)}` : ""}</p>
-            <button type="button" disabled={busy} onClick={() => void wearHere(item, !isWorn)} className="inline-flex h-10 w-full items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[13px] font-semibold text-[var(--text-2)] hover:border-[var(--line-strong)] disabled:opacity-60">{isWorn ? "Take it off" : "Wear it"}</button>
-          </div>
-        )}
-        {rentable ? (
-          <>
-            {lengthsOf(item).length === 1 ? (
-              <div className="flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px]">
-                <span className="flex items-center gap-2"><span className="text-[var(--text-dim)]">For</span><span className="font-semibold text-[var(--text)]">{lengthsOf(item)[0].label}</span></span>
-                <span className="flex items-center gap-1 font-semibold text-[var(--text)]"><LxMark size={12} /><CountNumber value={priceFor(item)} /></span>
-              </div>
-            ) : (
-            <Popover>
-              <PopoverTrigger asChild>
-                <button type="button" aria-label="How long" className="group flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-left text-[13px] transition-colors hover:border-[var(--line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-                  <span className="flex min-w-0 items-center gap-2"><span className="text-[var(--text-dim)]">For</span><span className="font-semibold text-[var(--text)]">{COSMETIC_DURATIONS.find((length) => length.value === durationFor(item))?.label}</span></span>
-                  <span className="flex items-center gap-2"><span className="flex items-center gap-1 font-semibold text-[var(--text)]"><LxMark size={12} /><CountNumber value={priceFor(item)} /></span><ChevronDown className="size-3.5 text-[var(--text-dim)] transition-transform duration-200 group-data-[state=open]:rotate-180" /></span>
-                </button>
-              </PopoverTrigger>
-              <PopoverContent align="end" side="top" sideOffset={8} className="w-[var(--radix-popover-trigger-width)] min-w-[220px] rounded-xl border-[var(--line)] bg-[var(--panel)] p-1.5 shadow-[0_18px_44px_rgba(0,0,0,0.55)]">
-                <div role="radiogroup" aria-label="How long" className="flex flex-col">
-                  {lengthsOf(item).map((length) => (
-                    <button key={length.value} type="button" role="radio" aria-checked={durationFor(item) === length.value} onClick={() => { setDuration(length.value); setItemLength((current) => { const { [item.id]: _own, ...rest } = current; return rest }) }} className="flex h-9 items-center justify-between gap-3 rounded-lg px-2.5 text-left text-[13px] text-[var(--text-2)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)] aria-checked:text-[var(--text)]">
-                      <span className="flex items-center gap-2">{durationFor(item) === length.value ? <Check className="size-3.5" aria-hidden="true" /> : <span className="size-3.5" aria-hidden="true" />}{length.label}</span>
-                      <span className="flex items-center gap-1 font-semibold"><LxMark size={12} />{priceFor(item, length.value).toLocaleString()}</span>
-                    </button>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-            )}
-            {/* Nothing is bought from here: every item, even a single one, goes into the cart and is paid for there. */}
-            <button type="button" onClick={() => addToCart(item)} style={{ "--acc": accentOf(item) } as React.CSSProperties} className={cn("inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg text-[15px] font-bold transition-colors", tray.includes(item.id) ? "bg-[color-mix(in_srgb,var(--acc)_22%,#111)] text-[var(--acc)] hover:bg-[color-mix(in_srgb,var(--acc)_32%,#111)]" : "bg-[var(--acc)] text-[#0a0a0a] hover:brightness-110")}>
-              {tray.includes(item.id) ? <><Check className="size-4" aria-hidden="true" />In your cart · open it</> : <><ShoppingCart className="size-4" aria-hidden="true" />Add to cart · <LxMark size={14} />{cost.toLocaleString()}</>}
-            </button>
-          </>
-        ) : !item.owned ? (
-          <p className="text-xs text-[var(--text-dim)]">{item.requirement || "Earned in game, not for sale."}</p>
-        ) : null}
-        </div>
-      </div>
-    )
-  }
-
-  /** What the picked item looks like on you: the in-game effect, or your picture and name wearing it. `compact` for the Spotlight bar. */
-  const previewStage = (compact = false) => {
-    const effect = compact ? "w-[170px]" : "w-[220px]"
-    return (
-      <>
-          {selected?.kind === "background" ? (
-            <div className={cn("overflow-hidden bg-[var(--card-surface)] [&>div]:size-full", compact ? "absolute inset-0" : "relative h-[150px] w-full rounded-lg")}>
-              <BgPreview key={selected.id} id={selected.id} look={bgLookNow} />
-            </div>
-          ) : selected?.kind === "grenade_trail" ? (
-            <div className="relative flex items-center justify-center py-4"><GrenadeTrail key={`${selected.id}${tried(selected).fx}`} color={tried(selected).color} shape={tried(selected).fx} className={effect} /></div>
-          ) : selected?.kind === "flash_effect" ? (
-            <div className="relative flex items-center justify-center py-4"><FlashEffect key={`${selected.id}${tried(selected).fx}`} color={tried(selected).color} shape={tried(selected).fx} className={effect} /></div>
-          ) : selected?.kind === "grenade_light" ? (
-            <div className="relative flex items-center justify-center py-4"><GrenadeLight color={tried(selected).color} className={effect} /></div>
-          ) : selected && isModelKind(selected.kind) ? (
-            <div className={cn("relative flex items-center justify-center", !hasModelPicture(selected) && "py-6")}><ModelArt id={selected.id} kind={selected.kind} mode="preview" /></div>
-          ) : selected?.kind === "smoke_color" ? (
-            <div className="relative flex items-center justify-center py-4"><span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, rgb(255 255 255 / 0.5) 0%, transparent 60%)" }} /><SmokePuff color={tried(selected).color} color2={tried(selected).color2} className={effect} /></div>
-          ) : (
-            <div className="relative flex flex-col items-center gap-3 py-4">
-              <span aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[130%] -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ background: "radial-gradient(circle, rgb(255 255 255 / 0.5) 0%, transparent 60%)" }} />
-              <FramedAvatar avatar={user?.avatar} name={user?.username} frame={previewFrame?.id ?? null} look={orbDraft ?? data?.frameLook} live={selected?.id === ORB_ID} size={compact ? 88 : 120} />
-              <span {...nameProps(previewLook, cn("max-w-full truncate font-bold text-[var(--text)]", compact ? "text-[15px]" : "text-[19px]"))}>{username}</span>
-            </div>
-          )}
-      </>
-    )
-  }
-
-  /** Every knob of the Crystal Orb, under the preview, before and after buying (saving needs it). The preview above moves with each change. */
-  const orbPanel = selected?.id === ORB_ID && selected.kind === "frame" ? (
-    <OrbCustomizer
-      showPreview={false}
-      avatar={user?.avatar}
-      name={user?.username}
-      owned={Boolean(selected.owned)}
-      saved={data?.frameLook ?? null}
-      draft={orbDraft ?? data?.frameLook ?? {}}
-      onDraft={setOrbDraft}
-      busy={busy}
-      onSave={(look) => {
-        setBusy(true)
-        cosmeticsService.saveFrameLook(look)
-          .then(() => { setOrbDraft(null); window.dispatchEvent(new Event("legacyx:appearance-changed")); return refetch() })
-          .catch((caught) => toast.error("Could not save your orb", { description: caught instanceof Error ? caught.message : "Try again in a moment." }))
-          .finally(() => setBusy(false))
-      }}
-    />
-  ) : null
-
-  /** The strip that opens the settings of the picked orb or background (they are long, so they never push the list down). */
-  const customizerBlock = (scroll: boolean) => {
-    const panel = orbPanel ?? bgPanel
-    if (!panel) return null
-    return (
-      <div className="border-t border-[var(--line-soft)]">
-        <button
-          type="button"
-          aria-expanded={customizeOpen}
-          onClick={() => { setCustomizeOpen(!customizeOpen); setCustomizeMounted(true) }}
-          className="group flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-[var(--raised)]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/60"
-        >
-          <span className={cn("grid size-8 shrink-0 place-items-center rounded-lg border transition-colors duration-300", customizeOpen ? "border-[var(--line-strong)] bg-[var(--card-surface)] text-[var(--text)]" : "border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]")}>
-            <SlidersHorizontal className="size-4" aria-hidden="true" />
-          </span>
-          <span className="flex min-w-0 flex-1 flex-col">
-            <span className="text-[13px] font-semibold text-[var(--text)]">Customize</span>
-            <span className="truncate text-[11px] text-[var(--text-dim)]">{selected?.owned ? "Change every setting, then save" : "Try every setting now; it is kept when you buy"}</span>
-          </span>
-          <ChevronDown className={cn("size-4 shrink-0 text-[var(--text-dim)] transition-transform duration-300 group-hover:text-[var(--text)]", customizeOpen && "rotate-180")} aria-hidden="true" />
-        </button>
-        {/* Opens and closes by growing from zero height (a grid row going 0fr to 1fr), so nothing jumps; the settings mount on the first open. */}
-        <div className={cn("grid transition-[grid-template-rows,opacity] duration-300 ease-out motion-reduce:transition-none", customizeOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")} aria-hidden={!customizeOpen} inert={!customizeOpen}>
-          <div className="min-h-0 overflow-hidden">
-            {customizeMounted && <div className={cn("p-3 pt-1", scroll && "max-h-[min(52vh,480px)] overflow-y-auto")}>{panel}</div>}
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  /** Every knob of the picked background, under its preview, before and after buying (saving needs it). */
-  const pickedBg = selected?.kind === "background" ? bgById(selected.id) : null
-  const bgLookNow = pickedBg ? bgDrafts[pickedBg.id] ?? data?.backgroundLooks?.[pickedBg.id] ?? {} : {}
-  const bgPanel = pickedBg && selected ? (
-    <BgCustomizer
-      def={pickedBg}
-      draft={bgLookNow}
-      onDraft={(next) => setBgDrafts((current) => ({ ...current, [pickedBg.id]: next }))}
-      saved={data?.backgroundLooks?.[pickedBg.id] ?? null}
-      owned={Boolean(selected.owned)}
-      busy={busy}
-      onSave={(look) => {
-        setBusy(true)
-        cosmeticsService.saveBackgroundLook(pickedBg.id, look)
-          .then(() => { setBgDrafts((current) => { const { [pickedBg.id]: _saved, ...rest } = current; return rest }); window.dispatchEvent(new Event("legacyx:appearance-changed")); return refetch() })
-          .catch((caught) => toast.error("Could not save your background", { description: caught instanceof Error ? caught.message : "Try again in a moment." }))
-          .finally(() => setBusy(false))
-      }}
-    />
-  ) : null
-
-  const railBody = (
-    <div className="relative flex min-h-0 flex-col overflow-hidden rounded-[14px] border border-[var(--glass-line)] bg-[var(--card-surface)] lg:max-h-[calc(100dvh-11rem)]">
-        <div className="scrollbar-hidden flex min-h-0 flex-col gap-3 overflow-y-auto p-3.5">
-          {previewStage()}
-          {customizerBlock(false)}
-        </div>
-        {selected && (
-          <div className="shrink-0">
-            {tab === "name" && combo.name_color && combo.name_glow
-              ? [combo.name_color, combo.name_glow].map((id) => all.find((item) => item.id === id)).filter((item): item is ShopItem => Boolean(item)).map((item) => <div key={item.id}>{buyBlock(item)}</div>)
-              : buyBlock(selected)}
-          </div>
-        )}
-      </div>
-  )
-
   const soon = endingSoon(all)
   const tabOfKind = (kind: ShopKind): ShopTab => (kind === "name_color" || kind === "name_glow" ? "name" : kind === "smoke_color" || kind === "grenade_trail" ? "smoke_color" : kind === "frame" ? "frame" : kind === "background" ? "background" : "featured")
-  // The page bars (sections, and the profile items under them) stick to the top of the panel; stack them one under the other and let the picked item's
-  // spotlight stick right under them, instead of all of them sticking at 0 and covering each other.
+  // The page bars (sections, and the profile items under them) stick to the top of the panel; stack them one under the other instead of all sticking at 0 and covering each other.
   const rootRef = useRef<HTMLDivElement>(null)
-  const [barsHeight, setBarsHeight] = useState(0)
   useEffect(() => {
     const root = rootRef.current
     if (!root) return
@@ -692,29 +412,12 @@ export function ShopPage() {
         bar.style.top = `${top}px`
         top += bar.offsetHeight
       }
-      setBarsHeight(top)
     }
     measure()
     const observer = new ResizeObserver(measure)
     root.querySelectorAll(":scope > [data-pagebar]").forEach((bar) => observer.observe(bar))
     return () => observer.disconnect()
   }, [tab])
-  /**
-   * The Spotlight bar (owner pick "S8", 2026-10-26): on a wide screen the picked item sits in one bar across the top of the list, stuck while the
-   * list scrolls under it: the item on you at the left, then its colours, length and Buy (the name colour and glow side by side when both are picked).
-   * Phones keep the bottom sheet.
-   */
-  const spotlight = selected ? (
-    <div style={{ top: barsHeight, backgroundColor: "var(--panel)" }} className="lx-shop-glass sticky z-10 hidden overflow-hidden rounded-[14px] border border-[var(--glass-line)] bg-[var(--panel)] lg:block">
-      <div className="flex items-stretch">
-      <div className={cn("relative flex shrink-0 items-center justify-center border-r border-[var(--line-soft)] [&>div]:w-full", hasModelPicture(selected) ? "w-[400px]" : "w-[240px]", selected.kind === "background" ? "min-h-[150px]" : hasModelPicture(selected) ? "" : "px-3")}>{previewStage(true)}</div>
-      {tab === "name" && combo.name_color && combo.name_glow
-        ? [combo.name_color, combo.name_glow].map((id) => all.find((item) => item.id === id)).filter((item): item is ShopItem => Boolean(item)).map((item, index) => <div key={item.id} className={cn("flex min-w-0 flex-1", index > 0 && "border-l border-[var(--line-soft)]")}>{buyBlock(item, true)}</div>)
-        : buyBlock(selected, true)}
-      </div>
-      {customizerBlock(true)}
-    </div>
-  ) : null
 
   return (
     <div ref={rootRef} className="flex h-full min-h-0 flex-col">
@@ -763,14 +466,12 @@ export function ShopPage() {
             <div key="clan" className="lx-flow-stack"><ShopClan prices={wallet?.clanPrices} balance={balance} mine={user ? myClan : null} loading={Boolean(user) && (clanLoading || !wallet)} onChanged={() => Promise.all([refetchClan(), refetchWallet()])} /></div>
           ) : (
           <div key={tab} className="lx-flow-stack flex min-w-0 flex-col gap-5">
-            {/* On Featured the Genesis card comes first: the bar waits until an item below it is picked. */}
-            {(tab !== "featured" || picked !== null) && spotlight}
-            <div className="flex min-w-0 flex-col gap-5">
+                        <div className="flex min-w-0 flex-col gap-5">
               {soon.length > 0 && (
                 <div role="status" aria-label="Ending soon" className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[10px] border border-[var(--brand)]/30 bg-[var(--brand)]/[0.06] px-3.5 py-2.5 text-[12px]">
                   <span className="font-semibold text-[var(--text)]">Ending soon</span>
                   {soon.slice(0, 3).map((item) => (
-                    <button key={item.id} type="button" onClick={() => { setTab(tabOfKind(item.kind)); choose(item) }} className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--card-surface)] px-2.5 py-1 text-[var(--text-2)] hover:border-[var(--line-strong)] hover:text-[var(--text)]">
+                    <button key={item.id} type="button" onClick={() => setTab(tabOfKind(item.kind))} className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--card-surface)] px-2.5 py-1 text-[var(--text-2)] hover:border-[var(--line-strong)] hover:text-[var(--text)]">
                       {item.name}<span className="text-[var(--text-dim)]">{daysLeft(item.expiresAt) === 0 ? "ends today" : `${daysLeft(item.expiresAt)} d left`}</span>
                     </button>
                   ))}
@@ -856,13 +557,6 @@ export function ShopPage() {
       </div>
       </div>
       {outfitPanel}
-      <Sheet open={sheetOpen && Boolean(selected)} onOpenChange={setSheetOpen}>
-        <DetailSheetContent width="max-w-xl">
-          <SheetTitle className="sr-only">{selected?.name}</SheetTitle>
-          <SheetDescription className="sr-only">Preview and buy this item</SheetDescription>
-          <div className="p-3 pt-9">{railBody}</div>
-        </DetailSheetContent>
-      </Sheet>
     </div>
   )
 }
