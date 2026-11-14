@@ -57,6 +57,7 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
   return (
     <div className="flex items-center gap-2">
       <WalletMenu />
+      <NotificationsMenu />
 
       <span className="relative flex size-9 shrink-0">
       <Popover open={open} onOpenChange={setOpen}>
@@ -121,7 +122,6 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
         </PopoverContent>
       </Popover>
       </span>
-      <NotificationsMenu />
     </div>
   )
 }
