@@ -6,7 +6,7 @@
 html.adm *,
 html.adm *::before,
 html.adm *::after {
-  border-radius: 0 !important;
+  border-radius: 0;
 }
 
 /* A small monospace label: section headings, column heads, counts. */
