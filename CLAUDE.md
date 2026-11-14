@@ -48,6 +48,8 @@ The website's frame is two icon columns and the page between them, with **no top
 
 **Open tabs at the top of a page (owner request 2026-11-14, FACEIT-style UX: "every page has its tabs open at the top; Play opens 5x5 by default and the tabs pick the mode"):** a sidebar group icon (Play, Skinchanger, Commerce, Community) goes straight to the group's first page (Play → 5x5, Commerce → Shop, Community → Clans, Skinchanger → Loadout); `components/section-tabs.tsx` draws a bar above the page panel (`SectionTabs`, not on a phone) listing the group's pages: Play (5x5 Matches, Fun Mode, Pro League, Tournaments), Skinchanger (Loadout, Collections, Advanced), Commerce (Shop, Market), Community (Clans, Staff, Creators), the open one underlined in violet. Pages outside a group have no bar. The sidebar is always closed to icons, so it never shows a dropdown.
 
+**Play overview strip (owner request 2026-11-14, a FACEIT matchmaking screenshot):** above the server list each Play page (wide windows) shows three small labelled tiles in a row (`components/play-strip.tsx`, `PlayStrip`): **Skill level** (your rank emblem and name, EXP, a progress bar to the next rank with both thresholds), **Playing now** (players on 5x5, Fun and Pro) and **EXP today** (used of the daily limit, red when reached). All real API numbers; a tile whose data is missing (signed out: no skill or EXP tile) is left out. FACEIT's missions, party slots and monthly ladders have no counterpart here and are not invented.
+
 ## Design tokens (`src/index.css`)
 
 Neutral surfaces, white as the workhorse accent, and **violet as the brand accent** (owner decision

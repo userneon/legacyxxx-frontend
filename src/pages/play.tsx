@@ -12,6 +12,7 @@ import type { CompetitiveAccess, PlaySubMode, ServerLiveMatch, ServerLiveMatchPl
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useViewParams } from "@/hooks/use-view-params"
 import { useAuth } from "@/hooks/use-auth"
+import { PlayStrip } from "@/components/play-strip"
 import { usePlayGate, type PlayGate } from "@/hooks/use-play-gate"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { PAGE_ROUTES } from "@/lib/routes"
@@ -705,6 +706,8 @@ function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode;
             <TooltipContent>{gate.reason ?? (anyJoinable ? pickRule : "No open server right now")}</TooltipContent>
           </Tooltip>
         </header>
+
+        {wide && <PlayStrip />}
 
         <div className={cn("grid gap-4", wide ? "min-h-0 flex-1 grid-cols-[400px_minmax(0,1fr)]" : "grid-cols-1")}>
           <div className={cn("lx-play-panel flex flex-col gap-2 rounded-[24px] border border-[var(--line)] bg-[var(--card-surface)] p-3", wide && "min-h-0")}>
