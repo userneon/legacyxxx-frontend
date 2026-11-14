@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Crown, RotateCcw } from "lucide-react"
+import { Trophy, RotateCcw } from "lucide-react"
 
 import { discordService, type CommunityEntry } from "@/api/discord"
 import { FramedAvatar } from "@/components/framed-avatar"
@@ -58,7 +58,7 @@ function TopCard({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen:
       <img src={first ? boostGem : boostSquare} alt="" aria-hidden="true" className="lx-boost-gem pointer-events-none absolute right-4 top-[58px] -z-10 w-[76px] opacity-30 transition-[opacity,translate] duration-500 group-hover:opacity-55" />
       <span className="flex items-center justify-between gap-2">
        <span className="flex items-center gap-2">
-        {first && <Crown aria-hidden="true" className="size-6 fill-[var(--boost)]/30 text-[var(--boost)]" />}
+        {first && <Trophy aria-hidden="true" className="size-6 fill-[var(--boost)]/30 text-[var(--boost)]" />}
         <span className={cn("font-bold leading-none tracking-[-1px]", first ? "text-[34px] text-[var(--text)]" : "text-[28px] text-[var(--text-2)]")}>#{entry.position}</span>
        </span>
         <ProfileButton entry={entry} onOpen={onOpen} />

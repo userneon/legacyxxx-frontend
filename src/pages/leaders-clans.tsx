@@ -1,7 +1,7 @@
 import { useMemo } from "react"
 import { clanTagProps } from "@/lib/cosmetics"
 import { useNavigate } from "react-router-dom"
-import { Crown, RotateCcw } from "lucide-react"
+import { Trophy, RotateCcw } from "lucide-react"
 
 import { clansService } from "@/api"
 import type { ClanRankEntry, MyClanState } from "@/api/types"
@@ -32,7 +32,7 @@ function ClanTopCard({ clan, onOpen }: { clan: ClanRankEntry; onOpen: () => void
       )}
     >
       <span className="flex items-center gap-2">
-        {first && <Crown aria-hidden="true" className="size-6 fill-[var(--brand)]/30 text-[var(--brand-bright)]" />}
+        {first && <Trophy aria-hidden="true" className="size-6 fill-[var(--brand)]/30 text-[var(--brand-bright)]" />}
         <span className={cn("font-bold leading-none tracking-[-1px]", first ? "text-[34px] text-[var(--text)]" : "text-[28px] text-[var(--text-2)]")}>#{clan.rank}</span>
       </span>
       <span className="flex min-w-0 items-center gap-3">
