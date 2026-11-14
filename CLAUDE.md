@@ -44,6 +44,8 @@ A new card uses `.lx-glass`.
 
 The website's frame is two icon columns and the page between them, with **no top bar** from 560 px up. Left: the menu sidebar (`AppSidebar`) held closed to its icon rail (`SidebarProvider open={false}`, the collapse button and Settings → Website "Start with sidebar collapsed" are gone; the logo sits at the top, every icon has its tooltip, a group icon opens its first page). Right: the **account column** (`components/account-sidebar.tsx`, 76 px, `.lx-side-panel`, the same solid grey): the FOL$ balance (to the Wallet), the avatar (its menu: Profile, Settings, Discord, Sign out), the notifications bell, and the Tutorial at the bottom; signed out, a round Steam sign-in button. Under 560 px (a phone, no sidebars on screen) the small top bar stays with the menu button. The public chat button sits left of the right column (`--lx-panel-right`). The bento pages (Home, Profile, Clan, Penalties) go two-column from `@3xl`, Home's mode cards are two a row until `@5xl`, and the Profile's stat cards fill whole rows at every width (`ProfileRings`).
 
+**FACEIT-style Home (owner trial 2026-11-14, "study it like FACEIT"; Home only, the other pages keep the card look above):** `.lx-faceit` on Home's root: flat `#1b1b1f` panels with a 1px `#2a2a30` hairline and 6px corners, no gradient, shadow or frost, short uppercase headings (12px, wide spacing), uppercase mode names, dense rows. faceit.com answered 403 from the sandbox, so this follows its known look, not a capture; its orange is outside the palette, the accent stays violet. If approved, the other pages follow.
+
 ## Design tokens (`src/index.css`)
 
 Neutral surfaces, white as the workhorse accent, and **violet as the brand accent** (owner decision
