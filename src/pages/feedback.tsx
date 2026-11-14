@@ -119,8 +119,8 @@ function ReactionBar({ entry }: { entry: FeedbackEntry }) {
           title={isAuthenticated ? label : "Sign in with Steam to react"}
           onClick={() => void pick(key)}
           className={cn(
-            "inline-flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
-            mine === key ? "border-[var(--accent-solid)] bg-[var(--raised)] text-[var(--text)]" : "border-[var(--line)] text-[var(--text-dim)] hover:border-[var(--line-strong)] hover:text-[var(--text)]",
+            "inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
+            mine === key ? "bg-[var(--line-strong)] text-[var(--text)]" : "bg-[var(--raised)] text-[var(--text-dim)] hover:text-[var(--text)]",
           )}
         >
           <Icon className="size-3.5" aria-hidden="true" />
@@ -183,7 +183,7 @@ function ReviewCard({ entry, own, fresh, index, onOpenProfile, onEdit, onChanged
         <span className="flex items-center gap-2">
           <Stars value={entry.rating} size={13} />
           <span className="text-xs font-medium text-[var(--text-2)]">{entry.rating.toFixed(1)}</span>
-          {categoryLabel(entry.category) && <span className="rounded-full border border-[var(--line)] px-2 py-px text-[10px] text-[var(--text-muted)]">{categoryLabel(entry.category)}</span>}
+          {categoryLabel(entry.category) && <span className="rounded-full bg-[var(--raised)] px-2 py-px text-[10px] text-[var(--text-muted)]">{categoryLabel(entry.category)}</span>}
           <span className="text-xs text-[var(--text-dim)]" title={fullDate(entry.date)}>{formatRelativeTime(new Date(entry.date))}{entry.editedAt ? " · edited" : ""}</span>
         </span>
       </span>
@@ -193,13 +193,13 @@ function ReviewCard({ entry, own, fresh, index, onOpenProfile, onEdit, onChanged
     <article
       style={{ animationDelay: `${fresh ? 0 : Math.min(index, 10) * 50}ms` }}
       className={cn(
-        "lx-fx-card group relative isolate flex flex-col gap-3 overflow-hidden rounded-xl border bg-[var(--glass-fill)] px-5 py-[18px]",
-        own ? "border-[var(--line-strong)] bg-[var(--glass-fill)]" : "border-[var(--line-soft)]",
+        "lx-fx-card group relative isolate flex flex-col gap-3 overflow-hidden rounded-xl bg-[var(--glass-fill)] px-5 py-[18px]",
+        own && "bg-[var(--raised)]",
       )}
     >
       <NameBanner fx={entry.banner} image={entry.bannerImage} />
       {own && (
-        <span className="relative w-fit rounded-full border border-[var(--line-strong)] bg-[var(--raised)] px-2 py-0.5 text-[10px] font-bold tracking-[0.6px] text-[var(--text-2)]">YOUR REVIEW</span>
+        <span className="relative w-fit rounded-full bg-[var(--line-strong)] px-2 py-0.5 text-[10px] font-bold tracking-[0.6px] text-[var(--text-2)]">YOUR REVIEW</span>
       )}
       {entry.steamId ? (
         <button
@@ -222,12 +222,12 @@ function ReviewCard({ entry, own, fresh, index, onOpenProfile, onEdit, onChanged
         )}
       </div>
       {entry.reply && (
-        <div className="relative flex gap-2 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 py-2.5">
+        <div className="relative flex gap-2 rounded-lg bg-[var(--raised)] px-3 py-2.5">
           <CornerDownRight aria-hidden="true" className="mt-0.5 size-3.5 shrink-0 text-[var(--text-dim)]" />
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <span className="flex flex-wrap items-center gap-2 text-[11px] text-[var(--text-dim)]">
               <span className="font-semibold text-[var(--text)]">{entry.reply.by}</span>
-              <span className={cn("rounded-full border px-1.5 py-px text-[10px] font-semibold", entry.reply.role === "OWNER" ? "border-[var(--brand)]/40 text-[var(--brand-bright)]" : "border-[var(--line-strong)] text-[var(--text-2)]")}>{ROLE_LABEL[entry.reply.role] ?? "Staff"}</span>
+              <span className={cn("rounded-full bg-[var(--line-soft)] px-1.5 py-px text-[10px] font-semibold", entry.reply.role === "OWNER" ? "text-[var(--brand-bright)]" : "text-[var(--text-2)]")}>{ROLE_LABEL[entry.reply.role] ?? "Staff"}</span>
               {entry.reply.date && <span title={fullDate(entry.reply.date)}>{formatRelativeTime(new Date(entry.reply.date))}</span>}
             </span>
             <p className="whitespace-pre-wrap break-words text-[13px] leading-6 text-[var(--text-2)]">{entry.reply.message}</p>
@@ -289,7 +289,7 @@ function ReviewCard({ entry, own, fresh, index, onOpenProfile, onEdit, onChanged
 
 function CardSkeleton() {
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] px-5 py-[18px]" aria-hidden="true">
+    <div className="flex flex-col gap-3 rounded-xl bg-[var(--glass-fill)] px-5 py-[18px]" aria-hidden="true">
       <div className="flex items-center gap-3">
         <Skeleton className="size-9 rounded-[10px] bg-[var(--line-soft)]" />
         <div className="flex flex-1 flex-col gap-[7px]">
@@ -582,8 +582,8 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
         </div>
       </section>
 
-      <aside aria-label="Summary" className="scrollbar-hidden flex w-[340px] shrink-0 flex-col gap-5 overflow-y-auto border-l border-[var(--line-soft)] p-6 max-lg:w-full max-lg:overflow-visible max-lg:border-l-0 max-lg:border-t">
-        <div className="lx-swap-in relative flex items-center gap-4 overflow-hidden rounded-xl border border-[var(--line-strong)] bg-[var(--glass-fill)] p-5">
+      <aside aria-label="Summary" className="scrollbar-hidden flex w-[340px] shrink-0 flex-col gap-5 overflow-y-auto p-6 pl-2 max-lg:w-full max-lg:overflow-visible">
+        <div className="lx-swap-in relative flex items-center gap-4 overflow-hidden rounded-xl bg-[var(--glass-fill)] p-5">
           <span className="lx-brand-text relative text-5xl font-bold leading-none tracking-[-1.5px]">{average.toFixed(1)}</span>
           <span className="relative flex flex-col gap-2">
             <Stars value={average} size={17} />
@@ -641,7 +641,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
           })}
         </div>
 
-        <div className="flex flex-col gap-2.5 border-t border-[var(--line-soft)] pt-[18px]">
+        <div className="flex flex-col gap-2.5 pt-[18px]">
           {!isAuthenticated && authLoading ? (
             <span aria-hidden="true" className="h-9 w-[150px] animate-pulse rounded-lg bg-[var(--raised)]" />
           ) : !isAuthenticated ? (
