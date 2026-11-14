@@ -82,7 +82,7 @@ export function TopPlayers({ onOpenProfile, onViewAll, className }: { onOpenProf
                     "group relative isolate min-h-12 w-full overflow-hidden rounded-xl px-2 py-1.5 text-left transition-[background-color] duration-500 ease-[cubic-bezier(0.37,0,0.18,1)] hover:bg-[var(--raised)] hover:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
                   )}
                 >
-                  <NameBanner fx={player.banner} />
+                  <NameBanner fx={player.banner} image={player.bannerImage} />
                   <Place position={player.position} />
                   <span className="flex min-w-0 items-center gap-3">
                     <PlayerAvatar avatar={player.avatar} name={player.username} frame={player.frame} frameLook={player.frame_look} className="size-9 shrink-0 text-[11px]" />

@@ -67,7 +67,7 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
         first ? "border-[var(--brand)]/45" : "mt-6 border-[var(--line-soft)]",
       )}
     >
-      <NameBanner fx={player.banner} />
+      <NameBanner fx={player.banner} image={player.bannerImage} />
       <span className="flex items-center justify-between">
         <span className="flex items-center gap-2">
           {first && <Crown aria-hidden="true" className="size-6 fill-[var(--brand)]/30 text-[var(--brand-bright)] drop-" />}
@@ -138,7 +138,7 @@ function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: Competiti
           : "lx-row-in h-14 border-b border-[var(--raised)] hover:bg-[var(--raised)]",
       )}
     >
-      {!you && <NameBanner fx={player.banner} />}
+      {!you && <NameBanner fx={player.banner} image={player.bannerImage} />}
       {/* Violet marker: always on your pinned row, slides in on hover for the others. */}
       <span
         aria-hidden="true"

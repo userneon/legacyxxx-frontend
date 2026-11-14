@@ -203,6 +203,8 @@ export interface CompetitiveLeaderboardEntry extends CompetitiveProfile {
   name_style?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   perk?: { tier: string; name: string } | null
   banner?: string | null
+  /** Profile customize: the player's own banner picture (an API path). Absent when they have none. */
+  bannerImage?: string | null
   deaths: number
   kd_ratio: number
   /** wins / matches_completed, 0–1. */
@@ -271,6 +273,8 @@ export interface MatchDetailPlayer {
   nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   perk?: { tier: string; name: string } | null
   banner?: string | null
+  /** Profile customize: the player's own banner picture (an API path). Absent when they have none. */
+  bannerImage?: string | null
   /** The player's rank now (absent for an older API, a player with no ranked profile, or a banned player). */
   rankId?: number | null
   rankName?: string | null
@@ -427,6 +431,8 @@ export interface CommunityPlayer {
   nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   perk?: { tier: string; name: string } | null
   banner?: string | null
+  /** Profile customize: the player's own banner picture (an API path). Absent when they have none. */
+  bannerImage?: string | null
 }
 
 export type ModerationStatus = "Banned" | "Muted" | "Gag" | "Clear"
@@ -582,6 +588,8 @@ export interface ClanMember {
   nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   perk?: { tier: string; name: string } | null
   banner?: string | null
+  /** Profile customize: the player's own banner picture (an API path). Absent when they have none. */
+  bannerImage?: string | null
   /** When the member joined the clan. Absent from an older API. */
   joinedAt?: string | null
   /** The member's real ranked numbers (null: no ranked profile) and linked FACEIT (null: none). Absent from an older API. */
@@ -796,6 +804,8 @@ export interface FeedbackEntry {
   nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   perk?: { tier: string; name: string } | null
   banner?: string | null
+  /** Profile customize: the player's own banner picture (an API path). Absent when they have none. */
+  bannerImage?: string | null
   /** How many players picked each reaction, and the signed-in viewer's own pick. Absent from an older API. */
   reactions?: Record<FeedbackReaction, number>
   myReaction?: FeedbackReaction | null

@@ -61,6 +61,8 @@ export interface ProfileOverview {
     frame?: string | null
     /** The profile banner the player wears (an effect key the site draws), if any. */
     banner?: string | null
+    /** Profile customize: the player's own banner picture (an API path). Absent when they have none. */
+    bannerImage?: string | null
     /** The title the player wears under their name, if any. */
     title?: string | null
     /** The player's number in the Genesis pack, if they bought it. */

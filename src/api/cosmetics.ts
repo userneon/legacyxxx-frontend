@@ -1,4 +1,4 @@
-import { get, post, put, type CallOptions } from "./client"
+import { del, get, post, put, type CallOptions } from "./client"
 
 /** How long a bought cosmetic is rented for (owner request 2026-11-02: 1, 7 or 30 days for every item, nothing for good). */
 export type CosmeticDuration = "1d" | "7d" | "30d"
@@ -47,7 +47,7 @@ export interface FrameItem {
   owners?: number | null
 }
 
-export type CosmeticKind = "frame" | "background" | "name_color" | "name_glow" | "banner" | "title" | "smoke_color" | "grenade_trail" | "grenade_light" | "flash_effect" | "model_knife" | "model_deagle" | "model_ak47"
+export type CosmeticKind = "frame" | "background" | "profile_customize" | "name_color" | "name_glow" | "banner" | "title" | "smoke_color" | "grenade_trail" | "grenade_light" | "flash_effect" | "model_knife" | "model_deagle" | "model_ak47"
 
 /** The kinds that are a custom weapon model (owner request 2026-11-06). */
 export const MODEL_KINDS = ["model_knife", "model_deagle", "model_ak47"] as const
@@ -60,6 +60,19 @@ export interface NameStyle {
   glow: string | null
   colorFx?: string | null
   glowFx?: string | null
+  /** Profile customize (Normal, Gradient or Glow), its second colour and the font. */
+  mode?: string
+  color2?: string | null
+  font?: string
+}
+
+/** What a player set under Profile customize. */
+export interface ProfileLook {
+  mode: "normal" | "gradient" | "glow"
+  font: "default" | "display" | "mono"
+  color: string | null
+  color2: string | null
+  glow: string | null
 }
 
 /** The five kinds of grenade a trail or light can be worn on separately (the molotov and the incendiary share "fire"). */
@@ -94,6 +107,10 @@ export interface Cosmetics {
   backgrounds?: FrameItem[]
   equippedBackground?: string | null
   backgroundLooks?: Record<string, import("@/lib/backgrounds").BgLook>
+  /** The Profile customize product (one item), what this player set with it and their own banner picture. */
+  profileCustomize?: FrameItem[]
+  profileLook?: ProfileLook | null
+  profileBanner?: string | null
   nameColors?: FrameItem[]
   nameGlows?: FrameItem[]
   /** Profile banners and titles (the Genesis pack's are earned, never sold). */
@@ -139,7 +156,28 @@ export const cosmeticsService = {
   async saveBackgroundLook(item: string, look: import("@/lib/backgrounds").BgLook, options?: CallOptions): Promise<{ item: string; look: import("@/lib/backgrounds").BgLook | null }> {
     return put<{ item: string; look: import("@/lib/backgrounds").BgLook | null }>("/api/v1/cosmetics/background-look", { item, look }, options)
   },
+  /** Save the name style (needs Profile customize to be running). */
+  async saveProfileLook(look: ProfileLook, options?: CallOptions): Promise<{ look: ProfileLook }> {
+    return put<{ look: ProfileLook }>("/api/v1/cosmetics/profile-look", { mode: look.mode, font: look.font, color: look.color, color2: look.color2, glow: look.glow }, options)
+  },
+  /** Upload your banner picture (PNG, JPEG, GIF or WebP, up to 5 MB). */
+  async uploadProfileBanner(file: Blob, options?: CallOptions): Promise<{ banner: string }> {
+    return put<{ banner: string }>("/api/v1/cosmetics/profile-banner", file, options)
+  },
+  async removeProfileBanner(options?: CallOptions): Promise<void> {
+    await del<void>("/api/v1/cosmetics/profile-banner", options)
+  },
   async equip(kind: CosmeticKind, item: string | null, options?: CallOptions): Promise<{ kind: CosmeticKind; item: string | null }> {
     return put<{ kind: CosmeticKind; item: string | null }>("/api/v1/cosmetics/equip", { kind, item }, options)
   },
+}
+
+/** What a profile banner picture may be; the same limits the server enforces. */
+export const PROFILE_BANNER_RULES = { types: ["image/png", "image/jpeg", "image/gif", "image/webp"], maxBytes: 5 * 1024 * 1024, hint: "PNG, JPEG, GIF or WebP, up to 5 MB, best 1500×400" }
+
+/** Why a chosen file cannot be used as a profile banner, or null when it can. */
+export function profileBannerProblem(file: File): string | null {
+  if (!PROFILE_BANNER_RULES.types.includes(file.type)) return "The banner must be a PNG, JPEG, GIF or WebP."
+  if (file.size > PROFILE_BANNER_RULES.maxBytes) return `That file is too big. ${PROFILE_BANNER_RULES.hint}.`
+  return null
 }

@@ -57,6 +57,10 @@ export interface NameLook {
   glow?: string | null
   colorFx?: string | null
   glowFx?: string | null
+  /** Profile customize: how the name is painted, its second colour (Gradient) and its font. */
+  mode?: "normal" | "gradient" | "glow" | string
+  color2?: string | null
+  font?: "default" | "display" | "mono" | string
 }
 
 /**
@@ -64,15 +68,21 @@ export interface NameLook {
  * site knows are used; anything else is ignored, so a bad value can never inject CSS.
  */
 export function nameProps(look: NameLook | null | undefined, base = ""): { className: string; style?: React.CSSProperties } {
-  const colorFx = look?.colorFx && COLOR_FX.has(look.colorFx) ? look.colorFx : null
+  const font = look?.font === "display" ? "lx-font-display" : look?.font === "mono" ? "lx-font-mono" : null
   const color = look?.color && HEX.test(look.color) ? look.color : null
+  const color2 = look?.color2 && HEX.test(look.color2) ? look.color2 : null
   const glow = look?.glow && HEX.test(look.glow) ? look.glow : null
+  // Profile customize, Gradient: two colours across the name.
+  if (look?.mode === "gradient" && color && color2) {
+    return { className: [base, "lx-name", "lx-name-grad2", font, glow && "lx-glow-neon"].filter(Boolean).join(" "), style: { ["--name-color" as string]: color, ["--name-color2" as string]: color2, ...(glow ? { ["--name-glow" as string]: glow } : {}) } as React.CSSProperties }
+  }
+  const colorFx = look?.colorFx && COLOR_FX.has(look.colorFx) ? look.colorFx : null
   const glowFx = glow ? (look?.glowFx && GLOW_FX.has(look.glowFx) ? look.glowFx : "neon") : null
-  if (!colorFx && !color && !glow) return { className: base }
+  if (!colorFx && !color && !glow) return { className: [base, font].filter(Boolean).join(" ") }
   // A design with a picked colour paints from it; the old fixed looks (and earned items) keep their own colours.
   const fxClass = colorFx && (color ? TINT_FX[colorFx] ?? colorFx : colorFx)
   return {
-    className: [base, "lx-name", fxClass && `lx-fx-${fxClass}`, glowFx && `lx-glow-${glowFx}`].filter(Boolean).join(" "),
+    className: [base, "lx-name", fxClass && `lx-fx-${fxClass}`, glowFx && `lx-glow-${glowFx}`, font].filter(Boolean).join(" "),
     style: { ...(color && !colorFx ? { color } : {}), ...(color && colorFx ? ({ "--name-color": color } as React.CSSProperties) : {}), ...(glow ? ({ "--name-glow": glow } as React.CSSProperties) : {}) },
   }
 }

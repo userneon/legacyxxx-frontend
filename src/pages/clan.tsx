@@ -571,7 +571,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                       const totalExp = members.reduce((sum, entry) => sum + (entry.stats?.currentExp ?? 0), 0)
                       return (
                         <li key={member.id} className="group relative isolate flex h-14 items-center gap-1 overflow-hidden border-b border-[var(--raised)] transition-[background-color] duration-500 last:border-b-0 hover:bg-[var(--raised)] hover:duration-200">
-                          <NameBanner fx={member.banner} />
+                          <NameBanner fx={member.banner} image={member.bannerImage} />
                           <span aria-hidden="true" className="absolute bottom-2 left-0 top-2 w-[3px] origin-center scale-y-0 rounded-r-full bg-[var(--text-2)] opacity-0 transition-[scale,opacity] duration-500 group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300" />
                           <button type="button" onClick={() => onProfileNavigate(member.steamId || member.id)} className="flex h-full min-w-0 flex-1 items-center gap-3 px-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--brand)]/60">
                             <RoleIcon role={member.role} />

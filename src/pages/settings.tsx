@@ -1,3 +1,4 @@
+import { ProfileCustomizePanel } from "@/components/profile-customize-panel"
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router-dom"
 import { Bell, Check, CircleCheck, Crosshair, Frame, Link2, RotateCcw, MonitorSmartphone, Sword, type LucideIcon } from "lucide-react"
@@ -177,8 +178,7 @@ function Notifications() {
 const KINDS: Array<{ value: CosmeticKind; label: string; noun: string; group: "profile" | "game" }> = [
   { value: "frame", label: "Frame", noun: "frame", group: "profile" },
   { value: "background", label: "Background", noun: "background", group: "profile" },
-  { value: "name_color", label: "Name colour", noun: "colour", group: "profile" },
-  { value: "name_glow", label: "Name glow", noun: "glow", group: "profile" },
+  { value: "profile_customize", label: "Name & banner", noun: "profile customize", group: "profile" },
   { value: "banner", label: "Banner", noun: "banner", group: "profile" },
   { value: "title", label: "Title", noun: "title", group: "profile" },
   { value: "smoke_color", label: "Smoke", noun: "smoke colour", group: "game" },
@@ -193,23 +193,18 @@ function Appearance() {
   const { user } = useAuth()
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const [busy, setBusy] = useState(false)
-  const [kind, setKind] = useState<CosmeticKind>("name_color")
+  const [kind, setKind] = useState<CosmeticKind>("profile_customize")
   const [picked, setPicked] = useState<Partial<Record<CosmeticKind, string>>>({})
   const [bgDrafts, setBgDrafts] = useState<Record<string, BgLook>>({})
   const saved = useSavedFlash()
 
-  const lists: Record<CosmeticKind, FrameItem[]> = { frame: data?.frames ?? [], background: data?.backgrounds ?? [], name_color: data?.nameColors ?? [], name_glow: data?.nameGlows ?? [], banner: data?.banners ?? [], title: data?.titles ?? [], smoke_color: data?.smokeColors ?? [], grenade_trail: data?.grenadeTrails ?? [], grenade_light: data?.grenadeLights ?? [], flash_effect: data?.flashEffects ?? [], model_knife: data?.modelKnives ?? [], model_deagle: data?.modelDeagles ?? [], model_ak47: data?.modelAk47s ?? [] }
-  const worn: Record<CosmeticKind, string | null> = { frame: data?.equippedFrame ?? null, background: data?.equippedBackground ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, banner: data?.equippedBanner ?? null, title: data?.equippedTitle ?? null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null, grenade_light: data?.equippedGrenadeLight ?? null, flash_effect: data?.equippedFlashEffect ?? null, model_knife: data?.equippedModelKnife ?? null, model_deagle: data?.equippedModelDeagle ?? null, model_ak47: data?.equippedModelAk47 ?? null }
+  const lists: Record<CosmeticKind, FrameItem[]> = { profile_customize: data?.profileCustomize ?? [], frame: data?.frames ?? [], background: data?.backgrounds ?? [], name_color: data?.nameColors ?? [], name_glow: data?.nameGlows ?? [], banner: data?.banners ?? [], title: data?.titles ?? [], smoke_color: data?.smokeColors ?? [], grenade_trail: data?.grenadeTrails ?? [], grenade_light: data?.grenadeLights ?? [], flash_effect: data?.flashEffects ?? [], model_knife: data?.modelKnives ?? [], model_deagle: data?.modelDeagles ?? [], model_ak47: data?.modelAk47s ?? [] }
+  const worn: Record<CosmeticKind, string | null> = { profile_customize: null, frame: data?.equippedFrame ?? null, background: data?.equippedBackground ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, banner: data?.equippedBanner ?? null, title: data?.equippedTitle ?? null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null, grenade_light: data?.equippedGrenadeLight ?? null, flash_effect: data?.equippedFlashEffect ?? null, model_knife: data?.equippedModelKnife ?? null, model_deagle: data?.equippedModelDeagle ?? null, model_ak47: data?.equippedModelAk47 ?? null }
   const noun = KINDS.find((entry) => entry.value === kind)?.noun ?? "item"
   const frames = lists[kind].filter((item) => item.owned)
   const selectedId = picked[kind] ?? worn[kind] ?? frames[0]?.id ?? null
   const selected = frames.find((item) => item.id === selectedId) ?? null
 
-  // The preview shows what you would look like: the item you are looking at, plus whatever you already wear of the other kinds.
-  const previewOf = (of: CosmeticKind) => (of === kind ? selected : lists[of].find((item) => item.id === worn[of])) ?? null
-  const previewColor = previewOf("name_color")
-  const previewGlow = previewOf("name_glow")
-  const previewLook = { color: previewColor?.color ?? null, colorFx: previewColor?.fx ?? null, glow: previewGlow?.glow ?? null, glowFx: previewGlow?.fx ?? null }
 
   const run = async (work: () => Promise<unknown>, failure: string) => {
     setBusy(true)
@@ -244,11 +239,13 @@ function Appearance() {
   }
   const sampleName = user?.username ?? "Player"
   // The profile card beside this tab shows the name look being tried, live (owner request 2026-11-13); it clears when the tab closes.
-  const previewKey = JSON.stringify({ name: previewLook, banner: kind === "banner" ? (selected?.fx ?? null) : undefined, frame: kind === "frame" ? (selected?.id ?? null) : undefined })
+  const previewKey = JSON.stringify({ banner: kind === "banner" ? (selected?.fx ?? null) : undefined, frame: kind === "frame" ? (selected?.id ?? null) : undefined })
   useEffect(() => {
+    // Name & banner draws its own preview (it is the one that knows the name style being tried).
+    if (kind === "profile_customize") return
     window.dispatchEvent(new CustomEvent("legacyx:appearance-preview", { detail: JSON.parse(previewKey) }))
     return () => { window.dispatchEvent(new CustomEvent("legacyx:appearance-preview", { detail: null })) }
-  }, [previewKey])
+  }, [previewKey, kind])
 
   return (
     <div className="@container flex flex-col gap-3">
@@ -281,6 +278,8 @@ function Appearance() {
                 </div>
               ))}
             </div>
+            {kind === "profile_customize" ? <ProfileCustomizePanel data={data} onChanged={async () => { await refetch(); window.dispatchEvent(new Event("legacyx:appearance-changed")) }} /> : (
+            <>
             {/* What is picked: the effects that the profile card cannot show are drawn here; the name, banner and frame show on the card on the left. */}
             <div className="lx-glass flex flex-wrap items-center gap-x-5 gap-y-3 rounded-2xl p-4">
               {kind === "background" && selected && <div className="relative h-[90px] w-[180px] overflow-hidden rounded-lg bg-[var(--card-surface)] [&>div]:size-full"><BackgroundScene key={selected.id} id={selected.id} look={bgDrafts[selected.id] ?? data.backgroundLooks?.[selected.id] ?? {}} /></div>}
@@ -352,7 +351,10 @@ function Appearance() {
               </ul>
             )}
             </div>
-          </div>
+          
+            </>
+            )}
+</div>
         </div>
       )}
     </div>

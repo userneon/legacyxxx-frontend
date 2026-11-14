@@ -800,9 +800,9 @@ export function ProfilePage({ userId }: { userId?: string }) {
     return () => window.removeEventListener("legacyx:appearance-changed", onChange)
   }, [refetch, refreshUser])
   // The name look being tried in Appearance, shown live on the profile card.
-  const [previewName, setPreviewName] = useState<{ name: NameStyle; banner?: string | null; frame?: string | null } | null>(null)
+  const [previewName, setPreviewName] = useState<{ name?: NameStyle; banner?: string | null; bannerImage?: string | null; frame?: string | null } | null>(null)
   useEffect(() => {
-    const onPreview = (event: Event) => setPreviewName((event as CustomEvent<{ name: NameStyle; banner?: string | null; frame?: string | null } | null>).detail ?? null)
+    const onPreview = (event: Event) => setPreviewName((event as CustomEvent<{ name?: NameStyle; banner?: string | null; bannerImage?: string | null; frame?: string | null } | null>).detail ?? null)
     window.addEventListener("legacyx:appearance-preview", onPreview)
     return () => window.removeEventListener("legacyx:appearance-preview", onPreview)
   }, [])
@@ -855,8 +855,9 @@ export function ProfilePage({ userId }: { userId?: string }) {
 
   // A paid rank's banner (owner request 2026-11-07), unless the player picked another one.
   const previewOn = Boolean(previewName && own)
-  const previewData = previewOn && previewName ? { ...data, user: { ...data.user, nameStyle: previewName.name, ...(previewName.frame !== undefined ? { frame: previewName.frame } : {}) } } : data
+  const previewData = previewOn && previewName ? { ...data, user: { ...data.user, ...(previewName.name !== undefined ? { nameStyle: previewName.name } : {}), ...(previewName.frame !== undefined ? { frame: previewName.frame } : {}) } } : data
   const bannerPick = previewOn && previewName && previewName.banner !== undefined ? previewName.banner : data.user.banner
+  const bannerImagePick = previewOn && previewName && previewName.bannerImage !== undefined ? previewName.bannerImage : data.user.bannerImage
   const banner = bannerPick ?? (data.perk ? `perk-${data.perk.tier}` : null)
   return (
     <div ref={topRef}>
@@ -864,8 +865,8 @@ export function ProfilePage({ userId }: { userId?: string }) {
         <div className="lx-stack flex flex-col gap-4">
           {/* Who this is: the banner, the avatar, the name, the badges and the buttons. */}
           <section aria-label="Profile" className="lx-glass relative overflow-hidden rounded-2xl">
-            <ProfileBanner fx={banner} fade className="h-[130px]" />
-            <div className={cn("relative px-5 pb-6 max-md:px-4", banner ? "pt-[28px]" : "pt-6")}>
+            <ProfileBanner fx={banner} image={bannerImagePick} fade className="h-[130px]" />
+            <div className={cn("relative px-5 pb-6 max-md:px-4", banner || bannerImagePick ? "pt-[28px]" : "pt-6")}>
               <Header overview={previewData} onVisibilityChange={refetch} />
             </div>
           </section>

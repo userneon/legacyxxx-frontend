@@ -197,7 +197,7 @@ function ReviewCard({ entry, own, fresh, index, onOpenProfile, onEdit, onChanged
         own ? "border-[var(--line-strong)] bg-[var(--glass-fill)]" : "border-[var(--line-soft)]",
       )}
     >
-      <NameBanner fx={entry.banner} />
+      <NameBanner fx={entry.banner} image={entry.bannerImage} />
       {own && (
         <span className="relative w-fit rounded-full border border-[var(--line-strong)] bg-[var(--raised)] px-2 py-0.5 text-[10px] font-bold tracking-[0.6px] text-[var(--text-2)]">YOUR REVIEW</span>
       )}
