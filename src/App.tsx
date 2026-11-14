@@ -10,7 +10,6 @@ import { Navigate, Routes, Route, useNavigate, useLocation } from "react-router-
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { ProfileBlock } from "@/components/profile-block"
 import { SiteTourButton } from "@/components/site-tour"
-import { SectionTabs } from "@/components/section-tabs"
 import { AppSidebar } from "@/components/app-sidebar"
 import { LxcHeader } from "@/components/lxc-header"
 import { PublicChat } from "@/components/public-chat"
@@ -172,7 +171,6 @@ export function App() {
         </header>
 
         <LxcHeader onNavigate={handleNavigate} className="max-[559px]:hidden" />
-        <SectionTabs currentPage={currentPage} onNavigate={handleNavigate} />
 
         <button
           type="button"

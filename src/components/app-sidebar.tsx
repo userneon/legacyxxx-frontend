@@ -1,5 +1,5 @@
 import type React from "react"
-import { useEffect, useState, type ComponentType } from "react"
+import { useEffect, useState, type ComponentType, type ReactNode } from "react"
 import { ArrowLeftRight, Gem, DoorOpen, Swords, MountainSnow, Scale, ScrollText, Telescope, Users, Lock, ChevronDown, ShieldCheck, Clapperboard, Store } from "lucide-react"
 
 import { isFeatureEnabled, isPageEnabled } from "@/lib/features"
@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils"
 import { setSkinchangerView, useSkinchangerView, type SkinchangerView } from "@/lib/skinchanger-view"
 import { KnifeIcon } from "@/components/knife-icon"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
 
 interface AppSidebarProps {
   currentPage: PageId
@@ -105,6 +106,25 @@ function RailTip({ label, show, children }: { label: string; show: boolean; chil
   )
 }
 
+interface FlyoutItem { key: string; label: string; active: boolean; go: () => void; trailing?: ReactNode }
+
+/** On the icon rail a group (Play, Skinchanger, Commerce, Community) opens its pages in a small menu beside the icon. */
+function RailFlyout({ open, onOpenChange, items, children }: { open: boolean; onOpenChange: (open: boolean) => void; items: FlyoutItem[]; children: ReactNode }) {
+  return (
+    <Popover open={open} onOpenChange={onOpenChange}>
+      <PopoverAnchor asChild><div className="relative">{children}</div></PopoverAnchor>
+      <PopoverContent side="right" align="start" sideOffset={14} className="flex w-52 flex-col gap-0.5 rounded-lg border-[var(--line)] bg-[var(--card-surface)] p-1.5">
+        {items.map((item) => (
+          <button key={item.key} type="button" onClick={() => { onOpenChange(false); item.go() }} aria-current={item.active ? "page" : undefined} className={cn("flex h-9 items-center gap-2 rounded-md px-3 text-left text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60", item.active && "bg-[var(--raised)] text-[var(--text)]")}>
+            <span className="flex-1 truncate">{item.label}</span>
+            {item.trailing}
+          </button>
+        ))}
+      </PopoverContent>
+    </Popover>
+  )
+}
+
 export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
   const { state, isMobile } = useSidebar()
   const collapsed = state === "collapsed" && !isMobile
@@ -117,6 +137,8 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
   const commerceActive = COMMERCE_ITEMS.some((item) => item.id === currentPage)
   const [commerceOpen, setCommerceOpen] = useState(commerceActive)
   const skinView = useSkinchangerView()
+  const [flyout, setFlyout] = useState<"play" | "skin" | "commerce" | "community" | null>(null)
+  const flyoutProps = (key: "play" | "skin" | "commerce" | "community") => ({ open: collapsed && flyout === key, onOpenChange: (open: boolean) => setFlyout(open ? key : null) })
   // Admins, Managers and Owners can ask players for a check; nobody else gets the entry.
   const staffAccess = useModerationAccess()
   const mayCheck = Boolean(staffAccess && staffAccess.role && ["ADMIN", "MANAGER", "OWNER"].includes(staffAccess.role))
@@ -160,11 +182,10 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
 
           {PLAY_ITEMS.length > 0 && (
             <>
-              <div className="relative">
-<RailTip label="Play" show={collapsed}><button
+              <RailFlyout {...flyoutProps("play")} items={PLAY_ITEMS.map((item) => ({ key: item.id, label: item.label, active: isActive(item.id), go: () => onNavigate(item.id), trailing: item.id === "play-proleague" && proLeagueLocked ? <Lock className="size-3.5 text-[var(--text-dim)]" /> : (item.id === "play-5vs5" || item.id === "play-fun") && playersIn(item.id) > 0 ? <span className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]"><span className="size-1.5 rounded-full bg-[var(--status-green)]" />{playersIn(item.id)}</span> : undefined }))}>
+<RailTip label="Play" show={collapsed && flyout !== "play"}><button
                 type="button"
-                // On the icon rail there's no room for the submenu, so Play opens 5x5 directly.
-                onClick={() => (collapsed ? onNavigate(PLAY_ITEMS[0].id) : setPlayOpen((open) => !open))}
+                onClick={() => (collapsed ? setFlyout((was) => (was === "play" ? null : "play")) : setPlayOpen((open) => !open))}
                 aria-label="Play"
                 aria-expanded={collapsed ? undefined : playOpen}
                 className={cn(rowClass, collapsed && playActive && activeRowClass)}
@@ -182,7 +203,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                 />
                 {collapsed && anyoneOnline && <span aria-hidden="true" className="absolute right-2 top-2 size-1.5 rounded-full bg-[var(--status-green)]" />}
               </button></RailTip>
-              </div>
+              </RailFlyout>
 
               {/* The submenu folds away (collapsed rail, or closed) instead of appearing and disappearing. */}
               <div
@@ -228,10 +249,10 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
               const open = skinOpen && !collapsed
               return (
                 <div key={item.id} className="flex flex-col gap-0.5">
-                  <div className="relative">
-<RailTip label={item.label} show={collapsed}><button
+                  <RailFlyout {...flyoutProps("skin")} items={SKIN_VIEWS.map((entry) => ({ key: entry.id, label: entry.label, active: isActive("skinchanger") && skinView === entry.id, go: () => { setSkinchangerView(entry.id); onNavigate("skinchanger") } }))}>
+<RailTip label={item.label} show={collapsed && flyout !== "skin"}><button
                       type="button"
-                      onClick={() => { if (collapsed || !isActive("skinchanger")) onNavigate("skinchanger"); if (!collapsed) setSkinOpen((was) => (isActive("skinchanger") ? !was : true)) }}
+                      onClick={() => { if (collapsed) { setFlyout((was) => (was === "skin" ? null : "skin")); return } if (!isActive("skinchanger")) onNavigate("skinchanger"); setSkinOpen((was) => (isActive("skinchanger") ? !was : true)) }}
                       aria-label={item.label}
                       aria-expanded={collapsed ? undefined : skinOpen}
                       className={cn(rowClass, collapsed && isActive("skinchanger") && activeRowClass)}
@@ -240,7 +261,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                       <span className={cn(labelClass(collapsed), "flex-1")}>{item.label}</span>
                       <ChevronDown aria-hidden="true" className={cn("size-4 shrink-0 text-[var(--text-dim)] transition-[rotate,opacity] duration-300 motion-reduce:transition-none", EASE, skinOpen && "rotate-180", collapsed ? "opacity-0" : "opacity-100")} />
                     </button></RailTip>
-                  </div>
+                  </RailFlyout>
                   <div className={cn("grid transition-[grid-template-rows,opacity] duration-300 motion-reduce:transition-none", EASE, open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")} inert={!open || undefined}>
                     <div className="overflow-hidden">
                       <div className="ml-5 flex flex-col gap-0.5 border-l border-[var(--line)] pl-2">
@@ -259,11 +280,10 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
               const open = commerceOpen && !collapsed
               return (
                 <div key={item.id} className="flex flex-col gap-0.5">
-                  <div className="relative">
-                    <RailTip label="Commerce" show={collapsed}><button
+                  <RailFlyout {...flyoutProps("commerce")} items={COMMERCE_ITEMS.map((entry) => ({ key: entry.id, label: entry.label, active: isActive(entry.id), go: () => onNavigate(entry.id) }))}>
+                    <RailTip label="Commerce" show={collapsed && flyout !== "commerce"}><button
                       type="button"
-                      // On the icon rail there's no room for the submenu, so Commerce opens the Shop directly.
-                      onClick={() => (collapsed ? onNavigate(COMMERCE_ITEMS[0].id) : setCommerceOpen((was) => !was))}
+                      onClick={() => (collapsed ? setFlyout((was) => (was === "commerce" ? null : "commerce")) : setCommerceOpen((was) => !was))}
                       aria-label="Commerce"
                       aria-expanded={collapsed ? undefined : commerceOpen}
                       className={cn(rowClass, collapsed && commerceActive && activeRowClass)}
@@ -272,7 +292,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                       <span className={cn(labelClass(collapsed), "flex-1")}>Commerce</span>
                       <ChevronDown aria-hidden="true" className={cn("size-4 shrink-0 text-[var(--text-dim)] transition-[rotate,opacity] duration-300 motion-reduce:transition-none", EASE, commerceOpen ? "rotate-180" : "rotate-0", collapsed ? "opacity-0" : "opacity-100")} />
                     </button></RailTip>
-                  </div>
+                  </RailFlyout>
                   <div className={cn("grid transition-[grid-template-rows,opacity] duration-300 motion-reduce:transition-none", EASE, open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")} aria-hidden={!open}>
                     <div className="overflow-hidden">
                       <div className="ml-5 flex flex-col gap-0.5 border-l border-[var(--line)] pl-2">
@@ -297,11 +317,10 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                       <span className={labelClass(collapsed)}>{item.label}</span>
                     </button></RailTip>
                   </div>
-                  <div className="relative">
-                    <RailTip label="Community" show={collapsed}><button
+                  <RailFlyout {...flyoutProps("community")} items={COMMUNITY_ITEMS.map((entry) => ({ key: entry.id, label: entry.label, active: isActive(entry.id), go: () => onNavigate(entry.id) }))}>
+                    <RailTip label="Community" show={collapsed && flyout !== "community"}><button
                       type="button"
-                      // On the icon rail there's no room for the submenu, so Community opens Clans directly.
-                      onClick={() => (collapsed ? onNavigate(COMMUNITY_ITEMS[0].id) : setCommunityOpen((was) => !was))}
+                      onClick={() => (collapsed ? setFlyout((was) => (was === "community" ? null : "community")) : setCommunityOpen((was) => !was))}
                       aria-label="Community"
                       aria-expanded={collapsed ? undefined : communityOpen}
                       className={cn(rowClass, collapsed && communityActive && activeRowClass)}
@@ -310,7 +329,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
                       <span className={cn(labelClass(collapsed), "flex-1")}>Community</span>
                       <ChevronDown aria-hidden="true" className={cn("size-4 shrink-0 text-[var(--text-dim)] transition-[rotate,opacity] duration-300 motion-reduce:transition-none", EASE, communityOpen && "rotate-180", collapsed ? "opacity-0" : "opacity-100")} />
                     </button></RailTip>
-                  </div>
+                  </RailFlyout>
                   <div className={cn("grid transition-[grid-template-rows,opacity] duration-300 motion-reduce:transition-none", EASE, open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")} inert={!open || undefined}>
                     <div className="overflow-hidden">
                       <div className="ml-5 flex flex-col gap-0.5 border-l border-[var(--line)] pl-2">
