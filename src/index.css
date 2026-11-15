@@ -1744,3 +1744,22 @@ html { background: radial-gradient(70% 38vh at 50% 0%, rgb(255 255 255 / 0.05), 
 /* A page background (a profile's, a clan's) sits in a fixed layer behind the shell, so the solid frame must let it through while one is showing. */
 html:has([data-page-scene]) body, html:has([data-page-scene]) [data-slot="sidebar-inset"] { background-color: transparent; }
 html:has([data-page-scene]) .lx-dotgrid { background-image: none; }
+
+/* The LXC letters taking turns (components/lxc-animated.tsx): L, then X, then C, round and round. Each letter has a third of the 3.6 s loop. */
+.lxc-letter-glow { animation: lxc-letter-glow 3.6s ease-in-out infinite; opacity: 0.4; }
+.lxc-letter-swap { animation: lxc-letter-swap 3.6s ease-in-out infinite; opacity: 0; }
+@keyframes lxc-letter-glow {
+  0%, 100% { opacity: 0.4; filter: none; }
+  8%, 28% { opacity: 1; filter: drop-shadow(0 0 5px rgb(255 255 255 / 0.55)); }
+  36% { opacity: 0.4; filter: none; }
+}
+@keyframes lxc-letter-swap {
+  0% { opacity: 0; transform: scale(0.8); }
+  8%, 28% { opacity: 1; transform: scale(1); }
+  36%, 100% { opacity: 0; transform: scale(1.12); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lxc-letter-glow { animation: none; opacity: 1; }
+  .lxc-letter-swap { animation: none; opacity: 0; }
+  .lxc-letter-swap:first-child { opacity: 1; }
+}

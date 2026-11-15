@@ -1,3 +1,4 @@
+import { LxcLetters } from "@/components/lxc-animated"
 import type React from "react"
 import { useEffect, useState, type ComponentType, type ReactNode } from "react"
 import { Lock, ChevronDown, ShieldCheck, Clapperboard, Store, Swords } from "lucide-react"
@@ -167,9 +168,9 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
       <SidebarContent className="gap-0 overflow-x-hidden px-3 pb-3">
         <div className={cn("flex h-[60px] shrink-0 items-center justify-center transition-[padding] duration-300 motion-reduce:transition-none", EASE, !collapsed && "pl-3 pr-1")}>
           <span className={cn("min-w-0 flex-1 items-center gap-2 overflow-hidden text-base font-bold tracking-[0.3px] text-[var(--text)]", collapsed ? "hidden" : "flex", labelClass(collapsed))}>
-            <img src="/lxc-logo.webp" alt="LXC" className="h-5 w-auto shrink-0" />
+            <LxcLetters mode="row" height={20} />
           </span>
-          {collapsed && <span className="relative h-9 w-3 shrink-0" role="img" aria-label="LXC"><img src="/lxc-wordmark.webp" alt="" className="absolute left-1/2 top-1/2 w-9 max-w-none -translate-x-1/2 -translate-y-1/2 -rotate-90" /></span>}
+          {collapsed && <LxcLetters mode="cycle" height={20} />}
 
         </div>
 
