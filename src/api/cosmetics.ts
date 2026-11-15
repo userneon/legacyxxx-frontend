@@ -51,7 +51,7 @@ export interface FrameItem {
   owners?: number | null
 }
 
-export type CosmeticKind = "frame" | "background" | "profile_customize" | "name_color" | "name_glow" | "banner" | "title" | "smoke_color" | "grenade_trail" | "grenade_light" | "flash_effect" | "model_knife" | "model_deagle" | "model_ak47"
+export type CosmeticKind = "frame" | "background" | "profile_customize" | "name_color" | "name_glow" | "banner" | "title" | "smoke_color" | "grenade_trail" | "grenade_light" | "flash_effect" | "model_knife" | "model_deagle" | "model_ak47" | "discord_role"
 
 /** The kinds that are a custom weapon model (owner request 2026-11-06). */
 export const MODEL_KINDS = ["model_knife", "model_deagle", "model_ak47"] as const
@@ -136,6 +136,8 @@ export interface Cosmetics {
   modelKnives?: FrameItem[]
   modelDeagles?: FrameItem[]
   modelAk47s?: FrameItem[]
+  /** Discord roles sold for FOL$ (the bot gives the role while the rental runs; only a player with Discord linked can rent one). */
+  discordRoles?: FrameItem[]
 }
 
 export const cosmeticsService = {

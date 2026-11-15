@@ -37,7 +37,7 @@ const SORTS = [
 
 /** The kinds the Shop sells (banners and titles are earned: they live in Profile → Appearance). */
 type ShopKind = Exclude<CosmeticKind, "banner" | "title">
-type ShopTab = "featured" | "frame" | "background" | "name" | "smoke_color" | "model" | "clan"
+type ShopTab = "featured" | "frame" | "background" | "name" | "smoke_color" | "model" | "discord_role" | "clan"
 const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "featured", label: "Featured" },
   { value: "frame", label: "Frames" },
@@ -45,14 +45,15 @@ const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "name", label: "Customize" },
   { value: "smoke_color", label: "Grenades" },
   { value: "model", label: "Weapons" },
+  { value: "discord_role", label: "Discord" },
   { value: "clan", label: "Clan" },
 ]
 
 /** What kind of thing a tile is, in one word, so a name like "Planet Orbit" or "Drift" says what it is before it is opened. */
-const KIND_WORD: Record<string, string> = { frame: "Frame", background: "Background", profile_customize: "Profile customize", name_color: "Name", name_glow: "Name glow", grenade_trail: "Trail", smoke_color: "Smoke", model_knife: "Knife", model_deagle: "Deagle", model_ak47: "AK-47" }
+const KIND_WORD: Record<string, string> = { discord_role: "Discord role", frame: "Frame", background: "Background", profile_customize: "Profile customize", name_color: "Name", name_glow: "Name glow", grenade_trail: "Trail", smoke_color: "Smoke", model_knife: "Knife", model_deagle: "Deagle", model_ak47: "AK-47" }
 
 /** The Shop's top row is grouped: what you wear on your profile (frames, backgrounds, name, grenades) sits under one Profile tab with its own row below. */
-const PROFILE_TABS: ShopTab[] = ["frame", "background", "name", "smoke_color", "model"]
+const PROFILE_TABS: ShopTab[] = ["frame", "background", "name", "smoke_color", "model", "discord_role"]
 const TOP_TABS: Array<{ value: "featured" | "profile" | "clan"; label: string }> = [
   { value: "featured", label: "Featured" },
   { value: "profile", label: "Profile" },
@@ -69,6 +70,7 @@ function ItemArt({ item, avatar, username, size, orb }: { item: ShopItem; avatar
     // The Crystal Orb draws its own frame; every other frame shows as a ring in its colour.
     return item.id === ORB_ID || isRingFrame(item.id) ? pic : <span className="lx-shop-ring" style={{ "--acc": frameAccent(item.id) } as React.CSSProperties}>{pic}</span>
   }
+  if (item.kind === "discord_role") return <span className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3.5 text-[14px] font-bold" style={{ color: item.color ?? "#e4e4e7", backgroundColor: `color-mix(in srgb, ${item.color ?? "#e4e4e7"} 18%, #111)` }}>★ {item.name}</span>
   if (item.kind === "smoke_color") return <SmokePuff color={item.color} color2={item.color2} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "grenade_trail") return <GrenadeTrail color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "flash_effect") return <FlashEffect color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
@@ -175,7 +177,7 @@ export function ShopPage() {
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
-  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", background: "backgrounds", name: "customize", smoke_color: "smoke", model: "weapons", clan: "clan" }, "featured")
+  const [tab, setTab] = usePathTab<ShopTab>("/shop", { featured: "", frame: "frames", background: "backgrounds", name: "customize", smoke_color: "smoke", model: "weapons", discord_role: "discord", clan: "clan" }, "featured")
   // The in-game ranks (owner request 2026-11-07) sit at the top of Featured, only while at least one is on sale, so nothing is shown that cannot be bought. (The Goods tab was taken out the same day.)
   const { catalogue: perks, loading: perksLoading, failed: perksFailed, retry: retryPerks } = usePerkCatalogue()
   // Which Profile sub-tab to return to when the Profile tab is tapped again.
@@ -211,6 +213,7 @@ export function ShopPage() {
     ...(data?.frames ?? []).map((item) => ({ ...item, kind: "frame" as const })),
     ...(data?.backgrounds ?? []).map((item) => ({ ...item, kind: "background" as const })),
     ...(data?.profileCustomize ?? []).map((item) => ({ ...item, kind: "profile_customize" as const })),
+    ...(data?.discordRoles ?? []).map((item) => ({ ...item, kind: "discord_role" as const })),
     ...(data?.smokeColors ?? []).map((item) => ({ ...item, kind: "smoke_color" as const })),
     ...(data?.grenadeTrails ?? []).map((item) => ({ ...item, kind: "grenade_trail" as const })),
     ...(data?.grenadeLights ?? []).map((item) => ({ ...item, kind: "grenade_light" as const })),
@@ -219,7 +222,7 @@ export function ShopPage() {
     ...(data?.modelDeagles ?? []).map((item) => ({ ...item, kind: "model_deagle" as const })),
     ...(data?.modelAk47s ?? []).map((item) => ({ ...item, kind: "model_ak47" as const })),
   ].filter((item) => !item.retired), [data])
-  const worn = { frame: data?.equippedFrame ?? null, background: data?.equippedBackground ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, profile_customize: null as string | null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null, grenade_light: data?.equippedGrenadeLight ?? null, flash_effect: data?.equippedFlashEffect ?? null, model_knife: data?.equippedModelKnife ?? null, model_deagle: data?.equippedModelDeagle ?? null, model_ak47: data?.equippedModelAk47 ?? null }
+  const worn = { discord_role: null as string | null, frame: data?.equippedFrame ?? null, background: data?.equippedBackground ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, profile_customize: null as string | null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null, grenade_light: data?.equippedGrenadeLight ?? null, flash_effect: data?.equippedFlashEffect ?? null, model_knife: data?.equippedModelKnife ?? null, model_deagle: data?.equippedModelDeagle ?? null, model_ak47: data?.equippedModelAk47 ?? null }
   const balance = wallet?.balance ?? null
   const username = user?.username ?? "Player"
 
@@ -333,11 +336,11 @@ export function ShopPage() {
             {item.owned && !item.testing && item.kind === "profile_customize" && (
               <button type="button" onClick={() => navigate("/profile/appearance")} style={{ "--acc": accentOf(shown) } as React.CSSProperties} className="absolute bottom-2.5 right-2.5 z-[2] inline-flex h-8 items-center rounded-lg bg-[color-mix(in_srgb,var(--acc)_20%,#111)] px-3 text-[12px] font-semibold text-[var(--acc)] transition-colors hover:bg-[color-mix(in_srgb,var(--acc)_34%,#111)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--acc)]">Set up</button>
             )}
-            {item.owned && !item.testing && item.kind !== "profile_customize" && (
+            {item.owned && !item.testing && item.kind !== "profile_customize" && item.kind !== "discord_role" && (
               <button type="button" disabled={busy} onClick={() => void wearHere(item, worn[item.kind] !== item.id)} style={{ "--acc": accentOf(shown) } as React.CSSProperties} className="absolute bottom-2.5 right-2.5 z-[2] inline-flex h-8 items-center rounded-lg bg-[color-mix(in_srgb,var(--acc)_20%,#111)] px-3 text-[12px] font-semibold text-[var(--acc)] transition-colors hover:bg-[color-mix(in_srgb,var(--acc)_34%,#111)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--acc)] disabled:opacity-60">{worn[item.kind] === item.id ? "Take off" : "Wear"}</button>
             )}
             {!item.testing && item.unlock === "coin" && !(item.owned && !item.expiresAt) && (
-              <button type="button" onClick={() => addToCart(item)} aria-pressed={tray.includes(item.id)} aria-label={tray.includes(item.id) ? `${item.name} is in the cart` : `Add ${item.name} to the cart`} style={{ "--acc": accentOf(shown) } as React.CSSProperties} className={cn("absolute bottom-2.5 z-[2] grid size-8 place-items-center rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--acc)]", item.owned && !item.testing ? (item.kind === "profile_customize" ? "right-[4.5rem]" : worn[item.kind] === item.id ? "right-[5.75rem]" : "right-[4.5rem]") : "right-2.5", tray.includes(item.id) ? "bg-[var(--acc)] text-[#0a0a0a]" : "bg-[color-mix(in_srgb,var(--acc)_20%,#111)] text-[var(--acc)] hover:bg-[color-mix(in_srgb,var(--acc)_34%,#111)]")}>{tray.includes(item.id) ? <Check className="size-4" aria-hidden="true" /> : <ShoppingCart className="size-4" aria-hidden="true" />}</button>
+              <button type="button" onClick={() => addToCart(item)} aria-pressed={tray.includes(item.id)} aria-label={tray.includes(item.id) ? `${item.name} is in the cart` : `Add ${item.name} to the cart`} style={{ "--acc": accentOf(shown) } as React.CSSProperties} className={cn("absolute bottom-2.5 z-[2] grid size-8 place-items-center rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--acc)]", item.owned && !item.testing && item.kind !== "discord_role" ? (item.kind === "profile_customize" ? "right-[4.5rem]" : worn[item.kind] === item.id ? "right-[5.75rem]" : "right-[4.5rem]") : "right-2.5", tray.includes(item.id) ? "bg-[var(--acc)] text-[#0a0a0a]" : "bg-[color-mix(in_srgb,var(--acc)_20%,#111)] text-[var(--acc)] hover:bg-[color-mix(in_srgb,var(--acc)_34%,#111)]")}>{tray.includes(item.id) ? <Check className="size-4" aria-hidden="true" /> : <ShoppingCart className="size-4" aria-hidden="true" />}</button>
             )}
             <button type="button" onClick={() => toggleSaved(item.id)} aria-pressed={saved.includes(item.id)} aria-label={saved.includes(item.id) ? `Remove ${item.name} from saved` : `Save ${item.name} for later`} className={cn("absolute right-1.5 top-1.5 z-[2] grid size-7 place-items-center rounded-full border border-[var(--line)] bg-[var(--card-surface)]/80 text-[var(--text-dim)] transition-opacity hover:text-[var(--text)] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60", saved.includes(item.id) ? "text-[var(--brand-bright)] opacity-100" : "opacity-0 group-hover/tile:opacity-100")}><Heart className={cn("size-3.5", saved.includes(item.id) && "fill-current")} aria-hidden="true" /></button>
       </li>
@@ -412,7 +415,7 @@ export function ShopPage() {
   ) : null
 
   const soon = endingSoon(all)
-  const tabOfKind = (kind: ShopKind): ShopTab => (kind === "profile_customize" ? "name" : kind === "smoke_color" || kind === "grenade_trail" ? "smoke_color" : kind === "frame" ? "frame" : kind === "background" ? "background" : "featured")
+  const tabOfKind = (kind: ShopKind): ShopTab => (kind === "discord_role" ? "discord_role" : kind === "profile_customize" ? "name" : kind === "smoke_color" || kind === "grenade_trail" ? "smoke_color" : kind === "frame" ? "frame" : kind === "background" ? "background" : "featured")
   // The page bars (sections, and the profile items under them) stick to the top of the panel; stack them one under the other instead of all sticking at 0 and covering each other.
   const rootRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -435,7 +438,7 @@ export function ShopPage() {
     <div ref={rootRef} className="flex h-full min-h-0 flex-col">
       <PageBar>
         <PageTabs<(typeof TOP_TABS)[number]["value"]> ariaLabel="Shop sections" value={PROFILE_TABS.includes(tab) ? "profile" : (tab as "featured" | "clan")} onChange={(next) => setTab(next === "profile" ? lastProfileTab : next)} options={TOP_TABS} />
-        {(tab === "featured" || tab === "frame" || tab === "background" || tab === "name" || tab === "smoke_color" || tab === "model") && (
+        {(tab === "featured" || tab === "frame" || tab === "background" || tab === "name" || tab === "smoke_color" || tab === "model" || tab === "discord_role") && (
           <PageBarEnd className="max-md:hidden">
             <label className={cn(pageSearchClass, "max-md:hidden")}>
               <Search className="size-4 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />
@@ -566,6 +569,11 @@ export function ShopPage() {
                       const list = shown.filter((item) => item.kind === kind)
                       return list.length ? <div key={kind}><div className="lx-shop-heading mb-2.5">{heading}</div>{grid(list)}</div> : null
                     })}
+                  </div>
+                ) : tab === "discord_role" ? (
+                  <div className="flex flex-col gap-5">
+                    <p className="max-w-[560px] text-[13px] leading-6 text-[var(--text-2)]">A role in the LXC Discord server, with a colour and a star by your name. It gives no rights, only the look. Rent it for 1, 7 or 30 days; the bot gives it within a minute and takes it back when the rental ends. You need your Discord linked in Settings → Connections.</p>
+                    {grid(shown)}
                   </div>
                 ) : grid(shown)}
               </section>
