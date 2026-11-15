@@ -1743,3 +1743,4 @@ html { background: radial-gradient(70% 38vh at 50% 0%, rgb(255 255 255 / 0.05), 
 
 /* A page background (a profile's, a clan's) sits in a fixed layer behind the shell, so the solid frame must let it through while one is showing. */
 html:has([data-page-scene]) body, html:has([data-page-scene]) [data-slot="sidebar-inset"] { background-color: transparent; }
+html:has([data-page-scene]) .lx-dotgrid { background-image: none; }
