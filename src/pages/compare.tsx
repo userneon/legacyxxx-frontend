@@ -300,12 +300,12 @@ function RecentForm({ a, b }: { a: ProfileOverview; b: ProfileOverview }) {
     const change = exp.length > 1 ? exp[exp.length - 1] - exp[0] : null
     return (
       <div className={cn("flex min-w-0 flex-col gap-2", side === "a" ? "items-end" : "items-start")}>
-        <div className="flex gap-1" aria-label={`${overview.user.username}: ${last.map((match) => match.result).join(", ")}`}>
+        <div className={cn("flex max-w-full flex-wrap gap-1", side === "a" && "justify-end")} aria-label={`${overview.user.username}: ${last.map((match) => match.result).join(", ")}`}>
           {last.map((match, index) => <span key={match.matchId ?? index} title={`${match.result} · ${cs2MapLabel(match.map)} · ${match.score}`} className={cn("size-3 rounded-[4px]", RESULT_DOT[match.result] ?? "bg-[var(--line)]")} />)}
         </div>
         {exp.length > 1 && (
           <div className={cn("flex items-center gap-2", side === "a" && "flex-row-reverse")}>
-            <svg viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true" className="h-6 w-28"><polyline points={points} fill="none" stroke="currentColor" strokeWidth="2" vectorEffect="non-scaling-stroke" className={change === null || change === 0 ? "text-[var(--result-draw)]" : change > 0 ? "text-[var(--result-win)]" : "text-[var(--result-loss)]"} /></svg>
+            <svg viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true" className="h-6 w-full max-w-28 min-w-0"><polyline points={points} fill="none" stroke="currentColor" strokeWidth="2" vectorEffect="non-scaling-stroke" className={change === null || change === 0 ? "text-[var(--result-draw)]" : change > 0 ? "text-[var(--result-win)]" : "text-[var(--result-loss)]"} /></svg>
             {change !== null && <span className={cn("text-[11px] font-semibold", change > 0 ? "text-[var(--result-win)]" : change < 0 ? "text-[var(--result-loss)]" : "text-[var(--result-draw)]")}>{change > 0 ? "+" : change < 0 ? "−" : ""}{Math.abs(change).toLocaleString()} EXP</span>}
           </div>
         )}
