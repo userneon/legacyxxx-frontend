@@ -1740,3 +1740,6 @@ html { background: radial-gradient(70% 38vh at 50% 0%, rgb(255 255 255 / 0.05), 
 [data-wallet]:is(:hover, :focus-visible) .lx-wallet-flip > .lx-wallet-front { transform: rotateX(180deg); }
 [data-wallet]:is(:hover, :focus-visible) .lx-wallet-flip > .lx-wallet-back { transform: rotateX(0deg); }
 @media (prefers-reduced-motion: reduce) { .lx-wallet-flip > span { transition: none; } }
+
+/* A page background (a profile's, a clan's) sits in a fixed layer behind the shell, so the solid frame must let it through while one is showing. */
+html:has([data-page-scene]) body, html:has([data-page-scene]) [data-slot="sidebar-inset"] { background-color: transparent; }

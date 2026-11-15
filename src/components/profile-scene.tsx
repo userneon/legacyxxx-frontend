@@ -30,7 +30,7 @@ export function ProfileScene({ scene }: { scene: ProfileSceneMedia | null }) {
   if (!shown) return null
   const video = shown.video
   return (
-    <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-[1] overflow-hidden bg-[var(--bg)] transition-opacity ease-out" style={{ opacity: visible ? 1 : 0, transitionDuration: `${FADE_MS}ms` }}>
+    <div aria-hidden="true" data-page-scene="" className="pointer-events-none fixed inset-0 -z-[1] overflow-hidden bg-[var(--bg)] transition-opacity ease-out" style={{ opacity: visible ? 1 : 0, transitionDuration: `${FADE_MS}ms` }}>
       {shown.background ? (
         <div className="absolute inset-0"><BackgroundScene id={shown.background.id} look={shown.background.look} /></div>
       ) : video && !videoFailed ? (

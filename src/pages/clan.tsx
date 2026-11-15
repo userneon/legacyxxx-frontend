@@ -51,7 +51,7 @@ import { Label } from "@/components/ui/label"
 function PageWash({ page }: { page: ClanLook["page"] | undefined }) {
   if (!pageBackground(page) || !page) return null
   const calm = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
-  return createPortal(<div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-[1]"><ClanBackground page={page} calm={calm} /></div>, document.body)
+  return createPortal(<div aria-hidden="true" data-page-scene="" className="pointer-events-none fixed inset-0 -z-[1]"><ClanBackground page={page} calm={calm} /></div>, document.body)
 }
 
 /** A clan card's banner: the picture covers the whole box. (The clan page shows it whole instead: ClanBannerStrip.) */
