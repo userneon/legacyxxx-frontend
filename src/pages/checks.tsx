@@ -151,7 +151,7 @@ function Detail({ id, onClose, onRemoved }: { id: string; onClose: () => void; o
           <div className="flex items-center gap-3.5 pr-6">
             {data && <PlayerAvatar avatar={data.targetAvatar ?? undefined} name={data.targetName ?? data.targetSteamId} className="size-12 rounded-xl text-base" />}
             <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-              <DialogTitle className="truncate font-mono">{data ? data.targetName ?? "Not on LEGACY-X" : "Case"}</DialogTitle>
+              <DialogTitle className="truncate font-mono">{data ? data.targetName ?? "Not on LXC" : "Case"}</DialogTitle>
               <DialogDescription className="flex flex-wrap items-center gap-2 font-mono text-[11px]">
                 {data ? <><ThreatBadge threat={threatOf(data)} /><span>case {data.id.slice(0, 8)} // asked by {data.requestedBy}</span></> : "loading…"}
               </DialogDescription>

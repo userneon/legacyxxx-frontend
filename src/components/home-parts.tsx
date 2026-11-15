@@ -48,7 +48,7 @@ export function RankMedal({ place, size = 28 }: { place: 1 | 2 | 3; size?: numbe
 
 /** The slides: a picture and the line written on it. Add a slide here (and its picture in src/assets/home); the arrows and dots appear with the second one. */
 const SLIDES: { key: string; src: string; label: string; alt: string; focus?: string }[] = [
-  { key: "scanner", src: scannerSlide, label: "LEGACY-X Scanner x Anti-Cheat", alt: "A detective's board with a map, photos and notes, and a computer showing a scan" },
+  { key: "scanner", src: scannerSlide, label: "LXC Scanner x Anti-Cheat", alt: "A detective's board with a map, photos and notes, and a computer showing a scan" },
   { key: "caught", src: caughtSlide, label: "Did you think you wouldn't get caught?", focus: "50% 30%", alt: "Two officers in a metro carriage arrest a masked man while another holds a second man down, seen through a camera viewfinder" },
 ]
 
@@ -58,7 +58,7 @@ export function HeroSlider({ className }: { className?: string }) {
   const go = (next: number) => setIndex((next + slides.length) % slides.length)
   const many = slides.length > 1
   return (
-    <section aria-roledescription="carousel" aria-label="LEGACY-X" className={cn("lx-glass relative isolate min-h-[180px] overflow-hidden rounded-xl", className)}>
+    <section aria-roledescription="carousel" aria-label="LXC" className={cn("lx-glass relative isolate min-h-[180px] overflow-hidden rounded-xl", className)}>
       {slides.map((slide, position) => (
         <img
           key={slide.key}

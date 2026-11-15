@@ -189,22 +189,22 @@ function server(id: string, name: string, map: string, mode: "5x5" | "fun" | "pr
 
 const SERVERS = {
   "5x5": [
-    server("5x5-01", "LEGACY-X #1 | MIRAGE", "de_mirage", "5x5", "5x5", "live", 10, 10),
-    server("5x5-02", "LEGACY-X #2 | INFERNO", "de_inferno", "5x5", "5x5", "waiting", 6, 10),
-    server("5x5-03", "LEGACY-X #3 | DUST II", "de_dust2", "5x5", "5x5", "warmup", 9, 10),
-    server("5x5-04", "LEGACY-X #4 | ANCIENT", "de_ancient", "5x5", "5x5", "live", 10, 10),
-    server("5x5-05", "LEGACY-X #5 | NUKE", "de_nuke", "5x5", "5x5", "waiting", 2, 10),
-    server("5x5-06", "LEGACY-X #6 | ANUBIS", "de_anubis", "5x5", "5x5", "offline", 0, 10),
+    server("5x5-01", "LXC #1 | MIRAGE", "de_mirage", "5x5", "5x5", "live", 10, 10),
+    server("5x5-02", "LXC #2 | INFERNO", "de_inferno", "5x5", "5x5", "waiting", 6, 10),
+    server("5x5-03", "LXC #3 | DUST II", "de_dust2", "5x5", "5x5", "warmup", 9, 10),
+    server("5x5-04", "LXC #4 | ANCIENT", "de_ancient", "5x5", "5x5", "live", 10, 10),
+    server("5x5-05", "LXC #5 | NUKE", "de_nuke", "5x5", "5x5", "waiting", 2, 10),
+    server("5x5-06", "LXC #6 | ANUBIS", "de_anubis", "5x5", "5x5", "offline", 0, 10),
   ],
   fun: [
-    server("fun-01", "LEGACY-X FUN | SURF", "surf_kitsune", "fun", "fun_surf", "live", 14, 24),
-    server("fun-02", "LEGACY-X FUN | AIM", "aim_map", "fun", "fun_aim", "live", 9, 16),
-    server("fun-03", "LEGACY-X FUN | DEATHMATCH", "de_dust2", "fun", "fun_dm", "live", 7, 20),
-    server("fun-04", "LEGACY-X FUN | RETAKE", "de_vertigo", "fun", "fun_retake", "live", 18, 18),
+    server("fun-01", "LXC FUN | SURF", "surf_kitsune", "fun", "fun_surf", "live", 14, 24),
+    server("fun-02", "LXC FUN | AIM", "aim_map", "fun", "fun_aim", "live", 9, 16),
+    server("fun-03", "LXC FUN | DEATHMATCH", "de_dust2", "fun", "fun_dm", "live", 7, 20),
+    server("fun-04", "LXC FUN | RETAKE", "de_vertigo", "fun", "fun_retake", "live", 18, 18),
   ],
   pro: [
-    server("pro-01", "LEGACY-X PRO | MIRAGE", "de_mirage", "pro", "pro", "live", 10, 10),
-    server("pro-02", "LEGACY-X PRO | OVERPASS", "de_overpass", "pro", "pro", "waiting", 4, 10),
+    server("pro-01", "LXC PRO | MIRAGE", "de_mirage", "pro", "pro", "live", 10, 10),
+    server("pro-02", "LXC PRO | OVERPASS", "de_overpass", "pro", "pro", "waiting", 4, 10),
   ],
 }
 
@@ -293,7 +293,7 @@ function penalties() {
     term,
     isPermanent,
     isUnbanned,
-    admin: "LEGACY-X Admin",
+    admin: "LXC Admin",
     expiresAt: lengthHours === null ? null : new Date(now - ageHours * HOUR + lengthHours * HOUR).toISOString(),
     date: new Date(now - ageHours * HOUR).toISOString(),
   }))
@@ -347,7 +347,7 @@ function tournament() {
     scoreA, scoreB,
     winnerTeamId: status === "completed" && scoreA !== null && scoreB !== null ? `team-${scoreA > scoreB ? a : b}` : null,
     status, scheduledTime: at(hours), map,
-    server: { id: "5x5-01", name: "LEGACY-X #1 | MIRAGE", connectAddress: "203.0.113.10:27001" },
+    server: { id: "5x5-01", name: "LXC #1 | MIRAGE", connectAddress: "203.0.113.10:27001" },
   })
   const quarter = [
     match("qf1", "Quarter-finals", 1, 0, 7, 13, 6, "completed", -5, "de_mirage"),
@@ -362,8 +362,8 @@ function tournament() {
   const final = [match("f1", "Final", 7, null, null, null, null, "upcoming", 4, null)]
   return {
     id: "mock-cup",
-    name: "LEGACY-X Autumn Cup 2026",
-    description: "Eight teams, single elimination, best of one until the final. Played on LEGACY-X servers with GOTV on every match.",
+    name: "LXC Autumn Cup 2026",
+    description: "Eight teams, single elimination, best of one until the final. Played on LXC servers with GOTV on every match.",
     phase: "live" as const,
     format: "5v5 · BO1 · Final BO3",
     prizePool: "1,500,000₮",
@@ -394,7 +394,7 @@ function tournamentList() {
   return {
     current: summary,
     past: [
-      { id: "mock-summer", name: "LEGACY-X Summer Cup 2026", startsAt: new Date(Date.now() - 70 * 24 * HOUR).toISOString(), winner: "Khan Esports" },
+      { id: "mock-summer", name: "LXC Summer Cup 2026", startsAt: new Date(Date.now() - 70 * 24 * HOUR).toISOString(), winner: "Khan Esports" },
       { id: "mock-spring", name: "Spring Clash 2026", startsAt: new Date(Date.now() - 160 * 24 * HOUR).toISOString(), winner: "Steppe Wolves" },
       { id: "mock-winter", name: "Winter Showdown 2025", startsAt: new Date(Date.now() - 280 * 24 * HOUR).toISOString(), winner: "Gobi Snipers" },
     ],
@@ -513,7 +513,7 @@ function catalog(query: Record<string, string | number | boolean | undefined | n
   else if (category === "agent") items = ["Sir Bloody Darryl", "Cmdr. Mae", "Number K", "Lt. Commander Ricksaw"].map((name, index) => item(`agent-${index}`, "agent", null, name, null, { rarity: index % 2 ? "Classified" : "Covert", team: query?.team === "ct" ? "Counter-Terrorist" : "Terrorist" }))
   else if (category === "music_kit") items = ["Neck Deep", "Amon Tobin", "Knock2", "The Verkkars"].map((name, index) => item(`music-${index}`, "music_kit", null, `Music Kit | ${name}`, null))
   else if (category === "pin") items = ["Dust II Pin", "Mirage Pin", "Guardian Pin", "Howl Pin"].map((name, index) => item(`pin-${index}`, "pin", null, name, null))
-  else if (category === "sticker" || category === "charm") items = ["LEGACY-X", "Mongolia", "Headshot", "Clutch King"].map((name, index) => item(`${category}-${index}`, category, null, `${category === "sticker" ? "Sticker" : "Charm"} | ${name}`, null))
+  else if (category === "sticker" || category === "charm") items = ["LXC", "Mongolia", "Headshot", "Clutch King"].map((name, index) => item(`${category}-${index}`, category, null, `${category === "sticker" ? "Sticker" : "Charm"} | ${name}`, null))
   const matching = search ? items.filter((entry) => entry.display_name.toLowerCase().includes(search)) : items
   return { data: matching.slice(offset, offset + limit), pagination: { limit, offset, total: matching.length } }
 }
@@ -571,7 +571,7 @@ function profileOverview(identity: string) {
     // Only the sample Owner has Respect and links, like the real Owner profile will.
     ...(index === 0 ? {
       respect: ownerRespect,
-      message: "LEGACY-X will always be on top.",
+      message: "LXC will always be on top.",
       team: [
         { steamId: "7656119800000001", username: NAMES[1], avatar: "", role: "Manager" },
         { steamId: "7656119800000002", username: NAMES[2], avatar: "", role: "Admin" },
@@ -632,7 +632,7 @@ function profileOverview(identity: string) {
       ],
     },
     staff: null,
-    presence: own ? null : { serverId: "5x5-01", serverName: "LEGACY-X #1 | MIRAGE", connectAddress: "203.0.113.10:27001", map: "de_mirage" },
+    presence: own ? null : { serverId: "5x5-01", serverName: "LXC #1 | MIRAGE", connectAddress: "203.0.113.10:27001", map: "de_mirage" },
     discordLinked: index % 3 !== 1,
     discordBoosting: index % 3 === 0,
     boosterPlace: index === 0 ? 1 : index === 3 ? 2 : index === 6 ? 3 : null,
@@ -748,7 +748,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
     if (!mockMarketItems.length) {
       mockMarketItems = [
         { id: "11111111-1111-4111-8111-111111111111", title: "Logitech G Pro X Superlight, black", priceMnt: 280000, description: "Used for one season, no double-click, box and cable included.\nMeet in Ulaanbaatar.", images: ["/creator-kit/thumbnail/thumbnail-16x9-violet.png", "/creator-kit/thumbnail/thumbnail-16x9-dark.png"], status: "active", createdAt: new Date(Date.now() - 3_600_000).toISOString(), seller: seller("Temuulen", "76561198000000001"), phone: "+976 9911 2233", email: "temuulen@example.com", reportCount: 0, mine: false },
-        { id: "22222222-2222-4222-8222-222222222222", title: "Gaming chair, red and black", priceMnt: null, description: "Comfortable, one year old. Ask for the price.", images: ["/og-image.webp"], status: "active", createdAt: new Date(Date.now() - 86_400_000 * 2).toISOString(), seller: seller("xBataa", "76561198000000002"), phone: "", email: "bataa@example.com", reportCount: 0, mine: false },
+        { id: "22222222-2222-4222-8222-222222222222", title: "Gaming chair, red and black", priceMnt: null, description: "Comfortable, one year old. Ask for the price.", images: ["/og-image.png"], status: "active", createdAt: new Date(Date.now() - 86_400_000 * 2).toISOString(), seller: seller("xBataa", "76561198000000002"), phone: "", email: "bataa@example.com", reportCount: 0, mine: false },
         { id: "33333333-3333-4333-8333-333333333333", title: "27 inch 240 Hz monitor", priceMnt: 650000, description: "No dead pixels. Receipt available.", images: [], status: "active", createdAt: new Date(Date.now() - 86_400_000 * 5).toISOString(), seller: seller("LegacyTester", "76561198000000003"), phone: "+976 8800 1122", email: "", reportCount: 0, mine: true },
       ]
     }
@@ -777,7 +777,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
   }
   if (path === "/api/v1/creators/me/links" && method === "PUT") return { links: (body as { links: Record<string, string> }).links }
   if (path === "/api/v1/creators/me/about" && method === "PUT") { mockCreatorAbout = String((body as { bio: string }).bio); return { about: mockCreatorAbout } }
-  if (path === "/api/v1/creators/me/tiktok") return { available: true, link: localStorage.getItem("legacyx_mock_tiktok") ? { username: "legacyx", displayName: "LEGACY-X", avatarUrl: null, followers: 12400, likes: 83200, videos: 41, linkedAt: new Date().toISOString() } : null }
+  if (path === "/api/v1/creators/me/tiktok") return { available: true, link: localStorage.getItem("legacyx_mock_tiktok") ? { username: "legacyx", displayName: "LXC", avatarUrl: null, followers: 12400, likes: 83200, videos: 41, linkedAt: new Date().toISOString() } : null }
   if (path === "/api/v1/creators/me/referral") return { code: "XK7Q2M", count: 18, earned: 3600, recent: [{ id: "r1", name: "Temuulen", steamId: "76561198000000011", avatar: null, at: new Date(Date.now() - 2 * 864e5).toISOString() }, { id: "r2", name: "Khuslen_AWP", steamId: "76561198000000012", avatar: null, at: new Date(Date.now() - 4 * 864e5).toISOString() }, { id: "r3", name: "Gansukh", steamId: "76561198000000013", avatar: null, at: new Date(Date.now() - 6 * 864e5).toISOString() }] }
   if (path === "/api/v1/creators/applications/me") {
     // Design preview only: set localStorage legacyx_mock_creator=1 to see a creator's "Edit my about".
@@ -789,11 +789,11 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path.startsWith("/api/v1/staff/creators/applications/") && method === "PUT") return { id: path.split("/").pop(), status: (body as { decision: string }).decision === "approve" ? "approved" : "declined" }
   if (path === "/api/v1/staff/shop/orders" && method === "GET") return { orders: [
     { id: "o1", productId: "p1", productName: "Genesis pack", productKind: "founder", grantsLx: 0, quantity: 1, unitPriceMnt: 30000, status: "new", createdAt: new Date(Date.now() - 2 * HOUR).toISOString(), phone: "99112233", note: "Call after 6 pm", player: { steamId: "76561198000000001", username: "xBataa" } },
-    { id: "o2", productId: "p2", productName: "LEGACY-X NFC charm", productKind: "charm", grantsLx: 0, quantity: 2, unitPriceMnt: 12000, status: "contacted", createdAt: new Date(Date.now() - 20 * HOUR).toISOString(), phone: "88001122", note: "", player: { steamId: "76561198000000004", username: "Enkh." } },
+    { id: "o2", productId: "p2", productName: "LXC NFC charm", productKind: "charm", grantsLx: 0, quantity: 2, unitPriceMnt: 12000, status: "contacted", createdAt: new Date(Date.now() - 20 * HOUR).toISOString(), phone: "88001122", note: "", player: { steamId: "76561198000000004", username: "Enkh." } },
   ] }
   if (path === "/api/v1/staff/shop/products" && method === "GET") return { products: [
     { id: "p1", slug: "genesis", name: "Genesis pack", description: "", kind: "founder", priceMnt: 30000, imageUrl: null, stock: 500, grantsLx: 0, enabled: true, sort: 0 },
-    { id: "p2", slug: "nfc-charm", name: "LEGACY-X NFC charm", description: "", kind: "charm", priceMnt: 12000, imageUrl: null, stock: 40, grantsLx: 0, enabled: true, sort: 1 },
+    { id: "p2", slug: "nfc-charm", name: "LXC NFC charm", description: "", kind: "charm", priceMnt: 12000, imageUrl: null, stock: 40, grantsLx: 0, enabled: true, sort: 1 },
     { id: "p3", slug: "lx-5000", name: "5,000 FOL$", description: "", kind: "lx", priceMnt: 15000, imageUrl: null, stock: 0, grantsLx: 5000, enabled: false, sort: 2 },
   ] }
   if (path === "/api/v1/moderation/roster") {
@@ -851,7 +851,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
       { id: "n2", kind: "match", title: "Match finished", body: "Win 13-9 on de_mirage, +24 EXP.", metadata: {}, readAt: null, createdAt: ago(35) },
       { id: "n3", kind: "clan", title: "Clan invite", body: "WOLF invited you to join.", metadata: {}, readAt: ago(60), createdAt: ago(90) },
       { id: "n4", kind: "system", title: "Unban approved", body: "Your unban request was approved.", metadata: { kind: "lift_decision" }, readAt: ago(120), createdAt: ago(200) },
-      { id: "n5", kind: "system", title: "Message from staff", body: "Welcome to LEGACY-X.", metadata: { kind: "staff_message" }, readAt: ago(300), createdAt: ago(400) },
+      { id: "n5", kind: "system", title: "Message from staff", body: "Welcome to LXC.", metadata: { kind: "staff_message" }, readAt: ago(300), createdAt: ago(400) },
     ]
     return { entries, unreadCount: 2 }
   }
@@ -976,7 +976,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path.startsWith("/api/v1/feedback/") && path.endsWith("/reaction")) return { reactions: { like: 3, love: 1, funny: 0 }, myReaction: (body as { reaction: string | null } | undefined)?.reaction ?? null }
   if (path === "/api/v1/discord/pings") {
     if (method === "PUT") { const { topic, enabled } = body as { topic: string; enabled: boolean }; if (enabled) mockPings.add(topic); else mockPings.delete(topic); return { topic, enabled } }
-    return { linked: true, topics: [["updates", "Updates", "Website and game server updates"], ["news", "News", "Counter-Strike 2 news"], ["live", "Creators live", "A LEGACY-X creator goes live"], ["play", "Servers need players", "A server is short of players"]].map(([key, label, description]) => ({ key, label, description, enabled: mockPings.has(key) })) }
+    return { linked: true, topics: [["updates", "Updates", "Website and game server updates"], ["news", "News", "Counter-Strike 2 news"], ["live", "Creators live", "A LXC creator goes live"], ["play", "Servers need players", "A server is short of players"]].map(([key, label, description]) => ({ key, label, description, enabled: mockPings.has(key) })) }
   }
   if (path === "/api/v1/discord/link/start") return { url: "https://discord.com/oauth2/authorize" }
   if (path === "/api/v1/discord/link") return { available: true, link: { discordId: "987654321098765432", discordName: "Legacy Player", inServer: true, linkedAt: new Date(Date.now() - 3 * 24 * HOUR).toISOString() } }
@@ -986,7 +986,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path === "/api/v1/shop/founder/buy" && method === "POST") { mockFrameState.owned.add("founder"); return { number: 38, label: "#0038" } }
   if (path === "/api/v1/shop/products") {
     const lx = (id: string, grantsLx: number, priceMnt: number) => ({ id, slug: id, name: `${grantsLx.toLocaleString()} FOL$`, description: "", kind: "lx", priceMnt, imageUrl: null, stock: 100000, grantsLx })
-    return { products: [lx("lx-750", 750, 5000), lx("lx-1500", 1500, 10000), lx("lx-3000", 3000, 20000), lx("lx-3300", 3300, 20000), lx("lx-8500", 8500, 50000), { id: "founder-pack", slug: "founder-pack", name: "LEGACY-X Genesis", description: "", kind: "founder", priceMnt: 30000, imageUrl: null, stock: 500, grantsLx: 0, founder: { limit: 500, taken: 37, remaining: 463, endsAt: "2026-11-30T15:59:59Z", open: true, priceLx: 4500 } }, { id: "charm", slug: "charm", name: "LEGACY-X NFC charm", description: "Tap it to open your profile.", kind: "charm", priceMnt: 15000, imageUrl: null, stock: 12, grantsLx: 0 }] }
+    return { products: [lx("lx-750", 750, 5000), lx("lx-1500", 1500, 10000), lx("lx-3000", 3000, 20000), lx("lx-3300", 3300, 20000), lx("lx-8500", 8500, 50000), { id: "founder-pack", slug: "founder-pack", name: "LXC Genesis", description: "", kind: "founder", priceMnt: 30000, imageUrl: null, stock: 500, grantsLx: 0, founder: { limit: 500, taken: 37, remaining: 463, endsAt: "2026-11-30T15:59:59Z", open: true, priceLx: 4500 } }, { id: "charm", slug: "charm", name: "LXC NFC charm", description: "Tap it to open your profile.", kind: "charm", priceMnt: 15000, imageUrl: null, stock: 12, grantsLx: 0 }] }
   }
   if (path === "/api/v1/shop/orders/me") return { orders: [{ id: "o1", productId: "lx-3000", productName: "3,000 FOL$", productKind: "lx", grantsLx: 3000, quantity: 1, unitPriceMnt: 20000, status: "contacted", createdAt: new Date(Date.now() - 3 * HOUR).toISOString() }, { id: "o2", productId: "lx-750", productName: "750 FOL$", productKind: "lx", grantsLx: 750, quantity: 1, unitPriceMnt: 5000, status: "paid", createdAt: new Date(Date.now() - 30 * HOUR).toISOString() }] }
   if (path === "/api/v1/staff/shop/orders") return { orders: [] }
@@ -1085,7 +1085,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
     if (!found) throw notFound()
     const roster = (offset: number, count: number) => Array.from({ length: count }, (_, i) => ({
       steamId: `76561198${offset + i}`, name: NAMES[(offset + i) % NAMES.length], connected: i !== 3, rankId: RANKS[(offset + i) % RANKS.length][0], rankName: RANKS[(offset + i) % RANKS.length][1], rankImageKey: null,
-      avatar: (offset + i) % 2 === 0 ? `${location.origin}/logolegacyx.webp` : null,
+      avatar: (offset + i) % 2 === 0 ? `${location.origin}/lxc-mark.webp` : null,
       adr: 60 + ((offset + i) * 13) % 70, ping: 20 + i * 7, kills: 18 - i * 3 + (offset % 3), deaths: 9 + i, assists: 3 + (i % 4),
     }))
     const tCount = Math.ceil(found.players / 2)
@@ -1134,7 +1134,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
       return { team: [["Owner", 0], ["Manager", 1], ["Manager", 2], ["Admin", 3], ["Admin", 4], ["Admin", 5], ["Developer", 6], ["Designer", 7]].map(([role, index]) => ({ steamId: `7656119800000010${index}`, username: NAMES[index as number], avatar: "", role, since: new Date(Date.UTC(2026, 6 + ((index as number) % 4), 3)).toISOString(), clanTag: (index as number) % 3 === 0 ? "FOL$" : null, rank: { id: RANKS[index as number][0], name: RANKS[index as number][1], imageKey: null }, stats: index === 7 ? null : { matches: 40 + (index as number) * 17, wins: 22 + (index as number) * 8, kills: 600 + (index as number) * 90, deaths: 480 + (index as number) * 70 } })) }
     case "/api/v1/public/creators":
       return { creators: [
-        { userId: "u1", steamId: "76561198000000001", username: "Temuulen", avatar: null, tier: "main", label: "Main Content Creator", bio: "CS2 streams every evening on LEGACY-X servers.", links: { twitch: "https://twitch.tv/temuulen", youtube: "https://youtube.com/@temuulen" }, rank: { id: 16, name: "Apex III", imageKey: null }, frame: null, nameStyle: null },
+        { userId: "u1", steamId: "76561198000000001", username: "Temuulen", avatar: null, tier: "main", label: "Main Content Creator", bio: "CS2 streams every evening on LXC servers.", links: { twitch: "https://twitch.tv/temuulen", youtube: "https://youtube.com/@temuulen" }, rank: { id: 16, name: "Apex III", imageKey: null }, frame: null, nameStyle: null },
         { userId: "u2", steamId: "76561198000000002", username: "xBataa", avatar: null, tier: "main", label: "Main Content Creator", bio: "Highlights and AWP clips.", links: { youtube: "https://youtube.com/@xbataa", tiktok: "https://tiktok.com/@xbataa" }, rank: { id: 15, name: "Apex II", imageKey: null }, frame: null, nameStyle: null },
         { userId: "u3", steamId: "76561198000000003", username: "Khuslen_AWP", avatar: null, tier: "creator", label: "Content Creator", bio: "", links: { kick: "https://kick.com/khuslen" }, rank: { id: 14, name: "Apex I", imageKey: null }, frame: null, nameStyle: null },
         { userId: "u4", steamId: "76561198000000004", username: "Enkh.", avatar: null, tier: "creator", label: "Content Creator", bio: "Fun Mode surf videos.", links: { facebook: "https://facebook.com/enkh", instagram: "https://instagram.com/enkh" }, rank: null, frame: null, nameStyle: null },

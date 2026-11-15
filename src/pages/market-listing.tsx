@@ -114,7 +114,7 @@ export function MarketListingPage() {
               )}
             </div>
           )}
-          <p className="flex items-start gap-2 text-[12px] leading-relaxed text-[var(--text-dim)]"><ShieldAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />LEGACY-X does not take part in deals. Meet in a safe public place, check the item before you pay, and never send money first to someone you do not know.</p>
+          <p className="flex items-start gap-2 text-[12px] leading-relaxed text-[var(--text-dim)]"><ShieldAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />LXC does not take part in deals. Meet in a safe public place, check the item before you pay, and never send money first to someone you do not know.</p>
           <div className="flex flex-wrap gap-2">
             {mine ? (
               <>

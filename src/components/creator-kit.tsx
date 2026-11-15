@@ -46,7 +46,7 @@ const GROUPS: Group[] = [
     hint: "Transparent WebM, 1920 × 1080: put them on a layer above your clip. The same for everyone. An editor that does not read WebM transparency (Premiere, CapCut, DaVinci): content creators can make the MOV copies in Animated below.",
     items: [
       { file: "video/community-intro.webm", name: "Community intro", note: "The L, then COUNTER-STRIKE COMMUNITY, 5 s", video: true },
-      { file: "video/logo-sting.webm", name: "Logo sting", note: "The mark and LEGACY-X, 4 s", video: true },
+      { file: "video/logo-sting.webm", name: "Logo sting", note: "The mark and LXC, 4 s", video: true },
       { file: "video/wipe-transition.webm", name: "Wipe transition", note: "Between two clips, 1.2 s", video: true },
       { file: "video/community-badge.webm", name: "Community badge", note: "Slides in at the corner, 5 s", video: true },
     ],
@@ -58,7 +58,7 @@ const GROUPS: Group[] = [
       { file: "overlay/lower-third.png", name: "Lower third", note: "Type your name in the empty space" },
       { file: "overlay/powered-by.png", name: "Powered by badge", note: "Top-right corner" },
       { file: "overlay/creator-code.png", name: "Creator code bar", note: "Type your code in the empty box" },
-      { file: "overlay/end-card.png", name: "End card", note: "Play ranked on LEGACY-X, 5 seconds" },
+      { file: "overlay/end-card.png", name: "End card", note: "Play ranked on LXC, 5 seconds" },
     ],
   },
 ]
@@ -168,7 +168,7 @@ export function CreatorKit() {
         <DialogContent className="max-h-[88dvh] overflow-y-auto bg-[var(--panel)] sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>Creator kit</DialogTitle>
-            <DialogDescription>Logos, thumbnail backgrounds and overlays for your videos. Free to use in your Content Creator videos about LEGACY-X.</DialogDescription>
+            <DialogDescription>Logos, thumbnail backgrounds and overlays for your videos. Free to use in your Content Creator videos about LXC.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-2.5 sm:grid-cols-2">
             <label className="flex flex-col gap-1.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-faint)]">Your name
@@ -241,7 +241,7 @@ export function CreatorKit() {
               ))}
             </ul>
             <ul className="list-disc space-y-1 pl-5 text-[13px] text-[var(--text-2)]">
-              <li>Write it LEGACY-X in capitals, on black or a dark picture. Do not stretch, rotate or add a glow to it.</li>
+              <li>Write it LXC in capitals, on black or a dark picture. Do not stretch, rotate or add a glow to it.</li>
               <li>Say it is a Content Creator video, not an official announcement, unless staff said so.</li>
               <li>Do not use the kit on videos that show cheats or break the server rules.</li>
               <li>Your creator code is in <span className="text-[var(--text)]">My code</span>: type it into the Creator code bar and say it in the video.</li>

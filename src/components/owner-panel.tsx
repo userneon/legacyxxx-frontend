@@ -63,7 +63,7 @@ export function OwnerPanel({ overview }: { overview: ProfileOverview }) {
           <div aria-hidden="true" className="lx-op-glow" />
           <span className="relative inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-dim)]">
             <Crown className="size-3.5" aria-hidden="true" />
-            Owner of LEGACY-X
+            Owner of LXC
           </span>
           <span className="relative flex items-end justify-center gap-2.5">
             <span key={pop} className={cn("text-[64px] font-black leading-none text-[var(--text)] [text-shadow:0_0_48px_color-mix(in_oklab,var(--brand)_40%,transparent)] max-sm:text-[52px]", pop > 0 && "lx-op-pop")}>

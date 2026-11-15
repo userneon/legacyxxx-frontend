@@ -84,8 +84,8 @@ export function pageToRoute(page: PageId): string {
   return PAGE_ROUTES[page] ?? "/"
 }
 
-const SITE_NAME = "LEGACY-X"
-const HOME_DOCUMENT_TITLE = "LEGACY-X — Official CS2 Community"
+const SITE_NAME = "LXC"
+const HOME_DOCUMENT_TITLE = "LXC — Official CS2 Community"
 
 /** Browser tab title: "Leaders · LEGACY-X"; Home keeps the full site title. */
 export function documentTitle(title?: string | null) {

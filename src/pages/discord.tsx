@@ -105,7 +105,7 @@ export function DiscordPage() {
         <section className={cn(card, "flex flex-wrap items-center gap-x-6 gap-y-4 p-6")}>
           <span className={"flex size-14 shrink-0 items-center justify-center rounded-2xl bg-[#5865F2]/15 text-[#8b95f5]" /* palette-exempt: Discord brand */}><DiscordIcon className="size-7" /></span>
           <div className="min-w-0 flex-1">
-            <h1 className="font-display text-[26px] font-bold leading-tight text-[var(--text)]">LEGACY-X Discord</h1>
+            <h1 className="font-display text-[26px] font-bold leading-tight text-[var(--text)]">LXC Discord</h1>
             <p className="mt-1 flex flex-wrap items-center gap-x-2 text-[14px] text-[var(--text-muted)]">
               {widget ? (
                 <>

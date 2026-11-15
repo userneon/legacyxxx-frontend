@@ -134,7 +134,7 @@ export function StaffShop() {
                 <input className={input} value={draft.slug} disabled={!draft.isNew} maxLength={40} onChange={(event) => setDraft({ ...draft, slug: event.target.value.toLowerCase() })} placeholder="legacyx-nfc-charm" />
               </label>
               <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Name
-                <input className={input} value={draft.name} maxLength={80} onChange={(event) => setDraft({ ...draft, name: event.target.value })} placeholder="LEGACY-X NFC charm" />
+                <input className={input} value={draft.name} maxLength={80} onChange={(event) => setDraft({ ...draft, name: event.target.value })} placeholder="LXC NFC charm" />
               </label>
             </div>
             <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Description ({600 - draft.description.length} left)

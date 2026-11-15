@@ -13,7 +13,7 @@ export const PERK_EMBLEM: Record<string, string> = { tier1: prestige, tier2: imp
  */
 export function PerkBadge({ tier, name }: { tier: string; name: string }) {
   return (
-    <span title={`${name}: a LEGACY-X in-game rank`} data-tier={tier} className="lx-perk-badge inline-flex h-7 items-center gap-1.5 rounded-full py-0 pl-1.5 pr-3 text-[11px] font-bold uppercase tracking-[1px]">
+    <span title={`${name}: a LXC in-game rank`} data-tier={tier} className="lx-perk-badge inline-flex h-7 items-center gap-1.5 rounded-full py-0 pl-1.5 pr-3 text-[11px] font-bold uppercase tracking-[1px]">
       {PERK_EMBLEM[tier] && <img src={PERK_EMBLEM[tier]} alt="" aria-hidden="true" width={34} height={34} className="relative z-[1] -my-[4px] -ml-1 size-[34px] object-contain drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]" />}
       {name}
     </span>
@@ -39,7 +39,7 @@ export function PerkMark({ perk, compact = false, size = 20 }: { perk?: PerkLook
   if (!perk || !PERK_EMBLEM[perk.tier]) return null
   const tone = SHINE[perk.tier] ?? SHINE.tier1
   return (
-    <span title={`${perk.name}: a LEGACY-X in-game rank`} data-tier={perk.tier} className="inline-flex shrink-0 items-center gap-1 align-middle">
+    <span title={`${perk.name}: a LXC in-game rank`} data-tier={perk.tier} className="inline-flex shrink-0 items-center gap-1 align-middle">
       <img src={PERK_EMBLEM[perk.tier]} alt="" aria-hidden="true" width={size} height={size} draggable={false} style={{ width: size, height: size, filter: `drop-shadow(0 0 5px color-mix(in oklab, ${tone.glow} 70%, transparent))` }} className="object-contain" />
       {!compact && <ShinyText text={perk.name.toUpperCase()} color={tone.color} shineColor={tone.shine} speed={3.2} delay={0.8} glow={0.5} className="text-[10px] font-bold tracking-[1px]" />}
     </span>

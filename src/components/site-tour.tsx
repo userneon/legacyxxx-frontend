@@ -20,7 +20,7 @@ interface Step {
 }
 
 const STEPS: Step[] = [
-  { title: "Welcome to LEGACY-X", body: "A short tour of the site: where to play, change your skins, spend FOL$ and find people. Use the arrow keys or the buttons, and Esc to stop at any time." },
+  { title: "Welcome to LXC", body: "A short tour of the site: where to play, change your skins, spend FOL$ and find people. Use the arrow keys or the buttons, and Esc to stop at any time." },
   { target: 'nav button[aria-label="Home"]', sidebar: true, title: "Home", body: "Who is online right now, the best players, and the game modes with a Play now button." },
   { target: 'nav button[aria-label="Play"]', sidebar: true, title: "Play", body: "Pick a mode (5x5, Fun, Pro League, Tournaments), see its servers live and press Connect or Quick play. Pro League needs a sign-in and a high enough rank." },
   { target: 'nav button[aria-label="Skinchanger"]', sidebar: true, title: "Skinchanger", body: "Choose your weapon skins, knives and gloves on the site. In game, type !rs to load the change." },

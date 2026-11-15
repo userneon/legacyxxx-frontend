@@ -101,7 +101,7 @@ export function MarketForm({ open, onClose, listing, onSaved }: { open: boolean;
       <DialogContent className="lx-add-box max-h-[90dvh] overflow-y-auto bg-[var(--panel)] sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2.5"><span className="lx-add-icon"><Store className="size-4" aria-hidden="true" /></span>{listing ? "Edit your listing" : "Sell something"}</DialogTitle>
-          <DialogDescription>Anything you like. LEGACY-X does not take part in the deal: meet in a safe place and check the item before you pay.</DialogDescription>
+          <DialogDescription>Anything you like. LXC does not take part in the deal: meet in a safe place and check the item before you pay.</DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={(event) => { event.preventDefault(); void save() }}>
           <label className="flex flex-col gap-1.5"><span className={label}>Title</span>

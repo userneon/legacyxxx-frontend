@@ -51,14 +51,14 @@ export function DiscordStrip() {
       href={widget?.instant_invite || LINKS.discordInvite}
       target="_blank"
       rel="noreferrer"
-      aria-label="Join the LEGACY-X Discord"
+      aria-label="Join the LXC Discord"
       className={"glass group flex items-center gap-3 rounded-2xl px-4 py-3 transition-colors hover:border-[#5865F2]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7289DA]" /* palette-exempt: Discord brand */}
     >
       <span className={"flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#5865F2]/15 text-[#8b95f5]" /* palette-exempt: Discord brand */}>
         <DiscordIcon className="size-5" />
       </span>
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-semibold">LEGACY-X Discord</div>
+        <div className="text-sm font-semibold">LXC Discord</div>
         <div className="flex items-center gap-1.5 truncate text-xs text-muted-foreground">
           {widget ? (
             <>
@@ -97,7 +97,7 @@ export function DiscordCard({ className }: { className?: string }) {
       href={widget?.instant_invite || LINKS.discordInvite}
       target="_blank"
       rel="noreferrer"
-      aria-label="Join the LEGACY-X Discord"
+      aria-label="Join the LXC Discord"
       className={cn("lx-discord-card group relative flex flex-col justify-center gap-2 overflow-hidden rounded-2xl p-4 pr-24 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7289DA]", className) /* palette-exempt: Discord brand */}
     >
       <span className="text-sm font-semibold text-[#c7ccff]" /* palette-exempt: Discord brand */>Discord</span>
@@ -111,14 +111,14 @@ export function DiscordCard({ className }: { className?: string }) {
       ) : linked > 0 ? (
         <span className="flex items-baseline gap-2 text-[#c7ccff]" /* palette-exempt: Discord brand */>
           <span className="text-[26px] font-bold leading-none text-white">{linked.toLocaleString()}</span>
-          <span className="text-[13px]">linked on LEGACY-X</span>
+          <span className="text-[13px]">linked on LXC</span>
         </span>
       ) : (
         <span className="text-[13px] text-[#c7ccff]" /* palette-exempt: Discord brand */>Teammates, announcements and clips</span>
       )}
       {(widget ? linked > 0 : boosting > 0) && (
         <span className="text-[12px] text-[#aab1ff]" /* palette-exempt: Discord brand */>
-          {widget ? `${linked.toLocaleString()} linked on LEGACY-X` : ""}{widget && boosting > 0 ? " · " : ""}{boosting > 0 ? `${boosting.toLocaleString()} boosting the server` : ""}
+          {widget ? `${linked.toLocaleString()} linked on LXC` : ""}{widget && boosting > 0 ? " · " : ""}{boosting > 0 ? `${boosting.toLocaleString()} boosting the server` : ""}
         </span>
       )}
       {faces.length > 0 && (

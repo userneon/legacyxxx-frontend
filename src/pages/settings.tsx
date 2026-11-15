@@ -369,7 +369,7 @@ function Website() {
     saved.flash()
   }
   return (
-    <Section id="website" index={2} title="Website" description="How LEGACY-X looks and behaves on this device. Changes apply right away." aside={saved.node}>
+    <Section id="website" index={2} title="Website" description="How LXC looks and behaves on this device. Changes apply right away." aside={saved.node}>
       <Row title="Time format" description="Used for match times, countdowns and dates.">
         <Segmented<TimeFormat>
           ariaLabel="Time format"

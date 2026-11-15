@@ -20,7 +20,7 @@ const ROLES: TeamRole[] = ["Manager", "Admin", "Developer", "Designer", "QA"]
 const PLURAL: Record<TeamRole, string> = { Owner: "Owner", Manager: "Managers", Admin: "Admins", Developer: "Developers", Designer: "Designers", QA: "QA" }
 /** What each role does, from what each one can do on the staff site. */
 const DUTY: Record<TeamRole, string> = {
-  Owner: "Runs LEGACY-X.",
+  Owner: "Runs LXC.",
   Manager: "Runs the clans, creators, the Shop and the game servers.",
   Admin: "Watches the servers, asks for checks and hands out penalties.",
   Developer: "Builds the website, the API and the game plugins.",

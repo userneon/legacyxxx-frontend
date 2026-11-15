@@ -297,7 +297,7 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
           <PageTabs ariaLabel="Sort by" lead="Ranked by" value={clans ? "clans" : boosters ? "boosters" : sort} onChange={setSort} options={VIEWS} />
           <PageBarEnd>
             {loading && players.length > 0 && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
-            <span key={clans ? "clans" : boosters ? "boosters" : sort} className="lx-swap-in text-[13px] text-[var(--text-dim)] max-xl:hidden">{clans ? "Ranked by the total EXP of a clan's members." : boosters ? "Who boosts and grows the LEGACY-X Discord." : SUBTITLE[sort]}</span>
+            <span key={clans ? "clans" : boosters ? "boosters" : sort} className="lx-swap-in text-[13px] text-[var(--text-dim)] max-xl:hidden">{clans ? "Ranked by the total EXP of a clan's members." : boosters ? "Who boosts and grows the LXC Discord." : SUBTITLE[sort]}</span>
             <label className={pageSearchClass}>
               <Search className="size-4 shrink-0 text-[var(--text-dim)]" />
               <input

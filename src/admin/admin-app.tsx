@@ -16,7 +16,7 @@ function Site() {
 /** The staff site: the Staff page draws its own frame (menu, top bar, bottom bar on a phone, see admin-shell.tsx). Everything else a staff link points at opens on the website. */
 export function AdminApp() {
   useEffect(() => {
-    document.title = "Staff · LEGACY-X"
+    document.title = "Staff · LXC"
     // Square corners and the monospace labels (admin.css) reach dialogs and sheets too, because they render outside the page.
     document.documentElement.classList.add("adm")
     return () => document.documentElement.classList.remove("adm")

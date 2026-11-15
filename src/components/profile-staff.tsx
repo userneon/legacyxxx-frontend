@@ -88,7 +88,7 @@ function NotifyDialog({ open, onOpenChange, steamId, name }: { open: boolean; on
       onOpenChange(false)
     } catch (error) {
       const status = (error as Partial<ApiError> | null)?.status
-      toast.error("That did not work", { description: status === 404 ? "That player has not signed in to LEGACY-X yet." : status === 403 ? "You are not allowed to do that." : "Try again in a moment." })
+      toast.error("That did not work", { description: status === 404 ? "That player has not signed in to LXC yet." : status === 403 ? "You are not allowed to do that." : "Try again in a moment." })
     } finally {
       setBusy(false)
     }

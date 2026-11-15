@@ -173,7 +173,7 @@ export function StaffTeam() {
   return (
     <div className={STAFF_BODY}>
       <div className="flex items-center justify-between gap-3">
-        <p className="text-[13px] text-[var(--text-muted)]">The LEGACY-X team. Game servers update within a minute.</p>
+        <p className="text-[13px] text-[var(--text-muted)]">The LXC team. Game servers update within a minute.</p>
         {!draft && <button type="button" onClick={() => setDraft({ id: null, steamId: "", role: "ADMIN", immunity: 500, stamina: 500, term: "none", until: "", adminLevel: "admin", extraCommands: [], qa: false })} className="lx-primary-button inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-3.5 text-[13px] font-semibold"><Plus className="size-4" />Add staff</button>}
       </div>
 

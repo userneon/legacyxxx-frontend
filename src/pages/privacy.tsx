@@ -24,7 +24,7 @@ export function PrivacyPage() {
     <article className="mx-auto flex w-full max-w-[760px] flex-col gap-6 px-6 pb-16 pt-8 max-md:px-4">
       <header className="flex flex-col gap-2">
         <h1 className="font-display text-[28px] leading-tight text-[var(--text)]">Privacy policy</h1>
-        <p className={body}>LEGACY-X is a community for Counter-Strike 2 players in Mongolia: the website at legacyx.cc, the iPhone app, the game servers and the Discord server. This page says what they keep about you and why.</p>
+        <p className={body}>LXC is a community for Counter-Strike 2 players in Mongolia: the website at legacyx.cc, the iPhone app, the game servers and the Discord server. This page says what they keep about you and why.</p>
       </header>
 
       <Part title="What we keep">
@@ -34,7 +34,7 @@ export function PrivacyPage() {
         <p><b className="text-[var(--text)]">Payments.</b> A top-up or a paid rank is paid on the page of our payment provider (Wire, with QPay and the banks). We keep the amount, the time and the result. We never see your card or bank login.</p>
         <p><b className="text-[var(--text)]">Your phone (iPhone app).</b> If you allow notifications, a push token that Apple gives the app, so we can send you the same messages as the bell on the website. Your choice of language and the player you follow stay on your phone.</p>
         <p><b className="text-[var(--text)]">TikTok (content creators only).</b> If you are a content creator and connect your TikTok with TikTok's own sign-in, we keep your TikTok account id, your @handle, display name and picture, and the follower, like and video counts TikTok gave us at that moment. We never keep TikTok's access token and never post for you. You can disconnect it on the Creators page and it is deleted.</p>
-        <p><b className="text-[var(--text)]">Staff checks.</b> If staff ask you to run the LEGACY-X Checker, it reads the programs and files described to you on its first screen and sends the result to staff. It changes nothing on your computer. The result is kept for a limited time.</p>
+        <p><b className="text-[var(--text)]">Staff checks.</b> If staff ask you to run the LXC Checker, it reads the programs and files described to you on its first screen and sends the result to staff. It changes nothing on your computer. The result is kept for a limited time.</p>
       </Part>
 
       <Part title="Why">
@@ -57,7 +57,7 @@ export function PrivacyPage() {
       </Part>
 
       <Part title="Changes and contact">
-        <p>We change this page when what we keep changes. For anything about your data, contact LEGACY-X staff on our Discord server.</p>
+        <p>We change this page when what we keep changes. For anything about your data, contact LXC staff on our Discord server.</p>
       </Part>
     </article>
   )

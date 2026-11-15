@@ -364,7 +364,7 @@ function WriteDialog({ open, editing, onClose, onPosted }: { open: boolean; edit
         <div className="flex h-14 items-center justify-between pl-5 pr-14">
           <SheetTitle className="flex items-center gap-2.5 text-base font-semibold text-[var(--text)]"><span className="lx-add-icon"><MessageSquarePlus className="size-4" /></span>{editing ? "Edit your review" : "Write a review"}</SheetTitle>
         </div>
-        <SheetDescription className="sr-only">Rate LEGACY-X and describe your experience.</SheetDescription>
+        <SheetDescription className="sr-only">Rate LXC and describe your experience.</SheetDescription>
         <div className="flex flex-col gap-[18px] p-5">
           <div className="flex flex-col gap-2">
             <span className="text-xs text-[var(--text-muted)]">What is it about?</span>
@@ -534,7 +534,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
           />
           <PageBarEnd>
             {loading && reviews.length > 0 && <LoaderCircle aria-label="Updating" className="size-4 animate-spin text-[var(--text-dim)]" />}
-            <span className="text-[13px] text-[var(--text-dim)] max-xl:hidden">What players say about LEGACY-X.</span>
+            <span className="text-[13px] text-[var(--text-dim)] max-xl:hidden">What players say about LXC.</span>
             <Segmented
               ariaLabel="Sort"
               size="sm"

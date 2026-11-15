@@ -1,6 +1,6 @@
 /** What each server action does, in one or two sentences, for the tooltip on its button (staff site). */
 export const ACTION_HINTS: Record<string, string> = {
-  ban: "Bans the player on every LEGACY-X server and the site. Asks for a reason; an unban later needs an Admin request or a Manager.",
+  ban: "Bans the player on every LXC server and the site. Asks for a reason; an unban later needs an Admin request or a Manager.",
   kick: "Removes the player from this server right now. They can join again. Asks for a reason.",
   mute: "Silences the player's voice chat. Asks for a reason.",
   rename: "Changes the player's in-game name on this server for this session.",

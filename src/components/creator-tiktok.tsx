@@ -95,7 +95,7 @@ export function CreatorTikTok({ onChanged }: { onChanged?: () => void }) {
         </div>
       ) : (
         <div className="flex flex-wrap items-center gap-4">
-          <p className="min-w-0 flex-1 text-[13px] leading-relaxed text-[var(--text-muted)]">Connect your TikTok with TikTok's own sign-in. Your Creators card then shows a Verified mark, and your followers, likes and videos. LEGACY-X only reads your public profile and never posts.</p>
+          <p className="min-w-0 flex-1 text-[13px] leading-relaxed text-[var(--text-muted)]">Connect your TikTok with TikTok's own sign-in. Your Creators card then shows a Verified mark, and your followers, likes and videos. LXC only reads your public profile and never posts.</p>
           <button type="button" disabled={busy || !data.available} onClick={() => void connect()} className={button}>{busy ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <BrandIcon platform="tiktok" className="size-4" />}Connect TikTok</button>
           {!data.available && <p className="basis-full text-[12px] text-[var(--text-dim)]">Connecting TikTok is not set up yet.</p>}
         </div>

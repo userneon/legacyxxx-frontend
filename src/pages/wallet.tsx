@@ -164,7 +164,7 @@ export function WalletPage() {
                 <span aria-hidden="true" className="absolute -bottom-[90px] -right-[70px] size-[300px] rounded-full border border-white/[0.07] shadow-[0_0_0_26px_rgba(255,255,255,.02),0_0_0_54px_rgba(255,255,255,.015)]" />
                 <div className="relative flex items-center justify-between">
                   <span className="flex items-center gap-2.5 font-bold tracking-[0.4px]">FOL$ WALLET</span>
-                  <span className="text-[11px] tracking-[1.4px] text-[var(--text-muted)]">LEGACY-X</span>
+                  <span className="text-[11px] tracking-[1.4px] text-[var(--text-muted)]">LXC</span>
                 </div>
                 <div className="relative mt-auto">
                   <span className="text-xs font-semibold tracking-[1.2px] text-[var(--text-muted)]">BALANCE</span>

@@ -30,11 +30,11 @@ export function TikTokCard({ className }: { className?: string }) {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label={handle ? `LEGACY-X on TikTok ${handle}` : "LEGACY-X on TikTok"}
+      aria-label={handle ? `LXC on TikTok ${handle}` : "LXC on TikTok"}
       className={cn("lx-tiktok-card group relative flex flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl p-4 pl-28 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25f4ee]", className)}
     >
       <span className="text-sm font-semibold text-white">TikTok</span>
-      {handle ? <span className="max-w-full truncate pb-0.5 text-[22px] font-bold leading-[1.2] text-white">{handle}</span> : <span className="text-[13px] text-white/70">Follow LEGACY-X</span>}
+      {handle ? <span className="max-w-full truncate pb-0.5 text-[22px] font-bold leading-[1.2] text-white">{handle}</span> : <span className="text-[13px] text-white/70">Follow LXC</span>}
       {stats.length > 0 && (
         <span className="flex items-center gap-4">
           {stats.map((stat) => (
