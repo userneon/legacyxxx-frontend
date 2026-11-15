@@ -20,6 +20,7 @@ import { FlashEffect } from "@/components/flash-effect"
 import { ShopClan } from "@/components/shop-clan"
 import { ShopRanks } from "@/components/shop-ranks"
 import { ShopHome, type ShopTarget } from "@/components/shop-home"
+import { FrameStage } from "@/components/frame-stage"
 import { usePerkCatalogue } from "@/hooks/use-perk-catalogue"
 import { PICK_DEFAULT, demoColour } from "@/components/color-row"
 import { FramedAvatar } from "@/components/framed-avatar"
@@ -327,7 +328,11 @@ export function ShopPage() {
                 {/* The rarity as a thin line along the bottom, never a surface. */}
                 <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: rarityOf(item.rarity).color }} />
                 <div className="lx-tile-panel relative">
-                  <Spot height={dense ? 80 : 96} fill={shown.kind === "background" || hasModelPicture(shown)}><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={dense ? 46 : 56} /></Spot>
+                  {shown.kind === "frame" ? (
+                    <FrameStage accent={accentOf(shown)} height={dense ? 124 : 148}><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={dense ? 70 : 88} /></FrameStage>
+                  ) : (
+                    <Spot height={dense ? 80 : 96} fill={shown.kind === "background" || hasModelPicture(shown)}><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={dense ? 46 : 56} /></Spot>
+                  )}
                 </div>
                 <div className="flex flex-col items-start gap-1 px-3 pb-2.5 pt-1.5">
                   <span className="line-clamp-2 w-full text-[13px] font-semibold leading-[1.25] text-[var(--text)]">{(item.rarity ?? 1) >= 3 && <Star className="mr-1 inline size-3 -translate-y-px fill-current text-[var(--text-2)]" aria-label={`${rarityOf(item.rarity).label} item`} />}{item.name}</span>
