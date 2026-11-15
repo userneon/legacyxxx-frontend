@@ -77,7 +77,7 @@ export function ShopHome({ onGo, className }: { onGo: (target: ShopTarget) => vo
           <h2 className="text-[26px] font-bold leading-[1.1] text-[var(--text)] text-balance">Look the part on every server</h2>
           <p className="text-[13px] leading-relaxed text-[var(--text-muted)]">Ranks, custom models, effects and roles. Cosmetics only: nothing here changes how a round is played.</p>
         </div>
-        <button type="button" onClick={() => onGo("topup")} className="lx-primary-button inline-flex h-10 items-center rounded-xl px-5 text-[13px] font-semibold">Top up LX</button>
+        <button type="button" onClick={() => onGo("topup")} className="lx-gold-button lx-gold-crown inline-flex h-11 items-center rounded-xl pr-6 text-[13px]">Top up LX</button>
       </div>
       <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {CARDS.map((card) => (
