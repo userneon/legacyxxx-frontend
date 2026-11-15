@@ -1,9 +1,9 @@
 import ShinyText from "@/components/reactbits/shiny-text"
-import prestige from "@/assets/ranks/badge-prestige.webp"
-import imperial from "@/assets/ranks/badge-imperial.webp"
-import eternal from "@/assets/ranks/badge-eternal.webp"
-import prime from "@/assets/ranks/badge-prime.webp"
-import sovereign from "@/assets/ranks/badge-sovereign.webp"
+import prestige from "@/assets/ranks/mark-prestige.webp"
+import imperial from "@/assets/ranks/mark-imperial.webp"
+import eternal from "@/assets/ranks/mark-eternal.webp"
+import prime from "@/assets/ranks/mark-prime.webp"
+import sovereign from "@/assets/ranks/mark-sovereign.webp"
 
 export const PERK_EMBLEM: Record<string, string> = { tier1: prestige, tier2: imperial, tier3: eternal, tier4: prime, tier5: sovereign }
 

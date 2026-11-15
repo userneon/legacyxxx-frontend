@@ -1,9 +1,9 @@
-import medal from "@/assets/shop3d/medal.png"
 import cube from "@/assets/shop3d/cube.png"
 import star from "@/assets/shop3d/star.png"
 import coin from "@/assets/shop3d/3d-coin.png"
 import crown from "@/assets/shop3d/crown.png"
-import sovereign from "@/assets/ranks/gem-sovereign.webp"
+import sovereign from "@/assets/ranks/art-sovereign.webp"
+import imperialMark from "@/assets/ranks/mark-imperial.webp"
 import { cn } from "@/lib/utils"
 
 export type ShopTarget = "ranks" | "model" | "smoke_color" | "discord_role" | "topup"
@@ -14,7 +14,7 @@ export type ShopTarget = "ranks" | "model" | "smoke_color" | "discord_role" | "t
  * Credits: see public/credits (3dicons.co CC0).
  */
 const TILES: Array<{ target: ShopTarget; title: string; sub: string; image: string; tint: string; tag?: string }> = [
-  { target: "ranks", title: "Ranks", sub: "5 tiers", image: medal, tint: "#a855f7" },
+  { target: "ranks", title: "Ranks", sub: "5 tiers", image: imperialMark, tint: "#a855f7" },
   { target: "model", title: "Custom Models", sub: "Knives, weapons, agents", image: cube, tint: "#06b6d4", tag: "NEW" },
   { target: "smoke_color", title: "Effects", sub: "Trails, smoke, flash", image: star, tint: "#ec4899" },
   { target: "discord_role", title: "Roles", sub: "Supporter and up", image: crown, tint: "#f59e0b" },
@@ -31,7 +31,7 @@ export function ShopHome({ onGo, className }: { onGo: (target: ShopTarget) => vo
           <p className="text-[13px] leading-relaxed text-[var(--text-muted)]">Ranks, custom models, effects and roles. Cosmetics only: nothing here changes how a round is played.</p>
           <button type="button" onClick={() => onGo("topup")} className="lx-primary-button mt-1 inline-flex h-10 items-center rounded-xl px-5 text-[13px] font-semibold">Top up LX</button>
         </div>
-        <img src={sovereign} alt="" aria-hidden="true" draggable={false} className="pointer-events-none absolute -right-4 -top-4 bottom-[-16px] z-0 h-[125%] w-[min(46%,380px)] object-cover opacity-90 [mask-image:linear-gradient(90deg,transparent,#000_40%)] max-sm:opacity-30" />
+        <img src={sovereign} alt="" aria-hidden="true" draggable={false} className="pointer-events-none absolute bottom-2 right-6 z-0 h-[92%] max-h-[250px] object-contain drop-shadow-[0_16px_24px_rgba(0,0,0,0.6)] max-sm:right-0 max-sm:opacity-40" />
       </div>
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {TILES.map((tile) => (
