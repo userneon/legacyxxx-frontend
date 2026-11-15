@@ -170,7 +170,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
           <span className={cn("min-w-0 flex-1 items-center gap-2 overflow-hidden text-base font-bold tracking-[0.3px] text-[var(--text)]", collapsed ? "hidden" : "flex", labelClass(collapsed))}>
             <LxcLetters mode="row" height={20} />
           </span>
-          {collapsed && <LxcLetters mode="cycle" height={20} />}
+          {collapsed && <img src="/lxc-monogram.png" alt="LXC" className="h-auto w-8 shrink-0" />}
 
         </div>
 
