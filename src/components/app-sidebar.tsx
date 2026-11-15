@@ -169,7 +169,7 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
           <span className={cn("min-w-0 flex-1 items-center gap-2 overflow-hidden text-base font-bold tracking-[0.3px] text-[var(--text)]", collapsed ? "hidden" : "flex", labelClass(collapsed))}>
             <img src="/lxc-logo.webp" alt="LXC" className="h-5 w-auto shrink-0" />
           </span>
-          {collapsed && <img src="/lxc-mark.webp" alt="LXC" className="size-7 shrink-0" />}
+          {collapsed && <span className="relative h-9 w-3 shrink-0" role="img" aria-label="LXC"><img src="/lxc-wordmark.webp" alt="" className="absolute left-1/2 top-1/2 w-9 max-w-none -translate-x-1/2 -translate-y-1/2 -rotate-90" /></span>}
 
         </div>
 

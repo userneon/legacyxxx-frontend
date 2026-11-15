@@ -56,8 +56,7 @@ export function AdminShell({ groups, current, onGo, onFind, children }: { groups
   )
   const brand = (closable: boolean) => (
     <div className="flex h-12 shrink-0 items-center gap-2.5 border-b border-[var(--line)] px-4">
-      <img src="/lxc-mark.webp" alt="" aria-hidden="true" className="size-5 shrink-0" />
-      <span className="text-sm font-bold tracking-[0.3px] text-[var(--text)]">LEGACY-<span className="text-[var(--brand-bright)]">X</span></span>
+      <img src="/lxc-wordmark.webp" alt="LXC" className="h-[14px] w-auto shrink-0" />
       <span className="adm-lbl ml-auto border border-[var(--line)] px-1.5 py-[3px]">Staff</span>
       {closable && <button type="button" onClick={() => setMenu(false)} aria-label="Close the menu" className="flex size-8 items-center justify-center border border-[var(--line-strong)] text-[var(--text)]"><X className="size-4" aria-hidden="true" /></button>}
     </div>
