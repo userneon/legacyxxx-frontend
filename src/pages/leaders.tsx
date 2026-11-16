@@ -70,7 +70,7 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
         <CompetitiveRankBadge rankId={player.rank_id} rankName={player.rank_name} imageKey={player.rank_image_key} currentExp={player.current_exp} size={36} />
       </span>
       <span className="flex min-w-0 items-center gap-3.5">
-        <PlayerAvatar avatar={player.avatar} name={player.username} frame={player.frame} frameLook={player.frame_look} className="relative z-0 size-14 shrink-0 rounded-[14px] text-base" />
+        <PlayerAvatar avatar={player.avatar} name={player.username} frame={player.frame} className="relative z-0 size-14 shrink-0 rounded-[14px] text-base" />
         <span className="flex min-w-0 flex-col gap-1.5">
           <span className="flex min-w-0 items-center gap-1.5">
             <span {...nameProps(player.name_style, "truncate text-[15px] font-semibold text-[var(--text)]")} title={player.username}><PlayerNameText name={player.username} /></span>
@@ -122,7 +122,6 @@ function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: Competiti
             avatar={player.avatar}
             name={player.username}
             frame={player.frame}
-            frameLook={player.frame_look}
             className={cn("relative z-0 size-8 shrink-0 rounded-[9px] text-xs", )}
           />
         </span>

@@ -97,8 +97,6 @@ export interface Cosmetics {
   /** How many players there are (for "owned by" shares). */
   players?: number | null
   equippedFrame: string | null
-  /** The settings of your Crystal Orb (null until you save some). */
-  frameLook?: import("@/lib/frame-look").FrameLook | null
   equippedNameColor?: string | null
   equippedNameGlow?: string | null
   equippedBanner?: string | null
@@ -160,10 +158,6 @@ export const cosmeticsService = {
     return put<{ nade: Nade; kind: NadeSlotKind }>("/api/v1/cosmetics/nade-slot", item === "inherit" ? { nade, kind, inherit: true } : { nade, kind, item }, options)
   },
   /** Wear one, or take it off with null. */
-  /** Save the settings of the Crystal Orb (you must own it). */
-  async saveFrameLook(look: import("@/lib/frame-look").FrameLook, options?: CallOptions): Promise<{ look: import("@/lib/frame-look").FrameLook | null }> {
-    return put<{ look: import("@/lib/frame-look").FrameLook | null }>("/api/v1/cosmetics/frame-look", look, options)
-  },
   /** Save the knobs of a background you own. */
   async saveBackgroundLook(item: string, look: import("@/lib/backgrounds").BgLook, options?: CallOptions): Promise<{ item: string; look: import("@/lib/backgrounds").BgLook | null }> {
     return put<{ item: string; look: import("@/lib/backgrounds").BgLook | null }>("/api/v1/cosmetics/background-look", { item, look }, options)

@@ -198,7 +198,6 @@ export interface CompetitiveLeaderboardEntry extends CompetitiveProfile {
   clan_look?: ClanLook | null
   /** Avatar frame the player wears (id). Absent from an older API. */
   frame?: string | null
-  frame_look?: import("@/lib/frame-look").FrameLook | null
   /** Name colour and glow the player wears. Absent from an older API. */
   name_style?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   perk?: { tier: string; name: string } | null
@@ -269,7 +268,6 @@ export interface MatchDetailPlayer {
   userId: string | null
   /** Avatar frame (id) and name look the player wears. Absent from an older API. */
   frame?: string | null
-  frameLook?: import("@/lib/frame-look").FrameLook | null
   nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   perk?: { tier: string; name: string } | null
   banner?: string | null
@@ -427,7 +425,6 @@ export interface CommunityPlayer {
   moderationStatus: ModerationStatus
   /** Avatar frame (id) and name look the player wears. Absent from an older API. */
   frame?: string | null
-  frameLook?: import("@/lib/frame-look").FrameLook | null
   nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   perk?: { tier: string; name: string } | null
   banner?: string | null
@@ -584,7 +581,6 @@ export interface ClanMember {
   description: string
   /** Avatar frame (id) and name look the player wears. Absent from an older API. */
   frame?: string | null
-  frameLook?: import("@/lib/frame-look").FrameLook | null
   nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   perk?: { tier: string; name: string } | null
   banner?: string | null
@@ -800,7 +796,6 @@ export interface FeedbackEntry {
   date: string
   /** Avatar frame (id) and name look the player wears. Absent from an older API. */
   frame?: string | null
-  frameLook?: import("@/lib/frame-look").FrameLook | null
   nameStyle?: { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null } | null
   perk?: { tier: string; name: string } | null
   banner?: string | null

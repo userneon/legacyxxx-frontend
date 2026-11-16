@@ -58,7 +58,6 @@ export interface Creator {
   links: CreatorLinks
   rank: { id: number; name: string; imageKey: string | null } | null
   frame: string | null
-  frameLook?: import("@/lib/frame-look").FrameLook | null
   nameStyle: unknown
   perk?: { tier: string; name: string } | null
   /** Their TikTok, proven with TikTok's own sign-in (null when not connected). */
