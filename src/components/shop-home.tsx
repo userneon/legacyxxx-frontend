@@ -31,7 +31,7 @@ function Plates() {
       {[{ z: 0, o: 0.55 }, { z: 10, o: 0.8 }, { z: 20, o: 1 }].map((plate, i) => (
         <span
           key={plate.z}
-          className={cn("absolute -left-[56px] -top-[56px] size-[112px] rounded-[20px] border transition-transform duration-500 ease-[cubic-bezier(.2,.7,.2,1)] motion-reduce:transition-none", i === 1 && "group-hover:[--lift:12px]", i === 2 && "group-hover:[--lift:24px]")}
+          className={cn("absolute -left-[70px] -top-[70px] size-[140px] rounded-[24px] border transition-transform duration-500 ease-[cubic-bezier(.2,.7,.2,1)] motion-reduce:transition-none", i === 1 && "group-hover:[--lift:12px]", i === 2 && "group-hover:[--lift:24px]")}
           style={{ ["--lift" as string]: "0px", opacity: plate.o, borderColor: `${LIGHT}66`, background: `linear-gradient(135deg, ${LIGHT}1c, transparent)`, boxShadow: `inset 0 0 24px ${LIGHT}22`, transform: `rotateX(62deg) rotateZ(-45deg) translateZ(calc(${plate.z}px + var(--lift)))` }}
         />
       ))}
@@ -45,14 +45,14 @@ function Picture({ art }: { art: (typeof CARDS)[number]["art"] }) {
   if (art === "models") {
     return (
       <>
-        <img src={knife} alt="" aria-hidden="true" draggable={false} className={cn(shadow, lift, "left-[7%] top-[14%] h-[54px]")} />
-        <img src={rifle} alt="" aria-hidden="true" draggable={false} className={cn(shadow, lift, "left-[6%] top-[48%] h-[44px]")} />
-        <img src={agent} alt="" aria-hidden="true" draggable={false} className={cn(shadow, lift, "left-[52%] top-[12%] h-[86px]")} />
+        <img src={knife} alt="" aria-hidden="true" draggable={false} className={cn(shadow, lift, "left-[6%] top-[14%] h-[66px]")} />
+        <img src={rifle} alt="" aria-hidden="true" draggable={false} className={cn(shadow, lift, "left-[5%] top-[50%] h-[54px]")} />
+        <img src={agent} alt="" aria-hidden="true" draggable={false} className={cn(shadow, lift, "left-[50%] top-[10%] h-[106px]")} />
       </>
     )
   }
   const image = art === "star" ? star : art === "crown" ? crown : art === "medal" ? medal : wallet
-  return <img src={image} alt="" aria-hidden="true" draggable={false} className={cn(shadow, lift, "left-1/2 top-[14%] h-[92px] -translate-x-1/2")} />
+  return <img src={image} alt="" aria-hidden="true" draggable={false} className={cn(shadow, lift, "left-1/2 top-[12%] h-[116px] -translate-x-1/2")} />
 }
 
 export function ShopHome({ onGo, className }: { onGo: (target: ShopTarget) => void; className?: string }) {
@@ -65,7 +65,7 @@ export function ShopHome({ onGo, className }: { onGo: (target: ShopTarget) => vo
         </div>
         <button type="button" onClick={() => onGo("topup")} className="lx-gold-button lx-gold-crown lx-gold-money inline-flex h-11 items-center rounded-xl pr-6 text-[13px]">Top up FOL$</button>
       </div>
-      <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+      <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
         {CARDS.map((card) => (
           <li key={card.target} className="flex min-w-0">
             <button
@@ -73,14 +73,14 @@ export function ShopHome({ onGo, className }: { onGo: (target: ShopTarget) => vo
               onClick={() => onGo(card.target)}
               className="group relative flex h-full w-full flex-col overflow-hidden rounded-[22px] border border-[var(--line)] bg-[linear-gradient(180deg,#121317,#0e0e11)] text-left transition-[transform,border-color] duration-300 hover:-translate-y-0.5 hover:border-[#33365a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white motion-reduce:transition-none"
             >
-              <div className="relative h-[160px] overflow-hidden [mask-image:linear-gradient(180deg,#000_58%,transparent_96%)]">
-                <span aria-hidden="true" className="absolute -bottom-8 left-1/2 h-[100px] w-[80%] -translate-x-1/2 rounded-full opacity-75 blur-[26px] transition-[opacity,transform] duration-300 group-hover:scale-110 group-hover:opacity-100 motion-reduce:transition-none" style={{ background: `radial-gradient(closest-side, ${LIGHT}88, transparent)` }} />
+              <div className="relative h-[196px] overflow-hidden [mask-image:linear-gradient(180deg,#000_58%,transparent_96%)]">
+                <span aria-hidden="true" className="absolute -bottom-8 left-1/2 h-[130px] w-[80%] -translate-x-1/2 rounded-full opacity-75 blur-[26px] transition-[opacity,transform] duration-300 group-hover:scale-110 group-hover:opacity-100 motion-reduce:transition-none" style={{ background: `radial-gradient(closest-side, ${LIGHT}88, transparent)` }} />
                 <Plates />
                 <Picture art={card.art} />
               </div>
-              <div className="relative -mt-5 flex flex-1 flex-col gap-1 px-4 pb-4 pt-1">
-                <span className="text-[16px] font-bold leading-tight text-[var(--text)]">{card.title}</span>
-                <span className="text-[12px] leading-snug text-[var(--text-muted)]">{card.text}</span>
+              <div className="relative -mt-5 flex flex-1 flex-col gap-1 px-5 pb-5 pt-1">
+                <span className="text-[17px] font-bold leading-tight text-[var(--text)]">{card.title}</span>
+                <span className="text-[13px] leading-snug text-[var(--text-muted)]">{card.text}</span>
                 <span className="mt-auto inline-flex pt-2 items-center gap-1.5 text-[13px] font-semibold" style={{ color: "#aeb6ff" }}>Open<span aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1 motion-reduce:transition-none">→</span></span>
               </div>
             </button>
