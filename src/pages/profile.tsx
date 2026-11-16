@@ -521,6 +521,31 @@ function RecentMatches({ matches, kdAverage, onOpen }: { matches: ProfileMatchRo
       {label} <span className="ml-1 font-medium text-[var(--text-dim)]">{count}</span>
     </button>
   )
+  // The picked match's card: beside the list when there is room, otherwise right under the picked row (owner report 2026-11-16: it never showed up on a narrower window).
+  const panel = selected ? (
+    <aside aria-label="Selected match" className="lx-swap-in overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--card-surface)] @2xl:sticky @2xl:top-4">
+                <div className="relative flex h-24 items-end bg-[var(--raised)] px-4 pb-2.5">
+                  {cs2MapArtwork(selected.match.map) ? <img src={cs2MapArtwork(selected.match.map)!} alt="" aria-hidden="true" className="absolute inset-0 size-full object-cover opacity-60" /> : null}
+                  <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[var(--card-surface)] to-transparent" />
+                  <span className="relative text-[22px] font-bold text-[var(--text)]">{cs2MapLabel(selected.match.map)}</span>
+                </div>
+                <div className="flex flex-col gap-1 border-b border-[var(--line)] px-4 py-3">
+                  <span className="text-[13px] text-[var(--text-dim)]">{selected.match.playedAt ? new Date(selected.match.playedAt).toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "Date unknown"}</span>
+                  <div className="flex items-center gap-3"><span className={cn("text-[32px] font-bold leading-none", resultTone(selected.match.result))}>{selected.match.score}</span><span className={cn("ml-auto inline-flex h-6 items-center rounded-full px-2.5 text-[13px] font-semibold", resultTone(selected.match.result), resultPill(selected.match.result))}>{selected.match.result}</span></div>
+                </div>
+                <div className="flex flex-col gap-3 px-4 py-4 text-[14px]">
+                  <div className="flex justify-between"><span className="text-[var(--text-dim)]">K/D</span><b className={cn("font-semibold", kdTone(selected.match.kd))}>{selected.match.kd}</b></div>
+                  {typeof selected.match.expAfter === "number" ? (
+                    <div className="flex justify-between"><span className="text-[var(--text-dim)]">EXP</span><span className="font-semibold text-[var(--text)]">{typeof selected.match.expBefore === "number" ? `${selected.match.expBefore.toLocaleString()} \u2192 ` : ""}{selected.match.expAfter.toLocaleString()}{typeof selected.match.expDelta === "number" ? <span className={cn("ml-1.5", tone(selected.match.expDelta))}>({sign(selected.match.expDelta)})</span> : null}</span></div>
+                  ) : null}
+                  {selected.match.rankAfter ? (
+                    <div className="flex justify-between"><span className="text-[var(--text-dim)]">Rank</span><span className="font-semibold text-[var(--text)]">{selected.match.rankBefore && selected.match.rankBefore.id !== selected.match.rankAfter.id ? `${selected.match.rankBefore.name} \u2192 ` : ""}{selected.match.rankAfter.name}</span></div>
+                  ) : null}
+                  {selected.match.expBreakdown?.limited ? <p className="m-0 text-[13px] text-[var(--status-red)]">{selected.match.expBreakdown.limited === "weekly" ? "Weekly limit: no EXP until Monday." : "Daily limit: this gain counted for a quarter."}</p> : null}
+                  <button type="button" disabled={!selected.match.matchId} onClick={() => onOpen(selected.match)} className="mt-1 flex h-11 items-center justify-center rounded-md border border-[var(--line-strong)] font-semibold text-[var(--text)] transition-colors hover:bg-[var(--raised)] disabled:cursor-default disabled:opacity-40">Open full match</button>
+                </div>
+              </aside>
+  ) : null
   return (
     <section aria-label="Recent matches" className="@container flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -544,7 +569,7 @@ function RecentMatches({ matches, kdAverage, onOpen }: { matches: ProfileMatchRo
               })}
             </div>
           </div>
-          <div className="grid items-start gap-4 @3xl:grid-cols-[minmax(0,3fr)_minmax(260px,2fr)]">
+          <div className="grid items-start gap-4 @2xl:grid-cols-[minmax(0,3fr)_minmax(260px,2fr)]">
             <div className="flex min-w-0 flex-col gap-5">
               {days.length === 0 ? <p className="py-8 text-center text-[14px] text-[var(--text-dim)]">No matches here.</p> : null}
               {days.map((day) => (
@@ -558,7 +583,8 @@ function RecentMatches({ matches, kdAverage, onOpen }: { matches: ProfileMatchRo
                     const art = cs2MapArtwork(match.map)
                     const on = selected?.index === index
                     return (
-                      <button key={`${match.matchId ?? index}-${index}`} type="button" onClick={() => setPicked(index)} aria-pressed={on}
+                      <div key={`${match.matchId ?? index}-${index}`} className="flex flex-col gap-2">
+                      <button type="button" onClick={() => setPicked(index)} aria-pressed={on}
                         className={cn("flex min-h-[68px] w-full items-center gap-4 rounded-lg border px-3.5 py-2.5 text-left transition-[background-color,border-color,transform] duration-150 hover:translate-x-0.5 hover:bg-[var(--raised)]", on ? "border-[var(--line-strong)] bg-[var(--raised)]" : "border-[var(--line)] bg-[var(--card-surface)]")}>
                         <span aria-hidden="true" className="relative h-11 w-[68px] shrink-0 overflow-hidden rounded-md bg-[var(--raised)]">{art ? <img src={art} alt="" loading="lazy" className="size-full object-cover" /> : null}</span>
                         <span className="flex w-[84px] shrink-0 flex-col"><span className={cn("text-[20px] font-bold leading-tight", resultTone(match.result))}>{match.score}</span><span className="text-[13px] text-[var(--text-dim)]">{match.playedAt ? new Date(match.playedAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : ""}</span></span>
@@ -568,35 +594,14 @@ function RecentMatches({ matches, kdAverage, onOpen }: { matches: ProfileMatchRo
                         </span>
                         <span className={cn("min-w-[56px] shrink-0 text-right font-bold", tone(match.expDelta ?? 0))}>{typeof match.expDelta === "number" ? sign(match.expDelta) : "\u2014"}{match.expBreakdown?.limited ? <span title={match.expBreakdown.limited === "weekly" ? "Weekly EXP limit: no EXP until Monday" : "Daily EXP limit: this gain counted for a quarter"} className="ml-1.5 text-[11px] font-semibold text-[var(--status-red)]">{match.expBreakdown.limited === "weekly" ? "stop" : "\u00d7\u00bc"}</span> : null}</span>
                       </button>
+                      {on && panel ? <div className="@2xl:hidden">{panel}</div> : null}
+                      </div>
                     )
                   })}
                 </div>
               ))}
             </div>
-            {selected ? (
-              <aside aria-label="Selected match" className="lx-swap-in overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--card-surface)] @3xl:sticky @3xl:top-4">
-                <div className="relative flex h-24 items-end bg-[var(--raised)] px-4 pb-2.5">
-                  {cs2MapArtwork(selected.match.map) ? <img src={cs2MapArtwork(selected.match.map)!} alt="" aria-hidden="true" className="absolute inset-0 size-full object-cover opacity-60" /> : null}
-                  <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[var(--card-surface)] to-transparent" />
-                  <span className="relative text-[22px] font-bold text-[var(--text)]">{cs2MapLabel(selected.match.map)}</span>
-                </div>
-                <div className="flex flex-col gap-1 border-b border-[var(--line)] px-4 py-3">
-                  <span className="text-[13px] text-[var(--text-dim)]">{selected.match.playedAt ? new Date(selected.match.playedAt).toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "Date unknown"}</span>
-                  <div className="flex items-center gap-3"><span className={cn("text-[32px] font-bold leading-none", resultTone(selected.match.result))}>{selected.match.score}</span><span className={cn("ml-auto inline-flex h-6 items-center rounded-full px-2.5 text-[13px] font-semibold", resultTone(selected.match.result), resultPill(selected.match.result))}>{selected.match.result}</span></div>
-                </div>
-                <div className="flex flex-col gap-3 px-4 py-4 text-[14px]">
-                  <div className="flex justify-between"><span className="text-[var(--text-dim)]">K/D</span><b className={cn("font-semibold", kdTone(selected.match.kd))}>{selected.match.kd}</b></div>
-                  {typeof selected.match.expAfter === "number" ? (
-                    <div className="flex justify-between"><span className="text-[var(--text-dim)]">EXP</span><span className="font-semibold text-[var(--text)]">{typeof selected.match.expBefore === "number" ? `${selected.match.expBefore.toLocaleString()} \u2192 ` : ""}{selected.match.expAfter.toLocaleString()}{typeof selected.match.expDelta === "number" ? <span className={cn("ml-1.5", tone(selected.match.expDelta))}>({sign(selected.match.expDelta)})</span> : null}</span></div>
-                  ) : null}
-                  {selected.match.rankAfter ? (
-                    <div className="flex justify-between"><span className="text-[var(--text-dim)]">Rank</span><span className="font-semibold text-[var(--text)]">{selected.match.rankBefore && selected.match.rankBefore.id !== selected.match.rankAfter.id ? `${selected.match.rankBefore.name} \u2192 ` : ""}{selected.match.rankAfter.name}</span></div>
-                  ) : null}
-                  {selected.match.expBreakdown?.limited ? <p className="m-0 text-[13px] text-[var(--status-red)]">{selected.match.expBreakdown.limited === "weekly" ? "Weekly limit: no EXP until Monday." : "Daily limit: this gain counted for a quarter."}</p> : null}
-                  <button type="button" disabled={!selected.match.matchId} onClick={() => onOpen(selected.match)} className="mt-1 flex h-11 items-center justify-center rounded-md border border-[var(--line-strong)] font-semibold text-[var(--text)] transition-colors hover:bg-[var(--raised)] disabled:cursor-default disabled:opacity-40">Open full match</button>
-                </div>
-              </aside>
-            ) : null}
+            {panel ? <div className="hidden @2xl:block">{panel}</div> : null}
           </div>
         </>
       )}
