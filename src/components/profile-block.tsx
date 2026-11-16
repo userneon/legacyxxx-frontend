@@ -1,4 +1,5 @@
 import { useState } from "react"
+import type React from "react"
 import { useNavigate } from "react-router-dom"
 import { LogOut, Undo2, Settings, User, UserRound } from "lucide-react"
 
@@ -21,16 +22,8 @@ interface ProfileBlockProps {
 
 const menuItemClass = "flex h-10 w-full items-center gap-2.5 rounded-xl px-2.5 text-sm font-medium transition-colors duration-150 hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/60"
 
-export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
-  const { user, loading, loginWithSteam, logout } = useAuth()
-  const navigate = useNavigate()
-  const [open, setOpen] = useState(false)
-
-  const { data: competitive } = useApiQuery<CompetitiveProfile>(
-    (signal) => competitiveService.getPlayer(user!.id, { signal }),
-    { enabled: Boolean(user?.id), queryKey: `profile-menu:${user?.id ?? "guest"}` },
-  )
-
+export function ProfileBlock(_props: ProfileBlockProps) {
+  const { user, loading, loginWithSteam } = useAuth()
   // While the site is still asking whether you are signed in, do not offer a sign-in: on a reload it would flash up (and stay up while the server is busy).
   if (!user && loading) return <span aria-hidden="true" className="h-9 w-[150px] animate-pulse rounded-full bg-[var(--card-surface)]" />
 
@@ -49,27 +42,34 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
     )
   }
 
-  const exp = competitive?.current_exp ?? 0
-  const floor = competitive?.current_rank_min_exp ?? 0
-  const next = competitive?.next_rank_min_exp ?? null
-  const percent = next ? Math.max(0, Math.min(100, ((exp - floor) / Math.max(1, next - floor)) * 100)) : 100
-
   return (
     <div className="flex items-center gap-2">
       <WalletMenu />
       <NotificationsMenu />
 
-      <span className="relative flex size-9 shrink-0">
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger
-          aria-haspopup="menu"
-          aria-label={user.username}
-          className="relative z-[1] size-9 shrink-0 overflow-hidden rounded-full bg-[var(--line)] transition-colors hover:border-[var(--text-dim)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
-        >
-          <Avatar user={user} />
-        </PopoverTrigger>
+    </div>
+  )
+}
 
-        <PopoverContent align="end" sideOffset={8} role="menu" className="w-[280px] overflow-hidden rounded-[20px] border-[var(--line-strong)] bg-[var(--card-surface)] p-0 shadow-[0_18px_50px_rgba(0,0,0,0.55)]">
+/** Your avatar menu (profile card, Profile, Settings, Discord, Sign out). It opens from whatever `children` is: the sidebar's profile row (owner pick 2026-11-16: the header avatar is gone). */
+export function ProfileMenu({ onNavigate, children, side = "right", align = "end" }: { onNavigate: (page: PageId) => void; children: React.ReactElement; side?: "right" | "bottom" | "top" | "left"; align?: "start" | "center" | "end" }) {
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
+  const [open, setOpen] = useState(false)
+  const { data: competitive } = useApiQuery<CompetitiveProfile>(
+    (signal) => competitiveService.getPlayer(user!.id, { signal }),
+    { enabled: Boolean(user?.id), queryKey: `profile-menu:${user?.id ?? "guest"}` },
+  )
+  if (!user) return children
+  const exp = competitive?.current_exp ?? 0
+  const floor = competitive?.current_rank_min_exp ?? 0
+  const next = competitive?.next_rank_min_exp ?? null
+  const percent = next ? Math.max(0, Math.min(100, ((exp - floor) / Math.max(1, next - floor)) * 100)) : 100
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild aria-haspopup="menu">{children}</PopoverTrigger>
+
+        <PopoverContent side={side} align={align} sideOffset={12} role="menu" className="w-[280px] overflow-hidden rounded-[20px] border-[var(--line-strong)] bg-[var(--card-surface)] p-0 shadow-[0_18px_50px_rgba(0,0,0,0.55)]">
           <div className="flex flex-col gap-3 border-b border-[var(--line-soft)] p-4">
             <div className="flex items-center gap-3">
               <span className="size-11 shrink-0 overflow-hidden rounded-full bg-[var(--line)]"><Avatar user={user} /></span>
@@ -120,13 +120,11 @@ export function ProfileBlock({ onNavigate }: ProfileBlockProps) {
             />
           </div>
         </PopoverContent>
-      </Popover>
-      </span>
-    </div>
+    </Popover>
   )
 }
 
-function Avatar({ user }: { user: UserProfile }) {
+export function Avatar({ user }: { user: UserProfile }) {
   if (user.avatar && user.avatar.startsWith("http")) {
     return <img src={user.avatar} alt="" className="size-full object-cover" />
   }

@@ -18,6 +18,7 @@ import { KnifeIcon } from "@/components/knife-icon"
 import { ClanIcon } from "@/components/clan-icon"
 import { CommunityIcon, CompareIcon, ExploreIcon, HomeIcon, LeadersIcon, PenaltiesIcon, PlayIcon, ReviewsIcon, ShopIcon } from "@/components/mask-icon"
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
+import { Avatar, ProfileMenu } from "@/components/profile-block"
 
 interface AppSidebarProps {
   currentPage: PageId
@@ -370,19 +371,15 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
         {user && (
           <div className="mt-auto flex flex-col gap-2 pt-3">
             <div aria-hidden="true" className="h-px bg-[var(--line)]" />
-            <RailTip label={user.username} show={collapsed}>
-              <button type="button" onClick={() => onNavigate("profile")} aria-label="Profile" aria-current={isActive("profile") ? "page" : undefined} className={cn(rowClass, "h-12 gap-3 pl-[7px]", isActive("profile") && activeRowClass)}>
-                <span className="size-[26px] shrink-0 overflow-hidden rounded-full bg-[var(--line)] ring-1 ring-white/15">
-                  {user.avatar && user.avatar.startsWith("http")
-                    ? <img src={user.avatar} alt="" className="size-full object-cover" />
-                    : <span className="flex size-full items-center justify-center text-[12px] font-semibold text-[var(--text-2)]">{(user.username || "?").slice(0, 1).toUpperCase()}</span>}
-                </span>
+            <ProfileMenu onNavigate={onNavigate}>
+              <button type="button" aria-label={`${user.username}, account menu`} className={cn(rowClass, "h-12 gap-3 pl-[7px]", isActive("profile") && activeRowClass)}>
+                <span className="size-[26px] shrink-0 overflow-hidden rounded-full bg-[var(--line)] ring-1 ring-white/15"><Avatar user={user} /></span>
                 <span className={cn(labelClass(collapsed), "flex min-w-0 flex-1 flex-col leading-tight")}>
                   <span className="truncate text-[13px] font-semibold text-[var(--text)]">{user.username}</span>
-                  <span className="text-[11px] font-normal text-[var(--text-dim)]">My profile</span>
+                  <span className="text-[11px] font-normal text-[var(--text-dim)]">My account</span>
                 </span>
               </button>
-            </RailTip>
+            </ProfileMenu>
           </div>
         )}
       </SidebarContent>
