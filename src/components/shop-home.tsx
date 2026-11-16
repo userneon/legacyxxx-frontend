@@ -73,12 +73,12 @@ export function ShopHome({ onGo, className }: { onGo: (target: ShopTarget) => vo
               onClick={() => onGo(card.target)}
               className="group relative flex h-full w-full flex-col overflow-hidden rounded-[22px] border border-[var(--line)] bg-[linear-gradient(180deg,#121317,#0e0e11)] text-left transition-[transform,border-color] duration-300 hover:-translate-y-0.5 hover:border-[#33365a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white motion-reduce:transition-none"
             >
-              <div className="relative h-[150px] overflow-hidden">
+              <div className="relative h-[160px] overflow-hidden [mask-image:linear-gradient(180deg,#000_58%,transparent_96%)]">
                 <span aria-hidden="true" className="absolute -bottom-8 left-1/2 h-[100px] w-[80%] -translate-x-1/2 rounded-full opacity-75 blur-[26px] transition-[opacity,transform] duration-300 group-hover:scale-110 group-hover:opacity-100 motion-reduce:transition-none" style={{ background: `radial-gradient(closest-side, ${LIGHT}88, transparent)` }} />
                 <Plates />
                 <Picture art={card.art} />
               </div>
-              <div className="flex flex-1 flex-col gap-1 px-4 pb-4 pt-1">
+              <div className="relative -mt-5 flex flex-1 flex-col gap-1 px-4 pb-4 pt-1">
                 <span className="text-[16px] font-bold leading-tight text-[var(--text)]">{card.title}</span>
                 <span className="text-[12px] leading-snug text-[var(--text-muted)]">{card.text}</span>
                 <span className="mt-auto inline-flex pt-2 items-center gap-1.5 text-[13px] font-semibold" style={{ color: "#aeb6ff" }}>Open<span aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1 motion-reduce:transition-none">→</span></span>
