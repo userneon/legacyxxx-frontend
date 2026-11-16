@@ -22,7 +22,7 @@ const CARDS: Array<{ target: ShopTarget; title: string; text: string; art: "meda
   { target: "model", title: "Custom Models", text: "Knives, weapons and agents made for LXC.", art: "models" },
   { target: "smoke_color", title: "Effects", text: "Grenade trails, smoke colours and flash looks.", art: "star" },
   { target: "discord_role", title: "Roles", text: "Supporter and up: a colour, a channel and a discount.", art: "crown" },
-  { target: "topup", title: "Top up LX", text: "Pay with QPay or any bank app. Cosmetics only.", art: "wallet" },
+  { target: "topup", title: "Top up FOL$", text: "Pay with QPay or any bank app. Cosmetics only.", art: "wallet" },
 ]
 
 function Plates() {
@@ -63,7 +63,7 @@ export function ShopHome({ onGo, className }: { onGo: (target: ShopTarget) => vo
           <h2 className="text-[26px] font-bold leading-[1.1] text-[var(--text)] text-balance">Look the part on every server</h2>
           <p className="text-[13px] leading-relaxed text-[var(--text-muted)]">Ranks, custom models, effects and roles. Cosmetics only: nothing here changes how a round is played.</p>
         </div>
-        <button type="button" onClick={() => onGo("topup")} className="lx-gold-button lx-gold-crown lx-gold-money inline-flex h-11 items-center rounded-xl pr-6 text-[13px]">Top up LX</button>
+        <button type="button" onClick={() => onGo("topup")} className="lx-gold-button lx-gold-crown lx-gold-money inline-flex h-11 items-center rounded-xl pr-6 text-[13px]">Top up FOL$</button>
       </div>
       <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
         {CARDS.map((card) => (
