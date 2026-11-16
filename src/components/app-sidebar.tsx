@@ -130,7 +130,7 @@ function RailFlyout({ open, onOpenChange, items, children }: { open: boolean; on
 export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
   const { state, isMobile } = useSidebar()
   const collapsed = state === "collapsed" && !isMobile
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
   // The groups start closed; the one you are inside starts open so the current page is visible.
   const [playOpen, setPlayOpen] = useState(currentPage.startsWith("play-"))
   const [skinOpen, setSkinOpen] = useState(currentPage === "skinchanger")
@@ -365,6 +365,26 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
             )
           })}
         </nav>
+
+        {/* Your profile, pinned to the bottom of the rail (owner asked to see it here, 2026-11-16): your avatar and name; collapsed, just the avatar. */}
+        {user && (
+          <div className="mt-auto flex flex-col gap-2 pt-3">
+            <div aria-hidden="true" className="h-px bg-[var(--line)]" />
+            <RailTip label={user.username} show={collapsed}>
+              <button type="button" onClick={() => onNavigate("profile")} aria-label="Profile" aria-current={isActive("profile") ? "page" : undefined} className={cn(rowClass, "h-12 gap-3 pl-[7px]", isActive("profile") && activeRowClass)}>
+                <span className="size-[26px] shrink-0 overflow-hidden rounded-full bg-[var(--line)] ring-1 ring-white/15">
+                  {user.avatar && user.avatar.startsWith("http")
+                    ? <img src={user.avatar} alt="" className="size-full object-cover" />
+                    : <span className="flex size-full items-center justify-center text-[12px] font-semibold text-[var(--text-2)]">{(user.username || "?").slice(0, 1).toUpperCase()}</span>}
+                </span>
+                <span className={cn(labelClass(collapsed), "flex min-w-0 flex-1 flex-col leading-tight")}>
+                  <span className="truncate text-[13px] font-semibold text-[var(--text)]">{user.username}</span>
+                  <span className="text-[11px] font-normal text-[var(--text-dim)]">My profile</span>
+                </span>
+              </button>
+            </RailTip>
+          </div>
+        )}
       </SidebarContent>
     </Sidebar>
   )
