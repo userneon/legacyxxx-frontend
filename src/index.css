@@ -1751,8 +1751,8 @@ html:has([data-page-scene]) .lx-dotgrid { background-image: none; }
 .lx-gold-button:active:not(:disabled) { transform: translateY(1px); }
 .lx-gold-button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .lx-gold-crown { padding-left: 4.4rem; }
-.lx-gold-crown::before { content: ""; position: absolute; left: -6px; top: -16px; width: 3.6rem; height: 3.6rem; transform: rotate(-14deg); background: url("./assets/shop3d/crown.png") center / contain no-repeat; filter: drop-shadow(0 6px 6px rgb(0 0 0 / 0.7)); pointer-events: none; transition: transform 300ms var(--ease-out); }
-.lx-gold-crown:hover:not(:disabled)::before { transform: rotate(-14deg) translateY(-3px) scale(1.06); }
+.lx-gold-crown::before { content: ""; position: absolute; left: -6px; top: -16px; width: 3.6rem; height: 3.6rem; transform: rotate(-4deg); background: url("./assets/shop3d/crown.png") center / contain no-repeat; filter: drop-shadow(0 6px 6px rgb(0 0 0 / 0.7)); pointer-events: none; transition: transform 300ms var(--ease-out); }
+.lx-gold-crown:hover:not(:disabled)::before { transform: rotate(-4deg) translateY(-3px) scale(1.06); }
 @media (prefers-reduced-motion: reduce) { .lx-gold-crown::before { transition: none; } }
 .lx-gold-money::before { background-image: url("./assets/shop3d/money.png"); transform: rotate(-10deg); }
 .lx-gold-money:hover:not(:disabled)::before { transform: rotate(-10deg) translateY(-3px) scale(1.06); }
