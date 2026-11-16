@@ -18,6 +18,8 @@ import { GrenadeLight, GrenadeTrail } from "@/components/grenade-trail"
 import { FlashEffect } from "@/components/flash-effect"
 import { ShopClan } from "@/components/shop-clan"
 import { ShopRanks } from "@/components/shop-ranks"
+import { ShopHome, type ShopTarget } from "@/components/shop-home"
+import { FrameStage } from "@/components/frame-stage"
 import { usePerkCatalogue } from "@/hooks/use-perk-catalogue"
 import { PICK_DEFAULT, demoColour } from "@/components/color-row"
 import { FramedAvatar } from "@/components/framed-avatar"
@@ -304,42 +306,47 @@ export function ShopPage() {
   }
 
 
-  const card = (item: ShopItem, index = 0, dense = false) => {
+  const card = (item: ShopItem, index = 0, _dense = false) => {
     const shown = onTile(item, index)
     const action = item.testing
       ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--text-2)]"><Check className="size-3" />Testing<span className="font-medium text-[var(--text-dim)]"> · not on sale</span></span>
       : item.owned
-      ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--status-green)]"><Check className="size-3" />{worn[item.kind] === item.id ? "Worn" : "Owned"}{item.expiresAt ? <span className="font-medium text-[var(--text-dim)]"> · {timeLeft(item.expiresAt)}</span> : null}</span>
+      ? <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--text-dim)]"><Check className="size-3" />{worn[item.kind] === item.id ? "Worn" : "Owned"}{item.expiresAt ? <span className="font-medium text-[var(--text-dim)]"> · {timeLeft(item.expiresAt)}</span> : null}</span>
       : item.unlock === "coin"
-        ? <span className="lx-shop-price"><LxMark size={14} />{priceFor(item, "30d").toLocaleString()}</span>
+        ? <span className="lx-shop-price inline-flex h-9 items-center rounded-full bg-white/[0.07] px-4 text-[15px] font-bold"><LxMark size={14} />{priceFor(item, "30d").toLocaleString()}</span>
         : <span className="inline-flex items-center gap-1 text-xs text-[var(--text-dim)]"><Lock className="size-3" />Earned</span>
     return (
       // No content-visibility here: it paints only inside the box, which cut off the tile's border and glow when it lifts on hover (the lists are at most 30 tiles anyway).
-      <li key={item.id} className={cn("group/tile relative rounded-xl",)}>
+      <li key={item.id} className={cn("group/tile relative rounded-[20px]",)}>
               <div
                 role="group"
                 aria-label={item.name}
                 style={{ "--acc": accentOf(shown) } as React.CSSProperties}
-                className="lx-shop-tile relative flex w-full flex-col overflow-hidden rounded-xl text-left"
+                className={cn("lx-shop-tile relative flex h-full w-full flex-col overflow-hidden rounded-[20px] p-2.5 text-left transition-opacity", item.owned && !item.testing && "opacity-70 hover:opacity-100")}
               >
                 {/* The rarity as a thin line along the bottom, never a surface. */}
                 <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: rarityOf(item.rarity).color }} />
                 <div className="lx-tile-panel relative">
-                  <Spot height={dense ? 80 : 96} fill={shown.kind === "background" || hasModelPicture(shown)}><ItemArt item={shown} avatar={user?.avatar} username={username} size={dense ? 46 : 56} /></Spot>
+                  {shown.kind === "frame" ? (
+                    <FrameStage accent={accentOf(shown)} height={148}><ItemArt item={shown} avatar={user?.avatar} username={username} size={88} /></FrameStage>
+                  ) : (
+                    <Spot height={148} fill={shown.kind === "background" || hasModelPicture(shown)}><ItemArt item={shown} avatar={user?.avatar} username={username} size={72} /></Spot>
+                  )}
                 </div>
-                <div className="flex flex-col items-start gap-1 px-3 pb-2.5 pt-1.5">
-                  <span className="line-clamp-2 w-full text-[13px] font-semibold leading-[1.25] text-[var(--text)]">{(item.rarity ?? 1) >= 3 && <Star className="mr-1 inline size-3 -translate-y-px fill-current text-[var(--text-2)]" aria-label={`${rarityOf(item.rarity).label} item`} />}{item.name}</span>
-                  {action}
+                <div className="flex flex-1 flex-col items-stretch gap-2 px-2 pb-2 pt-3">
+                  <span className="line-clamp-1 w-full text-[13px] font-semibold leading-[1.25] text-[var(--text)]">{(item.rarity ?? 1) >= 3 && <Star className="mr-1 inline size-3 -translate-y-px fill-current text-[var(--text-2)]" aria-label={`${rarityOf(item.rarity).label} item`} />}{item.name}</span>
+                  <span aria-hidden="true" className="h-px w-full bg-white/10" />
+                  <div className={cn("mt-auto flex min-h-9 items-center pt-1", item.owned && !item.testing && item.kind !== "discord_role" && "pr-[6.75rem]")}>{action}</div>
                 </div>
               </div>
             {item.owned && !item.testing && item.kind === "profile_customize" && (
-              <button type="button" onClick={() => navigate("/profile/appearance")} style={{ "--acc": accentOf(shown) } as React.CSSProperties} className="absolute bottom-2.5 right-2.5 z-[2] inline-flex h-8 items-center rounded-lg bg-[color-mix(in_srgb,var(--acc)_20%,#111)] px-3 text-[12px] font-semibold text-[var(--acc)] transition-colors hover:bg-[color-mix(in_srgb,var(--acc)_34%,#111)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--acc)]">Set up</button>
+              <button type="button" onClick={() => navigate("/profile/appearance")} style={{ "--acc": accentOf(shown) } as React.CSSProperties} className="absolute bottom-[18px] right-[18px] z-[2] inline-flex h-7 items-center rounded-full bg-white/[0.07] px-3 text-[11px] font-medium text-[var(--text-muted)] transition-colors hover:bg-white/[0.12] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--acc)]">Set up</button>
             )}
             {item.owned && !item.testing && item.kind !== "profile_customize" && item.kind !== "discord_role" && (
-              <button type="button" disabled={busy} onClick={() => void wearHere(item, worn[item.kind] !== item.id)} style={{ "--acc": accentOf(shown) } as React.CSSProperties} className="absolute bottom-2.5 right-2.5 z-[2] inline-flex h-8 items-center rounded-lg bg-[color-mix(in_srgb,var(--acc)_20%,#111)] px-3 text-[12px] font-semibold text-[var(--acc)] transition-colors hover:bg-[color-mix(in_srgb,var(--acc)_34%,#111)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--acc)] disabled:opacity-60">{worn[item.kind] === item.id ? "Take off" : "Wear"}</button>
+              <button type="button" disabled={busy} onClick={() => void wearHere(item, worn[item.kind] !== item.id)} style={{ "--acc": accentOf(shown) } as React.CSSProperties} className="absolute bottom-[18px] right-[18px] z-[2] inline-flex h-7 items-center rounded-full bg-white/[0.07] px-3 text-[11px] font-medium text-[var(--text-muted)] transition-colors hover:bg-white/[0.12] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--acc)] disabled:opacity-60">{worn[item.kind] === item.id ? "Take off" : "Wear"}</button>
             )}
             {!item.testing && item.unlock === "coin" && !(item.owned && !item.expiresAt) && (
-              <button type="button" onClick={() => addToCart(item)} aria-pressed={tray.includes(item.id)} aria-label={tray.includes(item.id) ? `${item.name} is in the cart` : `Add ${item.name} to the cart`} style={{ "--acc": accentOf(shown) } as React.CSSProperties} className={cn("absolute bottom-2.5 z-[2] grid size-8 place-items-center rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--acc)]", item.owned && !item.testing && item.kind !== "discord_role" ? (item.kind === "profile_customize" ? "right-[4.5rem]" : worn[item.kind] === item.id ? "right-[5.75rem]" : "right-[4.5rem]") : "right-2.5", tray.includes(item.id) ? "bg-[var(--acc)] text-[#0a0a0a]" : "bg-[color-mix(in_srgb,var(--acc)_20%,#111)] text-[var(--acc)] hover:bg-[color-mix(in_srgb,var(--acc)_34%,#111)]")}>{tray.includes(item.id) ? <Check className="size-4" aria-hidden="true" /> : <ShoppingCart className="size-4" aria-hidden="true" />}</button>
+              <button type="button" onClick={() => addToCart(item)} aria-pressed={tray.includes(item.id)} aria-label={tray.includes(item.id) ? `${item.name} is in the cart` : `Add ${item.name} to the cart`} style={{ "--acc": accentOf(shown) } as React.CSSProperties} className={cn("absolute bottom-[18px] z-[2] grid h-9 w-14 place-items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--acc)]", item.owned && !item.testing && item.kind !== "discord_role" ? (item.kind === "profile_customize" ? "right-[4.5rem]" : worn[item.kind] === item.id ? "right-[5.75rem]" : "right-[4.5rem]") : "right-[18px]", tray.includes(item.id) ? "bg-[var(--acc)] text-[#0a0a0a]" : "bg-[#ececec] text-[#111] hover:brightness-105", item.owned && !item.testing && !tray.includes(item.id) && "h-7! w-10! bg-white/[0.07]! text-[var(--text-muted)]! hover:bg-white/[0.12]!")}>{tray.includes(item.id) ? <Check className="size-4" aria-hidden="true" /> : <ShoppingCart className="size-[18px]" aria-hidden="true" />}</button>
             )}
             <button type="button" onClick={() => toggleSaved(item.id)} aria-pressed={saved.includes(item.id)} aria-label={saved.includes(item.id) ? `Remove ${item.name} from saved` : `Save ${item.name} for later`} className={cn("absolute right-1.5 top-1.5 z-[2] grid size-7 place-items-center rounded-full border border-[var(--line)] bg-[var(--card-surface)]/80 text-[var(--text-dim)] transition-opacity hover:text-[var(--text)] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60", saved.includes(item.id) ? "text-[var(--brand-bright)] opacity-100" : "opacity-0 group-hover/tile:opacity-100")}><Heart className={cn("size-3.5", saved.includes(item.id) && "fill-current")} aria-hidden="true" /></button>
       </li>
@@ -455,6 +462,13 @@ export function ShopPage() {
       {/* Not a scroller itself: the page panel around it scrolls, and a sticky rail sticks to the nearest scroller (an inner overflow-y-auto that never scrolled kept it from sticking). */}
       <div className="flex min-h-0 flex-1">
       <div className="lx-glass-page lx-shop-root min-h-0 min-w-0 flex-1 px-6 py-5 max-md:px-4">
+        {tab === "featured" && (
+          <ShopHome className="mb-5" onGo={(target: ShopTarget) => {
+            if (target === "topup") navigate("/wallet/top-up")
+            else if (target === "ranks") document.querySelector('[aria-label="Ranks"]')?.scrollIntoView({ behavior: "smooth", block: "start" })
+            else setTab(target)
+          }} />
+        )}
         {tab === "featured" && (
           <div className="mb-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl border border-[var(--line-soft)] px-4 py-3 text-[12px] leading-relaxed text-[var(--text-dim)]">
             <span>Cosmetics are paid in FOL$ (earn it by playing, or top it up). Ranks are paid in ₮ with QPay or any bank app.</span>

@@ -1744,3 +1744,27 @@ html { background: radial-gradient(70% 38vh at 50% 0%, rgb(255 255 255 / 0.05), 
 /* A page background (a profile's, a clan's) sits in a fixed layer behind the shell, so the solid frame must let it through while one is showing. */
 html:has([data-page-scene]) body, html:has([data-page-scene]) [data-slot="sidebar-inset"] { background-color: transparent; }
 html:has([data-page-scene]) .lx-dotgrid { background-image: none; }
+
+/* Gold button (owner pick 2026-11-15, from the VIP reference): dark brown gradient, thin gold outline, white bold text. ".lx-gold-crown" adds the 3D crown tilted out of the top-left corner. */
+.lx-gold-button { position: relative; color: #fff; font-weight: 800; letter-spacing: 0.03em; background: linear-gradient(180deg, #120d06 0%, #2b1d08 55%, #4a3210 100%); box-shadow: inset 0 0 0 1.5px #f6c945, inset 0 0 0 2.5px rgb(255 224 138 / 0.27), inset 0 -14px 22px rgb(255 179 0 / 0.15), 0 8px 24px rgb(255 154 0 / 0.18); text-shadow: 0 2px 6px rgb(0 0 0 / 0.6); transition: filter var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out); }
+.lx-gold-button:hover:not(:disabled) { filter: brightness(1.18); }
+.lx-gold-button:active:not(:disabled) { transform: translateY(1px); }
+.lx-gold-button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.lx-gold-crown { padding-left: 4.4rem; }
+.lx-gold-crown::before { content: ""; position: absolute; left: -6px; top: -16px; width: 3.6rem; height: 3.6rem; transform: rotate(-14deg); background: url("./assets/shop3d/crown.png") center / contain no-repeat; filter: drop-shadow(0 6px 6px rgb(0 0 0 / 0.7)); pointer-events: none; transition: transform 300ms var(--ease-out); }
+.lx-gold-crown:hover:not(:disabled)::before { transform: rotate(-14deg) translateY(-3px) scale(1.06); }
+@media (prefers-reduced-motion: reduce) { .lx-gold-crown::before { transition: none; } }
+.lx-gold-money::before { background-image: url("./assets/shop3d/money.png"); transform: rotate(-10deg); }
+.lx-gold-money:hover:not(:disabled)::before { transform: rotate(-10deg) translateY(-3px) scale(1.06); }
+
+/* Shop card (owner pick 2026-11-16, from the Figma layout): a roomier tile, a big rounded picture, name, divider, then price and a light cart pill. */
+.lx-shop-tile .lx-tile-panel { border-radius: 20px; }
+.lx-shop-tile .lx-shop-price { gap: 4px; }
+.lx-shop-tile .lx-shop-price { height: 36px; padding: 0 16px; border-radius: 999px; font-size: 15px; font-weight: 700; }
+/* Shop tile picture (owner's Figma method, 2026-11-16): a plain grey gradient with two blurred blobs in the item's own colour, one big in the top-left corner (mostly outside the picture)
+   and a smaller one in the bottom-right that fades to black. Blur 30, low opacity, clipped by the picture. The colour is each product's --acc, never one shared colour. */
+.lx-shop-tile .lx-tile-panel { background: linear-gradient(180deg, #2a2a2a, #1c1c1c); }
+.lx-shop-tile .lx-tile-panel::before,
+.lx-shop-tile .lx-tile-panel::after { content: ""; position: absolute; z-index: 0; border-radius: 50%; filter: blur(30px); opacity: 0.32; pointer-events: none; }
+.lx-shop-tile .lx-tile-panel::before { width: 210%; height: 172%; left: -146%; top: -108%; background: var(--acc, #888); }
+.lx-shop-tile .lx-tile-panel::after { width: 123%; height: 84%; left: 54%; top: 76%; background: linear-gradient(180deg, var(--acc, #888), #000); }

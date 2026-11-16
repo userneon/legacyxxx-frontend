@@ -147,7 +147,7 @@ export function ShopTopUp() {
                 </div>
               </div>
             )}
-            <button type="button" disabled={!offer || starting || (Boolean(user) && !qpayReady)} onClick={() => void start()} className="lx-primary-button hidden h-12 items-center justify-center rounded-lg px-5 text-[15px] font-semibold disabled:opacity-50 sm:inline-flex">
+            <button type="button" disabled={!offer || starting || (Boolean(user) && !qpayReady)} onClick={() => void start()} className="lx-gold-button lx-gold-crown lx-gold-money hidden h-12 items-center justify-center rounded-xl pr-6 text-[15px] disabled:opacity-50 sm:inline-flex">
               {!user ? "Sign in to top up" : starting ? "Starting…" : offer ? `Pay ${mnt(offer.priceMnt)}` : "Pick an amount"}
             </button>
             {user && !qpayReady && <p className="text-xs text-[var(--text-dim)]">Top-up is not set up yet.</p>}
@@ -247,7 +247,7 @@ export function ShopTopUp() {
 
       {/* On a phone the pay button stays at the bottom of the screen. */}
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--line)] bg-[var(--panel)] p-3 sm:hidden" style={{ paddingBottom: "calc(12px + env(safe-area-inset-bottom, 0px))" }}>
-        <button type="button" disabled={!offer || starting || (Boolean(user) && !qpayReady)} onClick={() => void start()} className="lx-primary-button inline-flex h-12 w-full items-center justify-center rounded-lg px-5 text-[15px] font-semibold disabled:opacity-50">
+        <button type="button" disabled={!offer || starting || (Boolean(user) && !qpayReady)} onClick={() => void start()} className="lx-gold-button lx-gold-crown lx-gold-money inline-flex h-12 w-full items-center justify-center rounded-xl pr-6 text-[15px] disabled:opacity-50">
           {!user ? "Sign in to top up" : starting ? "Starting…" : offer ? `Pay ${mnt(offer.priceMnt)}` : "Pick an amount"}
         </button>
       </div>

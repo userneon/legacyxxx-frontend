@@ -3,11 +3,11 @@ import { useSearchParams } from "react-router-dom"
 import { Check, ChevronDown, Lock } from "lucide-react"
 import { toast } from "sonner"
 
-import prestige from "@/assets/ranks/gem-prestige.webp"
-import imperial from "@/assets/ranks/gem-imperial.webp"
-import eternal from "@/assets/ranks/gem-eternal.webp"
-import prime from "@/assets/ranks/gem-prime.webp"
-import sovereign from "@/assets/ranks/gem-sovereign.webp"
+import prestige from "@/assets/ranks/art-prestige.webp"
+import imperial from "@/assets/ranks/art-imperial.webp"
+import eternal from "@/assets/ranks/art-eternal.webp"
+import prime from "@/assets/ranks/art-prime.webp"
+import sovereign from "@/assets/ranks/art-sovereign.webp"
 import { ChoiceSelect } from "@/components/choice-select"
 import { perksService, type PerkCatalogue, type PerkDays, type PerkGrant, type PerkInvoice, type PerkMine } from "@/api/perks"
 import { PERK_EMBLEM, PerkBadge, PerkTitle } from "@/components/perk-badge"
@@ -169,14 +169,12 @@ export function ShopRanks({ catalogue, qa = false }: { catalogue: PerkCatalogue;
             <li key={tier.key} className="@container flex min-w-0 flex-col gap-2">
               {/* One card: the gem art with its text, length, price and Buy on its lower panel, and Benefits as the card's own bottom section (owner request 2026-11-13: everything inside the card). */}
               <div className={cn("relative flex flex-1 flex-col overflow-hidden rounded-[22px] border border-white/10", mineHere && "ring-2 ring-[var(--brand)]")} style={{ "--fx": `color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} 90%, white)`, "--fx-c": TIER_GLOW[tier.key] ?? "#888", background: `linear-gradient(180deg, color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} 20%, #0d0d0f), #0d0d0f 78%)` } as React.CSSProperties}>
-              {/* Only the gem and its pedestal are taken from the art, small, on the tier's own glow; the edges of the picture fade out so no frame or panel of the art shows (owner request 2026-11-13: smaller, cleaner). */}
-              <div aria-hidden="true" className="relative isolate overflow-hidden" style={{ height: "64cqw" }}>
-                <div className="absolute inset-0" style={{ background: `radial-gradient(60% 55% at 50% 52%, color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} 38%, transparent), transparent 75%)` }} />
-                {TIER_ART[tier.key] && (
-                  <div className="absolute left-1/2 -translate-x-1/2" style={{ width: "58cqw", height: "104cqw", top: "-8cqw", backgroundImage: `url(${TIER_ART[tier.key]})`, backgroundSize: "100% 100%", WebkitMaskImage: "radial-gradient(ellipse 52% 36% at 50% 48%, #000 55%, transparent 100%)", maskImage: "radial-gradient(ellipse 52% 36% at 50% 48%, #000 55%, transparent 100%)" }} />
-                )}
+              {/* The owner's five gems on their pedestals (owner request 2026-11-15, transparent art): each stands on its tier's own glow, one picture per card. */}
+              <div aria-hidden="true" className="relative isolate overflow-hidden [mask-image:linear-gradient(180deg,#000_72%,transparent_98%)]" style={{ height: "80cqw" }}>
+                <div className="absolute inset-0" style={{ background: `radial-gradient(60% 55% at 50% 56%, color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} 34%, transparent), transparent 75%)` }} />
+                {TIER_ART[tier.key] && <img src={TIER_ART[tier.key]} alt="" draggable={false} className="absolute left-1/2 top-[2cqw] h-[72cqw] -translate-x-1/2 object-contain drop-shadow-[0_14px_18px_rgba(0,0,0,0.55)]" />}
               </div>
-              <div className="flex flex-col gap-2 px-[7%] pb-3 pt-1">
+              <div className="relative -mt-[7cqw] flex flex-col gap-2 px-[7%] pb-3 pt-1">
                 <div>
                   <h3 className="text-[clamp(15px,9cqw,24px)] font-bold leading-none text-white">{tier.name}</h3>
                   <p className="mt-1 text-[clamp(11px,5.6cqw,13px)] font-medium leading-tight text-white/75">{tier.quota} {tier.quota === 1 ? "command" : "commands"} of your choice</p>
@@ -184,7 +182,7 @@ export function ShopRanks({ catalogue, qa = false }: { catalogue: PerkCatalogue;
                 <ChoiceSelect<PerkDays> className="!h-9 !rounded-xl !border-white/20 !bg-white/[0.1] !text-[13px] !font-semibold !text-white [&_svg]:!text-white/80 hover:!bg-white/[0.16]" ariaLabel={`How long, ${tier.name}`} value={days} onChange={(next) => setLengths((current) => ({ ...current, [tier.key]: next }))} options={catalogue.days.filter((value) => tier.prices[String(value)]).map((value) => ({ value, label: `${value} days`, hint: mnt(tier.prices[String(value)] as number) }))} />
                 <div className="flex items-stretch gap-1.5">
                   <span className="grid place-items-center rounded-xl bg-black/40 px-2.5 text-[clamp(12px,6cqw,14px)] font-bold text-[var(--text)]">{price ? mnt(price) : "Not for sale"}</span>
-                  <button type="button" disabled={(!qa && (!price || !catalogue.available)) || busy !== null || (otherRunning && !qa)} onClick={() => void (qa ? getFree(tier.key) : buy(tier.key, days))} className="lx-primary-button lx-rank-buy inline-flex h-9 min-w-0 flex-1 items-center justify-center rounded-xl px-3 text-[14px] font-bold disabled:opacity-50">{busy === tier.key ? "Opening…" : qa ? (mineHere ? "Picks" : "Get free") : mineHere ? "Renew" : "Buy"}</button>
+                  <button type="button" disabled={(!qa && (!price || !catalogue.available)) || busy !== null || (otherRunning && !qa)} onClick={() => void (qa ? getFree(tier.key) : buy(tier.key, days))} className="lx-gold-button inline-flex h-9 min-w-0 flex-1 items-center justify-center rounded-xl px-3 text-[14px] disabled:opacity-50">{busy === tier.key ? "Opening…" : qa ? (mineHere ? "Picks" : "Get free") : mineHere ? "Renew" : "Buy"}</button>
                 </div>
                 {otherRunning && !qa && <span className="text-[11px] text-white/65">Another rank is running. It must end first.</span>}
               </div>
