@@ -1100,6 +1100,8 @@ export async function mockResponse(method: string, path: string, query: Query, b
   }
 
   if (/^\/api\/v1\/profile\/[^/]+\/config$/.test(path) && method === "GET") return { config: mockPlayerConfig, updatedAt: mockPlayerConfig ? new Date().toISOString() : null }
+  if (/^\/api\/v1\/profile\/[^/]+\/track$/.test(path) && method === "GET") return mockTrack()
+  if (/^\/api\/v1\/profile\/[^/]+\/history/.test(path) && method === "GET") return mockHistory(path)
   const profile = /^\/api\/v1\/profile\/([^/]+)\/(overview|faceit)$/.exec(path)
   if (profile) return profile[2] === "overview" ? profileOverview(decodeURIComponent(profile[1])) : faceit(decodeURIComponent(profile[1]))
 
@@ -1152,4 +1154,73 @@ export async function mockResponse(method: string, path: string, query: Query, b
     default:
       throw notFound()
   }
+}
+
+
+/** Track tab sample: 40 matches from a small seeded generator, so the preview looks the same every time. */
+function mockTrack() {
+  let seed = 7
+  const next = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 }
+  const maps = ["de_mirage", "de_inferno", "de_dust2", "de_ancient", "de_nuke", "de_anubis"]
+  const form = Array.from({ length: 30 }, (_, index) => {
+    const kills = 8 + Math.floor(next() * 22)
+    const deaths = 6 + Math.floor(next() * 16)
+    const win = next() > 0.42
+    return { matchId: `t${index}`, map: maps[Math.floor(next() * maps.length)], playedAt: new Date(Date.now() - (30 - index) * 86_400_000 * 0.9).toISOString(), result: (win ? "win" : "loss") as "win" | "loss", kills, deaths, assists: Math.floor(next() * 9), kd: Math.round((kills / deaths) * 100) / 100, headshotPercent: 30 + Math.floor(next() * 40), rounds: win ? 22 : 24, expDelta: win ? 8 + Math.floor(next() * 18) : -(6 + Math.floor(next() * 12)) }
+  })
+  const totals = form.reduce((sum, match) => ({ kills: sum.kills + match.kills, deaths: sum.deaths + match.deaths, assists: sum.assists + match.assists, rounds: sum.rounds + match.rounds }), { kills: 0, deaths: 0, assists: 0, rounds: 0 })
+  const wins = form.filter((match) => match.result === "win").length
+  const byMap = maps.map((map) => {
+    const rows = form.filter((match) => match.map === map)
+    const k = rows.reduce((a, b) => a + b.kills, 0)
+    const d = rows.reduce((a, b) => a + b.deaths, 0)
+    const w = rows.filter((match) => match.result === "win").length
+    return { map, matches: rows.length, wins: w, winRate: rows.length ? Math.round((w / rows.length) * 100) : 0, kd: d ? Math.round((k / d) * 100) / 100 : null, headshotPercent: 48, killsPerMatch: rows.length ? Math.round((k / rows.length) * 10) / 10 : null, exp: rows.reduce((a, b) => a + b.expDelta, 0) }
+  }).filter((entry) => entry.matches > 0).sort((a, b) => b.matches - a.matches)
+  const sorted = [...form].sort((a, b) => b.kd - a.kd)
+  return {
+    banned: false,
+    hidden: false,
+    track: {
+      matches: 30,
+      since: form[0].playedAt,
+      record: { wins, losses: 30 - wins, draws: 0, winRate: Math.round((wins / 30) * 100) },
+      totals: { ...totals, headshotKills: Math.round(totals.kills * 0.47), mvps: 61, entryKills: 74, clutchesWon: 18, bombPlants: 40, bombDefuses: 12 },
+      rates: { kd: Math.round((totals.kills / totals.deaths) * 100) / 100, kda: Math.round(((totals.kills + totals.assists) / totals.deaths) * 100) / 100, headshotPercent: 47, killsPerRound: Math.round((totals.kills / totals.rounds) * 100) / 100, deathsPerRound: Math.round((totals.deaths / totals.rounds) * 100) / 100, assistsPerRound: Math.round((totals.assists / totals.rounds) * 100) / 100, killsPerMatch: Math.round((totals.kills / 30) * 10) / 10, deathsPerMatch: Math.round((totals.deaths / 30) * 10) / 10, mvpPerMatch: 2.03, entryKillsPerMatch: 2.47, expPerMatch: 4.2 },
+      multiKills: { rounds3k: 34, rounds4k: 9, rounds5k: 1, per100Rounds: 6.3 },
+      clutches: { won: 18, won1v3Plus: 4 },
+      maps: byMap,
+      form,
+      streaks: { current: { type: "win" as const, count: 3 }, bestWin: 6, bestLoss: 3 },
+      best: sorted[0],
+      worst: sorted[sorted.length - 1],
+      activity: { weekdays: [3, 5, 4, 6, 7, 2, 3], hours: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 2, 1, 3, 4, 5, 7, 4, 1, 0] },
+      leftEarly: 1,
+    },
+  }
+}
+
+
+/** History tab sample: 60 matches, 25 per page, filtered the way the real API filters. */
+function mockHistory(path: string) {
+  const query = new URLSearchParams(path.split("?")[1] ?? "")
+  let seed = 11
+  const next = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 }
+  const maps = ["de_mirage", "de_inferno", "de_dust2", "de_ancient", "de_nuke", "de_anubis"]
+  const all = Array.from({ length: 60 }, (_, index) => {
+    const kills = 7 + Math.floor(next() * 24)
+    const deaths = 5 + Math.floor(next() * 17)
+    const win = next() > 0.45
+    const rounds = [13, Math.floor(next() * 12)]
+    const delta = win ? 6 + Math.floor(next() * 20) : -(5 + Math.floor(next() * 14))
+    return {
+      map: maps[Math.floor(next() * maps.length)], result: win ? "Win" : "Loss", score: win ? `13:${rounds[1]}` : `${rounds[1]}:13`, kd: (kills / deaths).toFixed(2),
+      matchId: `h${index}`, mapNumber: 1, playedAt: new Date(Date.now() - index * 7_200_000 * (1 + Math.floor(next() * 5))).toISOString(),
+      expDelta: delta, expBefore: 4000, expAfter: 4000 + delta, expBreakdown: {}, kills, deaths, assists: Math.floor(next() * 9), headshotPercent: 30 + Math.floor(next() * 40), mvps: Math.floor(next() * 5),
+    }
+  })
+  const before = query.get("before")
+  const filtered = all.filter((row) => (!query.get("result") || row.result.toLowerCase() === query.get("result")) && (!query.get("map") || row.map === query.get("map")) && (!before || row.playedAt < before))
+  const page = filtered.slice(0, 25)
+  return { banned: false, hidden: false, matches: page, total: filtered.length, cursor: filtered.length > 25 ? page[page.length - 1].playedAt : null, maps: [...maps].sort() }
 }

@@ -26,6 +26,8 @@ import { PAGE_ROUTES, PAGE_TITLES, documentTitle } from "@/lib/routes"
 import { CompetitiveRankBadge, RankLabel, RankPill } from "@/components/competitive-rank-badge"
 import { FaceitLevelBadge } from "@/components/faceit-level-badge"
 import { MatchDetailsDialog } from "@/components/match-details-dialog"
+import { ProfileTrackTab } from "@/components/profile-track"
+import { ProfileHistoryTab } from "@/components/profile-history"
 import { setProfileScene } from "@/lib/profile-scene"
 import { ProfileStaffMenu } from "@/components/profile-staff"
 import { OwnerPanel } from "@/components/owner-panel"
@@ -817,7 +819,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sceneStill, sceneWebm, sceneMp4, sceneBackgroundKey])
   const [openMatch, setOpenMatch] = useState<ProfileMatchRow | null>(null)
-  const [view, setView] = useState<"stats" | "configs">("stats")
+  const [view, setView] = useState<"stats" | "track" | "history" | "configs">("stats")
   const [openPenalty, setOpenPenalty] = useState<PenaltyEntry | null>(null)
   const topRef = useRef<HTMLDivElement>(null)
 
@@ -869,12 +871,16 @@ export function ProfilePage({ userId }: { userId?: string }) {
           {data.user.role === "Owner" && <OwnerPanel overview={data} />}
           <div className="flex min-w-0 flex-col gap-3">
             <div className="lx-glass rounded-2xl px-5">
-              <PageTabs<"stats" | "configs" | "appearance" | "settings"> ariaLabel="Profile sections" value={tab === "profile" ? view : tab} onChange={(next) => { if (next === "stats" || next === "configs") { setView(next); setTab("profile") } else setTab(next) }} options={own ? [{ value: "stats", label: "Stats" }, { value: "configs", label: "Configs" }, { value: "appearance", label: "Appearance" }, { value: "settings", label: "Settings" }] : [{ value: "stats", label: "Stats" }, { value: "configs", label: "Configs" }]} />
+              <PageTabs<"stats" | "track" | "history" | "configs" | "appearance" | "settings"> ariaLabel="Profile sections" value={tab === "profile" ? view : tab} onChange={(next) => { if (next === "stats" || next === "track" || next === "history" || next === "configs") { setView(next); setTab("profile") } else setTab(next) }} options={own ? [{ value: "stats", label: "Stats" }, { value: "track", label: "Track" }, { value: "history", label: "History" }, { value: "configs", label: "Configs" }, { value: "appearance", label: "Appearance" }, { value: "settings", label: "Settings" }] : [{ value: "stats", label: "Stats" }, { value: "track", label: "Track" }, { value: "history", label: "History" }, { value: "configs", label: "Configs" }]} />
             </div>
             {tab === "appearance" ? (
               <div key="appearance" className="lx-flow-stack"><AppearanceSettings /></div>
             ) : tab === "settings" ? (
               <div key="settings" className="lx-flow-stack flex flex-col gap-4">{data.visibility && <PrivacyPopover visibility={data.visibility} onSaved={refetch} />}<AccountSettings /></div>
+            ) : view === "track" ? (
+              <div key="track" className="lx-flow-stack"><ProfileTrackTab userId={data.user.steamId || data.user.id} banned={Boolean(data.banned)} /></div>
+            ) : view === "history" ? (
+              <div key="history" className="lx-flow-stack"><ProfileHistoryTab userId={data.user.steamId || data.user.id} steamId={data.user.steamId} banned={Boolean(data.banned)} /></div>
             ) : view === "configs" ? (
               <div key="configs" className="lx-flow-stack"><ProfileConfigs userId={data.user.steamId || data.user.id} isOwner={data.viewer.isOwner} /></div>
             ) : (
