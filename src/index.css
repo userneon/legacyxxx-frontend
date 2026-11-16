@@ -1761,7 +1761,10 @@ html:has([data-page-scene]) .lx-dotgrid { background-image: none; }
 .lx-shop-tile .lx-tile-panel { border-radius: 20px; }
 .lx-shop-tile .lx-shop-price { gap: 4px; }
 .lx-shop-tile .lx-shop-price { height: 36px; padding: 0 16px; border-radius: 999px; font-size: 15px; font-weight: 700; }
-/* Shop tile picture: a soft diagonal tint in the item's own colour (owner pick 2026-11-16, from the Figma card; the colour is each product's --acc, never one shared colour). */
-.lx-shop-tile .lx-tile-panel {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--acc, #888) 26%, #0e0e0e) 0%, #181818 48%, color-mix(in srgb, var(--acc, #888) 20%, #0e0e0e) 100%);
-}
+/* Shop tile picture (owner's Figma method, 2026-11-16): a plain grey gradient with two blurred blobs in the item's own colour, one big in the top-left corner (mostly outside the picture)
+   and a smaller one in the bottom-right that fades to black. Blur 30, low opacity, clipped by the picture. The colour is each product's --acc, never one shared colour. */
+.lx-shop-tile .lx-tile-panel { background: linear-gradient(180deg, #2a2a2a, #1c1c1c); }
+.lx-shop-tile .lx-tile-panel::before,
+.lx-shop-tile .lx-tile-panel::after { content: ""; position: absolute; z-index: 0; border-radius: 50%; filter: blur(30px); opacity: 0.32; pointer-events: none; }
+.lx-shop-tile .lx-tile-panel::before { width: 210%; height: 172%; left: -146%; top: -108%; background: var(--acc, #888); }
+.lx-shop-tile .lx-tile-panel::after { width: 123%; height: 84%; left: 54%; top: 76%; background: linear-gradient(180deg, var(--acc, #888), #000); }
