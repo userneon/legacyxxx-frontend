@@ -1,10 +1,8 @@
-import wallet from "@/assets/shop3d/wallet.png"
+import coins from "@/assets/shop3d/coins.png"
 import crown from "@/assets/shop3d/crown.png"
-import star from "@/assets/shop3d/star.png"
+import effects from "@/assets/shop3d/effects.png"
 import medal from "@/assets/shop3d/medal.png"
-import knife from "@/assets/shop3d/cs2-knife.png"
-import rifle from "@/assets/shop3d/cs2-rifle.png"
-import agent from "@/assets/shop3d/cs2-agent.png"
+import models from "@/assets/shop3d/models.png"
 import { cn } from "@/lib/utils"
 
 export type ShopTarget = "ranks" | "model" | "smoke_color" | "discord_role" | "topup"
@@ -15,7 +13,7 @@ const LIGHT = "#6f7dff"
 /**
  * The Shop's front door: a short header and one card per thing the Shop sells. Each card is a real 3D picture standing on three isometric glass plates over one soft light;
  * hovering lifts the picture and spreads the plates. Every card opens something the Shop already sells; nothing here is priced or sold on its own.
- * Pictures: 3dicons.co (CC0); the Custom Models card shows CS2 items from Valve's own game art (via ByMykel CS2 API).
+ * Pictures: the five card pictures are LXC's own AI-generated art (owner, 2026-11-16); the button's money icon is 3dicons.co (CC0).
  */
 const CARDS: Array<{ target: ShopTarget; title: string; text: string; art: "medal" | "models" | "star" | "crown" | "wallet" }> = [
   { target: "ranks", title: "Ranks", text: "Five tiers. Your name, emblem and commands on every server.", art: "medal" },
@@ -42,17 +40,8 @@ function Plates() {
 function Picture({ art }: { art: (typeof CARDS)[number]["art"] }) {
   const lift = "transition-transform duration-500 ease-[cubic-bezier(.2,.7,.2,1)] group-hover:-translate-y-2 motion-reduce:transition-none"
   const shadow = "pointer-events-none absolute drop-shadow-[0_18px_18px_rgba(0,0,0,0.65)]"
-  if (art === "models") {
-    return (
-      <>
-        <img src={knife} alt="" aria-hidden="true" draggable={false} className={cn(shadow, lift, "left-[6%] top-[14%] h-[66px]")} />
-        <img src={rifle} alt="" aria-hidden="true" draggable={false} className={cn(shadow, lift, "left-[5%] top-[50%] h-[54px]")} />
-        <img src={agent} alt="" aria-hidden="true" draggable={false} className={cn(shadow, lift, "left-[50%] top-[10%] h-[106px]")} />
-      </>
-    )
-  }
-  const image = art === "star" ? star : art === "crown" ? crown : art === "medal" ? medal : wallet
-  return <img src={image} alt="" aria-hidden="true" draggable={false} className={cn(shadow, lift, "left-1/2 top-[12%] h-[116px] -translate-x-1/2")} />
+  const image = art === "star" ? effects : art === "crown" ? crown : art === "medal" ? medal : art === "models" ? models : coins
+  return <img src={image} alt="" aria-hidden="true" draggable={false} className={cn(shadow, lift, "left-1/2 top-[8%] h-[140px] -translate-x-1/2")} />
 }
 
 export function ShopHome({ onGo, className }: { onGo: (target: ShopTarget) => void; className?: string }) {
@@ -90,7 +79,7 @@ export function ShopHome({ onGo, className }: { onGo: (target: ShopTarget) => vo
       <details className="text-[11px] text-[var(--text-dim)]">
         <summary className="w-fit cursor-pointer">Picture credits</summary>
         <p className="mt-1.5 max-w-[60ch] leading-relaxed">
-          3D icons from <a className="underline" href="https://3dicons.co" target="_blank" rel="noopener noreferrer">3dicons.co</a> (CC0). Counter-Strike 2 items on the Custom Models card are Valve's artwork, listed through the open <a className="underline" href="https://github.com/ByMykel/CSGO-API" target="_blank" rel="noopener noreferrer">CS2 API</a>; LXC is not affiliated with Valve.
+          Card pictures are LXC's own artwork. The money icon on the Top up button is from <a className="underline" href="https://3dicons.co" target="_blank" rel="noopener noreferrer">3dicons.co</a> (CC0).
         </p>
       </details>
     </section>
