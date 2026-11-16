@@ -11,7 +11,6 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { frameAccent, nameProps, timeLeft } from "@/lib/cosmetics"
 import { SAVED_KEY, daysLeft, endingSoon, outfitTotal, rarityOf, readSaved } from "@/lib/shop-logic"
-import { ORB_ID, type FrameLook } from "@/lib/frame-look"
 import { isRingFrame } from "@/lib/ring-frames"
 import { BgThumb } from "@/components/bg-thumb"
 import { SmokePuff } from "@/components/smoke-puff"
@@ -63,12 +62,12 @@ const TOP_TABS: Array<{ value: "featured" | "profile" | "clan"; label: string }>
 type ShopItem = FrameItem & { kind: ShopKind }
 
 /** What the item looks like: a frame around your picture, or your name painted with it. */
-function ItemArt({ item, avatar, username, size, orb }: { item: ShopItem; avatar?: string; username: string; size: number; orb?: FrameLook | null }) {
+function ItemArt({ item, avatar, username, size }: { item: ShopItem; avatar?: string; username: string; size: number }) {
   if (item.kind === "background") return <BgThumb id={item.id} fill />
   if (item.kind === "frame") {
-    const pic = <FramedAvatar avatar={avatar} name={username} frame={item.id} look={orb} live={size >= 120} size={size} />
-    // The Crystal Orb draws its own frame; every other frame shows as a ring in its colour.
-    return item.id === ORB_ID || isRingFrame(item.id) ? pic : <span className="lx-shop-ring" style={{ "--acc": frameAccent(item.id) } as React.CSSProperties}>{pic}</span>
+    const pic = <FramedAvatar avatar={avatar} name={username} frame={item.id} size={size} />
+    // A ring frame draws its own ring; every other frame shows as a ring in its colour.
+    return isRingFrame(item.id) ? pic : <span className="lx-shop-ring" style={{ "--acc": frameAccent(item.id) } as React.CSSProperties}>{pic}</span>
   }
   if (item.kind === "discord_role") return <span className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3.5 text-[14px] font-bold" style={{ color: item.color ?? "#e4e4e7", backgroundColor: `color-mix(in srgb, ${item.color ?? "#e4e4e7"} 18%, #111)` }}>★ {item.name}</span>
   if (item.kind === "smoke_color") return <SmokePuff color={item.color} color2={item.color2} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
@@ -198,7 +197,7 @@ export function ShopPage() {
   const [search, setSearch] = useState("")
   // How long the next purchase rents the item for; the price of each length is the API's.
   const [duration] = useState<CosmeticDuration>("30d")
-  // Some items are rented for one length only (the Crystal Orb: 30 days); the API lists just the lengths it sells.
+  // Some items are rented for one length only; the API lists just the lengths it sells.
   const lengthsOf = (item: ShopItem) => { const sold = COSMETIC_DURATIONS.filter((length) => item.prices?.[length.value] !== undefined); return sold.length ? sold : COSMETIC_DURATIONS }
   // A length picked in the outfit belongs to that item alone; without one the item follows the length picked last.
   const [itemLength, setItemLength] = useState<Record<string, CosmeticDuration>>({})
@@ -326,7 +325,7 @@ export function ShopPage() {
                 {/* The rarity as a thin line along the bottom, never a surface. */}
                 <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: rarityOf(item.rarity).color }} />
                 <div className="lx-tile-panel relative">
-                  <Spot height={dense ? 80 : 96} fill={shown.kind === "background" || hasModelPicture(shown)}><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={dense ? 46 : 56} /></Spot>
+                  <Spot height={dense ? 80 : 96} fill={shown.kind === "background" || hasModelPicture(shown)}><ItemArt item={shown} avatar={user?.avatar} username={username} size={dense ? 46 : 56} /></Spot>
                 </div>
                 <div className="flex flex-col items-start gap-1 px-3 pb-2.5 pt-1.5">
                   <span className="line-clamp-2 w-full text-[13px] font-semibold leading-[1.25] text-[var(--text)]">{(item.rarity ?? 1) >= 3 && <Star className="mr-1 inline size-3 -translate-y-px fill-current text-[var(--text-2)]" aria-label={`${rarityOf(item.rarity).label} item`} />}{item.name}</span>
@@ -382,7 +381,7 @@ export function ShopPage() {
           <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-3.5">
             {trayItems.map((item) => (
               <li key={item.id} className="lx-shop-glass grid grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-3 rounded-[10px] border p-2">
-                <Spot height={64}><ItemArt item={item} avatar={user?.avatar} username={username} orb={data?.frameLook} size={34} /></Spot>
+                <Spot height={64}><ItemArt item={item} avatar={user?.avatar} username={username} size={34} /></Spot>
                 <div className="flex min-w-0 flex-col gap-1.5">
                   <span className="truncate text-[13px] font-semibold text-[var(--text)]">{item.name}</span>
                   <span className="text-[11px] text-[var(--text-dim)]">{KIND_WORD[item.kind] ?? "Item"}</span>

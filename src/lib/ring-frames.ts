@@ -1,7 +1,7 @@
 /**
  * Ring frames (owner request 2026-11-08, "animated frames from other component sites"): light, pure-CSS rings round the round avatar, in two styles:
  * `gradient` (a colour wheel turning round the avatar, with a soft glow, like a gradient avatar ring) and `beam` (a thin ring with one bright arc
- * running round it, like a border beam). They are drawn by CSS only (`.lx-ring` in index.css), so, unlike the Crystal Orb, they can be live in every list.
+ * running round it, like a border beam). They are drawn by CSS only (`.lx-ring` in index.css), so, they can be live in every list.
  * The colours are the frames' own (palette-exempt); the catalogue rows are in the API's `supabase/legacy_x_ring_frames.sql`.
  */
 export type RingStyle = "gradient" | "beam"

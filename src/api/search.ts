@@ -35,7 +35,6 @@ function normalizePlayer(raw: Record<string, unknown>): CommunityPlayer {
     avatar: text(raw.avatar) ?? "",
     moderationStatus: MODERATION_STATUSES.includes(status) ? status : "Clear",
     frame: text(raw.frame) ?? null,
-    frameLook: (raw.frameLook as CommunityPlayer["frameLook"]) ?? null,
     nameStyle: (raw.nameStyle as CommunityPlayer["nameStyle"]) ?? null,
     perk: (raw.perk as CommunityPlayer["perk"]) ?? null,
   }

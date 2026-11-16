@@ -13,7 +13,6 @@ import { GrenadeLight, GrenadeTrail } from "@/components/grenade-trail"
 import { FlashEffect } from "@/components/flash-effect"
 import { SmokePuff } from "@/components/smoke-puff"
 import { FramedAvatar } from "@/components/framed-avatar"
-import { OrbCustomizer } from "@/components/orb-customizer"
 import { BgCustomizer } from "@/components/bg-customizer"
 import { BgThumb } from "@/components/bg-thumb"
 import { BackgroundScene, bgById, type BgLook } from "@/lib/backgrounds"
@@ -305,7 +304,6 @@ function Appearance() {
                 onSave={(look) => void run(async () => { await cosmeticsService.saveBackgroundLook(selected.id, look); setBgDrafts((current) => { const { [selected.id]: _saved, ...rest } = current; return rest }) }, "Could not save your background")}
               />
             )}
-            {kind === "frame" && <OrbCustomizer avatar={user?.avatar} name={user?.username} owned={lists.frame.some((item) => item.id === "crystal-orb" && item.owned)} saved={data.frameLook ?? null} busy={busy} onSave={(look) => void run(() => cosmeticsService.saveFrameLook(look), "Could not save your orb")} />}
             <div className="lx-glass rounded-2xl p-4">
             {frames.length === 0 ? (
               <p className="py-6 text-[13px] text-[var(--text-dim)]">You do not own a {noun} yet.</p>
@@ -325,7 +323,7 @@ function Appearance() {
                       {kind === "background" ? (
                         <BgThumb id={item.id} />
                       ) : kind === "frame" ? (
-                        <FramedAvatar avatar={user?.avatar} name={user?.username} frame={item.id} look={data.frameLook} size={76} />
+                        <FramedAvatar avatar={user?.avatar} name={user?.username} frame={item.id} size={76} />
                       ) : kind === "banner" ? (
                         <span className="relative flex h-[76px] w-full items-center justify-center overflow-hidden rounded-lg"><span aria-hidden="true" className={cn("absolute inset-0", bannerClass(item.fx))} /></span>
                       ) : kind === "grenade_trail" ? (

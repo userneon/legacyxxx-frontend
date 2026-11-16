@@ -87,7 +87,7 @@ export function CreatorLinks({ links, className, tiktokVerified }: { links: Crea
 function CreatorHead({ creator, size, center }: { creator: Creator; size: number; center?: boolean }) {
   return (
     <Link to={`/profile/${creator.steamId}`} className={cn("group flex min-w-0 gap-3", center ? "flex-col items-center text-center" : "items-center")}>
-      <FramedAvatar avatar={creator.avatar ?? undefined} name={creator.username} frame={creator.frame} look={creator.frameLook} size={size} />
+      <FramedAvatar avatar={creator.avatar ?? undefined} name={creator.username} frame={creator.frame} size={size} />
       <span className={cn("flex min-w-0 flex-col gap-1", center && "items-center")}>
         <span {...nameProps(creator.nameStyle as NameLook | null, cn("truncate font-bold text-[var(--text)] underline-offset-4 group-hover:underline", size > 60 ? "text-[22px] leading-tight" : "text-[15px]"))} title={creator.username}>{creator.username}</span>
         <PerkMark perk={creator.perk} compact />

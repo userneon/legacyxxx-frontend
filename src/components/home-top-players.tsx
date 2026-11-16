@@ -85,7 +85,7 @@ export function TopPlayers({ onOpenProfile, onViewAll, className }: { onOpenProf
                   <NameBanner fx={player.banner} image={player.bannerImage} />
                   <Place position={player.position} />
                   <span className="flex min-w-0 items-center gap-3">
-                    <PlayerAvatar avatar={player.avatar} name={player.username} frame={player.frame} frameLook={player.frame_look} className="size-9 shrink-0 text-[11px]" />
+                    <PlayerAvatar avatar={player.avatar} name={player.username} frame={player.frame} className="size-9 shrink-0 text-[11px]" />
                     <span className="flex min-w-0 flex-col gap-0.5">
                       <span {...nameProps(player.name_style, "truncate text-sm font-semibold text-[var(--text)]")}><PlayerNameText name={player.username} /></span>
                       <PerkMark perk={player.perk} compact />
