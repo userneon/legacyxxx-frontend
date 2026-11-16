@@ -147,7 +147,46 @@ export interface PlayerConfig {
   other?: Array<{ label: string; value: string }>
 }
 
+/** One match in the Track tab's form chart. */
+export interface TrackMatch {
+  matchId: string
+  map: string
+  playedAt: string | null
+  result: "win" | "loss" | "draw"
+  kills: number
+  deaths: number
+  assists: number
+  kd: number
+  headshotPercent: number | null
+  rounds: number
+  expDelta: number
+}
+
+/** The detailed numbers (backend GET /profile/:id/track) over the player's last ranked matches. Every figure is the API's; none is worked out here. */
+export interface ProfileTrack {
+  matches: number
+  since: string | null
+  record: { wins: number; losses: number; draws: number; winRate: number | null }
+  totals: { kills: number; deaths: number; assists: number; headshotKills: number; rounds: number; mvps: number; entryKills: number; clutchesWon: number; bombPlants: number; bombDefuses: number }
+  rates: { kd: number | null; kda: number | null; headshotPercent: number | null; killsPerRound: number | null; deathsPerRound: number | null; assistsPerRound: number | null; killsPerMatch: number | null; deathsPerMatch: number | null; mvpPerMatch: number | null; entryKillsPerMatch: number | null; expPerMatch: number | null }
+  multiKills: { rounds3k: number; rounds4k: number; rounds5k: number; per100Rounds: number | null }
+  clutches: { won: number; won1v3Plus: number }
+  maps: Array<{ map: string; matches: number; wins: number; winRate: number; kd: number | null; headshotPercent: number | null; killsPerMatch: number | null; exp: number }>
+  form: TrackMatch[]
+  streaks: { current: { type: "win" | "loss" | null; count: number }; bestWin: number; bestLoss: number }
+  best: TrackMatch | null
+  worst: TrackMatch | null
+  activity: { weekdays: number[]; hours: number[] }
+  leftEarly: number
+}
+
+export interface ProfileTrackAnswer { banned: boolean; hidden: boolean; track: ProfileTrack | null }
+
 export const profileOverviewService = {
+  async getTrack(userId: string, options?: CallOptions): Promise<ProfileTrackAnswer> {
+    return get<ProfileTrackAnswer>(`/api/v1/profile/${encodeURIComponent(userId)}/track`, undefined, options)
+  },
+
   async getConfig(userId: string, options?: CallOptions): Promise<{ config: PlayerConfig | null; updatedAt: string | null }> {
     return get(`/api/v1/profile/${encodeURIComponent(userId)}/config`, undefined, options)
   },
