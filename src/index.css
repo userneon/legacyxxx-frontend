@@ -1756,3 +1756,8 @@ html:has([data-page-scene]) .lx-dotgrid { background-image: none; }
 @media (prefers-reduced-motion: reduce) { .lx-gold-crown::before { transition: none; } }
 .lx-gold-money::before { background-image: url("./assets/shop3d/money.png"); transform: rotate(-10deg); }
 .lx-gold-money:hover:not(:disabled)::before { transform: rotate(-10deg) translateY(-3px) scale(1.06); }
+
+/* Shop card (owner pick 2026-11-16, from the Figma layout): a roomier tile, a big rounded picture, name, divider, then price and a light cart pill. */
+.lx-shop-tile .lx-tile-panel { border-radius: 20px; }
+.lx-shop-tile .lx-shop-price { gap: 4px; }
+.lx-shop-tile .lx-shop-price { height: 36px; padding: 0 16px; border-radius: 999px; font-size: 15px; font-weight: 700; }
