@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 export type ShopTarget = "ranks" | "model" | "smoke_color" | "discord_role" | "topup"
 
 /** One indigo light for every card (owner request 2026-11-15, "put it in the Shop in exactly this style"); palette-exempt: it is the picture's light, not an interface colour. */
-const LIGHT = "#6f7dff"
+const LIGHT = "#3d63ff"
 
 /**
  * The Shop's front door: a short header and one card per thing the Shop sells. Each card is a real 3D picture standing on three isometric glass plates over one soft light;
@@ -60,7 +60,7 @@ export function ShopHome({ onGo, className }: { onGo: (target: ShopTarget) => vo
             <button
               type="button"
               onClick={() => onGo(card.target)}
-              className="group relative flex h-full w-full flex-col overflow-hidden rounded-[22px] border border-white/[0.06] bg-[linear-gradient(180deg,#141416,#0d0d0f)] text-left transition-[transform,border-color] duration-300 hover:-translate-y-0.5 hover:border-white/[0.14] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white motion-reduce:transition-none"
+              className="group relative flex h-full w-full flex-col overflow-hidden rounded-[22px] border border-white/[0.06] bg-[linear-gradient(180deg,#14172e,#0b0c14)] text-left transition-[transform,border-color] duration-300 hover:-translate-y-0.5 hover:border-white/[0.14] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white motion-reduce:transition-none"
             >
               <div className="relative h-[196px] overflow-hidden [mask-image:linear-gradient(180deg,#000_58%,transparent_96%)]">
                 <span aria-hidden="true" className="absolute -bottom-8 left-1/2 h-[130px] w-[80%] -translate-x-1/2 rounded-full opacity-60 blur-[30px] transition-[opacity,transform] duration-300 group-hover:scale-110 group-hover:opacity-100 motion-reduce:transition-none" style={{ background: `radial-gradient(closest-side, ${LIGHT}88, transparent)` }} />
@@ -70,7 +70,7 @@ export function ShopHome({ onGo, className }: { onGo: (target: ShopTarget) => vo
               <div className="relative -mt-3 flex flex-1 flex-col gap-2 px-5 pb-5 pt-3">
                 <span className="text-[17px] font-semibold leading-tight text-[var(--text)]">{card.title.split(" ")[0]}{card.title.includes(" ") ? <span className="text-[var(--text-dim)]"> {card.title.split(" ").slice(1).join(" ")}</span> : null}</span>
                 <span className="max-w-[34ch] text-[13.5px] leading-relaxed text-[var(--text-dim)]">{card.text}</span>
-                <span className="mt-auto inline-flex pt-2 items-center gap-1.5 text-[13px] font-semibold" style={{ color: "#aeb6ff" }}>Open<span aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1 motion-reduce:transition-none">→</span></span>
+                <span className="mt-auto inline-flex pt-2 items-center gap-1.5 text-[13px] font-semibold" style={{ color: "#9fb6ff" }}>Open<span aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1 motion-reduce:transition-none">→</span></span>
               </div>
             </button>
           </li>
