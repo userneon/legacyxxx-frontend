@@ -1,14 +1,10 @@
 import wallet from "@/assets/shop3d/wallet.png"
 import crown from "@/assets/shop3d/crown.png"
 import star from "@/assets/shop3d/star.png"
-import knife from "@/assets/shop3d/knife.png"
-import ak from "@/assets/shop3d/ak.png"
-import agent from "@/assets/shop3d/agent.png"
-import prime from "@/assets/ranks/mark-prime.webp"
-import prestige from "@/assets/ranks/mark-prestige.webp"
-import imperial from "@/assets/ranks/mark-imperial.webp"
-import eternal from "@/assets/ranks/mark-eternal.webp"
-import sovereign from "@/assets/ranks/mark-sovereign.webp"
+import medal from "@/assets/shop3d/medal.png"
+import knife from "@/assets/shop3d/cs2-knife.png"
+import rifle from "@/assets/shop3d/cs2-rifle.png"
+import agent from "@/assets/shop3d/cs2-agent.png"
 import { cn } from "@/lib/utils"
 
 export type ShopTarget = "ranks" | "model" | "smoke_color" | "discord_role" | "topup"
@@ -19,10 +15,10 @@ const LIGHT = "#6f7dff"
 /**
  * The Shop's front door: a short header and one card per thing the Shop sells. Each card is a real 3D picture standing on three isometric glass plates over one soft light;
  * hovering lifts the picture and spreads the plates. Every card opens something the Shop already sells; nothing here is priced or sold on its own.
- * Pictures: 3dicons.co (CC0), Sketchfab (CC BY 4.0, credited below), the five gems are ours.
+ * Pictures: 3dicons.co (CC0); the Custom Models card shows CS2 items from Valve's own game art (via ByMykel CS2 API).
  */
-const CARDS: Array<{ target: ShopTarget; title: string; text: string; art: "gem" | "models" | "star" | "crown" | "wallet" }> = [
-  { target: "ranks", title: "Ranks", text: "Five tiers. Your name, emblem and commands on every server.", art: "gem" },
+const CARDS: Array<{ target: ShopTarget; title: string; text: string; art: "medal" | "models" | "star" | "crown" | "wallet" }> = [
+  { target: "ranks", title: "Ranks", text: "Five tiers. Your name, emblem and commands on every server.", art: "medal" },
   { target: "model", title: "Custom Models", text: "Knives, weapons and agents made for LXC.", art: "models" },
   { target: "smoke_color", title: "Effects", text: "Grenade trails, smoke colours and flash looks.", art: "star" },
   { target: "discord_role", title: "Roles", text: "Supporter and up: a colour, a channel and a discount.", art: "crown" },
@@ -49,23 +45,13 @@ function Picture({ art }: { art: (typeof CARDS)[number]["art"] }) {
   if (art === "models") {
     return (
       <>
-        <img src={knife} alt="" aria-hidden="true" draggable={false} className={cn(shadow, lift, "left-[6%] top-[20%] h-[76px] rotate-[28deg]")} />
-        <img src={ak} alt="" aria-hidden="true" draggable={false} className={cn(shadow, lift, "left-[26%] top-[42%] h-[42px]")} />
-        <img src={agent} alt="" aria-hidden="true" draggable={false} className={cn(shadow, lift, "left-[54%] top-[10%] h-[84px]")} />
+        <img src={knife} alt="" aria-hidden="true" draggable={false} className={cn(shadow, lift, "left-[7%] top-[14%] h-[54px]")} />
+        <img src={rifle} alt="" aria-hidden="true" draggable={false} className={cn(shadow, lift, "left-[6%] top-[48%] h-[44px]")} />
+        <img src={agent} alt="" aria-hidden="true" draggable={false} className={cn(shadow, lift, "left-[52%] top-[12%] h-[86px]")} />
       </>
     )
   }
-  if (art === "gem") {
-    // The five tiers side by side, small to large: the Ranks below show each one big, so no picture is used twice on the screen.
-    return (
-      <>
-        {[{ src: prime, left: "3%", h: 36 }, { src: prestige, left: "19%", h: 42 }, { src: imperial, left: "35%", h: 48 }, { src: eternal, left: "50%", h: 55 }, { src: sovereign, left: "64%", h: 64 }].map((gem) => (
-          <img key={gem.left} src={gem.src} alt="" aria-hidden="true" draggable={false} style={{ left: gem.left, height: gem.h, top: `calc(66% - ${gem.h}px)` }} className={cn(shadow, lift, "[mask-image:linear-gradient(180deg,#000_80%,transparent)]")} />
-        ))}
-      </>
-    )
-  }
-  const image = art === "star" ? star : art === "crown" ? crown : wallet
+  const image = art === "star" ? star : art === "crown" ? crown : art === "medal" ? medal : wallet
   return <img src={image} alt="" aria-hidden="true" draggable={false} className={cn(shadow, lift, "left-1/2 top-[14%] h-[92px] -translate-x-1/2")} />
 }
 
@@ -104,8 +90,7 @@ export function ShopHome({ onGo, className }: { onGo: (target: ShopTarget) => vo
       <details className="text-[11px] text-[var(--text-dim)]">
         <summary className="w-fit cursor-pointer">Picture credits</summary>
         <p className="mt-1.5 max-w-[60ch] leading-relaxed">
-          Agent (S.W.A.T. Operator) and AK-47 (Tactical Upgrade) by <a className="underline" href="https://sketchfab.com/SpatialNeglect" target="_blank" rel="noopener noreferrer">SpatialNeglect</a>, knife (Bowie Knife Damascus pattern) by <a className="underline" href="https://sketchfab.com/vilovitz" target="_blank" rel="noopener noreferrer">vilovitz</a> on Sketchfab, licensed CC BY 4.0, backgrounds removed.
-          3D icons from <a className="underline" href="https://3dicons.co" target="_blank" rel="noopener noreferrer">3dicons.co</a> (CC0).
+          3D icons from <a className="underline" href="https://3dicons.co" target="_blank" rel="noopener noreferrer">3dicons.co</a> (CC0). Counter-Strike 2 items on the Custom Models card are Valve's artwork, listed through the open <a className="underline" href="https://github.com/ByMykel/CSGO-API" target="_blank" rel="noopener noreferrer">CS2 API</a>; LXC is not affiliated with Valve.
         </p>
       </details>
     </section>
