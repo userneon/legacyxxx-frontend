@@ -170,11 +170,11 @@ export function ShopRanks({ catalogue, qa = false }: { catalogue: PerkCatalogue;
               {/* One card: the gem art with its text, length, price and Buy on its lower panel, and Benefits as the card's own bottom section (owner request 2026-11-13: everything inside the card). */}
               <div className={cn("relative flex flex-1 flex-col overflow-hidden rounded-[22px] border border-white/10", mineHere && "ring-2 ring-[var(--brand)]")} style={{ "--fx": `color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} 90%, white)`, "--fx-c": TIER_GLOW[tier.key] ?? "#888", background: `linear-gradient(180deg, color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} 20%, #0d0d0f), #0d0d0f 78%)` } as React.CSSProperties}>
               {/* The owner's five gems on their pedestals (owner request 2026-11-15, transparent art): each stands on its tier's own glow, one picture per card. */}
-              <div aria-hidden="true" className="relative isolate overflow-hidden" style={{ height: "76cqw" }}>
+              <div aria-hidden="true" className="relative isolate overflow-hidden [mask-image:linear-gradient(180deg,#000_72%,transparent_98%)]" style={{ height: "80cqw" }}>
                 <div className="absolute inset-0" style={{ background: `radial-gradient(60% 55% at 50% 56%, color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} 34%, transparent), transparent 75%)` }} />
                 {TIER_ART[tier.key] && <img src={TIER_ART[tier.key]} alt="" draggable={false} className="absolute left-1/2 top-[2cqw] h-[72cqw] -translate-x-1/2 object-contain drop-shadow-[0_14px_18px_rgba(0,0,0,0.55)]" />}
               </div>
-              <div className="flex flex-col gap-2 px-[7%] pb-3 pt-1">
+              <div className="relative -mt-[7cqw] flex flex-col gap-2 px-[7%] pb-3 pt-1">
                 <div>
                   <h3 className="text-[clamp(15px,9cqw,24px)] font-bold leading-none text-white">{tier.name}</h3>
                   <p className="mt-1 text-[clamp(11px,5.6cqw,13px)] font-medium leading-tight text-white/75">{tier.quota} {tier.quota === 1 ? "command" : "commands"} of your choice</p>
