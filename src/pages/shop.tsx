@@ -91,7 +91,7 @@ function ItemArt({ item, avatar, username, size }: { item: ShopItem; avatar?: st
   return <span {...nameProps(look, cn("font-bold text-[var(--text)]", size > 100 ? "max-w-full truncate text-[19px]" : "whitespace-nowrap text-[13px]"))}>{username}</span>
 }
 
-/** The models that have an in-game picture (`public/shop/models/<id>.webp`, taken in the game, owner request 2026-11-09). Any other model shows the weapon it replaces as an icon. */
+/** The models that have an in-game picture (`public/shop-models/<id>.webp`, taken in the game, owner request 2026-11-09). Any other model shows the weapon it replaces as an icon. */
 const MODEL_PICTURES = new Set(["katana-wupie", "katana-miku", "katana-blood", "katana-dengliz", "deagle-mari", "ak-10005"])
 
 /** The preview's picture: a change of model slides the new picture in and the old one out, so the two are never swapped with a jump. */
@@ -104,8 +104,8 @@ function SlidingPicture({ id }: { id: string }) {
   }, [id])
   return (
     <div className="relative aspect-video w-full overflow-hidden">
-      {state.prev && <img key={`out-${state.prev}`} src={`/shop/models/${state.prev}.webp`} alt="" draggable={false} className="lx-model-out absolute inset-0 h-full w-full object-cover" />}
-      <img key={state.shown} src={`/shop/models/${state.shown}.webp`} alt="" width={640} height={360} draggable={false} className={cn("h-full w-full object-cover", state.prev && "lx-model-in")} />
+      {state.prev && <img key={`out-${state.prev}`} src={`/shop-models/${state.prev}.webp`} alt="" draggable={false} className="lx-model-out absolute inset-0 h-full w-full object-cover" />}
+      <img key={state.shown} src={`/shop-models/${state.shown}.webp`} alt="" width={640} height={360} draggable={false} className={cn("h-full w-full object-cover", state.prev && "lx-model-in")} />
     </div>
   )
 }
@@ -122,7 +122,7 @@ function ModelArt({ id, kind, mode }: { id: string; kind: ModelKind; mode: "fill
     // The big preview: when another model is picked, its picture slides in as the old one slides out and fades (owner request 2026-11-09, "the pictures move smoothly between each other").
     if (mode === "preview") return <SlidingPicture id={id} />
     const look = mode === "fill" ? "h-full w-full object-cover" : mode === "big" ? "aspect-video w-[320px] rounded-lg border border-[var(--line)] object-cover" : "aspect-video w-16 rounded-md object-cover"
-    return <img src={`/shop/models/${id}.webp`} alt="" width={640} height={360} loading="lazy" draggable={false} className={look} />
+    return <img src={`/shop-models/${id}.webp`} alt="" width={640} height={360} loading="lazy" draggable={false} className={look} />
   }
   const big = mode === "big" || mode === "preview"
   const Icon = kind === "model_knife" ? Sword : Crosshair
