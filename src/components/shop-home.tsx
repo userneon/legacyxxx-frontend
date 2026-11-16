@@ -43,16 +43,14 @@ export function ShopHome({ onGo, className }: { onGo: (target: ShopTarget) => vo
             <button
               type="button"
               onClick={() => onGo(card.target)}
-              className="group relative flex min-h-[300px] w-full flex-col overflow-hidden rounded-[20px] border border-white/[0.07] bg-[linear-gradient(165deg,#111218,#08090c_75%)] p-[22px] text-left transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-[3px] hover:border-white/[0.28] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+              className="group relative flex min-h-[212px] w-full flex-col overflow-hidden rounded-[20px] border border-white/[0.07] bg-[linear-gradient(165deg,#111218,#08090c_75%)] p-5 text-left transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-[3px] hover:border-white/[0.28] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white motion-reduce:transition-none motion-reduce:hover:translate-y-0"
             >
-              <span aria-hidden="true" className="pointer-events-none absolute -bottom-[70px] -left-[50px] h-[220px] w-[340px] rounded-full opacity-[0.34] blur-[46px] transition-opacity duration-300 group-hover:opacity-[0.55]" style={{ background: `radial-gradient(closest-side, ${tint(card.tone)}, transparent)` }} />
-              <img src={card.art} alt="" aria-hidden="true" draggable={false} className={cn("pointer-events-none absolute -right-[30px] top-[10px] h-[300px] w-auto opacity-0 transition-opacity duration-300 [mask-image:linear-gradient(270deg,#000_15%,transparent_85%)] group-hover:opacity-50 motion-reduce:transition-none", card.screen && "mix-blend-screen")} />
-              <span className="relative grid size-[52px] place-items-center rounded-[10px] border" style={{ borderColor: `${tint(card.tone)}4d`, background: `${tint(card.tone)}1f` }}>
-                <img src={card.art} alt="" aria-hidden="true" draggable={false} className={cn("h-9 w-auto", card.screen && "mix-blend-screen")} />
-              </span>
-              <span className="relative mt-4 text-[20px] font-semibold leading-tight text-[var(--text)]">{card.title}</span>
+              <span aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-90 transition-opacity duration-300 group-hover:opacity-100" style={{ background: `radial-gradient(130% 70% at 50% 135%, ${tint(card.tone)}99, transparent 68%)` }} />
+              <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px opacity-70" style={{ background: `linear-gradient(90deg, transparent, ${tint(card.tone)}99, transparent)` }} />
+              <img src={card.art} alt="" aria-hidden="true" draggable={false} className={cn("pointer-events-none absolute -right-[30px] top-[6px] h-[230px] w-auto opacity-0 transition-opacity duration-300 [mask-image:linear-gradient(270deg,#000_15%,transparent_85%)] group-hover:opacity-50 motion-reduce:transition-none", card.screen && "mix-blend-screen")} />
+              <span className="relative text-[20px] font-semibold leading-tight text-[var(--text)]">{card.title}</span>
               <span className="relative mt-1 max-w-[300px] text-[13.5px] leading-relaxed text-[var(--text-dim)]">{card.lead}</span>
-              <span className="relative mb-5 mt-3 flex flex-col gap-2">
+              <span className="relative mb-4 mt-3 flex flex-col gap-1.5">
                 {card.checks.map((text) => (
                   <span key={text} className="flex items-center gap-2.5 text-[13px] text-[#aab0c2]">
                     <span aria-hidden="true" className="grid size-4 shrink-0 place-items-center rounded-full border border-white/30 text-[9px]">{"✓"}</span>
@@ -60,7 +58,7 @@ export function ShopHome({ onGo, className }: { onGo: (target: ShopTarget) => vo
                   </span>
                 ))}
               </span>
-              <span className="relative mt-auto grid h-[42px] place-items-center rounded-[10px] border border-white/30 text-[14px] font-semibold text-[var(--text)] transition-colors duration-300 group-hover:border-white/70 group-hover:bg-white/[0.06]">
+              <span className="relative mt-auto grid h-10 place-items-center rounded-[10px] border border-white/30 text-[14px] font-semibold text-[var(--text)] transition-colors duration-300 group-hover:border-white/70 group-hover:bg-white/[0.06]">
                 {card.cta}
               </span>
             </button>
