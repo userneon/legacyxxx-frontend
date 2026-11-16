@@ -182,7 +182,27 @@ export interface ProfileTrack {
 
 export interface ProfileTrackAnswer { banned: boolean; hidden: boolean; track: ProfileTrack | null }
 
+/** One row of the History tab: a Recent matches row plus the player's own numbers in it. */
+export interface HistoryMatch extends ProfileMatchRow {
+  kills: number
+  deaths: number
+  assists: number
+  headshotPercent: number | null
+  mvps: number
+}
+
+export interface ProfileHistoryPage { banned: boolean; hidden: boolean; matches: HistoryMatch[]; total: number; cursor: string | null; maps: string[] }
+
 export const profileOverviewService = {
+  async getHistory(userId: string, query: { before?: string | null; result?: "win" | "loss" | null; map?: string | null }, options?: CallOptions): Promise<ProfileHistoryPage> {
+    const params = new URLSearchParams()
+    if (query.before) params.set("before", query.before)
+    if (query.result) params.set("result", query.result)
+    if (query.map) params.set("map", query.map)
+    const suffix = params.toString()
+    return get<ProfileHistoryPage>(`/api/v1/profile/${encodeURIComponent(userId)}/history${suffix ? `?${suffix}` : ""}`, undefined, options)
+  },
+
   async getTrack(userId: string, options?: CallOptions): Promise<ProfileTrackAnswer> {
     return get<ProfileTrackAnswer>(`/api/v1/profile/${encodeURIComponent(userId)}/track`, undefined, options)
   },

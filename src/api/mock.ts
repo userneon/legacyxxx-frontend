@@ -1101,6 +1101,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
 
   if (/^\/api\/v1\/profile\/[^/]+\/config$/.test(path) && method === "GET") return { config: mockPlayerConfig, updatedAt: mockPlayerConfig ? new Date().toISOString() : null }
   if (/^\/api\/v1\/profile\/[^/]+\/track$/.test(path) && method === "GET") return mockTrack()
+  if (/^\/api\/v1\/profile\/[^/]+\/history/.test(path) && method === "GET") return mockHistory(path)
   const profile = /^\/api\/v1\/profile\/([^/]+)\/(overview|faceit)$/.exec(path)
   if (profile) return profile[2] === "overview" ? profileOverview(decodeURIComponent(profile[1])) : faceit(decodeURIComponent(profile[1]))
 
@@ -1197,4 +1198,29 @@ function mockTrack() {
       leftEarly: 1,
     },
   }
+}
+
+
+/** History tab sample: 60 matches, 25 per page, filtered the way the real API filters. */
+function mockHistory(path: string) {
+  const query = new URLSearchParams(path.split("?")[1] ?? "")
+  let seed = 11
+  const next = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 }
+  const maps = ["de_mirage", "de_inferno", "de_dust2", "de_ancient", "de_nuke", "de_anubis"]
+  const all = Array.from({ length: 60 }, (_, index) => {
+    const kills = 7 + Math.floor(next() * 24)
+    const deaths = 5 + Math.floor(next() * 17)
+    const win = next() > 0.45
+    const rounds = [13, Math.floor(next() * 12)]
+    const delta = win ? 6 + Math.floor(next() * 20) : -(5 + Math.floor(next() * 14))
+    return {
+      map: maps[Math.floor(next() * maps.length)], result: win ? "Win" : "Loss", score: win ? `13:${rounds[1]}` : `${rounds[1]}:13`, kd: (kills / deaths).toFixed(2),
+      matchId: `h${index}`, mapNumber: 1, playedAt: new Date(Date.now() - index * 7_200_000 * (1 + Math.floor(next() * 5))).toISOString(),
+      expDelta: delta, expBefore: 4000, expAfter: 4000 + delta, expBreakdown: {}, kills, deaths, assists: Math.floor(next() * 9), headshotPercent: 30 + Math.floor(next() * 40), mvps: Math.floor(next() * 5),
+    }
+  })
+  const before = query.get("before")
+  const filtered = all.filter((row) => (!query.get("result") || row.result.toLowerCase() === query.get("result")) && (!query.get("map") || row.map === query.get("map")) && (!before || row.playedAt < before))
+  const page = filtered.slice(0, 25)
+  return { banned: false, hidden: false, matches: page, total: filtered.length, cursor: filtered.length > 25 ? page[page.length - 1].playedAt : null, maps: [...maps].sort() }
 }
