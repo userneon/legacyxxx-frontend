@@ -307,7 +307,7 @@ export function ShopPage() {
   }
 
 
-  const card = (item: ShopItem, index = 0, dense = false) => {
+  const card = (item: ShopItem, index = 0, _dense = false) => {
     const shown = onTile(item, index)
     const action = item.testing
       ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--text-2)]"><Check className="size-3" />Testing<span className="font-medium text-[var(--text-dim)]"> · not on sale</span></span>
@@ -329,13 +329,13 @@ export function ShopPage() {
                 <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: rarityOf(item.rarity).color }} />
                 <div className="lx-tile-panel relative">
                   {shown.kind === "frame" ? (
-                    <FrameStage accent={accentOf(shown)} height={dense ? 124 : 148}><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={dense ? 70 : 88} /></FrameStage>
+                    <FrameStage accent={accentOf(shown)} height={148}><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={88} /></FrameStage>
                   ) : (
-                    <Spot height={dense ? 80 : 96} fill={shown.kind === "background" || hasModelPicture(shown)}><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={dense ? 46 : 56} /></Spot>
+                    <Spot height={148} fill={shown.kind === "background" || hasModelPicture(shown)}><ItemArt item={shown} avatar={user?.avatar} username={username} orb={data?.frameLook} size={72} /></Spot>
                   )}
                 </div>
                 <div className="flex flex-1 flex-col items-stretch gap-2 px-2 pb-2 pt-3">
-                  <span className="line-clamp-2 w-full text-[13px] font-semibold leading-[1.25] text-[var(--text)]">{(item.rarity ?? 1) >= 3 && <Star className="mr-1 inline size-3 -translate-y-px fill-current text-[var(--text-2)]" aria-label={`${rarityOf(item.rarity).label} item`} />}{item.name}</span>
+                  <span className="line-clamp-1 w-full text-[13px] font-semibold leading-[1.25] text-[var(--text)]">{(item.rarity ?? 1) >= 3 && <Star className="mr-1 inline size-3 -translate-y-px fill-current text-[var(--text-2)]" aria-label={`${rarityOf(item.rarity).label} item`} />}{item.name}</span>
                   <span aria-hidden="true" className="h-px w-full bg-white/10" />
                   <div className={cn("mt-auto flex min-h-9 items-center pt-1", item.owned && !item.testing && item.kind !== "discord_role" && "pr-[6.75rem]")}>{action}</div>
                 </div>
