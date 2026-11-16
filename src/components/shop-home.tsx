@@ -7,42 +7,25 @@ import { cn } from "@/lib/utils"
 
 export type ShopTarget = "ranks" | "model" | "smoke_color" | "discord_role" | "topup"
 
-/** One indigo light for every card (owner request 2026-11-15, "put it in the Shop in exactly this style"); palette-exempt: it is the picture's light, not an interface colour. */
-const LIGHT = "#3d63ff"
+const BLUE = "#3d63ff"
+const GOLD = "#f6c945"
+
+type Card = { target: ShopTarget; title: string; lead: string; checks: [string, string]; cta: string; art: string; tone: "blue" | "gold" | "plain"; screen?: boolean; chip?: string }
 
 /**
- * The Shop's front door: a short header and one card per thing the Shop sells. Each card is a real 3D picture standing on three isometric glass plates over one soft light;
- * hovering lifts the picture and spreads the plates. Every card opens something the Shop already sells; nothing here is priced or sold on its own.
- * Pictures: the five card pictures are LXC's own AI-generated art (owner, 2026-11-16); the button's money icon is 3dicons.co (CC0).
+ * The Shop's front door (owner's design, 2026-11-16): one card per thing the Shop sells. Each card has a small picture badge, a title, one line, two short facts and an outline button.
+ * The corner light is the card's own colour (gold for paid status, blue for looks), and on hover the card's picture appears large and faint on the right. Nothing here is priced or sold on its own.
+ * Pictures: LXC's own AI-generated art (owner, 2026-11-16); the button's money icon is 3dicons.co (CC0).
  */
-const CARDS: Array<{ target: ShopTarget; title: string; text: string; art: "medal" | "models" | "star" | "crown" | "wallet" }> = [
-  { target: "ranks", title: "Ranks", text: "Five tiers. Your name, emblem and commands on every server.", art: "medal" },
-  { target: "model", title: "Custom Models", text: "Knives, weapons and agents made for LXC.", art: "models" },
-  { target: "smoke_color", title: "Effects", text: "Grenade trails, smoke colours and flash looks.", art: "star" },
-  { target: "discord_role", title: "Roles", text: "Supporter and up: a colour, a channel and a discount.", art: "crown" },
-  { target: "topup", title: "Top up FOL$", text: "Pay with QPay or any bank app. Cosmetics only.", art: "wallet" },
+const CARDS: Card[] = [
+  { target: "ranks", title: "Ranks", lead: "Five tiers. Your name, emblem and commands on every server.", checks: ["Name and emblem on every server", "Commands unlock with each tier"], cta: "Open ranks", art: medal, tone: "gold" },
+  { target: "model", title: "Custom Models", lead: "Knives, weapons and agents made for LXC.", checks: ["CT and T apply automatically", "Knives, weapons and agents"], cta: "Open models", art: models, tone: "blue" },
+  { target: "smoke_color", title: "Effects", lead: "Grenade trails, smoke colours and flash looks.", checks: ["Pick a colour for each effect", "Seen by every player"], cta: "Open effects", art: effects, tone: "blue", screen: true },
+  { target: "discord_role", title: "Roles", lead: "Supporter and up: a colour, a channel and a discount.", checks: ["A role colour in Discord", "A supporter channel and a discount"], cta: "Open roles", art: crown, tone: "gold" },
+  { target: "topup", title: "Top up FOL$", lead: "Pay with QPay or any bank app. Cosmetics only.", checks: ["QPay or any bank app", "FOL$ is for cosmetics only"], cta: "Top up", art: coins, tone: "plain" },
 ]
 
-function Plates() {
-  return (
-    <div aria-hidden="true" className="absolute left-1/2 top-[64%] size-0 [perspective:900px] [transform-style:preserve-3d]">
-      {[{ z: 0, o: 0.55 }, { z: 10, o: 0.8 }, { z: 20, o: 1 }].map((plate, i) => (
-        <span
-          key={plate.z}
-          className={cn("absolute -left-[70px] -top-[70px] size-[140px] rounded-[24px] border transition-transform duration-500 ease-[cubic-bezier(.2,.7,.2,1)] motion-reduce:transition-none", i === 1 && "group-hover:[--lift:12px]", i === 2 && "group-hover:[--lift:24px]")}
-          style={{ ["--lift" as string]: "0px", opacity: plate.o, borderColor: `${LIGHT}66`, background: `linear-gradient(135deg, ${LIGHT}1c, transparent)`, boxShadow: `inset 0 0 24px ${LIGHT}22`, transform: `rotateX(62deg) rotateZ(-45deg) translateZ(calc(${plate.z}px + var(--lift)))` }}
-        />
-      ))}
-    </div>
-  )
-}
-
-function Picture({ art }: { art: (typeof CARDS)[number]["art"] }) {
-  const lift = "transition-transform duration-500 ease-[cubic-bezier(.2,.7,.2,1)] group-hover:-translate-y-2 motion-reduce:transition-none"
-  const shadow = "pointer-events-none absolute drop-shadow-[0_18px_18px_rgba(0,0,0,0.65)]"
-  const image = art === "star" ? effects : art === "crown" ? crown : art === "medal" ? medal : art === "models" ? models : coins
-  return <img src={image} alt="" aria-hidden="true" draggable={false} className={cn(shadow, lift, "left-1/2 top-[8%] h-[140px] -translate-x-1/2")} />
-}
+const tint = (tone: Card["tone"]) => (tone === "gold" ? GOLD : tone === "blue" ? BLUE : "#ffffff")
 
 export function ShopHome({ onGo, className }: { onGo: (target: ShopTarget) => void; className?: string }) {
   return (
@@ -54,24 +37,32 @@ export function ShopHome({ onGo, className }: { onGo: (target: ShopTarget) => vo
         </div>
         <button type="button" onClick={() => onGo("topup")} className="lx-gold-button lx-gold-crown lx-gold-money inline-flex h-11 items-center rounded-xl pr-6 text-[13px]">Top up FOL$</button>
       </div>
-      <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+      <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {CARDS.map((card) => (
           <li key={card.target} className="flex min-w-0">
             <button
               type="button"
               onClick={() => onGo(card.target)}
-              className="group relative flex h-full w-full flex-col overflow-hidden rounded-[22px] border border-white/[0.06] bg-[linear-gradient(180deg,#14172e,#0b0c14)] text-left transition-[transform,border-color] duration-300 hover:-translate-y-0.5 hover:border-white/[0.14] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white motion-reduce:transition-none"
+              className="group relative flex min-h-[300px] w-full flex-col overflow-hidden rounded-[20px] border border-white/[0.07] bg-[linear-gradient(165deg,#111218,#08090c_75%)] p-[22px] text-left transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-[3px] hover:border-white/[0.28] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white motion-reduce:transition-none motion-reduce:hover:translate-y-0"
             >
-              <div className="relative h-[196px] overflow-hidden [mask-image:linear-gradient(180deg,#000_58%,transparent_96%)]">
-                <span aria-hidden="true" className="absolute -bottom-8 left-1/2 h-[130px] w-[80%] -translate-x-1/2 rounded-full opacity-60 blur-[30px] transition-[opacity,transform] duration-300 group-hover:scale-110 group-hover:opacity-100 motion-reduce:transition-none" style={{ background: `radial-gradient(closest-side, ${LIGHT}88, transparent)` }} />
-                <Plates />
-                <Picture art={card.art} />
-              </div>
-              <div className="relative -mt-3 flex flex-1 flex-col gap-2 px-5 pb-5 pt-3">
-                <span className="text-[17px] font-semibold leading-tight text-[var(--text)]">{card.title.split(" ")[0]}{card.title.includes(" ") ? <span className="text-[var(--text-dim)]"> {card.title.split(" ").slice(1).join(" ")}</span> : null}</span>
-                <span className="max-w-[34ch] text-[13.5px] leading-relaxed text-[var(--text-dim)]">{card.text}</span>
-                <span className="mt-auto inline-flex pt-2 items-center gap-1.5 text-[13px] font-semibold" style={{ color: "#9fb6ff" }}>Open<span aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1 motion-reduce:transition-none">→</span></span>
-              </div>
+              <span aria-hidden="true" className="pointer-events-none absolute -bottom-[70px] -left-[50px] h-[220px] w-[340px] rounded-full opacity-[0.34] blur-[46px] transition-opacity duration-300 group-hover:opacity-[0.55]" style={{ background: `radial-gradient(closest-side, ${tint(card.tone)}, transparent)` }} />
+              <img src={card.art} alt="" aria-hidden="true" draggable={false} className={cn("pointer-events-none absolute -right-[30px] top-[10px] h-[300px] w-auto opacity-0 transition-opacity duration-300 [mask-image:linear-gradient(270deg,#000_15%,transparent_85%)] group-hover:opacity-50 motion-reduce:transition-none", card.screen && "mix-blend-screen")} />
+              <span className="relative grid size-[52px] place-items-center rounded-[10px] border" style={{ borderColor: `${tint(card.tone)}4d`, background: `${tint(card.tone)}1f` }}>
+                <img src={card.art} alt="" aria-hidden="true" draggable={false} className={cn("h-9 w-auto", card.screen && "mix-blend-screen")} />
+              </span>
+              <span className="relative mt-4 text-[20px] font-semibold leading-tight text-[var(--text)]">{card.title}</span>
+              <span className="relative mt-1 max-w-[300px] text-[13.5px] leading-relaxed text-[var(--text-dim)]">{card.lead}</span>
+              <span className="relative mb-5 mt-3 flex flex-col gap-2">
+                {card.checks.map((text) => (
+                  <span key={text} className="flex items-center gap-2.5 text-[13px] text-[#aab0c2]">
+                    <span aria-hidden="true" className="grid size-4 shrink-0 place-items-center rounded-full border border-white/30 text-[9px]">{"✓"}</span>
+                    {text}
+                  </span>
+                ))}
+              </span>
+              <span className="relative mt-auto grid h-[42px] place-items-center rounded-[10px] border border-white/30 text-[14px] font-semibold text-[var(--text)] transition-colors duration-300 group-hover:border-white/70 group-hover:bg-white/[0.06]">
+                {card.cta}
+              </span>
             </button>
           </li>
         ))}
