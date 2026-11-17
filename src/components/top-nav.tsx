@@ -28,9 +28,9 @@ function Group({ label, active, entries }: { label: string; active: boolean; ent
           <ChevronDown aria-hidden="true" className={cn("size-3.5 text-[var(--text-dim)] transition-transform duration-200", open && "rotate-180")} />
         </button>
       </PopoverTrigger>
-      <PopoverContent side="bottom" align="start" sideOffset={14} className="flex w-52 flex-col gap-0.5 rounded-xl border-[var(--line)] bg-[var(--card-surface)] p-1.5">
+      <PopoverContent side="bottom" align="start" sideOffset={14} className="flex w-52 flex-col gap-0.5 rounded-[20px] p-2">
         {entries.map((entry) => (
-          <button key={entry.key} type="button" onClick={() => { setOpen(false); entry.go() }} aria-current={entry.active ? "page" : undefined} className={cn("flex h-9 items-center rounded-lg px-3 text-left text-[13px] font-medium transition-colors hover:bg-white/[0.05]", entry.active ? "text-[var(--text)]" : "text-[var(--text-muted)] hover:text-[var(--text)]")}>
+          <button key={entry.key} type="button" onClick={() => { setOpen(false); entry.go() }} aria-current={entry.active ? "page" : undefined} className={cn("flex h-10 items-center rounded-[10px] px-3.5 text-left text-[13.5px] font-medium transition-colors hover:bg-white/[0.08]", entry.active ? "text-[var(--text)]" : "text-[var(--text-muted)] hover:text-[var(--text)]")}>
             {entry.label}
           </button>
         ))}
