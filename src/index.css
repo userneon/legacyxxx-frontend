@@ -1784,3 +1784,14 @@ html:has([data-page-scene]) .lx-dotgrid { background-image: none; }
 @media (min-width: 560px) { [data-slot="sidebar"].group.peer { display: none !important; } }
 /* No dot grid behind the pages (owner request 2026-11-17). */
 .lx-dotgrid { background-image: none; }
+
+/* On a page with a picture behind it (owner request 2026-11-17, "make the cards see-through"): cards, panels and bars are 60% opaque with a soft blur, so the picture shows through. */
+.lx-hero-page :is(.lx-glass, .glass, .lx-pcard, .lx-people-card, .lx-team-card, .lx-play-panel, .lx-shop-tile, .lx-shop-glass, .lx-frost, .lx-ring-card, .lx-add-box, .lx-fx-card, .lx-tile-panel):not(.rounded-full),
+.lx-hero-page [class*="bg-[var(--card-surface)]"]:not(button, input, select, textarea),
+.lx-hero-page [class*="bg-[linear-gradient(165deg,#111218"],
+.lx-hero-page [class*="bg-[linear-gradient(180deg,#121317"],
+.lx-hero-page [data-pagebar],
+.lx-hero-page [class*="bg-[var(--bg)]"]:not(input, select, textarea) {
+  background: rgb(10 11 15 / 0.58) !important;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
