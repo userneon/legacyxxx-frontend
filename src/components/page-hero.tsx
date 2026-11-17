@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react"
 import type { PageId } from "@/api/types"
 import { cn } from "@/lib/utils"
 import { ArtImage } from "@/components/art-image"
+import { LQ } from "@/lib/hero-lqip.generated"
 import hero5x5 from "@/assets/home/hero-5x5.webp"
 import heroWallet from "@/assets/home/hero-wallet.webp"
 import heroFun from "@/assets/home/hero-fun.webp"
@@ -20,19 +21,19 @@ import heroShop from "@/assets/home/hero-shop.webp"
  * A picture across the top of a page (owner request 2026-11-17): the owner's agent on the right, fading out to the left, the top bar lying over it. Only the pages listed here have one.
  * `path` limits it to that exact address (the Shop's other tabs have none).
  */
-const HEROES: Partial<Record<PageId, { src: string; title: string; line: string; position: string; path?: string; prefix?: boolean }>> = {
-  shop: { src: heroShop, title: "Shop", line: "Ranks, models, effects and roles. Cosmetics only.", position: "80% 8%", path: "/shop" },
-  profile: { src: heroProfile, title: "Profile", line: "Your numbers and your look.", position: "80% 10%", path: "/profile", prefix: true },
-  skinchanger: { src: heroSkin, title: "Skinchanger", line: "Your skins, knives and gloves.", position: "80% 20%" },
-  clan: { src: heroClan, title: "Clans", line: "Play together.", position: "80% 20%" },
-  wallet: { src: heroWallet, title: "Wallet", line: "", position: "80% 15%" },
-  "play-fun": { src: heroFun, title: "Fun Mode", line: "", position: "80% 15%" },
-  "play-proleague": { src: heroPro, title: "Pro League", line: "", position: "80% 10%" },
-  "play-tournaments": { src: heroTournament, title: "Tournaments", line: "", position: "80% 15%" },
-  feedback: { src: heroReviews, title: "Reviews", line: "", position: "80% 15%" },
-  leaders: { src: heroLeaders, title: "Leaders", line: "", position: "80% 15%" },
-  penalties: { src: heroPenalties, title: "Penalties", line: "", position: "80% 10%" },
-  "play-5vs5": { src: hero5x5, title: "5x5 Matches", line: "Competitive 5v5. Every match counts toward your rank.", position: "80% 8%" },
+const HEROES: Partial<Record<PageId, { src: string; lq: string; title: string; line: string; position: string; path?: string; prefix?: boolean }>> = {
+  shop: { src: heroShop, lq: LQ["hero-shop"], title: "Shop", line: "Ranks, models, effects and roles. Cosmetics only.", position: "80% 8%", path: "/shop" },
+  profile: { src: heroProfile, lq: LQ["hero-profile"], title: "Profile", line: "Your numbers and your look.", position: "80% 10%", path: "/profile", prefix: true },
+  skinchanger: { src: heroSkin, lq: LQ["hero-skin"], title: "Skinchanger", line: "Your skins, knives and gloves.", position: "80% 20%" },
+  clan: { src: heroClan, lq: LQ["hero-clan"], title: "Clans", line: "Play together.", position: "80% 20%" },
+  wallet: { src: heroWallet, lq: LQ["hero-wallet"], title: "Wallet", line: "", position: "80% 15%" },
+  "play-fun": { src: heroFun, lq: LQ["hero-fun"], title: "Fun Mode", line: "", position: "80% 15%" },
+  "play-proleague": { src: heroPro, lq: LQ["hero-pro"], title: "Pro League", line: "", position: "80% 10%" },
+  "play-tournaments": { src: heroTournament, lq: LQ["hero-tournament"], title: "Tournaments", line: "", position: "80% 15%" },
+  feedback: { src: heroReviews, lq: LQ["hero-reviews"], title: "Reviews", line: "", position: "80% 15%" },
+  leaders: { src: heroLeaders, lq: LQ["hero-leaders"], title: "Leaders", line: "", position: "80% 15%" },
+  penalties: { src: heroPenalties, lq: LQ["hero-penalties"], title: "Penalties", line: "", position: "80% 10%" },
+  "play-5vs5": { src: hero5x5, lq: LQ["hero-5x5"], title: "5x5 Matches", line: "Competitive 5v5. Every match counts toward your rank.", position: "80% 8%" },
 }
 
 export function pageHero(page: PageId, pathname: string) {
@@ -78,6 +79,7 @@ export function PageHero({ hero }: { hero: Hero | null }) {
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[clamp(420px,58vw,880px)] overflow-hidden [mask-image:linear-gradient(180deg,#000_64%,transparent)]">
         {layers.map((layer) => (
           <div key={layer.id} className={cn("absolute inset-0 transition-opacity duration-[700ms] ease-out motion-reduce:transition-none", layer.id === shown ? "opacity-100" : "opacity-0")}>
+            <img src={layer.hero.lq} alt="" aria-hidden="true" style={{ objectPosition: layer.hero.position }} className="absolute inset-0 size-full origin-[78%_0] scale-[1.12] object-cover blur-xl [mask-image:linear-gradient(90deg,transparent_8%,rgba(0,0,0,0.5)_34%,#000_64%)]" />
             <ArtImage src={layer.hero.src} alt="" decoding="async" style={{ objectPosition: layer.hero.position }} className="absolute inset-0 size-full origin-[78%_0] scale-[1.12] object-cover [mask-image:linear-gradient(90deg,transparent_8%,rgba(0,0,0,0.5)_34%,#000_64%)]" />
             <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
           </div>

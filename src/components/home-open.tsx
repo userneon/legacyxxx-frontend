@@ -5,6 +5,7 @@ import { playService, type PlayServer, type PlayServerList } from "@/api/play"
 import type { HomeStats, PageId } from "@/api/types"
 import { ArtImage } from "@/components/art-image"
 import agentHero from "@/assets/home/agent-hero.webp"
+import { LQ } from "@/lib/hero-lqip.generated"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { cn } from "@/lib/utils"
@@ -18,6 +19,7 @@ export function HomeHero({ onNavigate }: { onNavigate: (page: PageId) => void })
   const online = stats?.playersOnline
   return (
     <section aria-label="LXC" className="relative isolate min-h-[460px] w-full overflow-hidden [mask-image:linear-gradient(180deg,#000_72%,transparent)] @2xl:min-h-[clamp(560px,56vw,860px)]">
+      <img src={LQ["agent-hero"]} alt="" aria-hidden="true" className="absolute inset-0 -z-10 size-full origin-[78%_0] scale-[1.1] object-cover object-[75%_8%] blur-xl [mask-image:linear-gradient(90deg,transparent_6%,rgba(0,0,0,0.45)_30%,#000_62%)]" />
       <ArtImage src={agentHero} alt="" aria-hidden="true" decoding="async" className="absolute inset-0 -z-10 size-full origin-[78%_0] scale-[1.1] object-cover object-[75%_8%] [mask-image:linear-gradient(90deg,transparent_6%,rgba(0,0,0,0.45)_30%,#000_62%)] " />
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
       <div className="mx-auto flex h-full min-h-[460px] w-full max-w-[1320px] flex-col justify-center px-11 pb-14 pt-[110px] @2xl:min-h-[clamp(560px,56vw,860px)]">
