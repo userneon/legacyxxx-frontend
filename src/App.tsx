@@ -11,6 +11,7 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/s
 import { ProfileBlock } from "@/components/profile-block"
 import { SiteTourButton } from "@/components/site-tour"
 import { AppSidebar } from "@/components/app-sidebar"
+import { PageHero, pageHero } from "@/components/page-hero"
 import { LxcHeader } from "@/components/lxc-header"
 import { PublicChat } from "@/components/public-chat"
 import { HomePage } from "@/pages/home"
@@ -108,6 +109,7 @@ export function App() {
   const [showTop, setShowTop] = useState(false)
   // On Home the picture runs up behind the top bar; the bar turns solid once you scroll.
   const [scrolled, setScrolled] = useState(false)
+  const hero = pageHero(currentPage, location.pathname)
   useEffect(() => {
     const node = panelRef.current
     if (!node) return
@@ -173,7 +175,7 @@ export function App() {
           <ProfileBlock onNavigate={handleNavigate} />
         </header>
 
-        <LxcHeader currentPage={currentPage} onNavigate={handleNavigate} overlay={currentPage === "home" && !scrolled} floating={currentPage === "home"} className="max-[559px]:hidden" />
+        <LxcHeader currentPage={currentPage} onNavigate={handleNavigate} overlay={(currentPage === "home" || Boolean(hero)) && !scrolled} floating={currentPage === "home" || Boolean(hero)} className="max-[559px]:hidden" />
 
         <button
           type="button"
@@ -186,6 +188,7 @@ export function App() {
         </button>
         <div ref={panelRef} className={cn("lx-glass-shell scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-clip max-sm:pb-16", "max-[559px]:rounded-[14px]")}>
           {/* Leaders scrolls its table inside the panel (sticky header, your row pinned under it), so it gets the panel's height instead of growing past it. */}
+          {hero && <PageHero hero={hero} />}
           <div key={shownSection} className={cn("page-enter flex flex-col", "mx-auto w-full", currentPage !== "home" && "max-w-[1320px]", shownSection === "/leaders" ? "h-full" : "min-h-full", leaving && "page-leave")}>
             <RouteErrorBoundary resetKey={shownLocation.pathname}>
             <Suspense fallback={<div className="min-h-[40vh]" aria-hidden="true" />}>
