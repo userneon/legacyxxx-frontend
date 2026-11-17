@@ -56,7 +56,8 @@ export function TopNav({ currentPage, onNavigate, className }: { currentPage: Pa
       {skin && (isFeatureEnabled("skinCollections")
         ? <Group label={skin.label} active={currentPage === "skinchanger"} entries={SKIN_VIEWS.map((view) => ({ key: view.id, label: view.label, active: false, go: () => { setSkinchangerView(view.id); onNavigate("skinchanger") } }))} />
         : link(skin))}
-      {COMMERCE_ITEMS.length > 0 && <Group label="Commerce" active={COMMERCE_ITEMS.some((item) => item.id === currentPage)} entries={entriesOf(COMMERCE_ITEMS)} />}
+      {COMMERCE_ITEMS.length === 1 && link(COMMERCE_ITEMS[0])}
+      {COMMERCE_ITEMS.length > 1 && <Group label="Commerce" active={COMMERCE_ITEMS.some((item) => item.id === currentPage)} entries={entriesOf(COMMERCE_ITEMS)} />}
       {rest.map(link)}
       {COMMUNITY_ITEMS.length > 0 && <Group label="Community" active={COMMUNITY_ITEMS.some((item) => item.id === currentPage)} entries={entriesOf(COMMUNITY_ITEMS)} />}
       {mayCheck && link({ id: "staff", label: "Staff panel", icon: NAV_ITEMS[0].icon })}
