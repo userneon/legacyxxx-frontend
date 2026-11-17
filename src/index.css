@@ -1791,8 +1791,8 @@ html:has([data-page-scene]) .lx-dotgrid { background-image: none; }
 .lx-hero-page [class*="bg-[linear-gradient(165deg,#111218"],
 .lx-hero-page [class*="bg-[linear-gradient(180deg,#121317"],
 .lx-hero-page [class*="bg-[var(--bg)]"]:not(input, select, textarea) {
-  background: rgb(10 11 15 / 0.58) !important;
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  background: rgb(10 11 15 / 0.5) !important;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
 }
 
 /* The tab bar of a page with a picture behind it: no box, no line; the tabs sit straight on the picture, a little under the top bar. */
