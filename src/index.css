@@ -1779,3 +1779,6 @@ html:has([data-page-scene]) .lx-dotgrid { background-image: none; }
 .lx-open .lx-stats [class*="text-[24px]"] { font-size: 36px; letter-spacing: -0.02em; }
 .lx-open .lx-rows > * + * { border-top: 1px solid var(--line-soft); }
 .lx-open .lx-section-title { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+
+/* No sidebar on a wide window (owner request 2026-11-17): the menu is along the top. A phone (under 560 px) keeps its sheet. */
+@media (min-width: 560px) { [data-slot="sidebar"].group.peer { display: none !important; } }

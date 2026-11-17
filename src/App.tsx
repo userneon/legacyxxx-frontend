@@ -171,7 +171,7 @@ export function App() {
           <ProfileBlock onNavigate={handleNavigate} />
         </header>
 
-        <LxcHeader onNavigate={handleNavigate} className="max-[559px]:hidden" />
+        <LxcHeader currentPage={currentPage} onNavigate={handleNavigate} className="max-[559px]:hidden" />
 
         <button
           type="button"
