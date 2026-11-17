@@ -1,8 +1,7 @@
 import { Button } from "@/components/ui/button"
-import { Hero } from "@/components/ui/tailwind-css-background-snippet"
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
-import fbiAgents from "@/assets/fbi-agents.webp"
+import signinArt from "@/assets/home/hero-signin.webp"
 
 interface SteamLoginGateProps {
   /** The page the player was trying to open, so the gate can say what signing in opens. */
@@ -18,29 +17,16 @@ export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
   // the card, faint, rising from its bottom edge and fading out towards the top so the text stays readable.
   // Scaled so the two outer agents' bodies (x 94-549 of the 609px art) meet the card's side edges.
   return (
-    <div className="relative isolate flex min-h-[calc(100dvh-5rem)] flex-1 items-center justify-center overflow-hidden px-4 py-10 sm:px-6">
-      {/* The sign-in screen's own backdrop (owner request 2026-11-01): black fading into the brand violet. Wrapped: the page's section stagger animates direct children to full opacity. */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-        <Hero className="absolute inset-0 h-full" />
-      </div>
-
-      <section className="lx-swap-in relative w-full max-w-[380px] overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[rgb(255_255_255/0.06)] p-7 text-center shadow-[inset_0_1px_0_rgb(255_255_255/0.08),0_24px_48px_-20px_rgb(0_0_0/0.7)] sm:p-8">
-        <img
-          src={fbiAgents}
-          alt=""
-          aria-hidden="true"
-          draggable={false}
-          className="pointer-events-none absolute bottom-0 left-[-20.6%] w-[133.8%] max-w-none opacity-[0.22] [mask-image:linear-gradient(to_top,black_45%,transparent_100%)]"
-        />
-        <div className="relative">
-        <img src="/lxc-monogram.png" alt="LXC" className="mx-auto mb-5 h-12 w-auto" />
-        <h1 className="text-xl font-semibold tracking-[-0.3px] text-[var(--text)]">Sign in to open {pageName}</h1>
-        <p className="mx-auto mt-2 max-w-[300px] text-[13px] leading-[1.55] text-[var(--text-muted)]">
-          Your LXC account is your Steam account.
-        </p>
-        <SteamLoginButton onClick={loginWithSteam} className="mt-6 h-10 min-w-[200px] text-sm" />
-        <p className="mt-4 text-[11px] leading-4 text-[var(--text-dim)]">Steam handles the password. LXC never sees it.</p>
-        </div>
+    <div className="relative isolate flex min-h-[calc(100dvh-5rem)] flex-1 items-center overflow-hidden">
+      {/* The owner's agent at the camp gate (2026-11-17) fills the screen; the left side darkens so the words stay readable. */}
+      <img src={signinArt} alt="" aria-hidden="true" decoding="async" draggable={false} className="pointer-events-none absolute inset-0 -z-10 size-full object-cover object-[70%_center]" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(6,6,6,0.92)_0%,rgba(6,6,6,0.72)_32%,rgba(6,6,6,0.12)_62%,transparent_100%),linear-gradient(180deg,rgba(6,6,6,0.5),transparent_25%,transparent_75%,rgba(6,6,6,0.6))]" />
+      <section className="lx-swap-in relative w-full max-w-[520px] px-6 py-10 sm:px-12">
+        <img src="/lxc-monogram.png" alt="LXC" className="mb-8 h-10 w-auto" />
+        <h1 className="text-[clamp(30px,4.2vw,44px)] font-bold leading-[1.05] tracking-[-0.03em] text-[var(--text)]">Sign in to open {pageName}</h1>
+        <p className="mt-4 max-w-[360px] text-[15px] leading-relaxed text-[var(--text-muted)]">Your LXC account is your Steam account. One click and the gate opens.</p>
+        <SteamLoginButton onClick={loginWithSteam} className="mt-8 h-12 min-w-[220px] rounded-xl text-[15px]" />
+        <p className="mt-4 text-[12px] leading-4 text-[var(--text-dim)]">Steam handles the password. LXC never sees it.</p>
       </section>
     </div>
   )
