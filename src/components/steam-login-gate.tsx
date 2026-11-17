@@ -17,11 +17,11 @@ export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
   // the card, faint, rising from its bottom edge and fading out towards the top so the text stays readable.
   // Scaled so the two outer agents' bodies (x 94-549 of the 609px art) meet the card's side edges.
   return (
-    <div className="relative isolate flex min-h-[calc(100dvh-5rem)] flex-1 items-center overflow-hidden">
+    <div data-lx-gate="" className="relative flex min-h-[calc(100dvh-5rem)] flex-1 items-center">
       {/* The owner's agent at the camp gate (2026-11-17) fills the screen; the left side darkens so the words stay readable. */}
-      <img src={signinArt} alt="" aria-hidden="true" decoding="async" draggable={false} className="pointer-events-none absolute inset-0 -z-10 size-full object-cover object-[70%_center]" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(6,6,6,0.92)_0%,rgba(6,6,6,0.72)_32%,rgba(6,6,6,0.12)_62%,transparent_100%),linear-gradient(180deg,rgba(6,6,6,0.5),transparent_25%,transparent_75%,rgba(6,6,6,0.6))]" />
-      <section className="lx-swap-in relative w-full max-w-[520px] px-6 py-10 sm:px-12">
+      <img src={signinArt} alt="" aria-hidden="true" decoding="async" draggable={false} className="pointer-events-none fixed inset-0 z-0 size-full object-cover object-[70%_center]" />
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 bg-[linear-gradient(90deg,rgba(6,6,6,0.92)_0%,rgba(6,6,6,0.72)_32%,rgba(6,6,6,0.12)_62%,transparent_100%),linear-gradient(180deg,rgba(6,6,6,0.5),transparent_25%,transparent_75%,rgba(6,6,6,0.6))]" />
+      <section className="lx-swap-in relative z-10 w-full max-w-[520px] px-6 py-10 sm:px-12">
         <img src="/lxc-monogram.png" alt="LXC" className="mb-8 h-10 w-auto" />
         <h1 className="text-[clamp(30px,4.2vw,44px)] font-bold leading-[1.05] tracking-[-0.03em] text-[var(--text)]">Sign in to open {pageName}</h1>
         <p className="mt-4 max-w-[360px] text-[15px] leading-relaxed text-[var(--text-muted)]">Your LXC account is your Steam account. One click and the gate opens.</p>

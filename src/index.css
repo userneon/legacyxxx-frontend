@@ -1803,3 +1803,8 @@ html:has([data-page-scene]) .lx-dotgrid { background-image: none; }
 .lx-hero-page .lx-layer:hover { background: rgb(255 255 255 / 0.07) !important; transform: none; translate: none; border-color: rgb(255 255 255 / 0.12) !important; }
 .lx-hero-page .lx-layer svg.lucide-image { opacity: 0.25; }
 .lx-hero-page .lx-layer :is(div, span):has(> svg.lucide-image) { background: transparent !important; }
+
+/* The sign-in picture is the background of the whole window (owner request 2026-11-17): the top bar floats over it and the frame is clear. */
+html:has([data-lx-gate]) [data-lxc-header] { background: transparent; }
+html:has([data-lx-gate]) [data-lxc-header] > header { border-color: transparent; }
+html:has([data-lx-gate]) [data-slot="sidebar-inset"] { background: transparent; }

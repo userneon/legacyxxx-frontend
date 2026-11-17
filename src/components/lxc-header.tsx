@@ -21,7 +21,7 @@ export function LxcHeader({ currentPage, onNavigate, className, overlay = false,
   const [query, setQuery] = useState("")
   const { data: stats } = useApiQuery<HomeStats>((signal) => serversService.getHomeStats({ signal }), { queryKey: "lxc-header-stats", keepPreviousData: true })
   return (
-    <div className={cn("shrink-0 bg-[var(--bg)] px-11 transition-colors duration-300", floating && "absolute inset-x-0 top-0 z-20", overlay && "bg-transparent", className)}>
+    <div data-lxc-header="" className={cn("relative z-20 shrink-0 bg-[var(--bg)] px-11 transition-colors duration-300", floating && "absolute inset-x-0 top-0 z-20", overlay && "bg-transparent", className)}>
       <header className={cn("mx-auto flex w-full max-w-[1320px] flex-wrap items-center gap-4 min-[1100px]:flex-nowrap border-b py-2.5 transition-colors duration-300", overlay ? "border-transparent" : "border-[var(--line)]")}>
         <Link to={PAGE_ROUTES.home} aria-label="LXC, home" className="min-[560px]:hidden"><img src="/lxc-monogram.png" alt="LXC" className="h-5 w-auto" /></Link>
         <Link to={PAGE_ROUTES.home} aria-label="LXC, home" className="hidden min-[560px]:block"><img src="/lxc-monogram.png" alt="LXC" className="h-6 w-auto" /></Link>
