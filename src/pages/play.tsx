@@ -362,7 +362,7 @@ function ServerSheet({ server, onClose, gate }: { server: PlayServer | null; onC
                   Watch
                 </button>
               )}
-              <button type="button" disabled={!connectable || gate.reason !== null} onClick={() => connect(address, server.name)} className={cn(primary, "h-10 flex-1 text-[13px]")}>
+              <button type="button" disabled={!connectable || gate.reason !== null} onClick={() => connect(address, server.name)} className={cn(primary, "lx-hover-green h-10 flex-1 text-[13px]")}>
                 <Play className="size-3.5" />
                 Connect
               </button>
@@ -539,7 +539,7 @@ function ServerDetail({ server, gate }: { server: PlayServer; gate: PlayGate }) 
       {/* The action strip: Connect on the left, the score in the middle, the address on the right. */}
       <div className="mx-[22px] mt-4 flex shrink-0 flex-wrap items-center gap-3 rounded-2xl bg-white/[0.04] p-2">
         {connectable && gate.reason === null ? (
-          <button type="button" onClick={() => connect(address, server.name)} className={cn(primary, "lx-play-connect h-11 rounded-xl px-5 text-[14px]")}>
+          <button type="button" onClick={() => connect(address, server.name)} className={cn(primary, "lx-play-connect lx-hover-green h-11 rounded-xl px-5 text-[14px]")}>
             <Play className="size-4 fill-current" />
             Connect
           </button>
@@ -700,7 +700,7 @@ function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode;
           <Tooltip>
             <TooltipTrigger asChild>
               <span tabIndex={anyJoinable && gate.reason === null ? -1 : 0}>
-                <button type="button" disabled={!anyJoinable || busy || gate.reason !== null} onClick={() => void quickPlay()} className={cn(primary, "h-10 gap-2 px-5 text-[13px]")}>
+                <button type="button" disabled={!anyJoinable || busy || gate.reason !== null} onClick={() => void quickPlay()} className={cn(primary, "lx-hover-blue h-10 gap-2 px-5 text-[13px]")}>
                   {busy ? <LoaderCircle className="size-4 animate-spin" /> : <Play className="size-4 fill-current" />}
                   Quick play
                 </button>
