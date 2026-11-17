@@ -236,7 +236,8 @@ export function ShopPage() {
   const balance = wallet?.balance ?? null
   const username = user?.username ?? "Player"
 
-  const featured = all.filter((item) => item.featured && item.unlock === "coin")
+  // At most ten (two full rows of five); the rest are still in All items.
+  const featured = all.filter((item) => item.featured && item.unlock === "coin").slice(0, 10)
   const inTab = all.filter((item) => tab === "featured" || item.kind === tab || (tab === "name" && item.kind === "profile_customize") || (tab === "smoke_color" && (item.kind === "grenade_trail")) || (tab === "model" && isModelKind(item.kind)))
   const shown = inTab
     .filter((item) => (!search.trim() || item.name.toLowerCase().includes(search.trim().toLowerCase())))
