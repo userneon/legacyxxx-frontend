@@ -21,7 +21,6 @@ import { ShopRanks } from "@/components/shop-ranks"
 import roleSupporter from "@/assets/roles/supporter.webp"
 import roleGold from "@/assets/roles/gold.webp"
 import roleLegend from "@/assets/roles/legend.webp"
-import { ShopHome, type ShopTarget } from "@/components/shop-home"
 import { FrameStage } from "@/components/frame-stage"
 import { usePerkCatalogue } from "@/hooks/use-perk-catalogue"
 import { PICK_DEFAULT, demoColour } from "@/components/color-row"
@@ -473,13 +472,6 @@ export function ShopPage() {
       {/* Not a scroller itself: the page panel around it scrolls, and a sticky rail sticks to the nearest scroller (an inner overflow-y-auto that never scrolled kept it from sticking). */}
       <div className="flex min-h-0 flex-1">
       <div className="lx-glass-page lx-shop-root min-h-0 min-w-0 flex-1 px-6 py-5 max-md:px-4">
-        {tab === "featured" && (
-          <ShopHome className="mb-5" onGo={(target: ShopTarget) => {
-            if (target === "topup") navigate("/wallet/top-up")
-            else if (target === "ranks") document.querySelector('[aria-label="Ranks"]')?.scrollIntoView({ behavior: "smooth", block: "start" })
-            else setTab(target)
-          }} />
-        )}
         {tab === "featured" && (
           <div className="mb-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl border border-[var(--line-soft)] px-4 py-3 text-[12px] leading-relaxed text-[var(--text-dim)]">
             <span>Cosmetics are paid in FOL$ (earn it by playing, or top it up). Ranks are paid in ₮ with QPay or any bank app.</span>
