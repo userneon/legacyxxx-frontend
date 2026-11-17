@@ -249,7 +249,9 @@ function TeamPanel({ side, players }: { side: TeamSide; players: ServerLiveMatch
         <span className="ml-auto text-[12px] font-semibold text-[var(--text-dim)]">{players.length}/5</span>
       </div>
       {players.length > 0 && <TeamRows side={side} players={players} />}
-      {Array.from({ length: free }, (_, index) => <div key={index} className="flex h-[38px] items-center justify-center rounded-xl border border-dashed border-white/10 text-[12px] text-[var(--text-faint)]">Free</div>)}
+      {players.length === 0
+        ? <div className="flex h-[38px] items-center justify-center rounded-[10px] border border-dashed border-white/10 text-[12px] text-[var(--text-faint)]">Empty · {free} places free</div>
+        : Array.from({ length: free }, (_, index) => <div key={index} className="flex h-[38px] items-center justify-center rounded-[10px] border border-dashed border-white/10 text-[12px] text-[var(--text-faint)]">Free</div>)}
     </div>
   )
 }
@@ -359,7 +361,7 @@ function ServerSheet({ server, onClose, gate }: { server: PlayServer | null; onC
                   Watch
                 </button>
               )}
-              <button type="button" disabled={!connectable || gate.reason !== null} onClick={() => connect(address, server.name)} className={cn(primary, "h-10 flex-1 text-[13px]")}>
+              <button type="button" disabled={!connectable || gate.reason !== null} onClick={() => connect(address, server.name)} className={cn(primary, "lx-hover-green h-10 flex-1 text-[13px]")}>
                 <Play className="size-3.5" />
                 Connect
               </button>
@@ -463,6 +465,7 @@ function ServerListItem({ server, selected, favourite, onFavourite, onSelect }: 
     <div className={cn("group relative flex items-center gap-3 overflow-hidden rounded-2xl border px-4 py-3 transition-[border-color] duration-150", selected ? "border-[var(--line-strong)]" : "border-transparent hover:border-[var(--line)]", unavailable && !selected && "opacity-60")}>
       {/* The map fills the row and fades out from left to right. */}
       {art && <img src={art} alt="" aria-hidden="true" className={cn("lx-map-img lx-list-art pointer-events-none absolute inset-0 size-full object-cover transition-opacity duration-300", selected ? "opacity-70" : "opacity-45 group-hover:opacity-60")} />}
+      <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(8,9,12,0.88)_0%,rgba(8,9,12,0.6)_55%,rgba(8,9,12,0.15)_100%)]" />
       <button type="button" onClick={onSelect} aria-current={selected ? "true" : undefined} className="relative flex min-w-0 flex-1 items-center gap-3 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="truncate text-[13px] font-semibold text-[var(--text)] [text-shadow:0_1px_2px_rgba(0,0,0,0.6)]" title={server.name}>{server.name}</span>
@@ -535,7 +538,7 @@ function ServerDetail({ server, gate }: { server: PlayServer; gate: PlayGate }) 
       {/* The action strip: Connect on the left, the score in the middle, the address on the right. */}
       <div className="mx-[22px] mt-4 flex shrink-0 flex-wrap items-center gap-3 rounded-2xl bg-white/[0.04] p-2">
         {connectable && gate.reason === null ? (
-          <button type="button" onClick={() => connect(address, server.name)} className={cn(primary, "lx-play-connect h-11 rounded-xl px-5 text-[14px]")}>
+          <button type="button" onClick={() => connect(address, server.name)} className={cn(primary, "lx-play-connect lx-hover-green h-11 rounded-xl px-5 text-[14px]")}>
             <Play className="size-4 fill-current" />
             Connect
           </button>
@@ -696,7 +699,7 @@ function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode;
           <Tooltip>
             <TooltipTrigger asChild>
               <span tabIndex={anyJoinable && gate.reason === null ? -1 : 0}>
-                <button type="button" disabled={!anyJoinable || busy || gate.reason !== null} onClick={() => void quickPlay()} className={cn(primary, "h-10 gap-2 px-5 text-[13px]")}>
+                <button type="button" disabled={!anyJoinable || busy || gate.reason !== null} onClick={() => void quickPlay()} className={cn(primary, "lx-hover-blue h-10 gap-2 px-5 text-[13px]")}>
                   {busy ? <LoaderCircle className="size-4 animate-spin" /> : <Play className="size-4 fill-current" />}
                   Quick play
                 </button>

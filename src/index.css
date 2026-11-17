@@ -1820,3 +1820,11 @@ html:has([data-lx-gate]) [data-slot="sidebar-inset"] { background: transparent; 
   border: 1px solid rgb(255 255 255 / 0.12) !important;
   box-shadow: 0 18px 50px rgb(0 0 0 / 0.45), inset 0 1px 0 rgb(255 255 255 / 0.08) !important;
 }
+
+/* Play buttons' hover light (owner request 2026-11-17): Connect gets a green light rising from its bottom edge, Quick play a blue one; both fade in and out. */
+.lx-hover-green, .lx-hover-blue { position: relative; overflow: hidden; isolation: isolate; }
+.lx-hover-green::after, .lx-hover-blue::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0; transition: opacity 280ms ease; }
+.lx-hover-green::after { background: radial-gradient(120% 95% at 50% 135%, rgb(52 211 153 / 0.85), rgb(52 211 153 / 0.35) 45%, transparent 72%); }
+.lx-hover-blue::after { background: radial-gradient(120% 95% at 50% 135%, rgb(61 99 255 / 0.85), rgb(61 99 255 / 0.35) 45%, transparent 72%); }
+.lx-hover-green:hover:not(:disabled)::after, .lx-hover-blue:hover:not(:disabled)::after, .lx-hover-green:focus-visible::after, .lx-hover-blue:focus-visible::after { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .lx-hover-green::after, .lx-hover-blue::after { transition: none; } }
