@@ -12,6 +12,7 @@ import { ProfileBlock } from "@/components/profile-block"
 import { SiteTourButton } from "@/components/site-tour"
 import { AppSidebar } from "@/components/app-sidebar"
 import { PageHero, pageHero } from "@/components/page-hero"
+import { WelcomeAfterLogin } from "@/components/welcome-after-login"
 import { LxcHeader } from "@/components/lxc-header"
 import { PublicChat } from "@/components/public-chat"
 import { HomePage } from "@/pages/home"
@@ -156,6 +157,7 @@ export function App() {
     // Two sidebars, always closed to their icons (owner requests 2026-11-13: "dual sidebar, remove the top bar, without a toggle", then "always closed"): the menu on the left, the account on the right.
     <SidebarProvider open={false} onOpenChange={() => {}} style={{ "--sidebar-width": "264px", "--sidebar-width-icon": "46px" } as CSSProperties}>
       <EventLayer />
+      <WelcomeAfterLogin />
       <ProfileScene scene={currentPage === "profile" ? profileScene : null} />
       <ProfileBackdrop active={profileGrid} />
       {/* The shell (owner pick 2026-11-09): one solid frame holding the rail, a pill header and the page panel. A phone keeps the sidebar sheet and the older layout. */}
