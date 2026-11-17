@@ -18,10 +18,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const greeting = eventGreeting(useActiveEvent()?.theme)
   const navigate = useNavigate()
   return (
-    <div className="lx-open @container flex flex-1 flex-col p-4 @2xl:p-6">
-      {greeting && <div className="mb-3"><span className="lx-event-greeting">{greeting}</span></div>}
-      <div className="lx-stack flex flex-1 flex-col gap-10">
-        <HomeHero onNavigate={onNavigate} />
+    <div className="lx-open @container flex flex-1 flex-col">
+      <HomeHero onNavigate={onNavigate} />
+      <div className="lx-stack mx-auto flex w-full max-w-[1320px] flex-1 flex-col gap-10 p-4 @2xl:p-6">
+        {greeting && <div><span className="lx-event-greeting">{greeting}</span></div>}
         <StatsRow />
         <div className="grid grid-cols-1 gap-12 @4xl:grid-cols-2">
           <LiveNow onNavigate={onNavigate} />

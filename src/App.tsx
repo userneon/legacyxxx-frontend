@@ -186,7 +186,7 @@ export function App() {
         </button>
         <div ref={panelRef} className={cn("lx-glass-shell scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-clip max-sm:pb-16", "max-[559px]:rounded-[14px]")}>
           {/* Leaders scrolls its table inside the panel (sticky header, your row pinned under it), so it gets the panel's height instead of growing past it. */}
-          <div key={shownSection} className={cn("page-enter flex flex-col", "mx-auto w-full max-w-[1320px]", shownSection === "/leaders" ? "h-full" : "min-h-full", leaving && "page-leave")}>
+          <div key={shownSection} className={cn("page-enter flex flex-col", "mx-auto w-full", currentPage !== "home" && "max-w-[1320px]", shownSection === "/leaders" ? "h-full" : "min-h-full", leaving && "page-leave")}>
             <RouteErrorBoundary resetKey={shownLocation.pathname}>
             <Suspense fallback={<div className="min-h-[40vh]" aria-hidden="true" />}>
             <Routes location={shownLocation}>
