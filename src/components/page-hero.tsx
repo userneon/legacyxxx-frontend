@@ -6,6 +6,7 @@ import heroPro from "@/assets/home/hero-pro.webp"
 import heroPenalties from "@/assets/home/hero-penalties.webp"
 import heroLeaders from "@/assets/home/hero-leaders.webp"
 import heroTournament from "@/assets/home/hero-tournament.webp"
+import heroReviews from "@/assets/home/hero-reviews.webp"
 import heroClan from "@/assets/home/hero-clan.webp"
 import heroSkin from "@/assets/home/hero-skin.webp"
 import heroProfile from "@/assets/home/hero-profile.webp"
@@ -24,6 +25,7 @@ const HEROES: Partial<Record<PageId, { src: string; title: string; line: string;
   "play-fun": { src: heroFun, title: "Fun Mode", line: "", position: "80% 15%" },
   "play-proleague": { src: heroPro, title: "Pro League", line: "", position: "80% 10%" },
   "play-tournaments": { src: heroTournament, title: "Tournaments", line: "", position: "80% 15%" },
+  feedback: { src: heroReviews, title: "Reviews", line: "", position: "80% 15%" },
   leaders: { src: heroLeaders, title: "Leaders", line: "", position: "80% 15%" },
   penalties: { src: heroPenalties, title: "Penalties", line: "", position: "80% 10%" },
   "play-5vs5": { src: hero5x5, title: "5x5 Matches", line: "Competitive 5v5. Every match counts toward your rank.", position: "80% 8%" },
