@@ -103,6 +103,7 @@ function consumeLoginResult() {
   const url = new URL(window.location.href)
   const result = url.searchParams.get("login")
   if (result !== "cancelled" && result !== "failed") return
+  try { window.sessionStorage.removeItem("lx-welcome") } catch { /* nothing to clear */ }
   url.searchParams.delete("login")
   window.history.replaceState(window.history.state, document.title, `${url.pathname}${url.search}${url.hash}`)
   // After this render, so the Toaster is mounted.
@@ -200,6 +201,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user?.id, rotateSession])
 
   const loginWithSteam = useCallback(() => {
+    // The Steam sign-in comes back with a cookie only (no token in the address), so the mark for the welcome screen is left here, before leaving.
+    try { window.sessionStorage.setItem("lx-welcome", "1") } catch { /* private mode: no welcome screen */ }
     window.location.href = authService.getSteamLoginUrl()
   }, [])
 

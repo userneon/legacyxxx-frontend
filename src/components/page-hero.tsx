@@ -4,6 +4,7 @@ import type { PageId } from "@/api/types"
 import { cn } from "@/lib/utils"
 import { ArtImage } from "@/components/art-image"
 import { LQ } from "@/lib/hero-lqip.generated"
+import agentHero from "@/assets/home/agent-hero.webp"
 import hero5x5 from "@/assets/home/hero-5x5.webp"
 import heroWallet from "@/assets/home/hero-wallet.webp"
 import heroFun from "@/assets/home/hero-fun.webp"
@@ -22,6 +23,7 @@ import heroShop from "@/assets/home/hero-shop.webp"
  * `path` limits it to that exact address (the Shop's other tabs have none).
  */
 const HEROES: Partial<Record<PageId, { src: string; lq: string; title: string; line: string; position: string; path?: string; prefix?: boolean }>> = {
+  home: { src: agentHero, lq: LQ["agent-hero"], title: "Home", line: "", position: "75% 8%" },
   shop: { src: heroShop, lq: LQ["hero-shop"], title: "Shop", line: "Ranks, models, effects and roles. Cosmetics only.", position: "80% 8%", path: "/shop" },
   profile: { src: heroProfile, lq: LQ["hero-profile"], title: "Profile", line: "Your numbers and your look.", position: "80% 10%", path: "/profile", prefix: true },
   skinchanger: { src: heroSkin, lq: LQ["hero-skin"], title: "Skinchanger", line: "Your skins, knives and gloves.", position: "80% 20%" },
