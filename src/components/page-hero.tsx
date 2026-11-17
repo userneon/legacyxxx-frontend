@@ -20,8 +20,8 @@ export function pageHero(page: PageId, pathname: string) {
 
 export function PageHero({ hero }: { hero: NonNullable<ReturnType<typeof pageHero>> }) {
   return (
-    <section aria-label={hero.title} className="relative isolate h-[320px] w-full shrink-0 overflow-hidden min-[900px]:h-[420px]">
-      <img src={hero.src} alt="" aria-hidden="true" decoding="async" style={{ objectPosition: hero.position }} className="absolute inset-0 -z-10 size-full object-cover [mask-image:linear-gradient(90deg,transparent_8%,rgba(0,0,0,0.5)_34%,#000_64%),linear-gradient(180deg,#000_66%,transparent)] [mask-composite:intersect] [-webkit-mask-composite:source-in]" />
+    <section aria-label={hero.title} className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[360px] overflow-hidden min-[900px]:h-[520px]">
+      <img src={hero.src} alt="" aria-hidden="true" decoding="async" style={{ objectPosition: hero.position }} className="absolute inset-0 size-full object-cover [mask-image:linear-gradient(90deg,transparent_8%,rgba(0,0,0,0.5)_34%,#000_64%),linear-gradient(180deg,#000_66%,transparent)] [mask-composite:intersect] [-webkit-mask-composite:source-in]" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
     </section>
   )
