@@ -1,3 +1,4 @@
+import { CountText } from "@/components/animated-number"
 import { useNavigate } from "react-router-dom"
 
 import { serversService } from "@/api"
@@ -17,11 +18,11 @@ export function HomeHero({ onNavigate }: { onNavigate: (page: PageId) => void })
   return (
     <section aria-label="LXC" className="relative isolate min-h-[460px] w-full overflow-hidden [mask-image:linear-gradient(180deg,#000_72%,transparent)] @2xl:min-h-[clamp(560px,56vw,860px)]">
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
-      <div className="mx-auto flex h-full min-h-[460px] w-full max-w-[1320px] flex-col justify-center px-11 pb-14 pt-[110px] @2xl:min-h-[clamp(560px,56vw,860px)]">
+      <div className="lx-hero-copy mx-auto flex h-full min-h-[460px] w-full max-w-[1320px] flex-col justify-center px-11 pb-14 pt-[110px] @2xl:min-h-[clamp(560px,56vw,860px)]">
         {typeof online === "number" && (
           <span className="flex items-center gap-2.5 text-[12px] font-semibold uppercase tracking-[0.2em] text-[var(--text-dim)]">
             <span aria-hidden="true" className="size-[7px] rounded-full bg-[var(--status-green)] shadow-[0_0_10px_var(--status-green)]" />
-            {online.toLocaleString()} {online === 1 ? "player" : "players"} online
+            <CountText value={online.toLocaleString()} durationMs={1400} delayMs={500} /> {online === 1 ? "player" : "players"} online
           </span>
         )}
         <h1 className="mt-5 max-w-[620px] text-[clamp(40px,6vw,68px)] font-bold leading-[0.98] tracking-[-0.03em] text-[var(--text)]">Play CS2.<br /><span className="text-[var(--text-dim)]">Climb the ladder.</span></h1>

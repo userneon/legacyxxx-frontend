@@ -13,7 +13,7 @@ import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
 import { profileService } from "@/api"
-import { AnimatedNumber } from "@/components/animated-number"
+import { AnimatedNumber, CountText } from "@/components/animated-number"
 import { profileOverviewService, type ProfileMatchRow, type ProfileOverview, type ProfileSection } from "@/api/profile-overview"
 import type { FaceitProfileData, PenaltyEntry } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -471,7 +471,7 @@ function ProfileRings({ overview }: { overview: ProfileOverview }) {
       {cards.map((entry, index) => (
         <div key={entry.key} title={entry.title} style={index === cards.length - 1 && lastSpan > 1 ? { gridColumn: `span ${lastSpan}` } : undefined} className="lx-glass flex min-w-0 flex-col gap-1 rounded-xl px-4 py-3.5">
           <span className="truncate text-[11px] font-medium text-[var(--text-dim)]">{entry.label}</span>
-          <span className="text-[24px] font-bold leading-none text-[var(--text)]">{entry.value}</span>
+          <span className="text-[24px] font-bold leading-none tabular-nums text-[var(--text)]"><CountText value={entry.value} /></span>
           {entry.share != null && (
             <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-[var(--line)]" role="progressbar" aria-valuenow={Math.round(entry.share)} aria-valuemin={0} aria-valuemax={100} aria-label={entry.label}>
               <span className="block h-full rounded-full" style={{ width: `${entry.share}%`, background: entry.tone === "red" ? "var(--status-red)" : "var(--status-green)" }} />

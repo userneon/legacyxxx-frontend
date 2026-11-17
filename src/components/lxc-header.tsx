@@ -9,6 +9,7 @@ import { Search } from "lucide-react"
 
 import { serversService } from "@/api"
 import type { HomeStats, PageId } from "@/api/types"
+import { CountText } from "@/components/animated-number"
 import { ProfileBlock } from "@/components/profile-block"
 import { TopNav } from "@/components/top-nav"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -28,7 +29,7 @@ export function LxcHeader({ currentPage, onNavigate, className, overlay = false,
         {typeof stats?.playersOnline === "number" ? (
           <span className="inline-flex h-8 items-center gap-2 text-[13px] font-bold text-[var(--status-green)]" title="Players online">
             <span aria-hidden="true" className="size-2 rounded-full bg-[var(--status-green)]" />
-            {stats.playersOnline.toLocaleString()}
+            <CountText value={stats.playersOnline.toLocaleString()} durationMs={1100} delayMs={700} />
           </span>
         ) : null}
         <TopNav currentPage={currentPage} onNavigate={onNavigate} className="ml-1 flex-1 max-[559px]:hidden" />

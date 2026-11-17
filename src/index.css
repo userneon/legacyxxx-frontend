@@ -1828,3 +1828,45 @@ html:has([data-lx-gate]) [data-slot="sidebar-inset"] { background: transparent; 
 .lx-hover-blue::after { background: radial-gradient(120% 95% at 50% 135%, rgb(61 99 255 / 0.85), rgb(61 99 255 / 0.35) 45%, transparent 72%); }
 .lx-hover-green:hover:not(:disabled)::after, .lx-hover-blue:hover:not(:disabled)::after, .lx-hover-green:focus-visible::after, .lx-hover-blue:focus-visible::after { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .lx-hover-green::after, .lx-hover-blue::after { transition: none; } }
+
+/* ========================================
+   Entrance (owner request 2026-11-17: "everything smooth when entering the site; texts written, top bar one by one, numbers counting"):
+   the top bar's parts fade in one after another, headings are written left to right, and the blocks of a page rise in a row.
+   All are `backwards` fills that end at rest, so nothing stays transformed.
+   ======================================== */
+@keyframes lx-bar-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+@keyframes lx-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes lx-write { from { clip-path: inset(-4px 100% -8px -4px); opacity: 0.3; } to { clip-path: inset(-4px -4px -8px -4px); opacity: 1; } }
+[data-lxc-header] header > :not(nav) { animation: lx-bar-in 620ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+[data-lxc-header] header > :nth-child(1) { animation-delay: 80ms; }
+[data-lxc-header] header > :nth-child(2) { animation-delay: 180ms; }
+[data-lxc-header] header > :nth-last-child(2) { animation-delay: 820ms; }
+[data-lxc-header] header > :last-child { animation-delay: 920ms; }
+[data-lxc-header] nav > * { animation: lx-bar-in 620ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+[data-lxc-header] nav > :nth-child(1) { animation-delay: 330ms; }
+[data-lxc-header] nav > :nth-child(2) { animation-delay: 400ms; }
+[data-lxc-header] nav > :nth-child(3) { animation-delay: 470ms; }
+[data-lxc-header] nav > :nth-child(4) { animation-delay: 540ms; }
+[data-lxc-header] nav > :nth-child(5) { animation-delay: 610ms; }
+[data-lxc-header] nav > :nth-child(6) { animation-delay: 680ms; }
+[data-lxc-header] nav > :nth-child(7) { animation-delay: 750ms; }
+[data-lxc-header] nav > :nth-child(8) { animation-delay: 820ms; }
+[data-lxc-header] nav > :nth-child(9) { animation-delay: 890ms; }
+[data-lxc-header] nav > :nth-child(10) { animation-delay: 960ms; }
+
+.page-enter :is(h1, h2, .lx-section-title) { animation: lx-write 780ms cubic-bezier(0.3, 0.7, 0.2, 1) 260ms backwards; }
+.lx-hero-copy > * { animation: lx-rise 700ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.lx-hero-copy > h1 { animation: lx-write 1000ms cubic-bezier(0.3, 0.7, 0.2, 1) 380ms backwards; }
+.lx-hero-copy > :nth-child(1) { animation-delay: 290ms; }
+.lx-hero-copy > :nth-child(3) { animation-delay: 570ms; }
+.lx-hero-copy > :nth-child(4) { animation-delay: 710ms; }
+.lx-hero-copy > :nth-child(5) { animation-delay: 850ms; }
+.page-enter > :nth-child(-n+8), .lx-stack > :nth-child(-n+8) { animation: lx-rise 650ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.page-enter > :nth-child(1), .lx-stack > :nth-child(1) { animation-delay: 200ms; }
+.page-enter > :nth-child(2), .lx-stack > :nth-child(2) { animation-delay: 280ms; }
+.page-enter > :nth-child(3), .lx-stack > :nth-child(3) { animation-delay: 360ms; }
+.page-enter > :nth-child(4), .lx-stack > :nth-child(4) { animation-delay: 440ms; }
+.page-enter > :nth-child(5), .lx-stack > :nth-child(5) { animation-delay: 520ms; }
+.page-enter > :nth-child(6), .lx-stack > :nth-child(6) { animation-delay: 600ms; }
+.page-enter > :nth-child(7), .lx-stack > :nth-child(7) { animation-delay: 680ms; }
+.page-enter > :nth-child(8), .lx-stack > :nth-child(8) { animation-delay: 760ms; }

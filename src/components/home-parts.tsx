@@ -1,3 +1,4 @@
+import { CountText } from "@/components/animated-number"
 /** Home parts: the map slider, the signed-in player's rank and four ring stats, the four mode cards and the rank medals. Real data only. */
 import { useId, useState } from "react"
 import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react"
@@ -162,7 +163,7 @@ function StatTile({ value, label, title, share, tone = "green" }: { value: strin
   return (
     <div title={title} className="lx-glass flex min-w-0 flex-col gap-1 rounded-xl px-4 py-3.5">
       <span className="truncate text-[11px] font-medium text-[var(--text-dim)]">{label}</span>
-      <span className="text-[24px] font-bold leading-none text-[var(--text)]">{value}</span>
+      <span className="text-[24px] font-bold leading-none tabular-nums text-[var(--text)]"><CountText value={value} /></span>
       {share != null && (
         <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-[var(--line)]" role="progressbar" aria-valuenow={Math.round(share)} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
           <span className="block h-full rounded-full" style={{ width: `${share}%`, background: TONE[tone] }} />
