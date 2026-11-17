@@ -321,7 +321,7 @@ export function ShopPage() {
     const action = item.testing
       ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--text-2)]"><Check className="size-3" />Testing<span className="font-medium text-[var(--text-dim)]"> · not on sale</span></span>
       : item.owned
-      ? <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--text-dim)]"><Check className="size-3" />{worn[item.kind] === item.id ? "Worn" : "Owned"}{item.expiresAt ? <span className="font-medium text-[var(--text-dim)]"> · {timeLeft(item.expiresAt)}</span> : null}</span>
+      ? <span aria-hidden="true" />
       : item.unlock === "coin"
         ? <span className="lx-shop-price inline-flex h-9 items-center rounded-full bg-white/[0.07] px-4 text-[15px] font-bold"><LxMark size={14} />{priceFor(item, "30d").toLocaleString()}</span>
         : <span className="inline-flex items-center gap-1 text-xs text-[var(--text-dim)]"><Lock className="size-3" />Earned</span>
@@ -337,6 +337,7 @@ export function ShopPage() {
                 {/* The rarity as a thin line along the bottom, never a surface. */}
                 <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: rarityOf(item.rarity).color }} />
                 <div className="lx-tile-panel relative">
+                  {item.owned && !item.testing && <span className="absolute left-2 top-2 z-[2] inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-[5px] border border-white/10 bg-black/45 px-2 text-[11.5px] font-semibold text-[var(--text)] backdrop-blur-sm"><span aria-hidden="true" className="size-1.5 rounded-full bg-[var(--status-green)]" />{worn[item.kind] === item.id ? "Worn" : "Owned"}{item.expiresAt ? <><span aria-hidden="true" className="text-[var(--text-dim)]">•</span><span className="text-[var(--text-2)]">{timeLeft(item.expiresAt)}</span></> : null}</span>}
                   {shown.kind === "frame" ? (
                     <FrameStage accent={accentOf(shown)} height={148}><ItemArt item={shown} avatar={user?.avatar} username={username} size={88} /></FrameStage>
                   ) : (
