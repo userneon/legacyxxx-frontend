@@ -24,10 +24,15 @@ export function pageHero(page: PageId, pathname: string) {
 }
 
 export function PageHero({ hero }: { hero: NonNullable<ReturnType<typeof pageHero>> }) {
+  // Fixed to the page panel: the picture stays while the page scrolls over it, so the sky and its colours run to the bottom of a long page.
   return (
-    <section aria-label={hero.title} className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[360px] overflow-hidden min-[900px]:h-[520px]">
-      <img src={hero.src} alt="" aria-hidden="true" decoding="async" style={{ objectPosition: hero.position }} className="absolute inset-0 size-full object-cover [mask-image:linear-gradient(90deg,transparent_8%,rgba(0,0,0,0.5)_34%,#000_64%),linear-gradient(180deg,#000_66%,transparent)] [mask-composite:intersect] [-webkit-mask-composite:source-in]" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
+    <section
+      aria-label={hero.title}
+      style={{ left: "var(--lx-panel-left, 0px)", right: "var(--lx-panel-right, 0px)", top: "var(--lx-panel-top, 0px)", bottom: "var(--lx-panel-bottom, 0px)" }}
+      className="pointer-events-none fixed z-0 overflow-hidden"
+    >
+      <img src={hero.src} alt="" aria-hidden="true" decoding="async" style={{ objectPosition: hero.position }} className="absolute inset-0 size-full object-cover [mask-image:linear-gradient(90deg,transparent_8%,rgba(0,0,0,0.5)_34%,#000_64%)]" />
+      <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,6,6,0.55)_0%,rgba(6,6,6,0.1)_14%,rgba(6,6,6,0.22)_45%,rgba(6,6,6,0.7)_100%)]" />
     </section>
   )
 }
