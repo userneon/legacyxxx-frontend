@@ -12,6 +12,7 @@ import { ProfileBlock } from "@/components/profile-block"
 import { SiteTourButton } from "@/components/site-tour"
 import { AppSidebar } from "@/components/app-sidebar"
 import { PageHero, pageHero } from "@/components/page-hero"
+import { useScrollReveal } from "@/hooks/use-scroll-reveal"
 import { WelcomeAfterLogin } from "@/components/welcome-after-login"
 import { LxcHeader } from "@/components/lxc-header"
 import { PublicChat } from "@/components/public-chat"
@@ -106,6 +107,7 @@ export function App() {
   // The content panel scrolls on its own; a new page starts at the top (instantly, while it fades in).
   const panelRef = useRef<HTMLDivElement>(null)
   const shownSection = pageSection(shownLocation.pathname)
+  useScrollReveal(shownSection)
   // The picture and the bar follow the page that is on screen, so they change together with it (not early, while the old page is still fading out).
   const shownPage = routeToPage(shownLocation.pathname)
   const hero = pageHero(shownPage, shownLocation.pathname)
