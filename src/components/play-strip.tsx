@@ -51,6 +51,9 @@ export function PlayStrip() {
       )}
       {stats?.modes && (
         <Tile label="Playing now">
+          {Object.values(stats.modes).every((count) => !count) ? (
+            <span className="flex items-center gap-2 text-[14px] text-[var(--text-2)]"><span aria-hidden="true" className="size-1.5 rounded-full bg-[var(--text-faint)]" />Nobody is playing right now</span>
+          ) : (
           <div className="grid grid-cols-3 gap-2">
             {([["5x5", "5x5"], ["fun", "Fun"], ["pro", "Pro"]] as const).map(([key, label]) => {
               const players = stats.modes?.[key] ?? 0
@@ -62,6 +65,7 @@ export function PlayStrip() {
               )
             })}
           </div>
+          )}
         </Tile>
       )}
       {limits && (
