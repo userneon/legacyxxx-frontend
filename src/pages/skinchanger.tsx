@@ -197,7 +197,7 @@ function motionReduced() {
 
 /** On a T/CT switch the cards slide in from the right, rightmost column first, so the grid sweeps from right to left. */
 const SLIDE_IN_FROM_RIGHT: Keyframe[] = [
-  { opacity: 0, transform: "translateX(72px)" },
+  { opacity: 0, transform: "translateX(26px)" },
   { opacity: 1, transform: "translateX(0)" },
 ]
 
@@ -1188,6 +1188,8 @@ export function SkinchangerPage() {
       Object.assign(band.style, {
         position: "absolute", top: "-20px", bottom: "0", left: "0", width: "45%", pointerEvents: "none", zIndex: "3",
         background: `linear-gradient(90deg, transparent, color-mix(in oklab, ${color} 16%, transparent) 55%, transparent)`,
+        maskImage: "linear-gradient(180deg, transparent, #000 14%, #000 80%, transparent)",
+        webkitMaskImage: "linear-gradient(180deg, transparent, #000 14%, #000 80%, transparent)",
       })
       grid.appendChild(band)
       const sweep = band.animate(
