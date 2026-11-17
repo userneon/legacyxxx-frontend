@@ -106,10 +106,9 @@ export function ShopTopUp() {
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [returned, user?.id])
-  const settled = (status: TopUp["status"]) => {
+  const settled = (_status: TopUp["status"]) => {
     void wallet.refetch()
     void topUpsQuery.refetch()
-    if (status === "paid") toast.success("Paid. The FOL$ are in your wallet.")
   }
 
   if (products.loading) return <div className="mx-auto flex w-full max-w-[920px] flex-col gap-6"><Skeleton className="h-[190px] rounded-2xl" /><div className="grid grid-cols-2 gap-3 @[500px]:grid-cols-5">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[112px] rounded-2xl" />)}</div><Skeleton className="h-[130px] rounded-2xl" /></div>
