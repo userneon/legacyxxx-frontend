@@ -911,6 +911,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
   }
   if (method === "POST" && path === "/api/v1/skinchanger/collections") return { id: "col-new" }
   if (method === "DELETE" && path.startsWith("/api/v1/skinchanger/collections/")) return { removed: true }
+  if (method === "POST" && path === "/api/v1/clans") return { id: "clan-new", number: 4, name: String((body as { name?: string } | undefined)?.name ?? "Steppe Wolves"), tag: String((body as { tag?: string } | undefined)?.tag ?? "WOLF") }
   if (path === "/api/v1/clans") return MOCK_CLANS
   if (path === "/api/v1/public/social/tiktok") return { tiktok: { url: "https://www.tiktok.com/@legacyx", handle: "@legacyx", followers: 2840, videos: 37, updatedAt: new Date().toISOString() } }
   if (path === "/api/v1/public/discord/community") {

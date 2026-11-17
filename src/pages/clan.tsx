@@ -20,6 +20,7 @@ import { clansService, type ClanLook } from "@/api"
 import { ClanBackground } from "@/components/clan-background"
 import { ClanAppearancePanel } from "@/components/shop-clan"
 import { CLAN_ART_RULES, clanArtProblem, clanArtSrc, type ClanArtKind } from "@/api/clans"
+import { ClanCreated } from "@/components/clan-created"
 import type { ClanCard, ClanDetail, ClanJoinRequest, ClanRole, MyClanState } from "@/api/types"
 import { ClanMark } from "@/components/clan-mark"
 import { RingStat } from "@/components/home-parts"
@@ -158,6 +159,7 @@ let lastMine: MyClanState | null = null
 
 function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void }) {
   const fee = useClanFee()
+  const [founded, setFounded] = useState<ClanDetail | null>(null)
   const { isAuthenticated, loginWithSteam } = useAuth()
   const [creating, setCreating] = useState(() => new URLSearchParams(window.location.search).get("create") === "1")
   const [tab, setTab] = usePathTab<"all" | "appearance">("/clans", { all: "", appearance: "appearance" }, "all")
@@ -293,10 +295,11 @@ function ClanList({ onClanNavigate }: { onClanNavigate: (clanId: string) => void
                 {fee != null ? `${fee.toLocaleString()} FOL$` : "FOL$"} are taken from your wallet when the clan is created.
               </DialogDescription>
             </DialogHeader>
-            <CreateClanForm onCreated={(clan) => { setCreating(false); changed(); onClanNavigate(String(clan.number ?? clan.id)) }} />
+            <CreateClanForm onCreated={(clan) => { setCreating(false); changed(); setFounded(clan) }} />
           </div>
         </DialogContent>
       </Dialog>
+      {founded && <ClanCreated name={founded.name} tag={founded.tag} fee={fee} onOpen={() => { const clan = founded; setFounded(null); onClanNavigate(String(clan.number ?? clan.id)) }} />}
     </div>
   )
 }
