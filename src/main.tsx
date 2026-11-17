@@ -8,7 +8,10 @@ import App from "./App.tsx"
 import { ThemeProvider } from "@/components/theme-provider.tsx"
 import { AuthProvider } from "@/hooks/use-auth.tsx"
 import { Toaster } from "@/components/ui/sonner"
+import { preloadPageArt } from "@/lib/preload-art"
 
+
+window.addEventListener("load", preloadPageArt, { once: true })
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

@@ -1,4 +1,5 @@
 import type { PageId } from "@/api/types"
+import { ArtImage } from "@/components/art-image"
 import hero5x5 from "@/assets/home/hero-5x5.webp"
 import heroWallet from "@/assets/home/hero-wallet.webp"
 import heroFun from "@/assets/home/hero-fun.webp"
@@ -46,7 +47,7 @@ export function PageHero({ hero }: { hero: NonNullable<ReturnType<typeof pageHer
     <>
       {/* The picture itself lies across the top of the page panel and scrolls away with the page. */}
       <section aria-label={hero.title} className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[360px] overflow-hidden min-[900px]:h-[520px]">
-        <img src={hero.src} alt="" aria-hidden="true" decoding="async" style={{ objectPosition: hero.position }} className="absolute inset-0 size-full object-cover [mask-image:linear-gradient(90deg,transparent_8%,rgba(0,0,0,0.5)_34%,#000_64%),linear-gradient(180deg,#000_62%,transparent)] [mask-composite:intersect] [-webkit-mask-composite:source-in]" />
+        <ArtImage src={hero.src} alt="" aria-hidden="true" decoding="async" style={{ objectPosition: hero.position }} className="absolute inset-0 size-full object-cover [mask-image:linear-gradient(90deg,transparent_8%,rgba(0,0,0,0.5)_34%,#000_64%),linear-gradient(180deg,#000_62%,transparent)] [mask-composite:intersect] [-webkit-mask-composite:source-in]" />
         <div aria-hidden="true" className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
       </section>
       {/* What stays while the page scrolls: only the colour of the evening, a faint navy from the top and a warm glow in the corner. */}
