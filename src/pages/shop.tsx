@@ -18,6 +18,9 @@ import { GrenadeLight, GrenadeTrail } from "@/components/grenade-trail"
 import { FlashEffect } from "@/components/flash-effect"
 import { ShopClan } from "@/components/shop-clan"
 import { ShopRanks } from "@/components/shop-ranks"
+import roleSupporter from "@/assets/roles/supporter.webp"
+import roleGold from "@/assets/roles/gold.webp"
+import roleLegend from "@/assets/roles/legend.webp"
 import { ShopHome, type ShopTarget } from "@/components/shop-home"
 import { FrameStage } from "@/components/frame-stage"
 import { usePerkCatalogue } from "@/hooks/use-perk-catalogue"
@@ -38,6 +41,9 @@ const SORTS = [
 
 /** The kinds the Shop sells (banners and titles are earned: they live in Profile → Appearance). */
 type ShopKind = Exclude<CosmeticKind, "banner" | "title">
+/** The owner's three role badges (2026-11-17), found by the role's name; any other role keeps the coloured star label. */
+const ROLE_ART: Record<string, string> = { supporter: roleSupporter, gold: roleGold, legend: roleLegend }
+
 type ShopTab = "featured" | "frame" | "background" | "name" | "smoke_color" | "model" | "discord_role" | "clan"
 const TABS: Array<{ value: ShopTab; label: string }> = [
   { value: "featured", label: "Featured" },
@@ -70,6 +76,10 @@ function ItemArt({ item, avatar, username, size }: { item: ShopItem; avatar?: st
     const pic = <FramedAvatar avatar={avatar} name={username} frame={item.id} size={size} />
     // A ring frame draws its own ring; every other frame shows as a ring in its colour.
     return isRingFrame(item.id) ? pic : <span className="lx-shop-ring" style={{ "--acc": frameAccent(item.id) } as React.CSSProperties}>{pic}</span>
+  }
+  if (item.kind === "discord_role") {
+    const art = ROLE_ART[item.name.toLowerCase()]
+    if (art) return <img src={art} alt="" aria-hidden="true" draggable={false} className="h-[104px] w-auto object-contain drop-shadow-[0_10px_12px_rgba(0,0,0,0.55)]" />
   }
   if (item.kind === "discord_role") return <span className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3.5 text-[14px] font-bold" style={{ color: item.color ?? "#e4e4e7", backgroundColor: `color-mix(in srgb, ${item.color ?? "#e4e4e7"} 18%, #111)` }}>★ {item.name}</span>
   if (item.kind === "smoke_color") return <SmokePuff color={item.color} color2={item.color2} className={size > 100 ? "w-[200px]" : "w-[112px]"} />

@@ -3,11 +3,11 @@ import { useSearchParams } from "react-router-dom"
 import { Check, ChevronDown, Lock } from "lucide-react"
 import { toast } from "sonner"
 
-import prestige from "@/assets/ranks/art-prestige.webp"
-import imperial from "@/assets/ranks/art-imperial.webp"
-import eternal from "@/assets/ranks/art-eternal.webp"
-import prime from "@/assets/ranks/art-prime.webp"
-import sovereign from "@/assets/ranks/art-sovereign.webp"
+import emblem2 from "@/assets/ranks/emblem-2.webp"
+import emblem3 from "@/assets/ranks/emblem-3.webp"
+import emblem4 from "@/assets/ranks/emblem-4.webp"
+import emblem1 from "@/assets/ranks/emblem-1.webp"
+import emblem5 from "@/assets/ranks/emblem-5.webp"
 import { ChoiceSelect } from "@/components/choice-select"
 import { perksService, type PerkCatalogue, type PerkDays, type PerkGrant, type PerkInvoice, type PerkMine } from "@/api/perks"
 import { PERK_EMBLEM, PerkBadge, PerkTitle } from "@/components/perk-badge"
@@ -22,8 +22,9 @@ import { cn } from "@/lib/utils"
 const mnt = (value: number) => `${value.toLocaleString()}₮`
 /** The owner-supplied card art of each tier (owner request 2026-11-13, "make the Shop like this"): a gem on a pedestal over a dark rounded panel left empty for the card's text. Copper Prime, steel Prestige, violet Imperial, gold Eternal, diamond Sovereign. */
 /** Each tier's own glow behind its gem (the metals and stones of the art: copper, steel, amethyst, gold, diamond). */
-const TIER_GLOW: Record<string, string> = { tier4: "#b86b45", tier1: "#9aa6b6", tier2: "#8b5cf6", tier3: "#d4a843", tier5: "#8fb4e8" } // palette-exempt
-const TIER_ART: Record<string, string> = { tier1: prestige, tier2: imperial, tier3: eternal, tier4: prime, tier5: sovereign }
+/** Each tier's light behind its emblem: gold for the gold-framed tiers, blue for the silver and crystal ones (owner's design, 2026-11-17). */
+const TIER_GLOW: Record<string, string> = { tier4: "#f6c945", tier1: "#3d63ff", tier2: "#f6c945", tier3: "#3d63ff", tier5: "#f6c945" } // palette-exempt
+const TIER_ART: Record<string, string> = { tier4: emblem1, tier1: emblem2, tier2: emblem3, tier3: emblem4, tier5: emblem5 }
 const MODE_LABEL: Record<string, string> = { fun: "Fun servers", pro: "Pro League servers", "5x5": "5x5 servers" }
 const secondary = "inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3.5 text-[13px] text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] disabled:opacity-50"
 const daysLeft = (iso: string) => Math.max(0, Math.ceil((Date.parse(iso) - Date.now()) / 86_400_000))
@@ -168,7 +169,7 @@ export function ShopRanks({ catalogue, qa = false }: { catalogue: PerkCatalogue;
           return (
             <li key={tier.key} className="@container flex min-w-0 flex-col gap-2">
               {/* One card: the gem art with its text, length, price and Buy on its lower panel, and Benefits as the card's own bottom section (owner request 2026-11-13: everything inside the card). */}
-              <div className={cn("relative flex flex-1 flex-col overflow-hidden rounded-[22px] border border-white/10", mineHere && "ring-2 ring-[var(--brand)]")} style={{ "--fx": `color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} 90%, white)`, "--fx-c": TIER_GLOW[tier.key] ?? "#888", background: `linear-gradient(180deg, color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} 20%, #0d0d0f), #0d0d0f 78%)` } as React.CSSProperties}>
+              <div className={cn("relative flex flex-1 flex-col overflow-hidden rounded-[20px] border border-white/[0.08]", mineHere && "ring-2 ring-[var(--brand)]")} style={{ "--fx": `color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} 90%, white)`, "--fx-c": TIER_GLOW[tier.key] ?? "#888", background: `radial-gradient(130% 55% at 50% 118%, color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} 38%, transparent), transparent 66%), linear-gradient(165deg, #111218, #08090c 75%)` } as React.CSSProperties}>
               {/* The owner's five gems on their pedestals (owner request 2026-11-15, transparent art): each stands on its tier's own glow, one picture per card. */}
               <div aria-hidden="true" className="relative isolate overflow-hidden [mask-image:linear-gradient(180deg,#000_72%,transparent_98%)]" style={{ height: "80cqw" }}>
                 <div className="absolute inset-0" style={{ background: `radial-gradient(60% 55% at 50% 56%, color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} 34%, transparent), transparent 75%)` }} />
@@ -181,8 +182,8 @@ export function ShopRanks({ catalogue, qa = false }: { catalogue: PerkCatalogue;
                 </div>
                 <ChoiceSelect<PerkDays> className="!h-9 !rounded-xl !border-white/20 !bg-white/[0.1] !text-[13px] !font-semibold !text-white [&_svg]:!text-white/80 hover:!bg-white/[0.16]" ariaLabel={`How long, ${tier.name}`} value={days} onChange={(next) => setLengths((current) => ({ ...current, [tier.key]: next }))} options={catalogue.days.filter((value) => tier.prices[String(value)]).map((value) => ({ value, label: `${value} days`, hint: mnt(tier.prices[String(value)] as number) }))} />
                 <div className="flex items-stretch gap-1.5">
-                  <span className="grid place-items-center rounded-xl bg-black/40 px-2.5 text-[clamp(12px,6cqw,14px)] font-bold text-[var(--text)]">{price ? mnt(price) : "Not for sale"}</span>
-                  <button type="button" disabled={(!qa && (!price || !catalogue.available)) || busy !== null || (otherRunning && !qa)} onClick={() => void (qa ? getFree(tier.key) : buy(tier.key, days))} className="lx-gold-button inline-flex h-9 min-w-0 flex-1 items-center justify-center rounded-xl px-3 text-[14px] disabled:opacity-50">{busy === tier.key ? "Opening…" : qa ? (mineHere ? "Picks" : "Get free") : mineHere ? "Renew" : "Buy"}</button>
+                  <span className="grid place-items-center rounded-[10px] bg-black/40 px-2.5 text-[clamp(12px,6cqw,14px)] font-bold text-[#f6c945]">{price ? mnt(price) : "Not for sale"}</span>
+                  <button type="button" disabled={(!qa && (!price || !catalogue.available)) || busy !== null || (otherRunning && !qa)} onClick={() => void (qa ? getFree(tier.key) : buy(tier.key, days))} className="inline-flex h-9 min-w-0 flex-1 items-center justify-center rounded-[10px] border border-white/30 px-3 text-[14px] font-semibold text-[var(--text)] transition-colors hover:border-white/70 hover:bg-white/[0.06] disabled:opacity-50">{busy === tier.key ? "Opening…" : qa ? (mineHere ? "Picks" : "Get free") : mineHere ? "Renew" : "Buy"}</button>
                 </div>
                 {otherRunning && !qa && <span className="text-[11px] text-white/65">Another rank is running. It must end first.</span>}
               </div>

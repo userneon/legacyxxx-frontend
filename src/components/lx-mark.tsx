@@ -1,6 +1,8 @@
-/** The LX currency mark. The coin picture is gone everywhere (owner request 2026-11-13, "remove the LX coin logo from all places"); an amount that wanted a mark now carries the plain letters "LX". */
+import coin from "@/assets/fol/coin.webp"
+import coinSmall from "@/assets/fol/coin-small.webp"
+
+/** The FOL$ coin (owner's art, 2026-11-17): the plain coin up to 24px, where the detail would blur, the detailed one above. Decorative: the amount beside it says what it is. */
 export function LxMark({ size = 20, className }: { size?: number; className?: string }) {
-  return (
-    <span aria-hidden="true" className={["lx-mark", className].filter(Boolean).join(" ")} style={{ fontSize: Math.max(10, Math.min(13, Math.round(size * 0.62))), fontWeight: 700, letterSpacing: "0.04em", opacity: 0.75, lineHeight: 1 }}>FOL$</span>
-  )
+  const px = Math.max(12, Math.round(size * 1.15))
+  return <img src={px <= 24 ? coinSmall : coin} alt="" aria-hidden="true" draggable={false} width={px} height={px} className={["lx-mark inline-block shrink-0 align-[-0.2em]", className].filter(Boolean).join(" ")} />
 }

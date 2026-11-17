@@ -15,6 +15,11 @@ import { useSearchParams } from "react-router-dom"
 import { walletService, type Wallet } from "@/api"
 import { shopGoodsService, type GoodsProduct } from "@/api/shop-goods"
 import type { TopUp, TopUpAvailability, TopUpInvoice } from "@/api/wallet"
+import pack1 from "@/assets/topup/pack-1.webp"
+import pack2 from "@/assets/topup/pack-2.webp"
+import pack3 from "@/assets/topup/pack-3.webp"
+import pack4 from "@/assets/topup/pack-4.webp"
+import pack5 from "@/assets/topup/pack-5.webp"
 import qpayLogo from "@/assets/payments/qpay.svg"
 import { AnimatedNumber } from "@/components/animated-number"
 import { LxMark } from "@/components/lx-mark"
@@ -38,6 +43,10 @@ function BottomLight({ on }: { on: boolean }) {
     </>
   )
 }
+
+/** The owner's five package pictures (2026-11-17), small to large; the packages (sorted by price) take them in order, spread evenly when there are fewer or more than five. */
+const PACK_ART = [pack1, pack2, pack3, pack4, pack5]
+const packArt = (index: number, count: number) => PACK_ART[count <= 1 ? 0 : Math.round((index * (PACK_ART.length - 1)) / (count - 1))]
 
 export function ShopTopUp() {
   const { user } = useAuth()
@@ -157,7 +166,7 @@ export function ShopTopUp() {
 
       <section aria-label="Packages" className="@container flex flex-col gap-3">
         <div role="radiogroup" aria-label="FOL$ packages" className="grid grid-cols-2 gap-3 @[500px]:grid-cols-5">
-          {packages.map((pack) => {
+          {packages.map((pack, index) => {
             const on = pack.id === picked
             const bonus = bonusOf(pack)
             return (
@@ -167,7 +176,7 @@ export function ShopTopUp() {
                     : bestValue?.id === pack.id ? <span className="rounded-full border border-[var(--status-green)]/40 bg-[var(--status-green)]/10 text-[var(--status-green)] px-1.5 py-px text-[10px] font-semibold">Best</span> : <span />}
                   {on ? <span className="grid size-5 place-items-center rounded-full bg-[var(--text)] text-[var(--bg)]"><Check className="size-3.5" aria-hidden="true" /></span> : <span />}
                 </span>
-                {pack.imageUrl ? <img src={pack.imageUrl} alt="" loading="lazy" className="size-14 rounded-lg object-cover" /> : null}
+                <img src={pack.imageUrl ?? packArt(index, packages.length)} alt="" loading="lazy" draggable={false} className={cn("size-[88px] object-cover", !pack.imageUrl && "mix-blend-screen")} />
                 <span className="mt-2 flex items-baseline gap-1.5"><span className="text-[22px] font-bold leading-none text-[var(--text)]">{pack.grantsLx.toLocaleString()}</span><span className="text-[11px] font-semibold text-[var(--text-muted)]">FOL$</span></span>
                 <span className="text-[13px] text-[var(--text-2)]">{mnt(pack.priceMnt)}</span>
                 <span className="mt-auto h-1 w-full overflow-hidden rounded-full bg-[var(--line)]" aria-hidden="true"><span className="block h-full rounded-full bg-[var(--text-faint)] transition-colors group-hover:bg-[var(--text-2)]" style={{ width: `${Math.max(6, (pack.grantsLx / Math.max(...packages.map((item) => item.grantsLx), 1)) * 100)}%`, ...(on ? { background: "var(--text)" } : null) }} /></span>

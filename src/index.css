@@ -1595,12 +1595,7 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
 .lx-range::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--text); border: 3px solid var(--bg); box-shadow: 0 0 0 1px var(--line-strong); }
 .lx-range::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--text); border: 3px solid var(--bg); box-shadow: 0 0 0 1px var(--line-strong); }
 .lx-range:focus-visible { box-shadow: 0 0 0 3px rgb(255 255 255 / 0.2); }
-/* Shop prices read "700$" (owner request 2026-11-13): inside a price pill the letters FOL$ before the number are hidden and a $ follows it. Pills with a ₮ price (the ranks) have no mark and stay as they are. */
-.lx-shop-price .lx-mark { display: none; }
-.lx-shop-price:has(.lx-mark)::after { content: "$"; margin-left: -4px; }
-/* One price format in the Shop (owner request 2026-11-13: "700$"): everywhere inside the Shop a mark in front of a number is hidden and the number is followed by "$". */
-.lx-shop-root span:has(> .lx-mark):not(.lx-shop-price)::after { content: "$"; margin-left: -2px; }
-.lx-shop-root .lx-mark { display: none; }
+/* Shop prices: the FOL$ coin (owner art, 2026-11-17) shows before the number everywhere in the Shop. */
 /* The Buy button on a rank card: barely see-through (owner request 2026-11-13, "a little translucent, still noticeable"). */
 .lx-primary-button.lx-rank-buy { background: rgb(255 255 255 / 0.14); border-color: rgb(255 255 255 / 0.28); color: #fff; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18); }
 .lx-primary-button.lx-rank-buy:hover:not(:disabled) { background: rgb(255 255 255 / 0.22); }
