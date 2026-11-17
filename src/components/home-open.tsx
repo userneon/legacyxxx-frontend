@@ -17,10 +17,10 @@ export function HomeHero({ onNavigate }: { onNavigate: (page: PageId) => void })
   const { data: stats } = useApiQuery<HomeStats>((signal) => serversService.getHomeStats({ signal }), { queryKey: "home-hero-stats", keepPreviousData: true })
   const online = stats?.playersOnline
   return (
-    <section aria-label="LXC" className="relative isolate min-h-[460px] w-full overflow-hidden @2xl:min-h-[560px]">
-      <ArtImage src={agentHero} alt="" aria-hidden="true" decoding="async" className="absolute inset-0 -z-10 size-full object-cover object-[75%_8%] [mask-image:linear-gradient(90deg,transparent_6%,rgba(0,0,0,0.45)_30%,#000_62%),linear-gradient(180deg,#000_70%,transparent)] [mask-composite:intersect] [-webkit-mask-composite:source-in]" />
+    <section aria-label="LXC" className="relative isolate min-h-[460px] w-full overflow-hidden [mask-image:linear-gradient(180deg,#000_72%,transparent)] @2xl:min-h-[clamp(560px,56vw,860px)]">
+      <ArtImage src={agentHero} alt="" aria-hidden="true" decoding="async" className="absolute inset-0 -z-10 size-full origin-[78%_0] scale-[1.1] object-cover object-[75%_8%] [mask-image:linear-gradient(90deg,transparent_6%,rgba(0,0,0,0.45)_30%,#000_62%)] " />
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
-      <div className="mx-auto flex h-full min-h-[460px] w-full max-w-[1320px] flex-col justify-center px-11 pb-14 pt-[110px] @2xl:min-h-[560px]">
+      <div className="mx-auto flex h-full min-h-[460px] w-full max-w-[1320px] flex-col justify-center px-11 pb-14 pt-[110px] @2xl:min-h-[clamp(560px,56vw,860px)]">
         {typeof online === "number" && (
           <span className="flex items-center gap-2.5 text-[12px] font-semibold uppercase tracking-[0.2em] text-[var(--text-dim)]">
             <span aria-hidden="true" className="size-[7px] rounded-full bg-[var(--status-green)] shadow-[0_0_10px_var(--status-green)]" />

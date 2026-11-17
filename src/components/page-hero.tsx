@@ -46,8 +46,8 @@ export function PageHero({ hero }: { hero: NonNullable<ReturnType<typeof pageHer
   return (
     <>
       {/* The picture itself lies across the top of the page panel and scrolls away with the page. */}
-      <section aria-label={hero.title} className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[360px] overflow-hidden min-[900px]:h-[520px]">
-        <ArtImage src={hero.src} alt="" aria-hidden="true" decoding="async" style={{ objectPosition: hero.position }} className="absolute inset-0 size-full object-cover [mask-image:linear-gradient(90deg,transparent_8%,rgba(0,0,0,0.5)_34%,#000_64%),linear-gradient(180deg,#000_62%,transparent)] [mask-composite:intersect] [-webkit-mask-composite:source-in]" />
+      <section aria-label={hero.title} className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[clamp(420px,58vw,880px)] overflow-hidden [mask-image:linear-gradient(180deg,#000_64%,transparent)]">
+        <ArtImage src={hero.src} alt="" aria-hidden="true" decoding="async" style={{ objectPosition: hero.position }} className="absolute inset-0 size-full origin-[78%_0] scale-[1.12] object-cover [mask-image:linear-gradient(90deg,transparent_8%,rgba(0,0,0,0.5)_34%,#000_64%)] " />
         <div aria-hidden="true" className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
       </section>
       {/* What stays while the page scrolls: only the colour of the evening, a faint navy from the top and a warm glow in the corner. */}
