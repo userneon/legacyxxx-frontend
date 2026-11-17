@@ -1768,3 +1768,14 @@ html:has([data-page-scene]) .lx-dotgrid { background-image: none; }
 .lx-shop-tile .lx-tile-panel::after { content: ""; position: absolute; z-index: 0; border-radius: 50%; filter: blur(30px); opacity: 0.32; pointer-events: none; }
 .lx-shop-tile .lx-tile-panel::before { width: 210%; height: 172%; left: -146%; top: -108%; background: var(--acc, #888); }
 .lx-shop-tile .lx-tile-panel::after { width: 123%; height: 84%; left: 54%; top: 76%; background: linear-gradient(180deg, var(--acc, #888), #000); }
+
+/* Open Home (owner request 2026-11-17, "not simple boxes and cards"): inside .lx-open the Home sections lose their box. Numbers and rows sit straight on the page and a thin line tells one from the next. */
+.lx-open :is(.lx-glass, .lx-fx-card, .lx-ring-card, .lx-frost):not(.rounded-full):not([aria-roledescription="carousel"]) { background: transparent; border: 0; border-radius: 0; box-shadow: none; }
+.lx-open :is(.lx-glass, .lx-fx-card):is(a, button):not(.rounded-full):hover { background: rgb(255 255 255 / 0.03); border-color: transparent; }
+.lx-open .lx-stats { border-top: 1px solid var(--line-soft); }
+.lx-open .lx-stats > * { padding-top: 22px; padding-bottom: 6px; }
+@media (min-width: 900px) { .lx-open .lx-stats > * + * { border-left: 1px solid var(--line-soft); padding-left: 26px; } }
+.lx-open .lx-stats > * > span:first-child { text-transform: uppercase; letter-spacing: 0.14em; font-size: 11px; }
+.lx-open .lx-stats [class*="text-[24px]"] { font-size: 36px; letter-spacing: -0.02em; }
+.lx-open .lx-rows > * + * { border-top: 1px solid var(--line-soft); }
+.lx-open .lx-section-title { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }

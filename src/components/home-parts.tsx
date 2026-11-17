@@ -220,7 +220,7 @@ export function StatsRow() {
   const deaths = profile.deaths
   const limits = overview?.competitive?.expLimits ?? null
   return (
-    <div className="grid grid-cols-2 gap-3 @3xl:grid-cols-5">
+    <div className="lx-stats grid grid-cols-2 gap-3 @3xl:grid-cols-5">
       <div className="lx-glass col-span-2 flex items-center gap-3 rounded-xl px-4 py-3.5 @3xl:col-span-1">
         <CompetitiveRankBadge rankId={profile.rank_id} rankName={profile.rank_name} imageKey={profile.rank_image_key} size={48} className="shrink-0" />
         <div className="min-w-0 flex-1">

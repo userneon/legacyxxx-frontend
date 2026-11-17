@@ -52,15 +52,15 @@ export function HomePage({ onNavigate }: HomePageProps) {
   }
 
   return (
-    <div className="@container flex flex-1 flex-col p-4 @2xl:p-6">
+    <div className="lx-open @container flex flex-1 flex-col p-4 @2xl:p-6">
       {greeting && <div className="mb-3"><span className="lx-event-greeting">{greeting}</span></div>}
       <div className="lx-stack flex flex-1 flex-col gap-4">
-        <HeroSlider className="h-[220px]" />
+        <HeroSlider className="h-[340px] rounded-none @2xl:-mx-6 @2xl:-mt-6 @2xl:h-[380px] max-@2xl:-mx-4 max-@2xl:-mt-4" />
         <StatsRow />
         <LastMatches />
 
         {/* Where to play: the four modes, equal width, each with its real status. */}
-        <h2 className="-mb-1.5 text-sm font-semibold text-[var(--text)]">Play</h2>
+        <h2 className="lx-section-title -mb-1.5 mt-4 text-[var(--text)]">Play</h2>
         <div className="grid grid-cols-1 gap-3 @md:grid-cols-2 @5xl:grid-cols-4">
           {MODE_CARDS.map((mode, index) => {
             const status = modeStatus(mode.key)
