@@ -106,11 +106,13 @@ export function App() {
   // The content panel scrolls on its own; a new page starts at the top (instantly, while it fades in).
   const panelRef = useRef<HTMLDivElement>(null)
   const shownSection = pageSection(shownLocation.pathname)
+  // The picture and the bar follow the page that is on screen, so they change together with it (not early, while the old page is still fading out).
+  const shownPage = routeToPage(shownLocation.pathname)
+  const hero = pageHero(shownPage, shownLocation.pathname)
   // A long page: a round button brings you back to the top once you have scrolled a screen down.
   const [showTop, setShowTop] = useState(false)
   // On Home the picture runs up behind the top bar; the bar turns solid once you scroll.
   const [scrolled, setScrolled] = useState(false)
-  const hero = pageHero(currentPage, location.pathname)
   useEffect(() => {
     const node = panelRef.current
     if (!node) return
@@ -177,7 +179,7 @@ export function App() {
           <ProfileBlock onNavigate={handleNavigate} />
         </header>
 
-        <LxcHeader currentPage={currentPage} onNavigate={handleNavigate} overlay={(currentPage === "home" || Boolean(hero)) && !scrolled} floating={currentPage === "home" || Boolean(hero)} className="max-[559px]:hidden" />
+        <LxcHeader currentPage={currentPage} onNavigate={handleNavigate} overlay={(shownPage === "home" || Boolean(hero)) && !scrolled} floating={shownPage === "home" || Boolean(hero)} className="max-[559px]:hidden" />
 
         <button
           type="button"
@@ -190,8 +192,8 @@ export function App() {
         </button>
         <div ref={panelRef} className={cn("lx-glass-shell relative scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-clip max-sm:pb-16", "max-[559px]:rounded-[14px]")}>
           {/* Leaders scrolls its table inside the panel (sticky header, your row pinned under it), so it gets the panel's height instead of growing past it. */}
-          {hero && <PageHero hero={hero} />}
-          <div key={shownSection} className={cn("page-enter flex flex-col", "relative z-10 mx-auto w-full", currentPage !== "home" && "max-w-[1320px]", hero && "lx-hero-page pt-[76px]", shownSection === "/leaders" ? "h-full" : "min-h-full", leaving && "page-leave")}>
+          <PageHero hero={hero} />
+          <div key={shownSection} className={cn("page-enter flex flex-col", "relative z-10 mx-auto w-full", shownPage !== "home" && "max-w-[1320px]", hero && "lx-hero-page pt-[76px]", shownSection === "/leaders" ? "h-full" : "min-h-full", leaving && "page-leave")}>
             <RouteErrorBoundary resetKey={shownLocation.pathname}>
             <Suspense fallback={<div className="min-h-[40vh]" aria-hidden="true" />}>
             <Routes location={shownLocation}>
@@ -281,7 +283,7 @@ class RouteErrorBoundary extends Component<{ children: ReactNode; resetKey: stri
   }
 }
 
-const PAGE_LEAVE_MS = 120
+const PAGE_LEAVE_MS = 160
 
 /** Pages that share one mounted view: every Play mode is the Play section. */
 function pageSection(pathname: string): string {

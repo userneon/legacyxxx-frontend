@@ -1,4 +1,7 @@
+import { useEffect, useRef, useState } from "react"
+
 import type { PageId } from "@/api/types"
+import { cn } from "@/lib/utils"
 import { ArtImage } from "@/components/art-image"
 import hero5x5 from "@/assets/home/hero-5x5.webp"
 import heroWallet from "@/assets/home/hero-wallet.webp"
@@ -42,19 +45,49 @@ export function pageHero(page: PageId, pathname: string) {
   return hero
 }
 
-export function PageHero({ hero }: { hero: NonNullable<ReturnType<typeof pageHero>> }) {
+type Hero = NonNullable<ReturnType<typeof pageHero>>
+
+/**
+ * The picture behind a page. It stays mounted across pages and cross-fades: the new picture fades up over the old one, and leaving a page that has one fades it out,
+ * so moving about the site never flashes or jumps (owner request 2026-11-17: "smooth page changes").
+ */
+export function PageHero({ hero }: { hero: Hero | null }) {
+  const [layers, setLayers] = useState<Array<{ id: number; hero: Hero }>>(() => (hero ? [{ id: 0, hero }] : []))
+  const [shown, setShown] = useState<number | null>(hero ? 0 : null)
+  const counter = useRef(0)
+  const lastSrc = useRef<string | null>(hero?.src ?? null)
+
+  useEffect(() => {
+    const src = hero?.src ?? null
+    if (src === lastSrc.current) return
+    lastSrc.current = src
+    if (!hero) { setShown(null); return }
+    const id = ++counter.current
+    setLayers((current) => [...current.slice(-1), { id, hero }])
+    setShown(id)
+  }, [hero])
+
+  // Layers that have faded out are dropped.
+  useEffect(() => {
+    const timer = window.setTimeout(() => setLayers((current) => current.filter((layer) => layer.id === shown || shown === null && layer === current[current.length - 1])), 900)
+    return () => window.clearTimeout(timer)
+  }, [shown])
+
   return (
     <>
-      {/* The picture itself lies across the top of the page panel and scrolls away with the page. */}
-      <section aria-label={hero.title} className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[clamp(420px,58vw,880px)] overflow-hidden [mask-image:linear-gradient(180deg,#000_64%,transparent)]">
-        <ArtImage src={hero.src} alt="" aria-hidden="true" decoding="async" style={{ objectPosition: hero.position }} className="absolute inset-0 size-full origin-[78%_0] scale-[1.12] object-cover [mask-image:linear-gradient(90deg,transparent_8%,rgba(0,0,0,0.5)_34%,#000_64%)] " />
-        <div aria-hidden="true" className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
-      </section>
-      {/* What stays while the page scrolls: only the colour of the evening, a faint navy from the top and a warm glow in the corner. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[clamp(420px,58vw,880px)] overflow-hidden [mask-image:linear-gradient(180deg,#000_64%,transparent)]">
+        {layers.map((layer) => (
+          <div key={layer.id} className={cn("absolute inset-0 transition-opacity duration-[700ms] ease-out motion-reduce:transition-none", layer.id === shown ? "opacity-100" : "opacity-0")}>
+            <ArtImage src={layer.hero.src} alt="" decoding="async" style={{ objectPosition: layer.hero.position }} className="absolute inset-0 size-full origin-[78%_0] scale-[1.12] object-cover [mask-image:linear-gradient(90deg,transparent_8%,rgba(0,0,0,0.5)_34%,#000_64%)]" />
+            <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
+          </div>
+        ))}
+      </div>
+      {/* What stays while the page scrolls: only the colour of the evening. */}
       <div
         aria-hidden="true"
         style={{ left: "var(--lx-panel-left, 0px)", right: "var(--lx-panel-right, 0px)", top: "var(--lx-panel-top, 0px)", bottom: "var(--lx-panel-bottom, 0px)" }}
-        className="pointer-events-none fixed z-0 bg-[radial-gradient(70%_45%_at_100%_100%,rgba(255,140,50,0.09),transparent),linear-gradient(180deg,rgba(14,20,46,0.6),rgba(6,6,6,0)_85%)]"
+        className={cn("pointer-events-none fixed z-0 bg-[radial-gradient(70%_45%_at_100%_100%,rgba(255,140,50,0.09),transparent),linear-gradient(180deg,rgba(14,20,46,0.6),rgba(6,6,6,0)_85%)] transition-opacity duration-700 motion-reduce:transition-none", shown === null ? "opacity-0" : "opacity-100")}
       />
     </>
   )
