@@ -16,7 +16,7 @@ import { setSkinchangerView, useSkinchangerView, type SkinchangerView } from "@/
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { KnifeIcon } from "@/components/knife-icon"
 import { ClanIcon } from "@/components/clan-icon"
-import { CommunityIcon, CompareIcon, ExploreIcon, HomeIcon, LeadersIcon, PenaltiesIcon, PlayIcon, ReviewsIcon, ShopIcon } from "@/components/mask-icon"
+import { CommunityIcon, CompareIcon, HomeIcon, LeadersIcon, PenaltiesIcon, PlayIcon, ReviewsIcon, ShopIcon } from "@/components/mask-icon"
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
 
 interface AppSidebarProps {
@@ -46,7 +46,6 @@ export const NAV_ITEMS: NavItem[] = enabledNav([
   { id: "leaders", label: "Leaders", icon: LeadersIcon },
   { id: "penalties", label: "Penalties", icon: PenaltiesIcon },
   { id: "feedback", label: "Reviews", icon: ReviewsIcon },
-  { id: "explore", label: "Explore", icon: ExploreIcon },
 ])
 
 // Commerce (owner request 2026-11-07): the Shop and the Market under one row that opens like Play.

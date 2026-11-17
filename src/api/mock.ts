@@ -911,6 +911,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
   }
   if (method === "POST" && path === "/api/v1/skinchanger/collections") return { id: "col-new" }
   if (method === "DELETE" && path.startsWith("/api/v1/skinchanger/collections/")) return { removed: true }
+  if (method === "POST" && path === "/api/v1/clans") return { id: "clan-new", number: 4, name: String((body as { name?: string } | undefined)?.name ?? "Steppe Wolves"), tag: String((body as { tag?: string } | undefined)?.tag ?? "WOLF") }
   if (path === "/api/v1/clans") return MOCK_CLANS
   if (path === "/api/v1/public/social/tiktok") return { tiktok: { url: "https://www.tiktok.com/@legacyx", handle: "@legacyx", followers: 2840, videos: 37, updatedAt: new Date().toISOString() } }
   if (path === "/api/v1/public/discord/community") {
@@ -1040,7 +1041,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (path === "/api/v1/wallet/topup/status") return { available: true, custom: { minMnt: 1000, maxMnt: 500000, stepMnt: 1000 } }
   if (path === "/api/v1/wallet/topups") return { topups: [{ id: "t1", productId: "lx-750", amountMnt: 5000, grantsLx: 750, status: "paid", createdAt: new Date(Date.now() - 30 * HOUR).toISOString(), paidAt: new Date(Date.now() - 30 * HOUR + 60_000).toISOString() }] }
   if (path === "/api/v1/wallet/topup" && method === "POST") return { id: "t2", productId: "lx-3000", amountMnt: 20000, grantsLx: 3000, status: "pending", createdAt: new Date().toISOString(), paidAt: null, name: "3,000 FOL$", checkoutUrl: "https://pay.wire.mn/c/mock", expiresInMinutes: 12 }
-  if (path.startsWith("/api/v1/wallet/topup/")) return { id: "t2", productId: "lx-3000", amountMnt: 20000, grantsLx: 3000, status: "pending", createdAt: new Date().toISOString(), paidAt: null }
+  if (path.startsWith("/api/v1/wallet/topup/")) return { id: "t2", productId: "lx-3000", amountMnt: 20000, grantsLx: 3000, status: (window.sessionStorage.getItem("lx-mock-topup") ?? "paid") as "paid" | "failed" | "expired", createdAt: new Date().toISOString(), paidAt: null } // mock: the payment settles at the first check (set sessionStorage lx-mock-topup to failed or expired to see those screens)
   // Design preview only (dev mock): what the API tells a player about sending LX.
   if (path === "/api/v1/wallet/transfer/rules") return { feePercent: 5, min: 10, max: 5000, dailyMax: 20000, perHour: 5, minRankedMatches: 1, sentToday: 1200, sentLastHour: 1, rankedMatches: 12, remainingToday: 18800, blocked: null }
   if (path === "/api/v1/wallet/transfer" && method === "POST") { const sent = Number((body as { amount: number }).amount); const fee = Math.ceil(sent * 0.05); return { id: "mock", sent, fee, received: sent - fee, balance: 600 - sent, to: "Saran" } }

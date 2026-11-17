@@ -12,7 +12,6 @@ import type { CompetitiveAccess, PlaySubMode, ServerLiveMatch, ServerLiveMatchPl
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useViewParams } from "@/hooks/use-view-params"
 import { useAuth } from "@/hooks/use-auth"
-import { PlayStrip } from "@/components/play-strip"
 import { usePlayGate, type PlayGate } from "@/hooks/use-play-gate"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { PAGE_ROUTES } from "@/lib/routes"
@@ -707,7 +706,6 @@ function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode;
           </Tooltip>
         </header>
 
-        {wide && <PlayStrip />}
 
         <div className={cn("grid gap-4", wide ? "min-h-0 flex-1 grid-cols-[400px_minmax(0,1fr)]" : "grid-cols-1")}>
           <div className={cn("lx-play-panel flex flex-col gap-2 rounded-[24px] border border-[var(--line)] bg-[var(--card-surface)] p-3", wide && "min-h-0")}>
@@ -784,40 +782,37 @@ function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode;
 /** Pro League for a signed-in player below the required rank: how far they are and the way there. */
 function ProLocked({ access }: { access: CompetitiveAccess }) {
   return (
-    <div className="flex flex-1 items-center justify-center p-6">
-      <div className="w-full max-w-[340px]"><ProLockPad access={access} /></div>
+    <div className="flex flex-1 items-center px-6 py-10 sm:px-12">
+      <ProLockPad access={access} />
     </div>
   )
 }
 
+/** Pro League for a player below the rank it opens at (owner request 2026-11-17): a big glass panel on the picture, how far you are, and the way there. */
 function ProLockPad({ access }: { access: CompetitiveAccess }) {
   const exp = access.competitive?.current_exp ?? 1000
   const toGo = Math.max(0, PRO_LEAGUE_MIN_EXP - exp)
   const share = Math.min(100, (exp / PRO_LEAGUE_MIN_EXP) * 100)
   return (
-    <div aria-label="Pro League is locked" className="relative flex flex-col items-center gap-3 rounded-2xl border border-[var(--line-strong)] bg-[var(--panel)] p-5 text-center">
-      <span className="flex size-12 items-center justify-center rounded-[12px] border border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text-2)]"><Lock className="size-5" /></span>
-      <span className="flex flex-wrap items-center justify-center gap-1.5 text-[13px] font-semibold text-[var(--text)]">
-        Opens at
-        <RankLabel rankId={access.requiredRankId} rankName={access.requiredRankName} size={20} nameClassName="text-[13px] font-semibold" />
-      </span>
-      <div className="flex w-full flex-col gap-1.5">
-        <div className="flex items-center justify-between text-[11px] text-[var(--text-muted)]">
-          <span className="flex items-center gap-1.5">
-            <CompetitiveRankBadge rankId={access.competitive?.rank_id ?? 7} rankName={access.competitive?.rank_name ?? "Your rank"} imageKey={access.competitive?.rank_image_key} size={18} />
-            You
-          </span>
-          <span>{toGo.toLocaleString()} EXP to go</span>
-        </div>
-        <span className="h-1.5 overflow-hidden rounded-full bg-[var(--line-soft)]">
-          <span className="lx-progress-fill block h-full rounded-full transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]" style={{ width: `${share}%` }} />
-        </span>
+    <section aria-label="Pro League is locked" className="relative flex w-full max-w-[520px] flex-col gap-6 rounded-[20px] border border-white/12 bg-[rgb(14_16_24/0.5)] p-8 shadow-[0_18px_50px_rgb(0_0_0/0.45),inset_0_1px_0_rgb(255_255_255/0.08)] backdrop-blur-[22px]">
+      <span className="flex size-12 items-center justify-center rounded-[10px] border border-white/15 bg-white/[0.06] text-[var(--text-2)]"><Lock className="size-5" /></span>
+      <div className="flex flex-col gap-2">
+        <h2 className="text-[clamp(28px,4vw,40px)] font-bold leading-[1.05] tracking-[-0.02em] text-[var(--text)]">Pro League<br /><span className="flex flex-wrap items-center gap-2 text-[var(--text-dim)]">opens at <RankLabel rankId={access.requiredRankId} rankName={access.requiredRankName} size={30} nameClassName="text-[clamp(24px,3.4vw,34px)] font-bold" /></span></h2>
+        <p className="max-w-[380px] text-[14px] leading-relaxed text-[var(--text-muted)]">The top ranks play here. Rank up in 5x5 and the door opens by itself.</p>
       </div>
-      <Link to={PAGE_ROUTES["play-5vs5"]} className={cn(primary, "h-9 w-full px-4 text-[13px]")}>
-        <Play className="size-3.5 fill-current" />
+      <div className="flex flex-col gap-2">
+        <div className="flex items-baseline justify-between text-[13px] text-[var(--text-muted)]">
+          <span className="flex items-center gap-2"><CompetitiveRankBadge rankId={access.competitive?.rank_id ?? 7} rankName={access.competitive?.rank_name ?? "Your rank"} imageKey={access.competitive?.rank_image_key} size={22} />You · {exp.toLocaleString()} EXP</span>
+          <span className="text-[var(--text)]">{toGo.toLocaleString()} EXP to go</span>
+        </div>
+        <span className="h-2 overflow-hidden rounded-full bg-white/10"><span className="lx-progress-fill block h-full rounded-full transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]" style={{ width: `${share}%` }} /></span>
+        <div className="flex justify-between text-[11.5px] text-[var(--text-dim)]"><span>0</span><span>{PRO_LEAGUE_MIN_EXP.toLocaleString()}</span></div>
+      </div>
+      <Link to={PAGE_ROUTES["play-5vs5"]} className={cn(primary, "lx-hover-blue h-[50px] w-full px-4 text-[15px]")}>
+        <Play className="size-4 fill-current" />
         Play 5x5 to rank up
       </Link>
-    </div>
+    </section>
   )
 }
 

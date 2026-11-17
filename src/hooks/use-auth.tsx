@@ -82,7 +82,11 @@ function consumeSteamCallbackToken(): string | null {
     }
   }
 
-  if (token) setAccessToken(token)
+  if (token) {
+    setAccessToken(token)
+    // A fresh Steam sign-in: remember it for this tab so the welcome screen shows once.
+    try { window.sessionStorage.setItem("lx-welcome", "1") } catch { /* private mode: no welcome screen */ }
+  }
   if (changed) {
     const remainingHash = hash.toString()
     const cleanUrl = `${url.pathname}${url.search}${remainingHash ? `#${remainingHash}` : ""}`

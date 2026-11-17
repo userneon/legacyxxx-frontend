@@ -11,6 +11,8 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/s
 import { ProfileBlock } from "@/components/profile-block"
 import { SiteTourButton } from "@/components/site-tour"
 import { AppSidebar } from "@/components/app-sidebar"
+import { PageHero, pageHero } from "@/components/page-hero"
+import { WelcomeAfterLogin } from "@/components/welcome-after-login"
 import { LxcHeader } from "@/components/lxc-header"
 import { PublicChat } from "@/components/public-chat"
 import { HomePage } from "@/pages/home"
@@ -106,10 +108,13 @@ export function App() {
   const shownSection = pageSection(shownLocation.pathname)
   // A long page: a round button brings you back to the top once you have scrolled a screen down.
   const [showTop, setShowTop] = useState(false)
+  // On Home the picture runs up behind the top bar; the bar turns solid once you scroll.
+  const [scrolled, setScrolled] = useState(false)
+  const hero = pageHero(currentPage, location.pathname)
   useEffect(() => {
     const node = panelRef.current
     if (!node) return
-    const onScroll = () => setShowTop(node.scrollTop > 480)
+    const onScroll = () => { setShowTop(node.scrollTop > 480); setScrolled(node.scrollTop > 24) }
     onScroll()
     node.addEventListener("scroll", onScroll, { passive: true })
     return () => node.removeEventListener("scroll", onScroll)
@@ -152,6 +157,7 @@ export function App() {
     // Two sidebars, always closed to their icons (owner requests 2026-11-13: "dual sidebar, remove the top bar, without a toggle", then "always closed"): the menu on the left, the account on the right.
     <SidebarProvider open={false} onOpenChange={() => {}} style={{ "--sidebar-width": "264px", "--sidebar-width-icon": "46px" } as CSSProperties}>
       <EventLayer />
+      <WelcomeAfterLogin />
       <ProfileScene scene={currentPage === "profile" ? profileScene : null} />
       <ProfileBackdrop active={profileGrid} />
       {/* The shell (owner pick 2026-11-09): one solid frame holding the rail, a pill header and the page panel. A phone keeps the sidebar sheet and the older layout. */}
@@ -171,7 +177,7 @@ export function App() {
           <ProfileBlock onNavigate={handleNavigate} />
         </header>
 
-        <LxcHeader onNavigate={handleNavigate} className="max-[559px]:hidden" />
+        <LxcHeader currentPage={currentPage} onNavigate={handleNavigate} overlay={(currentPage === "home" || Boolean(hero)) && !scrolled} floating={currentPage === "home" || Boolean(hero)} className="max-[559px]:hidden" />
 
         <button
           type="button"
@@ -182,9 +188,10 @@ export function App() {
         >
           <ArrowUp className="size-5" aria-hidden="true" />
         </button>
-        <div ref={panelRef} className={cn("lx-glass-shell lx-dotgrid scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-clip max-sm:pb-16", "max-[559px]:rounded-[14px]")}>
+        <div ref={panelRef} className={cn("lx-glass-shell relative scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-clip max-sm:pb-16", "max-[559px]:rounded-[14px]")}>
           {/* Leaders scrolls its table inside the panel (sticky header, your row pinned under it), so it gets the panel's height instead of growing past it. */}
-          <div key={shownSection} className={cn("page-enter flex flex-col", "mx-auto w-full max-w-[1320px]", shownSection === "/leaders" ? "h-full" : "min-h-full", leaving && "page-leave")}>
+          {hero && <PageHero hero={hero} />}
+          <div key={shownSection} className={cn("page-enter flex flex-col", "relative z-10 mx-auto w-full", currentPage !== "home" && "max-w-[1320px]", hero && "lx-hero-page pt-[76px]", shownSection === "/leaders" ? "h-full" : "min-h-full", leaving && "page-leave")}>
             <RouteErrorBoundary resetKey={shownLocation.pathname}>
             <Suspense fallback={<div className="min-h-[40vh]" aria-hidden="true" />}>
             <Routes location={shownLocation}>

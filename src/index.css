@@ -1763,3 +1763,60 @@ html:has([data-page-scene]) .lx-dotgrid { background-image: none; }
 .lx-shop-tile .lx-tile-panel::after { content: ""; position: absolute; z-index: 0; border-radius: 50%; filter: blur(30px); opacity: 0.32; pointer-events: none; }
 .lx-shop-tile .lx-tile-panel::before { width: 210%; height: 172%; left: -146%; top: -108%; background: var(--acc, #888); }
 .lx-shop-tile .lx-tile-panel::after { width: 123%; height: 84%; left: 54%; top: 76%; background: linear-gradient(180deg, var(--acc, #888), #000); }
+
+/* Open Home (owner request 2026-11-17, "not simple boxes and cards"): inside .lx-open the Home sections lose their box. Numbers and rows sit straight on the page and a thin line tells one from the next. */
+.lx-open :is(.lx-glass, .lx-fx-card, .lx-ring-card, .lx-frost):not(.rounded-full):not([aria-roledescription="carousel"]) { background: transparent; border: 0; border-radius: 0; box-shadow: none; }
+.lx-open :is(.lx-glass, .lx-fx-card):is(a, button):not(.rounded-full):hover { background: rgb(255 255 255 / 0.03); border-color: transparent; }
+.lx-open .lx-stats { border-top: 1px solid var(--line-soft); }
+.lx-open .lx-stats > * { padding-top: 22px; padding-bottom: 6px; }
+@media (min-width: 900px) { .lx-open .lx-stats > * + * { border-left: 1px solid var(--line-soft); padding-left: 26px; } }
+.lx-open .lx-stats > * > span:first-child { text-transform: uppercase; letter-spacing: 0.14em; font-size: 11px; }
+.lx-open .lx-stats [class*="text-[24px]"] { font-size: 36px; letter-spacing: -0.02em; }
+.lx-open .lx-rows > * + * { border-top: 1px solid var(--line-soft); }
+.lx-open .lx-section-title { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+
+/* No sidebar on a wide window (owner request 2026-11-17): the menu is along the top. A phone (under 560 px) keeps its sheet. */
+@media (min-width: 560px) { [data-slot="sidebar"].group.peer { display: none !important; } }
+/* No dot grid behind the pages (owner request 2026-11-17). */
+.lx-dotgrid { background-image: none; }
+
+/* On a page with a picture behind it (owner request 2026-11-17, "make the cards see-through"): cards, panels and bars are 60% opaque with a soft blur, so the picture shows through. */
+.lx-hero-page :is(.lx-glass, .glass, .lx-pcard, .lx-people-card, .lx-team-card, .lx-play-panel, .lx-shop-tile, .lx-shop-glass, .lx-frost, .lx-ring-card, .lx-add-box, .lx-fx-card, .lx-tile-panel):not(.rounded-full),
+.lx-hero-page [class*="bg-[var(--card-surface)]"]:not(button, input, select, textarea),
+.lx-hero-page [class*="bg-[var(--glass-fill)]"]:not(input, select, textarea),
+.lx-hero-page [class*="bg-[#0c0c0c]"],
+.lx-hero-page [class*="bg-[linear-gradient(165deg,#111218"],
+.lx-hero-page [class*="bg-[linear-gradient(180deg,#121317"],
+.lx-hero-page [class*="bg-[var(--bg)]"]:not(input, select, textarea) {
+  background: rgb(10 11 15 / 0.32) !important;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+
+/* The tab bar of a page with a picture behind it: no box, no line; the tabs sit straight on the picture, a little under the top bar. */
+.lx-hero-page [data-pagebar] { background: transparent !important; backdrop-filter: none; -webkit-backdrop-filter: none; border-color: transparent !important; box-shadow: none; }
+
+/* Skinchanger slots on a page with a picture (owner request 2026-11-17: "see-through and calm"): faint glass, a barely-there outline, no lift on hover. */
+.lx-hero-page .lx-layer { background: rgb(10 11 15 / 0.36) !important; border-color: rgb(255 255 255 / 0.05) !important; }
+.lx-hero-page .lx-layer:hover { background: rgb(255 255 255 / 0.07) !important; transform: none; translate: none; border-color: rgb(255 255 255 / 0.12) !important; }
+.lx-hero-page .lx-layer svg.lucide-image { opacity: 0.25; }
+.lx-hero-page .lx-layer :is(div, span):has(> svg.lucide-image) { background: transparent !important; }
+
+/* The sign-in picture is the background of the whole window (owner request 2026-11-17): the top bar floats over it and the frame is clear. */
+html:has([data-lx-gate]) [data-lxc-header] { background: transparent; }
+html:has([data-lx-gate]) [data-lxc-header] > header { border-color: transparent; }
+html:has([data-lx-gate]) [data-slot="sidebar-inset"] { background: transparent; }
+
+/* The welcome screen after sign-in: the picture settles in, the words rise a moment later. */
+@keyframes lx-welcome-art { from { opacity: 0; transform: scale(1.04); } to { opacity: 1; transform: none; } }
+@keyframes lx-welcome-text { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.lx-welcome-art { animation: lx-welcome-art 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.lx-welcome-text { animation: lx-welcome-text 700ms 250ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+@media (prefers-reduced-motion: reduce) { .lx-welcome-art, .lx-welcome-text { animation: none; } }
+
+/* Dropdowns and menus are glass (owner request 2026-11-17): a see-through dark pane with a soft blur and a faint light edge, so the picture behind shows through. */
+[data-slot="popover-content"] {
+  background: rgb(14 16 24 / 0.52) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(1.3); backdrop-filter: blur(22px) saturate(1.3);
+  border: 1px solid rgb(255 255 255 / 0.12) !important;
+  box-shadow: 0 18px 50px rgb(0 0 0 / 0.45), inset 0 1px 0 rgb(255 255 255 / 0.08) !important;
+}

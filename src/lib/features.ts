@@ -27,7 +27,8 @@ export const FEATURES = {
   /** The Shop: frames, name colours and glows bought with LX. The server needs the cosmetics migrations. */
   shop: true,
   /** The Market: players post what they like to sell. The server needs the market migration and a deploy. */
-  market: true,
+  /** Switched off by the owner 2026-11-17: not needed. The code stays. */
+  market: false,
 } as const
 
 export type FeatureName = keyof typeof FEATURES

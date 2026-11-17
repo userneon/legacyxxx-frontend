@@ -11,6 +11,7 @@ import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { CompetitiveRankBadge, rankTierColor } from "@/components/competitive-rank-badge"
 import { Skeleton } from "@/components/ui/skeleton"
+import agentSlide from "@/assets/home/agent-hero.webp"
 import scannerSlide from "@/assets/home/slide-scanner.webp"
 import caughtSlide from "@/assets/home/slide-caught.webp"
 
@@ -47,7 +48,8 @@ export function RankMedal({ place, size = 28 }: { place: 1 | 2 | 3; size?: numbe
 /* ───────── Hero slider ───────── */
 
 /** The slides: a picture and the line written on it. Add a slide here (and its picture in src/assets/home); the arrows and dots appear with the second one. */
-const SLIDES: { key: string; src: string; label: string; alt: string; focus?: string }[] = [
+const SLIDES: { key: string; src: string; label: string; alt: string; focus?: string; fade?: boolean }[] = [
+  { key: "agent", src: agentSlide, label: "Counter-Strike 2 on LXC servers", fade: true, focus: "50% 12%", alt: "A CS2 agent in a burgundy shearling jacket and sunglasses, throwing the horns, against snowy mountains at dusk" },
   { key: "scanner", src: scannerSlide, label: "LXC Scanner x Anti-Cheat", alt: "A detective's board with a map, photos and notes, and a computer showing a scan" },
   { key: "caught", src: caughtSlide, label: "Did you think you wouldn't get caught?", focus: "50% 30%", alt: "Two officers in a metro carriage arrest a masked man while another holds a second man down, seen through a camera viewfinder" },
 ]
@@ -68,7 +70,7 @@ export function HeroSlider({ className }: { className?: string }) {
           loading={position === 0 ? "eager" : "lazy"}
           decoding="async"
           style={slide.focus ? { objectPosition: slide.focus } : undefined}
-          className={cn("absolute inset-0 size-full object-cover transition-opacity duration-500", position === index ? "opacity-100" : "opacity-0")}
+          className={cn("absolute inset-0 size-full object-cover transition-opacity duration-500", slide.fade && "[mask-image:linear-gradient(90deg,transparent_5%,rgba(0,0,0,0.4)_32%,#000_62%)]", position === index ? "opacity-100" : "opacity-0")}
         />
       ))}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--card-surface)]/85 via-transparent to-transparent" />
@@ -218,7 +220,7 @@ export function StatsRow() {
   const deaths = profile.deaths
   const limits = overview?.competitive?.expLimits ?? null
   return (
-    <div className="grid grid-cols-2 gap-3 @3xl:grid-cols-5">
+    <div className="lx-stats grid grid-cols-2 gap-3 @3xl:grid-cols-5">
       <div className="lx-glass col-span-2 flex items-center gap-3 rounded-xl px-4 py-3.5 @3xl:col-span-1">
         <CompetitiveRankBadge rankId={profile.rank_id} rankName={profile.rank_name} imageKey={profile.rank_image_key} size={48} className="shrink-0" />
         <div className="min-w-0 flex-1">
