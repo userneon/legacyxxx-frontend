@@ -1,5 +1,7 @@
 import type { PageId } from "@/api/types"
 import hero5x5 from "@/assets/home/hero-5x5.webp"
+import heroClan from "@/assets/home/hero-clan.webp"
+import heroSkin from "@/assets/home/hero-skin.webp"
 import heroProfile from "@/assets/home/hero-profile.webp"
 import heroShop from "@/assets/home/hero-shop.webp"
 
@@ -10,6 +12,8 @@ import heroShop from "@/assets/home/hero-shop.webp"
 const HEROES: Partial<Record<PageId, { src: string; title: string; line: string; position: string; path?: string; prefix?: boolean }>> = {
   shop: { src: heroShop, title: "Shop", line: "Ranks, models, effects and roles. Cosmetics only.", position: "80% 8%", path: "/shop" },
   profile: { src: heroProfile, title: "Profile", line: "Your numbers and your look.", position: "80% 10%", path: "/profile", prefix: true },
+  skinchanger: { src: heroSkin, title: "Skinchanger", line: "Your skins, knives and gloves.", position: "80% 20%" },
+  clan: { src: heroClan, title: "Clans", line: "Play together.", position: "80% 20%" },
   "play-5vs5": { src: hero5x5, title: "5x5 Matches", line: "Competitive 5v5. Every match counts toward your rank.", position: "80% 8%" },
 }
 
