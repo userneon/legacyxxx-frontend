@@ -137,7 +137,7 @@ const CUTS: Record<string, string> = {
 
 /** The backdrop behind the agent (owner request 2026-11-18: "show me many backgrounds"): ?bg=dusk|aurora|spotlight|grid|contour|ember|frost|mono|ambient, kept in this browser. */
 export const HERO_BGS = ["dusk", "aurora", "spotlight", "grid", "contour", "ember", "frost", "mono", "ambient"] as const
-export type HeroBg = (typeof HERO_BGS)[number]
+export type HeroBg = (typeof HERO_BGS)[number] | "none"
 export function readHeroBg(): HeroBg {
   try {
     const asked = new URLSearchParams(window.location.search).get("bg")
@@ -145,7 +145,7 @@ export function readHeroBg(): HeroBg {
     const kept = window.localStorage.getItem("lx-hero-bg")
     if (kept && (HERO_BGS as readonly string[]).includes(kept)) return kept as HeroBg
   } catch { /* no storage: the default */ }
-  return "dusk"
+  return "none"
 }
 
 const WASH = "linear-gradient(90deg, rgba(6,8,14,0.94) 0%, rgba(6,8,14,0.62) 36%, rgba(6,8,14,0.08) 68%, transparent 100%)"
@@ -163,7 +163,7 @@ export function HeroBanner({ hero, mode }: { hero: Hero; mode: Exclude<HeroMode,
     const bg = readHeroBg()
     return (
       <section aria-hidden="true" className="relative isolate mb-4 ml-[calc(50%-50vw)] h-[clamp(240px,22vw,340px)] w-screen shrink-0 overflow-hidden">
-        <div className={cn("lx-bgfx absolute inset-0", `lx-bgfx-${bg}`)} />
+        {bg !== "none" && <div className={cn("lx-bgfx absolute inset-0", `lx-bgfx-${bg}`)} />}
         {bg === "ambient" && cut && <img aria-hidden="true" src={cut} alt="" className="pointer-events-none absolute -right-[6%] top-[-30%] h-[170%] w-auto max-w-none scale-[1.4] opacity-[0.38] blur-[70px] saturate-150" />}
         <div className="relative mx-auto h-full w-full max-w-[var(--lx-w)] pt-14">
           {words("text-[clamp(32px,3.6vw,52px)]")}

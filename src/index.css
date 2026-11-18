@@ -1966,3 +1966,18 @@ html:has([data-lx-gate]) [data-slot="sidebar-inset"] { background: transparent; 
 .lx-bgfx-frost { background: radial-gradient(ellipse 55% 90% at 82% 0%, rgba(170,210,255,0.22), transparent 70%), radial-gradient(ellipse 40% 60% at 70% 100%, rgba(120,160,230,0.10), transparent 70%); }
 .lx-bgfx-mono { background: repeating-linear-gradient(90deg, transparent 0 79px, rgba(255,255,255,0.05) 79px 80px), radial-gradient(ellipse 40% 80% at 80% 60%, rgba(255,255,255,0.07), transparent 70%); }
 .lx-bgfx-ambient { background: none; }
+
+
+/* ---- The website's background (see lib/site-bg.ts): a layer inside the page panel (sidebar-inset), behind the page. violet is the one that was there (body::after, which the panel hid). ---- */
+html[data-site-bg] [data-slot="sidebar-inset"] { isolation: isolate; }
+html[data-site-bg]:not([data-site-bg="violet"]) [data-slot="sidebar-inset"]::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 0; }
+html[data-site-bg="violet"] [data-slot="sidebar-inset"]::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 0; background: radial-gradient(75% 55% at 50% 108%, rgb(109 61 196 / 0.34), rgb(109 61 196 / 0.1) 45%, transparent 72%); } /* palette-exempt: the brand violet */
+html[data-site-bg="aurora"] [data-slot="sidebar-inset"]::before { background: radial-gradient(50% 55% at 18% 12%, rgb(60 200 170 / 0.20), transparent 70%), radial-gradient(48% 55% at 86% 30%, rgb(150 90 255 / 0.22), transparent 70%), radial-gradient(60% 50% at 50% 105%, rgb(70 110 255 / 0.18), transparent 72%); }
+html[data-site-bg="dusk"] [data-slot="sidebar-inset"]::before { background: linear-gradient(180deg, rgb(20 26 58 / 0.95) 0%, transparent 60%), radial-gradient(70% 45% at 50% 108%, rgb(255 140 80 / 0.26), transparent 72%); }
+html[data-site-bg="spotlight"] [data-slot="sidebar-inset"]::before { background: conic-gradient(from 195deg at 78% -12%, transparent 0deg, rgb(255 255 255 / 0.12) 16deg, transparent 36deg), radial-gradient(45% 40% at 78% 0%, rgb(255 255 255 / 0.08), transparent 70%); }
+html[data-site-bg="grid"] [data-slot="sidebar-inset"]::before { background-image: linear-gradient(rgb(255 255 255 / 0.06) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / 0.06) 1px, transparent 1px); background-size: 56px 56px; -webkit-mask-image: radial-gradient(75% 85% at 50% 40%, #000, transparent 90%); mask-image: radial-gradient(75% 85% at 50% 40%, #000, transparent 90%); }
+html[data-site-bg="contour"] [data-slot="sidebar-inset"]::before { background: repeating-radial-gradient(ellipse 70% 90% at 78% 85%, transparent 0 26px, rgb(255 255 255 / 0.07) 26px 27px); -webkit-mask-image: radial-gradient(85% 95% at 70% 70%, #000, transparent 90%); mask-image: radial-gradient(85% 95% at 70% 70%, #000, transparent 90%); }
+html[data-site-bg="ember"] [data-slot="sidebar-inset"]::before { background: radial-gradient(70% 60% at 82% 112%, rgb(255 110 50 / 0.34), transparent 70%), radial-gradient(45% 40% at 8% 112%, rgb(255 190 110 / 0.16), transparent 70%); }
+html[data-site-bg="ocean"] [data-slot="sidebar-inset"]::before { background: linear-gradient(180deg, transparent 30%, rgb(14 60 90 / 0.45) 100%), radial-gradient(60% 45% at 30% 105%, rgb(40 160 190 / 0.30), transparent 72%); }
+html[data-site-bg="mono"] [data-slot="sidebar-inset"]::before { background: radial-gradient(60% 50% at 50% 0%, rgb(255 255 255 / 0.08), transparent 70%), repeating-linear-gradient(90deg, transparent 0 119px, rgb(255 255 255 / 0.035) 119px 120px); }
+html[data-site-bg="ink"] [data-slot="sidebar-inset"]::before { background: none; }

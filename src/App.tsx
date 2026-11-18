@@ -12,6 +12,7 @@ import { ProfileBlock } from "@/components/profile-block"
 import { SiteTourButton } from "@/components/site-tour"
 import { AppSidebar } from "@/components/app-sidebar"
 import { HeroBanner, PageHero, pageHero, readHeroMode } from "@/components/page-hero"
+import { applySiteBg } from "@/lib/site-bg"
 import { SeriousDetail } from "@/components/serious-detail"
 import { useScrollReveal } from "@/hooks/use-scroll-reveal"
 import { useSkinTeam } from "@/lib/skin-team"
@@ -120,6 +121,7 @@ export function App() {
   const pageHeroNow = shownPage === "profile" && profileScene ? null : pageHero(shownPage, shownLocation.pathname, skinTeam)
   // The picture is either behind the page ("bg", and always on Home) or a banner in it (card, strip, split, compact): ?hero=... in the address picks one.
   const [heroMode] = useState(readHeroMode)
+  useEffect(() => { applySiteBg() }, [])
   const bannerHero = heroMode !== "bg" && shownPage !== "home" ? pageHeroNow : null
   const hero = bannerHero ? null : pageHeroNow
   // A long page: a round button brings you back to the top once you have scrolled a screen down.
