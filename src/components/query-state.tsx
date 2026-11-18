@@ -1,9 +1,10 @@
 import type { ReactNode } from "react"
-import { Inbox, RefreshCw } from "lucide-react"
+import { RefreshCw } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { BlockSkeleton } from "@/components/skeletons"
+import { Illustration, type IllustrationKind } from "@/components/illustrations"
 import type { ApiError } from "@/api/types"
 
 interface QueryStateProps {
@@ -13,6 +14,8 @@ interface QueryStateProps {
   emptyMessage?: string
   onRetry?: () => void
   className?: string
+  /** The picture of the empty state (a box by default). */
+  art?: IllustrationKind
   /** Placeholder shaped like the content; a generic block when omitted. */
   skeleton?: ReactNode
 }
@@ -25,6 +28,7 @@ export function QueryState({
   onRetry,
   className,
   skeleton,
+  art = "box",
 }: QueryStateProps) {
   if (loading) {
     return (
@@ -37,7 +41,7 @@ export function QueryState({
   if (error) {
     return (
       <div className={cn("query-state-in glass flex flex-col items-center justify-center gap-3 rounded-xl p-12 text-center", className)}>
-        <Inbox className="size-6 text-muted-foreground" />
+        <Illustration kind="signal" />
         <span className="text-sm text-muted-foreground">Nothing to show right now.</span>
         {onRetry && (
           <Button variant="outline" size="sm" onClick={onRetry}>
@@ -52,7 +56,7 @@ export function QueryState({
   if (empty) {
     return (
       <div className={cn("query-state-in glass flex flex-col items-center justify-center gap-3 rounded-xl p-12 text-center", className)}>
-        <Inbox className="size-6 text-muted-foreground" />
+        <Illustration kind={art} />
         <span className="text-sm text-muted-foreground">{emptyMessage}</span>
       </div>
     )

@@ -23,6 +23,7 @@ import {
 } from "@/components/penalty-detail-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AnimatedNumber } from "@/components/animated-number"
+import { Illustration } from "@/components/illustrations"
 import { useFlip } from "@/hooks/use-flip"
 
 type TypeFilter = "all" | PenaltyType
@@ -50,9 +51,7 @@ function YourStatus({ penalties, loading, onDetails }: { penalties: PenaltyEntry
   if (!active) {
     return (
       <section aria-label="Your status" className="lx-swap-in flex items-center gap-3.5 rounded-xl bg-[var(--glass-fill)] px-[18px] py-4">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-[var(--status-green)]/10 text-[var(--status-green)]">
-          <ShieldCheck className="size-[18px]" />
-        </span>
+        <Illustration kind="shield" className="-my-3 -ml-2 h-[84px] w-[112px]" />
         <span className="flex min-w-0 flex-col gap-[3px]">
           <span className="text-sm font-semibold text-[var(--text)]">Your record is clean</span>
           <span className="text-[13px] text-[var(--text-muted)]">No active penalties on your account.</span>
