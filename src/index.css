@@ -1981,3 +1981,6 @@ html[data-site-bg="ember"] [data-slot="sidebar-inset"]::before { background: rad
 html[data-site-bg="ocean"] [data-slot="sidebar-inset"]::before { background: linear-gradient(180deg, transparent 30%, rgb(14 60 90 / 0.45) 100%), radial-gradient(60% 45% at 30% 105%, rgb(40 160 190 / 0.30), transparent 72%); }
 html[data-site-bg="mono"] [data-slot="sidebar-inset"]::before { background: radial-gradient(60% 50% at 50% 0%, rgb(255 255 255 / 0.08), transparent 70%), repeating-linear-gradient(90deg, transparent 0 119px, rgb(255 255 255 / 0.035) 119px 120px); }
 html[data-site-bg="ink"] [data-slot="sidebar-inset"]::before { background: none; }
+
+/* calm (the default, owner 2026-11-18 "make it calm"): one slow, desaturated slate glow at the top and a faint one at the bottom, no colours fighting, nothing moves. */
+html[data-site-bg="calm"] [data-slot="sidebar-inset"]::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 0; background: radial-gradient(90% 55% at 50% -8%, rgb(120 135 170 / 0.13), transparent 72%), radial-gradient(80% 40% at 50% 112%, rgb(120 135 170 / 0.07), transparent 72%); }
