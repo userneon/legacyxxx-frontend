@@ -125,10 +125,8 @@ export function readHeroMode(): HeroMode {
   try {
     const asked = new URLSearchParams(window.location.search).get("hero")
     if (asked && (MODES as string[]).includes(asked)) { window.localStorage.setItem("lx-hero-mode", asked); return asked as HeroMode }
-    const kept = window.localStorage.getItem("lx-hero-mode")
-    if (kept && (MODES as string[]).includes(kept)) return kept as HeroMode
   } catch { /* no storage: the default */ }
-  return "bg"
+  return "agent"
 }
 
 /** The agent alone, background removed, per picture. */
