@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { SiteLogo } from "@/components/site-logo"
 import { useNavigate } from "react-router-dom"
 
 import welcomeArt from "@/assets/home/hero-welcome.webp"
@@ -39,7 +40,7 @@ export function WelcomeAfterLogin() {
       <img src={welcomeArt} alt="" aria-hidden="true" decoding="async" draggable={false} className="lx-welcome-art pointer-events-none absolute inset-0 size-full object-cover object-[60%_center]" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(6,6,6,0.9)_0%,rgba(6,6,6,0.62)_30%,rgba(6,6,6,0.08)_58%,transparent_100%),linear-gradient(180deg,rgba(6,6,6,0.45),transparent_25%,transparent_75%,rgba(6,6,6,0.6))]" />
       <section className="lx-welcome-text relative w-full max-w-[560px] px-6 py-10 sm:px-14">
-        <img src="/lxc-monogram.png" alt="LXC" className="mb-8 h-10 w-auto" />
+        <SiteLogo className="mb-8 h-10 w-auto" />
         <span className="flex items-center gap-2.5 text-[12px] font-semibold uppercase tracking-[0.2em] text-[var(--text-dim)]"><span aria-hidden="true" className="size-[7px] rounded-full bg-[var(--status-green)] shadow-[0_0_10px_var(--status-green)]" />Signed in with Steam</span>
         <h1 className="mt-5 text-[clamp(34px,5vw,58px)] font-bold leading-[1.02] tracking-[-0.03em] text-[var(--text)]">Welcome,<br /><span className="text-[var(--text-dim)]">{user.username}.</span></h1>
         <p className="mt-5 max-w-[360px] text-[15px] leading-relaxed text-[var(--text-muted)]">The gate is open. Pick up where you left off.</p>

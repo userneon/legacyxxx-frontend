@@ -1,4 +1,5 @@
 import type React from "react"
+import { SiteLogo } from "@/components/site-logo"
 import { useEffect, useState, type ComponentType, type ReactNode } from "react"
 import { Lock, ChevronDown, ShieldCheck, Clapperboard, Store, Swords } from "lucide-react"
 
@@ -166,9 +167,9 @@ export function AppSidebar({ currentPage, onNavigate }: AppSidebarProps) {
       <SidebarContent className="gap-0 overflow-x-hidden px-3 pb-3">
         <div className={cn("flex h-[60px] shrink-0 items-center justify-center transition-[padding] duration-300 motion-reduce:transition-none", EASE, !collapsed && "pl-3 pr-1")}>
           <span className={cn("min-w-0 flex-1 items-center gap-2 overflow-hidden text-base font-bold tracking-[0.3px] text-[var(--text)]", collapsed ? "hidden" : "flex", labelClass(collapsed))}>
-            <img src="/lxc-monogram.png" alt="LXC" className="h-6 w-auto shrink-0" />
+            <SiteLogo className="h-6 w-auto shrink-0" />
           </span>
-          {collapsed && <img src="/lxc-monogram.png" alt="LXC" className="h-auto w-8 shrink-0" />}
+          {collapsed && <SiteLogo className="h-auto w-8 shrink-0" />}
 
         </div>
 

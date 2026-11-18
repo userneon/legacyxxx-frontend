@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react"
+import { SiteLogo } from "@/components/site-logo"
 import { useNavigate } from "react-router-dom"
 import { ArrowUp, Clock, Flame, Gavel, Gem, Plus, RotateCcw, Send, Trophy, Users } from "lucide-react"
 
@@ -189,7 +190,7 @@ export function WalletPage() {
             <div className="flex min-w-0 flex-col gap-4">
               <section aria-label="Balance" className="lx-wallet-card group relative flex aspect-[1.586/1] min-h-[236px] flex-col overflow-hidden rounded-[20px] border border-white/[0.12] p-6">
                 <div className="relative flex items-center justify-between">
-                  <img src="/lxc-monogram.png" alt="LXC" className="h-5 w-auto opacity-90" />
+                  <SiteLogo className="h-5 w-auto opacity-90" />
                   <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55">Wallet</span>
                 </div>
                 <div className="relative mt-auto">

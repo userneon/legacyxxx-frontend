@@ -1905,3 +1905,6 @@ html:has([data-lx-gate]) [data-slot="sidebar-inset"] { background: transparent; 
 .lx-ill .lx-ill-float { animation: lx-ill-float 5s ease-in-out infinite; }
 .lx-ill .lx-ill-ring { animation: lx-ill-ring 4.5s ease-in-out infinite; transform-origin: 80px 56px; }
 .lx-ill .lx-ill-twinkle { animation: lx-ill-twinkle 3.6s ease-in-out infinite; }
+
+/* The New Year logo carries a Santa hat above its letters, so it is drawn about a quarter larger from its bottom-left corner: the letters keep their usual size and the hat rises over the bar. */
+.lx-logo-ny { transform: scale(1.28); transform-origin: 14% 100%; margin-right: 12px; }

@@ -1035,7 +1035,8 @@ export async function mockResponse(method: string, path: string, query: Query, b
     { key: "tier3", name: "Eternal", quota: 10, prices: { "14": 72000, "30": 120000, "90": 300000 } },
     { key: "tier5", name: "Sovereign", quota: 15, prices: { "14": 120000, "30": 200000, "90": 500000 } },
   ], pool: ["freeze", "blind", "bury", "drug", "glow", "noclip", "god"].map((name) => ({ name, group: name === "noclip" || name === "god" ? "Cheats" : "Fun", summary: "" })) }
-  if (path === "/api/v1/public/events/active") return { event: null }
+  // mock: set sessionStorage lx-mock-event to new-year to see the holiday look
+  if (path === "/api/v1/public/events/active") return { event: window.sessionStorage.getItem("lx-mock-event") === "new-year" ? { theme: "new-year", title: "New Year", startsOn: "2026-12-01", endsOn: "2027-01-07" } : null }
   if (path === "/api/v1/staff/events") return { today: "2026-11-08", runningId: null, events: [] }
   if (path === "/api/v1/perks/me") return { grant: null, pending: null }
   if (path === "/api/v1/wallet/topup/status") return { available: true, custom: { minMnt: 1000, maxMnt: 500000, stepMnt: 1000 } }
