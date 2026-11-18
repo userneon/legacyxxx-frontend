@@ -9,6 +9,7 @@ import { PlayerAvatar } from "@/components/player-avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CreatorKit } from "@/components/creator-kit"
 import { CreatorApply } from "@/components/creator-apply"
+import { CreatorAds } from "@/components/creator-ads"
 import { CreatorTikTok } from "@/components/creator-tiktok"
 import { useApiQuery } from "@/hooks/use-api-query"
 
@@ -69,6 +70,7 @@ export function CreatorPanel({ onAboutSaved }: { onAboutSaved?: () => void }) {
         </section>
       </div>
       <div className="lg:col-span-12"><CreatorTikTok onChanged={onAboutSaved} /></div>
+      <div className="lg:col-span-12"><CreatorAds /></div>
     </div>
   )
 }

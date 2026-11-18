@@ -17,6 +17,11 @@ const RANKS: [number, string][] = [
 /** Every item sold with LX carries what each rental length costs, like the API's; what was bought runs out in a week. */
 const mockCustomColours: Record<string, string> = {}
 const mockCustomColours2: Record<string, string> = {}
+/** A plain picture for the creator-ad previews (a tinted gradient with a play mark), as a data address. */
+function mockAdPicture(a: string, b: string) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="#0a0a0a"/></linearGradient></defs><rect width="1280" height="720" fill="url(#g)"/><circle cx="1000" cy="300" r="170" fill="${b}" fill-opacity="0.25"/><polygon points="960,230 960,370 1070,300" fill="${b}"/></svg>`
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+}
 const mockCustomMotifs: Record<string, string> = {}
 /** A design the player colours (owner request 2026-10-26): grey until they pick, like the API. */
 function mockDesign(id: string, name: string, price: number, rarity: number, fx?: string, field: "color" | "glow" = "color") {
@@ -913,6 +918,12 @@ export async function mockResponse(method: string, path: string, query: Query, b
   if (method === "DELETE" && path.startsWith("/api/v1/skinchanger/collections/")) return { removed: true }
   if (method === "POST" && path === "/api/v1/clans") return { id: "clan-new", number: 4, name: String((body as { name?: string } | undefined)?.name ?? "Steppe Wolves"), tag: String((body as { tag?: string } | undefined)?.tag ?? "WOLF") }
   if (path === "/api/v1/clans") return MOCK_CLANS
+  // Creator ads (design preview): one running ad and one waiting, the banners are plain SVG pictures made here.
+  if (path === "/api/v1/public/creator-ads") return { ads: [{ id: "ad1", url: "https://www.tiktok.com/@steppewolves/video/7301234567890123456", handle: "@steppewolves", title: "Last round clutch: 1v4 on Mirage", imageUrl: mockAdPicture("#1c3f9c", "#f6c945"), endsAt: new Date(Date.now() + 20 * 3_600_000).toISOString() }] }
+  if (path === "/api/v1/creators/me/ads" && method === "GET") return { prices: { "24": 5000, "48": 8000 }, balance: 12000, tiktokHandle: "@steppewolves", ads: [{ id: "ad1", url: "https://www.tiktok.com/@steppewolves/video/7301234567890123456", handle: "@steppewolves", title: "Last round clutch: 1v4 on Mirage", hours: 24, price: 5000, status: "approved", note: "", createdAt: new Date(Date.now() - 4 * 3_600_000).toISOString(), startsAt: new Date(Date.now() - 4 * 3_600_000).toISOString(), endsAt: new Date(Date.now() + 20 * 3_600_000).toISOString(), imageUrl: mockAdPicture("#1c3f9c", "#f6c945") }] }
+  if (path === "/api/v1/creators/me/ads" && method === "POST") return { id: "ad2", status: "pending", title: "New video", imageUrl: mockAdPicture("#7a2a2a", "#f0c8a8") }
+  if (path === "/api/v1/staff/creator-ads" && method === "GET") return { ads: [{ id: "ad3", url: "https://www.tiktok.com/@nomin.cs/video/7309876543210987654", handle: "@nomin.cs", title: "AWP flick compilation", hours: 48, price: 8000, createdAt: new Date().toISOString(), imageUrl: mockAdPicture("#2a5a3a", "#cfe6ff"), creator: { steamId: "76561198000000001", username: "Nomin", avatar: "" } }] }
+  if (path.startsWith("/api/v1/staff/creator-ads/") && method === "PUT") return { id: path.split("/").pop(), status: (body as { decision: string }).decision === "approve" ? "approved" : "rejected", endsAt: null }
   if (path === "/api/v1/public/social/tiktok") return { tiktok: { url: "https://www.tiktok.com/@legacyx", handle: "@legacyx", followers: 2840, videos: 37, updatedAt: new Date().toISOString() } }
   if (path === "/api/v1/public/discord/community") {
     const people = [["Temuulen", 6, 41], ["xBataa", 4, 18], ["Khuslen_AWP", 3, 27], ["Enkh.", 2, 9], ["Gansukh", 1, 3], ["Bold", 1, 2], ["Ariunaa", 0, 0], ["Nomin", 0, 0]] as const

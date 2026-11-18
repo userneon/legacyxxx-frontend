@@ -4,6 +4,7 @@ import { toast } from "sonner"
 
 import { creatorsService, CREATOR_PLATFORMS, type Creator, type StaffCreatorApplication, type CreatorInput, type CreatorLinks, type CreatorTier } from "@/api/creators"
 import { CreatorBadge, CreatorLinks as CreatorLinkButtons } from "@/pages/creators"
+import { StaffCreatorAds } from "@/components/staff-creator-ads"
 import { PlayerPicker } from "@/components/player-picker"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { STAFF_BODY, STAFF_CARD, STAFF_GRID, StaffEmpty, StaffSection } from "@/components/staff-ui"
@@ -115,6 +116,8 @@ export function StaffCreators() {
           </ul>
         </StaffSection>
       )}
+
+      <StaffCreatorAds />
 
       <StaffSection title="Creators" count={data?.creators.length}>
         {loading && !data ? (

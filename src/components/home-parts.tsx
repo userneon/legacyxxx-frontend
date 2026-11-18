@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom"
 
 import { cn } from "@/lib/utils"
 import { competitiveService } from "@/api"
+import { creatorAdsService } from "@/api/creator-ads"
 import { profileOverviewService } from "@/api/profile-overview"
 import type { CompetitiveProfile } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -55,9 +56,15 @@ const SLIDES: { key: string; src: string; label: string; alt: string; focus?: st
   { key: "caught", src: caughtSlide, label: "Did you think you wouldn't get caught?", focus: "50% 30%", alt: "Two officers in a metro carriage arrest a masked man while another holds a second man down, seen through a camera viewfinder" },
 ]
 
+type Slide = { key: string; src: string; label: string; alt: string; focus?: string; fade?: boolean; ad?: { url: string; handle: string } }
+
 export function HeroSlider({ className, bare = false, children }: { className?: string; bare?: boolean; children?: React.ReactNode }) {
-  const slides = SLIDES
-  const [index, setIndex] = useState(0)
+  // Creator ads (owner 2026-11-18): the videos creators paid for come first, each a banner made from the TikTok video's own picture.
+  const ads = useApiQuery((signal) => creatorAdsService.running({ signal }), { queryKey: "home-creator-ads", keepPreviousData: true })
+  const adSlides: Slide[] = (ads.data ?? []).map((ad) => ({ key: `ad-${ad.id}`, src: ad.imageUrl, label: ad.title || ad.handle, alt: `${ad.handle} on TikTok: ${ad.title}`, ad: { url: ad.url, handle: ad.handle } }))
+  const slides: Slide[] = [...adSlides, ...SLIDES]
+  const [rawIndex, setIndex] = useState(0)
+  const index = Math.min(rawIndex, slides.length - 1)   // a creator ad that ended may leave the number past the last slide
   const go = (next: number) => setIndex((next + slides.length) % slides.length)
   const many = slides.length > 1
   const [paused, setPaused] = useState(false)
@@ -82,6 +89,12 @@ export function HeroSlider({ className, bare = false, children }: { className?: 
         />
       ))}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--card-surface)]/85 via-transparent to-transparent" />
+      {slides[index].ad && (
+        <>
+          <a href={slides[index].ad!.url} target="_blank" rel="noopener noreferrer" aria-label={`Watch ${slides[index].label} on TikTok`} className="absolute inset-0 z-[1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/60" />
+          <span className="pointer-events-none absolute left-4 top-4 z-[2] inline-flex items-center gap-1.5 rounded-full bg-black/45 px-3 py-1.5 text-[11px] font-semibold text-white backdrop-blur-sm">Creator · {slides[index].ad!.handle}<span className="text-white/60">· Watch on TikTok</span></span>
+        </>
+      )}
       {children && <div className="absolute inset-x-6 top-1/2 z-[2] -translate-y-1/2 max-sm:inset-x-4">{children}</div>}
       <div className={cn("absolute inset-x-5 z-[2] flex items-end justify-between gap-3", bare ? "bottom-12" : "bottom-4")}>
         <div className="flex flex-col gap-2">
