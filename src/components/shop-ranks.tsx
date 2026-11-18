@@ -27,7 +27,7 @@ const TIER_GLOW: Record<string, string> = { tier4: "#f6c945", tier1: "#3d63ff", 
 /** Each tier's own character (owner request 2026-11-18: "only one of the five rank cards is interesting"): a word for who it is for. The commands it gives are drawn as dots, so the climb shows at a glance. */
 const TIER_NOTE: Record<string, string> = { tier4: "Starter", tier1: "Rising", tier2: "Established", tier3: "Elite", tier5: "The top" }
 const TIER_ART: Record<string, string> = { tier4: emblem1, tier1: emblem2, tier2: emblem3, tier3: emblem4, tier5: emblem5 }
-const MODE_LABEL: Record<string, string> = { fun: "Fun servers", pro: "Pro League servers", "5x5": "5x5 servers" }
+const MODE_LABEL: Record<string, string> = { fun: "Fun servers", pro: "Pro League servers", "5x5": "5x5 servers (limited use)" }   // 5x5: the rank commands work there with the limits the Owner sets on the perk role (Staff -> Roles)
 const secondary = "inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3.5 text-[13px] text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] disabled:opacity-50"
 const daysLeft = (iso: string) => Math.max(0, Math.ceil((Date.parse(iso) - Date.now()) / 86_400_000))
 
