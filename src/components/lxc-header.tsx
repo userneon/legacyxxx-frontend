@@ -24,7 +24,7 @@ export function LxcHeader({ currentPage, onNavigate, className, overlay = false,
   const { data: stats } = useApiQuery<HomeStats>((signal) => serversService.getHomeStats({ signal }), { queryKey: "lxc-header-stats", keepPreviousData: true })
   return (
     <div data-lxc-header="" className={cn("relative z-20 shrink-0 bg-[var(--bg)] px-11 transition-colors duration-300", floating && "absolute inset-x-0 top-0 z-20", overlay && "bg-transparent", floating && !overlay && "!bg-[rgb(6_6_6/0.55)] backdrop-blur-xl", className)}>
-      <header className={cn("mx-auto flex w-full max-w-[1320px] flex-wrap items-center gap-4 min-[1100px]:flex-nowrap border-b py-2.5 transition-colors duration-300", floating ? "border-transparent" : "border-[var(--line)]")}>
+      <header className={cn("mx-auto flex w-full max-w-[var(--lx-w)] flex-wrap items-center gap-4 min-[1100px]:flex-nowrap border-b py-2.5 transition-colors duration-300", floating ? "border-transparent" : "border-[var(--line)]")}>
         <Link to={PAGE_ROUTES.home} aria-label="LXC, home" className="min-[560px]:hidden"><SiteLogo className="h-5 w-auto" /></Link>
         <Link to={PAGE_ROUTES.home} aria-label="LXC, home" className="hidden min-[560px]:block"><SiteLogo className="h-6 w-auto" /></Link>
         {typeof stats?.playersOnline === "number" ? (

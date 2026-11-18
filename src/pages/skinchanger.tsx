@@ -1308,7 +1308,7 @@ export function SkinchangerPage() {
     )
   }
   const studio = (
-    <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-9">
+    <div className="mx-auto flex w-full max-w-[var(--lx-w)] flex-col gap-9">
       <section aria-label="Your crafts" className="flex flex-col gap-3">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <h2 className="text-[15px] font-semibold text-[var(--text)]">Your crafts</h2>

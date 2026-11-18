@@ -137,7 +137,7 @@ export function TeamPage() {
         </PageBarEnd>
       </PageBar>
       <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 py-6 max-md:px-4">
-        <div className="mx-auto flex max-w-[1320px] flex-col gap-6">
+        <div className="mx-auto flex max-w-[var(--lx-w)] flex-col gap-6">
           {loading && !data ? (
             <>
               <Skeleton className="h-[150px] rounded-2xl" />

@@ -1923,3 +1923,9 @@ html:has([data-lx-gate]) [data-slot="sidebar-inset"] { background: transparent; 
   background: rgb(10 11 15 / 0.42) !important;
   border-color: rgb(255 255 255 / 0.07) !important;
 }
+
+/* The width of the page column (owner report 2026-11-18: on a big screen the content was squeezed into the middle). 1320 px up to a laptop; on a wider window it grows with it,
+   keeping a margin at each side, up to 1760 px. */
+:root { --lx-w: 1320px; }
+@media (min-width: 1500px) { :root { --lx-w: min(1560px, calc(100vw - 8rem)); } }
+@media (min-width: 1800px) { :root { --lx-w: min(1760px, calc(100vw - 10rem)); } }

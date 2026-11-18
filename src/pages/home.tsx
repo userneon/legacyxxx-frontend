@@ -20,7 +20,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
   return (
     <div className="lx-open @container flex flex-1 flex-col">
       <HomeHero onNavigate={onNavigate} />
-      <div className="lx-stack mx-auto flex w-full max-w-[1320px] flex-1 flex-col gap-10 p-4 @2xl:p-6">
+      <div className="lx-stack mx-auto flex w-full max-w-[var(--lx-w)] flex-1 flex-col gap-10 p-4 @2xl:p-6">
         {greeting && <div><span className="lx-event-greeting">{greeting}</span></div>}
         <StatsRow />
         <div className="grid grid-cols-1 gap-12 @4xl:grid-cols-2">

@@ -80,7 +80,7 @@ export function PageHero({ hero }: { hero: Hero | null }) {
 
   return (
     <>
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[clamp(420px,58vw,880px)] overflow-hidden [mask-image:linear-gradient(180deg,#000_64%,transparent)]">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[clamp(420px,56.25vw,1300px)] overflow-hidden [mask-image:linear-gradient(180deg,#000_64%,transparent)]">
         {layers.map((layer) => (
           <div key={layer.id} className={cn("absolute inset-0 transition-opacity duration-[700ms] ease-out motion-reduce:transition-none", layer.id === shown ? "opacity-100" : "opacity-0")}>
             <img src={layer.hero.lq} alt="" aria-hidden="true" style={{ objectPosition: layer.hero.position }} className="absolute inset-0 size-full origin-[78%_0] scale-[1.12] object-cover blur-xl [mask-image:linear-gradient(90deg,transparent_8%,rgba(0,0,0,0.5)_34%,#000_64%)]" />

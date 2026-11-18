@@ -84,7 +84,7 @@ export function MarketPage() {
         </PageBarEnd>
       </PageBar>
       <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 py-6 max-md:px-4">
-        <div className="mx-auto flex max-w-[1320px] flex-col gap-5">
+        <div className="mx-auto flex max-w-[var(--lx-w)] flex-col gap-5">
           <label className={cn(pageSearchClass, "w-full md:hidden")}>
             <Search className="size-4 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />
             <input value={typed} onChange={(event) => setTyped(event.target.value)} placeholder="Search the market" aria-label="Search the market" className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text)] outline-none placeholder:text-[var(--text-dim)]" />
