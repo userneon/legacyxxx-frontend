@@ -5,7 +5,8 @@
 #   VITE_SITE_URL     <DOMAIN>
 #   VITE_ADMIN_URL    $STAFF_PANEL, else https://admin.<host>
 if [ -z "${DOMAIN:-}" ] && [ -f .env ]; then
-  DOMAIN="$(grep -E '^DOMAIN=' .env | head -1 | cut -d= -f2- | tr -d "\"'" | tr -d '\r')"
+  # No DOMAIN line is fine (grep then fails, which must not stop a script that runs with set -e and pipefail).
+  DOMAIN="$({ grep -E '^DOMAIN=' .env || true; } | head -1 | cut -d= -f2- | tr -d "\"'" | tr -d '\r')"
 fi
 if [ -n "${DOMAIN:-}" ]; then
   DOMAIN="${DOMAIN%/}"
