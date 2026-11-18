@@ -1912,3 +1912,14 @@ html:has([data-lx-gate]) [data-slot="sidebar-inset"] { background: transparent; 
 /* The rank gems (Shop): a very slow bob. */
 @keyframes lx-rank-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.6cqw); } }
 .lx-rank-float { animation: lx-rank-bob 6s ease-in-out infinite; }
+
+/* The quiet pages (Staff, Creators, Team, Discord; owner request 2026-11-18, "make them see-through"): the same glass as a page with a picture, a little less clear, so the contour lines behind the page show between and through the cards. */
+.lx-serious :is(.lx-glass, .glass, .lx-pcard, .lx-people-card, .lx-team-card, .lx-play-panel, .lx-frost, .lx-ring-card, .lx-add-box, .lx-tile-panel):not(.rounded-full),
+.lx-serious [class*="bg-[var(--card-surface)]"]:not(button, input, select, textarea),
+.lx-serious [class*="bg-[var(--glass-fill)]"]:not(input, select, textarea),
+.lx-serious [class*="bg-[#0c0c0c]"],
+.lx-serious [class*="bg-[var(--panel)]"]:not(button, input, select, textarea),
+.lx-serious [class*="bg-[var(--raised)]"]:is(section, article, li, div[class*="rounded-xl"], div[class*="rounded-2xl"]) {
+  background: rgb(10 11 15 / 0.42) !important;
+  border-color: rgb(255 255 255 / 0.07) !important;
+}

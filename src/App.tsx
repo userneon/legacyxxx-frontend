@@ -201,7 +201,7 @@ export function App() {
           {/* Leaders scrolls its table inside the panel (sticky header, your row pinned under it), so it gets the panel's height instead of growing past it. */}
           <PageHero hero={hero} />
           {serious && <SeriousDetail />}
-          <div key={shownSection} className={cn("page-enter flex flex-col", "relative z-10 mx-auto w-full", shownPage !== "home" && "max-w-[1320px]", hero && shownPage !== "home" && "lx-hero-page pt-[76px]", shownSection === "/leaders" ? "h-full" : "min-h-full", leaving && "page-leave")}>
+          <div key={shownSection} className={cn("page-enter flex flex-col", "relative z-10 mx-auto w-full", shownPage !== "home" && "max-w-[1320px]", hero && shownPage !== "home" && "lx-hero-page pt-[76px]", serious && "lx-serious", shownSection === "/leaders" ? "h-full" : "min-h-full", leaving && "page-leave")}>
             <RouteErrorBoundary resetKey={shownLocation.pathname}>
             <Suspense fallback={<div className="min-h-[40vh]" aria-hidden="true" />}>
             <Routes location={shownLocation}>
