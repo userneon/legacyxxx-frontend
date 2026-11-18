@@ -4,6 +4,7 @@ import { ArrowUp, Clock, Flame, Gavel, Gem, Plus, RotateCcw, Send, Trophy, Users
 
 import { walletService, type Wallet, type WalletTransaction } from "@/api"
 import { AnimatedNumber } from "@/components/animated-number"
+import coinArt from "@/assets/fol/coin.webp"
 import { PageTabs } from "@/components/page-tabs"
 import { RelativeTime } from "@/components/relative-time"
 import { SendLx } from "@/components/send-lx"
@@ -156,30 +157,26 @@ export function WalletPage() {
         ) : (
           <div className="grid items-start gap-8 lg:grid-cols-[400px_minmax(0,1fr)]">
             <div className="flex min-w-0 flex-col gap-4">
-              <section
-                aria-label="Balance"
-                className="lx-glass lx-noir-balance relative flex h-[200px] flex-col overflow-hidden rounded-2xl border border-[var(--line-strong)] p-6"
-                style={{ backgroundImage: "radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,.16), transparent 55%), repeating-linear-gradient(115deg, rgba(255,255,255,.035) 0 1px, transparent 1px 9px), linear-gradient(160deg, #1d1d1f, #0e0e0f)" }}
-              >
-                <span aria-hidden="true" className="absolute -bottom-[90px] -right-[70px] size-[300px] rounded-full border border-white/[0.07] shadow-[0_0_0_26px_rgba(255,255,255,.02),0_0_0_54px_rgba(255,255,255,.015)]" />
+              <section aria-label="Balance" className="lx-wallet-card group relative flex aspect-[1.586/1] min-h-[236px] flex-col overflow-hidden rounded-[20px] border border-white/[0.12] p-6">
+                <img src={coinArt} alt="" aria-hidden="true" draggable={false} className="lx-wallet-coin pointer-events-none absolute -bottom-2 -right-2 size-[128px] rotate-[-14deg] select-none" />
                 <div className="relative flex items-center justify-between">
-                  <span className="flex items-center gap-2.5 font-bold tracking-[0.4px]">FOL$ WALLET</span>
-                  <span className="text-[11px] tracking-[1.4px] text-[var(--text-muted)]">LXC</span>
+                  <img src="/lxc-monogram.png" alt="LXC" className="h-5 w-auto opacity-90" />
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55">Wallet</span>
                 </div>
                 <div className="relative mt-auto">
-                  <span className="text-xs font-semibold tracking-[1.2px] text-[var(--text-muted)]">BALANCE</span>
-                  <div className="mt-0.5 flex items-baseline gap-2.5"><span className="text-[44px] font-bold leading-none tracking-[-1.6px]"><AnimatedNumber value={wallet.balance} durationMs={700} /></span><span className="text-xl font-bold text-[var(--text-2)]">FOL$</span></div>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/50">Balance</span>
+                  <div className="mt-1 flex items-baseline gap-2.5"><span className="text-[52px] font-bold leading-none tracking-[-0.04em] tabular-nums text-white"><AnimatedNumber value={wallet.balance} durationMs={900} /></span><span className="text-[17px] font-bold text-[var(--lx-gold,#e6c067)]">FOL$</span></div>
                 </div>
-                <div className="relative mt-4 flex items-center gap-2.5 text-[13px] font-semibold">
+                <div className="relative mt-5 flex items-center gap-2.5 text-[13px] font-semibold text-white/85">
                   <span className="truncate">{user?.username}</span>
-                  {summary && summary.todayEarned > 0 && <span className="ml-auto text-[11px] text-[var(--status-green)]">+{summary.todayEarned.toLocaleString()} today</span>}
+                  {summary && summary.todayEarned > 0 && <span className="rounded-full border border-[var(--status-green)]/40 px-2 py-0.5 text-[11px] text-[var(--status-green)]">+{summary.todayEarned.toLocaleString()} today</span>}
                 </div>
               </section>
 
-              <div className="flex gap-2.5">
-                {[{ label: "Top up", icon: Plus, to: "/wallet/top-up", c: ["#8b5cf6", "#5b3bc4"] }, { label: "Send", icon: Send, to: "send", c: ["#22c55e", "#127a3a"] }, { label: "Shop", icon: Gem, to: "/shop", c: ["#d4d4d8", "#6b6b73"] }, { label: "Clan", icon: Users, to: "/clans", c: ["#ef4444", "#8f1d1d"] }, { label: "History", icon: Clock, to: "", c: ["#8b5cf6", "#5b3bc4"] }].map((action) => (
-                  <button key={action.label} type="button" onClick={() => (action.to === "send" ? setSendOpen(true) : action.to ? navigate(action.to) : setTab("history"))} className="lx-glass flex h-[86px] flex-1 flex-col items-center justify-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--glass-fill)] text-xs font-semibold text-[var(--text-2)] transition-colors hover:bg-[var(--raised)]">
-                    <span className="lx-glass-icon" style={{ "--c1": action.c[0], "--c2": action.c[1] } as React.CSSProperties}><action.icon className="size-[18px]" aria-hidden="true" /></span>{action.label}
+              <div className="grid grid-cols-5 gap-2.5">
+                {[{ label: "Top up", icon: Plus, to: "/wallet/top-up" }, { label: "Send", icon: Send, to: "send" }, { label: "Shop", icon: Gem, to: "/shop" }, { label: "Clan", icon: Users, to: "/clans" }, { label: "History", icon: Clock, to: "" }].map((action) => (
+                  <button key={action.label} type="button" onClick={() => (action.to === "send" ? setSendOpen(true) : action.to ? navigate(action.to) : setTab("history"))} className="lx-hover-blue flex h-[72px] flex-col items-center justify-center gap-2 rounded-[10px] border border-white/20 text-[12px] font-semibold text-[var(--text-2)] transition-colors hover:border-white/50 hover:bg-white/[0.06] hover:text-[var(--text)]">
+                    <action.icon className="size-[18px]" aria-hidden="true" />{action.label}
                   </button>
                 ))}
               </div>
