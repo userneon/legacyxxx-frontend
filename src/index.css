@@ -1984,3 +1984,14 @@ html[data-site-bg="ink"] [data-slot="sidebar-inset"]::before { background: none;
 
 /* calm (the default, owner 2026-11-18 "make it calm"): one slow, desaturated slate glow at the top and a faint one at the bottom, no colours fighting, nothing moves. */
 html[data-site-bg="calm"] [data-slot="sidebar-inset"]::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 0; background: radial-gradient(90% 55% at 50% -8%, rgb(120 135 170 / 0.13), transparent 72%), radial-gradient(80% 40% at 50% 112%, rgb(120 135 170 / 0.07), transparent 72%); }
+
+
+/* The rank banners, badges and titles in the colours of the five emblems (owner 2026-11-18: "the banner and title do not match"): Prestige steel and blue, Imperial gold, Eternal ice with a gold edge, Sovereign royal blue with gold. Prime stays copper. Palette-exempt: the owner's art. */
+.lx-banner-perk-1 { --banner-a: #0a0f1c; --banner-b: #26385e; --banner-line: #d7e0f2; --banner-glow: #6f9bff; }
+.lx-banner-perk-2 { --banner-a: #120e05; --banner-b: #5a4310; --banner-line: #ffe28a; --banner-glow: #f6c945; }
+.lx-banner-perk-3 { --banner-a: #08111f; --banner-b: #2b5079; --banner-line: #eaf3ff; --banner-glow: #6fb4ff; }
+.lx-banner-perk-5 { --banner-a: #06102f; --banner-b: #1c3f9c; --banner-line: #f6c945; --banner-glow: #3d63ff; }
+.lx-perk-badge[data-tier="tier1"], .lx-profile-perk[data-tier="tier1"] { --perk: #8aa7e0; --perk-edge: #e3ecff; }
+.lx-perk-badge[data-tier="tier2"], .lx-profile-perk[data-tier="tier2"] { --perk: #f6c945; --perk-edge: #ffe9a6; }
+.lx-perk-badge[data-tier="tier3"], .lx-profile-perk[data-tier="tier3"] { --perk: #8cc4ff; --perk-edge: #fff1c4; }
+.lx-perk-badge[data-tier="tier5"], .lx-profile-perk[data-tier="tier5"] { --perk: #4f8dff; --perk-edge: #f6c945; }

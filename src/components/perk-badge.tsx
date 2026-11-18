@@ -1,9 +1,9 @@
 import ShinyText from "@/components/reactbits/shiny-text"
-import prestige from "@/assets/ranks/mark-prestige.webp"
-import imperial from "@/assets/ranks/mark-imperial.webp"
-import eternal from "@/assets/ranks/mark-eternal.webp"
-import prime from "@/assets/ranks/mark-prime.webp"
-import sovereign from "@/assets/ranks/mark-sovereign.webp"
+import prestige from "@/assets/ranks/emblem-2.webp"
+import imperial from "@/assets/ranks/emblem-3.webp"
+import eternal from "@/assets/ranks/emblem-4.webp"
+import prime from "@/assets/ranks/emblem-1.webp"
+import sovereign from "@/assets/ranks/emblem-5.webp"
 
 export const PERK_EMBLEM: Record<string, string> = { tier1: prestige, tier2: imperial, tier3: eternal, tier4: prime, tier5: sovereign }
 
@@ -24,11 +24,12 @@ export type PerkLook = { tier: string; name: string }
 
 /** Each tier's own shine for React Bits' Shiny Text (the colours come from the owner's art, so they are palette-exempt): silver, violet with gold, gold with red. */
 const SHINE: Record<string, { color: string; shine: string; glow: string }> = {
-  tier1: { color: "#a1a1aa", shine: "#ffffff", glow: "#e5e5e5" }, // palette-exempt: Prestige silver
-  tier2: { color: "#b69cf7", shine: "#f2cd72", glow: "#8b5cf6" }, // palette-exempt: Imperial violet and gold
-  tier3: { color: "#e2b04a", shine: "#ff6b6b", glow: "#dc2626" }, // palette-exempt: Eternal gold and red
+  // The colours follow the owner's five emblems (2026-11-17/18: "the banner and title do not match the rank"): Prestige steel and blue, Imperial gold, Eternal ice and a gold crown, Prime copper, Sovereign gold and crystal blue.
+  tier1: { color: "#b9c9e8", shine: "#ffffff", glow: "#6f9bff" }, // palette-exempt: Prestige steel and blue
+  tier2: { color: "#f2c14e", shine: "#fff3c4", glow: "#f6c945" }, // palette-exempt: Imperial gold
+  tier3: { color: "#cfe6ff", shine: "#fff1c4", glow: "#6fb4ff" }, // palette-exempt: Eternal ice
   tier4: { color: "#c98a63", shine: "#f3d2bb", glow: "#b7673c" }, // palette-exempt: Prime copper
-  tier5: { color: "#cfe0f5", shine: "#ffffff", glow: "#8fb4e8" }, // palette-exempt: Sovereign diamond
+  tier5: { color: "#7fb0ff", shine: "#f6c945", glow: "#3d63ff" }, // palette-exempt: Sovereign crystal blue and gold
 }
 
 /**
