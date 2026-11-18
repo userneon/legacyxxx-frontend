@@ -1,10 +1,8 @@
-import { CountText } from "@/components/animated-number"
 import { HeroSlider } from "@/components/home-parts"
 import { useNavigate } from "react-router-dom"
 
-import { serversService } from "@/api"
 import { playService, type PlayServer, type PlayServerList } from "@/api/play"
-import type { HomeStats, PageId } from "@/api/types"
+import type { PageId } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { cn } from "@/lib/utils"
@@ -14,22 +12,11 @@ import { cn } from "@/lib/utils"
  * then the matches being played and the top of the ladder as plain rows. The player count, the matches and their scores are the API's.
  */
 export function HomeHero(_props: { onNavigate: (page: PageId) => void }) {
-  const { data: stats } = useApiQuery<HomeStats>((signal) => serversService.getHomeStats({ signal }), { queryKey: "home-hero-stats", keepPreviousData: true })
-  const online = stats?.playersOnline
   return (
     <section aria-label="LXC" className="relative isolate w-full">
       {/* The slider is the top of Home (owner 2026-11-18: "put the slider where Play CS2 is; it looked like a separate thing"): full width of the page, no frame, fading into the page below. */}
       <div className="mx-auto w-full max-w-[var(--lx-w)] px-4 pb-2 pt-[84px] @2xl:px-6">
-        <HeroSlider bare className="h-[clamp(280px,31vw,440px)] w-full">
-          <div className="flex max-w-[520px] flex-col items-start gap-4 max-sm:max-w-none">
-            {typeof online === "number" && (
-              <span className="flex items-center gap-2.5 rounded-full bg-black/40 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-2)] backdrop-blur-sm">
-                <span aria-hidden="true" className="size-[7px] rounded-full bg-[var(--status-green)]" />
-                <CountText value={online.toLocaleString()} durationMs={1400} delayMs={500} /> {online === 1 ? "player" : "players"} online
-              </span>
-            )}
-          </div>
-        </HeroSlider>
+        <HeroSlider bare className="h-[clamp(280px,31vw,440px)] w-full" />
       </div>
     </section>
   )

@@ -78,7 +78,7 @@ export function HeroSlider({ className, bare = false, children }: { className?: 
           loading={position === 0 ? "eager" : "lazy"}
           decoding="async"
           style={slide.focus ? { objectPosition: slide.focus } : undefined}
-          className={cn("absolute inset-0 size-full object-cover transition-opacity duration-500", slide.fade && "[mask-image:linear-gradient(90deg,transparent_5%,rgba(0,0,0,0.4)_32%,#000_62%)]", position === index ? "opacity-100" : "opacity-0")}
+          className={cn("absolute inset-0 size-full object-cover transition-opacity duration-500", slide.fade && "[mask-image:linear-gradient(90deg,rgba(0,0,0,0.35)_0%,rgba(0,0,0,0.75)_22%,#000_45%)]", position === index ? "opacity-100" : "opacity-0")}
         />
       ))}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--card-surface)]/85 via-transparent to-transparent" />
@@ -188,7 +188,7 @@ export function StatsRow() {
     (signal) => competitiveService.getPlayer(user!.id, { signal }),
     { enabled: Boolean(user?.id), queryKey: `home-rank:${user?.id ?? "guest"}` },
   )
-  const { data: overview } = useApiQuery(
+  const { data: overview, loading: overviewLoading } = useApiQuery(
     (signal) => profileOverviewService.get(user!.id, { signal }),
     { enabled: Boolean(user?.id), queryKey: `home-rank-limits:${user?.id ?? "guest"}` },
   )
@@ -240,6 +240,7 @@ export function StatsRow() {
       </div>
       <StatTile label="Win rate" value={matches > 0 ? `${Math.round(pct(profile.wins, matches))}%` : "—"} title={matches > 0 ? `${profile.wins} wins · ${profile.losses} losses` : "No ranked matches yet"} share={matches > 0 ? pct(profile.wins, matches) : null} />
       {typeof deaths === "number" && <StatTile label="K/D" value={deaths > 0 ? (profile.kills / deaths).toFixed(2) : profile.kills > 0 ? profile.kills.toFixed(2) : "—"} title={`${profile.kills} kills · ${deaths} deaths`} share={pct(profile.kills, profile.kills + deaths)} />}
+      {!limits && overviewLoading && Array.from({ length: 2 }, (_, index) => <Skeleton key={index} aria-hidden="true" className="h-[88px] rounded-xl" />)}
       {limits && <StatTile label="EXP today" value={`${limits.day.used.toLocaleString()} / ${limits.day.cap.toLocaleString()}`} share={pct(limits.day.used, limits.day.cap)} tone={limits.day.used >= limits.day.cap ? "red" : "green"} />}
       {limits && <StatTile label="EXP this week" value={`${limits.week.used.toLocaleString()} / ${limits.week.cap.toLocaleString()}`} share={pct(limits.week.used, limits.week.cap)} tone={limits.week.used >= limits.week.cap ? "red" : "green"} />}
     </div>
