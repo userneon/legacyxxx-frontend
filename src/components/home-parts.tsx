@@ -1,6 +1,6 @@
 import { CountText } from "@/components/animated-number"
 /** Home parts: the map slider, the signed-in player's rank and four ring stats, the four mode cards and the rank medals. Real data only. */
-import { useId, useState } from "react"
+import { useEffect, useId, useState } from "react"
 import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
@@ -60,8 +60,15 @@ export function HeroSlider({ className }: { className?: string }) {
   const [index, setIndex] = useState(0)
   const go = (next: number) => setIndex((next + slides.length) % slides.length)
   const many = slides.length > 1
+  const [paused, setPaused] = useState(false)
+  // The ad slider turns by itself every 6 s (not while the pointer or focus is on it, and not for people who asked for less motion).
+  useEffect(() => {
+    if (!many || paused || (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) return
+    const id = window.setInterval(() => setIndex((now) => (now + 1) % slides.length), 6000)
+    return () => window.clearInterval(id)
+  }, [many, paused, slides.length])
   return (
-    <section aria-roledescription="carousel" aria-label="LXC" className={cn("lx-glass relative isolate min-h-[180px] overflow-hidden rounded-xl", className)}>
+    <section aria-roledescription="carousel" aria-label="LXC" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)} className={cn("lx-glass relative isolate min-h-[180px] overflow-hidden rounded-xl", className)}>
       {slides.map((slide, position) => (
         <img
           key={slide.key}

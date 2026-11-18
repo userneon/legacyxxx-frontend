@@ -1,4 +1,5 @@
 import { CountText } from "@/components/animated-number"
+import { HeroSlider } from "@/components/home-parts"
 import { useNavigate } from "react-router-dom"
 
 import { serversService } from "@/api"
@@ -16,9 +17,10 @@ export function HomeHero({ onNavigate }: { onNavigate: (page: PageId) => void })
   const { data: stats } = useApiQuery<HomeStats>((signal) => serversService.getHomeStats({ signal }), { queryKey: "home-hero-stats", keepPreviousData: true })
   const online = stats?.playersOnline
   return (
-    <section aria-label="LXC" className="relative isolate min-h-[460px] w-full overflow-hidden [mask-image:linear-gradient(180deg,#000_72%,transparent)] @2xl:min-h-[clamp(560px,56vw,860px)]">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
-      <div className="lx-hero-copy mx-auto flex h-full min-h-[460px] w-full max-w-[var(--lx-w)] flex-col justify-center px-11 pb-14 pt-[110px] @2xl:min-h-[clamp(560px,56vw,860px)]">
+    <section aria-label="LXC" className="relative isolate w-full overflow-hidden">
+      {/* The top is short now (owner 2026-11-18: "the top space is too big"): the words on the left, the ad slider on the right. */}
+      <div className="mx-auto grid w-full max-w-[var(--lx-w)] items-center gap-8 px-11 pb-6 pt-[104px] max-sm:px-5 @4xl:grid-cols-[minmax(0,1fr)_minmax(0,540px)]">
+      <div className="lx-hero-copy flex w-full flex-col justify-center">
         {typeof online === "number" && (
           <span className="flex items-center gap-2.5 text-[12px] font-semibold uppercase tracking-[0.2em] text-[var(--text-dim)]">
             <span aria-hidden="true" className="size-[7px] rounded-full bg-[var(--status-green)] shadow-[0_0_10px_var(--status-green)]" />
@@ -31,6 +33,8 @@ export function HomeHero({ onNavigate }: { onNavigate: (page: PageId) => void })
           <button type="button" onClick={() => onNavigate("play-5vs5")} className="lx-primary-button lx-hover-blue inline-flex h-[50px] items-center rounded-xl px-7 text-[15px] font-bold">Play now</button>
           <button type="button" onClick={() => onNavigate("leaders")} className="inline-flex h-[50px] items-center rounded-xl border border-white/30 px-6 text-[15px] font-semibold text-[var(--text)] transition-colors hover:border-white/70 hover:bg-white/[0.06]">See the ladder</button>
         </div>
+      </div>
+      <HeroSlider className="h-[clamp(210px,22vw,300px)] w-full" />
       </div>
     </section>
   )
