@@ -99,3 +99,67 @@ export function PageHero({ hero }: { hero: Hero | null }) {
     </>
   )
 }
+
+/**
+ * The page picture as a banner in the page instead of a background behind it (owner request 2026-11-18: "as a background the picture looks poor, try a hero banner; make
+ * several designs"). `bg` is the picture behind the page (the earlier way); the others sit in the flow of the page, at the picture's own size or smaller, with the page's
+ * name over it. The mode is picked with ?hero=card|strip|split|compact|bg in the address and kept in this browser.
+ */
+export type HeroMode = "bg" | "card" | "strip" | "split" | "compact"
+const MODES: HeroMode[] = ["bg", "card", "strip", "split", "compact"]
+
+export function readHeroMode(): HeroMode {
+  try {
+    const asked = new URLSearchParams(window.location.search).get("hero")
+    if (asked && (MODES as string[]).includes(asked)) { window.localStorage.setItem("lx-hero-mode", asked); return asked as HeroMode }
+    const kept = window.localStorage.getItem("lx-hero-mode")
+    if (kept && (MODES as string[]).includes(kept)) return kept as HeroMode
+  } catch { /* no storage: the default */ }
+  return "bg"
+}
+
+const WASH = "linear-gradient(90deg, rgba(6,8,14,0.94) 0%, rgba(6,8,14,0.62) 36%, rgba(6,8,14,0.08) 68%, transparent 100%)"
+
+export function HeroBanner({ hero, mode }: { hero: Hero; mode: Exclude<HeroMode, "bg"> }) {
+  const picture = (className: string) => <ArtImage src={hero.src} alt="" decoding="async" style={{ objectPosition: hero.position }} className={cn("absolute inset-0 size-full object-cover", className)} />
+  const words = (size: string) => (
+    <div className="relative z-10 flex h-full max-w-[560px] flex-col justify-center gap-1.5 px-8 max-sm:px-5">
+      <div className={cn("font-bold leading-[1.02] tracking-[-0.03em] text-[var(--text)]", size)}>{hero.title}</div>
+      {hero.line && <p className="max-w-[420px] text-[14px] leading-snug text-[var(--text-muted)]">{hero.line}</p>}
+    </div>
+  )
+  if (mode === "card") {
+    return (
+      <section aria-hidden="true" className="relative isolate mb-6 mt-2 h-[clamp(190px,17vw,290px)] shrink-0 overflow-hidden rounded-[20px] border border-white/10 bg-[#07080d]">
+        {picture("")}
+        <div className="absolute inset-0" style={{ background: WASH }} />
+        {words("text-[clamp(28px,3.2vw,44px)]")}
+      </section>
+    )
+  }
+  if (mode === "strip") {
+    return (
+      <section aria-hidden="true" className="relative isolate mb-6 ml-[calc(50%-50vw)] h-[clamp(250px,24vw,380px)] w-screen shrink-0 overflow-hidden [mask-image:linear-gradient(180deg,#000_70%,transparent)]">
+        {picture("")}
+        <div className="absolute inset-0" style={{ background: WASH }} />
+        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent" />
+        <div className="relative mx-auto h-full w-full max-w-[var(--lx-w)] pt-14">{words("text-[clamp(32px,3.6vw,52px)]")}</div>
+      </section>
+    )
+  }
+  if (mode === "split") {
+    return (
+      <section aria-hidden="true" className="relative isolate mb-6 mt-2 grid h-[clamp(190px,17vw,290px)] shrink-0 grid-cols-[minmax(0,5fr)_minmax(0,7fr)] overflow-hidden rounded-[20px] border border-white/10 bg-[rgb(10_11_15/0.7)] max-md:grid-cols-1">
+        <div className="relative z-10 flex items-center">{words("text-[clamp(28px,3vw,42px)]")}</div>
+        <div className="relative max-md:hidden [mask-image:linear-gradient(90deg,transparent,#000_30%)]">{picture("")}</div>
+      </section>
+    )
+  }
+  return (
+    <section aria-hidden="true" className="relative isolate mb-5 mt-2 h-[clamp(110px,9vw,150px)] shrink-0 overflow-hidden rounded-[20px] border border-white/10 bg-[#07080d]">
+      <ArtImage src={hero.src} alt="" decoding="async" style={{ objectPosition: `${hero.position.split(" ")[0]} 30%` }} className="absolute inset-0 size-full object-cover" />
+      <div className="absolute inset-0" style={{ background: WASH }} />
+      {words("text-[clamp(24px,2.4vw,34px)]")}
+    </section>
+  )
+}

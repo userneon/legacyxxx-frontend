@@ -11,7 +11,7 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/s
 import { ProfileBlock } from "@/components/profile-block"
 import { SiteTourButton } from "@/components/site-tour"
 import { AppSidebar } from "@/components/app-sidebar"
-import { PageHero, pageHero } from "@/components/page-hero"
+import { HeroBanner, PageHero, pageHero, readHeroMode } from "@/components/page-hero"
 import { SeriousDetail } from "@/components/serious-detail"
 import { useScrollReveal } from "@/hooks/use-scroll-reveal"
 import { useSkinTeam } from "@/lib/skin-team"
@@ -117,7 +117,11 @@ export function App() {
   const serious = ["staff", "checks", "creators", "team", "discord"].includes(shownPage)
   // A profile that wears its own background (a Shop background, a Steam scene or video) shows that and not the profile page's agent: two backgrounds over each other look like one broken picture.
   const profileScene = useProfileScene()
-  const hero = shownPage === "profile" && profileScene ? null : pageHero(shownPage, shownLocation.pathname, skinTeam)
+  const pageHeroNow = shownPage === "profile" && profileScene ? null : pageHero(shownPage, shownLocation.pathname, skinTeam)
+  // The picture is either behind the page ("bg", and always on Home) or a banner in it (card, strip, split, compact): ?hero=... in the address picks one.
+  const [heroMode] = useState(readHeroMode)
+  const bannerHero = heroMode !== "bg" && shownPage !== "home" ? pageHeroNow : null
+  const hero = bannerHero ? null : pageHeroNow
   // A long page: a round button brings you back to the top once you have scrolled a screen down.
   const [showTop, setShowTop] = useState(false)
   // On Home the picture runs up behind the top bar; the bar turns solid once you scroll.
@@ -187,7 +191,7 @@ export function App() {
           <ProfileBlock onNavigate={handleNavigate} />
         </header>
 
-        <LxcHeader currentPage={currentPage} onNavigate={handleNavigate} overlay={(shownPage === "home" || Boolean(hero)) && !scrolled} floating={shownPage === "home" || Boolean(hero)} className="max-[559px]:hidden" />
+        <LxcHeader currentPage={currentPage} onNavigate={handleNavigate} overlay={(shownPage === "home" || Boolean(hero) || heroMode === "strip" && Boolean(bannerHero)) && !scrolled} floating={shownPage === "home" || Boolean(hero) || heroMode === "strip" && Boolean(bannerHero)} className="max-[559px]:hidden" />
 
         <button
           type="button"
@@ -202,7 +206,8 @@ export function App() {
           {/* Leaders scrolls its table inside the panel (sticky header, your row pinned under it), so it gets the panel's height instead of growing past it. */}
           <PageHero hero={hero} />
           {serious && <SeriousDetail />}
-          <div key={shownSection} className={cn("page-enter flex flex-col", "relative z-10 mx-auto w-full", shownPage !== "home" && "max-w-[var(--lx-w)]", hero && shownPage !== "home" && "lx-hero-page pt-[76px]", serious && "lx-serious", shownSection === "/leaders" ? "h-full" : "min-h-full", leaving && "page-leave")}>
+          <div key={shownSection} className={cn("page-enter flex flex-col", "relative z-10 mx-auto w-full", shownPage !== "home" && "max-w-[var(--lx-w)]", hero && shownPage !== "home" && "lx-hero-page pt-[76px]", bannerHero && (heroMode === "strip" ? "pt-0" : "pt-2"), serious && "lx-serious", shownSection === "/leaders" ? "h-full" : "min-h-full", leaving && "page-leave")}>
+            {bannerHero && heroMode !== "bg" && <HeroBanner hero={bannerHero} mode={heroMode} />}
             <RouteErrorBoundary resetKey={shownLocation.pathname}>
             <Suspense fallback={<div className="min-h-[40vh]" aria-hidden="true" />}>
             <Routes location={shownLocation}>
