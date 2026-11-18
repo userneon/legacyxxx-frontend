@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
  * The staff site's shared shape (owner request 2026-10-23: cards, not rows): every tab sits in one centred column,
  * lists are grids of cards, and a card is a flat outline like the rest of the site.
  */
-export const STAFF_BODY = "mx-auto flex w-full max-w-[1320px] flex-col gap-6 px-6 pb-10 pt-5 max-md:px-4"
+export const STAFF_BODY = "mx-auto flex w-full max-w-[var(--lx-w)] flex-col gap-6 px-6 pb-10 pt-5 max-md:px-4"
 export const STAFF_GRID = "grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
 export type Tone = "red" | "amber" | "green" | "sky" | "violet" | "grey"
 

@@ -164,7 +164,7 @@ export function CreatorsPage() {
         </PageBarEnd>
       </PageBar>
       <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 py-6 max-md:px-4">
-        <div className="mx-auto flex max-w-[1320px] flex-col gap-7">
+        <div className="mx-auto flex max-w-[var(--lx-w)] flex-col gap-7">
           {tab === "panel" && isCreator ? (
             <CreatorPanel onAboutSaved={refetch} />
           ) : loading && !data ? (

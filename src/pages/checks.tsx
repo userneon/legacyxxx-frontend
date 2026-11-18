@@ -277,15 +277,15 @@ export function ChecksPage({ embedded = false }: { embedded?: boolean } = {}) {
       </PageBar>
       <div className="chk-stage min-h-0 flex-1 overflow-y-auto px-6 py-5 max-md:px-4">
         {loading && !data ? (
-          <div className="mx-auto grid w-full max-w-[1320px] gap-3 sm:grid-cols-2 xl:grid-cols-3">{Array.from({ length: 6 }, (_, index) => <Skeleton key={index} className="h-[150px] rounded-xl" />)}</div>
+          <div className="mx-auto grid w-full max-w-[var(--lx-w)] gap-3 sm:grid-cols-2 xl:grid-cols-3">{Array.from({ length: 6 }, (_, index) => <Skeleton key={index} className="h-[150px] rounded-xl" />)}</div>
         ) : forbidden ? (
           <p className="py-24 text-center font-mono text-[13px] text-[var(--text-dim)]">&gt; access denied: only an admin, manager or owner can use this page.</p>
         ) : error || !data ? (
           <p className="flex items-center justify-center gap-3 py-24 font-mono text-[13px] text-[var(--text-dim)]">could not load the checks.<button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />retry</button></p>
         ) : list.length === 0 ? (
-          <div className="mx-auto w-full max-w-[1320px]"><Protocol onAsk={() => setCreating(true)} /></div>
+          <div className="mx-auto w-full max-w-[var(--lx-w)]"><Protocol onAsk={() => setCreating(true)} /></div>
         ) : (
-          <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-5">
+          <div className="mx-auto flex w-full max-w-[var(--lx-w)] flex-col gap-5">
             <div className="flex flex-col gap-1">
               <PromptLine className="text-[20px] font-semibold text-[var(--text)]" text="checks // console" />
               <p className="font-mono text-[12px] text-[var(--text-dim)]">// {counts.waiting} waiting · {counts.flagged} flagged · latest {counts.all}</p>
