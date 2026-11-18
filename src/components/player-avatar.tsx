@@ -23,6 +23,7 @@ export function PlayerAvatar({
   imageClassName,
   style,
   frame,
+  square = false,
 }: {
   avatar?: string
   name?: string
@@ -31,6 +32,8 @@ export function PlayerAvatar({
   style?: React.CSSProperties
   /** An avatar frame (id): the picture and its frame together fill the box the avatar was given, so a framed player sits in a row like everyone else. */
   frame?: string | null
+  /** A rounded square instead of a circle (the profile page, owner 2026-11-18). */
+  square?: boolean
 }) {
   const [failed, setFailed] = useState(false)
   const initials = (name?.trim() || "?").slice(0, 2).toUpperCase()
@@ -41,7 +44,7 @@ export function PlayerAvatar({
 
   // Every avatar is a circle (owner request 2026-11-01).
   const picture = (
-    <div style={style} className={cn("relative flex shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br from-secondary to-muted font-bold", boxClass, "rounded-full")}>
+    <div style={style} className={cn("relative flex shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br from-secondary to-muted font-bold", boxClass, square ? "rounded-[22%]" : "rounded-full")}>
       {showImage ? <OptimizedImage src={avatar!} width={96} height={96} alt="" className={cn("absolute inset-0 h-full w-full max-w-none object-cover object-center", imageClassName)} onError={() => setFailed(true)} /> : initials}
     </div>
   )

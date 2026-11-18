@@ -79,13 +79,15 @@ function yearsSince(value: string) {
 function Avatar({ user }: { user: ProfileOverview["user"] }) {
   const animated = user.steamMedia?.animatedAvatar
   const [ready, setReady] = useState(false)
-  // A round picture; the Steam animated avatar, when there is one, fades in over it.
+  // A rounded square (owner 2026-11-18: "make the Profile square"), except under a ring frame, which is a circle and needs a round picture.
+  const square = !isRingFrame(user.frame)
+  // A picture; the Steam animated avatar, when there is one, fades in over it.
   return (
     <span className="relative flex size-[116px] shrink-0 items-center justify-center" style={{ "--lx-ring-inset": "-7%", "--lx-ring-size": "116px" } as React.CSSProperties}>
       {isRingFrame(user.frame) && <RingFrame id={user.frame} />}
-      <span className="relative size-[108px] overflow-hidden rounded-full border-4 border-[var(--card-surface)] bg-[var(--line)]">
-        <PlayerAvatar avatar={user.avatar} name={user.username} className="size-full text-2xl" />
-        {animated && <img src={animated} alt="" aria-hidden="true" onLoad={() => setReady(true)} className={cn("absolute inset-0 size-full rounded-full object-cover transition-opacity duration-300", ready ? "opacity-100" : "opacity-0")} />}
+      <span className={cn("relative size-[108px] overflow-hidden border-4 border-[var(--card-surface)] bg-[var(--line)]", square ? "rounded-[24%]" : "rounded-full")}>
+        <PlayerAvatar avatar={user.avatar} name={user.username} square={square} className="size-full text-2xl" />
+        {animated && <img src={animated} alt="" aria-hidden="true" onLoad={() => setReady(true)} className={cn("absolute inset-0 size-full object-cover transition-opacity duration-300", square ? "rounded-[22%]" : "rounded-full", ready ? "opacity-100" : "opacity-0")} />}
       </span>
     </span>
   )
