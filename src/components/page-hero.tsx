@@ -83,9 +83,10 @@ export function PageHero({ hero }: { hero: Hero | null }) {
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[clamp(420px,58vw,880px)] overflow-hidden [mask-image:linear-gradient(180deg,#000_64%,transparent)]">
         {layers.map((layer) => (
           <div key={layer.id} className={cn("absolute inset-0 transition-opacity duration-[700ms] ease-out motion-reduce:transition-none", layer.id === shown ? "opacity-100" : "opacity-0")}>
-            <img src={layer.hero.lq} alt="" aria-hidden="true" style={{ objectPosition: layer.hero.position }} className="absolute inset-0 size-full origin-[78%_0] scale-[1.12] object-cover blur-xl [mask-image:linear-gradient(90deg,transparent_8%,rgba(0,0,0,0.5)_34%,#000_64%)]" />
-            <ArtImage src={layer.hero.src} alt="" decoding="async" style={{ objectPosition: layer.hero.position }} className="absolute inset-0 size-full origin-[78%_0] scale-[1.12] object-cover [mask-image:linear-gradient(90deg,transparent_8%,rgba(0,0,0,0.5)_34%,#000_64%)]" />
-            <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
+            <img src={layer.hero.lq} alt="" aria-hidden="true" style={{ objectPosition: layer.hero.position }} className="absolute inset-0 size-full origin-[78%_0] scale-[1.05] object-cover blur-xl [mask-image:linear-gradient(90deg,transparent_8%,rgba(0,0,0,0.5)_34%,#000_64%)]" />
+            <ArtImage src={layer.hero.src} alt="" decoding="async" style={{ objectPosition: layer.hero.position }} className="absolute inset-0 size-full origin-[78%_0] scale-[1.05] object-cover [mask-image:linear-gradient(90deg,transparent_8%,rgba(0,0,0,0.5)_34%,#000_64%)]" />
+            <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/35 to-transparent" />
+            <div className="lx-grain absolute inset-0" />
           </div>
         ))}
       </div>
@@ -93,7 +94,7 @@ export function PageHero({ hero }: { hero: Hero | null }) {
       <div
         aria-hidden="true"
         style={{ left: "var(--lx-panel-left, 0px)", right: "var(--lx-panel-right, 0px)", top: "var(--lx-panel-top, 0px)", bottom: "var(--lx-panel-bottom, 0px)" }}
-        className={cn("pointer-events-none fixed z-0 bg-[radial-gradient(70%_45%_at_100%_100%,rgba(255,140,50,0.09),transparent),linear-gradient(180deg,rgba(14,20,46,0.6),rgba(6,6,6,0)_85%)] transition-opacity duration-700 motion-reduce:transition-none", shown === null ? "opacity-0" : "opacity-100")}
+        className={cn("pointer-events-none fixed z-0 bg-[radial-gradient(70%_45%_at_100%_100%,rgba(255,140,50,0.09),transparent),linear-gradient(180deg,rgba(14,20,46,0.28),rgba(6,6,6,0)_85%)] transition-opacity duration-700 motion-reduce:transition-none", shown === null ? "opacity-0" : "opacity-100")}
       />
     </>
   )
