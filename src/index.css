@@ -1995,3 +1995,6 @@ html[data-site-bg="calm"] [data-slot="sidebar-inset"]::before { content: ""; pos
 .lx-perk-badge[data-tier="tier2"], .lx-profile-perk[data-tier="tier2"] { --perk: #f6c945; --perk-edge: #ffe9a6; }
 .lx-perk-badge[data-tier="tier3"], .lx-profile-perk[data-tier="tier3"] { --perk: #8cc4ff; --perk-edge: #fff1c4; }
 .lx-perk-badge[data-tier="tier5"], .lx-profile-perk[data-tier="tier5"] { --perk: #4f8dff; --perk-edge: #f6c945; }
+
+/* The Owned/Worn chip on a Shop tile floats over the picture: `.lx-tile-panel > *` makes every child `position: relative`, which put the chip in the flow and pushed the picture down (owner 2026-11-18: "the Owned chip breaks the Background card"). */
+.lx-tile-panel > .lx-tile-chip { position: absolute; z-index: 2; }

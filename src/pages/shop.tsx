@@ -338,7 +338,7 @@ export function ShopPage() {
                 {/* The rarity as a thin line along the bottom, never a surface. */}
                 <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: rarityOf(item.rarity).color }} />
                 <div className="lx-tile-panel relative">
-                  {item.owned && !item.testing && <span className="absolute left-2 top-2 z-[2] inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-[5px] border border-white/10 bg-black/45 px-2 text-[11.5px] font-semibold text-[var(--text)] backdrop-blur-sm"><span aria-hidden="true" className="size-1.5 rounded-full bg-[var(--status-green)]" />{worn[item.kind] === item.id ? "Worn" : "Owned"}{item.expiresAt ? <><span aria-hidden="true" className="text-[var(--text-dim)]">•</span><span className="text-[var(--text-2)]">{timeLeft(item.expiresAt)}</span></> : null}</span>}
+                  {item.owned && !item.testing && <span className="lx-tile-chip absolute left-2 top-2 z-[2] inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-[5px] border border-white/10 bg-black/45 px-2 text-[11.5px] font-semibold text-[var(--text)] backdrop-blur-sm"><span aria-hidden="true" className="size-1.5 rounded-full bg-[var(--status-green)]" />{worn[item.kind] === item.id ? "Worn" : "Owned"}{item.expiresAt ? <><span aria-hidden="true" className="text-[var(--text-dim)]">•</span><span className="text-[var(--text-2)]">{timeLeft(item.expiresAt)}</span></> : null}</span>}
                   {shown.kind === "frame" ? (
                     <FrameStage accent={accentOf(shown)} height={148}><ItemArt item={shown} avatar={user?.avatar} username={username} size={88} /></FrameStage>
                   ) : (
