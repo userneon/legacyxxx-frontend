@@ -1198,9 +1198,11 @@ export function SkinchangerPage() {
       grid.appendChild(band)
       const sweep = band.animate(
         [
-          { transform: `translateX(${width}px)`, opacity: 0 },
-          { transform: `translateX(${width * 0.6}px)`, opacity: 1, offset: 0.25 },
-          { transform: `translateX(${-width * 0.45}px)`, opacity: 0 },
+          // The band (45% of the grid) stays inside the grid the whole way, from its right edge to its left: the page's scroll area clips what goes past either side, which cut the
+          // band off with a hard edge where it was brightest (owner report 2026-11-18).
+          { transform: `translateX(${width * 0.55}px)`, opacity: 0 },
+          { transform: `translateX(${width * 0.4}px)`, opacity: 1, offset: 0.25 },
+          { transform: "translateX(0px)", opacity: 0 },
         ],
         { duration: 1100, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" },
       )
