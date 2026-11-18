@@ -55,7 +55,7 @@ const SLIDES: { key: string; src: string; label: string; alt: string; focus?: st
   { key: "caught", src: caughtSlide, label: "Did you think you wouldn't get caught?", focus: "50% 30%", alt: "Two officers in a metro carriage arrest a masked man while another holds a second man down, seen through a camera viewfinder" },
 ]
 
-export function HeroSlider({ className }: { className?: string }) {
+export function HeroSlider({ className, bare = false, children }: { className?: string; bare?: boolean; children?: React.ReactNode }) {
   const slides = SLIDES
   const [index, setIndex] = useState(0)
   const go = (next: number) => setIndex((next + slides.length) % slides.length)
@@ -68,7 +68,7 @@ export function HeroSlider({ className }: { className?: string }) {
     return () => window.clearInterval(id)
   }, [many, paused, slides.length])
   return (
-    <section aria-roledescription="carousel" aria-label="LXC" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)} className={cn("lx-glass relative isolate min-h-[180px] overflow-hidden rounded-xl", className)}>
+    <section aria-roledescription="carousel" aria-label="LXC" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)} className={cn("relative isolate min-h-[180px] overflow-hidden", bare ? "rounded-[24px] [mask-image:linear-gradient(180deg,#000_78%,transparent)]" : "lx-glass rounded-xl", className)}>
       {slides.map((slide, position) => (
         <img
           key={slide.key}
@@ -82,7 +82,8 @@ export function HeroSlider({ className }: { className?: string }) {
         />
       ))}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--card-surface)]/85 via-transparent to-transparent" />
-      <div className="absolute inset-x-5 bottom-4 flex items-end justify-between gap-3">
+      {children && <div className="absolute inset-x-6 top-1/2 z-[2] -translate-y-1/2 max-sm:inset-x-4">{children}</div>}
+      <div className={cn("absolute inset-x-5 z-[2] flex items-end justify-between gap-3", bare ? "bottom-12" : "bottom-4")}>
         <div className="flex flex-col gap-2">
           {many && (
             <div className="flex gap-1.5" aria-hidden="true">

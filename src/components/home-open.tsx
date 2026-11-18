@@ -17,24 +17,23 @@ export function HomeHero({ onNavigate }: { onNavigate: (page: PageId) => void })
   const { data: stats } = useApiQuery<HomeStats>((signal) => serversService.getHomeStats({ signal }), { queryKey: "home-hero-stats", keepPreviousData: true })
   const online = stats?.playersOnline
   return (
-    <section aria-label="LXC" className="relative isolate w-full overflow-hidden">
-      {/* The top is short now (owner 2026-11-18: "the top space is too big"): the words on the left, the ad slider on the right. */}
-      <div className="mx-auto grid w-full max-w-[var(--lx-w)] items-center gap-8 px-11 pb-6 pt-[104px] max-sm:px-5 @4xl:grid-cols-[minmax(0,1fr)_minmax(0,540px)]">
-      <div className="lx-hero-copy flex w-full flex-col justify-center">
-        {typeof online === "number" && (
-          <span className="flex items-center gap-2.5 text-[12px] font-semibold uppercase tracking-[0.2em] text-[var(--text-dim)]">
-            <span aria-hidden="true" className="size-[7px] rounded-full bg-[var(--status-green)] shadow-[0_0_10px_var(--status-green)]" />
-            <CountText value={online.toLocaleString()} durationMs={1400} delayMs={500} /> {online === 1 ? "player" : "players"} online
-          </span>
-        )}
-        <h1 className="mt-5 max-w-[620px] text-[clamp(40px,6vw,68px)] font-bold leading-[0.98] tracking-[-0.03em] text-[var(--text)]">Play CS2.<br /><span className="text-[var(--text-dim)]">Climb the ladder.</span></h1>
-        <p className="mt-5 max-w-[430px] text-[16px] leading-relaxed text-[var(--text-muted)]">Ranked 5v5, fun servers and a clan of your own. One click to join.</p>
-        <div className="mt-8 flex flex-wrap gap-3.5">
-          <button type="button" onClick={() => onNavigate("play-5vs5")} className="lx-primary-button lx-hover-blue inline-flex h-[50px] items-center rounded-xl px-7 text-[15px] font-bold">Play now</button>
-          <button type="button" onClick={() => onNavigate("leaders")} className="inline-flex h-[50px] items-center rounded-xl border border-white/30 px-6 text-[15px] font-semibold text-[var(--text)] transition-colors hover:border-white/70 hover:bg-white/[0.06]">See the ladder</button>
-        </div>
-      </div>
-      <HeroSlider className="h-[clamp(210px,22vw,300px)] w-full" />
+    <section aria-label="LXC" className="relative isolate w-full">
+      {/* The slider is the top of Home (owner 2026-11-18: "put the slider where Play CS2 is; it looked like a separate thing"): full width of the page, no frame, fading into the page below. */}
+      <div className="mx-auto w-full max-w-[var(--lx-w)] px-4 pb-2 pt-[84px] @2xl:px-6">
+        <HeroSlider bare className="h-[clamp(280px,31vw,440px)] w-full">
+          <div className="flex max-w-[520px] flex-col items-start gap-4 max-sm:max-w-none">
+            {typeof online === "number" && (
+              <span className="flex items-center gap-2.5 rounded-full bg-black/40 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-2)] backdrop-blur-sm">
+                <span aria-hidden="true" className="size-[7px] rounded-full bg-[var(--status-green)]" />
+                <CountText value={online.toLocaleString()} durationMs={1400} delayMs={500} /> {online === 1 ? "player" : "players"} online
+              </span>
+            )}
+            <div className="flex flex-wrap gap-3">
+              <button type="button" onClick={() => onNavigate("play-5vs5")} className="lx-primary-button lx-hover-blue inline-flex h-[46px] items-center rounded-xl px-6 text-[14px] font-bold">Play now</button>
+              <button type="button" onClick={() => onNavigate("leaders")} className="inline-flex h-[46px] items-center rounded-xl border border-white/30 bg-black/30 px-5 text-[14px] font-semibold text-[var(--text)] backdrop-blur-sm transition-colors hover:border-white/70">See the ladder</button>
+            </div>
+          </div>
+        </HeroSlider>
       </div>
     </section>
   )
