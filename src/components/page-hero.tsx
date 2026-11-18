@@ -18,6 +18,19 @@ import heroSkin from "@/assets/home/hero-skin.webp"
 import heroSkinCt from "@/assets/home/hero-skin-ct.webp"
 import heroProfile from "@/assets/home/hero-profile.webp"
 import heroShop from "@/assets/home/hero-shop.webp"
+import cutShop from "@/assets/agents/shop.webp"
+import cutProfile from "@/assets/agents/profile.webp"
+import cutSkin from "@/assets/agents/skin.webp"
+import cutSkinCt from "@/assets/agents/skin-ct.webp"
+import cutClan from "@/assets/agents/clan.webp"
+import cutWallet from "@/assets/agents/wallet.webp"
+import cutFun from "@/assets/agents/fun.webp"
+import cutPro from "@/assets/agents/pro.webp"
+import cutTournament from "@/assets/agents/tournament.webp"
+import cutReviews from "@/assets/agents/reviews.webp"
+import cutLeaders from "@/assets/agents/leaders.webp"
+import cutPenalties from "@/assets/agents/penalties.webp"
+import cutFiveV from "@/assets/agents/5x5.webp"
 
 /**
  * A picture across the top of a page (owner request 2026-11-17): the owner's agent on the right, fading out to the left, the top bar lying over it. Only the pages listed here have one.
@@ -105,8 +118,8 @@ export function PageHero({ hero }: { hero: Hero | null }) {
  * several designs"). `bg` is the picture behind the page (the earlier way); the others sit in the flow of the page, at the picture's own size or smaller, with the page's
  * name over it. The mode is picked with ?hero=card|strip|split|compact|bg in the address and kept in this browser.
  */
-export type HeroMode = "bg" | "card" | "strip" | "split" | "compact"
-const MODES: HeroMode[] = ["bg", "card", "strip", "split", "compact"]
+export type HeroMode = "bg" | "card" | "strip" | "split" | "compact" | "agent"
+const MODES: HeroMode[] = ["bg", "card", "strip", "split", "compact", "agent"]
 
 export function readHeroMode(): HeroMode {
   try {
@@ -116,6 +129,12 @@ export function readHeroMode(): HeroMode {
     if (kept && (MODES as string[]).includes(kept)) return kept as HeroMode
   } catch { /* no storage: the default */ }
   return "bg"
+}
+
+/** The agent alone, background removed, per picture. */
+const CUTS: Record<string, string> = {
+  [heroShop]: cutShop, [heroProfile]: cutProfile, [heroSkin]: cutSkin, [heroSkinCt]: cutSkinCt, [heroClan]: cutClan, [heroWallet]: cutWallet, [heroFun]: cutFun,
+  [heroPro]: cutPro, [heroTournament]: cutTournament, [heroReviews]: cutReviews, [heroLeaders]: cutLeaders, [heroPenalties]: cutPenalties, [hero5x5]: cutFiveV,
 }
 
 const WASH = "linear-gradient(90deg, rgba(6,8,14,0.94) 0%, rgba(6,8,14,0.62) 36%, rgba(6,8,14,0.08) 68%, transparent 100%)"
@@ -128,6 +147,18 @@ export function HeroBanner({ hero, mode }: { hero: Hero; mode: Exclude<HeroMode,
       {hero.line && <p className="max-w-[420px] text-[14px] leading-snug text-[var(--text-muted)]">{hero.line}</p>}
     </div>
   )
+  if (mode === "agent") {
+    const cut = CUTS[hero.src]
+    return (
+      <section aria-hidden="true" className="relative isolate mb-4 ml-[calc(50%-50vw)] h-[clamp(240px,22vw,340px)] w-screen shrink-0 overflow-hidden">
+        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 38% 90% at 78% 70%, rgba(120,140,255,0.26), transparent 70%), radial-gradient(ellipse 30% 60% at 70% 100%, rgba(255,160,90,0.12), transparent 70%)" }} />
+        <div className="relative mx-auto h-full w-full max-w-[var(--lx-w)] pt-14">
+          {words("text-[clamp(32px,3.6vw,52px)]")}
+          {cut && <img key={cut} src={cut} alt="" decoding="async" className="pointer-events-none absolute bottom-0 right-0 h-[80%] w-auto max-w-[55%] select-none object-contain object-bottom [mask-image:linear-gradient(180deg,#000_78%,transparent)] max-sm:opacity-60" />}
+        </div>
+      </section>
+    )
+  }
   if (mode === "card") {
     return (
       <section aria-hidden="true" className="relative isolate mb-6 mt-2 h-[clamp(190px,17vw,290px)] shrink-0 overflow-hidden rounded-[20px] border border-white/10 bg-[#07080d]">

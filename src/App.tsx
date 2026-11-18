@@ -191,7 +191,7 @@ export function App() {
           <ProfileBlock onNavigate={handleNavigate} />
         </header>
 
-        <LxcHeader currentPage={currentPage} onNavigate={handleNavigate} overlay={(shownPage === "home" || Boolean(hero) || heroMode === "strip" && Boolean(bannerHero)) && !scrolled} floating={shownPage === "home" || Boolean(hero) || heroMode === "strip" && Boolean(bannerHero)} className="max-[559px]:hidden" />
+        <LxcHeader currentPage={currentPage} onNavigate={handleNavigate} overlay={(shownPage === "home" || Boolean(hero) || (heroMode === "strip" || heroMode === "agent") && Boolean(bannerHero)) && !scrolled} floating={shownPage === "home" || Boolean(hero) || (heroMode === "strip" || heroMode === "agent") && Boolean(bannerHero)} className="max-[559px]:hidden" />
 
         <button
           type="button"
@@ -206,7 +206,7 @@ export function App() {
           {/* Leaders scrolls its table inside the panel (sticky header, your row pinned under it), so it gets the panel's height instead of growing past it. */}
           <PageHero hero={hero} />
           {serious && <SeriousDetail />}
-          <div key={shownSection} className={cn("page-enter flex flex-col", "relative z-10 mx-auto w-full", shownPage !== "home" && "max-w-[var(--lx-w)]", hero && shownPage !== "home" && "lx-hero-page pt-[76px]", bannerHero && (heroMode === "strip" ? "pt-0" : "pt-2"), serious && "lx-serious", shownSection === "/leaders" ? "h-full" : "min-h-full", leaving && "page-leave")}>
+          <div key={shownSection} className={cn("page-enter flex flex-col", "relative z-10 mx-auto w-full", shownPage !== "home" && "max-w-[var(--lx-w)]", hero && shownPage !== "home" && "lx-hero-page pt-[76px]", bannerHero && (heroMode === "strip" || heroMode === "agent" ? "pt-0" : "pt-2"), serious && "lx-serious", shownSection === "/leaders" ? "h-full" : "min-h-full", leaving && "page-leave")}>
             {bannerHero && heroMode !== "bg" && <HeroBanner hero={bannerHero} mode={heroMode} />}
             <RouteErrorBoundary resetKey={shownLocation.pathname}>
             <Suspense fallback={<div className="min-h-[40vh]" aria-hidden="true" />}>
