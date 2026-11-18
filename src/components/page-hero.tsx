@@ -135,6 +135,19 @@ const CUTS: Record<string, string> = {
   [heroPro]: cutPro, [heroTournament]: cutTournament, [heroReviews]: cutReviews, [heroLeaders]: cutLeaders, [heroPenalties]: cutPenalties, [hero5x5]: cutFiveV,
 }
 
+/** The backdrop behind the agent (owner request 2026-11-18: "show me many backgrounds"): ?bg=dusk|aurora|spotlight|grid|contour|ember|frost|mono|ambient, kept in this browser. */
+export const HERO_BGS = ["dusk", "aurora", "spotlight", "grid", "contour", "ember", "frost", "mono", "ambient"] as const
+export type HeroBg = (typeof HERO_BGS)[number]
+export function readHeroBg(): HeroBg {
+  try {
+    const asked = new URLSearchParams(window.location.search).get("bg")
+    if (asked && (HERO_BGS as readonly string[]).includes(asked)) { window.localStorage.setItem("lx-hero-bg", asked); return asked as HeroBg }
+    const kept = window.localStorage.getItem("lx-hero-bg")
+    if (kept && (HERO_BGS as readonly string[]).includes(kept)) return kept as HeroBg
+  } catch { /* no storage: the default */ }
+  return "dusk"
+}
+
 const WASH = "linear-gradient(90deg, rgba(6,8,14,0.94) 0%, rgba(6,8,14,0.62) 36%, rgba(6,8,14,0.08) 68%, transparent 100%)"
 
 export function HeroBanner({ hero, mode }: { hero: Hero; mode: Exclude<HeroMode, "bg"> }) {
@@ -147,9 +160,11 @@ export function HeroBanner({ hero, mode }: { hero: Hero; mode: Exclude<HeroMode,
   )
   if (mode === "agent") {
     const cut = CUTS[hero.src]
+    const bg = readHeroBg()
     return (
       <section aria-hidden="true" className="relative isolate mb-4 ml-[calc(50%-50vw)] h-[clamp(240px,22vw,340px)] w-screen shrink-0 overflow-hidden">
-        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 38% 90% at 78% 70%, rgba(120,140,255,0.26), transparent 70%), radial-gradient(ellipse 30% 60% at 70% 100%, rgba(255,160,90,0.12), transparent 70%)" }} />
+        <div className={cn("lx-bgfx absolute inset-0", `lx-bgfx-${bg}`)} />
+        {bg === "ambient" && cut && <img aria-hidden="true" src={cut} alt="" className="pointer-events-none absolute -right-[6%] top-[-30%] h-[170%] w-auto max-w-none scale-[1.4] opacity-[0.38] blur-[70px] saturate-150" />}
         <div className="relative mx-auto h-full w-full max-w-[var(--lx-w)] pt-14">
           {words("text-[clamp(32px,3.6vw,52px)]")}
           {cut && <img key={cut} src={cut} alt="" decoding="async" className="pointer-events-none absolute bottom-0 right-0 h-[80%] w-auto max-w-[55%] select-none object-contain object-bottom [mask-image:linear-gradient(180deg,#000_78%,transparent)] max-sm:opacity-60" />}

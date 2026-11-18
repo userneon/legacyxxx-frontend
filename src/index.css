@@ -1953,3 +1953,16 @@ html:has([data-lx-gate]) [data-slot="sidebar-inset"] { background: transparent; 
 :root { --lx-w: 1320px; }
 @media (min-width: 1500px) { :root { --lx-w: min(1560px, calc(100vw - 8rem)); } }
 @media (min-width: 1800px) { :root { --lx-w: min(1760px, calc(100vw - 10rem)); } }
+
+
+/* The backdrop behind the page-top agent (see HERO_BGS in page-hero.tsx). Every one is dark and calm, fading into the page at the bottom. */
+.lx-bgfx { -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent); mask-image: linear-gradient(180deg, #000 55%, transparent); pointer-events: none; }
+.lx-bgfx-dusk { background: radial-gradient(ellipse 46% 80% at 78% 90%, rgba(255,150,90,0.20), transparent 70%), radial-gradient(ellipse 60% 110% at 80% 20%, rgba(110,120,255,0.20), transparent 72%), linear-gradient(180deg, #0e1226, #0a0a0a); }
+.lx-bgfx-aurora { background: radial-gradient(ellipse 40% 70% at 70% 30%, rgba(60,200,170,0.22), transparent 70%), radial-gradient(ellipse 36% 70% at 88% 60%, rgba(150,90,255,0.24), transparent 70%), radial-gradient(ellipse 50% 60% at 40% 0%, rgba(70,110,255,0.14), transparent 70%); }
+.lx-bgfx-spotlight { background: conic-gradient(from 200deg at 80% -10%, transparent 0deg, rgba(255,255,255,0.12) 18deg, transparent 38deg), radial-gradient(ellipse 30% 70% at 80% 100%, rgba(255,255,255,0.08), transparent 70%); }
+.lx-bgfx-grid { background-image: linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px); background-size: 44px 44px; -webkit-mask-image: radial-gradient(ellipse 55% 90% at 80% 55%, #000, transparent 75%); mask-image: radial-gradient(ellipse 55% 90% at 80% 55%, #000, transparent 75%); }
+.lx-bgfx-contour { background: radial-gradient(ellipse 50% 100% at 82% 60%, rgba(255,255,255,0.05), transparent 70%), repeating-radial-gradient(ellipse 60% 120% at 82% 70%, transparent 0 22px, rgba(255,255,255,0.075) 22px 23px); }
+.lx-bgfx-ember { background: radial-gradient(ellipse 60% 70% at 80% 110%, rgba(255,110,50,0.34), transparent 70%), radial-gradient(ellipse 30% 50% at 92% 100%, rgba(255,200,120,0.18), transparent 70%); }
+.lx-bgfx-frost { background: radial-gradient(ellipse 55% 90% at 82% 0%, rgba(170,210,255,0.22), transparent 70%), radial-gradient(ellipse 40% 60% at 70% 100%, rgba(120,160,230,0.10), transparent 70%); }
+.lx-bgfx-mono { background: repeating-linear-gradient(90deg, transparent 0 79px, rgba(255,255,255,0.05) 79px 80px), radial-gradient(ellipse 40% 80% at 80% 60%, rgba(255,255,255,0.07), transparent 70%); }
+.lx-bgfx-ambient { background: none; }
