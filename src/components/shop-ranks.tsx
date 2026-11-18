@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import { Check, ChevronDown, Lock } from "lucide-react"
+import { Check, Lock } from "lucide-react"
 import { toast } from "sonner"
 
 import emblem2 from "@/assets/ranks/emblem-2.webp"
@@ -98,7 +98,6 @@ export function ShopRanks({ catalogue, qa = false }: { catalogue: PerkCatalogue;
   const [invoice, setInvoice] = useState<PerkInvoice | null>(null)
   const [picker, setPicker] = useState(false)
   // The three cards' Benefits open and close together, so the cards stay level (owner request 2026-11-07).
-  const [benefitsOpen, setBenefitsOpen] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
   const grant = mine.data?.grant ?? null
   const pending = mine.data?.pending ?? null
@@ -155,19 +154,17 @@ export function ShopRanks({ catalogue, qa = false }: { catalogue: PerkCatalogue;
         </section>
       )}
 
+      {/* Every rank gives the same four things, so they are said once here and not five times in the cards (owner 2026-11-18: "the benefits do not please me"). */}
+      <ul className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[12px] text-[var(--text-2)]">
+        <li className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-faint)]">Every rank</li>
+        {[`Works on ${modes}`, "Emblem and name in Tab, chat, Leaders, reviews", "Profile badge, banner, title and light", "Renew before it ends to pick again"].map((line) => <li key={line} className="flex items-center gap-1.5"><Check className="size-3 shrink-0 text-[var(--status-green)]" aria-hidden="true" />{line}</li>)}
+      </ul>
       <div className="@container"><ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 scrollbar-hidden [&>li]:w-[min(72vw,210px)] [&>li]:shrink-0 [&>li]:snap-start @[860px]:mx-0 @[860px]:grid @[860px]:snap-none @[860px]:grid-cols-5 @[860px]:overflow-visible @[860px]:px-0 @[860px]:[&>li]:w-auto">
         {catalogue.tiers.map((tier, tierIndex) => {
           const days = daysOf(tier)
           const price = tier.prices[String(days)]
           const mineHere = grant?.tier === tier.key
           const otherRunning = Boolean(grant) && !mineHere
-          const benefits = [
-            `${tier.quota} ${tier.quota === 1 ? "command" : "commands"} you pick yourself`,
-            `Works on ${modes}`,
-            "Emblem and name in Tab, chat, Leaders, reviews",
-            "Profile badge, banner, title and light",
-            "Renew before it ends to pick again",
-          ]
           return (
             <li key={tier.key} className="@container flex min-w-0 flex-col gap-2">
               {/* One card: the gem art with its text, length, price and Buy on its lower panel, and Benefits as the card's own bottom section (owner request 2026-11-13: everything inside the card). */}
@@ -197,24 +194,16 @@ export function ShopRanks({ catalogue, qa = false }: { catalogue: PerkCatalogue;
                 </div>
                 {otherRunning && !qa && <span className="text-[11px] text-white/65">Another rank is running. It must end first.</span>}
               </div>
-              <div className="group relative flex-1 border-t border-white/10 bg-black/20 px-3 text-[12px] text-[var(--text-muted)]" data-open={benefitsOpen}>
-                <button type="button" aria-expanded={benefitsOpen} onClick={() => setBenefitsOpen((open) => !open)} className="flex h-8 w-full cursor-pointer items-center justify-between text-[var(--text-2)]"><span className="@max-[230px]:hidden">Benefits and how it looks</span><span className="hidden @max-[230px]:inline">Benefits</span><ChevronDown className="size-3.5 transition-transform group-data-[open=true]:rotate-180" aria-hidden="true" /></button>
-                <div className="grid transition-[grid-template-rows,opacity] duration-300 ease-out [grid-template-rows:0fr] opacity-0 group-data-[open=true]:[grid-template-rows:1fr] group-data-[open=true]:opacity-100 motion-reduce:transition-none">
-                  <div className="min-h-0 overflow-hidden">
-                <div className="mt-2">
-                  {/* What the rank puts on a profile: its banner, badge and title, shown on a sample name. */}
-                  <div aria-label={`${tier.name} on a profile`} className="relative isolate h-[72px] overflow-hidden rounded-lg border border-[var(--line-soft)] @max-[260px]:h-[108px]">
-                    <ProfileBanner fx={`perk-${tier.key}`} className="h-full" />
-                    <div className="relative flex h-full items-center gap-3 px-3 @max-[260px]:flex-col @max-[260px]:items-start @max-[260px]:justify-center @max-[260px]:gap-2">
-                      <span className="flex min-w-0 flex-col gap-0.5">
-                        <span className="truncate text-[15px] font-bold text-[var(--text)]">Your name</span>
-                        <PerkTitle perk={{ tier: tier.key, name: tier.name }} />
-                      </span>
-                      <span className="ml-auto shrink-0 @max-[260px]:ml-0"><PerkBadge tier={tier.key} name={tier.name} /></span>
-                    </div>
-                  </div>
-                </div>
-                <ul className="mb-4 mt-3 flex flex-col gap-2 text-[12px] leading-snug text-[var(--text-2)]">{benefits.map((line) => <li key={line} className="flex items-start gap-2"><Check className="mt-[3px] size-3 shrink-0 text-[var(--status-green)]" aria-hidden="true" />{line}</li>)}</ul>
+              {/* How the rank looks on a profile (always shown, it is the part that differs): its banner, badge and title on a sample name. What every rank shares is said once above the cards. */}
+              <div className="mt-auto border-t border-white/10 bg-black/20 p-3">
+                <div aria-label={`${tier.name} on a profile`} className="relative isolate h-[72px] overflow-hidden rounded-lg border border-[var(--line-soft)] @max-[260px]:h-[108px]">
+                  <ProfileBanner fx={`perk-${tier.key}`} className="h-full" />
+                  <div className="relative flex h-full items-center gap-3 px-3 @max-[260px]:flex-col @max-[260px]:items-start @max-[260px]:justify-center @max-[260px]:gap-2">
+                    <span className="flex min-w-0 flex-col gap-0.5">
+                      <span className="truncate text-[15px] font-bold text-[var(--text)]">Your name</span>
+                      <PerkTitle perk={{ tier: tier.key, name: tier.name }} />
+                    </span>
+                    <span className="ml-auto shrink-0 @max-[260px]:ml-0"><PerkBadge tier={tier.key} name={tier.name} /></span>
                   </div>
                 </div>
               </div>
