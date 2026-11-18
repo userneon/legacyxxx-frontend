@@ -26,7 +26,7 @@ const TABS: Array<{ value: Tab; label: string }> = [
 ]
 
 const label = "text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-dim)]"
-const card = "lx-glass rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]"
+const card = "lx-glass lx-wallet-panel rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]"
 
 const WEEKDAY = ["S", "M", "T", "W", "T", "F", "S"]
 
@@ -53,13 +53,13 @@ function Activity({ entries, empty }: { entries: WalletTransaction[]; empty: str
         const gain = entry.amount > 0
         return (
           <li key={entry.id} className="flex items-center gap-3 px-5 py-3">
-            <span className={cn("grid size-[34px] shrink-0 place-items-center rounded-[9px] border", gain ? "border-[var(--status-green)]/30 bg-[var(--status-green)]/10 text-[var(--status-green)]" : "border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]")}>{lineIcon(entry)}</span>
+            <span className={cn("grid size-[34px] shrink-0 place-items-center rounded-[9px] border", gain ? "border-white/10 bg-white/[0.04] text-[rgb(150_180_255)]" : "border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]")}>{lineIcon(entry)}</span>
             <span className="flex min-w-0 flex-1 flex-col gap-0.5">
               <span className="truncate text-[13px] font-semibold text-[var(--text)]" title={entry.reason}>{entry.reason}</span>
               <RelativeTime value={entry.at} className="text-[11px] text-[var(--text-dim)]" />
             </span>
             <span className="flex flex-col items-end gap-0.5">
-              <span className={cn("text-sm font-bold", gain ? "text-[var(--status-green)]" : entry.kind === "penalty" ? "text-[var(--status-red)]" : "text-[var(--text)]")}>{gain ? "+" : "−"}{Math.abs(entry.amount).toLocaleString()} FOL$</span>
+              <span className={cn("text-sm font-bold", gain ? "text-[rgb(150_180_255)]" : entry.kind === "penalty" ? "text-[rgb(235_130_130)]" : "text-[var(--text)]")}>{gain ? "+" : "−"}{Math.abs(entry.amount).toLocaleString()} FOL$</span>
               <span className="text-[11px] text-[var(--text-dim)]">{entry.balanceAfter.toLocaleString()}</span>
             </span>
           </li>
@@ -93,7 +93,7 @@ function EarningsChart({ daily }: { daily: Array<{ day: string; earned: number }
         {daily.map((entry, index) => (
           <div key={entry.day} className="flex h-full flex-1 items-end" title={`${entry.day}: +${entry.earned} FOL$`}>
             <div
-              className={cn("w-full rounded-[4px]", entry.earned === 0 ? "bg-[var(--line)]" : index === daily.length - 1 ? "bg-[var(--status-green)]" : "bg-[var(--line-strong)]")}
+              className={cn("w-full rounded-[4px]", entry.earned === 0 ? "bg-[var(--line)]" : index === daily.length - 1 ? "bg-[rgb(150_180_255)]" : "bg-white/20")}
               style={{ height: entry.earned === 0 ? 3 : `${Math.max(8, (entry.earned / max) * 100)}%` }}
             />
           </div>
@@ -167,7 +167,7 @@ export function WalletPage() {
                 </div>
                 <div className="relative mt-5 flex items-center gap-2.5 text-[13px] font-semibold text-white/85">
                   <span className="truncate">{user?.username}</span>
-                  {summary && summary.todayEarned > 0 && <span className="rounded-full border border-[var(--status-green)]/40 px-2 py-0.5 text-[11px] text-[var(--status-green)]">+{summary.todayEarned.toLocaleString()} today</span>}
+                  {summary && summary.todayEarned > 0 && <span className="rounded-full border border-white/20 px-2 py-0.5 text-[11px] text-white/80">+{summary.todayEarned.toLocaleString()} today</span>}
                 </div>
               </section>
 
@@ -189,7 +189,7 @@ export function WalletPage() {
                     ].map((stat) => (
                       <div key={stat.name} className="flex flex-col gap-1 px-5 py-4">
                         <span className={label}>{stat.name}</span>
-                        <b className={cn("text-[22px] leading-none", stat.green && "text-[var(--status-green)]")}>{stat.value}</b>
+                        <b className={cn("text-[22px] leading-none", stat.green && "text-[rgb(150_180_255)]")}>{stat.value}</b>
                         <span className="text-[11px] text-[var(--text-dim)]">{stat.hint}</span>
                       </div>
                     ))}
@@ -198,7 +198,7 @@ export function WalletPage() {
                     <div className="flex items-center gap-2"><Flame className="size-4 text-[var(--text-2)]" aria-hidden="true" /><span className={label}>Play streak</span><span className="ml-auto text-xs text-[var(--text-muted)]"><b className="text-[var(--text)]">{summary.streakDays}</b> {summary.streakDays === 1 ? "day" : "days"}</span></div>
                     <div className="flex items-center gap-1.5">
                       {summary.week.map((entry) => (
-                        <span key={entry.day} title={entry.day} className={cn("grid size-[26px] place-items-center rounded-full border text-[10px] font-bold", entry.played ? "border-[var(--text)] bg-[var(--text)] text-[var(--bg)]" : "border-[var(--line)] text-[var(--text-dim)]")}>{dayLetter(entry.day)}</span>
+                        <span key={entry.day} title={entry.day} className={cn("grid size-[26px] place-items-center rounded-full border text-[10px] font-bold", entry.played ? "border-[rgb(150_180_255)]/60 bg-[rgb(150_180_255)]/20 text-[rgb(190_208_255)]" : "border-white/10 text-[var(--text-dim)]")}>{dayLetter(entry.day)}</span>
                       ))}
                       {streakSeven != null && <span className="ml-auto text-[11px] text-[var(--text-dim)]">+{streakSeven.toLocaleString()} FOL$ on day 7</span>}
                     </div>

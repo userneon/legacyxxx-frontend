@@ -37,10 +37,10 @@ export function WalletMenu() {
       aria-current={onWallet ? "page" : undefined}
       className={cn(
         "flex h-9 shrink-0 items-center gap-2 rounded-full px-3.5 text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
-        onWallet ? "bg-[color-mix(in_srgb,var(--status-green)_14%,transparent)] text-[var(--status-green)]" : "text-[var(--text)] hover:bg-[var(--line-soft)]",
+        onWallet ? "bg-white/[0.08] text-[var(--text)]" : "text-[var(--text)] hover:bg-[var(--line-soft)]",
       )}
     >
-      <MaskIcon src="/wallet-icon.webp" className={cn("size-[18px]", onWallet ? "text-[var(--status-green)]" : "text-[var(--text-2)]")} />
+      <MaskIcon src="/wallet-icon.webp" className={cn("size-[18px]", onWallet ? "text-[rgb(150_180_255)]" : "text-[var(--text-2)]")} />
       {/* The balance turns over into the word "Wallet" while the pointer is on it (or the link has focus). */}
       <span className="lx-wallet-flip">
         <span className="lx-wallet-front"><AnimatedNumber value={wallet.balance} durationMs={600} /></span>
