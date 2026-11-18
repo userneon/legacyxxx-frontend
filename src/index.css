@@ -1878,9 +1878,9 @@ html:has([data-lx-gate]) [data-slot="sidebar-inset"] { background: transparent; 
 /* The wallet card (owner request 2026-11-18): a deep-blue glass card with the FOL$ coin in its corner and a thin gold edge on the coin side. */
 .lx-wallet-card {
   background:
-    radial-gradient(90% 70% at 0% 0%, rgb(70 110 255 / 0.30), transparent 62%),
-    radial-gradient(70% 60% at 100% 100%, rgb(230 190 100 / 0.16), transparent 66%),
-    linear-gradient(155deg, #0e1738 0%, #070a18 62%, #05060c 100%);
+    linear-gradient(90deg, rgb(5 7 16 / 0.55), transparent 55%),
+    url("./assets/wallet/card-bg.webp") center / cover no-repeat,
+    #070a18;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.14), 0 24px 50px -28px rgb(0 0 0 / 0.9);
 }
 .lx-wallet-card::before {
