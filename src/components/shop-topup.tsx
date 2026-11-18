@@ -38,8 +38,10 @@ const STATE_LABEL: Record<TopUp["status"], string> = { pending: "Waiting for pay
 function BottomLight({ on }: { on: boolean }) {
   return (
     <>
-      <span aria-hidden="true" className={cn("pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-[radial-gradient(70%_100%_at_50%_100%,rgb(255_255_255/0.16),transparent)] transition-opacity duration-300 group-hover:opacity-100", on ? "opacity-100" : "opacity-40")} />
-      <span aria-hidden="true" className={cn("pointer-events-none absolute inset-x-5 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-white to-transparent transition-opacity duration-300 group-hover:opacity-100", on ? "opacity-90" : "opacity-35")} />
+      {/* A stage light from below: a soft beam that widens as it rises, a pool of light at the foot, and a thin line on the edge. Calm: low when idle, a little higher when picked or hovered. */}
+      <span aria-hidden="true" className={cn("pointer-events-none absolute inset-x-0 bottom-0 h-[78%] [clip-path:polygon(34%_100%,66%_100%,100%_0,0_0)] bg-[linear-gradient(0deg,rgb(150_180_255/0.30),rgb(150_180_255/0.08)_55%,transparent)] blur-[6px] transition-opacity duration-500 group-hover:opacity-100", on ? "opacity-100" : "opacity-45")} />
+      <span aria-hidden="true" className={cn("pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-[radial-gradient(60%_100%_at_50%_100%,rgb(190_208_255/0.28),transparent)] transition-opacity duration-500 group-hover:opacity-100", on ? "opacity-100" : "opacity-55")} />
+      <span aria-hidden="true" className={cn("pointer-events-none absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-[rgb(230_200_130)] to-transparent transition-opacity duration-500 group-hover:opacity-100", on ? "opacity-90" : "opacity-40")} />
     </>
   )
 }
@@ -145,13 +147,13 @@ export function ShopTopUp() {
             {balance != null && after != null && (
               <div className="flex flex-col gap-2">
                 <div className="relative h-3 overflow-hidden rounded-full bg-[var(--line)]" role="img" aria-label={`Balance ${balance.toLocaleString()} FOL$, ${after.toLocaleString()} FOL$ after the top-up`}>
-                  <span className="absolute inset-y-0 left-0 rounded-full bg-[var(--status-green)]/70 transition-[width] duration-500" style={{ width: `${percent(after)}%` }} />
+                  <span className="absolute inset-y-0 left-0 rounded-full bg-[rgb(150_180_255)]/70 transition-[width] duration-500" style={{ width: `${percent(after)}%` }} />
                   <span className="absolute inset-y-0 left-0 rounded-full bg-[var(--accent-solid)] transition-[width] duration-500" style={{ width: `${percent(balance)}%` }} />
                   {clanPrice != null && <span className="absolute inset-y-0 w-0.5 bg-[var(--bg)]" style={{ left: `calc(${percent(clanPrice)}% - 1px)` }} />}
                 </div>
                 <div className="flex items-center justify-between text-[12px] text-[var(--text-muted)]">
                   <span className="flex items-center gap-1.5"><LxMark size={14} />{balance.toLocaleString()}</span>
-                  <span className="flex items-center gap-1.5 font-semibold text-[var(--status-green)]">→ <LxMark size={14} /><AnimatedNumber value={after} durationMs={450} /></span>
+                  <span className="flex items-center gap-1.5 font-semibold text-[rgb(150_180_255)]">→ <LxMark size={14} /><AnimatedNumber value={after} durationMs={450} /></span>
                 </div>
               </div>
             )}
@@ -171,11 +173,11 @@ export function ShopTopUp() {
             return (
               <button key={pack.id} type="button" role="radio" aria-checked={on} onClick={() => setPicked(pack.id)} className={cn("lx-frost group relative flex flex-col items-center gap-2 overflow-hidden rounded-xl border bg-[var(--card-surface)] min-h-[104px] px-2 pb-3 pt-2.5 text-center transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 motion-reduce:transition-none motion-reduce:hover:translate-y-0", on ? "border-[var(--text)] bg-[var(--raised)]" : "border-[var(--line-soft)] hover:border-[var(--line-strong)]")}>
                 <span className="flex h-5 w-full items-center justify-between" aria-hidden={!bonus && bestValue?.id !== pack.id && !on}>
-                  {bonus > 0 ? <span className="rounded-full border border-[var(--status-green)]/40 bg-[var(--status-green)]/10 text-[var(--status-green)] px-1.5 py-px text-[10px] font-semibold">+{bonus}%</span>
-                    : bestValue?.id === pack.id ? <span className="rounded-full border border-[var(--status-green)]/40 bg-[var(--status-green)]/10 text-[var(--status-green)] px-1.5 py-px text-[10px] font-semibold">Best</span> : <span />}
+                  {bonus > 0 ? <span className="rounded-full border border-white/20 bg-white/[0.06] text-[rgb(190_208_255)] px-1.5 py-px text-[10px] font-semibold">+{bonus}%</span>
+                    : bestValue?.id === pack.id ? <span className="rounded-full border border-white/20 bg-white/[0.06] text-[rgb(190_208_255)] px-1.5 py-px text-[10px] font-semibold">Best</span> : <span />}
                   {on ? <span className="grid size-5 place-items-center rounded-full bg-[var(--text)] text-[var(--bg)]"><Check className="size-3.5" aria-hidden="true" /></span> : <span />}
                 </span>
-                <img src={pack.imageUrl ?? packArt(index, packages.length)} alt="" loading="lazy" draggable={false} className={cn("size-[88px] object-cover", !pack.imageUrl && "mix-blend-screen")} />
+                <img src={pack.imageUrl ?? packArt(index, packages.length)} alt="" loading="lazy" draggable={false} className="relative size-[88px] object-contain" />
                 <span className="mt-2 flex items-baseline gap-1.5"><span className="text-[22px] font-bold leading-none text-[var(--text)]">{pack.grantsLx.toLocaleString()}</span><span className="text-[11px] font-semibold text-[var(--text-muted)]">FOL$</span></span>
                 <span className="text-[13px] text-[var(--text-2)]">{mnt(pack.priceMnt)}</span>
                 <span className="mt-auto h-1 w-full overflow-hidden rounded-full bg-[var(--line)]" aria-hidden="true"><span className="block h-full rounded-full bg-[var(--text-faint)] transition-colors group-hover:bg-[var(--text-2)]" style={{ width: `${Math.max(6, (pack.grantsLx / Math.max(...packages.map((item) => item.grantsLx), 1)) * 100)}%`, ...(on ? { background: "var(--text)" } : null) }} /></span>
