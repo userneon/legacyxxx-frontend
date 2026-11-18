@@ -1,3 +1,4 @@
+import { ART_FRAMES } from "@/lib/art-frames"
 /**
  * Avatar frame art (public/frames/<id>.webp, 256px, transparent middle), measured from the art itself.
  * `opening` is the share of the frame's width the picture may fill (a rounded square drawn behind the art and a little larger
@@ -112,7 +113,7 @@ const ACCENTS: Record<string, string> = {
 }
 
 export function frameAccent(id: string): string {
-  return ACCENTS[id] ?? "#d4d4d4" // palette-exempt: neutral light
+  return ACCENTS[id] ?? ART_FRAMES[id]?.accent ?? "#d4d4d4" // palette-exempt: neutral light
 }
 
 /**

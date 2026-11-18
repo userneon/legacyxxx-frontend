@@ -4,6 +4,7 @@ import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { OptimizedImage } from "@/components/optimized-image"
 import { RingFrame } from "@/components/ring-frame"
+import { ART_FRAMES, isArtFrame } from "@/lib/art-frames"
 import { isRingFrame } from "@/lib/ring-frames"
 
 function validAvatarUrl(value?: string) {
@@ -49,6 +50,16 @@ export function PlayerAvatar({
       {showImage ? <OptimizedImage src={avatar!} width={96} height={96} alt="" className={cn("absolute inset-0 h-full w-full max-w-none object-cover object-center", imageClassName)} onError={() => setFailed(true)} /> : initials}
     </div>
   )
+  if (isArtFrame(frame)) {
+    // The avatar's box sits in the picture's empty window; the picture is laid over it and overflows the box by the frame's own width.
+    const def = ART_FRAMES[frame!]
+    return (
+      <span className="relative inline-flex shrink-0">
+        {picture}
+        <img src={def.src} alt="" aria-hidden="true" draggable={false} className="pointer-events-none absolute max-w-none select-none" style={{ width: `${100 / def.hole.w}%`, height: `${100 / def.hole.h}%`, left: `${(-def.hole.x / def.hole.w) * 100}%`, top: `${(-def.hole.y / def.hole.h) * 100}%` }} />
+      </span>
+    )
+  }
   if (isRingFrame(frame)) {
     return (
       <span className="relative inline-flex shrink-0">

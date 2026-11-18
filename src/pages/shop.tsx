@@ -14,6 +14,7 @@ import { frameAccent, nameProps, timeLeft } from "@/lib/cosmetics"
 import { SAVED_KEY, daysLeft, endingSoon, outfitTotal, rarityOf, readSaved } from "@/lib/shop-logic"
 import { isRingFrame } from "@/lib/ring-frames"
 import { BgThumb } from "@/components/bg-thumb"
+import { isArtFrame } from "@/lib/art-frames"
 import { SmokePuff } from "@/components/smoke-puff"
 import { GrenadeLight, GrenadeTrail } from "@/components/grenade-trail"
 import { FlashEffect } from "@/components/flash-effect"
@@ -75,7 +76,7 @@ function ItemArt({ item, avatar, username, size }: { item: ShopItem; avatar?: st
   if (item.kind === "frame") {
     const pic = <FramedAvatar avatar={avatar} name={username} frame={item.id} size={size} />
     // A ring frame draws its own ring; every other frame shows as a ring in its colour.
-    return isRingFrame(item.id) ? pic : <span className="lx-shop-ring" style={{ "--acc": frameAccent(item.id) } as React.CSSProperties}>{pic}</span>
+    return isRingFrame(item.id) || isArtFrame(item.id) ? pic : <span className="lx-shop-ring" style={{ "--acc": frameAccent(item.id) } as React.CSSProperties}>{pic}</span>
   }
   if (item.kind === "discord_role") {
     const art = ROLE_ART[item.name.toLowerCase()]
