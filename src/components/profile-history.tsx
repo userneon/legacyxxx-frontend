@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
+import { EmptyState } from "@/components/illustrations"
 
 import { profileOverviewService, type HistoryMatch, type ProfileHistoryPage } from "@/api/profile-overview"
 import { MatchDetailsDialog } from "@/components/match-details-dialog"
@@ -105,7 +106,7 @@ export function ProfileHistoryTab({ userId, steamId, banned }: { userId: string;
       ) : loading && matches.length === 0 ? (
         <div aria-hidden="true" className="flex flex-col gap-2">{[0, 1, 2, 3, 4].map((index) => <div key={index} className="h-[68px] animate-pulse rounded-xl bg-black/20" />)}</div>
       ) : matches.length === 0 ? (
-        <p className="py-10 text-center text-[14px] text-[var(--text-dim)]">{result === "all" && !map ? "No ranked matches yet." : "No matches fit this filter."}</p>
+        <EmptyState kind="trophy">{result === "all" && !map ? "No ranked matches yet." : "No matches fit this filter."}</EmptyState>
       ) : (
         <div className="flex flex-col gap-5">
           {days.map((day) => (

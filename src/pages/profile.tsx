@@ -1,4 +1,5 @@
 import { DiscordIcon } from "@/components/discord-strip"
+import { EmptyState } from "@/components/illustrations"
 import { BoosterBadge } from "@/components/booster-badge"
 import { PerkBadge, PerkTitle } from "@/components/perk-badge"
 import { ProfileConfigs } from "@/components/profile-config"
@@ -547,7 +548,7 @@ function RecentMatches({ matches, kdAverage, onOpen }: { matches: ProfileMatchRo
         {matches.length > 0 ? <>{chip("all", "All", matches.length)}{chip("Win", "Wins", wins)}{chip("Loss", "Losses", losses)}</> : null}
       </div>
       {matches.length === 0 ? (
-        <p className="rounded-lg border border-[var(--line)] bg-[var(--card-surface)] px-4 py-8 text-center text-[14px] text-[var(--text-dim)]">No matches yet</p>
+        <EmptyState kind="trophy">No matches yet</EmptyState>
       ) : (
         <>
           <div className="flex flex-col gap-2.5">

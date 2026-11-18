@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react"
+import { EmptyState } from "@/components/illustrations"
 import { ChevronRight, Crown, LoaderCircle, Play, RotateCcw, Swords, Trophy, UserPlus, Users, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -379,7 +380,7 @@ function PlayerLine({ player, captain, onOpen }: { player: TournamentPlayer; cap
 function Players({ tournament, onProfileNavigate, onJoinTeam, busy }: { tournament: TournamentDetail; onProfileNavigate: (steamId: string) => void; onJoinTeam: (teamId: string) => void; busy: boolean }) {
   const canJoin = tournament.phase === "registration" && tournament.me !== null && !tournament.me.registered
   if (tournament.teams.length === 0 && tournament.soloPlayers.length === 0) {
-    return <section className={cn(card, "py-12 text-center text-[13px] text-[var(--text-dim)]")}>No one has registered yet.</section>
+    return <EmptyState kind="trophy" className="rounded-xl">No one has registered yet.</EmptyState>
   }
   return (
     <div className="flex flex-col gap-4">
@@ -438,7 +439,7 @@ function Players({ tournament, onProfileNavigate, onJoinTeam, busy }: { tourname
 function Matches({ tournament }: { tournament: TournamentDetail }) {
   useWebsitePreferences()
   if (tournament.matches.length === 0) {
-    return <section className={cn(card, "py-12 text-center text-[13px] text-[var(--text-dim)]")}>No matches scheduled yet.</section>
+    return <EmptyState kind="trophy" className="rounded-xl">No matches scheduled yet.</EmptyState>
   }
   const sorted = [...tournament.matches].sort((a, b) => (Date.parse(a.scheduledTime ?? "") || Infinity) - (Date.parse(b.scheduledTime ?? "") || Infinity) || a.bracketOrder - b.bracketOrder)
   return (

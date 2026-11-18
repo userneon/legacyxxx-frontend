@@ -1,4 +1,5 @@
 import { useMemo } from "react"
+import { EmptyState } from "@/components/illustrations"
 import { clanTagProps } from "@/lib/cosmetics"
 import { useNavigate } from "react-router-dom"
 import { RotateCcw } from "lucide-react"
@@ -129,9 +130,9 @@ export function ClanLadder({ search }: { search: string }) {
             <button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] transition-colors hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button>
           </p>
         ) : clans.length === 0 ? (
-          <p className="px-6 py-10 text-center text-[13px] text-[var(--text-dim)]">No clan has any members yet.</p>
+          <EmptyState kind="trophy">No clan has any members yet.</EmptyState>
         ) : rows.length === 0 ? (
-          <p className="px-6 py-10 text-center text-[13px] text-[var(--text-dim)]">{search ? "No clan matches this search." : "Only the top three so far."}</p>
+          <EmptyState kind="search">{search ? "No clan matches this search." : "Only the top three so far."}</EmptyState>
         ) : (
           <div>{rows.map((clan, index) => <ClanRow key={clan.id} index={index} clan={clan} onOpen={() => open(clan)} />)}</div>
         )}

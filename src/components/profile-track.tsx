@@ -1,4 +1,5 @@
 import type React from "react"
+import { EmptyState } from "@/components/illustrations"
 import { useMemo } from "react"
 
 import { profileOverviewService, type ProfileTrack, type TrackMatch } from "@/api/profile-overview"
@@ -244,6 +245,6 @@ export function ProfileTrackTab({ userId, banned }: { userId: string; banned?: b
   if (!data && loading) return <div aria-hidden="true" className="flex flex-col gap-4">{[0, 1, 2].map((index) => <div key={index} className={cn(card, "h-40 animate-pulse")} />)}</div>
   if (!data && error) return <p role="alert" className={cn(card, "flex flex-col items-center gap-3 px-5 py-10 text-[14px] text-[var(--text-muted)]")}>Couldn't load the track.<button type="button" onClick={() => refetch()} className="h-9 rounded-lg border border-[var(--line-strong)] px-4 font-semibold text-[var(--text)] hover:bg-[var(--raised)]">Try again</button></p>
   if (data?.hidden) return <p className={cn(card, "px-5 py-10 text-center text-[14px] text-[var(--text-dim)]")}>The player has hidden their stats.</p>
-  if (!data?.track || data.track.matches === 0) return <p className={cn(card, "px-5 py-10 text-center text-[14px] text-[var(--text-dim)]")}>No ranked matches yet. Play a few and the track fills in.</p>
+  if (!data?.track || data.track.matches === 0) return <EmptyState kind="trophy" className={cn(card, "rounded-xl")}>No ranked matches yet. Play a few and the track fills in.</EmptyState>
   return <TrackBody track={data.track} />
 }

@@ -1,4 +1,5 @@
 import { PageBar, PageBarEnd, PageTabs } from "@/components/page-tabs"
+import { EmptyState } from "@/components/illustrations"
 import { NameBanner } from "@/components/name-banner"
 import { PerkMark } from "@/components/perk-badge"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
@@ -567,7 +568,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
                 </button>
               </p>
             ) : visible.length === 0 ? (
-              <p className="py-10 text-center text-[13px] text-[var(--text-dim)]">{total === 0 ? "No reviews yet." : "No review matches these filters yet."}</p>
+              <EmptyState kind="box">{total === 0 ? "No reviews yet." : "No review matches these filters yet."}</EmptyState>
             ) : (
               // Keyed on the filters so the cards cascade in again after every change.
               <div key={`${rating}:${category}:${sort}`} className="columns-1 gap-3 md:columns-2">

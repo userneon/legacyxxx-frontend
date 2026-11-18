@@ -1,5 +1,6 @@
 /** LEGACY-X Creators: the community's content creators, Main Content Creators first, each with their channels. */
 import { BrandIcon, TIKTOK_PATH } from "@/components/brand-icons"
+import { EmptyState } from "@/components/illustrations"
 import { PerkMark } from "@/components/perk-badge"
 import { useState } from "react"
 import { Link } from "react-router-dom"
@@ -177,9 +178,9 @@ export function CreatorsPage() {
               <button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button>
             </p>
           ) : creators.length === 0 ? (
-            <p className="py-16 text-center text-[13px] text-[var(--text-dim)]">No creators yet.</p>
+            <EmptyState kind="box">No creators yet.</EmptyState>
           ) : !showMain && !showOthers ? (
-            <p className="py-16 text-center text-[13px] text-[var(--text-dim)]">{query ? "No creator by that name." : "No creators here yet."}</p>
+            <EmptyState kind="search">{query ? "No creator by that name." : "No creators here yet."}</EmptyState>
           ) : (
             <>
               {showMain && (

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
+import { EmptyState } from "@/components/illustrations"
 import { useNavigate } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
 import { Check, ChevronDown, Crosshair, Heart, Lock, RotateCcw, Search, ShoppingCart, SlidersHorizontal, Star, Sword, X } from "lucide-react"
@@ -559,7 +560,7 @@ export function ShopPage() {
                     </PopoverContent>
                   </Popover>
                 </div>
-                {shown.length === 0 ? <p className="py-8 text-[13px] text-[var(--text-dim)]">Nothing here.</p> : tab === "name" ? (
+                {shown.length === 0 ? <EmptyState kind="cart">Nothing here.</EmptyState> : tab === "name" ? (
                   <div className="flex flex-col gap-4">
                     <div className="lx-glass flex flex-col gap-3 rounded-xl p-5">
                       <h3 className="text-[16px] font-semibold text-[var(--text)]">Profile customize</h3>

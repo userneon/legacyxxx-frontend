@@ -131,3 +131,13 @@ const SCENES: Record<IllustrationKind, (id: string) => ReactNode> = {
 export function Illustration({ kind, className, title }: { kind: IllustrationKind; className?: string; title?: string }) {
   return <span role={title ? "img" : undefined} aria-label={title} aria-hidden={title ? undefined : true} className={cn("lx-ill block h-[120px] w-[160px] shrink-0", className)}>{SCENES[kind](`ill-${kind}`)}</span>
 }
+
+/** An empty place: the picture, and a line under it. `small` for a narrow menu. */
+export function EmptyState({ kind = "box", children, className, small = false }: { kind?: IllustrationKind; children: ReactNode; className?: string; small?: boolean }) {
+  return (
+    <div className={cn("flex flex-col items-center gap-1 px-6 py-8 text-center text-[13px] text-[var(--text-dim)]", className)}>
+      <Illustration kind={kind} className={small ? "h-[84px] w-[112px]" : undefined} />
+      <span>{children}</span>
+    </div>
+  )
+}

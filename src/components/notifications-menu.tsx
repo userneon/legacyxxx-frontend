@@ -6,6 +6,7 @@
  * marks what it shows as read.
  */
 import { useState } from "react"
+import { EmptyState } from "@/components/illustrations"
 import { useNavigate } from "react-router-dom"
 import { Bell, CircleCheck, Gavel, Info, Loader2, MessageSquare, Scale, Swords, Users, type LucideIcon } from "lucide-react"
 import { toast } from "sonner"
@@ -138,7 +139,7 @@ export function NotificationsMenu() {
             <button type="button" onClick={refetch} className="underline underline-offset-2 hover:text-foreground">Try again</button>
           </p>
         ) : entries.length === 0 ? (
-          <p className="px-4 pb-5 pt-1 text-center text-xs text-muted-foreground">No notifications</p>
+          <EmptyState kind="bell" small>No notifications</EmptyState>
         ) : (
           <ul className="flex max-h-80 flex-col overflow-y-auto">
             {entries.map((notification, index) => {

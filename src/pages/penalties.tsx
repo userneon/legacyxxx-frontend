@@ -1,7 +1,8 @@
 import { LiftRequests, useModerationAccess } from "@/components/penalty-staff"
+import { EmptyState } from "@/components/illustrations"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
 import { useEffect, useMemo, useState, type CSSProperties } from "react"
-import { ChevronRight, ExternalLink, LoaderCircle, RotateCcw, Search, ShieldAlert, ShieldCheck } from "lucide-react"
+import { ChevronRight, ExternalLink, LoaderCircle, RotateCcw, Search, ShieldAlert } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { moderationService, profileService } from "@/api"
@@ -318,9 +319,9 @@ export function PenaltiesPage({ onProfileNavigate }: { onProfileNavigate: (userI
                 </button>
               </p>
             ) : activeRows.length === 0 && historyRows.length === 0 ? (
-              <p className="px-6 py-10 text-center text-[13px] text-[var(--text-dim)]">
+              <EmptyState kind="shield">
                 {search || type !== "all" || status !== "all" ? "No penalty matches these filters." : "No penalties on record."}
-              </p>
+              </EmptyState>
             ) : (
               <>
                 {activeRows.length > 0 && (

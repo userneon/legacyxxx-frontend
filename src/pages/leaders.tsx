@@ -1,4 +1,5 @@
 import { clanTagProps } from "@/lib/cosmetics"
+import { EmptyState } from "@/components/illustrations"
 import { NameBanner } from "@/components/name-banner"
 import { PerkMark } from "@/components/perk-badge"
 import { BoosterLadder } from "@/pages/leaders-boosters"
@@ -337,9 +338,9 @@ export function LeadersPage({ onProfileNavigate }: { onProfileNavigate: (userId:
               </button>
             </p>
           ) : players.length === 0 ? (
-            <p className="px-6 py-10 text-center text-[13px] text-[var(--text-dim)]">
+            <EmptyState kind="trophy">
               {sort === "exp" ? "No ranked players yet." : "No player has 10 completed matches yet."}
-            </p>
+            </EmptyState>
           ) : rows.length === 0 ? (
             <p className="px-6 py-10 text-center text-[13px] text-[var(--text-dim)]">{search ? "No player matches this search." : "Only the top three so far."}</p>
           ) : (

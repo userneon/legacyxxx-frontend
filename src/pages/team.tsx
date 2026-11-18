@@ -3,6 +3,7 @@
  * rest of the team as trading cards in a grid that fills the width, filtered by role in the page bar and found by name. One colour per role.
  */
 import { clanTagProps } from "@/lib/cosmetics"
+import { EmptyState } from "@/components/illustrations"
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { ArrowUpRight, MessageCircle, RotateCcw, Search, X } from "lucide-react"
@@ -145,7 +146,7 @@ export function TeamPage() {
           ) : error && !data ? (
             <p className="flex items-center justify-center gap-3 py-16 text-[13px] text-[var(--text-dim)]">Could not load the team.<button type="button" onClick={() => refetch()} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>
           ) : team.length === 0 ? (
-            <p className="py-16 text-center text-[13px] text-[var(--text-dim)]">No one is on the team yet.</p>
+            <EmptyState kind="box">No one is on the team yet.</EmptyState>
           ) : (
             <>
               {showOwner && <OwnerCard member={owner} />}

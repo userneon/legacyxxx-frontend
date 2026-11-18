@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { EmptyState } from "@/components/illustrations"
 import { RotateCcw } from "lucide-react"
 
 import { discordService, type CommunityEntry } from "@/api/discord"
@@ -166,7 +167,7 @@ export function BoosterLadder({ search, onProfileNavigate }: { search: string; o
           <button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] transition-colors hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button>
         </p>
       ) : all.length === 0 ? (
-        <p className="px-6 py-10 text-center text-[13px] text-[var(--text-dim)]">{by === "boosts" ? "No one has boosted the Discord server yet." : "No invites counted yet."}</p>
+        <EmptyState kind="trophy">{by === "boosts" ? "No one has boosted the Discord server yet." : "No invites counted yet."}</EmptyState>
       ) : rows.length === 0 ? (
         <p className="px-6 py-10 text-center text-[13px] text-[var(--text-dim)]">{search ? "No member matches this search." : "Only the top three so far."}</p>
       ) : (

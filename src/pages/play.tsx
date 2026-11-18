@@ -1,4 +1,5 @@
 import { isServerAddress, steamConnect } from "@/lib/steam-connect"
+import { EmptyState } from "@/components/illustrations"
 import { DetailSheetContent } from "@/components/detail-sheet"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
@@ -658,7 +659,7 @@ function ServerBrowser({ mode, title, description, pickRule }: { mode: PlayMode;
       <button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] transition-colors hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button>
     </p>
   ) : visible.length === 0 ? (
-    <p className="py-16 text-center text-[13px] text-[var(--text-dim)]">{servers.length === 0 ? "No servers online right now." : "No server matches these filters."}</p>
+    <EmptyState kind="signal">{servers.length === 0 ? "No servers online right now." : "No server matches these filters."}</EmptyState>
   ) : (
     <div className="flex flex-col gap-3">
       {groups.map((group) => (
