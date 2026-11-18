@@ -2,8 +2,9 @@
 import { PlayerNameText } from "@/components/player-name-text"
 import { NameBanner } from "@/components/name-banner"
 import { PerkMark } from "@/components/perk-badge"
-import { ArrowRight, RotateCcw } from "lucide-react"
+import { RotateCcw } from "lucide-react"
 
+import { RuledHeading } from "@/components/ruled-heading"
 import { cn } from "@/lib/utils"
 import { competitiveService } from "@/api"
 import type { CompetitiveLeaderboardEntry } from "@/api/types"
@@ -13,24 +14,6 @@ import { PlayerAvatar } from "@/components/player-avatar"
 import { nameProps } from "@/lib/cosmetics"
 import { Skeleton } from "@/components/ui/skeleton"
 import { RankMedal } from "@/components/home-parts"
-
-function SectionHeader({ title, subtitle, action, onAction }: { title: string; subtitle?: string; action?: string; onAction?: () => void }) {
-  return (
-    <div className="mb-3 flex items-center justify-between gap-3">
-      <h2 className="flex items-center gap-2 text-sm font-semibold">
-        <span aria-hidden="true" className="h-3.5 w-[3px] rounded-full bg-[var(--text-faint)]" />
-        {title}
-        {subtitle && <span className="text-xs font-normal text-[var(--text-dim)]">{subtitle}</span>}
-      </h2>
-      {action && onAction && (
-        <button type="button" onClick={onAction} className="group inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground">
-          {action}
-          <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
-        </button>
-      )}
-    </div>
-  )
-}
 
 function EmptyLine({ children }: { children: React.ReactNode }) {
   return <p className="rounded-xl bg-secondary/40 px-3 py-5 text-center text-xs text-muted-foreground">{children}</p>
@@ -58,8 +41,8 @@ export function TopPlayers({ onOpenProfile, onViewAll, className }: { onOpenProf
   const top = [...(data ?? [])].sort((a, b) => a.position - b.position).slice(0, 5)
   const topExp = Math.max(1, ...top.map((player) => player.current_exp))
   return (
-    <section className={cn("lx-glass @container flex flex-col rounded-2xl p-4", className)}>
-      <SectionHeader title="Top players" subtitle="by EXP" action="Leaders" onAction={onViewAll} />
+    <section className={cn("@container flex min-w-0 flex-col", className)}>
+      <RuledHeading title="Top players" note={<span className="shrink-0 text-xs font-normal text-[var(--text-dim)]">by EXP</span>} action="Leaders" onAction={onViewAll} />
       {loading && !data ? <RowsPlaceholder rows={5} /> : error && !data ? (
         <div className="flex items-center justify-between gap-3 rounded-xl bg-secondary/40 px-3 py-4 text-xs text-muted-foreground">
           Could not load the ladder.

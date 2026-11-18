@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 
 import { playService, type PlayServer, type PlayServerList } from "@/api/play"
 import type { PageId } from "@/api/types"
+import { RuledHeading } from "@/components/ruled-heading"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { cn } from "@/lib/utils"
@@ -37,16 +38,11 @@ export function LiveNow({ onNavigate }: { onNavigate: (page: PageId) => void }) 
   const loading = (five.loading || fun.loading) && servers.length === 0
   return (
     <section aria-label="Live now" className="flex min-w-0 flex-col">
-      <div className="mb-1 flex items-baseline gap-3">
-        <h2 className="lx-section-title text-[var(--text)]">Live now</h2>
-        {liveCount > 0 && <span aria-hidden="true" className="lx-live-dot size-1.5 self-center rounded-full bg-[var(--status-green)]" />}
-        <span className="flex-1" />
-        <button type="button" onClick={() => onNavigate("play-5vs5")} className="text-[13px] text-[var(--text-dim)] transition-colors hover:text-[var(--text)]">All servers {"→"}</button>
-      </div>
+      <RuledHeading title="Live now" note={liveCount > 0 ? <span aria-hidden="true" className="lx-live-dot size-1.5 shrink-0 rounded-full bg-[var(--status-green)]" /> : null} action="All servers" onAction={() => onNavigate("play-5vs5")} />
       {servers.length === 0 ? (
-        <p className="border-t border-[var(--line-soft)] py-6 text-[14px] text-[var(--text-dim)]">{loading ? "Loading the servers…" : "No match is being played right now."}</p>
+        <p className="py-6 text-[14px] text-[var(--text-dim)]">{loading ? "Loading the servers…" : "No match is being played right now."}</p>
       ) : (
-        <ul className="lx-rows flex flex-col border-t border-[var(--line-soft)]">
+        <ul className="lx-rows flex flex-col">
           {servers.map((server) => {
             const art = cs2MapArtwork(server.map)
             const live = server.status === "live"
