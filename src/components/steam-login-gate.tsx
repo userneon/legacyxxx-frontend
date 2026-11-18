@@ -2,36 +2,46 @@ import { Button } from "@/components/ui/button"
 import { SiteLogo } from "@/components/site-logo"
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
-import signinArt from "@/assets/home/hero-signin.webp"
+import { ArrowLeft, Lock, ShoppingBag, Trophy, Users } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 
 interface SteamLoginGateProps {
   /** The page the player was trying to open, so the gate can say what signing in opens. */
   pageName: string
 }
 
-/** Shown in place of a page that needs an account: what it is, and the one button that opens it. */
+/** Shown in place of a page that needs an account: what it is, what signing in gives, and the one button that opens it. */
 export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
   const { loginWithSteam } = useAuth()
-
-  // No backdrop of its own: the app's Dust II backdrop already shows through the glass panel, the same
-  // as on every other page. The FBI squad (owner-supplied art, cropped to the upper body) sits inside
-  // the card, faint, rising from its bottom edge and fading out towards the top so the text stays readable.
-  // Scaled so the two outer agents' bodies (x 94-549 of the 609px art) meet the card's side edges.
+  const navigate = useNavigate()
+  // A plain, calm sign-in (owner 2026-11-18: "make the Steam login professional"): one centred panel on the site's own background, the button, three lines on what the account gives, and the privacy note.
   return (
-    <div data-lx-gate="" className="relative flex min-h-[calc(100dvh-5rem)] flex-1 items-center">
-      {/* The owner's agent at the camp gate (2026-11-17) fills the screen; the left side darkens so the words stay readable. */}
-      <img src={signinArt} alt="" aria-hidden="true" decoding="async" draggable={false} className="pointer-events-none fixed inset-0 z-0 size-full object-cover object-[70%_center]" />
-      <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 bg-[linear-gradient(90deg,rgba(6,6,6,0.92)_0%,rgba(6,6,6,0.72)_32%,rgba(6,6,6,0.12)_62%,transparent_100%),linear-gradient(180deg,rgba(6,6,6,0.5),transparent_25%,transparent_75%,rgba(6,6,6,0.6))]" />
-      <section className="lx-swap-in relative z-10 w-full max-w-[520px] px-6 py-10 sm:px-12">
-        <SiteLogo className="mb-8 h-10 w-auto" />
-        <h1 className="text-[clamp(30px,4.2vw,44px)] font-bold leading-[1.05] tracking-[-0.03em] text-[var(--text)]">Sign in to open {pageName}</h1>
-        <p className="mt-4 max-w-[360px] text-[15px] leading-relaxed text-[var(--text-muted)]">Your LXC account is your Steam account. One click and the gate opens.</p>
-        <SteamLoginButton onClick={loginWithSteam} className="mt-8 h-12 min-w-[220px] rounded-xl text-[15px]" />
-        <p className="mt-4 text-[12px] leading-4 text-[var(--text-dim)]">Steam handles the password. LXC never sees it.</p>
+    <div data-lx-gate="" className="relative flex min-h-[calc(100dvh-5rem)] flex-1 items-center justify-center px-4 py-12">
+      <section aria-labelledby="lx-gate-title" className="lx-swap-in relative z-10 w-full max-w-[440px] rounded-[24px] border border-white/10 bg-[rgb(12_12_14/0.72)] p-8 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)] backdrop-blur-md max-sm:p-6">
+        <SiteLogo className="mb-7 h-9 w-auto" />
+        <h1 id="lx-gate-title" className="text-[26px] font-bold leading-[1.15] tracking-[-0.02em] text-[var(--text)]">Sign in to open {pageName}</h1>
+        <p className="mt-2.5 text-[14px] leading-relaxed text-[var(--text-muted)]">Your LXC account is your Steam account. No new password to make.</p>
+        <SteamLoginButton onClick={loginWithSteam} className="mt-6 h-12 w-full rounded-xl text-[15px]" />
+        <ul className="mt-7 flex flex-col gap-3 border-t border-white/10 pt-6 text-[13px] text-[var(--text-2)]">
+          {PERKS.map(({ icon: Icon, title, line }) => (
+            <li key={title} className="flex items-start gap-3">
+              <span aria-hidden="true" className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-white/[0.06] text-[var(--text)]"><Icon className="size-4" /></span>
+              <span className="min-w-0"><span className="block font-semibold text-[var(--text)]">{title}</span><span className="block text-[var(--text-dim)]">{line}</span></span>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-6 flex items-center gap-2 text-[12px] leading-4 text-[var(--text-dim)]"><Lock className="size-3.5 shrink-0" aria-hidden="true" />Steam handles the password. LXC never sees it.</p>
+        <button type="button" onClick={() => navigate("/")} className="mt-5 inline-flex items-center gap-1.5 text-[13px] text-[var(--text-dim)] transition-colors hover:text-[var(--text)]"><ArrowLeft className="size-3.5" aria-hidden="true" />Back to Home</button>
       </section>
     </div>
   )
 }
+
+const PERKS: Array<{ icon: typeof Trophy; title: string; line: string }> = [
+  { icon: Trophy, title: "Your rank and stats", line: "EXP, matches and the ladder, kept for you." },
+  { icon: ShoppingBag, title: "Shop and skins", line: "Skins, ranks and looks on your account." },
+  { icon: Users, title: "Clans and friends", line: "Join a clan or start your own." },
+]
 
 /** Sign-in button in Steam's own dark style with the Steam mark, matching the top bar. */
 export function SteamLoginButton({ onClick, className, label = "Sign in with Steam" }: { onClick: () => void; className?: string; label?: string }) {
