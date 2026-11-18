@@ -4,7 +4,6 @@ import { ArrowUp, Clock, Flame, Gavel, Gem, Plus, RotateCcw, Send, Trophy, Users
 
 import { walletService, type Wallet, type WalletTransaction } from "@/api"
 import { AnimatedNumber } from "@/components/animated-number"
-import coinArt from "@/assets/fol/coin.webp"
 import { PageTabs } from "@/components/page-tabs"
 import { RelativeTime } from "@/components/relative-time"
 import { SendLx } from "@/components/send-lx"
@@ -158,7 +157,6 @@ export function WalletPage() {
           <div className="grid items-start gap-8 lg:grid-cols-[400px_minmax(0,1fr)]">
             <div className="flex min-w-0 flex-col gap-4">
               <section aria-label="Balance" className="lx-wallet-card group relative flex aspect-[1.586/1] min-h-[236px] flex-col overflow-hidden rounded-[20px] border border-white/[0.12] p-6">
-                <img src={coinArt} alt="" aria-hidden="true" draggable={false} className="lx-wallet-coin pointer-events-none absolute -bottom-2 -right-2 size-[128px] rotate-[-14deg] select-none" />
                 <div className="relative flex items-center justify-between">
                   <img src="/lxc-monogram.png" alt="LXC" className="h-5 w-auto opacity-90" />
                   <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55">Wallet</span>

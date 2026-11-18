@@ -1894,5 +1894,3 @@ html:has([data-lx-gate]) [data-slot="sidebar-inset"] { background: transparent; 
   transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .lx-wallet-card:hover::after { transform: translateX(120%); }
-.lx-wallet-coin { filter: drop-shadow(0 14px 18px rgb(0 0 0 / 0.55)); transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1); }
-.lx-wallet-card:hover .lx-wallet-coin { transform: rotate(-6deg) translateY(-4px) scale(1.04); }
