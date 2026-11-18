@@ -115,7 +115,9 @@ export function App() {
   const skinTeam = useSkinTeam()
   // The quiet pages have no picture; they get small details instead.
   const serious = ["staff", "checks", "creators", "team", "discord"].includes(shownPage)
-  const hero = pageHero(shownPage, shownLocation.pathname, skinTeam)
+  // A profile that wears its own background (a Shop background, a Steam scene or video) shows that and not the profile page's agent: two backgrounds over each other look like one broken picture.
+  const profileScene = useProfileScene()
+  const hero = shownPage === "profile" && profileScene ? null : pageHero(shownPage, shownLocation.pathname, skinTeam)
   // A long page: a round button brings you back to the top once you have scrolled a screen down.
   const [showTop, setShowTop] = useState(false)
   // On Home the picture runs up behind the top bar; the bar turns solid once you scroll.
@@ -157,7 +159,6 @@ export function App() {
     }
   }, [])
 
-  const profileScene = useProfileScene()
   // A profile with a Steam background gets it behind the whole window; one without keeps the Grid Scan (dev) or the beams.
   const profileGrid = false // the grid behind the profile was taken out (owner request 2026-11-13)
 
