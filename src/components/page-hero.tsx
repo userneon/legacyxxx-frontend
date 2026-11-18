@@ -118,15 +118,15 @@ export function PageHero({ hero }: { hero: Hero | null }) {
  * several designs"). `bg` is the picture behind the page (the earlier way); the others sit in the flow of the page, at the picture's own size or smaller, with the page's
  * name over it. The mode is picked with ?hero=card|strip|split|compact|bg in the address and kept in this browser.
  */
-export type HeroMode = "bg" | "card" | "strip" | "split" | "compact" | "agent"
-const MODES: HeroMode[] = ["bg", "card", "strip", "split", "compact", "agent"]
+export type HeroMode = "none" | "bg" | "card" | "strip" | "split" | "compact" | "agent"
+const MODES: HeroMode[] = ["none", "bg", "card", "strip", "split", "compact", "agent"]
 
 export function readHeroMode(): HeroMode {
   try {
     const asked = new URLSearchParams(window.location.search).get("hero")
     if (asked && (MODES as string[]).includes(asked)) { window.localStorage.setItem("lx-hero-mode", asked); return asked as HeroMode }
   } catch { /* no storage: the default */ }
-  return "agent"
+  return "none"   // owner 2026-11-18 ("make it without hero"): pages have no picture or agent at the top, only the website background; ?hero=agent|bg|... brings them back
 }
 
 /** The agent alone, background removed, per picture. */
@@ -150,7 +150,7 @@ export function readHeroBg(): HeroBg {
 
 const WASH = "linear-gradient(90deg, rgba(6,8,14,0.94) 0%, rgba(6,8,14,0.62) 36%, rgba(6,8,14,0.08) 68%, transparent 100%)"
 
-export function HeroBanner({ hero, mode }: { hero: Hero; mode: Exclude<HeroMode, "bg"> }) {
+export function HeroBanner({ hero, mode }: { hero: Hero; mode: Exclude<HeroMode, "bg" | "none"> }) {
   const picture = (className: string) => <ArtImage src={hero.src} alt="" decoding="async" style={{ objectPosition: hero.position }} className={cn("absolute inset-0 size-full object-cover", className)} />
   const words = (size: string) => (
     <div className="relative z-10 flex h-full max-w-[560px] flex-col justify-center gap-1.5 px-8 max-sm:px-5">

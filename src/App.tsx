@@ -118,11 +118,11 @@ export function App() {
   const serious = ["staff", "checks", "creators", "team", "discord"].includes(shownPage)
   // A profile that wears its own background (a Shop background, a Steam scene or video) shows that and not the profile page's agent: two backgrounds over each other look like one broken picture.
   const profileScene = useProfileScene()
-  const pageHeroNow = shownPage === "profile" && profileScene ? null : pageHero(shownPage, shownLocation.pathname, skinTeam)
   // The picture is either behind the page ("bg", and always on Home) or a banner in it (card, strip, split, compact): ?hero=... in the address picks one.
   const [heroMode] = useState(readHeroMode)
+  const pageHeroNow = heroMode === "none" || shownPage === "profile" && profileScene ? null : pageHero(shownPage, shownLocation.pathname, skinTeam)
   useEffect(() => { applySiteBg() }, [])
-  const bannerHero = heroMode !== "bg" && shownPage !== "home" ? pageHeroNow : null
+  const bannerHero = heroMode !== "bg" && heroMode !== "none" && shownPage !== "home" ? pageHeroNow : null
   const hero = bannerHero ? null : pageHeroNow
   // A long page: a round button brings you back to the top once you have scrolled a screen down.
   const [showTop, setShowTop] = useState(false)
@@ -209,7 +209,7 @@ export function App() {
           <PageHero hero={hero} />
           {serious && <SeriousDetail />}
           <div key={shownSection} className={cn("page-enter flex flex-col", "relative z-10 mx-auto w-full", shownPage !== "home" && "max-w-[var(--lx-w)]", hero && shownPage !== "home" && "lx-hero-page pt-[76px]", bannerHero && (heroMode === "strip" || heroMode === "agent" ? "pt-0" : "pt-2"), serious && "lx-serious", shownSection === "/leaders" ? "h-full" : "min-h-full", leaving && "page-leave")}>
-            {bannerHero && heroMode !== "bg" && <HeroBanner hero={bannerHero} mode={heroMode} />}
+            {bannerHero && heroMode !== "bg" && heroMode !== "none" && <HeroBanner hero={bannerHero} mode={heroMode} />}
             <RouteErrorBoundary resetKey={shownLocation.pathname}>
             <Suspense fallback={<div className="min-h-[40vh]" aria-hidden="true" />}>
             <Routes location={shownLocation}>
