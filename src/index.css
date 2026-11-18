@@ -1998,3 +1998,13 @@ html[data-site-bg="calm"] [data-slot="sidebar-inset"]::before { content: ""; pos
 
 /* The Owned/Worn chip on a Shop tile floats over the picture: `.lx-tile-panel > *` makes every child `position: relative`, which put the chip in the flow and pushed the picture down (owner 2026-11-18: "the Owned chip breaks the Background card"). */
 .lx-tile-panel > .lx-tile-chip { position: absolute; z-index: 2; }
+
+/* ---- One shape (owner 2026-11-18: "circles and squares are mixed in the Shop and many places" -> "all square"): ---------------------------------------------------------------
+   every round button, chip, price pill, heart and icon tile becomes a rounded rectangle, like the avatars. Kept round: dots, thin bars, switches, radio buttons, slider thumbs,
+   spinners and the scrollbar. The radius is min(12px, 28%) so a 28px tile gets about 8px and a wide pill about 12px. */
+:root { --lx-sq: min(12px, 28%); }
+.rounded-full:not(.lx-keep-round):not(.animate-spin):not([role="switch"]):not([role="radio"]):not([role="progressbar"]):not([data-slot="progress"]):not([data-slot="switch"]):not([data-slot="switch-thumb"]):not([data-slot="slider-thumb"]):not([data-slot="slider-range"]):not([data-slot="slider-track"]):not(.size-0\.5):not(.size-1):not(.size-1\.5):not(.size-2):not(.size-2\.5):not(.size-3):not(.size-3\.5):not(.size-\[4px\]):not(.size-\[5px\]):not(.size-\[6px\]):not(.size-\[7px\]):not(.size-\[8px\]):not(.h-px):not(.h-0\.5):not(.h-1):not(.h-1\.5):not(.h-\[2px\]):not(.h-\[3px\]):not(.h-\[4px\]):not(.h-\[5px\]):not(.w-px):not(.w-0\.5):not(.w-1):not(.w-1\.5):not(.w-\[2px\]):not(.w-\[3px\]) { border-radius: var(--lx-sq); }
+.lx-team-face, .lx-team-go, .lx-shop-tile .lx-shop-price { border-radius: var(--lx-sq); }
+.lx-shop-ring { border-radius: 24%; }
+/* a switch or a radio keeps its own round parts */
+[role="switch"].rounded-full, [role="switch"] .rounded-full, [role="radio"].rounded-full { border-radius: 9999px; }
