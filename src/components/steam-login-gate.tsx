@@ -25,7 +25,7 @@ export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
         <ul className="mt-7 flex flex-col gap-3 border-t border-white/10 pt-6 text-[13px] text-[var(--text-2)]">
           {PERKS.map(({ title, line }) => (
             <li key={title} className="flex items-start gap-3">
-              <span aria-hidden="true" className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-[6px] border border-white/25 bg-white/[0.08] text-[var(--status-green)]"><Check className="size-3.5" strokeWidth={3} /></span>
+              <span aria-hidden="true" className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-[6px] border border-white/20 bg-white/[0.05] text-[var(--text-dim)]"><Check className="size-3.5" strokeWidth={3} /></span>
               <span className="min-w-0"><span className="block font-semibold text-[var(--text)]">{title}</span><span className="block text-[var(--text-dim)]">{line}</span></span>
             </li>
           ))}
