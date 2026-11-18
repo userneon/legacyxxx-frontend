@@ -4,6 +4,7 @@ import { ArrowUp, Clock, Flame, Gavel, Gem, Plus, RotateCcw, Send, Trophy, Users
 
 import { walletService, type Wallet, type WalletTransaction } from "@/api"
 import { AnimatedNumber } from "@/components/animated-number"
+import { LxMark } from "@/components/lx-mark"
 import { PageTabs } from "@/components/page-tabs"
 import { RelativeTime } from "@/components/relative-time"
 import { SendLx } from "@/components/send-lx"
@@ -120,17 +121,47 @@ export function WalletPage() {
   // The streak note reads the API's own rule, so it follows the amount when the economy changes.
   const streakSeven = (wallet?.earn ?? []).find((rule) => rule.id === "streak-7")?.coins ?? null
 
+  // How to earn: one card for each rule. A card is a way in: it takes you to where that reward is earned, and the streak cards show how far you are.
+  const EARN_TARGET: Record<string, { to: string; hint: string }> = {
+    match: { to: "/play/5x5", hint: "Every ranked match you finish" },
+    win: { to: "/play/5x5", hint: "Win a ranked match" },
+    "first-win": { to: "/play/5x5", hint: "Once a day, resets at midnight" },
+    "rank-up": { to: "/leaders", hint: "When your rank goes up" },
+    "streak-3": { to: "/play/5x5", hint: "Play on 3 days in a row" },
+    "streak-7": { to: "/play/5x5", hint: "Play on 7 days in a row" },
+    discord: { to: "/discord", hint: "One time, when you link it" },
+  }
   const earnRules = (
-    <section className={cn(card, "flex flex-col overflow-hidden")} aria-label="How to earn">
-      <div className="px-4 py-3"><span className={label}>How to earn</span></div>
-      {(wallet?.earn ?? []).map((rule) => (
-        <div key={rule.id} className="flex h-11 items-center gap-3 border-t border-[var(--line-soft)] px-6 text-[13px]">
-          <span className="grid size-[34px] shrink-0 place-items-center rounded-[9px] border border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]">{rule.id.startsWith("streak") ? <Flame className="size-4" aria-hidden="true" /> : <ArrowUp className="size-4" aria-hidden="true" />}</span>
-          <span className="min-w-0 flex-1 truncate">{rule.label}</span>
-          <b className="text-[var(--text)]">+{rule.coins}</b>
-        </div>
-      ))}
-      {playEarning && <p className="border-t border-[var(--line-soft)] px-4 py-3 text-[11px] text-[var(--text-dim)]">Past the daily EXP limit you earn a quarter; past the weekly limit, nothing.</p>}
+    <section className="flex flex-col gap-3" aria-label="How to earn">
+      <div className="px-1"><span className={label}>How to earn</span></div>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(168px,1fr))] gap-3">
+        {(wallet?.earn ?? []).map((rule) => {
+          const target = EARN_TARGET[rule.id]
+          const streakNeed = rule.id === "streak-3" ? 3 : rule.id === "streak-7" ? 7 : 0
+          const days = summary?.streakDays ?? 0
+          const reached = streakNeed > 0 && days >= streakNeed
+          return (
+            <button key={rule.id} type="button" onClick={() => target && navigate(target.to)} className={cn(card, "lx-hover-blue group relative flex min-h-[132px] flex-col gap-3 rounded-[10px] p-4 text-left transition-[translate,border-color,background-color] duration-300 hover:-translate-y-1 hover:border-white/30 hover:bg-white/[0.06]")}>
+              <span className="flex items-center justify-between">
+                <span className="grid size-9 place-items-center rounded-full border border-white/15 text-[var(--text-2)] transition-colors group-hover:border-white/40 group-hover:text-[var(--text)]">{rule.id.startsWith("streak") ? <Flame className="size-4" aria-hidden="true" /> : rule.id === "discord" ? <Users className="size-4" aria-hidden="true" /> : rule.id === "rank-up" ? <Trophy className="size-4" aria-hidden="true" /> : <ArrowUp className="size-4" aria-hidden="true" />}</span>
+                {reached ? <span className="rounded-full border border-white/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[rgb(150_180_255)]">Reached</span> : <span aria-hidden="true" className="translate-x-[-6px] text-[var(--text-muted)] opacity-0 transition-[opacity,translate] duration-300 group-hover:translate-x-0 group-hover:opacity-100">{"→"}</span>}
+              </span>
+              <span className="min-w-0 text-[13px] font-semibold text-[var(--text)]">{rule.label}</span>
+              <span className="mt-auto flex items-baseline gap-1.5">
+                <LxMark size={18} className="self-center" />
+                <b className="text-[24px] font-bold leading-none tracking-[-0.02em] tabular-nums text-[var(--text)]">+{rule.coins}</b>
+              </span>
+              {streakNeed > 0 ? (
+                <span className="flex flex-col gap-1.5">
+                  <span className="block h-1 overflow-hidden rounded-full bg-white/10"><span className="block h-full rounded-full bg-[rgb(150_180_255)] transition-[width] duration-700" style={{ width: `${Math.min(100, (days / streakNeed) * 100)}%` }} /></span>
+                  <span className="text-[11px] text-[var(--text-dim)]">{Math.min(days, streakNeed)} / {streakNeed} days</span>
+                </span>
+              ) : <span className="text-[11px] text-[var(--text-dim)]">{target?.hint}</span>}
+            </button>
+          )
+        })}
+      </div>
+      {playEarning && <p className="px-1 text-[11px] text-[var(--text-dim)]">Past the daily EXP limit you earn a quarter; past the weekly limit, nothing.</p>}
     </section>
   )
 
@@ -217,7 +248,7 @@ export function WalletPage() {
                   <Activity entries={entries} empty="Nothing here yet." />
                 </section>
               ) : tab === "earn" ? (
-                <div className="max-w-xl">{earnRules}</div>
+                <div>{earnRules}</div>
               ) : (
                 <>
                   {summary && <EarningsChart daily={summary.daily} />}
