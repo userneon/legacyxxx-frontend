@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import { Check, Lock } from "lucide-react"
+import { Lock } from "lucide-react"
 import { toast } from "sonner"
 
 import emblem2 from "@/assets/ranks/emblem-2.webp"
@@ -23,7 +23,8 @@ const mnt = (value: number) => `${value.toLocaleString()}₮`
 /** The owner-supplied card art of each tier (owner request 2026-11-13, "make the Shop like this"): a gem on a pedestal over a dark rounded panel left empty for the card's text. Copper Prime, steel Prestige, violet Imperial, gold Eternal, diamond Sovereign. */
 /** Each tier's own glow behind its gem (the metals and stones of the art: copper, steel, amethyst, gold, diamond). */
 /** Each tier's light behind its emblem: gold for the gold-framed tiers, blue for the silver and crystal ones (owner's design, 2026-11-17). */
-const TIER_GLOW: Record<string, string> = { tier4: "#f6c945", tier1: "#3d63ff", tier2: "#f6c945", tier3: "#3d63ff", tier5: "#f6c945" } // palette-exempt
+// The light of each insignia (owner 2026-11-18: military chevron plates): Prime copper, Prestige steel, Imperial gold, Eternal silver with a blue star, Sovereign gold.
+const TIER_GLOW: Record<string, string> = { tier4: "#d98a4a", tier1: "#aab4c4", tier2: "#f2c14e", tier3: "#9fb8e8", tier5: "#f6c945" } // palette-exempt
 /** Each tier's own character (owner request 2026-11-18: "only one of the five rank cards is interesting"): a word for who it is for. The commands it gives are drawn as dots, so the climb shows at a glance. */
 const TIER_NOTE: Record<string, string> = { tier4: "Starter", tier1: "Rising", tier2: "Established", tier3: "Elite", tier5: "The top" }
 const TIER_ART: Record<string, string> = { tier4: emblem1, tier1: emblem2, tier2: emblem3, tier3: emblem4, tier5: emblem5 }
@@ -157,7 +158,7 @@ export function ShopRanks({ catalogue, qa = false }: { catalogue: PerkCatalogue;
       {/* Every rank gives the same four things, so they are said once here and not five times in the cards (owner 2026-11-18: "the benefits do not please me"). */}
       <ul className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[12px] text-[var(--text-2)]">
         <li className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-faint)]">Every rank</li>
-        {[`Works on ${modes}`, "Emblem and name in Tab, chat, Leaders, reviews", "Profile badge, banner, title and light", "Renew before it ends to pick again"].map((line) => <li key={line} className="flex items-center gap-1.5"><Check className="size-3 shrink-0 text-[var(--status-green)]" aria-hidden="true" />{line}</li>)}
+        {[`Works on ${modes}`, "Emblem and name in Tab, chat, Leaders, reviews", "Profile badge, banner, title and light", "Renew before it ends to pick again"].map((line) => <li key={line} className="flex items-center gap-1.5"><svg viewBox="0 0 12 12" aria-hidden="true" className="size-3 shrink-0 text-[var(--text-dim)]" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="square" strokeLinejoin="miter"><path d="M1.5 3.5 6 8l4.5-4.5" /></svg>{line}</li>)}
       </ul>
       <div className="@container"><ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 scrollbar-hidden [&>li]:w-[min(72vw,210px)] [&>li]:shrink-0 [&>li]:snap-start @[860px]:mx-0 @[860px]:grid @[860px]:snap-none @[860px]:grid-cols-5 @[860px]:overflow-visible @[860px]:px-0 @[860px]:[&>li]:w-auto">
         {catalogue.tiers.map((tier, tierIndex) => {
