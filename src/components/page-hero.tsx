@@ -15,6 +15,7 @@ import heroTournament from "@/assets/home/hero-tournament.webp"
 import heroReviews from "@/assets/home/hero-reviews.webp"
 import heroClan from "@/assets/home/hero-clan.webp"
 import heroSkin from "@/assets/home/hero-skin.webp"
+import heroSkinCt from "@/assets/home/hero-skin-ct.webp"
 import heroProfile from "@/assets/home/hero-profile.webp"
 import heroShop from "@/assets/home/hero-shop.webp"
 
@@ -22,11 +23,11 @@ import heroShop from "@/assets/home/hero-shop.webp"
  * A picture across the top of a page (owner request 2026-11-17): the owner's agent on the right, fading out to the left, the top bar lying over it. Only the pages listed here have one.
  * `path` limits it to that exact address (the Shop's other tabs have none).
  */
-const HEROES: Partial<Record<PageId, { src: string; lq: string; title: string; line: string; position: string; path?: string; prefix?: boolean }>> = {
+const HEROES: Partial<Record<PageId, { src: string; lq: string; title: string; line: string; position: string; path?: string; prefix?: boolean; ct?: { src: string; lq: string } }>> = {
   home: { src: agentHero, lq: LQ["agent-hero"], title: "Home", line: "", position: "75% 8%" },
   shop: { src: heroShop, lq: LQ["hero-shop"], title: "Shop", line: "Ranks, models, effects and roles. Cosmetics only.", position: "80% 8%", path: "/shop" },
   profile: { src: heroProfile, lq: LQ["hero-profile"], title: "Profile", line: "Your numbers and your look.", position: "80% 10%", path: "/profile", prefix: true },
-  skinchanger: { src: heroSkin, lq: LQ["hero-skin"], title: "Skinchanger", line: "Your skins, knives and gloves.", position: "80% 20%" },
+  skinchanger: { src: heroSkin, lq: LQ["hero-skin"], title: "Skinchanger", line: "Your skins, knives and gloves.", position: "80% 20%", ct: { src: heroSkinCt, lq: LQ["hero-skin-ct"] } },
   clan: { src: heroClan, lq: LQ["hero-clan"], title: "Clans", line: "Play together.", position: "80% 20%" },
   wallet: { src: heroWallet, lq: LQ["hero-wallet"], title: "Wallet", line: "", position: "80% 15%" },
   "play-fun": { src: heroFun, lq: LQ["hero-fun"], title: "Fun Mode", line: "", position: "80% 15%" },
@@ -38,9 +39,10 @@ const HEROES: Partial<Record<PageId, { src: string; lq: string; title: string; l
   "play-5vs5": { src: hero5x5, lq: LQ["hero-5x5"], title: "5x5 Matches", line: "Competitive 5v5. Every match counts toward your rank.", position: "80% 8%" },
 }
 
-export function pageHero(page: PageId, pathname: string) {
-  const hero = HEROES[page]
-  if (!hero) return null
+export function pageHero(page: PageId, pathname: string, team: "t" | "ct" = "t") {
+  const entry = HEROES[page]
+  if (!entry) return null
+  const hero = team === "ct" && entry.ct ? { ...entry, ...entry.ct } : entry
   if (hero.path) {
     const here = pathname.replace(/\/$/, "")
     if (hero.prefix ? !(here === hero.path || here.startsWith(`${hero.path}/`)) : here !== hero.path) return null

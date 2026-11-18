@@ -13,6 +13,7 @@ import { SiteTourButton } from "@/components/site-tour"
 import { AppSidebar } from "@/components/app-sidebar"
 import { PageHero, pageHero } from "@/components/page-hero"
 import { useScrollReveal } from "@/hooks/use-scroll-reveal"
+import { useSkinTeam } from "@/lib/skin-team"
 import { WelcomeAfterLogin } from "@/components/welcome-after-login"
 import { LxcHeader } from "@/components/lxc-header"
 import { PublicChat } from "@/components/public-chat"
@@ -110,7 +111,8 @@ export function App() {
   useScrollReveal(shownSection)
   // The picture and the bar follow the page that is on screen, so they change together with it (not early, while the old page is still fading out).
   const shownPage = routeToPage(shownLocation.pathname)
-  const hero = pageHero(shownPage, shownLocation.pathname)
+  const skinTeam = useSkinTeam()
+  const hero = pageHero(shownPage, shownLocation.pathname, skinTeam)
   // A long page: a round button brings you back to the top once you have scrolled a screen down.
   const [showTop, setShowTop] = useState(false)
   // On Home the picture runs up behind the top bar; the bar turns solid once you scroll.

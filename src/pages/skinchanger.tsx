@@ -1,4 +1,5 @@
 import { ScrollRow } from "@/components/scroll-row"
+import { setSkinTeam } from "@/lib/skin-team"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import {
@@ -1148,6 +1149,9 @@ export function SkinchangerPage() {
   // The switch only offers T and CT; "Both" looks count for the side you are on.
   const viewTeam: "t" | "ct" = teamScope === "ct" ? "ct" : "t"
   const equippedCount = loadoutEntries.filter((entry) => entry.team_scope === viewTeam || entry.team_scope === "all").length
+  // The picture behind the page follows the side.
+  useEffect(() => { setSkinTeam(viewTeam) }, [viewTeam])
+  useEffect(() => () => setSkinTeam("t"), [])
 
   // The grid drops in the first time it shows. On every T/CT switch it slides in from the right instead, column by
   // column from the rightmost, with a soft band of the side's colour (muted yellow T, sky-blue CT) sweeping across.
