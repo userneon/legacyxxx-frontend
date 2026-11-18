@@ -12,6 +12,7 @@ import { ProfileBlock } from "@/components/profile-block"
 import { SiteTourButton } from "@/components/site-tour"
 import { AppSidebar } from "@/components/app-sidebar"
 import { PageHero, pageHero } from "@/components/page-hero"
+import { SeriousDetail } from "@/components/serious-detail"
 import { useScrollReveal } from "@/hooks/use-scroll-reveal"
 import { useSkinTeam } from "@/lib/skin-team"
 import { WelcomeAfterLogin } from "@/components/welcome-after-login"
@@ -112,6 +113,8 @@ export function App() {
   // The picture and the bar follow the page that is on screen, so they change together with it (not early, while the old page is still fading out).
   const shownPage = routeToPage(shownLocation.pathname)
   const skinTeam = useSkinTeam()
+  // The quiet pages have no picture; they get small details instead.
+  const serious = ["staff", "checks", "creators", "team", "discord"].includes(shownPage)
   const hero = pageHero(shownPage, shownLocation.pathname, skinTeam)
   // A long page: a round button brings you back to the top once you have scrolled a screen down.
   const [showTop, setShowTop] = useState(false)
@@ -197,6 +200,7 @@ export function App() {
         <div ref={panelRef} className={cn("lx-glass-shell relative scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-clip max-sm:pb-16", "max-[559px]:rounded-[14px]")}>
           {/* Leaders scrolls its table inside the panel (sticky header, your row pinned under it), so it gets the panel's height instead of growing past it. */}
           <PageHero hero={hero} />
+          {serious && <SeriousDetail />}
           <div key={shownSection} className={cn("page-enter flex flex-col", "relative z-10 mx-auto w-full", shownPage !== "home" && "max-w-[1320px]", hero && shownPage !== "home" && "lx-hero-page pt-[76px]", shownSection === "/leaders" ? "h-full" : "min-h-full", leaving && "page-leave")}>
             <RouteErrorBoundary resetKey={shownLocation.pathname}>
             <Suspense fallback={<div className="min-h-[40vh]" aria-hidden="true" />}>
