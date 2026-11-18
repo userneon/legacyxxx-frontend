@@ -8,9 +8,9 @@ import emblem3 from "@/assets/ranks/emblem-3.webp"
 import emblem4 from "@/assets/ranks/emblem-4.webp"
 import emblem1 from "@/assets/ranks/emblem-1.webp"
 import emblem5 from "@/assets/ranks/emblem-5.webp"
-import { ChoiceSelect } from "@/components/choice-select"
 import { perksService, type PerkCatalogue, type PerkDays, type PerkGrant, type PerkInvoice, type PerkMine } from "@/api/perks"
 import { PERK_EMBLEM, PerkBadge, PerkTitle } from "@/components/perk-badge"
+import { Segmented } from "@/components/segmented"
 import { ProfileBanner } from "@/components/profile-banner"
 import { PerkPayDialog } from "@/components/perk-pay-dialog"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -184,7 +184,8 @@ export function ShopRanks({ catalogue, qa = false }: { catalogue: PerkCatalogue;
                   <h3 className="text-[clamp(16px,10cqw,27px)] font-bold leading-none tracking-[0.01em] text-white">{tier.name}</h3>
                   <p className="mt-1 text-[clamp(11px,5.6cqw,13px)] font-medium leading-tight text-white/75">{tier.quota} {tier.quota === 1 ? "command" : "commands"} of your choice</p>
                 </div>
-                <ChoiceSelect<PerkDays> className="!h-9 !rounded-xl !border-white/20 !bg-white/[0.1] !text-[13px] !font-semibold !text-white [&_svg]:!text-white/80 hover:!bg-white/[0.16]" ariaLabel={`How long, ${tier.name}`} value={days} onChange={(next) => setLengths((current) => ({ ...current, [tier.key]: next }))} options={catalogue.days.filter((value) => tier.prices[String(value)]).map((value) => ({ value, label: `${value} days`, hint: mnt(tier.prices[String(value)] as number) }))} />
+                {/* How long: the same sliding segments as the Reviews filter, one press away, the price beside the Buy button follows. */}
+                <Segmented<string> ariaLabel={`How long, ${tier.name}`} size="sm" value={String(days)} onChange={(next) => setLengths((current) => ({ ...current, [tier.key]: Number(next) as PerkDays }))} options={catalogue.days.filter((value) => tier.prices[String(value)]).map((value) => ({ value: String(value), label: `${value} days` }))} className="w-full !border-white/15 [&>button]:flex-1 [&>button]:justify-center [&>button]:px-1" />
                 <div className="flex items-stretch gap-1.5">
                   <span className="grid place-items-center rounded-[10px] bg-black/40 px-2.5 text-[clamp(12px,6cqw,14px)] font-bold text-[#f6c945]">{price ? mnt(price) : "Not for sale"}</span>
                   <button type="button" disabled={(!qa && (!price || !catalogue.available)) || busy !== null || (otherRunning && !qa)} onClick={() => void (qa ? getFree(tier.key) : buy(tier.key, days))} className="inline-flex h-9 min-w-0 flex-1 items-center justify-center rounded-[10px] border border-white/30 px-3 text-[14px] font-semibold text-[var(--text)] transition-colors hover:border-white/70 hover:bg-white/[0.06] disabled:opacity-50">{busy === tier.key ? "Opening…" : qa ? (mineHere ? "Picks" : "Get free") : mineHere ? "Renew" : "Buy"}</button>
