@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button"
 import { SiteLogo } from "@/components/site-logo"
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
-import { ArrowLeft, Lock, ShoppingBag, Trophy, Users } from "lucide-react"
+import { ArrowLeft, Check, Lock } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
 interface SteamLoginGateProps {
@@ -23,9 +23,9 @@ export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
         <p className="mt-2.5 text-[14px] leading-relaxed text-[var(--text-muted)]">Your LXC account is your Steam account. No new password to make.</p>
         <SteamLoginButton onClick={loginWithSteam} className="mt-6 h-12 w-full rounded-xl text-[15px]" />
         <ul className="mt-7 flex flex-col gap-3 border-t border-white/10 pt-6 text-[13px] text-[var(--text-2)]">
-          {PERKS.map(({ icon: Icon, title, line }) => (
+          {PERKS.map(({ title, line }) => (
             <li key={title} className="flex items-start gap-3">
-              <span aria-hidden="true" className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-white/[0.06] text-[var(--text)]"><Icon className="size-4" /></span>
+              <span aria-hidden="true" className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-[6px] border border-white/25 bg-white/[0.08] text-[var(--status-green)]"><Check className="size-3.5" strokeWidth={3} /></span>
               <span className="min-w-0"><span className="block font-semibold text-[var(--text)]">{title}</span><span className="block text-[var(--text-dim)]">{line}</span></span>
             </li>
           ))}
@@ -37,10 +37,10 @@ export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
   )
 }
 
-const PERKS: Array<{ icon: typeof Trophy; title: string; line: string }> = [
-  { icon: Trophy, title: "Your rank and stats", line: "EXP, matches and the ladder, kept for you." },
-  { icon: ShoppingBag, title: "Shop and skins", line: "Skins, ranks and looks on your account." },
-  { icon: Users, title: "Clans and friends", line: "Join a clan or start your own." },
+const PERKS: Array<{ title: string; line: string }> = [
+  { title: "Your rank and stats", line: "EXP, matches and the ladder, kept for you." },
+  { title: "Shop and skins", line: "Skins, ranks and looks on your account." },
+  { title: "Clans and friends", line: "Join a clan or start your own." },
 ]
 
 /** Sign-in button in Steam's own dark style with the Steam mark, matching the top bar. */
