@@ -8,10 +8,12 @@
 set -euo pipefail
 
 WEB_ROOT="${WEB_ROOT:-/var/www/legacyx}"
-API_URL="${API_URL:-https://api.legacyx.cc}"
 BRANCH="${BRANCH:-main}"
 
 cd "$(dirname "$0")/.."
+
+# One domain: the addresses follow the DOMAIN line (ops/site-env.sh).
+. ops/site-env.sh
 
 echo "==> Node $(node -v) (needs 20.19+ or 22.12+)"
 

@@ -3,6 +3,7 @@
  * It is drawn on a canvas from the same numbers the page shows, so nothing depends on a screenshot library.
  */
 import { rankImageSrc, rankTier } from "@/components/competitive-rank-badge"
+import { SITE_HOST } from "@/lib/sites"
 
 export interface ComparePngPlayer {
   name: string
@@ -240,7 +241,7 @@ export async function renderComparePng(input: ComparePngInput): Promise<Blob> {
   }
   ctx.textAlign = "right"
   ctx.fillStyle = color.faint
-  ctx.fillText(`legacyx.cc · ${new Date().toISOString().slice(0, 10)}`, WIDTH - PAD, y + 41)
+  ctx.fillText(`${SITE_HOST} · ${new Date().toISOString().slice(0, 10)}`, WIDTH - PAD, y + 41)
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("The image could not be created"))), "image/png")

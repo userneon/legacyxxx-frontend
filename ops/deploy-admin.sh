@@ -8,10 +8,12 @@
 set -euo pipefail
 
 ADMIN_WEB_ROOT="${ADMIN_WEB_ROOT:-/var/www/legacyx-admin}"
-API_URL="${API_URL:-https://api.legacyx.cc}"
 BRANCH="${BRANCH:-main}"
 
 cd "$(dirname "$0")/.."
+
+# One domain: the addresses follow the DOMAIN line (ops/site-env.sh).
+. ops/site-env.sh
 
 echo "==> Pulling $BRANCH"
 git fetch origin "$BRANCH"

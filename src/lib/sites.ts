@@ -9,3 +9,6 @@ export const SITE_URL = trim(import.meta.env.VITE_SITE_URL?.trim() || (import.me
 
 /** True on the staff site itself, so a Steam sign-in there comes back there. */
 export const isAdminSite = () => typeof window !== "undefined" && window.location.hostname.startsWith("admin.")
+
+/** The site's host name for the texts people read ("lxc.mn"): it follows SITE_URL, which a build takes from the DOMAIN line (ops/site-env.sh). */
+export const SITE_HOST = SITE_URL.replace(/^https?:\/\//i, "").replace(/\/.*$/, "")

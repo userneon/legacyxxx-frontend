@@ -3,7 +3,7 @@ import { LogOut, Menu, Search, X } from "lucide-react"
 
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
 import { useAuth } from "@/hooks/use-auth"
-import { SITE_URL } from "@/lib/sites"
+import { SITE_HOST, SITE_URL } from "@/lib/sites"
 import { cn } from "@/lib/utils"
 
 export interface ShellItem { value: string; label: string; count?: number }
@@ -49,7 +49,7 @@ export function AdminShell({ groups, current, onGo, onFind, children }: { groups
       <span aria-hidden="true" className="flex size-7 shrink-0 items-center justify-center bg-[var(--line)] font-mono text-[11px] font-bold text-[var(--text-2)]">{(user?.username ?? "?").slice(0, 2).toUpperCase()}</span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-[13px] font-semibold text-[var(--text)]" title={user?.username}>{user?.username ?? "Staff"}</span>
-        <a href={SITE_URL} className="block font-mono text-[10px] text-[var(--text-dim)] hover:text-[var(--text)]">legacyx.cc ↗</a>
+        <a href={SITE_URL} className="block font-mono text-[10px] text-[var(--text-dim)] hover:text-[var(--text)]">{SITE_HOST} ↗</a>
       </span>
       <button type="button" onClick={() => void logout()} aria-label="Sign out" className="flex size-8 items-center justify-center text-[var(--text-muted)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)]"><LogOut className="size-4" aria-hidden="true" /></button>
     </div>

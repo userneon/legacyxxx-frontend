@@ -1,6 +1,7 @@
 import type { ReactNode } from "react"
 
 import { LINKS } from "@/lib/links"
+import { SITE_HOST } from "@/lib/sites"
 
 /**
  * The privacy policy (owner request 2026-11-08; the App Store wants an address for it). Plain words about what the site and the app keep.
@@ -24,7 +25,7 @@ export function PrivacyPage() {
     <article className="mx-auto flex w-full max-w-[760px] flex-col gap-6 px-6 pb-16 pt-8 max-md:px-4">
       <header className="flex flex-col gap-2">
         <h1 className="font-display text-[28px] leading-tight text-[var(--text)]">Privacy policy</h1>
-        <p className={body}>LXC is a community for Counter-Strike 2 players in Mongolia: the website at legacyx.cc, the iPhone app, the game servers and the Discord server. This page says what they keep about you and why.</p>
+        <p className={body}>LXC is a community for Counter-Strike 2 players in Mongolia: the website at {SITE_HOST}, the iPhone app, the game servers and the Discord server. This page says what they keep about you and why.</p>
       </header>
 
       <Part title="What we keep">
