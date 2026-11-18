@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils"
  * Home's open layout (owner pick 2026-11-17, "like this"): a full-width picture with the line and two buttons on it, your numbers right under it,
  * then the matches being played and the top of the ladder as plain rows. The player count, the matches and their scores are the API's.
  */
-export function HomeHero({ onNavigate }: { onNavigate: (page: PageId) => void }) {
+export function HomeHero(_props: { onNavigate: (page: PageId) => void }) {
   const { data: stats } = useApiQuery<HomeStats>((signal) => serversService.getHomeStats({ signal }), { queryKey: "home-hero-stats", keepPreviousData: true })
   const online = stats?.playersOnline
   return (
@@ -28,10 +28,6 @@ export function HomeHero({ onNavigate }: { onNavigate: (page: PageId) => void })
                 <CountText value={online.toLocaleString()} durationMs={1400} delayMs={500} /> {online === 1 ? "player" : "players"} online
               </span>
             )}
-            <div className="flex flex-wrap gap-3">
-              <button type="button" onClick={() => onNavigate("play-5vs5")} className="lx-primary-button lx-hover-blue inline-flex h-[46px] items-center rounded-xl px-6 text-[14px] font-bold">Play now</button>
-              <button type="button" onClick={() => onNavigate("leaders")} className="inline-flex h-[46px] items-center rounded-xl border border-white/30 bg-black/30 px-5 text-[14px] font-semibold text-[var(--text)] backdrop-blur-sm transition-colors hover:border-white/70">See the ladder</button>
-            </div>
           </div>
         </HeroSlider>
       </div>

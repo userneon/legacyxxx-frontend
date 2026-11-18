@@ -105,7 +105,10 @@ export function InGameLoadout({ renderSection }: { renderSection: (title: string
   const [busy, setBusy] = useState(false)
   const [editing, setEditing] = useState<string | null>(null)
   const { data: wallet } = useApiQuery<{ balance: number }>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
-  if (!data) return null
+  // Until the player's cosmetics arrive the section is already there with quiet placeholders (owner 2026-11-18: the In-game part "popped in later, on its own"), so it comes with the rest.
+  if (!data) {
+    return renderSection("IN-GAME", KINDS.map(({ kind }) => <div key={kind} aria-hidden="true" className="h-24 animate-pulse rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)]" />))
+  }
 
   const spec = KINDS.find((entry) => entry.kind === open)
   const items = spec ? ((data[spec.list] as FrameItem[] | undefined) ?? []).filter((item) => item.owned) : []
