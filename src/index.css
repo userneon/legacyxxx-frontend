@@ -1923,3 +1923,9 @@ html:has([data-lx-gate]) [data-slot="sidebar-inset"] { background: transparent; 
   background: rgb(10 11 15 / 0.42) !important;
   border-color: rgb(255 255 255 / 0.07) !important;
 }
+
+/* The sign-in gate's picture is `fixed` over the whole window. A transform on the gate (the entrance rise of the page's blocks) would make it the picture's frame, so the picture shows only inside
+   the page column while the page moves in and the agents of the page's own picture peek out at the sides. The gate does not take part in the entrance. */
+.page-enter > [data-lx-gate],
+.lx-stack > [data-lx-gate] { animation: none !important; transform: none !important; }
+.lx-rv[data-lx-gate], [data-lx-gate].lx-rv { opacity: 1 !important; transform: none !important; }
