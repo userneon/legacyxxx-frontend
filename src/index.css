@@ -1908,3 +1908,7 @@ html:has([data-lx-gate]) [data-slot="sidebar-inset"] { background: transparent; 
 
 /* The New Year logo carries a Santa hat above its letters, so it is drawn about a quarter larger from its bottom-left corner: the letters keep their usual size and the hat rises over the bar. */
 .lx-logo-ny { transform: scale(1.28); transform-origin: 14% 100%; margin-right: 12px; }
+
+/* The rank gems (Shop): a very slow bob. */
+@keyframes lx-rank-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.6cqw); } }
+.lx-rank-float { animation: lx-rank-bob 6s ease-in-out infinite; }

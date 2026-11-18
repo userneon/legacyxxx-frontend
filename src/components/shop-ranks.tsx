@@ -154,7 +154,7 @@ export function ShopRanks({ catalogue, qa = false }: { catalogue: PerkCatalogue;
       )}
 
       <div className="@container"><ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 scrollbar-hidden [&>li]:w-[min(72vw,210px)] [&>li]:shrink-0 [&>li]:snap-start @[860px]:mx-0 @[860px]:grid @[860px]:snap-none @[860px]:grid-cols-5 @[860px]:overflow-visible @[860px]:px-0 @[860px]:[&>li]:w-auto">
-        {catalogue.tiers.map((tier) => {
+        {catalogue.tiers.map((tier, tierIndex) => {
           const days = daysOf(tier)
           const price = tier.prices[String(days)]
           const mineHere = grant?.tier === tier.key
@@ -169,15 +169,19 @@ export function ShopRanks({ catalogue, qa = false }: { catalogue: PerkCatalogue;
           return (
             <li key={tier.key} className="@container flex min-w-0 flex-col gap-2">
               {/* One card: the gem art with its text, length, price and Buy on its lower panel, and Benefits as the card's own bottom section (owner request 2026-11-13: everything inside the card). */}
-              <div className={cn("relative flex flex-1 flex-col overflow-hidden rounded-[20px] border border-white/[0.08]", mineHere && "ring-2 ring-[var(--brand)]")} style={{ "--fx": `color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} 90%, white)`, "--fx-c": TIER_GLOW[tier.key] ?? "#888", background: `radial-gradient(130% 55% at 50% 118%, color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} 38%, transparent), transparent 66%), linear-gradient(165deg, #111218, #08090c 75%)` } as React.CSSProperties}>
+              <div className={cn("group/rank relative flex flex-1 flex-col overflow-hidden rounded-[20px] border border-white/[0.08] transition-[translate,box-shadow,border-color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5 hover:border-white/20 hover:shadow-[0_34px_60px_-34px_var(--fx-c)]", mineHere && "ring-2 ring-[var(--brand)]")} style={{ "--fx": `color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} 90%, white)`, "--fx-c": TIER_GLOW[tier.key] ?? "#888", background: `radial-gradient(130% 55% at 50% 118%, color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} 38%, transparent), transparent 66%), linear-gradient(165deg, #111218, #08090c 75%)` } as React.CSSProperties}>
               {/* The owner's five gems on their pedestals (owner request 2026-11-15, transparent art): each stands on its tier's own glow, one picture per card. */}
               <div aria-hidden="true" className="relative isolate overflow-hidden [mask-image:linear-gradient(180deg,#000_72%,transparent_98%)]" style={{ height: "80cqw" }}>
                 <div className="absolute inset-0" style={{ background: `radial-gradient(60% 55% at 50% 56%, color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} 34%, transparent), transparent 75%)` }} />
-                {TIER_ART[tier.key] && <img src={TIER_ART[tier.key]} alt="" draggable={false} className="absolute left-1/2 top-[2cqw] h-[72cqw] -translate-x-1/2 object-contain drop-shadow-[0_14px_18px_rgba(0,0,0,0.55)]" />}
+                {/* A stage light from below that grows with the tier, and the floor the gem stands on. */}
+                <span className="absolute inset-x-0 bottom-0 h-[86%] [clip-path:polygon(36%_100%,64%_100%,100%_0,0_0)] blur-[8px] transition-opacity duration-500 group-hover/rank:opacity-100" style={{ background: `linear-gradient(0deg, color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} ${22 + tierIndex * 7}%, transparent), transparent 85%)`, opacity: 0.5 + tierIndex * 0.08 }} />
+                <span className="absolute bottom-[6cqw] left-1/2 h-[7cqw] w-[58%] -translate-x-1/2 rounded-[50%] border border-white/15 bg-black/35 shadow-[0_0_0_5px_rgba(255,255,255,0.03)]" />
+                {TIER_ART[tier.key] && <img src={TIER_ART[tier.key]} alt="" draggable={false} style={{ scale: 1 + tierIndex * 0.035 }} className="lx-rank-float absolute left-1/2 top-[2cqw] h-[72cqw] -translate-x-1/2 object-contain drop-shadow-[0_16px_20px_rgba(0,0,0,0.6)]" />}
               </div>
               <div className="relative -mt-[7cqw] flex flex-col gap-2 px-[7%] pb-3 pt-1">
                 <div>
-                  <h3 className="text-[clamp(15px,9cqw,24px)] font-bold leading-none text-white">{tier.name}</h3>
+                  <span className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.24em] text-white/50"><span aria-hidden="true" className="h-px w-4" style={{ background: TIER_GLOW[tier.key] ?? "#888", opacity: 0.45 + tierIndex * 0.13 }} />Tier {["I", "II", "III", "IV", "V"][tierIndex] ?? tierIndex + 1}</span>
+                  <h3 className="text-[clamp(16px,10cqw,27px)] font-bold leading-none tracking-[0.01em] text-white">{tier.name}</h3>
                   <p className="mt-1 text-[clamp(11px,5.6cqw,13px)] font-medium leading-tight text-white/75">{tier.quota} {tier.quota === 1 ? "command" : "commands"} of your choice</p>
                 </div>
                 <ChoiceSelect<PerkDays> className="!h-9 !rounded-xl !border-white/20 !bg-white/[0.1] !text-[13px] !font-semibold !text-white [&_svg]:!text-white/80 hover:!bg-white/[0.16]" ariaLabel={`How long, ${tier.name}`} value={days} onChange={(next) => setLengths((current) => ({ ...current, [tier.key]: next }))} options={catalogue.days.filter((value) => tier.prices[String(value)]).map((value) => ({ value, label: `${value} days`, hint: mnt(tier.prices[String(value)] as number) }))} />
