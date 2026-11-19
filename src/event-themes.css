@@ -35,7 +35,25 @@
 /* Halloween: embers that rise instead of fall */
 :root[data-event="halloween"] .lx-event-fleck { top: auto; bottom: -12px; width: 4px; height: 4px; box-shadow: 0 0 8px 1px var(--event); animation-name: lx-event-rise; }
 /* New Year: snow, a little bigger and softer */
-:root[data-event="new-year"] .lx-event-fleck { width: 6px; height: 6px; filter: blur(0.5px); }
+/* New Year: real snowflakes (a six-armed star cut out with a mask), different sizes, turning slowly as they fall. */
+:root[data-event="new-year"] .lx-event-fleck {
+  --flake: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7'/%3E%3Cpath d='M9.5 3.8L12 6.3l2.5-2.5M9.5 20.2L12 17.7l2.5 2.5M4 9.2l3.4.9-.9 3.4M20 14.8l-3.4-.9.9-3.4M4 14.8l3.4-.9-.9-3.4M20 9.2l-3.4.9.9 3.4'/%3E%3C/svg%3E");
+  width: 14px;
+  height: 14px;
+  border-radius: 0;
+  background: var(--event);
+  -webkit-mask: var(--flake) center / contain no-repeat;
+  mask: var(--flake) center / contain no-repeat;
+  animation-name: lx-event-fall, lx-event-spin;
+  animation-duration: calc(14s + var(--i) * 1.3s), calc(8s + var(--i) * 0.7s);
+  animation-timing-function: linear, linear;
+  animation-iteration-count: infinite, infinite;
+  animation-delay: calc(var(--i) * -2.1s), 0s;
+}
+@keyframes lx-event-spin { to { rotate: 360deg; } }
+:root[data-event="new-year"] .lx-event-fleck:nth-child(4n + 2) { width: 20px; height: 20px; }
+:root[data-event="new-year"] .lx-event-fleck:nth-child(4n + 3) { width: 26px; height: 26px; }
+:root[data-event="new-year"] .lx-event-fleck:nth-child(4n) { width: 11px; height: 11px; }
 /* Tsagaan Sar: slow warm sparks */
 :root[data-event="tsagaan-sar"] .lx-event-fleck { width: 4px; height: 4px; box-shadow: 0 0 10px 1px var(--event); animation-duration: calc(18s + var(--i) * 1.5s); }
 
