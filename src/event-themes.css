@@ -51,6 +51,25 @@
   animation-delay: calc(var(--i) * -2.1s), 0s;
 }
 @keyframes lx-event-spin { to { rotate: 360deg; } }
+@keyframes lx-event-sway { from { translate: calc(var(--sway, 30px) * -1) 0; } to { translate: var(--sway, 30px) 0; } }
+/* Not an even rain: every flake has its own place, speed and sideways sway (it drifts left and right while it falls). */
+:root[data-event="new-year"] .lx-event-fleck { animation-name: lx-event-fall, lx-event-spin, lx-event-sway; animation-timing-function: linear, linear, ease-in-out; animation-iteration-count: infinite, infinite, infinite; animation-direction: normal, normal, alternate; }
+:root[data-event="new-year"] .lx-event-fleck:nth-child(1) { left: 7%; --sway: 26px; animation-duration: 17s, 6s, 3.1s; animation-delay: -0s, 0s, -0.0s; }
+:root[data-event="new-year"] .lx-event-fleck:nth-child(2) { left: 61%; --sway: 40px; animation-duration: 12s, 8s, 4.4s; animation-delay: -1s, 0s, -1.5s; }
+:root[data-event="new-year"] .lx-event-fleck:nth-child(3) { left: 23%; --sway: 18px; animation-duration: 21s, 10s, 2.7s; animation-delay: -11s, 0s, -1.8s; }
+:root[data-event="new-year"] .lx-event-fleck:nth-child(4) { left: 88%; --sway: 52px; animation-duration: 14s, 12s, 5.2s; animation-delay: -13s, 0s, -0.0s; }
+:root[data-event="new-year"] .lx-event-fleck:nth-child(5) { left: 41%; --sway: 30px; animation-duration: 19s, 14s, 3.8s; animation-delay: -15s, 0s, -1.3s; }
+:root[data-event="new-year"] .lx-event-fleck:nth-child(6) { left: 3%; --sway: 22px; animation-duration: 11s, 6s, 4.9s; animation-delay: -9s, 0s, -3.3s; }
+:root[data-event="new-year"] .lx-event-fleck:nth-child(7) { left: 74%; --sway: 46px; animation-duration: 23s, 8s, 2.9s; animation-delay: -15s, 0s, -0.0s; }
+:root[data-event="new-year"] .lx-event-fleck:nth-child(8) { left: 34%; --sway: 34px; animation-duration: 15s, 10s, 4.1s; animation-delay: -4s, 0s, -1.4s; }
+:root[data-event="new-year"] .lx-event-fleck:nth-child(9) { left: 95%; --sway: 20px; animation-duration: 13s, 12s, 3.4s; animation-delay: -10s, 0s, -2.3s; }
+:root[data-event="new-year"] .lx-event-fleck:nth-child(10) { left: 16%; --sway: 44px; animation-duration: 20s, 14s, 5.6s; animation-delay: -13s, 0s, -0.0s; }
+:root[data-event="new-year"] .lx-event-fleck:nth-child(11) { left: 54%; --sway: 28px; animation-duration: 16s, 6s, 2.6s; animation-delay: -2s, 0s, -0.9s; }
+:root[data-event="new-year"] .lx-event-fleck:nth-child(12) { left: 81%; --sway: 56px; animation-duration: 24s, 8s, 4.7s; animation-delay: -23s, 0s, -3.1s; }
+:root[data-event="new-year"] .lx-event-fleck:nth-child(13) { left: 28%; --sway: 24px; animation-duration: 12s, 10s, 3.9s; animation-delay: -0s, 0s, -0.0s; }
+:root[data-event="new-year"] .lx-event-fleck:nth-child(14) { left: 67%; --sway: 38px; animation-duration: 18s, 12s, 3.0s; animation-delay: -13s, 0s, -1.0s; }
+:root[data-event="new-year"] .lx-event-fleck:nth-child(15) { left: 11%; --sway: 32px; animation-duration: 22s, 14s, 5.0s; animation-delay: -12s, 0s, -3.3s; }
+:root[data-event="new-year"] .lx-event-fleck:nth-child(16) { left: 47%; --sway: 48px; animation-duration: 14s, 6s, 4.3s; animation-delay: -9s, 0s, -0.0s; }
 :root[data-event="new-year"] .lx-event-fleck:nth-child(4n + 2) { width: 20px; height: 20px; }
 :root[data-event="new-year"] .lx-event-fleck:nth-child(4n + 3) { width: 26px; height: 26px; }
 :root[data-event="new-year"] .lx-event-fleck:nth-child(4n) { width: 11px; height: 11px; }
@@ -61,7 +80,7 @@
   0% { transform: translate3d(0, 0, 0); opacity: 0; }
   10% { opacity: 0.7; }
   90% { opacity: 0.5; }
-  100% { transform: translate3d(calc((var(--i) - 8) * 6px), 105vh, 0); opacity: 0; }
+  100% { transform: translate3d(calc((var(--i) - 8) * 3px), 105vh, 0); opacity: 0; }
 }
 @keyframes lx-event-rise {
   0% { transform: translate3d(0, 0, 0); opacity: 0; }
