@@ -6,6 +6,7 @@ import { formatPrice, marketService, type MarketCard } from "@/api/market"
 import { MarketForm } from "@/components/market-form"
 import { PageBar, PageBarEnd, PageTabs, pageSearchClass } from "@/components/page-tabs"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { clanTagProps, nameProps } from "@/lib/cosmetics"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useModerationAccess } from "@/components/penalty-staff"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -36,8 +37,8 @@ export function MarketTile({ card }: { card: MarketCard }) {
         <p className="line-clamp-2 text-[14px] font-medium leading-snug text-[var(--text)]">{card.title}</p>
         <p className="text-[15px] font-semibold text-[var(--text)]">{formatPrice(card.priceMnt)}</p>
         <div className="mt-auto flex items-center gap-2 text-[12px] text-[var(--text-dim)]">
-          <PlayerAvatar avatar={card.seller.avatar ?? undefined} name={card.seller.name} className="size-5 rounded-full" />
-          <span className="min-w-0 flex-1 truncate">{card.seller.name}</span>
+          <PlayerAvatar avatar={card.seller.avatar ?? undefined} name={card.seller.name} frame={card.seller.frame} className="size-5 rounded-full" />
+          <span className="min-w-0 flex-1 truncate">{card.seller.clanTag && <span {...clanTagProps(card.seller.clanLook, "mr-1 font-semibold")}>[{card.seller.clanTag}]</span>}<span {...nameProps(card.seller.nameStyle)}>{card.seller.name}</span></span>
           <span className="shrink-0">{timeAgo(card.createdAt)}</span>
         </div>
         {card.reportCount ? <p className="text-[11px] text-[var(--status-red)]">{card.reportCount} report{card.reportCount === 1 ? "" : "s"}</p> : null}

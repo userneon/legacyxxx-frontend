@@ -6,6 +6,7 @@ import type { FeedbackEntry } from "@/api/types"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { QueryState } from "@/components/query-state"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { nameProps } from "@/lib/cosmetics"
 import { Skeleton } from "@/components/ui/skeleton"
 
 function Stars({ value, className }: { value: number; className?: string }) {
@@ -31,8 +32,8 @@ function QuoteCard({ entry }: { entry: FeedbackEntry }) {
         <p className="line-clamp-3 pl-6 text-sm leading-6 text-foreground/85">{entry.message}</p>
       </blockquote>
       <figcaption className="flex items-center gap-2.5">
-        <PlayerAvatar avatar={entry.avatar} name={entry.name} className="size-7 rounded-md text-[10px]" />
-        <span className="min-w-0 flex-1 truncate text-xs font-medium text-white/70">{entry.name}</span>
+        <PlayerAvatar avatar={entry.avatar} name={entry.name} frame={entry.frame} className="size-7 rounded-md text-[10px]" />
+        <span {...nameProps(entry.nameStyle, "min-w-0 flex-1 truncate text-xs font-medium text-white/70")}>{entry.name}</span>
         <Stars value={entry.rating} className="size-3" />
       </figcaption>
     </figure>

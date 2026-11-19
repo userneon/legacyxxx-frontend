@@ -7,6 +7,7 @@ import { serversService } from "@/api/servers"
 import type { ServerInfo, ServerLiveMatch, ServerLiveMatchPlayer } from "@/api/types"
 import { CompetitiveRankBadge } from "@/components/competitive-rank-badge"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { clanTagProps, nameProps } from "@/lib/cosmetics"
 import { copyText } from "@/components/profile-ids"
 import { TeamIcon, teamTextClass, type TeamSide } from "@/components/team-icon"
 import { useApiQuery } from "@/hooks/use-api-query"
@@ -267,8 +268,9 @@ function Roster({ serverId }: { serverId: string }) {
               {group.players.map((player) => (
                 <div key={player.steamId} className="grid h-[34px] grid-cols-[minmax(0,1fr)_34px_34px_34px] items-center gap-2 border-t border-[var(--line-soft)] px-3 text-[13px]">
                   <span className="flex min-w-0 items-center gap-2">
-                    <PlayerAvatar name={player.name} className="size-5 shrink-0 rounded-md text-[9px]" />
-                    <Link to={`/profile/${player.steamId}`} className={cn("truncate transition-colors hover:text-[var(--text)]", player.connected ? "text-[var(--text-2)]" : "text-[var(--text-dim)]")} title={player.name}>{player.name}</Link>
+                    <PlayerAvatar avatar={player.avatar ?? undefined} name={player.name} frame={player.frame} className="size-5 shrink-0 rounded-md text-[9px]" />
+                    {player.clanTag && <span {...clanTagProps(player.clanLook, "shrink-0 text-[11px] font-semibold text-[var(--text-dim)]")}>[{player.clanTag}]</span>}
+                    <Link to={`/profile/${player.steamId}`} {...nameProps(player.nameStyle, cn("truncate transition-colors hover:text-[var(--text)]", player.connected ? "text-[var(--text-2)]" : "text-[var(--text-dim)]"))} title={player.name}>{player.name}</Link>
                     {player.rankId != null && <CompetitiveRankBadge rankId={player.rankId} rankName={player.rankName} imageKey={player.rankImageKey} size={16} />}
                   </span>
                   {group.stats

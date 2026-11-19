@@ -1,4 +1,5 @@
 import { del, get, post, type CallOptions } from "./client"
+import type { ClanLook, NameStyle } from "./types"
 
 /**
  * Tournaments service: player-based registration (solo, own team, or joining a team), check-in
@@ -37,6 +38,10 @@ export interface TournamentPlayer {
   avatar: string
   checkedIn: boolean
   mode: "solo" | "team"
+  frame?: string | null
+  nameStyle?: NameStyle | null
+  clanTag?: string | null
+  clanLook?: ClanLook | null
 }
 
 export interface TournamentTeam {

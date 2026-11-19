@@ -579,7 +579,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                           <button type="button" onClick={() => onProfileNavigate(member.steamId || member.id)} className="flex h-full min-w-0 flex-1 items-center gap-3 px-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--brand)]/60">
                             <RoleIcon role={member.role} />
                             {/* A roster is a plain list: no frame light and no name glow (owner request 2026-11-02); the name keeps its colour. */}
-                            <PlayerAvatar avatar={member.avatar} name={member.name} className="size-8 shrink-0 rounded-[9px] text-xs" />
+                            <PlayerAvatar avatar={member.avatar} name={member.name} frame={member.frame} className="size-8 shrink-0 rounded-[9px] text-xs" />
                             <span className="flex min-w-0 flex-col gap-0.5">
                               <span {...nameProps(member.nameStyle ? { ...member.nameStyle, glow: null, glowFx: null } : null, "min-w-0 truncate text-[13px] font-medium leading-tight")}>{member.name}{member.id === user?.id ? " (you)" : ""}</span>
                               <PerkMark perk={member.perk} compact size={18} />

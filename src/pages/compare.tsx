@@ -16,6 +16,7 @@ import { CompetitiveRankBadge, rankTierColor } from "@/components/competitive-ra
 import { AnimatedNumber } from "@/components/animated-number"
 import { PageBar, PageBarEnd, PageTabs } from "@/components/page-tabs"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { nameProps } from "@/lib/cosmetics"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
@@ -112,8 +113,8 @@ function SearchBox({ side, onPick }: { side: Side; onPick: (steamId: string) => 
     { enabled: searching, queryKey: `compare-search:${side}:${debounced}` },
   )
   // With nothing typed, the leaderboard's top players are a one-click start.
-  const top = useApiQuery<{ steamId: string; name: string; avatar: string }[]>(
-    (signal) => competitiveService.getLeaderboard({ signal }).then((entries) => entries.slice(0, 5).map((entry) => ({ steamId: entry.steam_id, name: entry.username, avatar: entry.avatar }))),
+  const top = useApiQuery<{ steamId: string; name: string; avatar: string; frame?: string | null; nameStyle?: CommunityPlayer["nameStyle"] }[]>(
+    (signal) => competitiveService.getLeaderboard({ signal }).then((entries) => entries.slice(0, 5).map((entry) => ({ steamId: entry.steam_id, name: entry.username, avatar: entry.avatar, frame: entry.frame, nameStyle: entry.name_style }))),
     { queryKey: "compare-top-players" },
   )
   const results = (found.data ?? []).filter((player) => player.steamId).slice(0, 8)
@@ -160,8 +161,8 @@ function SearchBox({ side, onPick }: { side: Side; onPick: (steamId: string) => 
                   onClick={() => pick(player.steamId!)}
                   className={cn("flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] text-[var(--text)] transition-colors", index === active && "bg-[var(--raised)]")}
                 >
-                  <PlayerAvatar avatar={player.avatar} name={player.name} className="size-7 rounded-lg text-[10px]" />
-                  <span className="truncate">{player.name}</span>
+                  <PlayerAvatar avatar={player.avatar} name={player.name} frame={player.frame} className="size-7 rounded-lg text-[10px]" />
+                  <span {...nameProps(player.nameStyle, "truncate")}>{player.name}</span>
                 </button>
               </li>
             ))
@@ -174,8 +175,8 @@ function SearchBox({ side, onPick }: { side: Side; onPick: (steamId: string) => 
           <div className="flex flex-wrap gap-1.5">
             {top.data!.map((player) => (
               <button key={player.steamId} type="button" onClick={() => pick(player.steamId)} className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[var(--line)] bg-[var(--glass-fill)] py-0 pl-1 pr-3 text-xs text-[var(--text-muted)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]">
-                <PlayerAvatar avatar={player.avatar} name={player.name} className="size-6 rounded-full text-[9px]" />
-                <span className="max-w-24 truncate">{player.name}</span>
+                <PlayerAvatar avatar={player.avatar} name={player.name} frame={player.frame} className="size-6 rounded-full text-[9px]" />
+                <span {...nameProps(player.nameStyle, "max-w-24 truncate")}>{player.name}</span>
               </button>
             ))}
           </div>
@@ -227,11 +228,11 @@ function PlayerPanel({ side, selectedId, overview, loading, failed, onPick, onCl
   return (
     <div key={user.steamId} className={cn(panel, "lx-swap-in")}>
       <button type="button" onClick={onClear} aria-label={`Change ${label}`} className="absolute right-3 top-3 flex size-8 items-center justify-center rounded-lg text-[var(--text-dim)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)]"><X className="size-4" /></button>
-      <PlayerAvatar avatar={user.avatar} name={user.username} className="size-12 shrink-0 rounded-xl text-sm md:size-16 md:rounded-2xl md:text-lg" />
+      <PlayerAvatar avatar={user.avatar} name={user.username} frame={user.frame} className="size-12 shrink-0 rounded-xl text-sm md:size-16 md:rounded-2xl md:text-lg" />
       <div className="flex min-w-0 flex-col items-start gap-1.5 pr-8 md:items-center md:pr-0">
       <button type="button" onClick={() => navigate(`/profile/${encodeURIComponent(user.steamId)}`)} className="flex max-w-full items-center gap-2 text-base font-semibold text-[var(--text)] hover:underline md:text-[17px]">
         <span aria-hidden="true" className={cn("size-2 shrink-0 rounded-full", TONE[side].dot)} />
-        <span className="truncate">{user.username}</span>
+        <span {...nameProps(user.nameStyle, "truncate")}>{user.username}</span>
       </button>
       {competitive ? (
         <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-0.5">

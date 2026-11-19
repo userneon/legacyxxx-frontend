@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { LINKS } from "@/lib/links"
 import { formatDate, formatDateTime, useWebsitePreferences } from "@/lib/preferences"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { clanTagProps, nameProps } from "@/lib/cosmetics"
 import { Segmented } from "@/components/segmented"
 import { SteamLoginButton } from "@/components/steam-login-gate"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
@@ -369,8 +370,8 @@ function PlayerLine({ player, captain, onOpen }: { player: TournamentPlayer; cap
       onClick={() => player.steamId && onOpen(player.steamId)}
       className="flex h-11 w-full items-center gap-3 rounded-lg px-2 text-left transition-colors duration-300 hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 disabled:cursor-default"
     >
-      <PlayerAvatar avatar={player.avatar} name={player.name} className="size-7 shrink-0 rounded-lg text-[10px]" />
-      <span className="min-w-0 flex-1 truncate text-[13px] text-[var(--text)]" title={player.name}>{player.name}</span>
+      <PlayerAvatar avatar={player.avatar} name={player.name} frame={player.frame} className="size-7 shrink-0 rounded-lg text-[10px]" />
+      <span className="min-w-0 flex-1 truncate text-[13px] text-[var(--text)]" title={player.name}>{player.clanTag && <span {...clanTagProps(player.clanLook, "mr-1 text-[11px] font-semibold text-[var(--text-dim)]")}>[{player.clanTag}]</span>}<span {...nameProps(player.nameStyle)}>{player.name}</span></span>
       {captain && <span className="flex items-center gap-1 text-[11px] font-medium text-[var(--text-2)]"><Crown className="size-3" />Captain</span>}
       {player.checkedIn && <span className="text-[11px] text-[var(--status-green)]">Checked in</span>}
     </button>
@@ -613,7 +614,7 @@ function YouPanel({ tournament, busy, error, onJoinSolo, onRegisterTeam, onLeave
         <div className="flex flex-col gap-2 border-t border-[var(--line-soft)] pt-3">
           <span className="text-xs text-[var(--text-dim)]">{myTeam.name}</span>
           <div className="flex -space-x-1.5">
-            {myTeam.players.map((player) => <PlayerAvatar key={player.userId} avatar={player.avatar} name={player.name} className="size-7 rounded-lg border-2 border-[var(--card-surface)] text-[10px]" />)}
+            {myTeam.players.map((player) => <PlayerAvatar key={player.userId} avatar={player.avatar} name={player.name} frame={player.frame} className="size-7 rounded-lg border-2 border-[var(--card-surface)] text-[10px]" />)}
           </div>
         </div>
       )}

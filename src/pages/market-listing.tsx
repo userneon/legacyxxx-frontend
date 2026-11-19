@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { formatPrice, marketService } from "@/api/market"
 import { MarketForm } from "@/components/market-form"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { clanTagProps, nameProps } from "@/lib/cosmetics"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useModerationAccess } from "@/components/penalty-staff"
@@ -97,8 +98,8 @@ export function MarketListingPage() {
             <p className="text-[12px] text-[var(--text-dim)]">Posted {timeAgo(listing.createdAt)}</p>
           </div>
           <Link to={listing.seller.steamId ? `/profile/${listing.seller.steamId}` : "#"} className="flex items-center gap-3 rounded-xl border border-[var(--line)] bg-[var(--card-surface)] p-3 hover:border-[var(--line-strong)]">
-            <PlayerAvatar avatar={listing.seller.avatar ?? undefined} name={listing.seller.name} className="size-10 rounded-full" />
-            <span className="flex min-w-0 flex-col"><span className="text-[11px] uppercase tracking-wider text-[var(--text-dim)]">Seller</span><span className="truncate text-[14px] font-medium text-[var(--text)]">{listing.seller.name}</span></span>
+            <PlayerAvatar avatar={listing.seller.avatar ?? undefined} name={listing.seller.name} frame={listing.seller.frame} className="size-10 rounded-full" />
+            <span className="flex min-w-0 flex-col"><span className="text-[11px] uppercase tracking-wider text-[var(--text-dim)]">Seller</span><span className="truncate text-[14px] font-medium text-[var(--text)]">{listing.seller.clanTag && <span {...clanTagProps(listing.seller.clanLook, "mr-1 font-semibold")}>[{listing.seller.clanTag}]</span>}<span {...nameProps(listing.seller.nameStyle)}>{listing.seller.name}</span></span></span>
           </Link>
           {(listing.hasPhone || listing.hasEmail || mine) && (
             <div className="flex flex-col gap-2">

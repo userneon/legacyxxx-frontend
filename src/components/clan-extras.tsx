@@ -6,6 +6,7 @@ import { clansService } from "@/api"
 import type { ClanDetail, ClanRole, ClanStatPerson, ClanStats } from "@/api/types"
 import { clanFailure } from "@/components/clan-manage"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { nameProps } from "@/lib/cosmetics"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -82,10 +83,10 @@ function Leader({ label, person, unit, tone, onOpen }: { label: string; person: 
     <div data-tone={tone} className="lx-tone flex items-center gap-3 overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3">
       {person ? (
         <button type="button" onClick={() => onOpen(person.steamId || person.id)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-          <PlayerAvatar avatar={person.avatar} name={person.name} className="size-10 shrink-0 rounded-[10px] text-sm" />
+          <PlayerAvatar avatar={person.avatar} name={person.name} frame={person.frame} className="size-10 shrink-0 rounded-[10px] text-sm" />
           <span className="flex min-w-0 flex-col">
             <span className="lx-tone-text text-[11px] font-semibold uppercase tracking-wide">{label}</span>
-            <span className="truncate text-[13px] font-semibold">{person.name}</span>
+            <span {...nameProps(person.nameStyle, "truncate text-[13px] font-semibold")}>{person.name}</span>
             <span className="text-[11px] text-[var(--text-2)]">{person.value?.toLocaleString()} {unit}</span>
           </span>
         </button>
@@ -192,8 +193,8 @@ export function ClanBankPanel({ clan, role, onChanged, onProfileNavigate }: { cl
                 <li key={donor.id}>
                   <button type="button" data-tone="grey" onClick={() => onProfileNavigate(donor.steamId || donor.id)} className="lx-tone flex w-full items-center gap-3 overflow-hidden rounded-lg border border-[var(--line-soft)] p-2 text-left transition-colors hover:bg-[var(--raised)]">
                     <span className="lx-tone-text w-5 text-center text-[13px] font-semibold">{index + 1}</span>
-                    <PlayerAvatar avatar={donor.avatar} name={donor.name} className="size-8 rounded-lg text-xs" />
-                    <span className="min-w-0 flex-1 truncate text-[13px]">{donor.name}</span>
+                    <PlayerAvatar avatar={donor.avatar} name={donor.name} frame={donor.frame} className="size-8 rounded-lg text-xs" />
+                    <span {...nameProps(donor.nameStyle, "min-w-0 flex-1 truncate text-[13px]")}>{donor.name}</span>
                     <span className="text-[13px] font-semibold">{donor.total.toLocaleString()} FOL$</span>
                   </button>
                 </li>

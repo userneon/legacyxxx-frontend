@@ -363,6 +363,9 @@ export interface ReconnectMatch {
   playerCount: number
 }
 
+/** The name colour and glow a player wears (what `nameProps` takes). */
+export type NameStyle = { color: string | null; glow: string | null; colorFx?: string | null; glowFx?: string | null }
+
 export interface ServerLiveMatchPlayer {
   steamId: string
   name: string
@@ -378,6 +381,11 @@ export interface ServerLiveMatchPlayer {
   assists?: number | null
   /** Steam avatar of a player with a LEGACY-X account; null for anyone else. */
   avatar?: string | null
+  /** Frame, name look and clan tag the player wears. Absent from an older API. */
+  frame?: string | null
+  nameStyle?: NameStyle | null
+  clanTag?: string | null
+  clanLook?: ClanLook | null
 }
 
 export interface ServerLiveMatch {
@@ -535,7 +543,7 @@ export interface ClanProgress {
   perks: Array<{ level: number; slots: number; perk: string; unlocked: boolean }>
 }
 
-export interface ClanStatPerson { id: string; steamId: string; name: string; avatar: string; value: number | null }
+export interface ClanStatPerson { id: string; steamId: string; name: string; avatar: string; value: number | null; frame?: string | null; nameStyle?: NameStyle | null }
 
 export interface ClanStats {
   totals: { matches: number; wins: number; draws: number; losses: number; kills: number; deaths: number; assists: number; headshots: number; aces: number; clutches: number; rounds: number; kd: number; winRate: number; headshotRate: number }
@@ -547,7 +555,7 @@ export interface ClanStats {
 /** The clan bank (members only). */
 export interface ClanBank {
   balance: number
-  donors: Array<{ id: string; steamId: string; name: string; avatar: string; total: number }>
+  donors: Array<{ id: string; steamId: string; name: string; avatar: string; total: number; frame?: string | null; nameStyle?: NameStyle | null }>
   log: Array<{ amount: number; reason: string; at: string; name: string | null }>
   slotPrice: number
 }

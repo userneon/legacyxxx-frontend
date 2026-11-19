@@ -8,6 +8,7 @@ import { clansService, walletService, type Wallet } from "@/api"
 import type { ApiError, ClanActivityLine, ClanDetail, ClanJoinRequest, ClanMember, ClanRole } from "@/api/types"
 import { PlayerPicker } from "@/components/player-picker"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { nameProps } from "@/lib/cosmetics"
 import { formatRelativeTime } from "@/components/relative-time"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -147,8 +148,8 @@ export function TransferSection({ clan, onChanged }: { clan: ClanDetail; onChang
             {others.map((member) => (
               <li key={member.id}>
                 <button type="button" role="radio" aria-checked={pick?.id === member.id} onClick={() => setPick(member)} className="flex w-full items-center gap-3 border-b border-[var(--line-soft)] px-3 py-2 text-left last:border-b-0 hover:bg-[var(--raised)] aria-checked:bg-[var(--raised)]">
-                  <PlayerAvatar avatar={member.avatar} name={member.name} className="size-7 rounded-lg text-[10px]" />
-                  <span className="min-w-0 flex-1 truncate text-[13px]">{member.name}</span>
+                  <PlayerAvatar avatar={member.avatar} name={member.name} frame={member.frame} className="size-7 rounded-lg text-[10px]" />
+                  <span {...nameProps(member.nameStyle, "min-w-0 flex-1 truncate text-[13px]")}>{member.name}</span>
                   <span className="text-[11px] text-[var(--text-dim)]">{roleLabel(member.role)}</span>
                   <span aria-hidden="true" className={`size-3.5 rounded-full border ${pick?.id === member.id ? "border-[var(--text)] bg-[var(--text)]" : "border-[var(--line-strong)]"}`} />
                 </button>
@@ -199,8 +200,8 @@ export function ManagersSection({ clan, viewerRole, onChanged }: { clan: ClanDet
         <ul className="flex flex-col rounded-lg border border-[var(--line)]">
           {others.map((member) => (
             <li key={member.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-[var(--line-soft)] px-3 py-2 last:border-b-0">
-              <PlayerAvatar avatar={member.avatar} name={member.name} className="size-7 rounded-lg text-[10px]" />
-              <span className="min-w-0 flex-1 truncate text-[13px]">{member.name} <span className="text-[11px] text-[var(--text-dim)]">{roleLabel(member.role)}</span></span>
+              <PlayerAvatar avatar={member.avatar} name={member.name} frame={member.frame} className="size-7 rounded-lg text-[10px]" />
+              <span className="min-w-0 flex-1 truncate text-[13px]"><span {...nameProps(member.nameStyle)}>{member.name}</span> <span className="text-[11px] text-[var(--text-dim)]">{roleLabel(member.role)}</span></span>
               {isLeader && (
                 <span role="radiogroup" aria-label={`Role of ${member.name}`} className="inline-flex rounded-lg border border-[var(--line)] p-0.5">
                   {choices.map(([value, label]) => (

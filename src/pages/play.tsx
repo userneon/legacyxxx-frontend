@@ -18,6 +18,7 @@ import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { PAGE_ROUTES } from "@/lib/routes"
 import { CompetitiveRankBadge, RankLabel } from "@/components/competitive-rank-badge"
 import { PlayerAvatar } from "@/components/player-avatar"
+import { clanTagProps, nameProps } from "@/lib/cosmetics"
 import { TeamIcon, type TeamSide } from "@/components/team-icon"
 import { SteamLoginGate } from "@/components/steam-login-gate"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -224,8 +225,9 @@ function TeamRows({ players, side }: { players: ServerLiveMatchPlayer[]; side?: 
             {side && <TeamIcon side={side} className="size-[18px]" />}
           </span>
           <span className="flex min-w-0 items-center gap-2">
-            <PlayerAvatar avatar={player.avatar ?? undefined} name={visibleName(player.name)} className="size-[22px] shrink-0 rounded-md text-[9px]" />
-            <span className={cn("truncate font-medium", player.connected ? "text-[var(--text)]" : "text-[var(--text-dim)]")} title={visibleName(player.name)}>{visibleName(player.name)}</span>
+            <PlayerAvatar avatar={player.avatar ?? undefined} name={visibleName(player.name)} frame={player.frame} className="size-[22px] shrink-0 rounded-md text-[9px]" />
+            {player.clanTag && <span {...clanTagProps(player.clanLook, "shrink-0 text-[11px] font-semibold text-[var(--text-dim)]")}>[{player.clanTag}]</span>}
+            <span {...nameProps(player.nameStyle, cn("truncate font-medium", player.connected ? "text-[var(--text)]" : "text-[var(--text-dim)]"))} title={visibleName(player.name)}>{visibleName(player.name)}</span>
           </span>
           <span className="flex items-center justify-center">
             {player.rankId != null && <CompetitiveRankBadge rankId={player.rankId} rankName={player.rankName ?? undefined} imageKey={player.rankImageKey} size={22} />}

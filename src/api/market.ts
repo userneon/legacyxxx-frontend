@@ -1,7 +1,8 @@
 import { del, get, post, put, type CallOptions } from "./client"
+import type { ClanLook, NameStyle } from "./types"
 
 /** The Market (owner request 2026-11-07): players post what they like to sell, with photos, a price and their phone and email. */
-export interface MarketSeller { id: string; name: string; avatar: string | null; steamId: string }
+export interface MarketSeller { id: string; name: string; avatar: string | null; steamId: string; frame?: string | null; nameStyle?: NameStyle | null; clanTag?: string | null; clanLook?: ClanLook | null }
 export interface MarketCard {
   id: string
   title: string
