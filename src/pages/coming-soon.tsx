@@ -73,7 +73,7 @@ function EarlyConnect() {
     )
   }
   return (
-    <section aria-label="Connect early" className="flex w-full max-w-[460px] flex-col gap-4 rounded-2xl border border-white/10 bg-black/40 p-5 backdrop-blur-md">
+    <section aria-label="Connect early" className="flex w-full max-w-[460px] flex-col gap-4 rounded-2xl border border-white/[0.12] bg-white/[0.045] p-5 shadow-[inset_0_1px_0_rgb(255_255_255/0.08),0_8px_32px_rgb(0_0_0/0.35)] backdrop-blur-2xl backdrop-saturate-150">
       <div className="text-left">
         <h2 className="text-[15px] font-semibold text-[var(--text)]">Get ready for the launch</h2>
         <p className="text-[12.5px] leading-relaxed text-[var(--text-dim)]">Connect early: Steam first, then Discord. Your account is waiting for you on day one.</p>
@@ -127,7 +127,7 @@ export function ComingSoonPage() {
       </div>
       <div className="flex items-start gap-3 max-[420px]:gap-2" role="timer" aria-label="Time left until the launch">
         {parts.map(([value, label]) => (
-          <div key={label} className="flex w-[74px] flex-col items-center gap-1.5 rounded-xl border border-white/10 bg-black/35 py-3 backdrop-blur-sm max-[420px]:w-[64px]">
+          <div key={label} className="flex w-[74px] flex-col items-center gap-1.5 rounded-xl border border-white/[0.12] bg-white/[0.045] py-3 shadow-[inset_0_1px_0_rgb(255_255_255/0.08)] backdrop-blur-xl backdrop-saturate-150 max-[420px]:w-[64px]">
             <span className="text-[30px] font-bold leading-none text-[var(--text)] tabular-nums">{value}</span>
             <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--text-dim)]">{label}</span>
           </div>
