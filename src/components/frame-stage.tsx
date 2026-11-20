@@ -17,7 +17,7 @@ export function FrameStage({ accent, height, children, className }: { accent: st
           />
         ))}
       </div>
-      <div className="relative z-[1] -translate-y-3 transition-transform duration-500 ease-[cubic-bezier(.2,.7,.2,1)] drop-shadow-[0_12px_14px_rgba(0,0,0,0.6)] group-hover/stage:-translate-y-5 motion-reduce:transition-none">{children}</div>
+      <div className="relative z-[1] -translate-y-1 drop-shadow-[0_12px_14px_rgba(0,0,0,0.6)]">{children}</div>
     </div>
   )
 }
