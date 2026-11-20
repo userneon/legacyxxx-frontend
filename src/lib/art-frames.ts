@@ -30,19 +30,19 @@ export const ART_FRAMES: Record<string, ArtFrameDef> = {
   "frame-ny-frost": { src: frost, hole: f(79, 77, 433, 432), accent: "#8fd0f0" }, // palette-exempt
   "frame-ny-santa": { src: santa, hole: f(83, 85, 437, 435), accent: "#d23a3a" }, // palette-exempt
   "frame-ny-midnight": { src: midnight, hole: f(74, 61, 437, 425), accent: "#c9a24a" }, // palette-exempt
-  "frame-discord": { src: discord, hole: f(40, 52, 469, 471), accent: "#5865f2" }, // palette-exempt: the art's own colours
-  "frame-pet-cat": { src: pet_cat, hole: f(88, 110, 424, 432), accent: "#e58aa3" }, // palette-exempt: the art's own colours
-  "frame-pet-dog": { src: pet_dog, hole: f(91, 104, 418, 414), accent: "#b9844a" }, // palette-exempt: the art's own colours
-  "frame-pet-bunny": { src: pet_bunny, hole: f(78, 120, 415, 442), accent: "#f0a6bb" }, // palette-exempt: the art's own colours
-  "frame-pet-panda": { src: pet_panda, hole: f(80, 105, 432, 441), accent: "#cfd2d6" }, // palette-exempt: the art's own colours
-  "frame-pet-bear": { src: pet_bear, hole: f(85, 99, 425, 407), accent: "#a8693b" }, // palette-exempt: the art's own colours
-  "frame-pet-fox": { src: pet_fox, hole: f(79, 117, 419, 441), accent: "#e08a3c" }, // palette-exempt: the art's own colours
-  "frame-pet-penguin": { src: pet_penguin, hole: f(89, 113, 422, 429), accent: "#5f7fa6" }, // palette-exempt: the art's own colours
-  "frame-pet-reindeer": { src: pet_reindeer, hole: f(87, 128, 423, 448), accent: "#b8774a" }, // palette-exempt: the art's own colours
-  "frame-plush-cat": { src: plush_cat, hole: f(69, 96, 438, 445), accent: "#f0b0c0" }, // palette-exempt: the art's own colours
-  "frame-plush-penguin": { src: plush_penguin, hole: f(86, 131, 424, 437), accent: "#d23a3a" }, // palette-exempt: the art's own colours
-  "frame-plush-bear": { src: plush_bear, hole: f(81, 117, 412, 435), accent: "#a8693b" }, // palette-exempt: the art's own colours
-  "frame-plush-bunny": { src: plush_bunny, hole: f(81, 106, 417, 442), accent: "#f3e7d9" }, // palette-exempt: the art's own colours
+  "frame-discord": { src: discord, hole: f(39, 51, 469, 471), accent: "#5865f2" }, // palette-exempt: the art's own colours
+  "frame-pet-cat": { src: pet_cat, hole: f(87, 108, 425, 431), accent: "#e58aa3" }, // palette-exempt: the art's own colours
+  "frame-pet-dog": { src: pet_dog, hole: f(91, 102, 419, 416), accent: "#b9844a" }, // palette-exempt: the art's own colours
+  "frame-pet-bunny": { src: pet_bunny, hole: f(78, 117, 417, 443), accent: "#f0a6bb" }, // palette-exempt: the art's own colours
+  "frame-pet-panda": { src: pet_panda, hole: f(79, 104, 433, 442), accent: "#cfd2d6" }, // palette-exempt: the art's own colours
+  "frame-pet-bear": { src: pet_bear, hole: f(85, 98, 426, 408), accent: "#a8693b" }, // palette-exempt: the art's own colours
+  "frame-pet-fox": { src: pet_fox, hole: f(78, 115, 421, 443), accent: "#e08a3c" }, // palette-exempt: the art's own colours
+  "frame-pet-penguin": { src: pet_penguin, hole: f(88, 111, 423, 430), accent: "#5f7fa6" }, // palette-exempt: the art's own colours
+  "frame-pet-reindeer": { src: pet_reindeer, hole: f(86, 126, 425, 449), accent: "#b8774a" }, // palette-exempt: the art's own colours
+  "frame-plush-cat": { src: plush_cat, hole: f(68, 96, 438, 445), accent: "#f0b0c0" }, // palette-exempt: the art's own colours
+  "frame-plush-penguin": { src: plush_penguin, hole: f(86, 130, 425, 437), accent: "#d23a3a" }, // palette-exempt: the art's own colours
+  "frame-plush-bear": { src: plush_bear, hole: f(80, 116, 413, 436), accent: "#a8693b" }, // palette-exempt: the art's own colours
+  "frame-plush-bunny": { src: plush_bunny, hole: f(81, 105, 419, 443), accent: "#f3e7d9" }, // palette-exempt: the art's own colours
 }
 
 export const isArtFrame = (id: string | null | undefined): boolean => Boolean(id && Object.hasOwn(ART_FRAMES, id))
