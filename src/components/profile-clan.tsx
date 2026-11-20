@@ -19,12 +19,17 @@ const daysSince = (iso: string) => Math.max(0, Math.floor((Date.now() - new Date
 
 const HEX = /^#[0-9a-f]{6}$/i
 
-/** A number of the player in the clan, tinted with the clan's own colour (the --clan variable of the tab). */
-function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
+/** A number of the player in the clan. `meter` (0-100) draws a bar in the clan's colour that means something: the player's standing, share or rate. */
+function Stat({ label, value, hint, meter }: { label: string; value: string; hint?: string; meter?: number }) {
   return (
-    <div className="relative flex min-w-0 flex-col gap-1 overflow-hidden rounded-2xl border border-[color-mix(in_oklab,var(--clan)_28%,var(--line-soft))] bg-[color-mix(in_oklab,var(--clan)_7%,rgb(0_0_0/0.2))] px-4 py-3.5 before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-[var(--clan)] before:opacity-70">
+    <div className="flex min-w-0 flex-col gap-1 rounded-2xl border border-[var(--line-soft)] bg-black/20 px-4 py-3.5">
       <span className="truncate text-[12px] font-medium uppercase tracking-[0.06em] text-[var(--text-dim)]">{label}</span>
       <span className="text-[26px] font-bold leading-none tabular-nums text-[var(--text)]">{value}</span>
+      {meter !== undefined && (
+        <div role="presentation" className="mt-1.5 h-[5px] overflow-hidden rounded-full bg-white/10">
+          <span className="block h-full rounded-full bg-[linear-gradient(90deg,color-mix(in_oklab,var(--clan)_60%,#000),var(--clan))]" style={{ width: `${Math.min(100, Math.max(2, meter))}%` }} />
+        </div>
+      )}
       {hint ? <span className="truncate text-[12px] text-[var(--text-dim)]">{hint}</span> : null}
     </div>
   )
@@ -83,10 +88,10 @@ export function ProfileClanTab({ clanId, clanNumber, steamId, userId }: { clanId
       </section>
       <section className="grid grid-cols-2 gap-3 md:grid-cols-3">
         <Stat label="Role" value={role} />
-        {place > 0 && exp !== undefined && <Stat label="Place by EXP" value={`#${place}`} hint={`of ${list.length} members`} />}
-        {exp !== undefined && <Stat label="EXP" value={exp.toLocaleString()} hint={share !== null ? `${share}% of the clan's EXP` : undefined} />}
+        {place > 0 && exp !== undefined && <Stat label="Place by EXP" value={`#${place}`} hint={`of ${list.length} members`} meter={((list.length - place + 1) / list.length) * 100} />}
+        {exp !== undefined && <Stat label="EXP" value={exp.toLocaleString()} hint={share !== null ? `${share}% of the clan's EXP` : undefined} meter={share ?? undefined} />}
         {me.stats?.matches !== undefined && <Stat label="Ranked matches" value={String(me.stats.matches)} />}
-        {me.stats?.winRate !== null && me.stats?.winRate !== undefined && <Stat label="Win rate" value={`${Math.round(me.stats.winRate)}%`} />}
+        {me.stats?.winRate !== null && me.stats?.winRate !== undefined && <Stat label="Win rate" value={`${Math.round(me.stats.winRate)}%`} meter={me.stats.winRate} />}
         {me.stats?.kd !== null && me.stats?.kd !== undefined && <Stat label="K/D" value={me.stats.kd.toFixed(2)} />}
       </section>
     </div>
