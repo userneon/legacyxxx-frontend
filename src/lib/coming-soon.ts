@@ -7,8 +7,8 @@
 const flag = import.meta.env.VITE_COMING_SOON === "true"
 const previewKey = (import.meta.env.VITE_PREVIEW_KEY ?? "").trim()
 
-/** The launch: 2026-12-01 00:00 in Ulaanbaatar (UTC+8). VITE_COMING_SOON_UNTIL (an ISO time) moves it. */
-export const LAUNCH_AT = Date.parse(import.meta.env.VITE_COMING_SOON_UNTIL ?? "") || Date.parse("2026-11-30T16:00:00Z")
+/** The launch: 2026-12-12 00:00 in Ulaanbaatar (UTC+8) (owner 2026-11-20: December 12). VITE_COMING_SOON_UNTIL (an ISO time) moves it. */
+export const LAUNCH_AT = Date.parse(import.meta.env.VITE_COMING_SOON_UNTIL ?? "") || Date.parse("2026-12-11T16:00:00Z")
 
 /** The pages that stay open while the rest is coming soon. */
 export const OPEN_PATHS = ["/terms", "/privacy"]

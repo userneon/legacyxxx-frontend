@@ -18,7 +18,7 @@ if [ -n "${DOMAIN:-}" ]; then
 fi
 API_URL="${API_URL:-https://api.legacyx.cc}"
 
-# "Coming soon" (owner request 2026-11-20): COMING_SOON=true (environment or a line of this repository's .env) builds the site as one Coming Soon page until the launch time (2026-12-01 00:00
+# "Coming soon" (owner request 2026-11-20): COMING_SOON=true (environment or a line of this repository's .env) builds the site as one Coming Soon page until the launch time (2026-12-12 00:00
 # Ulaanbaatar, lib/coming-soon.ts; it opens by itself then). PREVIEW_KEY=<key> lets a browser that opens any address with ?preview=<key> see the real site. Remove the line and deploy to switch it off at once.
 _read_env() { { grep -E "^$1=" .env 2>/dev/null || true; } | head -1 | cut -d= -f2- | tr -d "\"'" | tr -d '\r'; }
 COMING_SOON="${COMING_SOON:-$(_read_env COMING_SOON)}"
