@@ -21,7 +21,8 @@ export function PageBarEnd({ children, className }: { children: ReactNode; class
 export const pageSearchClass = "flex h-9 w-[220px] items-center gap-2 rounded-lg border border-[var(--glass-line)] px-3 transition-[border-color] duration-200 focus-within:border-[var(--text-faint)]"
 
 /**
- * Underlined tabs: the line under the chosen tab glides to the next one. Used for the sort, type and rating
+ * Underlined tabs: the line under the chosen tab glides to the next one. The tabs are as tall as the row they sit in (self-stretch), so the line lies exactly on the hairline under the row
+ * (owner 2026-11-20: it floated 2px above it wherever the row was taller than the 48px tabs). Used for the sort, type and rating
  * switches at the top of a page.
  */
 export function PageTabs<T extends string>({ value, onChange, options, ariaLabel, lead }: {
@@ -52,9 +53,9 @@ export function PageTabs<T extends string>({ value, onChange, options, ariaLabel
   }, [value, options.length])
 
   return (
-    <div className="flex min-w-0 max-w-full items-center gap-5">
-      {lead && <span className="text-[13px] text-[var(--text-dim)] max-sm:hidden">{lead}</span>}
-      <div ref={container} role="tablist" aria-label={ariaLabel} className="relative flex min-w-0 max-w-full gap-6 max-sm:gap-4 max-sm:overflow-x-auto max-sm:scrollbar-hidden">
+    <div className="flex min-w-0 max-w-full items-stretch gap-5 self-stretch">
+      {lead && <span className="self-center text-[13px] text-[var(--text-dim)] max-sm:hidden">{lead}</span>}
+      <div ref={container} role="tablist" aria-label={ariaLabel} className="relative flex min-w-0 max-w-full items-stretch gap-6 max-sm:gap-4 max-sm:overflow-x-auto max-sm:scrollbar-hidden">
         {options.map((option) => {
           const active = option.value === value
           return (
@@ -70,7 +71,7 @@ export function PageTabs<T extends string>({ value, onChange, options, ariaLabel
               disabled={option.disabled}
               onClick={() => onChange(option.value)}
               className={cn(
-                "inline-flex h-12 items-center gap-1.5 text-[13px] font-semibold transition-colors duration-200",
+                "inline-flex min-h-12 items-center gap-1.5 text-[13px] font-semibold transition-colors duration-200",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 disabled:opacity-50",
                 active ? "text-[var(--text)]" : "text-[var(--text-muted)] hover:text-[var(--text)]",
               )}
