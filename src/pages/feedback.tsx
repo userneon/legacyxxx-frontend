@@ -584,7 +584,7 @@ export function FeedbackPage({ onProfileNavigate }: { onProfileNavigate: (steamI
       </section>
 
       <aside aria-label="Summary" className="scrollbar-hidden flex w-[340px] shrink-0 flex-col gap-5 overflow-y-auto p-6 pl-2 max-lg:w-full max-lg:overflow-visible">
-        <div className="lx-swap-in relative flex items-center gap-4 overflow-hidden rounded-xl bg-[var(--glass-fill)] p-5">
+        <div className="lx-swap-in relative flex items-center gap-4 overflow-hidden rounded-lg bg-[var(--glass-fill)] p-5">
           <span className="lx-brand-text relative text-5xl font-bold leading-none tracking-[-1.5px]">{average.toFixed(1)}</span>
           <span className="relative flex flex-col gap-2">
             <Stars value={average} size={17} />
