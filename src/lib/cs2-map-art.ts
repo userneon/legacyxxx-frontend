@@ -76,7 +76,9 @@ export function cs2MapArtwork(mapName: string | null | undefined): string | null
 export function cs2MapLabel(mapName: string | null | undefined): string {
   const key = normalizeCs2MapKey(mapName)
   if (key && CS2_MAP_LABELS[key]) return CS2_MAP_LABELS[key]
-  return String(mapName ?? "Unknown").replace(/^de_/i, "") || "Unknown"
+  // An unlisted map name such as "mirage_christmas": no de_ prefix, underscores as spaces, each word capitalised.
+  const plain = String(mapName ?? "Unknown").replace(/^(de|cs|ar)_/i, "").replace(/_+/g, " ").trim()
+  return plain ? plain.replace(/\b([a-z])/g, (letter) => letter.toUpperCase()) : "Unknown"
 }
 
 /** The maps with supplied artwork, in the order they are listed here. */
