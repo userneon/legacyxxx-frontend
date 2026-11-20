@@ -1339,6 +1339,11 @@
 .lx-banner-goldfoil::after {
   background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 4px), linear-gradient(115deg, transparent 38%, rgba(255, 243, 207, 0.32) 50%, transparent 62%);
 }
+/* Coming-soon page: the same foil, but the tiled wordmark says what the page is. */
+.lx-soon-foil::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='72'%3E%3Ctext x='0' y='26' font-family='Exo 2,sans-serif' font-size='13' font-weight='800' letter-spacing='5' fill='rgba(30,18,2,0.22)'%3ELXC %C2%B7 COMING SOON %C2%B7%3C/text%3E%3Ctext x='-130' y='62' font-family='Exo 2,sans-serif' font-size='13' font-weight='800' letter-spacing='5' fill='rgba(30,18,2,0.22)'%3ELXC %C2%B7 COMING SOON %C2%B7%3C/text%3E%3C/svg%3E");
+  background-size: 260px 72px;
+}
 .lx-banner-fade {
   -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.6) 35%, rgba(0, 0, 0, 0.25) 70%, transparent 100%);
   mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.6) 35%, rgba(0, 0, 0, 0.25) 70%, transparent 100%);
