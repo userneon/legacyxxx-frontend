@@ -3,7 +3,6 @@ import { useEffect, useState, type ReactNode } from "react"
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
 
-import soonBackground from "@/assets/soon-aurora.webp"
 import { discordService, type DiscordLinkState } from "@/api/discord"
 import { DiscordIcon } from "@/components/discord-strip"
 import { SteamIcon } from "@/components/steam-login-gate"
@@ -112,8 +111,14 @@ export function ComingSoonPage() {
   const parts: Array<[string, string]> = [[String(left.days), "days"], [pad(left.hours), "hours"], [pad(left.minutes), "minutes"], [pad(left.seconds), "seconds"]]
   return (
     <main className="relative isolate flex min-h-svh flex-col items-center justify-center gap-8 px-6 py-12 text-center">
-      {/* A calm picture of the northern lights over snow (Unsplash, free licence), dimmed so the words stay clear. Not interactive: it does not move and takes no clicks. */}
-      <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 bg-[var(--bg)] bg-cover bg-center" style={{ backgroundImage: `linear-gradient(180deg, rgb(5 6 9 / 0.58), rgb(5 6 9 / 0.80)), url(${soonBackground})` }} />
+      {/* A calm, drawn (not a photograph) backdrop in the site's own colours: a cool light from the top, a warm one from the bottom right, fine diagonal lines and the LXC mark very faint.
+          It does not move and takes no clicks (owner 2026-11-20: "not a real picture", "calm", "not interactive"). */}
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#06070a]">{/* palette-exempt: the backdrop's own colours */}
+        <div className="absolute inset-0" style={{ background: "radial-gradient(70% 55% at 50% -5%, rgb(88 101 242 / 0.26), transparent 70%), radial-gradient(55% 50% at 92% 108%, rgb(255 150 90 / 0.17), transparent 72%), radial-gradient(45% 45% at 4% 92%, rgb(124 72 220 / 0.15), transparent 70%)" }} />
+        <div className="absolute inset-0 opacity-[0.5]" style={{ backgroundImage: "repeating-linear-gradient(115deg, rgb(255 255 255 / 0.028) 0 1px, transparent 1px 46px)", maskImage: "radial-gradient(80% 70% at 50% 45%, #000, transparent)", WebkitMaskImage: "radial-gradient(80% 70% at 50% 45%, #000, transparent)" }} />
+        <SiteLogo className="absolute left-1/2 top-1/2 w-[min(78vw,760px)] -translate-x-1/2 -translate-y-1/2 opacity-[0.035]" />
+        <div className="lx-grain absolute inset-0" />
+      </div>
       <SiteLogo className="h-12 w-auto" />
       <div className="flex flex-col items-center gap-3">
         <p className="text-[12px] font-semibold uppercase tracking-[0.28em] text-[var(--text-dim)]">Counter-Strike 2 · Mongolia</p>
