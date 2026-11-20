@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { CalendarDays, RotateCcw, Trash2 } from "lucide-react"
+import { SelectMenu } from "@/components/select-menu"
 import { toast } from "sonner"
 
 import { eventsService, type EventTheme, type StaffEvent, type StaffEventInput, type StaffEventList } from "@/api/events"
@@ -58,9 +59,7 @@ function AddEvent({ onSaved }: { onSaved: () => void }) {
       <div className="flex items-center gap-3"><CardIcon icon={CalendarDays} /><span className="text-[13px] font-semibold text-[var(--text)]">Schedule a holiday</span></div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Look
-          <select className={field} value={draft.theme} onChange={(event) => pick(event.target.value as EventTheme)}>
-            {EVENT_THEMES.map((entry) => <option key={entry.id} value={entry.id}>{entry.label}</option>)}
-          </select>
+          <SelectMenu ariaLabel="Theme" className="h-9 w-full rounded-lg px-3 text-[13px] font-normal" value={draft.theme} onChange={(value) => pick(value as EventTheme)} options={EVENT_THEMES.map((entry) => ({ value: entry.id, label: entry.label }))} />
         </label>
         <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Name
           <input className={field} value={draft.title} maxLength={60} onChange={(event) => setDraft({ ...draft, title: event.target.value })} />

@@ -7,6 +7,7 @@ import deCache from "@/assets/maps/de_cache.webp"
 import deDust2 from "@/assets/maps/de_dust2.webp"
 import deInferno from "@/assets/maps/de_inferno.webp"
 import deMirage from "@/assets/maps/de_mirage.webp"
+import deMirageChristmas from "@/assets/maps/de_mirage_christmas.webp"
 import deNuke from "@/assets/maps/de_nuke.webp"
 import deOverpass from "@/assets/maps/de_overpass.webp"
 import deTrain from "@/assets/maps/de_train.webp"
@@ -26,6 +27,7 @@ const CS2_MAP_ARTWORK: Record<string, string> = {
   de_dust2: deDust2,
   de_inferno: deInferno,
   de_mirage: deMirage,
+  de_mirage_christmas: deMirageChristmas,
   de_nuke: deNuke,
   de_overpass: deOverpass,
   de_train: deTrain,
@@ -42,6 +44,7 @@ const CS2_MAP_LABELS: Record<string, string> = {
   de_dust2: "Dust II",
   de_inferno: "Inferno",
   de_mirage: "Mirage",
+  de_mirage_christmas: "Mirage Christmas",
   de_nuke: "Nuke",
   de_overpass: "Overpass",
   de_train: "Train",
@@ -76,7 +79,9 @@ export function cs2MapArtwork(mapName: string | null | undefined): string | null
 export function cs2MapLabel(mapName: string | null | undefined): string {
   const key = normalizeCs2MapKey(mapName)
   if (key && CS2_MAP_LABELS[key]) return CS2_MAP_LABELS[key]
-  return String(mapName ?? "Unknown").replace(/^de_/i, "") || "Unknown"
+  // An unlisted map name such as "mirage_christmas": no de_ prefix, underscores as spaces, each word capitalised.
+  const plain = String(mapName ?? "Unknown").replace(/^(de|cs|ar)_/i, "").replace(/_+/g, " ").trim()
+  return plain ? plain.replace(/\b([a-z])/g, (letter) => letter.toUpperCase()) : "Unknown"
 }
 
 /** The maps with supplied artwork, in the order they are listed here. */

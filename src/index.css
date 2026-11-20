@@ -1992,3 +1992,9 @@ html[data-site-bg="calm"] [data-slot="sidebar-inset"]::before { content: ""; pos
 @media (prefers-reduced-motion: reduce) { .lx-shiny-text { animation: none; background: none; color: var(--text); } }
 .lx-discord-btn { background: #5865f2; color: #ffffff; border: 0; } /* palette-exempt: Discord brand */
 .lx-discord-btn:hover { background: #4752c4; } /* palette-exempt: Discord brand */
+
+/* Native dropdowns (<select>): the list the browser opens was white with pale, hard-to-read options on the dark site (owner 2026-11-20, the map filter in History).
+   color-scheme makes the list dark and the options take the site's surface and text colours. */
+select { color-scheme: dark; }
+select option, select optgroup { background-color: var(--glass-fill, #111111); color: var(--text, #f2f2f2); }
+select option:checked { background-color: var(--raised, #232323); }

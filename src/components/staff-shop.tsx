@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { Package, Pencil, Plus, RotateCcw } from "lucide-react"
+import { SelectMenu } from "@/components/select-menu"
 import { toast } from "sonner"
 
 import { shopGoodsService, type GoodsOrderStatus, type GoodsProductInput, type StaffGoodsProduct } from "@/api/shop-goods"
@@ -103,9 +104,7 @@ export function StaffShop() {
                   <a href={`tel:${order.phone}`} className="w-fit text-[var(--text-2)] hover:text-[var(--text)]">{order.phone}</a>
                 </span>
                 {order.note && <p className="line-clamp-2 text-xs text-[var(--text-muted)]">{order.note}</p>}
-                <select aria-label="Order status" value={order.status} disabled={busy} onChange={(event) => void move(order.id, event.target.value as GoodsOrderStatus)} className={cn(input, "mt-auto")}>
-                  {STATUSES.map((entry) => <option key={entry.value} value={entry.value}>{entry.label}</option>)}
-                </select>
+                <SelectMenu ariaLabel="Order status" value={order.status} disabled={busy} onChange={(value) => void move(order.id, value as GoodsOrderStatus)} className="mt-auto h-9 w-full rounded-lg px-3 text-[13px] font-normal" options={STATUSES.map((entry) => ({ value: entry.value, label: entry.label }))} />
               </li>
             ))}
           </ul>
@@ -134,9 +133,7 @@ export function StaffShop() {
             </label>
             <div className="grid gap-3 sm:grid-cols-4">
               <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Type
-                <select className={input} value={draft.kind} onChange={(event) => setDraft({ ...draft, kind: event.target.value as Draft["kind"] })}>
-                  <option value="charm">NFC charm</option><option value="sticker">Sticker</option><option value="other">Other</option><option value="lx">FOL$ top-up package</option>
-                </select>
+                <SelectMenu ariaLabel="Kind" className="h-9 w-full rounded-lg px-3 text-[13px] font-normal" value={draft.kind} onChange={(value) => setDraft({ ...draft, kind: value as Draft["kind"] })} options={[{ value: "charm", label: "NFC charm" }, { value: "sticker", label: "Sticker" }, { value: "other", label: "Other" }, { value: "lx", label: "FOL$ top-up package" }]} />
               </label>
               <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Price (₮)
                 <input className={input} type="number" min={0} value={draft.priceMnt} onChange={(event) => setDraft({ ...draft, priceMnt: Math.max(0, Math.floor(Number(event.target.value) || 0)) })} />
