@@ -50,7 +50,6 @@ export function notificationTarget(notification: Pick<NotificationEntry, "kind" 
     case "lift_request": return "/staff/penalties"
     case "lift_decision": return "/penalties"
     case "wallet": return "/wallet"
-    case "founder": return "/profile/appearance"
     case "creator": return "/creators"
     default: return null
   }

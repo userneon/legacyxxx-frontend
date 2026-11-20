@@ -23,14 +23,6 @@ const STATUSES: Array<{ value: GoodsOrderStatus; label: string }> = [
   { value: "cancelled", label: "Cancelled" },
 ]
 const mnt = (value: number) => `${value.toLocaleString()}₮`
-/** An ISO time as the "YYYY-MM-DDTHH:mm" a datetime-local box wants, in the viewer's own time. */
-const toLocalInput = (iso: string | null | undefined) => {
-  if (!iso) return ""
-  const date = new Date(iso)
-  if (Number.isNaN(date.getTime())) return ""
-  const pad = (n: number) => String(n).padStart(2, "0")
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
-}
 
 /** Where an order stands, in colour: new waits (amber), contacted (sky), paid and done are fine (green), shipped is on its way (violet), cancelled is red. */
 const ORDER_TONE: Record<GoodsOrderStatus, Tone> = { new: "amber", contacted: "sky", paid: "green", shipped: "violet", done: "green", cancelled: "red" }
@@ -67,7 +59,7 @@ export function StaffShop() {
     setBusy(true)
     try {
       const { slug, isNew: _isNew, ...body } = draft
-      await shopGoodsService.saveProduct(slug, { ...body, name: body.name.trim(), description: body.description.trim(), imageUrl: body.imageUrl?.trim() || null, previewUrl: body.previewUrl?.trim() || null, ...(body.kind === "founder" ? { endsAt: body.endsAt ?? null } : { endsAt: undefined }) })
+      await shopGoodsService.saveProduct(slug, { ...body, name: body.name.trim(), description: body.description.trim(), imageUrl: body.imageUrl?.trim() || null, previewUrl: body.previewUrl?.trim() || null })
       toast.success("Saved")
       setDraft(null)
       products.refetch()
@@ -77,7 +69,7 @@ export function StaffShop() {
       setBusy(false)
     }
   }
-  const edit = (product: StaffGoodsProduct) => setDraft({ slug: product.slug, isNew: false, name: product.name, description: product.description, kind: product.kind, grantsLx: product.grantsLx, priceMnt: product.priceMnt, imageUrl: product.imageUrl, previewUrl: product.previewUrl ?? null, stock: product.stock, enabled: product.enabled, sort: product.sort, ...(product.kind === "founder" ? { endsAt: product.founder?.endsAt ?? null } : {}) })
+  const edit = (product: StaffGoodsProduct) => setDraft({ slug: product.slug, isNew: false, name: product.name, description: product.description, kind: product.kind, grantsLx: product.grantsLx, priceMnt: product.priceMnt, imageUrl: product.imageUrl, previewUrl: product.previewUrl ?? null, stock: product.stock, enabled: product.enabled, sort: product.sort })
 
   return (
     <div className={STAFF_BODY}>
@@ -143,7 +135,7 @@ export function StaffShop() {
             <div className="grid gap-3 sm:grid-cols-4">
               <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Type
                 <select className={input} value={draft.kind} onChange={(event) => setDraft({ ...draft, kind: event.target.value as Draft["kind"] })}>
-                  <option value="charm">NFC charm</option><option value="sticker">Sticker</option><option value="other">Other</option><option value="lx">FOL$ top-up package</option><option value="founder">Genesis pack (In stock = number of packs)</option>
+                  <option value="charm">NFC charm</option><option value="sticker">Sticker</option><option value="other">Other</option><option value="lx">FOL$ top-up package</option>
                 </select>
               </label>
               <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Price (₮)
@@ -159,11 +151,6 @@ export function StaffShop() {
             {draft.kind === "lx" && (
               <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">FOL$ the package gives (credited once when the order is marked Paid)
                 <input className={input} type="number" min={0} value={draft.grantsLx} onChange={(event) => setDraft({ ...draft, grantsLx: Math.max(0, Math.floor(Number(event.target.value) || 0)) })} />
-              </label>
-            )}
-            {draft.kind === "founder" && (
-              <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Sales end (leave empty for no end; the pack count is "In stock")
-                <input className={input} type="datetime-local" value={toLocalInput(draft.endsAt)} onChange={(event) => setDraft({ ...draft, endsAt: event.target.value ? new Date(event.target.value).toISOString() : null })} />
               </label>
             )}
             <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Card picture (the AI picture, https://…)

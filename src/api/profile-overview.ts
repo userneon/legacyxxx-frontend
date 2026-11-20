@@ -65,8 +65,6 @@ export interface ProfileOverview {
     bannerImage?: string | null
     /** The title the player wears under their name, if any. */
     title?: string | null
-    /** The player's number in the Genesis pack, if they bought it. */
-    founder?: number | null
     /** The profile background worn (an item id) and the knobs its owner saved. */
     background?: { id: string; look: import("@/lib/backgrounds").BgLook | null } | null
     /** The name colour and glow the player wears. */

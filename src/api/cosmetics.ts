@@ -121,7 +121,7 @@ export interface Cosmetics {
   profileBanner?: string | null
   nameColors?: FrameItem[]
   nameGlows?: FrameItem[]
-  /** Profile banners and titles (the Genesis pack's are earned, never sold). */
+  /** Profile banners and titles (earned or given, never sold). */
   banners?: FrameItem[]
   titles?: FrameItem[]
   /** The colour of your own smoke grenades in game. */
