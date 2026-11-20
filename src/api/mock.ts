@@ -39,7 +39,7 @@ function withRentals<T extends Record<string, unknown>>(cosmetics: T): T {
 }
 const mockPings = new Set<string>(["updates"])
 const mockNadeSlots: Record<string, Record<string, string | null>> = {}
-const mockFrameState = { equipped: null as string | null, nameColor: null as string | null, nameGlow: null as string | null, smoke: null as string | null, trail: null as string | null, light: null as string | null, kill: null as string | null, flash: null as string | null, he: null as string | null, owned: new Set<string>(["smoke-solid", "smoke-dual", "trail-classic"]) }
+const mockFrameState = { equipped: ((typeof window !== "undefined" && window.sessionStorage.getItem("lx-mock-frame")) || null) as string | null, nameColor: null as string | null, nameGlow: null as string | null, smoke: null as string | null, trail: null as string | null, light: null as string | null, kill: null as string | null, flash: null as string | null, he: null as string | null, owned: new Set<string>(["smoke-solid", "smoke-dual", "trail-classic"]) }
 function mockNameItems(kind: "color" | "glow"): Array<{ id: string; name: string; nameMn: string; unlock: "free" | "coin" | "achievement"; price: number; requirement: string; owned: boolean; rarity: number; featured: boolean; owners: number | null; color?: string; glow?: string; fx?: string; custom?: boolean }> {
   if (kind === "color") return [
     mockDesign("name-solid", "Solid", 150, 1), mockDesign("name-gradient", "Gradient", 400, 2, "gradient"), mockDesign("name-fire", "Fire", 500, 3, "fire"), mockDesign("name-chrome", "Chrome", 500, 3, "chrome"), mockDesign("name-foil", "Foil", 600, 3, "foil"), mockDesign("name-drift", "Drift", 700, 4, "drift"),

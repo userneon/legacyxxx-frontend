@@ -36,6 +36,7 @@ import { OwnerSections } from "@/components/owner-sections"
 import { PenaltyDetailSheet, StatusPill, TypeIcon, TYPE_META, formatPenaltyDate } from "@/components/penalty-detail-dialog"
 import { PlayerAvatar } from "@/components/player-avatar"
 import { RingFrame } from "@/components/ring-frame"
+import { isArtFrame } from "@/lib/art-frames"
 import { isRingFrame } from "@/lib/ring-frames"
 import { CreatorBadge, CreatorLinks } from "@/pages/creators"
 import { clanTagProps, nameProps } from "@/lib/cosmetics"
@@ -82,6 +83,17 @@ function Avatar({ user }: { user: ProfileOverview["user"] }) {
   // A rounded square (owner 2026-11-18: "make the Profile square"), except under a ring frame, which is a circle and needs a round picture.
   const square = !isRingFrame(user.frame)
   // A picture; the Steam animated avatar, when there is one, fades in over it.
+  // A picture frame (the New Year ones and any other art frame): drawn by PlayerAvatar round the picture, so the picture is smaller and the frame fills the 116 px box.
+  if (isArtFrame(user.frame)) {
+    return (
+      <span className="relative flex size-[116px] shrink-0 items-center justify-center">
+        <span className="relative size-[80px]">
+          <PlayerAvatar avatar={user.avatar} name={user.username} frame={user.frame} className="size-[80px] text-2xl" />
+          {animated && <img src={animated} alt="" aria-hidden="true" onLoad={() => setReady(true)} className={cn("absolute inset-0 size-full rounded-[22%] object-cover transition-opacity duration-300", ready ? "opacity-100" : "opacity-0")} />}
+        </span>
+      </span>
+    )
+  }
   return (
     <span className="relative flex size-[116px] shrink-0 items-center justify-center" style={{ "--lx-ring-inset": "-7%", "--lx-ring-size": "116px" } as React.CSSProperties}>
       {isRingFrame(user.frame) && <RingFrame id={user.frame} />}
