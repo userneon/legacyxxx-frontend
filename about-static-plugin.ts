@@ -56,7 +56,7 @@ function pageHtml(site: string, discordInvite: string, lang: AboutLang, page: Ab
   const ld = {
     "@context": "https://schema.org",
     "@graph": [
-      { "@type": "Organization", "@id": `${site}/#org`, name: "LXC", alternateName: "LEGACY-X", url: `${site}/`, sameAs: [discordInvite], description: lang.pages[0].description },
+      { "@type": "Organization", "@id": `${site}/#org`, name: "LXC", url: `${site}/`, sameAs: [discordInvite], description: lang.pages[0].description },
       { "@type": "WebSite", "@id": `${site}/#site`, url: `${site}/`, name: "LXC", inLanguage: lang.hreflang, publisher: { "@id": `${site}/#org` } },
       { "@type": "WebPage", "@id": `${url}#page`, url, name: page.title, description: page.description, inLanguage: lang.hreflang, isPartOf: { "@id": `${site}/#site` }, about: { "@id": `${site}/#org` } },
     ],

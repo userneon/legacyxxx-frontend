@@ -12,7 +12,7 @@ export const ko: AboutLang = {
       description: "LXC는 몽골 Counter-Strike 2 플레이어 커뮤니티입니다: 랭크·펀 서버, 래더, 클랜, 상점, 마켓, iPhone 앱, Discord. 2026년 12월 12일 오픈.",
       intro: "LXC는 몽골의 Counter-Strike 2(CS2) 플레이어를 위한 커뮤니티 플랫폼입니다. 하나의 웹사이트와 한 번의 Steam 로그인으로 게임 서버, 래더, 스킨, 클랜, 상점, Discord 서버가 연결됩니다.",
       sections: [
-        { id: "what-is-lxc", title: "LXC란", p: ["LXC(LEGACY-X로도 표기)는 몽골에서 CS2 커뮤니티 서버와 이에 연결된 웹사이트 legacyx.cc를 운영합니다. 플레이어는 Steam으로 로그인해 랭크 또는 펀 매치를 하고, 래더를 오르고, 클랜에 가입하고, 프로필을 꾸밉니다."] },
+        { id: "what-is-lxc", title: "LXC란", p: ["LXC는 몽골에서 CS2 커뮤니티 서버와 이에 연결된 웹사이트 legacyx.cc를 운영합니다. 플레이어는 Steam으로 로그인해 랭크 또는 펀 매치를 하고, 래더를 오르고, 클랜에 가입하고, 프로필을 꾸밉니다."] },
         { id: "key-facts", title: "핵심 정보", li: [
           "게임: Counter-Strike 2(CS2), 커뮤니티 서버.",
           "지역과 대상: 몽골, 모든 실력의 플레이어.",

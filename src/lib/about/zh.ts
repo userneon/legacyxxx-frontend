@@ -12,7 +12,7 @@ export const zh: AboutLang = {
       description: "LXC 是蒙古国 Counter-Strike 2 玩家社区：排位与娱乐服务器、天梯、战队、商店、市集、iPhone 应用和 Discord。2026 年 12 月 12 日开放。",
       intro: "LXC 是面向蒙古国 Counter-Strike 2（CS2）玩家的社区平台。一个网站、一次 Steam 登录，即可连接游戏服务器、天梯、皮肤、战队、商店和 Discord 服务器。",
       sections: [
-        { id: "what-is-lxc", title: "LXC 是什么", p: ["LXC（也写作 LEGACY-X）在蒙古国运营 CS2 社区服务器，以及配套网站 legacyx.cc。玩家通过 Steam 登录，进行排位或娱乐比赛，攀登天梯，加入战队并个性化个人资料。"] },
+        { id: "what-is-lxc", title: "LXC 是什么", p: ["LXC 在蒙古国运营 CS2 社区服务器，以及配套网站 legacyx.cc。玩家通过 Steam 登录，进行排位或娱乐比赛，攀登天梯，加入战队并个性化个人资料。"] },
         { id: "key-facts", title: "关键事实", li: [
           "游戏：Counter-Strike 2（CS2），社区服务器。",
           "地区与对象：蒙古国，各水平的玩家。",
