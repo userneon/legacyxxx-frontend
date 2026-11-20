@@ -337,7 +337,7 @@ function Appearance() {
                       ) : isModelKind(kind) ? (
                         <span className="flex h-[76px] w-full items-center justify-center text-[var(--text-dim)]">{kind === "model_knife" ? <Sword size={32} strokeWidth={2} aria-hidden="true" /> : <Crosshair size={32} strokeWidth={2} aria-hidden="true" />}</span>
                       ) : kind === "title" ? (
-                        <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><span className={cn("truncate text-[11px] font-semibold uppercase tracking-[3px]", item.name === "Genesis" ? "lx-profile-title-founder" : "text-[var(--text-dim)]")}>{item.name}</span></span>
+                        <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><span className={cn("truncate text-[11px] font-semibold uppercase tracking-[3px]", "text-[var(--text-dim)]")}>{item.name}</span></span>
                       ) : (
                         <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><span {...nameProps(kind === "name_color" ? { color: item.color ?? null, colorFx: item.fx ?? null } : { glow: item.glow ?? null, glowFx: item.fx ?? null }, "truncate text-[15px] font-bold text-[var(--text)]")}>{sampleName}</span></span>
                       )}

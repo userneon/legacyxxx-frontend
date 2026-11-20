@@ -193,7 +193,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
           </div>
           {overview.banned
             ? <span title={overview.banned.reason ?? undefined} className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[3px] text-[var(--status-red)]"><Ban className="size-3.5" aria-hidden="true" />Banned</span>
-            : user.title ? <span className={cn("text-[11px] font-semibold uppercase tracking-[3px]", user.title === "Genesis" ? "lx-profile-title-founder" : "text-[var(--text-dim)]")}>{user.title}</span> : overview.perk && <PerkTitle perk={overview.perk} />}
+            : user.title ? <span className={cn("text-[11px] font-semibold uppercase tracking-[3px]", "text-[var(--text-dim)]")}>{user.title}</span> : overview.perk && <PerkTitle perk={overview.perk} />}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <RoleBadge role={user.role} />

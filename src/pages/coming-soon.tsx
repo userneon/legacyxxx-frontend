@@ -111,11 +111,10 @@ export function ComingSoonPage() {
   const parts: Array<[string, string]> = [[String(left.days), "days"], [pad(left.hours), "hours"], [pad(left.minutes), "minutes"], [pad(left.seconds), "seconds"]]
   return (
     <main className="relative isolate flex min-h-svh flex-col items-center justify-center gap-8 px-6 py-12 text-center">
-      {/* The old Genesis banner as the page's backdrop: a dark gold foil with the wordmark tiled on a slant and a soft sheen, dimmed so it stays calm.
-          It does not move and takes no clicks. */}
+      {/* The Sovereign rank banner (royal blue silk with a gold line) as the page's backdrop, dimmed and still so it stays calm. It takes no clicks. */}
       <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#06070a]">{/* palette-exempt: the backdrop's own colours */}
-        <div className="lx-banner-goldfoil lx-soon-foil absolute inset-0 opacity-[0.55]" />
-        <div className="absolute inset-0" style={{ background: "radial-gradient(75% 65% at 50% 42%, rgb(6 7 10 / 0.35), rgb(6 7 10 / 0.88) 100%)" }} />
+        <div className="lx-banner-perk lx-banner-perk-5 lx-soon-banner absolute inset-0 opacity-[0.6]" />
+        <div className="absolute inset-0" style={{ background: "radial-gradient(75% 65% at 50% 42%, rgb(6 7 10 / 0.3), rgb(6 7 10 / 0.88) 100%)" }} />
         <div className="lx-grain absolute inset-0" />
       </div>
       <SiteLogo className="h-12 w-auto" />
