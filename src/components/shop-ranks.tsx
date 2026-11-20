@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import { Lock } from "lucide-react"
+import { Lock, BadgeCheck } from "lucide-react"
 import { toast } from "sonner"
 
 import emblem2 from "@/assets/ranks/emblem-2.webp"
@@ -156,9 +156,12 @@ export function ShopRanks({ catalogue, qa = false }: { catalogue: PerkCatalogue;
       )}
 
       {/* Every rank gives the same four things, so they are said once here and not five times in the cards (owner 2026-11-18: "the benefits do not please me"). */}
-      <ul className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[12px] text-[var(--text-2)]">
-        <li className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-faint)]">Every rank</li>
-        {[`Works on ${modes}`, "Emblem and name in Tab, chat, Leaders, reviews", "Profile badge, banner, title and light", "Renew before it ends to pick again"].map((line) => <li key={line} className="flex items-center gap-1.5"><svg viewBox="0 0 12 12" aria-hidden="true" className="size-3 shrink-0 text-[var(--text-dim)]" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="square" strokeLinejoin="miter"><path d="M1.5 3.5 6 8l4.5-4.5" /></svg>{line}</li>)}
+      <ul className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[12px] text-[var(--text-2)]">
+        <li className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-faint)]"><BadgeCheck className="size-3.5" aria-hidden="true" />Every rank</li>
+        {[`Works on ${modes}`, "Emblem and name in Tab, chat, Leaders, reviews", "Profile badge, banner, title and light", "Renew before it ends to pick again"].map((line) => (
+          // One clean icon in front, a thin line between the four (the old row had an arrow in front of each, which read as four things to open).
+          <li key={line} className="flex items-center gap-3"><span aria-hidden="true" className="h-3 w-px bg-[var(--line-strong)]" />{line}</li>
+        ))}
       </ul>
       <div className="@container"><ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 scrollbar-hidden [&>li]:w-[min(72vw,210px)] [&>li]:shrink-0 [&>li]:snap-start @[860px]:mx-0 @[860px]:grid @[860px]:snap-none @[860px]:grid-cols-5 @[860px]:overflow-visible @[860px]:px-0 @[860px]:[&>li]:w-auto">
         {catalogue.tiers.map((tier, tierIndex) => {
