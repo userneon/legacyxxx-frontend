@@ -46,3 +46,4 @@ dist-admin
 # The desktop app (desktop/)
 desktop/node_modules
 desktop/dist
+dist-soon

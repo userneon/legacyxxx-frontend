@@ -12,7 +12,7 @@ import { LEGAL_DOCS, type LegalDoc, type LegalPart } from "./src/lib/legal-conte
  */
 const escape = (text: string) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
 
-export function legalStatic(siteUrl: string, discordInvite: string): Plugin {
+export function legalStatic(siteUrl: string, discordInvite: string, outDir = "dist"): Plugin {
   const site = siteUrl.replace(/\/+$/, "")
   const host = site.replace(/^https?:\/\//i, "").replace(/\/.*$/, "")
   const hrefOf = (href: "discord" | "privacy" | "terms") => (href === "discord" ? discordInvite : `${site}/${href}`)
@@ -31,7 +31,7 @@ export function legalStatic(siteUrl: string, discordInvite: string): Plugin {
     name: "legal-static",
     apply: "build",
     closeBundle() {
-      const dist = path.resolve(process.cwd(), "dist")
+      const dist = path.resolve(process.cwd(), outDir)
       const indexPath = path.join(dist, "index.html")
       if (!existsSync(indexPath)) return
       const shell = readFileSync(indexPath, "utf8")

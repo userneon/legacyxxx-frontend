@@ -9,6 +9,7 @@
     "dev:admin": "vite --config vite.admin.config.ts",
     "build:admin": "tsc -b && vite build --config vite.admin.config.ts",
     "build": "tsc -b && vite build",
+    "build:soon": "tsc -b && vite build --config vite.soon.config.ts",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
     "preview:mock": "vite build --mode mock && vite preview",

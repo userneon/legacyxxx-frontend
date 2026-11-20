@@ -4,7 +4,7 @@
 #   include /etc/nginx/snippets/legacyx-gate.conf;
 #   include /etc/nginx/snippets/legacyx-frontend.conf;
 #
-# Everyone gets the static countdown page (nothing of the real site, no app bundle) unless they carry the
+# Everyone gets the Coming Soon site (nothing of the real site, no app bundle) unless they carry the
 # preview cookie, or the file __GATE_DIR__/OPEN exists (ops/gate.sh off).
 
 set $lx_gate 1;
@@ -15,7 +15,8 @@ if ($request_uri = "/__preview/__SECRET__") { set $lx_gate 0; }
 if ($uri ~ ^/api/v1/auth/steam) { set $lx_gate 0; }
 
 if ($lx_gate) { return 503; }
-error_page 503 @lx_countdown;
+# 200, not 503: the Coming Soon page and the Terms and Privacy pages are real pages (App Store and TikTok review open them).
+error_page 503 =200 @lx_countdown;
 
 # Open once to get the cookie, then browse the real site as usual.
 location = /__preview/__SECRET__ {
@@ -24,11 +25,17 @@ location = /__preview/__SECRET__ {
     return 302 /;
 }
 
+# The Coming Soon site (npm run build:soon, published by ops/deploy.sh into __GATE_DIR__/soon): only that page, Terms and Privacy. A file that is not
+# in it (any address of the real site, its /assets/ bundle) gets the page itself, so nothing of the real site is ever sent before the launch.
 location @lx_countdown {
-    root __GATE_DIR__;
-    rewrite ^ /countdown.html break;
-    add_header Cache-Control "no-store" always;
+    root __GATE_DIR__/soon;
+    # A file of the Coming Soon site (or a folder with an index.html: /terms, /privacy) is served as it is; any other address gets the page itself (rewrite ... break stays in this
+    # location, so the gate does not run a second time). A missing file under /assets/ is a plain 404.
+    if (-f $request_filename) { break; }
+    if (-f $request_filename/index.html) { rewrite ^(.*[^/])/?$ $1/index.html break; }
+    if ($uri ~ ^/assets/) { return 404; }
+    rewrite ^ /index.html break;
+    add_header Cache-Control "no-cache" always;
     add_header X-LX-Gate closed always;
-    add_header Retry-After 3600 always;
     add_header X-Robots-Tag "noindex" always;
 }

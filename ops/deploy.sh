@@ -58,6 +58,16 @@ for old in "$WEB_ROOT"/assets/*; do
   [ -e "$DIST/assets/$(basename "$old")" ] || sudo rm -rf -- "$old"
 done
 
+# The Coming Soon site for the nginx gate (ops/gate.sh): built every deploy, published only when the gate has been set up on this server.
+GATE_DIR="${GATE_DIR:-/var/www/legacyx-gate}"
+if [ -d "$GATE_DIR" ]; then
+  echo "==> Building the Coming Soon site for the gate"
+  VITE_API_URL="$API_URL" npm run build:soon
+  sudo mkdir -p "$GATE_DIR/soon"
+  sudo find "$GATE_DIR/soon" -mindepth 1 -delete
+  sudo cp -a "$(pwd)/dist-soon/." "$GATE_DIR/soon/"
+fi
+
 echo "==> Reloading Nginx"
 sudo nginx -t
 sudo systemctl reload nginx
