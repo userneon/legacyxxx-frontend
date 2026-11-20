@@ -1,0 +1,90 @@
+import type { AboutLang } from "./types"
+
+export const en: AboutLang = {
+  code: "en",
+  hreflang: "en",
+  name: "English",
+  ui: { home: "LXC home", pages: "Pages", languages: "Language", copyPage: "Copy this page", copyAll: "Copy everything (for AI)", copied: "Copied", source: "Source", onThisPage: "On this page", translated: "Written in English; other languages follow it. Spotted a mistake? Tell us on Discord.", contact: "Contact", markdown: "Markdown version" },
+  pages: [
+    {
+      slug: "about",
+      title: "About LXC",
+      description: "LXC is the community for Counter-Strike 2 players in Mongolia: ranked and fun servers, a ladder, clans, a shop, a market, an iPhone app and a Discord server. Opens 12 December 2026.",
+      intro: "LXC is a community platform for Counter-Strike 2 (CS2) players in Mongolia. One website and one Steam sign-in connect the game servers, the ladder, skins, clans, the shop and the Discord server.",
+      sections: [
+        { id: "what-is-lxc", title: "What LXC is", p: ["LXC (also written LEGACY-X) runs community Counter-Strike 2 servers in Mongolia and the website at legacyx.cc that goes with them. Players sign in with Steam, play ranked or fun matches, climb a ladder, join clans and customise their profile."] },
+        { id: "key-facts", title: "Key facts", li: [
+          "Game: Counter-Strike 2 (CS2), community servers.",
+          "Country and audience: Mongolia, players of every level.",
+          "Launch: the website opens on 12 December 2026. Until then a Coming Soon page lets players connect Steam and Discord early.",
+          "Sign-in: Steam only. LXC never sees a Steam password.",
+          "Ranking: EXP from ranked matches, from Operator I (1000 EXP) up to Legacy (2300 EXP).",
+          "Currencies: LX, a community coin for the Shop. 1 LX equals 1 tugrik (MNT) when topped up. LX has no value outside LXC and cannot be withdrawn.",
+          "Platforms: website, iPhone app, Windows desktop app, Discord.",
+        ] },
+        { id: "what-you-find", title: "What is on the site", li: [
+          "Play: servers, live matches, Quick play and a Connect button.",
+          "Leaders: the ladder of players, clans and Discord boosters.",
+          "Skinchanger: choose weapon skins, knives, gloves, agents, stickers and charms.",
+          "Shop: profile cosmetics such as frames, backgrounds, name effects and trails, bought with LX.",
+          "Clans, Creators and Market: the community side.",
+          "Profile: stats, match history, rank, crosshair and gear settings.",
+          "Penalties: every ban, mute and gag is public.",
+        ] },
+        { id: "contact", title: "Contact", p: ["The fastest way to reach the staff is a ticket in the support channel of the LXC Discord server. The Terms of service and the Privacy policy are at legacyx.cc/terms and legacyx.cc/privacy."] },
+      ],
+    },
+    {
+      slug: "getting-started",
+      title: "Getting started",
+      description: "How to sign in to LXC with Steam, connect Discord, join a CS2 server and use the Play page.",
+      intro: "Everything a new player needs: sign in, link Discord, connect to a server.",
+      sections: [
+        { id: "sign-in", title: "Sign in with Steam", p: ["Press the Steam button on legacyx.cc. Steam's own page opens; after you sign in you return to the site. There is no LXC password. One Steam account is one profile: EXP, skins and LX all live there."], li: ["If sign-in fails, set the Steam profile to Public and try again.", "Allow cookies, or try another browser or a private window."] },
+        { id: "connect-discord", title: "Connect Discord", p: ["Linking Steam and Discord gives you your rank as a Discord role, which updates by itself when your rank changes."], li: ["Use the link button on the site or type /link in the LXC Discord server. The link works once and lasts 10 minutes.", "One Steam account links to one Discord account.", "Server boosters get a Booster badge and appear in Leaders → Boosters."] },
+        { id: "join-a-server", title: "Join a server", li: ["Open Play, choose a mode and press Connect. Steam opens CS2 and connects.", "Quick play finds a suitable server for you.", "By hand: open the CS2 console (~) and type connect ip:port. Copy the address with the Copy IP button.", "If Connect does not work, check that you are signed in, that the server is not full and that no leave penalty is active."] },
+        { id: "apps", title: "Apps", li: ["iPhone app: the site's features, push notifications and widgets.", "Windows desktop app: opens the site in its own window, connects to servers in one click and shows a tray icon. It does not touch the game: no overlay, no injection, safe with VAC and FACEIT AC."] },
+      ],
+    },
+    {
+      slug: "gameplay",
+      title: "Gameplay, ranks and EXP",
+      description: "How LXC ranked matches work: modes, EXP, ranks from Operator to Legacy, Pro League, leaving penalties, commands and spectating.",
+      intro: "The modes, how EXP and ranks are earned, and the in-game commands.",
+      sections: [
+        { id: "modes", title: "Modes", li: ["5x5 Matches: ranked 5v5. EXP changes after each match.", "Fun Mode: surf, aim, deathmatch and more. No EXP change, no rank requirement.", "Pro League: ranked 5v5 for higher ranks. It opens at 1400 EXP (Vanguard I) and closes below 1350 EXP.", "Tournaments: 5v5 tournaments on LXC servers."] },
+        { id: "exp-and-ranks", title: "EXP and ranks", p: ["Every player starts at 1000 EXP (Operator I). After each ranked match EXP goes up or down; it measures skill, not hours played."], li: ["Counted: winning, the strength of the enemy team, the round difference, and how well you played against your lobby (kills, assists, clutches, plants, defuses). Ace and MVP give a small bonus.", "At most ±45 EXP per match. The first 10 matches count double so new players reach their rank quickly.", "Ranks: Recruit, Operator, Vanguard, Ace, Apex, Legacy (2300 EXP).", "Not counted: Fun Mode, matches with fewer than 2 players per team or fewer than 13 rounds, players present for less than half of the match.", "Check your rank with !rank in game or on your profile."] },
+        { id: "exp-limits", title: "Daily and weekly limits", li: ["The first 150 EXP gained in 24 hours count in full; the rest counts a quarter.", "After 600 EXP in a week no more EXP is gained that week.", "Limits apply only to gains. Losses are never reduced."] },
+        { id: "leaving", title: "Leaving a match", li: ["Leaving a ranked match and not returning costs 25 EXP, plus or minus 8 depending on how you played before leaving.", "A third leave within 24 hours blocks ranked play for 30 minutes; every further leave adds 30 minutes.", "Servers enforce this themselves. If it was a mistake, open a ticket."] },
+        { id: "watching", title: "Watching matches", p: ["Live matches can be watched through GOTV with the Watch button on the Play page. It takes no player slot, needs no sign-in and shows the game a few seconds late as an anti-cheat delay."] },
+        { id: "commands", title: "Player commands", li: ["!rank: rank, EXP and position. !rs: reload your skins. !admins: admins online. !report: report a player. !calladmin and !callmanager: call staff.", "In matches: .ready, .unready, .pause, .unpause, .tech, .tac, .stay, .switch, .stop, .coach.", "Fun Mode: .tp toggles third person where the server allows it.", "Both ! and / work in chat; / is private."] },
+      ],
+    },
+    {
+      slug: "shop-and-skins",
+      title: "Skins, Shop and LX",
+      description: "How the Skinchanger, the Shop, LX top-up, sending LX and paid ranks work on LXC.",
+      intro: "Skins are chosen on the website and loaded in game. Profile cosmetics are bought with LX.",
+      sections: [
+        { id: "skinchanger", title: "Skinchanger", li: ["Sign in at legacyx.cc/skinchanger, pick Terrorist or Counter-Terrorist, and choose skins per weapon. Stickers, charms, wear, pattern seed, StatTrak and name tags can be added.", "In game, type !rs to load your choices. There is no skin menu in the game itself.", "Collections: apply a loadout another player shared, or share your own.", "Advanced (craft): build a custom weapon with sticker size, rotation and position and a 3D preview; up to 60 crafts can be saved."] },
+        { id: "shop", title: "Shop", p: ["The Shop sells profile cosmetics for LX: avatar frames, backgrounds, name colours and effects, grenade trails, smoke colours, weapon models, clan looks and paid ranks. Items are sold for 1, 7 or 30 days. Wear what you own in Profile → Appearance."] },
+        { id: "lx", title: "LX: top up and send", li: ["Top up in Wallet through Wire (QPay or a bank app). The amount is chosen freely; LX arrives automatically after the payment is confirmed. Nobody adds LX by hand.", "Send LX to another player with a 5% fee, 10 to 5,000 LX at a time. You need one ranked match played to send. Sent LX cannot be taken back.", "LX is not money: it cannot be withdrawn and has no value outside LXC."] },
+        { id: "paid-ranks", title: "Paid ranks", p: ["Paid ranks (Prime, Prestige, Imperial, Eternal, Sovereign) are in-game ranks bought for ₮ through Wire. They give a choice of in-game commands, a crown badge, a profile banner and a title. They are not admin ranks: no ban or kick rights and no staff access."] },
+      ],
+    },
+    {
+      slug: "community-and-rules",
+      title: "Community and rules",
+      description: "Clans, creators, the Market, reviews, and how LXC handles cheating, bans, appeals and checks.",
+      intro: "The community features and the rules that keep the servers fair.",
+      sections: [
+        { id: "clans", title: "Clans", li: ["A clan has its own tag, colours and page. Join from the Clans page; some clans approve requests.", "Roles: Leader, Manager, Captain, Member. One player is in one clan.", "A clan page shows the roster, stats, a bank for member donations and a private chat."] },
+        { id: "creators", title: "Content creators", p: ["The Creators page lists Mongolian CS2 content creators in two levels, Main Content Creator and Content Creator. A creator gets their own page, a six-character code, a creator kit (logos, thumbnails, overlays) and a profile badge. Being a creator gives no staff rights."] },
+        { id: "market", title: "Market", p: ["Market is where players sell and swap items. Listings last 45 days, up to 5 active and 5 new per day, with up to 6 photos. LXC does not take part in the deals: check before you buy and never pay in advance. Report fake or illegal listings."] },
+        { id: "penalties", title: "Penalties", li: ["Ban: no access to the servers and stats are hidden. Mute: no voice. Gag: no chat. Kick: removed once.", "Penalties are timed or permanent and are public on the Penalties page and on profiles.", "A ban is valid on every LXC server."] },
+        { id: "report-and-appeal", title: "Reporting and appeals", li: ["In game: !report, !calladmin, !callmanager.", "For serious reports open a ticket in the Discord support channel with the player's name or SteamID, what happened, which server and when, and proof (demo, clip, screenshot).", "To appeal a ban, open one Ban appeal ticket and explain why it should be lifted. One ticket is enough."] },
+        { id: "checks", title: "Checks", p: ["If staff suspect cheating they may ask a player to run the LXC Checker with a one-time code. The program only reads; it changes and deletes nothing. Download it only from the official link a staff member gives you."] },
+      ],
+    },
+  ],
+}

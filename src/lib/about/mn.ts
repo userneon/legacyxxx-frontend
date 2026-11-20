@@ -1,0 +1,90 @@
+import type { AboutLang } from "./types"
+
+export const mn: AboutLang = {
+  code: "mn",
+  hreflang: "mn",
+  name: "Монгол",
+  ui: { home: "LXC нүүр", pages: "Хуудсууд", languages: "Хэл", copyPage: "Энэ хуудсыг хуулах", copyAll: "Бүгдийг хуулах (AI-д)", copied: "Хуулсан", source: "Эх сурвалж", onThisPage: "Энэ хуудсанд", translated: "Англи хэлний эхээс орчуулав. Алдаа байвал Discord-оор мэдэгдээрэй.", contact: "Холбоо барих", markdown: "Markdown хувилбар" },
+  pages: [
+    {
+      slug: "about",
+      title: "LXC юу вэ",
+      description: "LXC бол Монголын Counter-Strike 2 тоглогчдын нэгдсэн платформ: ranked ба fun server, ladder, клан, shop, market, iPhone апп, Discord. 2026 оны 12 сарын 12-нд нээгдэнэ.",
+      intro: "LXC бол Монголын Counter-Strike 2 (CS2) тоглогчдын нэгдсэн платформ. Нэг сайт, нэг Steam нэвтрэлтээр game server, ladder, skin, клан, shop, Discord бүгд холбогдоно.",
+      sections: [
+        { id: "what-is-lxc", title: "LXC гэж юу вэ", p: ["LXC (LEGACY-X гэж бас бичнэ) нь Монголд CS2 community server ажиллуулж, тэдгээртэй холбогдсон legacyx.cc сайтыг эзэмшдэг. Тоглогч Steam-ээр нэвтэрч, ranked эсвэл fun match тоглож, ladder-т өснө, кланд нэгдэж, profile-аа өөрчилнө."] },
+        { id: "key-facts", title: "Гол баримтууд", li: [
+          "Тоглоом: Counter-Strike 2 (CS2), community server.",
+          "Орон, үзэгчид: Монгол, бүх түвшний тоглогч.",
+          "Нээгдэх огноо: 2026 оны 12 сарын 12. Тэр хүртэл Coming Soon хуудсаар Steam, Discord-оо урьдчилан холбож болно.",
+          "Нэвтрэлт: зөвхөн Steam. LXC Steam нууц үгийг хэзээ ч харахгүй.",
+          "Цол: ranked match-ийн EXP. Operator I (1000 EXP)-оос Legacy (2300 EXP) хүртэл.",
+          "Валют: LX бол Shop-д зориулсан community coin. Цэнэглэхэд 1 LX = 1 төгрөг. LX нь LXC-ээс гадна үнэгүй, бэлэн мөнгө болгон гаргаж авч болохгүй.",
+          "Платформ: вэб сайт, iPhone апп, Windows desktop апп, Discord.",
+        ] },
+        { id: "what-you-find", title: "Сайтад юу байдаг", li: [
+          "Play: server-үүд, шууд явагдаж буй match, Quick play, Connect товч.",
+          "Leaders: тоглогч, клан, Discord booster-ийн жагсаалт.",
+          "Skinchanger: зэвсгийн skin, хутга, бээлий, agent, sticker, charm сонгоно.",
+          "Shop: LX-ээр frame, background, нэрний эффект, trail гэх мэт profile-ийн cosmetic авна.",
+          "Clans, Creators, Market: community-ийн хэсгүүд.",
+          "Profile: статистик, match түүх, цол, crosshair ба тоног төхөөрөмжийн тохиргоо.",
+          "Penalties: бүх ban, mute, gag нийтэд ил.",
+        ] },
+        { id: "contact", title: "Холбоо барих", p: ["Staff-тай холбогдох хамгийн хурдан арга бол LXC Discord server-ийн support channel-д ticket нээх. Үйлчилгээний нөхцөл, Нууцлалын бодлого нь legacyx.cc/terms, legacyx.cc/privacy хаягт байна."] },
+      ],
+    },
+    {
+      slug: "getting-started",
+      title: "Эхлэх заавар",
+      description: "LXC-д Steam-ээр нэвтрэх, Discord холбох, CS2 server-т орох, Play хуудсыг ашиглах заавар.",
+      intro: "Шинэ тоглогчид хэрэгтэй бүх зүйл: нэвтрэх, Discord холбох, server-т холбогдох.",
+      sections: [
+        { id: "sign-in", title: "Steam-ээр нэвтрэх", p: ["legacyx.cc дээрх Steam товчийг дарна. Steam-ийн албан ёсны хуудас нээгдэж, нэвтэрсний дараа сайт руу буцна. LXC-ийн нууц үг байхгүй. Нэг Steam = нэг profile: EXP, skin, LX бүгд тэнд хадгалагдана."], li: ["Нэвтэрч чадахгүй бол Steam profile-аа Public болгоод дахин оролдоно.", "Cookie-г зөвшөөрнө, эсвэл өөр browser эсвэл incognito цонх ашиглана."] },
+        { id: "connect-discord", title: "Discord холбох", p: ["Steam болон Discord-оо холбосноор таны цол Discord дээр role болж харагдаж, цол өөрчлөгдөхөд өөрөө шинэчлэгдэнэ."], li: ["Сайт дээрх холбох товч эсвэл LXC Discord server-т /link гэж бичнэ. Холбоос нэг удаагийн, 10 минут хүчинтэй.", "Нэг Steam акаунт нэг Discord-той холбогдоно.", "Server Booster-т Booster тэмдэг өгч, Leaders → Boosters жагсаалтад оруулна."] },
+        { id: "join-a-server", title: "Server-т орох", li: ["Play хэсгээс mode сонгоод Connect дарна. Steam дамжин CS2 нээгдэж холбогдоно.", "Quick play танд тохирох server-ийг өөрөө олно.", "Гараар: CS2 console (~) нээгээд connect ip:port гэж бичнэ. Хаягийг Copy IP товчоор авна.", "Connect ажиллахгүй бол нэвтэрсэн эсэх, server дүүрсэн эсэх, match-ээс гарсны хориг байгаа эсэхийг шалгана."] },
+        { id: "apps", title: "Аппууд", li: ["iPhone апп: сайтын боломжууд, push мэдэгдэл, widget.", "Windows desktop апп: сайтыг тусдаа цонхонд нээж, server-т нэг товшилтоор холбож, tray дүрс харуулна. Тоглоомд оролцдоггүй: overlay, injection байхгүй, VAC ба FACEIT AC-д аюулгүй."] },
+      ],
+    },
+    {
+      slug: "gameplay",
+      title: "Тоглоом, цол, EXP",
+      description: "LXC ranked match хэрхэн ажилладаг: mode, EXP, Operator-оос Legacy хүртэлх цол, Pro League, match-ээс гарах шийтгэл, командууд, match үзэх.",
+      intro: "Mode-ууд, EXP ба цол хэрхэн авдаг, тоглоом доторх командууд.",
+      sections: [
+        { id: "modes", title: "Mode-ууд", li: ["5x5 Matches: ranked 5v5. Match бүрийн дараа EXP өөрчлөгдөнө.", "Fun Mode: surf, aim, deathmatch гэх мэт. EXP өөрчлөгдөхгүй, цолны шаардлагагүй.", "Pro League: өндөр цолтой тоглогчдын ranked 5v5. 1400 EXP (Vanguard I)-оос нээгдэж, 1350 EXP-ээс доош орвол хаагдана.", "Tournaments: LXC server дээр болдог 5v5 тэмцээн."] },
+        { id: "exp-and-ranks", title: "EXP ба цол", p: ["Тоглогч бүр 1000 EXP (Operator I)-оос эхэлнэ. Ranked match бүрийн дараа EXP нэмэгдэж эсвэл буурна. Энэ нь тоглосон цагаар биш, ур чадвараар хэмжигдэнэ."], li: ["Тооцогдох зүйл: ялсан эсэх, эсрэг багийн хүч, раундын зөрүү, лоббигийнхоо бусдаас хэр сайн тоглосон (kill, assist, clutch, plant, defuse). Ace, MVP-д жижиг нэмэлт оноо.", "Нэг match-д дээд тал нь ±45 EXP. Эхний 10 match-д хоёр дахин их өөрчлөгдөж, шинэ тоглогч хурдан зөв цолдоо хүрнэ.", "Цолууд: Recruit, Operator, Vanguard, Ace, Apex, Legacy (2300 EXP).", "Тооцогдохгүй: Fun Mode, баг бүрт 2-оос цөөн хүнтэй эсвэл 13-аас цөөн раунд тоглосон match, match-ийн хагасаас бага хугацаанд байсан тоглогч.", "Цолоо game дотор !rank-аар, эсвэл profile-аасаа харна."] },
+        { id: "exp-limits", title: "Өдөр, долоо хоногийн хязгаар", li: ["24 цагт авсан эхний 150 EXP бүтнээрээ, түүнээс хойших нь дөрөвний нэгээр тооцогдоно.", "7 хоногт 600 EXP хүрмэгц тэр долоо хоногт EXP нэмэгдэхгүй.", "Хязгаар зөвхөн EXP авахад үйлчилнэ. Хожигдол хэзээ ч багасахгүй."] },
+        { id: "leaving", title: "Match-аас гарах", li: ["Ranked match-ийг дундаас нь орхиж буцаж ороогүй бол 25 EXP хасагдана, дээр нь гарахаасаа өмнөх тоглолтоос хамаарч ±8.", "24 цагт 3 дахь удаа гарвал 30 минут ranked-д орж болохгүй, цаашид гарах бүр хоригийг 30 минутаар нэмнэ.", "Server өөрөө дүрмийг хэрэгжүүлдэг. Алдаа гэж үзвэл ticket нээнэ."] },
+        { id: "watching", title: "Match үзэх", p: ["Явагдаж буй match-ийг Play хуудасны Watch товчоор GOTV-ээр үзнэ. Slot эзэлдэггүй, нэвтрэх шаардлагагүй, cheat-ээс хамгаалсан хэдэн секундын хоцрогдолтой харагдана."] },
+        { id: "commands", title: "Тоглогчийн командууд", li: ["!rank: цол, EXP, байр. !rs: skin дахин ачаалах. !admins: онлайн admin. !report: тоглогч мэдэгдэх. !calladmin, !callmanager: staff дуудах.", "Match үед: .ready, .unready, .pause, .unpause, .tech, .tac, .stay, .switch, .stop, .coach.", "Fun Mode: .tp гуравдагч этгээдийн камер (server зөвшөөрсөн бол).", "Chat-д ! ба / хоёулаа ажиллана. / нь бусдад харагдахгүй."] },
+      ],
+    },
+    {
+      slug: "shop-and-skins",
+      title: "Skin, Shop, LX",
+      description: "LXC дээрх Skinchanger, Shop, LX цэнэглэх, LX илгээх, paid rank хэрхэн ажилладаг.",
+      intro: "Skin-ээ вэб сайтаас сонгож game дотор ачаална. Profile-ийн cosmetic-ийг LX-ээр авна.",
+      sections: [
+        { id: "skinchanger", title: "Skinchanger", li: ["legacyx.cc/skinchanger дээр нэвтэрч, Terrorist эсвэл Counter-Terrorist талаа сонгоод зэвсэг бүрийн skin-ийг сонгоно. Sticker, charm, wear, pattern seed, StatTrak, нэрийн шошго нэмж болно.", "Game дотор !rs гэж бичвэл сонголт ачаалагдана. Game дотор skin цэс байхгүй.", "Collections: бусдын хуваалцсан багцыг өөрийн болгох, өөрийнхөө багцыг хуваалцах.", "Advanced (craft): sticker-ийн хэмжээ, эргэлт, байрлал, 3D харагдацтайгаар тусгай буу бүтээнэ. 60 хүртэл craft хадгална."] },
+        { id: "shop", title: "Shop", p: ["Shop нь LX-ээр profile-ийн cosmetic зардаг: avatar frame, background, нэрний өнгө ба эффект, grenade trail, smoke өнгө, зэвсгийн model, клан look, paid rank. Бүх зүйл 1, 7 эсвэл 30 хоногоор зарагдана. Өмсөх нь Profile → Appearance."] },
+        { id: "lx", title: "LX: цэнэглэх, илгээх", li: ["Wallet-аас Wire (QPay эсвэл банкны апп)-аар цэнэглэнэ. Хэмжээг чөлөөтэй сонгоно. Төлбөр баталгаажмагц LX автоматаар орно. LX-ийг хэн ч гараар нэмдэггүй.", "Өөр тоглогчид 5% шимтгэлтэйгээр, нэг удаад 10-5,000 LX илгээнэ. Илгээхийн тулд 1 ranked match тоглосон байх ёстой. Илгээсэн LX-ийг буцаах боломжгүй.", "LX бол мөнгө биш: бэлэн мөнгө болгон гаргаж авч болохгүй, LXC-ээс гадна үнэгүй."] },
+        { id: "paid-ranks", title: "Paid rank", p: ["Paid rank (Prime, Prestige, Imperial, Eternal, Sovereign) нь ₮-өөр Wire-ээр авдаг in-game rank. Тоглоом доторх команд сонгох эрх, crown тэмдэг, profile banner, title өгнө. Энэ нь Admin биш: ban, kick хийх эрх байхгүй, staff site-д орохгүй."] },
+      ],
+    },
+    {
+      slug: "community-and-rules",
+      title: "Community ба дүрэм",
+      description: "Клан, creator, Market, сэтгэгдэл, мөн LXC cheat, ban, appeal, шалгалтыг хэрхэн шийддэг.",
+      intro: "Community-ийн хэсгүүд ба server-ийг шударга байлгадаг дүрэм.",
+      sections: [
+        { id: "clans", title: "Клан", li: ["Клан өөрийн tag, өнгө, хуудастай. Clans хуудаснаас Join дарна. Зарим клан хүсэлт баталгаажуулдаг.", "Эрх: Leader, Manager, Captain, Member. Нэг тоглогч нэг кланд байна.", "Кланы хуудсанд roster, статистик, гишүүдийн хандивын Bank, хаалттай chat байна."] },
+        { id: "creators", title: "Content Creator", p: ["Creators хуудсанд Монголын CS2 контент бүтээгчид Main Content Creator ба Content Creator гэсэн хоёр түвшинд байна. Creator өөрийн хуудас, 6 тэмдэгт код, creator kit (лого, thumbnail, overlay), profile badge авна. Creator нь staff эрх авахгүй."] },
+        { id: "market", title: "Market", p: ["Market бол тоглогчид бие биедээ юм зарах, солилцох газар. Зар 45 хоног үргэлжилнэ, нэг зэрэг 5 зар, өдөрт 5 шинэ зар, 6 хүртэл зурагтай. LXC хэлцэлд оролцдоггүй: худалдан авахаасаа өмнө шалгаж, урьдчилж мөнгө бүү шилжүүл. Хуурамч, хууль бус зарыг Report хий."] },
+        { id: "penalties", title: "Шийтгэл", li: ["Ban: server-үүдэд орж болохгүй, статистик нуугдана. Mute: дуугаар ярьж болохгүй. Gag: chat-д бичиж болохгүй. Kick: нэг удаа гаргана.", "Хугацаатай эсвэл үүрдийн. Penalties хуудас ба profile дээр нийтэд ил.", "Ban нь LXC-ийн бүх server дээр хүчинтэй."] },
+        { id: "report-and-appeal", title: "Мэдэгдэх, гомдол", li: ["Game дотор: !report, !calladmin, !callmanager.", "Ноцтой зөрчлийг Discord support channel-д ticket нээж мэдэгдэнэ: тоглогчийн нэр эсвэл SteamID, юу болсон, аль server, хэдэн цагт, нотолгоо (demo, клип, зураг).", "Ban-ийн эсрэг гомдлыг Ban appeal ticket-ээр гаргана. Нэг ticket хангалттай."] },
+        { id: "checks", title: "Шалгалт (Check)", p: ["Staff cheat гэж сэжиглэвэл тоглогчоос нэг удаагийн кодтойгоор LXC Checker ажиллуулахыг хүсч болно. Програм зөвхөн уншина, юуг ч өөрчлөхгүй, устгахгүй. Staff-ийн өгсөн албан ёсны холбоосоос л татаж ав."] },
+      ],
+    },
+  ],
+}

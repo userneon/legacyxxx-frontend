@@ -29,6 +29,10 @@ location = /__preview/__SECRET__ {
 # in it (any address of the real site, its /assets/ bundle) gets the page itself, so nothing of the real site is ever sent before the launch.
 location @lx_countdown {
     root __GATE_DIR__/soon;
+    charset utf-8;
+    charset_types text/markdown text/xml text/plain application/javascript application/json;
+    include /etc/nginx/mime.types;
+    types { text/markdown md; }
     # A file of the Coming Soon site (or a folder with an index.html: /terms, /privacy) is served as it is; any other address gets the page itself (rewrite ... break stays in this
     # location, so the gate does not run a second time). A missing file under /assets/ is a plain 404.
     if (-f $request_filename) { break; }

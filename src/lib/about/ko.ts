@@ -1,0 +1,90 @@
+import type { AboutLang } from "./types"
+
+export const ko: AboutLang = {
+  code: "ko",
+  hreflang: "ko",
+  name: "한국어",
+  ui: { home: "LXC 홈", pages: "페이지", languages: "언어", copyPage: "이 페이지 복사", copyAll: "전체 복사 (AI용)", copied: "복사됨", source: "출처", onThisPage: "이 페이지 목차", translated: "영어 원문을 번역했습니다. 오류를 발견하면 Discord로 알려 주세요.", contact: "문의", markdown: "Markdown 버전" },
+  pages: [
+    {
+      slug: "about",
+      title: "LXC 소개",
+      description: "LXC는 몽골 Counter-Strike 2 플레이어 커뮤니티입니다: 랭크·펀 서버, 래더, 클랜, 상점, 마켓, iPhone 앱, Discord. 2026년 12월 12일 오픈.",
+      intro: "LXC는 몽골의 Counter-Strike 2(CS2) 플레이어를 위한 커뮤니티 플랫폼입니다. 하나의 웹사이트와 한 번의 Steam 로그인으로 게임 서버, 래더, 스킨, 클랜, 상점, Discord 서버가 연결됩니다.",
+      sections: [
+        { id: "what-is-lxc", title: "LXC란", p: ["LXC(LEGACY-X로도 표기)는 몽골에서 CS2 커뮤니티 서버와 이에 연결된 웹사이트 legacyx.cc를 운영합니다. 플레이어는 Steam으로 로그인해 랭크 또는 펀 매치를 하고, 래더를 오르고, 클랜에 가입하고, 프로필을 꾸밉니다."] },
+        { id: "key-facts", title: "핵심 정보", li: [
+          "게임: Counter-Strike 2(CS2), 커뮤니티 서버.",
+          "지역과 대상: 몽골, 모든 실력의 플레이어.",
+          "오픈: 웹사이트는 2026년 12월 12일에 열립니다. 그 전에는 Coming Soon 페이지에서 Steam과 Discord를 미리 연결할 수 있습니다.",
+          "로그인: Steam만 가능. LXC는 Steam 비밀번호를 절대 볼 수 없습니다.",
+          "랭크: 랭크 매치의 EXP, Operator I(1000 EXP)부터 Legacy(2300 EXP)까지.",
+          "화폐: LX는 상점용 커뮤니티 코인입니다. 충전 시 1 LX는 1 투그릭(MNT)입니다. LX는 LXC 밖에서는 가치가 없고 출금할 수 없습니다.",
+          "플랫폼: 웹사이트, iPhone 앱, Windows 데스크톱 앱, Discord.",
+        ] },
+        { id: "what-you-find", title: "사이트 구성", li: [
+          "Play: 서버, 진행 중인 매치, Quick play, Connect 버튼.",
+          "Leaders: 플레이어, 클랜, Discord 부스터 래더.",
+          "Skinchanger: 무기 스킨, 나이프, 장갑, 에이전트, 스티커, 참 선택.",
+          "Shop: LX로 프레임, 배경, 이름 효과, 트레일 같은 프로필 꾸미기 구매.",
+          "Clans, Creators, Market: 커뮤니티 영역.",
+          "Profile: 통계, 매치 기록, 랭크, 크로스헤어와 장비 설정.",
+          "Penalties: 모든 밴, 뮤트, 개그는 공개됩니다.",
+        ] },
+        { id: "contact", title: "문의", p: ["운영진에게 연락하는 가장 빠른 방법은 LXC Discord 서버의 지원 채널에서 티켓을 여는 것입니다. 이용약관과 개인정보처리방침은 legacyx.cc/terms 및 legacyx.cc/privacy에 있습니다."] },
+      ],
+    },
+    {
+      slug: "getting-started",
+      title: "시작하기",
+      description: "Steam으로 LXC에 로그인하고, Discord를 연결하고, CS2 서버에 접속하고, Play 페이지를 사용하는 방법.",
+      intro: "새 플레이어에게 필요한 모든 것: 로그인, Discord 연결, 서버 접속.",
+      sections: [
+        { id: "sign-in", title: "Steam으로 로그인", p: ["legacyx.cc의 Steam 버튼을 누릅니다. Steam 공식 페이지가 열리고, 로그인 후 사이트로 돌아옵니다. LXC 비밀번호는 없습니다. Steam 계정 하나가 프로필 하나이며 EXP, 스킨, LX가 모두 거기에 저장됩니다."], li: ["로그인이 안 되면 Steam 프로필을 공개로 바꾸고 다시 시도하세요.", "쿠키를 허용하거나 다른 브라우저 또는 시크릿 창을 사용해 보세요."] },
+        { id: "connect-discord", title: "Discord 연결", p: ["Steam과 Discord를 연결하면 랭크가 Discord 역할로 표시되고, 랭크가 바뀔 때 자동으로 갱신됩니다."], li: ["사이트의 연결 버튼을 쓰거나 LXC Discord 서버에서 /link를 입력하세요. 링크는 1회용이며 10분간 유효합니다.", "Steam 계정 하나는 Discord 계정 하나와 연결됩니다.", "서버 부스터는 Booster 배지를 받고 Leaders → Boosters에 표시됩니다."] },
+        { id: "join-a-server", title: "서버 접속", li: ["Play에서 모드를 고르고 Connect를 누르세요. Steam이 CS2를 열어 접속합니다.", "Quick play는 알맞은 서버를 자동으로 찾아 줍니다.", "수동: CS2 콘솔(~)을 열고 connect ip:port를 입력하세요. 주소는 Copy IP 버튼으로 복사합니다.", "Connect가 안 되면 로그인 여부, 서버 만석 여부, 매치 이탈 제한이 있는지 확인하세요."] },
+        { id: "apps", title: "앱", li: ["iPhone 앱: 사이트 기능, 푸시 알림, 위젯.", "Windows 데스크톱 앱: 사이트를 별도 창으로 열고 클릭 한 번으로 서버에 접속하며 트레이 아이콘을 제공합니다. 게임에 개입하지 않습니다: 오버레이도 인젝션도 없고 VAC과 FACEIT AC에 안전합니다."] },
+      ],
+    },
+    {
+      slug: "gameplay",
+      title: "게임플레이, 랭크, EXP",
+      description: "LXC 랭크 매치 방식: 모드, EXP, Operator부터 Legacy까지의 랭크, Pro League, 이탈 페널티, 명령어, 관전.",
+      intro: "모드, EXP와 랭크를 얻는 방법, 게임 내 명령어.",
+      sections: [
+        { id: "modes", title: "모드", li: ["5x5 Matches: 랭크 5v5. 매치마다 EXP가 변합니다.", "Fun Mode: surf, aim, 데스매치 등. EXP 변화 없음, 랭크 조건 없음.", "Pro League: 높은 랭크를 위한 랭크 5v5. 1400 EXP(Vanguard I)에 열리고 1350 EXP 미만이 되면 닫힙니다.", "Tournaments: LXC 서버에서 열리는 5v5 토너먼트."] },
+        { id: "exp-and-ranks", title: "EXP와 랭크", p: ["모든 플레이어는 1000 EXP(Operator I)에서 시작합니다. 랭크 매치마다 EXP가 오르거나 내립니다. 플레이 시간이 아니라 실력을 측정합니다."], li: ["반영 요소: 승패, 상대 팀의 강함, 라운드 차이, 같은 로비 대비 활약(킬, 어시스트, 클러치, 설치, 해체). Ace와 MVP에는 소폭 보너스가 있습니다.", "매치당 최대 ±45 EXP. 처음 10경기는 두 배로 반영되어 신규 플레이어가 빠르게 자기 랭크에 도달합니다.", "랭크: Recruit, Operator, Vanguard, Ace, Apex, Legacy(2300 EXP).", "반영되지 않는 경우: Fun Mode, 팀당 2명 미만이거나 13라운드 미만인 매치, 매치의 절반 미만만 참여한 플레이어.", "게임에서 !rank로 또는 프로필에서 랭크를 확인하세요."] },
+        { id: "exp-limits", title: "일일·주간 한도", li: ["24시간 동안 얻은 처음 150 EXP는 전부, 이후는 4분의 1만 반영됩니다.", "한 주에 600 EXP에 도달하면 그 주에는 더 이상 EXP가 오르지 않습니다.", "한도는 획득에만 적용됩니다. 손실은 줄어들지 않습니다."] },
+        { id: "leaving", title: "매치 이탈", li: ["랭크 매치를 중간에 나가 돌아오지 않으면 25 EXP가 차감되며, 이탈 전 플레이에 따라 ±8이 더해집니다.", "24시간 안에 세 번째 이탈하면 30분간 랭크에 참여할 수 없고, 이후 이탈마다 30분이 추가됩니다.", "서버가 직접 적용합니다. 실수였다면 티켓을 여세요."] },
+        { id: "watching", title: "관전", p: ["Play 페이지의 Watch 버튼으로 진행 중인 매치를 GOTV로 볼 수 있습니다. 슬롯을 차지하지 않고 로그인도 필요 없으며, 치트 방지를 위해 화면이 몇 초 늦게 나옵니다."] },
+        { id: "commands", title: "플레이어 명령어", li: ["!rank: 랭크, EXP, 순위. !rs: 스킨 다시 불러오기. !admins: 접속 중인 관리자. !report: 플레이어 신고. !calladmin, !callmanager: 운영진 호출.", "매치 중: .ready, .unready, .pause, .unpause, .tech, .tac, .stay, .switch, .stop, .coach.", "Fun Mode: 서버가 허용하면 .tp로 3인칭 전환.", "채팅에서 !와 / 모두 사용할 수 있으며, /는 다른 사람에게 보이지 않습니다."] },
+      ],
+    },
+    {
+      slug: "shop-and-skins",
+      title: "스킨, 상점, LX",
+      description: "LXC의 Skinchanger, 상점, LX 충전, LX 송금, 유료 랭크 작동 방식.",
+      intro: "스킨은 웹사이트에서 고르고 게임에서 불러옵니다. 프로필 꾸미기는 LX로 구매합니다.",
+      sections: [
+        { id: "skinchanger", title: "Skinchanger", li: ["legacyx.cc/skinchanger에 로그인해 Terrorist 또는 Counter-Terrorist를 고르고 무기마다 스킨을 선택하세요. 스티커, 참, 마모도, 패턴 시드, StatTrak, 이름표를 추가할 수 있습니다.", "게임에서 !rs를 입력하면 선택이 적용됩니다. 게임 안에는 스킨 메뉴가 없습니다.", "Collections: 다른 플레이어가 공유한 구성을 적용하거나 내 구성을 공유합니다.", "Advanced(craft): 스티커 크기·회전·위치를 정하고 3D 미리보기로 맞춤 무기를 만듭니다. 최대 60개의 craft를 저장할 수 있습니다."] },
+        { id: "shop", title: "상점", p: ["상점은 LX로 프로필 꾸미기를 판매합니다: 아바타 프레임, 배경, 이름 색상과 효과, 수류탄 트레일, 연막 색상, 무기 모델, 클랜 룩, 유료 랭크. 상품은 1일, 7일, 30일 단위로 판매됩니다. 보유한 항목은 Profile → Appearance에서 착용하세요."] },
+        { id: "lx", title: "LX: 충전과 송금", li: ["Wallet에서 Wire(QPay 또는 은행 앱)로 충전합니다. 금액은 자유롭게 정하며, 결제가 확인되면 LX가 자동으로 들어옵니다. 누구도 LX를 수동으로 넣어 주지 않습니다.", "다른 플레이어에게 5% 수수료로 한 번에 10~5,000 LX를 보낼 수 있습니다. 랭크 매치를 한 번 이상 해야 합니다. 보낸 LX는 되돌릴 수 없습니다.", "LX는 돈이 아닙니다: 출금할 수 없고 LXC 밖에서는 가치가 없습니다."] },
+        { id: "paid-ranks", title: "유료 랭크", p: ["유료 랭크(Prime, Prestige, Imperial, Eternal, Sovereign)는 Wire로 ₮에 구매하는 게임 내 랭크입니다. 게임 내 명령어 선택권, 왕관 배지, 프로필 배너, 칭호를 제공합니다. 관리자 랭크가 아닙니다: 밴·킥 권한이 없고 운영진 페이지에 접근할 수 없습니다."] },
+      ],
+    },
+    {
+      slug: "community-and-rules",
+      title: "커뮤니티와 규칙",
+      description: "클랜, 크리에이터, 마켓, 리뷰, 그리고 LXC가 치트, 밴, 이의 제기, 점검을 다루는 방식.",
+      intro: "커뮤니티 기능과 서버를 공정하게 지키는 규칙.",
+      sections: [
+        { id: "clans", title: "클랜", li: ["클랜은 자체 태그, 색상, 페이지를 가집니다. Clans 페이지에서 가입하며, 일부 클랜은 신청을 승인합니다.", "역할: Leader, Manager, Captain, Member. 한 플레이어는 한 클랜에만 속합니다.", "클랜 페이지에는 명단, 통계, 멤버 기부를 위한 Bank, 비공개 채팅이 있습니다."] },
+        { id: "creators", title: "콘텐츠 크리에이터", p: ["Creators 페이지에는 몽골의 CS2 콘텐츠 크리에이터가 Main Content Creator와 Content Creator 두 단계로 나열됩니다. 크리에이터는 자기 페이지, 6자리 코드, creator kit(로고, 썸네일, 오버레이), 프로필 배지를 받습니다. 크리에이터가 되어도 운영진 권한은 생기지 않습니다."] },
+        { id: "market", title: "마켓", p: ["Market은 플레이어끼리 물건을 사고팔고 교환하는 곳입니다. 게시물은 45일간 유지되며 동시에 최대 5개, 하루 새 게시물 5개, 사진 최대 6장입니다. LXC는 거래에 관여하지 않습니다: 구매 전에 확인하고 절대 선입금하지 마세요. 가짜이거나 불법인 게시물은 신고하세요."] },
+        { id: "penalties", title: "페널티", li: ["Ban: 서버 접속 불가, 통계 숨김. Mute: 음성 금지. Gag: 채팅 금지. Kick: 1회 퇴장.", "기간제 또는 영구이며 Penalties 페이지와 프로필에 공개됩니다.", "밴은 모든 LXC 서버에서 유효합니다."] },
+        { id: "report-and-appeal", title: "신고와 이의 제기", li: ["게임 내: !report, !calladmin, !callmanager.", "중대한 신고는 Discord 지원 채널에서 티켓으로: 플레이어 이름 또는 SteamID, 무슨 일이 있었는지, 어느 서버인지, 언제인지, 증거(데모, 클립, 스크린샷).", "밴에 이의를 제기하려면 Ban appeal 티켓을 하나 열고 이유를 설명하세요. 티켓 하나면 충분합니다."] },
+        { id: "checks", title: "점검", p: ["운영진이 치트를 의심하면 일회용 코드로 LXC Checker를 실행해 달라고 요청할 수 있습니다. 프로그램은 읽기만 하며 아무것도 변경하거나 삭제하지 않습니다. 운영진이 알려 준 공식 링크에서만 내려받으세요."] },
+      ],
+    },
+  ],
+}

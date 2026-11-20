@@ -2,6 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs"
 import path from "node:path"
 import type { Plugin } from "vite"
 
+import { writeAbout } from "./about-static-plugin"
 import { LEGAL_DOCS, type LegalDoc, type LegalPart } from "./src/lib/legal-content"
 
 /**
@@ -53,13 +54,16 @@ export function legalStatic(siteUrl: string, discordInvite: string, outDir = "di
         writeFileSync(path.join(dist, doc.slug, "index.html"), page)
         writeFileSync(path.join(dist, `${doc.slug}.md`), md(doc))
       }
+      const about = writeAbout(dist, site, discordInvite)
       const own = (name: string) => existsSync(path.resolve(process.cwd(), "public", name))
       if (!own("robots.txt")) writeFileSync(path.join(dist, "robots.txt"), `User-agent: *\nAllow: /\nDisallow: /api/\n\nSitemap: ${site}/sitemap.xml\n`)
-      if (!own("sitemap.xml")) writeFileSync(path.join(dist, "sitemap.xml"), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${["", "terms", "privacy"].map((slug) => `  <url><loc>${site}/${slug}</loc></url>`).join("\n")}\n</urlset>\n`)
+      if (!own("sitemap.xml")) writeFileSync(path.join(dist, "sitemap.xml"), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${[`${site}/`, `${site}/terms`, `${site}/privacy`, ...about.urls].map((loc) => `  <url><loc>${loc}</loc></url>`).join("\n")}\n</urlset>\n`)
       if (!own("llms.txt")) {
         writeFileSync(
           path.join(dist, "llms.txt"),
-          `# LXC\n\n> LXC is a community for Counter-Strike 2 players in Mongolia: ladder, game servers, shop, clans, market, an iPhone app and a Discord server. The site is a JavaScript app; its legal pages are also published as plain HTML and Markdown.\n\n## Legal\n\n` +
+          `# LXC\n\n> LXC is a community for Counter-Strike 2 players in Mongolia: ladder, game servers, shop, clans, market, an iPhone app and a Discord server. The site is a JavaScript app; the About pages (six languages: English, Mongolian in Cyrillic and in Latin letters, Russian, Chinese, Korean) and the legal pages are also published as plain HTML and Markdown.\n\n## About (English; other languages at /mn/about/, /mn-latn/about/, /ru/about/, /zh/about/, /ko/about/)\n\n` +
+            about.mdLinks.map((link) => `- [${link.title}](${link.url}): ${link.description}`).join("\n") +
+            `\n- [Everything in one file](${site}/llms-full.txt): all About pages in English\n\n## Legal\n\n` +
             LEGAL_DOCS.map((doc) => `- [${doc.title}](${site}/${doc.slug}.md): ${doc.description}`).join("\n") +
             `\n\n## Community\n\n- [Discord](${discordInvite})\n`,
         )

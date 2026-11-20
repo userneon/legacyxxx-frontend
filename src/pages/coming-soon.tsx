@@ -136,7 +136,9 @@ export function ComingSoonPage() {
         <a href={LINKS.discordInvite} target="_blank" rel="noreferrer" className="lx-discord-btn inline-flex h-10 items-center gap-2 rounded-lg px-5 text-[13px] font-semibold transition-colors"><DiscordIcon className="size-5" />Join our Discord</a>
         {LINKS.tiktok && <a href={LINKS.tiktok} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center rounded-lg border border-[var(--line)] px-5 text-[13px] font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--text)]">TikTok</a>}
       </div>
-      <p className="flex items-center gap-4 text-[12px] text-[var(--text-dim)]">
+      <p className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[12px] text-[var(--text-dim)]">
+        {/* A plain link, not the router's: /en/about/ is a page of its own (static HTML), not a route of this app. */}
+        <a href="/en/about/" className="hover:text-[var(--text)] hover:underline">About</a>
         <Link to="/terms" className="hover:text-[var(--text)] hover:underline">Terms of service</Link>
         <Link to="/privacy" className="hover:text-[var(--text)] hover:underline">Privacy policy</Link>
       </p>

@@ -22,5 +22,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["vite.config.ts", "vite.admin.config.ts", "vite.soon.config.ts", "legal-static-plugin.ts", "src/lib/legal-content.ts"]
+  "include": ["vite.config.ts", "vite.admin.config.ts", "vite.soon.config.ts", "legal-static-plugin.ts", "about-static-plugin.ts", "src/lib/legal-content.ts", "src/lib/about/*.ts"]
 }

@@ -1,0 +1,90 @@
+import type { AboutLang } from "./types"
+
+export const zh: AboutLang = {
+  code: "zh",
+  hreflang: "zh",
+  name: "中文",
+  ui: { home: "LXC 首页", pages: "页面", languages: "语言", copyPage: "复制本页", copyAll: "复制全部（给 AI）", copied: "已复制", source: "来源", onThisPage: "本页内容", translated: "译自英文原文。发现错误请在 Discord 告诉我们。", contact: "联系方式", markdown: "Markdown 版本" },
+  pages: [
+    {
+      slug: "about",
+      title: "关于 LXC",
+      description: "LXC 是蒙古国 Counter-Strike 2 玩家社区：排位与娱乐服务器、天梯、战队、商店、市集、iPhone 应用和 Discord。2026 年 12 月 12 日开放。",
+      intro: "LXC 是面向蒙古国 Counter-Strike 2（CS2）玩家的社区平台。一个网站、一次 Steam 登录，即可连接游戏服务器、天梯、皮肤、战队、商店和 Discord 服务器。",
+      sections: [
+        { id: "what-is-lxc", title: "LXC 是什么", p: ["LXC（也写作 LEGACY-X）在蒙古国运营 CS2 社区服务器，以及配套网站 legacyx.cc。玩家通过 Steam 登录，进行排位或娱乐比赛，攀登天梯，加入战队并个性化个人资料。"] },
+        { id: "key-facts", title: "关键事实", li: [
+          "游戏：Counter-Strike 2（CS2），社区服务器。",
+          "地区与对象：蒙古国，各水平的玩家。",
+          "上线：网站于 2026 年 12 月 12 日开放。在此之前，Coming Soon 页面可让玩家提前绑定 Steam 和 Discord。",
+          "登录：仅限 Steam。LXC 永远看不到 Steam 密码。",
+          "段位：来自排位赛的 EXP，从 Operator I（1000 EXP）到 Legacy（2300 EXP）。",
+          "货币：LX 是用于商店的社区币。充值时 1 LX 等于 1 图格里克（MNT）。LX 在 LXC 之外没有价值，也不能提现。",
+          "平台：网站、iPhone 应用、Windows 桌面应用、Discord。",
+        ] },
+        { id: "what-you-find", title: "网站内容", li: [
+          "Play：服务器、实时比赛、Quick play 和 Connect 按钮。",
+          "Leaders：玩家、战队和 Discord 助力者天梯。",
+          "Skinchanger：选择武器皮肤、刀、手套、特工、贴纸和挂件。",
+          "Shop：用 LX 购买头像框、背景、名字特效、轨迹等个人资料装饰。",
+          "Clans、Creators 和 Market：社区板块。",
+          "Profile：数据、比赛记录、段位、准星和设备设置。",
+          "Penalties：所有封禁、禁言、禁文字均公开。",
+        ] },
+        { id: "contact", title: "联系方式", p: ["联系工作人员最快的方式是在 LXC Discord 服务器的支持频道开工单。服务条款和隐私政策见 legacyx.cc/terms 与 legacyx.cc/privacy。"] },
+      ],
+    },
+    {
+      slug: "getting-started",
+      title: "新手入门",
+      description: "如何用 Steam 登录 LXC、绑定 Discord、加入 CS2 服务器并使用 Play 页面。",
+      intro: "新玩家需要的一切：登录、绑定 Discord、连接服务器。",
+      sections: [
+        { id: "sign-in", title: "使用 Steam 登录", p: ["点击 legacyx.cc 上的 Steam 按钮。Steam 官方页面会打开，登录后返回网站。LXC 没有自己的密码。一个 Steam 账号对应一个资料：EXP、皮肤和 LX 都保存在其中。"], li: ["登录失败时，把 Steam 资料设为公开后重试。", "允许 cookie，或换浏览器、使用无痕窗口。"] },
+        { id: "connect-discord", title: "绑定 Discord", p: ["绑定 Steam 与 Discord 后，你的段位会成为 Discord 角色，并在段位变化时自动更新。"], li: ["使用网站上的绑定按钮，或在 LXC Discord 服务器输入 /link。链接一次性有效，10 分钟内有效。", "一个 Steam 账号只能绑定一个 Discord 账号。", "服务器助力者获得 Booster 徽章，并出现在 Leaders → Boosters。"] },
+        { id: "join-a-server", title: "加入服务器", li: ["在 Play 中选择模式并点击 Connect。Steam 会打开 CS2 并连接。", "Quick play 会自动为你找到合适的服务器。", "手动：打开 CS2 控制台（~），输入 connect ip:port。地址可用 Copy IP 按钮获取。", "若 Connect 无效，请检查是否已登录、服务器是否已满、是否有退出比赛的惩罚。"] },
+        { id: "apps", title: "应用", li: ["iPhone 应用：网站功能、推送通知和小组件。", "Windows 桌面应用：在独立窗口中打开网站，一键连接服务器，带托盘图标。不干预游戏：无覆盖层、无注入，对 VAC 和 FACEIT AC 安全。"] },
+      ],
+    },
+    {
+      slug: "gameplay",
+      title: "游戏、段位与 EXP",
+      description: "LXC 排位赛的运作方式：模式、EXP、从 Operator 到 Legacy 的段位、Pro League、退出惩罚、指令与观战。",
+      intro: "模式、EXP 与段位的获得方式，以及游戏内指令。",
+      sections: [
+        { id: "modes", title: "模式", li: ["5x5 Matches：排位 5v5，每场比赛后 EXP 会变化。", "Fun Mode：surf、aim、死亡竞赛等。EXP 不变，无段位要求。", "Pro League：高段位玩家的排位 5v5。达到 1400 EXP（Vanguard I）开放，低于 1350 EXP 关闭。", "Tournaments：LXC 服务器上的 5v5 比赛。"] },
+        { id: "exp-and-ranks", title: "EXP 与段位", p: ["每位玩家从 1000 EXP（Operator I）开始。每场排位赛后 EXP 上升或下降；它衡量的是水平，而不是游戏时长。"], li: ["计入：胜负、对手强度、回合差，以及你相对同场玩家的表现（击杀、助攻、残局、安装、拆除）。Ace 与 MVP 有少量加成。", "每场最多 ±45 EXP。前 10 场加倍计算，让新玩家快速到达自己的段位。", "段位：Recruit、Operator、Vanguard、Ace、Apex、Legacy（2300 EXP）。", "不计入：Fun Mode、每队少于 2 人或少于 13 回合的比赛、在场时间不足一半的玩家。", "在游戏中用 !rank 或在个人资料中查看段位。"] },
+        { id: "exp-limits", title: "每日与每周上限", li: ["24 小时内获得的前 150 EXP 全额计入，其余按四分之一计入。", "一周内达到 600 EXP 后，该周不再增加 EXP。", "上限只限制增加，损失永远不会被减少。"] },
+        { id: "leaving", title: "中途退出比赛", li: ["中途退出排位赛且不返回，扣 25 EXP，并根据退出前的表现再 ±8。", "24 小时内第三次退出，会禁止排位 30 分钟，之后每次退出再加 30 分钟。", "服务器自行执行此规则。如是误操作，请开工单。"] },
+        { id: "watching", title: "观战", p: ["可在 Play 页面用 Watch 按钮通过 GOTV 观看实时比赛。不占用名额，无需登录，画面会延迟几秒以防作弊。"] },
+        { id: "commands", title: "玩家指令", li: ["!rank：段位、EXP 与排名。!rs：重新加载皮肤。!admins：在线管理员。!report：举报玩家。!calladmin 与 !callmanager：呼叫工作人员。", "比赛中：.ready、.unready、.pause、.unpause、.tech、.tac、.stay、.switch、.stop、.coach。", "Fun Mode：服务器允许时，.tp 切换第三人称。", "聊天中 ! 和 / 都可用；/ 开头的指令是私密的。"] },
+      ],
+    },
+    {
+      slug: "shop-and-skins",
+      title: "皮肤、商店与 LX",
+      description: "LXC 上的 Skinchanger、商店、LX 充值、转账和付费段位如何运作。",
+      intro: "皮肤在网站上选择，在游戏中加载。个人资料装饰用 LX 购买。",
+      sections: [
+        { id: "skinchanger", title: "Skinchanger", li: ["登录 legacyx.cc/skinchanger，选择 Terrorist 或 Counter-Terrorist，并为每把武器挑选皮肤。可添加贴纸、挂件、磨损、图案种子、StatTrak 和名牌。", "在游戏中输入 !rs 加载你的选择。游戏内没有皮肤菜单。", "Collections：应用其他玩家分享的方案，或分享你自己的。", "Advanced（craft）：自定义武器，可设置贴纸大小、旋转、位置并 3D 预览；最多保存 60 个 craft。"] },
+        { id: "shop", title: "商店", p: ["商店用 LX 出售个人资料装饰：头像框、背景、名字颜色与特效、手雷轨迹、烟雾颜色、武器模型、战队外观和付费段位。商品按 1、7 或 30 天出售。在 Profile → Appearance 中佩戴已拥有的物品。"] },
+        { id: "lx", title: "LX：充值与转账", li: ["在 Wallet 通过 Wire（QPay 或银行应用）充值。金额可自由选择；付款确认后 LX 自动到账。没有人会手动添加 LX。", "向其他玩家转账收取 5% 手续费，每次 10 至 5,000 LX。需至少完成一场排位赛。已转出的 LX 无法撤回。", "LX 不是钱：不能提现，在 LXC 之外没有价值。"] },
+        { id: "paid-ranks", title: "付费段位", p: ["付费段位（Prime、Prestige、Imperial、Eternal、Sovereign）是通过 Wire 用 ₮ 购买的游戏内段位，提供可选的游戏内指令、皇冠徽章、个人资料横幅和称号。它不是管理员段位：没有封禁或踢人权限，也不能进入工作人员后台。"] },
+      ],
+    },
+    {
+      slug: "community-and-rules",
+      title: "社区与规则",
+      description: "战队、创作者、市集、评价，以及 LXC 如何处理作弊、封禁、申诉与检查。",
+      intro: "社区功能，以及保持服务器公平的规则。",
+      sections: [
+        { id: "clans", title: "战队", li: ["战队有自己的标签、颜色和页面。在 Clans 页面加入；部分战队需要审批申请。", "角色：Leader、Manager、Captain、Member。每位玩家只能在一个战队。", "战队页面包含成员名单、数据、用于成员捐赠的 Bank 和私密聊天。"] },
+        { id: "creators", title: "内容创作者", p: ["Creators 页面列出蒙古国 CS2 内容创作者，分 Main Content Creator 和 Content Creator 两级。创作者拥有自己的页面、六位代码、creator kit（标志、缩略图、叠加层）和个人资料徽章。成为创作者不带来任何工作人员权限。"] },
+        { id: "market", title: "市集", p: ["Market 是玩家买卖和交换物品的地方。商品信息有效期 45 天，同时最多 5 条有效、每天最多 5 条新发布，最多 6 张照片。LXC 不参与交易：购买前请核实，切勿提前付款。请举报虚假或违法信息。"] },
+        { id: "penalties", title: "处罚", li: ["Ban：无法进入服务器，数据被隐藏。Mute：禁语音。Gag：禁文字聊天。Kick：一次性踢出。", "处罚为限时或永久，在 Penalties 页面和个人资料中公开。", "封禁在所有 LXC 服务器上有效。"] },
+        { id: "report-and-appeal", title: "举报与申诉", li: ["游戏内：!report、!calladmin、!callmanager。", "严重举报请在 Discord 支持频道开工单：玩家名称或 SteamID、发生了什么、哪台服务器、何时，以及证据（demo、视频、截图）。", "申诉封禁请开一个 Ban appeal 工单并说明理由。一个工单就够了。"] },
+        { id: "checks", title: "检查", p: ["若工作人员怀疑作弊，可能要求玩家用一次性代码运行 LXC Checker。该程序只读取，不更改也不删除任何内容。请仅从工作人员提供的官方链接下载。"] },
+      ],
+    },
+  ],
+}
