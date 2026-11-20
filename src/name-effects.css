@@ -4,9 +4,11 @@
  * so each line carries palette-exempt.
  */
 .lx-name {
-  /* Room for the glow inside truncating boxes without moving the text. */
-  padding: 1.6em 0.7em;
-  margin: -1.6em -0.7em;
+  /* Room for the glow inside truncating boxes without moving the text. The sides get at least 18px (a 13px clan tag has only 9px in em) so a small glowing name is not cut off at the sides. */
+  padding: max(1.6em, 20px) max(0.7em, 18px);
+  margin: calc(-1 * max(1.6em, 20px)) calc(-1 * max(0.7em, 18px));
+  /* The gradient of a metal / gold name is laid over the text itself, not over the padding that holds the glow (it stretched the colours and dulled the name). */
+  background-origin: content-box;
 }
 
 /* ---- colour effects: metal, ice, foil, light. Gradient text, so glows use drop-shadow (a text-shadow would show through). ---- */

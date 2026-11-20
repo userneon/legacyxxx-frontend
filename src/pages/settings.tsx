@@ -1,4 +1,4 @@
-import { ProfileCustomizePanel } from "@/components/profile-customize-panel"
+import { ProfileBannerPicture, ProfileCustomizePanel } from "@/components/profile-customize-panel"
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router-dom"
 import { Bell, Check, CircleCheck, Crosshair, Frame, Link2, RotateCcw, MonitorSmartphone, Sword, type LucideIcon } from "lucide-react"
@@ -177,7 +177,7 @@ function Notifications() {
 const KINDS: Array<{ value: CosmeticKind; label: string; noun: string; group: "profile" | "game" }> = [
   { value: "frame", label: "Frame", noun: "frame", group: "profile" },
   { value: "background", label: "Background", noun: "background", group: "profile" },
-  { value: "profile_customize", label: "Name & banner", noun: "profile customize", group: "profile" },
+  { value: "profile_customize", label: "Name", noun: "profile customize", group: "profile" },
   { value: "banner", label: "Banner", noun: "banner", group: "profile" },
   { value: "title", label: "Title", noun: "title", group: "profile" },
   { value: "smoke_color", label: "Smoke", noun: "smoke colour", group: "game" },
@@ -240,7 +240,7 @@ function Appearance() {
   // The profile card beside this tab shows the name look being tried, live (owner request 2026-11-13); it clears when the tab closes.
   const previewKey = JSON.stringify({ banner: kind === "banner" ? (selected?.fx ?? null) : undefined, frame: kind === "frame" ? (selected?.id ?? null) : undefined })
   useEffect(() => {
-    // Name & banner draws its own preview (it is the one that knows the name style being tried).
+    // Name draws its own preview (it is the one that knows the name style being tried).
     if (kind === "profile_customize") return
     window.dispatchEvent(new CustomEvent("legacyx:appearance-preview", { detail: JSON.parse(previewKey) }))
     return () => { window.dispatchEvent(new CustomEvent("legacyx:appearance-preview", { detail: null })) }
@@ -279,6 +279,7 @@ function Appearance() {
             </div>
             {kind === "profile_customize" ? <ProfileCustomizePanel data={data} onChanged={async () => { await refetch(); window.dispatchEvent(new Event("legacyx:appearance-changed")) }} /> : (
             <>
+            {kind === "banner" && <ProfileBannerPicture data={data} onChanged={async () => { await refetch(); window.dispatchEvent(new Event("legacyx:appearance-changed")) }} />}
             {/* What is picked: the effects that the profile card cannot show are drawn here; the name, banner and frame show on the card on the left. */}
             <div className="lx-glass flex flex-wrap items-center gap-x-5 gap-y-3 rounded-2xl p-4">
               {kind === "background" && selected && <div className="relative h-[90px] w-[180px] overflow-hidden rounded-lg bg-[var(--card-surface)] [&>div]:size-full"><BackgroundScene key={selected.id} id={selected.id} look={bgDrafts[selected.id] ?? data.backgroundLooks?.[selected.id] ?? {}} /></div>}
