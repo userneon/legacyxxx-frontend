@@ -120,7 +120,7 @@ export function LiftRequests({ access, onDecided }: { access: ModerationAccess; 
         {requests.map((request) => (
           <div key={request.id} className="relative flex min-w-0 flex-col gap-3 rounded-xl bg-[var(--glass-fill)] p-4">
             <div className="flex items-start gap-3">
-              <PlayerAvatar avatar={request.avatar} name={request.player} className="size-10 shrink-0 rounded-[10px] text-sm" />
+              <PlayerAvatar avatar={request.avatar} name={request.player} className="size-10 shrink-0 rounded-lg text-sm" />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[13px] font-semibold text-[var(--text)]">{request.player}</span>
                 <span className="block text-[11px] text-[var(--text-dim)]">{LIFT_LABEL[request.type] ?? "Lift"} · {request.requestedBy} asked {formatRelativeTime(new Date(request.at))}</span>

@@ -163,7 +163,7 @@ function ReviewCard({ entry, own, fresh, index, onOpenProfile, onEdit, onChanged
 
   const author = (
     <>
-      <PlayerAvatar avatar={entry.avatar} name={entry.name} frame={entry.frame} className="size-9 shrink-0 rounded-[10px] text-xs" />
+      <PlayerAvatar avatar={entry.avatar} name={entry.name} frame={entry.frame} className="size-9 shrink-0 rounded-lg text-xs" />
       <span className="flex min-w-0 flex-1 flex-col gap-1.5 text-left">
         <span className="flex min-w-0 items-center gap-2">
           <span {...nameProps(entry.nameStyle, "truncate text-[13px] font-medium text-[var(--text)]")}>{entry.name}</span>
@@ -243,7 +243,7 @@ function ReviewCard({ entry, own, fresh, index, onOpenProfile, onEdit, onChanged
             rows={3}
             placeholder="Answer this review as staff…"
             aria-label="Reply to this review"
-            className="resize-none rounded-[10px] border border-[var(--line)] bg-[var(--glass-fill)] p-3 text-[13px] leading-6 text-[var(--text)] outline-none transition-[border-color] duration-300 placeholder:text-[var(--text-faint)] focus-visible:border-[var(--line-strong)]"
+            className="resize-none rounded-lg border border-[var(--line)] bg-[var(--glass-fill)] p-3 text-[13px] leading-6 text-[var(--text)] outline-none transition-[border-color] duration-300 placeholder:text-[var(--text-faint)] focus-visible:border-[var(--line-strong)]"
           />
           <div className="flex justify-end gap-2">
             <button type="button" onClick={() => setReplying(false)} className="h-8 rounded-lg border border-[var(--line)] px-3 text-xs font-medium text-[var(--text)] transition-colors hover:bg-[var(--raised)]">Cancel</button>
@@ -292,7 +292,7 @@ function CardSkeleton() {
   return (
     <div className="flex flex-col gap-3 rounded-xl bg-[var(--glass-fill)] px-5 py-[18px]" aria-hidden="true">
       <div className="flex items-center gap-3">
-        <Skeleton className="size-9 rounded-[10px] bg-[var(--line-soft)]" />
+        <Skeleton className="size-9 rounded-lg bg-[var(--line-soft)]" />
         <div className="flex flex-1 flex-col gap-[7px]">
           <Skeleton className="h-2.5 w-[120px] rounded-full bg-[var(--line)]" />
           <Skeleton className="h-2 w-[140px] rounded-full bg-[var(--line-soft)]" />
@@ -412,7 +412,7 @@ function WriteDialog({ open, editing, onClose, onPosted }: { open: boolean; edit
               maxLength={MAX_LENGTH}
               rows={5}
               placeholder="Servers, community, staff, anything that stood out…"
-              className="resize-none rounded-[10px] border border-[var(--line)] bg-[var(--glass-fill)] p-3 text-sm leading-6 text-[var(--text)] outline-none transition-[border-color,box-shadow] duration-300 placeholder:text-[var(--text-dim)] focus:border-[var(--text-dim)] focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_18%,transparent)]"
+              className="resize-none rounded-lg border border-[var(--line)] bg-[var(--glass-fill)] p-3 text-sm leading-6 text-[var(--text)] outline-none transition-[border-color,box-shadow] duration-300 placeholder:text-[var(--text-dim)] focus:border-[var(--text-dim)] focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_18%,transparent)]"
             />
           </label>
           <span className="text-xs text-[var(--text-dim)]">{editing ? "Your review keeps its place and shows that it was edited." : "Posted publicly with your Steam name. One review per week."}</span>

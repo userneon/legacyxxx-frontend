@@ -77,7 +77,7 @@ export function PerkPayDialog({ invoice, onClose, onSettled }: { invoice: PerkIn
         {invoice && status === "pending" && (
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3 rounded-xl border border-[var(--line-soft)] bg-[var(--card-surface)] p-3.5">
-              <span className="grid h-11 w-[88px] shrink-0 place-items-center rounded-[10px] border border-[var(--line)] bg-[var(--panel)] px-3"><img src={qpayLogo} alt="QPay" className="h-6 w-[60px]" draggable={false} /></span>
+              <span className="grid h-11 w-[88px] shrink-0 place-items-center rounded-lg border border-[var(--line)] bg-[var(--panel)] px-3"><img src={qpayLogo} alt="QPay" className="h-6 w-[60px]" draggable={false} /></span>
               <span className="text-[12px] leading-snug text-[var(--text-muted)]">Wire's secure page opens in a new tab. Scan the QR code or open your bank app there.</span>
             </div>
             <a href={invoice.checkoutUrl} target="_blank" rel="noreferrer noopener" className="lx-primary-button inline-flex h-11 items-center justify-center gap-2 rounded-lg px-4 text-[14px] font-semibold"><ExternalLink className="size-4" aria-hidden="true" />Open the payment page</a>

@@ -71,7 +71,7 @@ function TopCard({ player, sort, onOpen }: { player: CompetitiveLeaderboardEntry
         <CompetitiveRankBadge rankId={player.rank_id} rankName={player.rank_name} imageKey={player.rank_image_key} currentExp={player.current_exp} size={36} />
       </span>
       <span className="flex min-w-0 items-center gap-3.5">
-        <PlayerAvatar avatar={player.avatar} name={player.username} frame={player.frame} className="relative z-0 size-14 shrink-0 rounded-[14px] text-base" />
+        <PlayerAvatar avatar={player.avatar} name={player.username} frame={player.frame} className="relative z-0 size-14 shrink-0 rounded-xl text-base" />
         <span className="flex min-w-0 flex-col gap-1.5">
           <span className="flex min-w-0 items-center gap-1.5">
             <span {...nameProps(player.name_style, "truncate text-[15px] font-semibold text-[var(--text)]")} title={player.username}><PlayerNameText name={player.username} /></span>
@@ -123,7 +123,7 @@ function PlayerRow({ player, sort, onOpen, you, index = 0 }: { player: Competiti
             avatar={player.avatar}
             name={player.username}
             frame={player.frame}
-            className={cn("relative z-0 size-8 shrink-0 rounded-[9px] text-xs", )}
+            className={cn("relative z-0 size-8 shrink-0 rounded-lg text-xs", )}
           />
         </span>
         <span {...nameProps(you ? null : player.name_style, "min-w-0 truncate text-[13px] font-medium text-[var(--text)]")} title={player.username}>{you ? "You" : <PlayerNameText name={player.username} />}</span>
@@ -210,7 +210,7 @@ function TopCardSkeleton() {
         <Skeleton className="size-10 rounded-full bg-[var(--line-soft)]" />
       </div>
       <div className="flex items-center gap-3">
-        <Skeleton className="size-[52px] rounded-[13px] bg-[var(--line)]" />
+        <Skeleton className="size-[52px] rounded-xl bg-[var(--line)]" />
         <div className="flex flex-1 flex-col gap-2">
           <Skeleton className="h-3 w-3/5 rounded-full bg-[var(--line-strong)]" />
           <Skeleton className="h-2 w-1/3 rounded-full bg-[var(--line-soft)]" />
@@ -229,7 +229,7 @@ function RowSkeleton() {
     <div className={cn(GRID, "h-14 border-b border-[var(--raised)]")} aria-hidden="true">
       <Skeleton className="h-2.5 w-4 rounded-full bg-[var(--line-soft)]" />
       <span className="flex items-center gap-3">
-        <Skeleton className="size-8 rounded-[9px] bg-[var(--line-soft)]" />
+        <Skeleton className="size-8 rounded-lg bg-[var(--line-soft)]" />
         <Skeleton className="h-2.5 w-[45%] rounded-full bg-[var(--line)]" />
       </span>
       <span className="flex items-center gap-2 max-md:hidden">

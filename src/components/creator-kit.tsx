@@ -187,7 +187,7 @@ export function CreatorKit() {
               <h3 className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-faint)]">{group.title} <span className="font-normal normal-case tracking-normal text-[var(--text-dim)]">· {group.hint}</span></h3>
               <ul className="grid gap-2.5 sm:grid-cols-2">
                 {group.items.map((item) => (
-                  <li key={item.file} className="flex flex-col overflow-hidden rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)]">
+                  <li key={item.file} className="flex flex-col overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--card-surface)]">
                     <div className={cn("flex h-28 items-center justify-center bg-[length:16px_16px]", item.light ? "bg-[repeating-conic-gradient(#e5e5e5_0_25%,#fafafa_0_50%)]" : "bg-[repeating-conic-gradient(#1a1a1a_0_25%,#141414_0_50%)]")}>
                       {item.video ? (
                         <video src={`${BASE}/${item.file}`} aria-label={item.name} autoPlay loop muted playsInline preload="metadata" className="max-h-full max-w-full object-contain" />
@@ -216,7 +216,7 @@ export function CreatorKit() {
               </div>
               <ul className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
                 {banners.filter((banner) => banner.accent === accent).map((banner) => (
-                  <li key={banner.file} className="flex flex-col overflow-hidden rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)]">
+                  <li key={banner.file} className="flex flex-col overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--card-surface)]">
                     <div className="flex h-24 items-center justify-center bg-[repeating-conic-gradient(#1a1a1a_0_25%,#141414_0_50%)] bg-[length:16px_16px] p-2">
                       <img src={`${BASE}/${banner.file}`} alt={banner.name} loading="lazy" draggable={false} className="max-h-full max-w-full object-contain" />
                     </div>
@@ -234,7 +234,7 @@ export function CreatorKit() {
             <h3 className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--text-faint)]">Colours <span className="font-normal normal-case tracking-normal text-[var(--text-dim)]">· name in Black Ops One, the rest in Exo 2</span></h3>
             <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
               {COLOURS.map(([name, hex]) => (
-                <li key={hex} className="flex items-center gap-2.5 rounded-[10px] border border-[var(--line)] bg-[var(--card-surface)] p-2.5">
+                <li key={hex} className="flex items-center gap-2.5 rounded-lg border border-[var(--line)] bg-[var(--card-surface)] p-2.5">
                   <span className="size-8 shrink-0 rounded-lg border border-[var(--line-strong)]" style={{ backgroundColor: hex }} aria-hidden="true" />
                   <span className="flex min-w-0 flex-col"><span className="truncate text-[13px] text-[var(--text)]">{name}</span><span className="font-mono text-[11px] uppercase text-[var(--text-dim)]">{hex}</span></span>
                 </li>

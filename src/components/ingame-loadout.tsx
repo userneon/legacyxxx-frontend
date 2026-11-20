@@ -73,7 +73,7 @@ function Editor({ kind, item, price, balance, onBack, onSaved }: { kind: NadeKin
   return (
     <div className="flex flex-col gap-4">
       <button type="button" onClick={onBack} className="self-start text-[12px] text-[var(--text-dim)] hover:text-[var(--text)]">← Back</button>
-      <div className="flex items-center justify-center rounded-[10px] bg-[var(--glass-fill)] py-4"><Art kind={kind} item={{ ...item, color, color2: item.twoColours ? color2 : item.color2 }} className="w-[150px]" /></div>
+      <div className="flex items-center justify-center rounded-lg bg-[var(--glass-fill)] py-4"><Art kind={kind} item={{ ...item, color, color2: item.twoColours ? color2 : item.color2 }} className="w-[150px]" /></div>
       <div className="flex flex-wrap justify-center gap-5">
         <ColorPicker vivid value={color} onChange={setColor} />
         {item.twoColours && <ColorPicker vivid value={color2} onChange={setColor2} />}
@@ -83,7 +83,7 @@ function Editor({ kind, item, price, balance, onBack, onSaved }: { kind: NadeKin
           <span className="text-[11px] font-semibold uppercase tracking-[0.5px] text-[var(--text-dim)]">Picture</span>
           <div className="flex flex-wrap gap-2">
             {["", ...SMOKE_MOTIFS].map((name) => (
-              <button key={name || "dot"} type="button" aria-pressed={motif === name} aria-label={name || "dot"} onClick={() => setMotif(name)} className={cn("flex size-11 items-center justify-center rounded-[10px] transition-colors", motif === name ? "bg-[var(--line-strong)] text-[var(--text)]" : "bg-[var(--glass-fill)] text-[var(--text-dim)] hover:text-[var(--text)]")} style={motif === name ? { color } : undefined}>
+              <button key={name || "dot"} type="button" aria-pressed={motif === name} aria-label={name || "dot"} onClick={() => setMotif(name)} className={cn("flex size-11 items-center justify-center rounded-lg transition-colors", motif === name ? "bg-[var(--line-strong)] text-[var(--text)]" : "bg-[var(--glass-fill)] text-[var(--text-dim)] hover:text-[var(--text)]")} style={motif === name ? { color } : undefined}>
                 <Motif name={name || "dot"} />
               </button>
             ))}
@@ -107,7 +107,7 @@ export function InGameLoadout({ renderSection }: { renderSection: (title: string
   const { data: wallet } = useApiQuery<{ balance: number }>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   // Until the player's cosmetics arrive the section is already there with quiet placeholders (owner 2026-11-18: the In-game part "popped in later, on its own"), so it comes with the rest.
   if (!data) {
-    return renderSection("IN-GAME", KINDS.map(({ kind }) => <div key={kind} aria-hidden="true" className="h-24 animate-pulse rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)]" />))
+    return renderSection("IN-GAME", KINDS.map(({ kind }) => <div key={kind} aria-hidden="true" className="h-24 animate-pulse rounded-lg border border-[var(--glass-line)] bg-[var(--glass-fill)]" />))
   }
 
   const spec = KINDS.find((entry) => entry.kind === open)
@@ -127,8 +127,8 @@ export function InGameLoadout({ renderSection }: { renderSection: (title: string
   const cards = KINDS.map(({ kind, label, list, worn }) => {
     const current = ((data[list] as FrameItem[] | undefined) ?? []).find((item) => item.id === data[worn])
     return (
-      <div key={kind} className="lx-layer group relative h-24 overflow-hidden rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] transition-[border-color,translate] duration-300 hover:-translate-y-0.5 hover:border-[var(--line-strong)]">
-        <button type="button" onClick={() => setOpen(kind)} aria-label={`Change ${label.toLowerCase()}`} className="absolute inset-0 z-[1] rounded-[10px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50" />
+      <div key={kind} className="lx-layer group relative h-24 overflow-hidden rounded-lg border border-[var(--glass-line)] bg-[var(--glass-fill)] transition-[border-color,translate] duration-300 hover:-translate-y-0.5 hover:border-[var(--line-strong)]">
+        <button type="button" onClick={() => setOpen(kind)} aria-label={`Change ${label.toLowerCase()}`} className="absolute inset-0 z-[1] rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50" />
         <span className="pointer-events-none absolute inset-0 flex items-center justify-center px-6 pb-6 pt-3">
           <Art kind={kind} item={current} className={cn("w-[84px]", !current && "opacity-30 saturate-0")} />
         </span>
@@ -154,7 +154,7 @@ export function InGameLoadout({ renderSection }: { renderSection: (title: string
                 const on = data[spec!.worn] === item.id
                 return (
                   <li key={item.id}>
-                    <button type="button" disabled={busy} onClick={() => { if (item.custom) setEditing(item.id); else void wear(open, on ? null : item.id) }} className={cn("flex h-28 w-full flex-col items-center justify-center gap-2 rounded-[10px] border bg-[var(--glass-fill)] px-2 transition-colors hover:border-[var(--line-strong)]", on ? "border-[var(--status-green)]" : "border-[var(--glass-line)]")}>
+                    <button type="button" disabled={busy} onClick={() => { if (item.custom) setEditing(item.id); else void wear(open, on ? null : item.id) }} className={cn("flex h-28 w-full flex-col items-center justify-center gap-2 rounded-lg border bg-[var(--glass-fill)] px-2 transition-colors hover:border-[var(--line-strong)]", on ? "border-[var(--status-green)]" : "border-[var(--glass-line)]")}>
                       <Art kind={open} item={item} className="w-[72px]" />
                       <span className="w-full truncate text-center text-xs font-medium text-[var(--text)]">{item.name}</span>
                     </button>

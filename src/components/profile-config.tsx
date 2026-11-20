@@ -13,7 +13,7 @@ import { copyText } from "@/components/profile-ids"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { cn } from "@/lib/utils"
 
-const card = "flex flex-col gap-2 rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-[18px]"
+const card = "flex flex-col gap-2 rounded-lg border border-[var(--glass-line)] bg-[var(--glass-fill)] p-[18px]"
 const field = "h-9 w-full rounded-lg border border-[var(--line)] bg-[var(--bg)] px-3 text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] focus:border-[var(--text-faint)] focus:outline-none"
 const secondary = "inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] disabled:opacity-50"
 
@@ -196,7 +196,7 @@ function ConfigEditor({ config, open, onOpenChange, onSaved }: { config: PlayerC
 export function ProfileConfigs({ userId, isOwner }: { userId: string; isOwner: boolean }) {
   const { data, loading, error, refetch } = useApiQuery((signal) => profileOverviewService.getConfig(userId, { signal }), { queryKey: `profile-config:${userId}` })
   const [editing, setEditing] = useState(false)
-  if (loading) return <div className="grid gap-4 md:grid-cols-2">{[0, 1, 2, 3].map((index) => <Skeleton key={index} className="h-[150px] rounded-[10px]" />)}</div>
+  if (loading) return <div className="grid gap-4 md:grid-cols-2">{[0, 1, 2, 3].map((index) => <Skeleton key={index} className="h-[150px] rounded-lg" />)}</div>
   if (error || !data) {
     return <div role="alert" className="flex items-center gap-3 text-[13px] text-[var(--text-muted)]">Could not load the configs.<button type="button" onClick={() => void refetch()} className={secondary}><RotateCcw className="size-4" aria-hidden="true" />Retry</button></div>
   }

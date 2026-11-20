@@ -271,7 +271,7 @@ export function ActivityPanel({ clanId }: { clanId: string }) {
   return (
     <section className="flex flex-col gap-3">
       <h2 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-dim)]">Activity</h2>
-      <ul className="flex flex-col rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)]">
+      <ul className="flex flex-col rounded-lg border border-[var(--glass-line)] bg-[var(--glass-fill)]">
         {lines.slice(0, 12).map((line) => (
           <li key={line.id} className="flex items-center justify-between gap-3 border-b border-[var(--line-soft)] px-4 py-2.5 text-[13px] last:border-b-0">
             <span className="min-w-0 truncate">{line.text}</span>

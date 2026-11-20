@@ -290,7 +290,7 @@ function PenaltiesTab({ access, onCase }: { access: ModerationAccess; onCase: (s
             {recent.data!.slice(0, 12).map((penalty) => (
               <li key={penalty.id} data-tone={penalty.isUnbanned ? "green" : PENALTY_TONE[penalty.type]} className={STAFF_CARD}>
                 <div className="flex items-center gap-3">
-                  <PlayerAvatar avatar={penalty.avatar} name={penalty.player} className="size-11 shrink-0 rounded-[10px] text-sm" />
+                  <PlayerAvatar avatar={penalty.avatar} name={penalty.player} className="size-11 shrink-0 rounded-lg text-sm" />
                   <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                     <span className="truncate text-[13px] font-semibold text-[var(--text)]" title={penalty.player}>{penalty.player}</span>
                     <span className="text-[11px] text-[var(--text-dim)]">by {penalty.admin} · {formatRelativeTime(new Date(penalty.date))}</span>

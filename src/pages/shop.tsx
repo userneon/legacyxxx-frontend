@@ -339,7 +339,7 @@ export function ShopPage() {
                 {/* The rarity as a thin line along the bottom, never a surface. */}
                 <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: rarityOf(item.rarity).color }} />
                 <div className="lx-tile-panel relative">
-                  {item.owned && !item.testing && <span className="lx-tile-chip absolute left-2 top-2 z-[2] inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-[5px] border border-white/10 bg-black/45 px-2 text-[11.5px] font-semibold text-[var(--text)] backdrop-blur-sm"><span aria-hidden="true" className="size-1.5 rounded-full bg-[var(--status-green)]" />{worn[item.kind] === item.id ? "Worn" : "Owned"}{item.expiresAt ? <><span aria-hidden="true" className="text-[var(--text-dim)]">•</span><span className="text-[var(--text-2)]">{timeLeft(item.expiresAt)}</span></> : null}</span>}
+                  {item.owned && !item.testing && <span className="lx-tile-chip absolute left-2 top-2 z-[2] inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-md border border-white/10 bg-black/45 px-2 text-[11.5px] font-semibold text-[var(--text)] backdrop-blur-sm"><span aria-hidden="true" className="size-1.5 rounded-full bg-[var(--status-green)]" />{worn[item.kind] === item.id ? "Worn" : "Owned"}{item.expiresAt ? <><span aria-hidden="true" className="text-[var(--text-dim)]">•</span><span className="text-[var(--text-2)]">{timeLeft(item.expiresAt)}</span></> : null}</span>}
                   {shown.kind === "frame" ? (
                     <FrameStage accent={accentOf(shown)} height={148}><ItemArt item={shown} avatar={user?.avatar} username={username} size={isArtFrame(shown.id) ? 74 : 88} /></FrameStage>
                   ) : (
@@ -400,7 +400,7 @@ export function ShopPage() {
           </div>
           <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-3.5">
             {trayItems.map((item) => (
-              <li key={item.id} className="lx-shop-glass grid grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-3 rounded-[10px] border p-2">
+              <li key={item.id} className="lx-shop-glass grid grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border p-2">
                 <Spot height={64}><ItemArt item={item} avatar={user?.avatar} username={username} size={34} /></Spot>
                 <div className="flex min-w-0 flex-col gap-1.5">
                   <span className="truncate text-[13px] font-semibold text-[var(--text)]">{item.name}</span>
@@ -492,7 +492,7 @@ export function ShopPage() {
           </section>
         )}
         {loading && !data ? (
-          <div className="flex flex-col gap-5"><Skeleton className="h-[170px] rounded-[14px] max-lg:hidden" /><Skeleton className="h-[480px] rounded-xl" /></div>
+          <div className="flex flex-col gap-5"><Skeleton className="h-[170px] rounded-xl max-lg:hidden" /><Skeleton className="h-[480px] rounded-xl" /></div>
         ) : error || !data ? (
           <p className="flex items-center justify-center gap-3 py-24 text-[13px] text-[var(--text-dim)]">Could not load the shop.<button type="button" onClick={refetch} className="inline-flex items-center gap-1.5 text-[var(--text-2)] hover:text-[var(--text)]"><RotateCcw className="size-3.5" />Retry</button></p>
         ) : (
@@ -502,7 +502,7 @@ export function ShopPage() {
           <div key={tab} className="lx-flow-stack flex min-w-0 flex-col gap-5">
                         <div className="flex min-w-0 flex-col gap-5">
               {soon.length > 0 && (
-                <div role="status" aria-label="Ending soon" className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[10px] border border-[var(--brand)]/30 bg-[var(--brand)]/[0.06] px-3.5 py-2.5 text-[12px]">
+                <div role="status" aria-label="Ending soon" className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-[var(--brand)]/30 bg-[var(--brand)]/[0.06] px-3.5 py-2.5 text-[12px]">
                   <span className="font-semibold text-[var(--text)]">Ending soon</span>
                   {soon.slice(0, 3).map((item) => (
                     <button key={item.id} type="button" onClick={() => setTab(tabOfKind(item.kind))} className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--card-surface)] px-2.5 py-1 text-[var(--text-2)] hover:border-[var(--line-strong)] hover:text-[var(--text)]">
@@ -525,7 +525,7 @@ export function ShopPage() {
                   {/* One Filter dropdown, the same as on Play (owner report 2026-11-13: the filter did not match the other pages). */}
                   <Popover>
                     <PopoverTrigger asChild>
-                      <button type="button" aria-label="Filter items" className={cn("group inline-flex h-[30px] items-center gap-1.5 rounded-[7px] border border-[var(--line)] px-3 text-[13px] font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60", (show !== "all" || sort !== SORTS[0].value) ? "bg-[var(--line)] text-[var(--text)]" : "text-[var(--text-muted)] hover:text-[var(--text)]")}>
+                      <button type="button" aria-label="Filter items" className={cn("group inline-flex h-[30px] items-center gap-1.5 rounded-md border border-[var(--line)] px-3 text-[13px] font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60", (show !== "all" || sort !== SORTS[0].value) ? "bg-[var(--line)] text-[var(--text)]" : "text-[var(--text-muted)] hover:text-[var(--text)]")}>
                         <SlidersHorizontal className="size-3.5" />
                         Filter
                         {((show !== "all" ? 1 : 0) + (sort !== SORTS[0].value ? 1 : 0)) > 0 && <span className="flex size-4 items-center justify-center rounded-full bg-[var(--text)] text-[10px] font-semibold text-[var(--bg)]">{(show !== "all" ? 1 : 0) + (sort !== SORTS[0].value ? 1 : 0)}</span>}

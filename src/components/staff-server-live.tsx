@@ -91,7 +91,7 @@ function PlayerCard({ player, tone, busy, onAct }: { player: ServerLiveMatchPlay
   return (
     <li data-tone={tone} className={cn(STAFF_CARD, !player.connected && "opacity-60")}>
       <div className="flex items-center gap-3">
-        <PlayerAvatar avatar={player.avatar ?? undefined} name={player.name} className="size-11 shrink-0 rounded-[10px] text-sm" />
+        <PlayerAvatar avatar={player.avatar ?? undefined} name={player.name} className="size-11 shrink-0 rounded-lg text-sm" />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="truncate text-[13px] font-semibold text-[var(--text)]" title={player.name}>{player.name}</span>
           <span className="truncate text-[11px] text-[var(--text-dim)]">{player.rankName ?? "Unranked"}{player.connected ? "" : " · disconnected"}</span>

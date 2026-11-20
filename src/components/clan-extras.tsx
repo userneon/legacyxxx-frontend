@@ -83,7 +83,7 @@ function Leader({ label, person, unit, tone, onOpen }: { label: string; person: 
     <div data-tone={tone} className="lx-tone flex items-center gap-3 overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3">
       {person ? (
         <button type="button" onClick={() => onOpen(person.steamId || person.id)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-          <PlayerAvatar avatar={person.avatar} name={person.name} frame={person.frame} className="size-10 shrink-0 rounded-[10px] text-sm" />
+          <PlayerAvatar avatar={person.avatar} name={person.name} frame={person.frame} className="size-10 shrink-0 rounded-lg text-sm" />
           <span className="flex min-w-0 flex-col">
             <span className="lx-tone-text text-[11px] font-semibold uppercase tracking-wide">{label}</span>
             <span {...nameProps(person.nameStyle, "truncate text-[13px] font-semibold")}>{person.name}</span>
@@ -125,7 +125,7 @@ export function ClanStatsPanel({ clanId, onProfileNavigate }: { clanId: string; 
         <ul className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
           {data.achievements.map((entry) => (
             <li key={entry.id} data-tone="grey" className="lx-tone flex items-center gap-3 overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3">
-              <span className="lx-tone-icon grid size-10 shrink-0 place-items-center rounded-[10px] border"><Medal className="size-4" aria-hidden="true" /></span>
+              <span className="lx-tone-icon grid size-10 shrink-0 place-items-center rounded-lg border"><Medal className="size-4" aria-hidden="true" /></span>
               <span className="flex min-w-0 flex-1 flex-col gap-1">
                 <span className="flex items-baseline justify-between gap-2"><span className="truncate text-[13px] font-semibold">{entry.title}</span><span className="shrink-0 text-[11px] text-[var(--text-dim)]">Tier {entry.tier}/{entry.tiers}</span></span>
                 <span className="h-1.5 overflow-hidden rounded-full bg-[var(--raised)]"><span className="lx-tone-fill block h-full rounded-full" style={{ width: `${entry.complete ? 100 : Math.round(Math.min(1, entry.value / entry.goal) * 100)}%` }} /></span>

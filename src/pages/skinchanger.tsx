@@ -877,7 +877,7 @@ export function SkinchangerPage() {
           </span>
           <label className="relative ml-auto w-56 max-w-[45%]">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-[var(--text-dim)]" />
-            <Input autoFocus value={accessoryQuery} onChange={(event) => setAccessoryQuery(event.target.value)} placeholder={`Search ${noun}`} className="h-9 rounded-[10px] border-[var(--line)] bg-[var(--glass-fill)] pl-9 text-xs" />
+            <Input autoFocus value={accessoryQuery} onChange={(event) => setAccessoryQuery(event.target.value)} placeholder={`Search ${noun}`} className="h-9 rounded-lg border-[var(--line)] bg-[var(--glass-fill)] pl-9 text-xs" />
           </label>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-3">
@@ -1027,7 +1027,7 @@ export function SkinchangerPage() {
         key={id}
         data-slot-card={id}
         className={cn(
-          "lx-layer group relative overflow-hidden rounded-[10px] border bg-[var(--glass-fill)]",
+          "lx-layer group relative overflow-hidden rounded-lg border bg-[var(--glass-fill)]",
           // Lift and a violet edge on hover; leaving eases back slower than entering, like the other cards.
           "transition-[border-color,box-shadow,translate] duration-700 ease-[cubic-bezier(0.37,0,0.18,1)] hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:duration-300 hover:ease-[cubic-bezier(0.22,1,0.36,1)]",
           savedItem ? "border-[var(--line-strong)]" : "border-[var(--glass-line)]",
@@ -1039,7 +1039,7 @@ export function SkinchangerPage() {
           ? <VerifiedBadge className="absolute left-2 top-2 size-4" />
           : <span aria-hidden="true" className="pointer-events-none absolute left-2.5 top-2.5 size-[7px] rounded-full bg-[var(--line-strong)]" />}
 
-        <button type="button" onClick={onOpen} aria-label={openLabel} className="absolute inset-0 z-[1] rounded-[10px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50" />
+        <button type="button" onClick={onOpen} aria-label={openLabel} className="absolute inset-0 z-[1] rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50" />
 
         {/* Keyed by the look, so switching team fades the new skin in instead of swapping it. */}
         <span className={cn(
@@ -1440,7 +1440,7 @@ export function SkinchangerPage() {
                 value={query}
                 onChange={(event) => { setQuery(event.target.value); setOffset(0) }}
                 placeholder={`Search ${activeWeapon ? "skins" : category === "agent" ? "agents" : category === "music_kit" ? "music kits" : "pins"}`}
-                className="h-9 rounded-[10px] border-[var(--line)] bg-[var(--glass-fill)] pl-9 text-xs"
+                className="h-9 rounded-lg border-[var(--line)] bg-[var(--glass-fill)] pl-9 text-xs"
               />
             </label>
           </div>
@@ -1490,7 +1490,7 @@ export function SkinchangerPage() {
               <div className="flex flex-wrap items-center gap-1.5 border-b border-[var(--line-soft)] p-3 sm:hidden">
                 <label className="relative block w-full">
                   <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-[var(--text-dim)]" />
-                  <Input value={query} onChange={(event) => { setQuery(event.target.value); setOffset(0) }} placeholder="Search" className="h-9 rounded-[10px] border-[var(--line)] bg-[var(--glass-fill)] pl-9 text-xs" />
+                  <Input value={query} onChange={(event) => { setQuery(event.target.value); setOffset(0) }} placeholder="Search" className="h-9 rounded-lg border-[var(--line)] bg-[var(--glass-fill)] pl-9 text-xs" />
                 </label>
               </div>
               {rarityFilters.length > 1 && (

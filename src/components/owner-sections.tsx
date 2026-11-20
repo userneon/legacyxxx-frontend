@@ -83,7 +83,7 @@ function PlayerReviews() {
       <Heading note={<Link to="/reviews" className="text-xs text-[var(--text-dim)] transition-colors hover:text-[var(--text)]">All reviews</Link>}>What players say</Heading>
       <ul className="grid gap-2.5 p-4 sm:grid-cols-3">
         {picks.map((entry) => (
-          <li key={entry.id} className="flex flex-col gap-3 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)]/60 p-3.5">
+          <li key={entry.id} className="flex flex-col gap-3 rounded-lg border border-[var(--line-soft)] bg-[var(--panel)]/60 p-3.5">
             <Stars value={entry.rating} />
             <p className="line-clamp-4 text-[13px] leading-5 text-[var(--text-2)]">{entry.message}</p>
             <span className="mt-auto flex items-center gap-2 text-xs text-[var(--text-dim)]">
@@ -107,7 +107,7 @@ function Team({ team }: { team: NonNullable<ProfileOverview["team"]> }) {
         {team.map((member) => (
           <li key={member.steamId}>
             <Link to={`/profile/${encodeURIComponent(member.steamId)}`} className="group flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-              <PlayerAvatar avatar={member.avatar} name={member.username} className="size-9 rounded-[10px] text-xs" />
+              <PlayerAvatar avatar={member.avatar} name={member.username} className="size-9 rounded-lg text-xs" />
               <span className="flex min-w-0 flex-1 flex-col">
                 <span className="truncate text-[13px] font-medium text-[var(--text)]">{member.username}</span>
                 <span className="text-xs text-[var(--text-dim)]">{member.role}</span>

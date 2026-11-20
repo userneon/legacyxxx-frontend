@@ -45,7 +45,7 @@ export function PlayerPicker({ value, onChange, compact = false, label = "Player
     const player = known.current.get(value)
     return (
       <div className="flex items-center gap-3 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 py-2" aria-label={label}>
-        <PlayerAvatar avatar={player?.avatar} name={player?.name ?? value} className="size-9 shrink-0 rounded-[10px] text-xs" />
+        <PlayerAvatar avatar={player?.avatar} name={player?.name ?? value} className="size-9 shrink-0 rounded-lg text-xs" />
         <span className="flex min-w-0 flex-1 flex-col">
           <span className="truncate text-[13px] font-semibold text-[var(--text)]">{player?.name ?? "Player"}</span>
           <span className="truncate font-mono text-[11px] text-[var(--text-dim)]">{value}</span>

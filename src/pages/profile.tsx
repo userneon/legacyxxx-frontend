@@ -260,7 +260,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
 function StaffCard({ staff, username }: { staff: NonNullable<ProfileOverview["staff"]>; username: string }) {
   return (
     <section aria-label="LXC team" className={cn(card, "flex flex-wrap items-center gap-4 border-[var(--line-strong)] bg-[var(--glass-fill)] px-[18px] py-3.5")}>
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-[var(--raised)] text-[var(--text-2)] ring-1 ring-inset ring-[var(--line-strong)]">{staff.role === "Owner" ? <Crown className="size-4" /> : <Shield className="size-4" />}</span>
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[var(--raised)] text-[var(--text-2)] ring-1 ring-inset ring-[var(--line-strong)]">{staff.role === "Owner" ? <Crown className="size-4" /> : <Shield className="size-4" />}</span>
       <span className="flex min-w-[220px] flex-1 flex-col gap-[3px]">
         <span className="text-sm font-semibold text-[var(--text)]">LXC team · {staff.role}</span>
         <span className="text-[13px] text-[var(--text-muted)]">{staff.description} Staff never ask for your password or items.</span>
@@ -572,7 +572,7 @@ function RecentMatches({ matches, kdAverage, onOpen }: { matches: ProfileMatchRo
                 const shown = visible.some((row) => row.index === index)
                 return (
                   <button key={index} type="button" onClick={() => { setFilter("all"); setPicked(index) }} title={`${cs2MapLabel(match.map)} ${match.score} ${match.result}`} aria-label={`${cs2MapLabel(match.map)} ${match.score}, ${match.result}`}
-                    className={cn("h-8 flex-1 rounded-[4px] border-t-[3px] transition-[transform,opacity] hover:-translate-y-0.5", match.result === "Win" ? "border-[var(--status-green)] bg-[color-mix(in_srgb,var(--status-green)_10%,transparent)]" : match.result === "Loss" ? "border-[var(--status-red)] bg-[color-mix(in_srgb,var(--status-red)_10%,transparent)]" : "border-[var(--line-strong)] bg-[var(--raised)]", !shown && "opacity-30", selected?.index === index && "outline outline-2 outline-[var(--accent-solid)]")} />
+                    className={cn("h-8 flex-1 rounded-md border-t-[3px] transition-[transform,opacity] hover:-translate-y-0.5", match.result === "Win" ? "border-[var(--status-green)] bg-[color-mix(in_srgb,var(--status-green)_10%,transparent)]" : match.result === "Loss" ? "border-[var(--status-red)] bg-[color-mix(in_srgb,var(--status-red)_10%,transparent)]" : "border-[var(--line-strong)] bg-[var(--raised)]", !shown && "opacity-30", selected?.index === index && "outline outline-2 outline-[var(--accent-solid)]")} />
                 )
               })}
             </div>
@@ -651,7 +651,7 @@ function MapsCard({ maps }: { maps: NonNullable<ProfileOverview["maps"]> }) {
 function FaceitCard({ faceit }: { faceit: FaceitProfileData }) {
   if (!faceit.linked) return null
   const tile = (label: string, value: string) => (
-    <div className="flex flex-col gap-2 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] px-3 py-2.5">
+    <div className="flex flex-col gap-2 rounded-lg border border-[var(--line-soft)] bg-[var(--panel)] px-3 py-2.5">
       <span className="text-[11px] text-[var(--text-dim)]">{label}</span>
       <span className="text-sm font-semibold text-[var(--text)]">{value}</span>
     </div>

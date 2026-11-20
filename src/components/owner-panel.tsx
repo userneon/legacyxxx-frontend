@@ -112,9 +112,9 @@ export function OwnerPanel({ overview }: { overview: ProfileOverview }) {
                 >
                   <span aria-hidden="true" className="absolute inset-y-3 left-0 w-0.5 origin-center scale-y-0 rounded-r-full bg-[var(--text)] opacity-0 transition-[scale,opacity] duration-300 group-hover:scale-y-100 group-hover:opacity-70" />
                   {link.logo ? (
-                    <img src={link.logo} alt="" width={40} height={40} className="size-10 shrink-0 rounded-[10px]" />
+                    <img src={link.logo} alt="" width={40} height={40} className="size-10 shrink-0 rounded-lg" />
                   ) : (
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-[var(--raised)] text-[var(--text-muted)] transition-colors group-hover:text-[var(--text)]">
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[var(--raised)] text-[var(--text-muted)] transition-colors group-hover:text-[var(--text)]">
                       <link.Icon className="size-[18px]" aria-hidden="true" />
                     </span>
                   )}

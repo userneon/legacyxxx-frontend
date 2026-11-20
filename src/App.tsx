@@ -180,9 +180,9 @@ export function App() {
       <AppSidebar currentPage={currentPage} onNavigate={handleNavigate} />
       <SidebarInset className={cn("m-0 flex min-w-0 flex-col gap-2 bg-transparent", "h-svh gap-0 bg-[#060606] min-[560px]:rounded-l-[16px] min-[560px]:overflow-hidden max-[559px]:gap-2 max-[559px]:p-2")}>
         {/* The top bar is gone on wider windows (its parts live in the right sidebar); a phone keeps it, since it has neither sidebar on screen. */}
-        <header className={cn("lx-glass-shell relative z-[3] flex h-14 shrink-0 items-center gap-4 pl-4 pr-2 max-md:pl-2 max-sm:gap-1.5 min-[560px]:hidden", "rounded-[14px]")}>
+        <header className={cn("lx-glass-shell relative z-[3] flex h-14 shrink-0 items-center gap-4 pl-4 pr-2 max-md:pl-2 max-sm:gap-1.5 min-[560px]:hidden", "rounded-xl")}>
           {/* On a phone the sidebar is a sheet, so the top bar carries its only trigger. */}
-          <SidebarTrigger className="size-9 shrink-0 rounded-[10px] text-[var(--text-muted)] hover:bg-[var(--raised)] hover:text-[var(--text)] min-[560px]:hidden" />
+          <SidebarTrigger className="size-9 shrink-0 rounded-lg text-[var(--text-muted)] hover:bg-[var(--raised)] hover:text-[var(--text)] min-[560px]:hidden" />
           <div className="flex min-w-0 flex-1 items-center gap-2 text-[13px]">
             <span className="shrink-0 text-[var(--text-dim)] max-sm:hidden">LXC</span>
             <span aria-hidden="true" className="text-[var(--text-faint)] max-sm:hidden">/</span>
@@ -204,7 +204,7 @@ export function App() {
         >
           <ArrowUp className="size-5" aria-hidden="true" />
         </button>
-        <div ref={panelRef} className={cn("lx-glass-shell relative scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-clip max-sm:pb-16", "max-[559px]:rounded-[14px]")}>
+        <div ref={panelRef} className={cn("lx-glass-shell relative scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-clip max-sm:pb-16", "max-[559px]:rounded-xl")}>
           {/* Leaders scrolls its table inside the panel (sticky header, your row pinned under it), so it gets the panel's height instead of growing past it. */}
           <PageHero hero={hero} />
           {serious && <SeriousDetail />}

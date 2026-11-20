@@ -77,7 +77,7 @@ function AccessoryDialog({ kind, onPick, onClose }: { kind: Picking; onPick: (it
         </DialogHeader>
         <label className="relative mx-5 block">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-[var(--text-dim)]" />
-          <Input autoFocus value={query} onChange={(event) => { setQuery(event.target.value); setOffset(0) }} placeholder={`Search ${kind === "charm" ? "charms" : "stickers"}`} className="h-9 rounded-[10px] pl-9 text-xs" />
+          <Input autoFocus value={query} onChange={(event) => { setQuery(event.target.value); setOffset(0) }} placeholder={`Search ${kind === "charm" ? "charms" : "stickers"}`} className="h-9 rounded-lg pl-9 text-xs" />
         </label>
         <div className="min-h-[240px] overflow-y-auto px-5 pb-5">
           {error && !data ? <QueryState loading={false} error={{ ...error, message: "Could not load the list." }} empty={false} onRetry={refetch} />
@@ -310,7 +310,7 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
               <span className={label}>Skin</span>
               <label className="relative block">
                 <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-[var(--text-dim)]" />
-                <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Search ${weapon.display_name} skins`} className="h-9 rounded-[10px] pl-9 text-xs" />
+                <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Search ${weapon.display_name} skins`} className="h-9 rounded-lg pl-9 text-xs" />
               </label>
               <div className="max-h-56 overflow-y-auto rounded-lg border border-[var(--line)] bg-[var(--panel)] p-1.5">
                 {skinsError && !skinsPage ? <QueryState loading={false} error={{ ...skinsError, message: "Could not load the skins." }} empty={false} onRetry={refetchSkins} />
