@@ -12,7 +12,7 @@ export const mn: AboutLang = {
       description: "LXC бол Монголын Counter-Strike 2 тоглогчдын нэгдсэн платформ: ranked ба fun server, ladder, клан, shop, market, iPhone апп, Discord. 2026 оны 12 сарын 12-нд нээгдэнэ.",
       intro: "LXC бол Монголын Counter-Strike 2 (CS2) тоглогчдын нэгдсэн платформ. Нэг сайт, нэг Steam нэвтрэлтээр game server, ladder, skin, клан, shop, Discord бүгд холбогдоно.",
       sections: [
-        { id: "what-is-lxc", title: "LXC гэж юу вэ", p: ["LXC (LEGACY-X гэж бас бичнэ) нь Монголд CS2 community server ажиллуулж, тэдгээртэй холбогдсон legacyx.cc сайтыг эзэмшдэг. Тоглогч Steam-ээр нэвтэрч, ranked эсвэл fun match тоглож, ladder-т өснө, кланд нэгдэж, profile-аа өөрчилнө."] },
+        { id: "what-is-lxc", title: "LXC гэж юу вэ", p: ["LXC нь Монголд CS2 community server ажиллуулж, тэдгээртэй холбогдсон legacyx.cc сайтыг эзэмшдэг. Тоглогч Steam-ээр нэвтэрч, ranked эсвэл fun match тоглож, ladder-т өснө, кланд нэгдэж, profile-аа өөрчилнө."] },
         { id: "key-facts", title: "Гол баримтууд", li: [
           "Тоглоом: Counter-Strike 2 (CS2), community server.",
           "Орон, үзэгчид: Монгол, бүх түвшний тоглогч.",

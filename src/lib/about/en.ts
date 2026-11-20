@@ -12,7 +12,7 @@ export const en: AboutLang = {
       description: "LXC is the community for Counter-Strike 2 players in Mongolia: ranked and fun servers, a ladder, clans, a shop, a market, an iPhone app and a Discord server. Opens 12 December 2026.",
       intro: "LXC is a community platform for Counter-Strike 2 (CS2) players in Mongolia. One website and one Steam sign-in connect the game servers, the ladder, skins, clans, the shop and the Discord server.",
       sections: [
-        { id: "what-is-lxc", title: "What LXC is", p: ["LXC (also written LEGACY-X) runs community Counter-Strike 2 servers in Mongolia and the website at legacyx.cc that goes with them. Players sign in with Steam, play ranked or fun matches, climb a ladder, join clans and customise their profile."] },
+        { id: "what-is-lxc", title: "What LXC is", p: ["LXC runs community Counter-Strike 2 servers in Mongolia and the website at legacyx.cc that goes with them. Players sign in with Steam, play ranked or fun matches, climb a ladder, join clans and customise their profile."] },
         { id: "key-facts", title: "Key facts", li: [
           "Game: Counter-Strike 2 (CS2), community servers.",
           "Country and audience: Mongolia, players of every level.",
