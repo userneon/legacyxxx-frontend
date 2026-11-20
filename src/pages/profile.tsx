@@ -1,7 +1,7 @@
 import { DiscordIcon } from "@/components/discord-strip"
 import { EmptyState } from "@/components/illustrations"
 import { BoosterBadge } from "@/components/booster-badge"
-import { PerkBadge, PerkTitle } from "@/components/perk-badge"
+import { PerkBadge } from "@/components/perk-badge"
 import { ProfileConfigs } from "@/components/profile-config"
 import { ProfileBanner } from "@/components/profile-banner"
 import { PlayerNameText } from "@/components/player-name-text"
@@ -193,7 +193,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
           </div>
           {overview.banned
             ? <span title={overview.banned.reason ?? undefined} className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[3px] text-[var(--status-red)]"><Ban className="size-3.5" aria-hidden="true" />Banned</span>
-            : user.title ? <span className={cn("text-[11px] font-semibold uppercase tracking-[3px]", "text-[var(--text-dim)]")}>{user.title}</span> : overview.perk && <PerkTitle perk={overview.perk} />}
+            : user.title ? <span className={cn("text-[11px] font-semibold uppercase tracking-[3px]", "text-[var(--text-dim)]")}>{user.title}</span> : null}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <RoleBadge role={user.role} />
@@ -202,7 +202,7 @@ function Header({ overview, onVisibilityChange }: { overview: ProfileOverview; o
           {(overview.discordBoosting || overview.boosterPlace) && <BoosterBadge place={overview.boosterPlace} />}
           {overview.clan && (
             <Link to={`/clans/${overview.clan.number ?? overview.clan.id}`} title={overview.clan.name} className="inline-flex h-6 items-center gap-1 rounded-full border border-[var(--line)] px-2 text-[11px] font-semibold text-[var(--text-2)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]">
-              <span {...clanTagProps(overview.clan.look)}>[{overview.clan.tag}]</span> <span className="max-w-[140px] truncate font-medium">{overview.clan.name}</span>
+              <span {...clanTagProps(overview.clan.look)}>[{overview.clan.tag}]</span> {overview.clan.name.trim().toLowerCase() !== overview.clan.tag.trim().toLowerCase() && <span className="max-w-[140px] truncate font-medium">{overview.clan.name}</span>}
             </Link>
           )}
           {competitive && <RankPill rankId={competitive.rankId} rankName={competitive.rankName} imageKey={competitive.rankImageKey} currentExp={competitive.exp} />}
