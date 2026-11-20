@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { Plus, RotateCcw, Trash2 } from "lucide-react"
+import { SelectMenu } from "@/components/select-menu"
 import { toast } from "sonner"
 
 import { hostService, type HostCheck, type HostOffer, type HostState, type NewServer } from "@/api/host"
@@ -69,10 +70,10 @@ function ServerPorts({ host, onDone }: { host: HostState; onDone: () => void }) 
         <div className="grid gap-3 sm:grid-cols-3">
           <label className="flex flex-col gap-1 text-[12px] text-[var(--text-dim)]">Port<input className={field} inputMode="numeric" value={port} onChange={(event) => setPort(event.target.value.replace(/\D/g, "").slice(0, 5))} />{taken && <span className="text-[var(--status-red)]">Already used on this host</span>}</label>
           <label className="flex flex-col gap-1 text-[12px] text-[var(--text-dim)] sm:col-span-2">GSLT (Steam game server token, 32 characters)<input className={field} type="password" autoComplete="off" spellCheck={false} value={gslt} onChange={(event) => setGslt(event.target.value)} /></label>
-          <label className="flex flex-col gap-1 text-[12px] text-[var(--text-dim)]">Game mode<select className={field} value={mode} onChange={(event) => setMode(event.target.value as NewServer["mode"])}>{MODES.map(([value, name]) => <option key={value} value={value}>{name}</option>)}</select></label>
-          <label className="flex flex-col gap-1 text-[12px] text-[var(--text-dim)]">First map<select className={field} value={map} onChange={(event) => setMap(event.target.value)}>{CS2_MAP_KEYS.filter((key) => /^[a-z0-9_]+$/.test(key)).map((key) => <option key={key} value={key}>{key}</option>)}</select></label>
+          <label className="flex flex-col gap-1 text-[12px] text-[var(--text-dim)]">Game mode<SelectMenu ariaLabel="Game mode" className="h-9 w-full rounded-lg px-3 text-[13px] font-normal" value={mode} onChange={(value) => setMode(value as NewServer["mode"])} options={MODES.map(([value, name]) => ({ value, label: name }))} /></label>
+          <label className="flex flex-col gap-1 text-[12px] text-[var(--text-dim)]">First map<SelectMenu ariaLabel="First map" className="h-9 w-full rounded-lg px-3 text-[13px] font-normal" value={map} onChange={setMap} options={CS2_MAP_KEYS.filter((key) => /^[a-z0-9_]+$/.test(key)).map((key) => ({ value: key, label: key }))} /></label>
           <label className="flex flex-col gap-1 text-[12px] text-[var(--text-dim)]">Players<input className={field} inputMode="numeric" value={maxPlayers} onChange={(event) => setMaxPlayers(event.target.value.replace(/\D/g, "").slice(0, 2))} /></label>
-          <label className="flex flex-col gap-1 text-[12px] text-[var(--text-dim)]">Listed on the website as<select className={field} value={siteMode} onChange={(event) => setSiteMode(event.target.value)}>{SITE_MODES.map(([value, name]) => <option key={value} value={value}>{name}</option>)}</select></label>
+          <label className="flex flex-col gap-1 text-[12px] text-[var(--text-dim)]">Listed on the website as<SelectMenu ariaLabel="Listed on the website as" className="h-9 w-full rounded-lg px-3 text-[13px] font-normal" value={siteMode} onChange={setSiteMode} options={SITE_MODES.map(([value, name]) => ({ value, label: name }))} /></label>
           <div className="flex items-end sm:col-span-2"><button type="button" disabled={!valid || busy} onClick={() => void add()} className={`${button} w-full sm:w-auto`}>{busy ? "Setting up…" : `Start the server on ${port || "…"}`}</button></div>
         </div>
       )}

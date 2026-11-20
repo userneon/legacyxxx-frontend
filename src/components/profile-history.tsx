@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { EmptyState } from "@/components/illustrations"
 
 import { profileOverviewService, type HistoryMatch, type ProfileHistoryPage } from "@/api/profile-overview"
+import { SelectMenu } from "@/components/select-menu"
 import { MatchDetailsDialog } from "@/components/match-details-dialog"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
 import { cn } from "@/lib/utils"
@@ -94,10 +95,7 @@ export function ProfileHistoryTab({ userId, steamId, banned }: { userId: string;
         <span className="flex-1" />
         {chip("all", "All")}{chip("win", "Wins")}{chip("loss", "Losses")}
         {meta && meta.maps.length > 1 ? (
-          <select aria-label="Map" value={map} onChange={(event) => setMap(event.target.value)} className="h-10 rounded-full border border-[var(--line-soft)] bg-transparent px-4 text-[14px] font-semibold text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
-            <option value="">All maps</option>
-            {meta.maps.map((name) => <option key={name} value={name}>{cs2MapLabel(name)}</option>)}
-          </select>
+          <SelectMenu ariaLabel="Map" value={map} onChange={setMap} options={[{ value: "", label: "All maps" }, ...meta.maps.map((name) => ({ value: name, label: cs2MapLabel(name) }))]} />
         ) : null}
       </div>
 
