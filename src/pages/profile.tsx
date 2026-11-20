@@ -1,5 +1,4 @@
 import { DiscordIcon } from "@/components/discord-strip"
-import { EmptyState } from "@/components/illustrations"
 import { BoosterBadge } from "@/components/booster-badge"
 import { PerkBadge, PerkTitle } from "@/components/perk-badge"
 import { ProfileConfigs } from "@/components/profile-config"
@@ -22,7 +21,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { isFeatureEnabled } from "@/lib/features"
 import { LINKS } from "@/lib/links"
 import { cs2MapArtwork, cs2MapLabel } from "@/lib/cs2-map-art"
-import { formatDate, useWebsitePreferences } from "@/lib/preferences"
+import { formatDate } from "@/lib/preferences"
 import { PAGE_ROUTES, PAGE_TITLES, documentTitle } from "@/lib/routes"
 import { CompetitiveRankBadge, RankLabel, RankPill } from "@/components/competitive-rank-badge"
 import { FaceitLevelBadge } from "@/components/faceit-level-badge"
@@ -498,125 +497,6 @@ function ProfileRings({ overview }: { overview: ProfileOverview }) {
   )
 }
 
-/** Match history (the LXC design, 2026-11-14): a filter, the last ten as tiles, matches in day groups and a panel that shows the picked one. Every figure is the API's. */
-function RecentMatches({ matches, kdAverage, onOpen }: { matches: ProfileMatchRow[]; kdAverage: number | null; onOpen: (match: ProfileMatchRow) => void }) {
-  useWebsitePreferences()
-  const [filter, setFilter] = useState<"all" | "Win" | "Loss">("all")
-  const [picked, setPicked] = useState<number>(0)
-  const wins = matches.filter((match) => match.result === "Win").length
-  const losses = matches.filter((match) => match.result === "Loss").length
-  const visible = matches.map((match, index) => ({ match, index })).filter(({ match }) => filter === "all" || match.result === filter)
-  const selected = visible.find(({ index }) => index === picked) ?? visible[0] ?? null
-  const dayOf = (value?: string | null) => (value ? new Date(value).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }) : "Earlier")
-  const days: Array<{ title: string; rows: typeof visible; total: number }> = []
-  for (const row of visible) {
-    const title = dayOf(row.match.playedAt)
-    let group = days.find((entry) => entry.title === title)
-    if (!group) { group = { title, rows: [], total: 0 }; days.push(group) }
-    group.rows.push(row)
-    group.total += row.match.expDelta ?? 0
-  }
-  const sign = (value: number) => (value > 0 ? `+${value}` : value < 0 ? `\u2212${Math.abs(value)}` : "0")
-  const tone = (value: number) => (value > 0 ? "text-[var(--status-green)]" : value < 0 ? "text-[var(--status-red)]" : "text-[var(--text-dim)]")
-  const resultTone = (result: string) => (result === "Win" ? "text-[var(--status-green)]" : result === "Loss" ? "text-[var(--status-red)]" : "text-[var(--text-muted)]")
-  const resultPill = (result: string) => (result === "Win" ? "bg-[color-mix(in_srgb,var(--status-green)_12%,transparent)]" : result === "Loss" ? "bg-[color-mix(in_srgb,var(--status-red)_12%,transparent)]" : "bg-[var(--raised)]")
-  const kdTone = (kd: string) => {
-    const value = Number(kd)
-    return kdAverage !== null && Number.isFinite(value) ? (value > kdAverage ? "text-[var(--status-green)]" : value < kdAverage ? "text-[var(--status-red)]" : "text-[var(--text)]") : "text-[var(--text)]"
-  }
-  const chip = (value: "all" | "Win" | "Loss", label: string, count: number) => (
-    <button key={value} type="button" aria-pressed={filter === value} onClick={() => setFilter(value)} className={cn("h-10 rounded-full border px-4 text-[14px] font-semibold transition-colors", filter === value ? "border-[var(--line-strong)] bg-[var(--raised)] text-[var(--text)]" : "border-[var(--line)] text-[var(--text-muted)] hover:bg-[var(--card-surface)]")}>
-      {label} <span className="ml-1 font-medium text-[var(--text-dim)]">{count}</span>
-    </button>
-  )
-  // The picked match's card: beside the list when there is room, otherwise right under the picked row (owner report 2026-11-16: it never showed up on a narrower window).
-  const panel = selected ? (
-    <aside aria-label="Selected match" className="lx-swap-in overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--card-surface)] @2xl:sticky @2xl:top-4">
-                <div className="relative flex h-24 items-end bg-[var(--raised)] px-4 pb-2.5">
-                  {cs2MapArtwork(selected.match.map) ? <img src={cs2MapArtwork(selected.match.map)!} alt="" aria-hidden="true" className="absolute inset-0 size-full object-cover opacity-60" /> : null}
-                  <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[var(--card-surface)] to-transparent" />
-                  <span className="relative text-[22px] font-bold text-[var(--text)]">{cs2MapLabel(selected.match.map)}</span>
-                </div>
-                <div className="flex flex-col gap-1 border-b border-[var(--line)] px-4 py-3">
-                  <span className="text-[13px] text-[var(--text-dim)]">{selected.match.playedAt ? new Date(selected.match.playedAt).toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "Date unknown"}</span>
-                  <div className="flex items-center gap-3"><span className={cn("text-[32px] font-bold leading-none", resultTone(selected.match.result))}>{selected.match.score}</span><span className={cn("ml-auto inline-flex h-6 items-center rounded-full px-2.5 text-[13px] font-semibold", resultTone(selected.match.result), resultPill(selected.match.result))}>{selected.match.result}</span></div>
-                </div>
-                <div className="flex flex-col gap-3 px-4 py-4 text-[14px]">
-                  <div className="flex justify-between"><span className="text-[var(--text-dim)]">K/D</span><b className={cn("font-semibold", kdTone(selected.match.kd))}>{selected.match.kd}</b></div>
-                  {typeof selected.match.expAfter === "number" ? (
-                    <div className="flex justify-between"><span className="text-[var(--text-dim)]">EXP</span><span className="font-semibold text-[var(--text)]">{typeof selected.match.expBefore === "number" ? `${selected.match.expBefore.toLocaleString()} \u2192 ` : ""}{selected.match.expAfter.toLocaleString()}{typeof selected.match.expDelta === "number" ? <span className={cn("ml-1.5", tone(selected.match.expDelta))}>({sign(selected.match.expDelta)})</span> : null}</span></div>
-                  ) : null}
-                  {selected.match.rankAfter ? (
-                    <div className="flex justify-between"><span className="text-[var(--text-dim)]">Rank</span><span className="font-semibold text-[var(--text)]">{selected.match.rankBefore && selected.match.rankBefore.id !== selected.match.rankAfter.id ? `${selected.match.rankBefore.name} \u2192 ` : ""}{selected.match.rankAfter.name}</span></div>
-                  ) : null}
-                  {selected.match.expBreakdown?.limited ? <p className="m-0 text-[13px] text-[var(--status-red)]">{selected.match.expBreakdown.limited === "weekly" ? "Weekly limit: no EXP until Monday." : "Daily limit: this gain counted for a quarter."}</p> : null}
-                  <button type="button" disabled={!selected.match.matchId} onClick={() => onOpen(selected.match)} className="mt-1 flex h-11 items-center justify-center rounded-md border border-[var(--line-strong)] font-semibold text-[var(--text)] transition-colors hover:bg-[var(--raised)] disabled:cursor-default disabled:opacity-40">Open full match</button>
-                </div>
-              </aside>
-  ) : null
-  return (
-    <section aria-label="Recent matches" className="@container flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <SectionTitle>Recent matches</SectionTitle>
-        <span className="flex-1" />
-        {matches.length > 0 ? <>{chip("all", "All", matches.length)}{chip("Win", "Wins", wins)}{chip("Loss", "Losses", losses)}</> : null}
-      </div>
-      {matches.length === 0 ? (
-        <EmptyState kind="trophy">No matches yet</EmptyState>
-      ) : (
-        <>
-          <div className="flex flex-col gap-2.5">
-            <div className="flex items-baseline justify-between"><span className="text-[14px] font-semibold text-[var(--text)]">Last {Math.min(10, matches.length)} matches</span><span className="text-[13px] text-[var(--text-dim)]">{visible.length} shown{typeof selected?.match.expDelta === "number" ? "" : ""}</span></div>
-            <div aria-label="Last results, newest first" className="flex gap-1.5">
-              {matches.slice(0, 10).map((match, index) => {
-                const shown = visible.some((row) => row.index === index)
-                return (
-                  <button key={index} type="button" onClick={() => { setFilter("all"); setPicked(index) }} title={`${cs2MapLabel(match.map)} ${match.score} ${match.result}`} aria-label={`${cs2MapLabel(match.map)} ${match.score}, ${match.result}`}
-                    className={cn("h-8 flex-1 rounded-[4px] border-t-[3px] transition-[transform,opacity] hover:-translate-y-0.5", match.result === "Win" ? "border-[var(--status-green)] bg-[color-mix(in_srgb,var(--status-green)_10%,transparent)]" : match.result === "Loss" ? "border-[var(--status-red)] bg-[color-mix(in_srgb,var(--status-red)_10%,transparent)]" : "border-[var(--line-strong)] bg-[var(--raised)]", !shown && "opacity-30", selected?.index === index && "outline outline-2 outline-[var(--accent-solid)]")} />
-                )
-              })}
-            </div>
-          </div>
-          <div className="grid items-start gap-4 @2xl:grid-cols-[minmax(0,3fr)_minmax(260px,2fr)]">
-            <div className="flex min-w-0 flex-col gap-5">
-              {days.length === 0 ? <p className="py-8 text-center text-[14px] text-[var(--text-dim)]">No matches here.</p> : null}
-              {days.map((day) => (
-                <div key={day.title} className="lx-swap-in flex flex-col gap-2">
-                  <div className="flex items-baseline gap-2.5 px-0.5">
-                    <span className="text-[14px] font-semibold text-[var(--text)]">{day.title}</span>
-                    <span className="text-[13px] text-[var(--text-dim)]">{day.rows.length} {day.rows.length === 1 ? "match" : "matches"}</span>
-                    <span className={cn("ml-auto text-[13px] font-semibold", tone(day.total))}>{sign(day.total)} EXP</span>
-                  </div>
-                  {day.rows.map(({ match, index }) => {
-                    const art = cs2MapArtwork(match.map)
-                    const on = selected?.index === index
-                    return (
-                      <div key={`${match.matchId ?? index}-${index}`} className="flex flex-col gap-2">
-                      <button type="button" onClick={() => setPicked(index)} aria-pressed={on}
-                        className={cn("flex min-h-[68px] w-full items-center gap-4 rounded-lg border px-3.5 py-2.5 text-left transition-[background-color,border-color,transform] duration-150 hover:translate-x-0.5 hover:bg-[var(--raised)]", on ? "border-[var(--line-strong)] bg-[var(--raised)]" : "border-[var(--line)] bg-[var(--card-surface)]")}>
-                        <span aria-hidden="true" className="relative h-11 w-[68px] shrink-0 overflow-hidden rounded-md bg-[var(--raised)]">{art ? <img src={art} alt="" loading="lazy" className="size-full object-cover" /> : null}</span>
-                        <span className="flex w-[84px] shrink-0 flex-col"><span className={cn("text-[20px] font-bold leading-tight", resultTone(match.result))}>{match.score}</span><span className="text-[13px] text-[var(--text-dim)]">{match.playedAt ? new Date(match.playedAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : ""}</span></span>
-                        <span className="flex min-w-0 flex-1 flex-col gap-1">
-                          <span className="flex items-center gap-2"><span className="truncate font-semibold text-[var(--text)]">{cs2MapLabel(match.map)}</span><span className={cn("inline-flex h-[22px] items-center rounded-full px-2 text-[12px] font-semibold", resultTone(match.result), resultPill(match.result))}>{match.result}</span></span>
-                          <span className="text-[13px] text-[var(--text-muted)]">K/D <b className={cn("font-semibold", kdTone(match.kd))}>{match.kd}</b></span>
-                        </span>
-                        <span className={cn("min-w-[56px] shrink-0 text-right font-bold", tone(match.expDelta ?? 0))}>{typeof match.expDelta === "number" ? sign(match.expDelta) : "\u2014"}{match.expBreakdown?.limited ? <span title={match.expBreakdown.limited === "weekly" ? "Weekly EXP limit: no EXP until Monday" : "Daily EXP limit: this gain counted for a quarter"} className="ml-1.5 text-[11px] font-semibold text-[var(--status-red)]">{match.expBreakdown.limited === "weekly" ? "stop" : "\u00d7\u00bc"}</span> : null}</span>
-                      </button>
-                      {on && panel ? <div className="@2xl:hidden">{panel}</div> : null}
-                      </div>
-                    )
-                  })}
-                </div>
-              ))}
-            </div>
-            {panel ? <div className="hidden @2xl:block">{panel}</div> : null}
-          </div>
-        </>
-      )}
-    </section>
-  )
-}
-
 function MapsCard({ maps }: { maps: NonNullable<ProfileOverview["maps"]> }) {
   if (maps.length === 0) {
     return (
@@ -915,11 +795,7 @@ export function ProfilePage({ userId }: { userId?: string }) {
                 <div {...rise(1)} className={rise(1).className}>{data.banned ? <CensoredCard label="Rank" rows={2} /> : data.competitive ? <RankCard competitive={data.competitive} /> : <section className={cn(card, "flex items-center p-[18px] text-[13px] text-[var(--text-dim)]")}>Unranked — no competitive matches yet</section>}</div>
                 {!data.banned && !hidden.has("stats") && data.stats && <div {...rise(2)} className={rise(2).className}><ProfileRings overview={data} /></div>}
                 {data.banned ? <CensoredStatsRow /> : hidden.has("stats") ? <HiddenCard section="stats" /> : data.stats ? null : <EmptyStatsRow />}
-                {data.banned ? <CensoredCard label="Recent matches" rows={5} /> : hidden.has("matches") ? <HiddenCard section="matches" /> : (
-              <>
-                <RecentMatches matches={data.recentMatches ?? []} kdAverage={data.stats?.find((tile) => tile.key === "kd")?.average ?? null} onOpen={setOpenMatch} />
-              </>
-            )}
+                {/* The list of recent match results is not on the Stats tab any more (owner 2026-11-20): History holds every match with its result. */}
                 {data.banned ? <CensoredCard label="Maps" rows={4} /> : !hidden.has("matches") && data.maps && <MapsCard maps={data.maps} />}
                 {data.user.role === "Owner" && <OwnerSections overview={data} />}
               </>
