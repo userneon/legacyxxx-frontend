@@ -177,7 +177,7 @@ export function ShopRanks({ catalogue, qa = false }: { catalogue: PerkCatalogue;
                 {/* A stage light from below that grows with the tier, and the floor the gem stands on. */}
                 <span className="absolute inset-x-0 bottom-0 h-[86%] [clip-path:polygon(36%_100%,64%_100%,100%_0,0_0)] blur-[8px] transition-opacity duration-500 group-hover/rank:opacity-100" style={{ background: `linear-gradient(0deg, color-mix(in srgb, ${TIER_GLOW[tier.key] ?? "#888"} ${22 + tierIndex * 7}%, transparent), transparent 85%)`, opacity: 0.5 + tierIndex * 0.08 }} />
                 <span className="absolute bottom-[6cqw] left-1/2 h-[7cqw] w-[58%] -translate-x-1/2 rounded-[50%] border border-white/15 bg-black/35 shadow-[0_0_0_5px_rgba(255,255,255,0.03)]" />
-                {TIER_ART[tier.key] && <img src={TIER_ART[tier.key]} alt="" draggable={false} style={{ scale: 1 + tierIndex * 0.035 }} className="lx-rank-float absolute left-1/2 top-[2cqw] h-[72cqw] -translate-x-1/2 object-contain drop-shadow-[0_16px_20px_rgba(0,0,0,0.6)]" />}
+                {TIER_ART[tier.key] && <img src={TIER_ART[tier.key]} alt="" draggable={false} style={{ scale: 1 + tierIndex * 0.02 }} className="lx-rank-float absolute left-1/2 top-[7cqw] h-[60cqw] -translate-x-1/2 object-contain drop-shadow-[0_16px_20px_rgba(0,0,0,0.6)]" />}
               </div>
               <div className="relative -mt-[7cqw] flex flex-col gap-2 px-[7%] pb-3 pt-1">
                 <div>
