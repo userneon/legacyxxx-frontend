@@ -3,6 +3,7 @@ import { useEffect, useState, type ReactNode } from "react"
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
 
+import soonBackground from "@/assets/soon-aurora.webp"
 import { discordService, type DiscordLinkState } from "@/api/discord"
 import { DiscordIcon } from "@/components/discord-strip"
 import { SteamIcon } from "@/components/steam-login-gate"
@@ -73,7 +74,7 @@ function EarlyConnect() {
     )
   }
   return (
-    <section aria-label="Connect early" className="flex w-full max-w-[460px] flex-col gap-4 rounded-2xl border border-[var(--line)] bg-[var(--card-surface)] p-5">
+    <section aria-label="Connect early" className="flex w-full max-w-[460px] flex-col gap-4 rounded-2xl border border-white/10 bg-black/40 p-5 backdrop-blur-md">
       <div className="text-left">
         <h2 className="text-[15px] font-semibold text-[var(--text)]">Get ready for the launch</h2>
         <p className="text-[12.5px] leading-relaxed text-[var(--text-dim)]">Connect early: Steam first, then Discord. Your account is waiting for you on day one.</p>
@@ -110,7 +111,9 @@ export function ComingSoonPage() {
   const pad = (value: number) => String(value).padStart(2, "0")
   const parts: Array<[string, string]> = [[String(left.days), "days"], [pad(left.hours), "hours"], [pad(left.minutes), "minutes"], [pad(left.seconds), "seconds"]]
   return (
-    <main className="flex min-h-svh flex-col items-center justify-center gap-8 bg-[var(--bg)] px-6 py-12 text-center">
+    <main className="relative isolate flex min-h-svh flex-col items-center justify-center gap-8 px-6 py-12 text-center">
+      {/* A calm picture of the northern lights over snow (Unsplash, free licence), dimmed so the words stay clear. Not interactive: it does not move and takes no clicks. */}
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 bg-[var(--bg)] bg-cover bg-center" style={{ backgroundImage: `linear-gradient(180deg, rgb(5 6 9 / 0.58), rgb(5 6 9 / 0.80)), url(${soonBackground})` }} />
       <SiteLogo className="h-12 w-auto" />
       <div className="flex flex-col items-center gap-3">
         <p className="text-[12px] font-semibold uppercase tracking-[0.28em] text-[var(--text-dim)]">Counter-Strike 2 · Mongolia</p>
@@ -119,7 +122,7 @@ export function ComingSoonPage() {
       </div>
       <div className="flex items-start gap-3 max-[420px]:gap-2" role="timer" aria-label="Time left until the launch">
         {parts.map(([value, label]) => (
-          <div key={label} className="flex w-[74px] flex-col items-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--card-surface)] py-3 max-[420px]:w-[64px]">
+          <div key={label} className="flex w-[74px] flex-col items-center gap-1.5 rounded-xl border border-white/10 bg-black/35 py-3 backdrop-blur-sm max-[420px]:w-[64px]">
             <span className="text-[30px] font-bold leading-none text-[var(--text)] tabular-nums">{value}</span>
             <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--text-dim)]">{label}</span>
           </div>
