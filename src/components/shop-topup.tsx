@@ -39,7 +39,7 @@ function BottomLight({ on }: { on: boolean }) {
   return (
     <>
       {/* A stage light from below: a soft beam that widens as it rises, a pool of light at the foot, and a thin line on the edge. Calm: low when idle, a little higher when picked or hovered. */}
-      <span aria-hidden="true" className={cn("pointer-events-none absolute inset-x-0 bottom-0 h-[78%] [clip-path:polygon(34%_100%,66%_100%,100%_0,0_0)] bg-[linear-gradient(0deg,rgb(150_180_255/0.30),rgb(150_180_255/0.08)_55%,transparent)] blur-[6px] transition-opacity duration-500 group-hover:opacity-100", on ? "opacity-100" : "opacity-45")} />
+      <span aria-hidden="true" className={cn("pointer-events-none absolute inset-x-0 bottom-0 h-[78%] [mask-image:radial-gradient(ellipse_50%_100%_at_50%_100%,#000_0%,rgb(0_0_0/0.55)_45%,transparent_100%)] bg-[linear-gradient(0deg,rgb(150_180_255/0.30),rgb(150_180_255/0.08)_55%,transparent)] transition-opacity duration-500 group-hover:opacity-100", on ? "opacity-100" : "opacity-45")} />
       <span aria-hidden="true" className={cn("pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-[radial-gradient(60%_100%_at_50%_100%,rgb(190_208_255/0.28),transparent)] transition-opacity duration-500 group-hover:opacity-100", on ? "opacity-100" : "opacity-55")} />
       <span aria-hidden="true" className={cn("pointer-events-none absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-[rgb(230_200_130)] to-transparent transition-opacity duration-500 group-hover:opacity-100", on ? "opacity-90" : "opacity-40")} />
     </>
