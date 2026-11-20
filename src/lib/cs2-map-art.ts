@@ -7,6 +7,7 @@ import deCache from "@/assets/maps/de_cache.webp"
 import deDust2 from "@/assets/maps/de_dust2.webp"
 import deInferno from "@/assets/maps/de_inferno.webp"
 import deMirage from "@/assets/maps/de_mirage.webp"
+import deMirageChristmas from "@/assets/maps/de_mirage_christmas.webp"
 import deNuke from "@/assets/maps/de_nuke.webp"
 import deOverpass from "@/assets/maps/de_overpass.webp"
 import deTrain from "@/assets/maps/de_train.webp"
@@ -26,6 +27,7 @@ const CS2_MAP_ARTWORK: Record<string, string> = {
   de_dust2: deDust2,
   de_inferno: deInferno,
   de_mirage: deMirage,
+  de_mirage_christmas: deMirageChristmas,
   de_nuke: deNuke,
   de_overpass: deOverpass,
   de_train: deTrain,
@@ -42,6 +44,7 @@ const CS2_MAP_LABELS: Record<string, string> = {
   de_dust2: "Dust II",
   de_inferno: "Inferno",
   de_mirage: "Mirage",
+  de_mirage_christmas: "Mirage Christmas",
   de_nuke: "Nuke",
   de_overpass: "Overpass",
   de_train: "Train",
