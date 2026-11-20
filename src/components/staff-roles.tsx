@@ -87,7 +87,7 @@ function RoleEditor({ role, data, onSaved }: { role: GameRoleView; data: NonNull
   return (
     <section aria-label={role.label} className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-[var(--glass-line)] bg-[var(--glass-fill)]">
       <header className="flex flex-wrap items-center gap-3 border-b border-[var(--line-soft)] px-4 py-3.5">
-        <span className="grid size-9 shrink-0 place-items-center rounded-[10px] border border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]"><ShieldCheck className="size-[18px]" aria-hidden="true" /></span>
+        <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]"><ShieldCheck className="size-[18px]" aria-hidden="true" /></span>
         <div className="flex min-w-0 flex-1 flex-col"><h2 className="text-[15px] font-semibold text-[var(--text)]">{role.label}</h2><span className="text-[11px] text-[var(--text-dim)]">{draft.commands.length} of {data.commands.filter((command) => !command.locked).length} commands</span></div>
         <button type="button" disabled={busy || (!role.changed && atBuiltIn)} onClick={() => (role.changed ? void run(() => gameRolesService.reset(role.role), `${role.label} is back to the built-in role`) : setDraft(role.builtIn))} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text-2)] hover:border-[var(--line-strong)] disabled:opacity-50"><RotateCcw className="size-4" aria-hidden="true" />Back to built-in</button>
       </header>

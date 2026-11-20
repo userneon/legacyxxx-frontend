@@ -130,7 +130,7 @@ function SearchBox({ side, onPick }: { side: Side; onPick: (steamId: string) => 
 
   return (
     <div ref={root} className="relative flex flex-col gap-3" onBlur={(event) => { if (!root.current?.contains(event.relatedTarget as Node | null)) setOpen(false) }}>
-      <label className="flex h-12 cursor-text items-center gap-2.5 rounded-[10px] border border-[var(--line)] bg-[var(--panel)]/80 px-3.5 transition-[border-color] focus-within:border-[var(--line-strong)]">
+      <label className="flex h-12 cursor-text items-center gap-2.5 rounded-lg border border-[var(--line)] bg-[var(--panel)]/80 px-3.5 transition-[border-color] focus-within:border-[var(--line-strong)]">
         <Search className="size-4 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />
         <input
           type="search"
@@ -302,7 +302,7 @@ function RecentForm({ a, b }: { a: ProfileOverview; b: ProfileOverview }) {
     return (
       <div className={cn("flex min-w-0 flex-col gap-2", side === "a" ? "items-end" : "items-start")}>
         <div className={cn("flex max-w-full flex-wrap gap-1", side === "a" && "justify-end")} aria-label={`${overview.user.username}: ${last.map((match) => match.result).join(", ")}`}>
-          {last.map((match, index) => <span key={match.matchId ?? index} title={`${match.result} · ${cs2MapLabel(match.map)} · ${match.score}`} className={cn("size-3 rounded-[4px]", RESULT_DOT[match.result] ?? "bg-[var(--line)]")} />)}
+          {last.map((match, index) => <span key={match.matchId ?? index} title={`${match.result} · ${cs2MapLabel(match.map)} · ${match.score}`} className={cn("size-3 rounded-md", RESULT_DOT[match.result] ?? "bg-[var(--line)]")} />)}
         </div>
         {exp.length > 1 && (
           <div className={cn("flex items-center gap-2", side === "a" && "flex-row-reverse")}>
@@ -443,7 +443,7 @@ function ClanSide({ side, clan, loading, onPick, onClear }: { side: Side; clan: 
   }
   return (
     <div className="flex flex-col gap-2.5 p-4">
-      <label className="flex h-11 items-center gap-2.5 rounded-[10px] border border-[var(--line)] bg-[var(--panel)]/80 px-3.5 focus-within:border-[var(--line-strong)]">
+      <label className="flex h-11 items-center gap-2.5 rounded-lg border border-[var(--line)] bg-[var(--panel)]/80 px-3.5 focus-within:border-[var(--line-strong)]">
         <Search className="size-4 shrink-0 text-[var(--text-dim)]" aria-hidden="true" />
         <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} aria-label={`Find clan ${side === "a" ? 1 : 2}`} placeholder={`Clan ${side === "a" ? 1 : 2}: name`} className="min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-[var(--text-dim)]" />
       </label>

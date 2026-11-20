@@ -48,7 +48,7 @@ export function NadeSlots({ kind, items, defaultId, slots, busy, onChange }: {
     : <GrenadeLight color={item.color} className="w-[58px]" />
 
   return (
-    <section aria-label={`${noun} for each grenade`} className="flex flex-col gap-2.5 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] p-3.5">
+    <section aria-label={`${noun} for each grenade`} className="flex flex-col gap-2.5 rounded-lg border border-[var(--line-soft)] bg-[var(--panel)] p-3.5">
       <div className="flex flex-col gap-0.5">
         <h3 className="text-[13px] font-semibold text-[var(--text)]">For each grenade</h3>
         <p className="text-xs text-[var(--text-dim)]">What you wear above is the default for every grenade. Pick a different {noun}, or none, for one kind of grenade.</p>

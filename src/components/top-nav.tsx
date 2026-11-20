@@ -33,7 +33,7 @@ function Group({ label, active, entries }: { label: string; active: boolean; ent
       </PopoverTrigger>
       <PopoverContent side="bottom" align="start" sideOffset={14} className="flex w-52 flex-col gap-0.5 rounded-[20px] p-2">
         {entries.map((entry) => (
-          <button key={entry.key} type="button" onClick={() => { setOpen(false); entry.go() }} aria-current={entry.active ? "page" : undefined} className={cn("flex h-10 items-center rounded-[10px] px-3.5 text-left text-[13.5px] font-medium transition-colors hover:bg-white/[0.08]", entry.active ? "text-[var(--text)]" : entry.locked ? "text-[var(--text-dim)] hover:text-[var(--text-muted)]" : "text-[var(--text-muted)] hover:text-[var(--text)]")}>
+          <button key={entry.key} type="button" onClick={() => { setOpen(false); entry.go() }} aria-current={entry.active ? "page" : undefined} className={cn("flex h-10 items-center rounded-lg px-3.5 text-left text-[13.5px] font-medium transition-colors hover:bg-white/[0.08]", entry.active ? "text-[var(--text)]" : entry.locked ? "text-[var(--text-dim)] hover:text-[var(--text-muted)]" : "text-[var(--text-muted)] hover:text-[var(--text)]")}>
             <span className="flex-1">{entry.label}</span>
             {entry.locked && <Lock aria-label="Locked until your rank is high enough" className="size-3.5 shrink-0 text-[var(--text-dim)]" />}
           </button>

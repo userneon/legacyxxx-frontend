@@ -136,9 +136,9 @@ function ClanListSkeleton() {
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {[0, 1, 2, 3, 4, 5].map((index) => (
-          <div key={index} className="h-[150px] rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4">
+          <div key={index} className="h-[150px] rounded-lg border border-[var(--glass-line)] bg-[var(--glass-fill)] p-4">
             <div className="flex items-center gap-3">
-              <Skeleton className="size-10 rounded-[10px] bg-white/[0.06]" />
+              <Skeleton className="size-10 rounded-lg bg-white/[0.06]" />
               <div className="flex-1 space-y-2">
                 <Skeleton className="h-3.5 w-2/5 bg-white/[0.06]" />
                 <Skeleton className="h-3 w-1/4 bg-white/[0.06]" />
@@ -323,7 +323,7 @@ function Invitations({ invites, onChanged }: { invites: MyClanState["invites"]; 
     <section className="flex flex-col gap-2">
       <h2 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-dim)]">Invitations · {invites.length}</h2>
       {invites.map(({ clan }) => (
-        <div key={clan.id} className="flex items-center gap-3 rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3">
+        <div key={clan.id} className="flex items-center gap-3 rounded-lg border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3">
           <ClanMark logo={clan.logo} tag={clan.tag} className="size-10" />
           <span className="min-w-0 flex-1"><span className="block truncate text-[13px] font-medium">{clan.name}</span><span className="block text-[11px] text-[var(--text-dim)]">invited you · {clan.currentPlayers}/{clan.maxPlayers} members</span></span>
           <Button type="button" size="sm" disabled={busy === clan.id} onClick={() => void answer(clan, true)}>Join</Button>
@@ -580,7 +580,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                           <button type="button" onClick={() => onProfileNavigate(member.steamId || member.id)} className="flex h-full min-w-0 flex-1 items-center gap-3 px-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--brand)]/60">
                             <RoleIcon role={member.role} />
                             {/* A roster is a plain list: no frame light and no name glow (owner request 2026-11-02); the name keeps its colour. */}
-                            <PlayerAvatar avatar={member.avatar} name={member.name} frame={member.frame} className="size-8 shrink-0 rounded-[9px] text-xs" />
+                            <PlayerAvatar avatar={member.avatar} name={member.name} frame={member.frame} className="size-8 shrink-0 rounded-lg text-xs" />
                             <span className="flex min-w-0 flex-col gap-0.5">
                               <span {...nameProps(member.nameStyle ? { ...member.nameStyle, glow: null, glowFx: null } : null, "min-w-0 truncate text-[13px] font-medium leading-tight")}>{member.name}{member.id === user?.id ? " (you)" : ""}</span>
                               <PerkMark perk={member.perk} compact size={18} />
@@ -599,7 +599,7 @@ function ClanDetailView({ clanId, onProfileNavigate }: { clanId: string; onProfi
                     {Array.from({ length: Math.min(Math.max(clan.maxPlayers - members.length, 0), 3) }, (_, index) => (
                       <li key={`open-${index}`} className="flex h-14 items-center gap-3 border-b border-[var(--raised)] px-4 text-[var(--text-faint)] last:border-b-0">
                         <User className="size-4 w-5 shrink-0" aria-hidden="true" />
-                        <span className="grid size-8 place-items-center rounded-[9px] border border-dashed border-[var(--line)]"><UserPlus className="size-3.5" aria-hidden="true" /></span>
+                        <span className="grid size-8 place-items-center rounded-lg border border-dashed border-[var(--line)]"><UserPlus className="size-3.5" aria-hidden="true" /></span>
                         <span className="text-[13px]">{index === 2 && clan.maxPlayers - members.length > 3 ? `+${clan.maxPlayers - members.length - 2} open slots` : "Open slot"}</span>
                       </li>
                     ))}
@@ -730,7 +730,7 @@ function CreateClanForm({ onCreated }: { onCreated: (clan: ClanDetail) => void }
       <label className="flex flex-col gap-1.5"><span className="text-[13px] font-semibold">Max players</span>
         <span className="lx-field"><input id="clan-max" type="number" min={2} max={50} value={maxPlayers} onChange={(event) => setMaxPlayers(Math.max(0, Math.min(50, Math.floor(Number(event.target.value) || 0))))} /><span className="lx-count">2-50</span></span></label>
       {error && <p role="alert" className="text-[13px] text-[var(--status-red)]">{error}</p>}
-      <button type="submit" disabled={!valid || submitting} className="lx-primary-button inline-flex h-[46px] w-full items-center justify-center gap-2 rounded-[14px] text-[14px] font-bold disabled:opacity-50">
+      <button type="submit" disabled={!valid || submitting} className="lx-primary-button inline-flex h-[46px] w-full items-center justify-center gap-2 rounded-xl text-[14px] font-bold disabled:opacity-50">
         <Coins className="size-4" aria-hidden="true" />
         {submitting ? "Creating…" : `Create${fee != null ? ` for ${fee.toLocaleString()} FOL$` : ""}`}
       </button>
@@ -789,7 +789,7 @@ function JoinRequests({ clanId, onAccepted }: { clanId: string; onAccepted: () =
         {requests.map((request) => (
           <div key={request.id} className="lx-glass flex flex-col gap-2.5 rounded-xl p-3">
             <div className="flex items-center gap-3">
-              <PlayerAvatar avatar={request.avatar} name={request.name} className="size-10 rounded-[10px] text-sm" />
+              <PlayerAvatar avatar={request.avatar} name={request.name} className="size-10 rounded-lg text-sm" />
               <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{request.name}</span>
               <button type="button" disabled={busy === request.id} aria-label={`Accept ${request.name}`} onClick={() => void answer(request, true)} className="flex size-8 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[var(--status-green)] transition-colors hover:border-[var(--line-strong)] disabled:opacity-50"><Check className="size-4" aria-hidden="true" /></button>
               <button type="button" disabled={busy === request.id} aria-label={`Decline ${request.name}`} onClick={() => void answer(request, false)} className="flex size-8 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[var(--text-dim)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)] disabled:opacity-50"><X className="size-4" aria-hidden="true" /></button>

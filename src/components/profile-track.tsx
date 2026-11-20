@@ -103,7 +103,7 @@ function Bars({ values, labels, caption }: { values: number[]; labels: string[];
       <div className="flex h-24 items-end gap-1.5">
         {values.map((value, index) => (
           <div key={labels[index] + index} className="flex h-full min-w-0 flex-1 flex-col justify-end" title={`${labels[index]}: ${value} ${value === 1 ? "match" : "matches"}`}>
-            <div className="w-full rounded-t-[4px] bg-[var(--brand-bright)]" style={{ height: `${Math.max(value ? 6 : 2, (value / top) * 100)}%`, opacity: value ? 0.35 + 0.65 * (value / top) : 0.15 }} />
+            <div className="w-full rounded-t-md bg-[var(--brand-bright)]" style={{ height: `${Math.max(value ? 6 : 2, (value / top) * 100)}%`, opacity: value ? 0.35 + 0.65 * (value / top) : 0.15 }} />
           </div>
         ))}
       </div>

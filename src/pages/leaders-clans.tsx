@@ -75,7 +75,7 @@ function ClanRow({ clan, onOpen, you, index = 0 }: { clan: ClanRankEntry; onOpen
       <span aria-hidden="true" className={cn("absolute bottom-2 left-0 top-2 w-[3px] origin-center rounded-r-full bg-[var(--brand-bright)] transition-[scale,opacity] duration-500", you ? "opacity-100" : "scale-y-0 opacity-0 group-hover:scale-y-100 group-hover:opacity-100 group-hover:duration-300")} />
       <span className={cn("text-sm font-semibold", you ? "text-[var(--brand-bright)]" : "text-[var(--text-muted)] transition-colors duration-300 group-hover:text-[var(--text)]")}>{clan.rank}</span>
       <span className="flex min-w-0 items-center gap-3 transition-[translate] duration-500 group-hover:translate-x-1 group-hover:duration-300">
-        <ClanMark logo={clan.logo} tag={clan.tag} className={cn("size-8 rounded-[9px] text-[10px]", you && "ring-2 ring-[var(--brand)]/80")} />
+        <ClanMark logo={clan.logo} tag={clan.tag} className={cn("size-8 rounded-lg text-[10px]", you && "ring-2 ring-[var(--brand)]/80")} />
         <span className="min-w-0 truncate text-[13px] font-medium text-[var(--text)]" title={clan.name}>{you ? "Your clan" : clan.name}</span>
         <span {...clanTagProps(clan.look, "shrink-0 text-[11px] font-semibold text-[var(--text-dim)]")}>[{clan.tag}]</span>
       </span>

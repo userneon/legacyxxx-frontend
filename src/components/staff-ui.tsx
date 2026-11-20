@@ -31,7 +31,7 @@ export function StaffSection({ title, count, end, children, label }: { title: st
 
 /** A square icon tile at the head of a card. */
 export function CardIcon({ icon: Icon, className }: { icon: ComponentType<{ className?: string }>; className?: string }) {
-  return <span aria-hidden="true" className={cn("lx-tone-icon grid size-10 shrink-0 place-items-center rounded-[10px] border border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]", className)}><Icon className="size-[18px]" /></span>
+  return <span aria-hidden="true" className={cn("lx-tone-icon grid size-10 shrink-0 place-items-center rounded-lg border border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]", className)}><Icon className="size-[18px]" /></span>
 }
 
 /** One quiet line where a list is empty. */

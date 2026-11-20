@@ -122,7 +122,7 @@ export function TypeIcon({ type, className }: { type: PenaltyType; className?: s
   const meta = TYPE_META[type] ?? TYPE_META.ban
   const Icon = meta.icon
   return (
-    <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-[10px]", className)} style={{ color: meta.color, backgroundColor: `color-mix(in oklab, ${meta.color} 12%, transparent)` }} title={meta.label}>
+    <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg", className)} style={{ color: meta.color, backgroundColor: `color-mix(in oklab, ${meta.color} 12%, transparent)` }} title={meta.label}>
       <Icon className="size-4" />
     </span>
   )

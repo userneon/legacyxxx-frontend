@@ -70,7 +70,7 @@ function TopCard({ entry, by, onOpen }: { entry: CommunityEntry; by: By; onOpen:
         {podiumFrame ? (
           <span className={cn("shrink-0", "")}><FramedAvatar avatar={entry.avatar || undefined} name={entry.name} frame={podiumFrame} size={by === "boosts" ? (first ? 78 : 68) : first ? 56 : 48} /></span>
         ) : (
-          <PlayerAvatar avatar={entry.avatar || undefined} name={entry.name} className={cn("shrink-0 text-base", first ? "size-[60px] rounded-[15px] ring-2 ring-[var(--boost)]/70 ring-offset-2 ring-offset-[var(--card-surface)]" : "size-[52px] rounded-[13px]")} />
+          <PlayerAvatar avatar={entry.avatar || undefined} name={entry.name} className={cn("shrink-0 text-base", first ? "size-[60px] rounded-[15px] ring-2 ring-[var(--boost)]/70 ring-offset-2 ring-offset-[var(--card-surface)]" : "size-[52px] rounded-xl")} />
         )}
         <Who entry={entry} big={first} />
       </span>
@@ -98,7 +98,7 @@ function Row({ entry, by, onOpen, you }: { entry: CommunityEntry; by: By; onOpen
         {entry.boosts > 0 && entry.boosting ? (
           <FramedAvatar avatar={entry.avatar || undefined} name={entry.name} frame="server-booster" size={32} />
         ) : (
-          <PlayerAvatar avatar={entry.avatar || undefined} name={entry.name} className="size-8 shrink-0 rounded-[9px] text-[10px]" />
+          <PlayerAvatar avatar={entry.avatar || undefined} name={entry.name} className="size-8 shrink-0 rounded-lg text-[10px]" />
         )}
         <span className="flex min-w-0 items-baseline gap-2">
           <span className={cn("min-w-0 truncate text-[13px] font-medium text-[var(--text)]", entry.boosting && "lx-boost-name")} title={entry.name}>{you ? "You" : entry.name}</span>

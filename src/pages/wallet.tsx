@@ -55,7 +55,7 @@ function Activity({ entries, empty }: { entries: WalletTransaction[]; empty: str
         const gain = entry.amount > 0
         return (
           <li key={entry.id} className="flex items-center gap-3 px-5 py-3">
-            <span className={cn("grid size-[34px] shrink-0 place-items-center rounded-[9px] border", gain ? "border-white/10 bg-white/[0.04] text-[rgb(150_180_255)]" : "border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]")}>{lineIcon(entry)}</span>
+            <span className={cn("grid size-[34px] shrink-0 place-items-center rounded-lg border", gain ? "border-white/10 bg-white/[0.04] text-[rgb(150_180_255)]" : "border-[var(--line)] bg-[var(--raised)] text-[var(--text-2)]")}>{lineIcon(entry)}</span>
             <span className="flex min-w-0 flex-1 flex-col gap-0.5">
               <span className="truncate text-[13px] font-semibold text-[var(--text)]" title={entry.reason}>{entry.reason}</span>
               <RelativeTime value={entry.at} className="text-[11px] text-[var(--text-dim)]" />
@@ -95,7 +95,7 @@ function EarningsChart({ daily }: { daily: Array<{ day: string; earned: number }
         {daily.map((entry, index) => (
           <div key={entry.day} className="flex h-full flex-1 items-end" title={`${entry.day}: +${entry.earned} FOL$`}>
             <div
-              className={cn("w-full rounded-[4px]", entry.earned === 0 ? "bg-[var(--line)]" : index === daily.length - 1 ? "bg-[rgb(150_180_255)]" : "bg-white/20")}
+              className={cn("w-full rounded-md", entry.earned === 0 ? "bg-[var(--line)]" : index === daily.length - 1 ? "bg-[rgb(150_180_255)]" : "bg-white/20")}
               style={{ height: entry.earned === 0 ? 3 : `${Math.max(8, (entry.earned / max) * 100)}%` }}
             />
           </div>
@@ -142,7 +142,7 @@ export function WalletPage() {
           const days = summary?.streakDays ?? 0
           const reached = streakNeed > 0 && days >= streakNeed
           return (
-            <button key={rule.id} type="button" onClick={() => target && navigate(target.to)} className={cn(card, "lx-hover-blue group relative flex min-h-[132px] flex-col gap-3 rounded-[10px] p-4 text-left transition-[translate,border-color,background-color] duration-300 hover:-translate-y-1 hover:border-white/30 hover:bg-white/[0.06]")}>
+            <button key={rule.id} type="button" onClick={() => target && navigate(target.to)} className={cn(card, "lx-hover-blue group relative flex min-h-[132px] flex-col gap-3 rounded-lg p-4 text-left transition-[translate,border-color,background-color] duration-300 hover:-translate-y-1 hover:border-white/30 hover:bg-white/[0.06]")}>
               <span className="flex items-center justify-between">
                 <span className="grid size-9 place-items-center rounded-full border border-white/15 text-[var(--text-2)] transition-colors group-hover:border-white/40 group-hover:text-[var(--text)]">{rule.id.startsWith("streak") ? <Flame className="size-4" aria-hidden="true" /> : rule.id === "discord" ? <Users className="size-4" aria-hidden="true" /> : rule.id === "rank-up" ? <Trophy className="size-4" aria-hidden="true" /> : <ArrowUp className="size-4" aria-hidden="true" />}</span>
                 {reached ? <span className="rounded-full border border-white/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[rgb(150_180_255)]">Reached</span> : <span aria-hidden="true" className="translate-x-[-6px] text-[var(--text-muted)] opacity-0 transition-[opacity,translate] duration-300 group-hover:translate-x-0 group-hover:opacity-100">{"→"}</span>}
@@ -205,7 +205,7 @@ export function WalletPage() {
 
               <div className="grid grid-cols-5 gap-2.5">
                 {[{ label: "Top up", icon: Plus, to: "/wallet/top-up" }, { label: "Send", icon: Send, to: "send" }, { label: "Shop", icon: Gem, to: "/shop" }, { label: "Clan", icon: Users, to: "/clans" }, { label: "History", icon: Clock, to: "" }].map((action) => (
-                  <button key={action.label} type="button" onClick={() => (action.to === "send" ? setSendOpen(true) : action.to ? navigate(action.to) : setTab("history"))} className="lx-hover-blue flex h-[72px] flex-col items-center justify-center gap-2 rounded-[10px] border border-white/20 text-[12px] font-semibold text-[var(--text-2)] transition-colors hover:border-white/50 hover:bg-white/[0.06] hover:text-[var(--text)]">
+                  <button key={action.label} type="button" onClick={() => (action.to === "send" ? setSendOpen(true) : action.to ? navigate(action.to) : setTab("history"))} className="lx-hover-blue flex h-[72px] flex-col items-center justify-center gap-2 rounded-lg border border-white/20 text-[12px] font-semibold text-[var(--text-2)] transition-colors hover:border-white/50 hover:bg-white/[0.06] hover:text-[var(--text)]">
                     <action.icon className="size-[18px]" aria-hidden="true" />{action.label}
                   </button>
                 ))}

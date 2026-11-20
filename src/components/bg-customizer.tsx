@@ -28,7 +28,7 @@ export function BgCustomizer({ def, draft, onDraft, saved, owned, busy, onSave }
   const controls = all ? def.controls : def.controls.slice(0, 14)
 
   return (
-    <div className="flex flex-col gap-4 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] p-4">
+    <div className="flex flex-col gap-4 rounded-lg border border-[var(--line-soft)] bg-[var(--panel)] p-4">
       <div className="flex items-baseline justify-between gap-2">
         <h3 className="text-[15px] font-semibold text-[var(--text)]">{def.name}</h3>
         <span className="text-[11px] text-[var(--text-dim)]">{def.controls.length} settings</span>
@@ -39,7 +39,7 @@ export function BgCustomizer({ def, draft, onDraft, saved, owned, busy, onSave }
       {def.controls.length > 14 && (
         <button type="button" onClick={() => setAll(!all)} className="self-start text-xs text-[var(--text-dim)] underline underline-offset-2 hover:text-[var(--text)]">{all ? "Fewer settings" : `All ${def.controls.length} settings`}</button>
       )}
-      <div className="sticky bottom-0 z-10 -mx-4 -mb-4 flex flex-wrap items-center gap-2 rounded-b-[10px] border-t border-[var(--line-soft)] bg-[var(--panel)] px-4 py-3">
+      <div className="sticky bottom-0 z-10 -mx-4 -mb-4 flex flex-wrap items-center gap-2 rounded-b-lg border-t border-[var(--line-soft)] bg-[var(--panel)] px-4 py-3">
         <button type="button" disabled={busy || !owned || !changed} onClick={() => onSave(clean)} className="lx-primary-button inline-flex h-9 items-center gap-1.5 rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50"><Check className="size-4" aria-hidden="true" />Save my background</button>
         <button type="button" disabled={busy} onClick={() => onDraft(cleanBgLook(def, saved ?? {}))} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--raised)] px-3 text-[13px] text-[var(--text-2)] hover:border-[var(--line-strong)] disabled:opacity-50"><RotateCcw className="size-4" aria-hidden="true" />Undo changes</button>
         <button type="button" disabled={busy} onClick={() => onDraft({})} className="inline-flex h-9 items-center rounded-lg px-3 text-[13px] text-[var(--text-dim)] hover:text-[var(--text)] disabled:opacity-50">Defaults</button>

@@ -147,14 +147,14 @@ export function SkinCollections({ onApplied }: { onApplied: () => void }) {
         <QueryState loading={false} error={{ ...error, message: loadFailure(error) }} empty={false} onRetry={refetch} />
       ) : loading && !data ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3" aria-hidden="true">
-          {Array.from({ length: 6 }, (_, index) => <Skeleton key={index} className="h-[218px] rounded-[10px] bg-[var(--glass-fill)]" />)}
+          {Array.from({ length: 6 }, (_, index) => <Skeleton key={index} className="h-[218px] rounded-lg bg-[var(--glass-fill)]" />)}
         </div>
       ) : collections.length === 0 ? (
         <p className="py-10 text-center text-[13px] text-[var(--text-dim)]">{sort === "mine" ? "You have not shared a loadout yet." : "No collections found."}</p>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {collections.map((collection, index) => (
-            <article key={collection.id} style={{ animationDelay: `${Math.min(index, 8) * 55}ms` }} onClick={() => openCollection(collection)} className="lx-layer lx-row-in group flex cursor-pointer flex-col gap-3 rounded-[10px] border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3 transition-colors duration-300 hover:border-[var(--line-strong)]">
+            <article key={collection.id} style={{ animationDelay: `${Math.min(index, 8) * 55}ms` }} onClick={() => openCollection(collection)} className="lx-layer lx-row-in group flex cursor-pointer flex-col gap-3 rounded-lg border border-[var(--glass-line)] bg-[var(--glass-fill)] p-3 transition-colors duration-300 hover:border-[var(--line-strong)]">
               {/* The first skins sit one behind another, so more of the set shows in the same room; the rest is a count. */}
               <button type="button" onClick={() => openCollection(collection)} aria-label={`See everything in ${collection.name}`} className="flex h-[84px] items-center rounded-lg pl-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50">
                 {collection.items.slice(0, 5).map((item, index, list) => {

@@ -22,7 +22,7 @@ export function ClanCreated({ name, tag, fee, onOpen }: { name: string; tag: str
         <h1 className="mt-5 text-[clamp(34px,5vw,58px)] font-bold leading-[1.02] tracking-[-0.03em] text-[var(--text)]">Clan<br /><span className="text-[var(--text-dim)]">created.</span></h1>
         <div className="mt-8 border-t border-[var(--line-soft)] pt-5">
           <div className="text-[11.5px] font-semibold uppercase tracking-[0.16em] text-[var(--text-dim)]">Your clan</div>
-          <div className="mt-2 flex items-center gap-3"><span className="truncate text-[clamp(28px,4vw,42px)] font-bold leading-none tracking-[-0.02em] text-[var(--text)]">{name}</span><span className="rounded-[5px] border border-white/25 px-2 py-0.5 text-[13px] font-semibold tracking-wide text-[var(--text-2)]">{tag}</span></div>
+          <div className="mt-2 flex items-center gap-3"><span className="truncate text-[clamp(28px,4vw,42px)] font-bold leading-none tracking-[-0.02em] text-[var(--text)]">{name}</span><span className="rounded-md border border-white/25 px-2 py-0.5 text-[13px] font-semibold tracking-wide text-[var(--text-2)]">{tag}</span></div>
           {fee != null && <div className="mt-3 text-[13px] text-[var(--text-dim)]">{fee.toLocaleString()} FOL$ were taken from your wallet.</div>}
         </div>
         <button type="button" autoFocus onClick={onOpen} className="lx-primary-button lx-hover-blue mt-8 inline-flex h-[50px] items-center rounded-xl px-8 text-[15px] font-bold">Open clan</button>

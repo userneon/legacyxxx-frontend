@@ -304,7 +304,7 @@ function MatchCard({ match, myTeamId }: { match: TournamentMatch; myTeamId: stri
   return (
     <div
       className={cn(
-        "lx-layer relative w-full rounded-[10px] border bg-[var(--glass-fill)] transition-[border-color,box-shadow,translate] duration-500 hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:duration-300",
+        "lx-layer relative w-full rounded-lg border bg-[var(--glass-fill)] transition-[border-color,box-shadow,translate] duration-500 hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:duration-300",
         mine ? "border-[var(--line-strong)]" : match.status === "live" ? "border-[var(--status-green)]/35" : "border-[var(--line-soft)]",
       )}
     >
@@ -504,7 +504,7 @@ function TeamNameDialog({ open, onClose, onSubmit, busy, error }: { open: boolea
               value={name}
               maxLength={32}
               onChange={(event) => setName(event.target.value)}
-              className="h-10 rounded-[10px] border border-[var(--line)] bg-[var(--glass-fill)] px-3 text-sm text-[var(--text)] outline-none transition-[border-color,box-shadow] duration-300 placeholder:text-[var(--text-dim)] focus:border-[var(--text-dim)] focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_18%,transparent)]"
+              className="h-10 rounded-lg border border-[var(--line)] bg-[var(--glass-fill)] px-3 text-sm text-[var(--text)] outline-none transition-[border-color,box-shadow] duration-300 placeholder:text-[var(--text-dim)] focus:border-[var(--text-dim)] focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_18%,transparent)]"
               placeholder="2–32 characters"
             />
           </label>
@@ -549,7 +549,7 @@ function YouPanel({ tournament, busy, error, onJoinSolo, onRegisterTeam, onLeave
   } else if (tournament.phase === "live" && next) {
     body = (
       <>
-        <div className="flex flex-col gap-2.5 rounded-[10px] border border-[var(--line-strong)] bg-[linear-gradient(160deg,color-mix(in_oklab,var(--brand)_12%,var(--panel)),var(--panel)_60%)] p-3.5">
+        <div className="flex flex-col gap-2.5 rounded-lg border border-[var(--line-strong)] bg-[linear-gradient(160deg,color-mix(in_oklab,var(--brand)_12%,var(--panel)),var(--panel)_60%)] p-3.5">
           <span className="text-[11px] font-bold tracking-[0.6px] text-[var(--text-2)]">YOUR NEXT MATCH</span>
           <span className="flex items-center gap-2 text-[13px] text-[var(--text-muted)]">vs <span className="truncate font-medium text-[var(--text)]">{next.opponent?.name ?? "TBD"}</span></span>
           <span className="flex flex-wrap gap-3 text-xs text-[var(--text-dim)]">

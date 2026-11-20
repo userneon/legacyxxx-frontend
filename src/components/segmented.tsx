@@ -51,12 +51,12 @@ export function Segmented<T extends string>({
       aria-label={ariaLabel}
       // lx-layer: one fixed layer for the control, so a card lifting nearby never promotes and then
       // demotes its buttons (a flash on the labels).
-      className={cn("lx-layer isolate relative flex shrink-0 gap-0.5 rounded-[10px] border border-[var(--line)] bg-[var(--glass-fill)] p-[3px]", className)}
+      className={cn("lx-layer isolate relative flex shrink-0 gap-0.5 rounded-lg border border-[var(--line)] bg-[var(--glass-fill)] p-[3px]", className)}
     >
       {thumb && (
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute left-0 top-[3px] bottom-[3px] rounded-[7px] bg-[var(--line)] transition-[transform,width] duration-200 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none"
+          className="pointer-events-none absolute left-0 top-[3px] bottom-[3px] rounded-md bg-[var(--line)] transition-[transform,width] duration-200 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none"
           style={{ transform: `translateX(${thumb.x}px)`, width: thumb.width }}
         />
       )}
@@ -75,7 +75,7 @@ export function Segmented<T extends string>({
             disabled={option.disabled}
             onClick={() => onChange(option.value)}
             className={cn(
-              "relative z-[1] inline-flex items-center gap-1.5 rounded-[7px] font-medium transition-colors duration-150",
+              "relative z-[1] inline-flex items-center gap-1.5 rounded-md font-medium transition-colors duration-150",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 disabled:opacity-50",
               size === "sm" ? "h-7 px-3 text-xs" : "h-[30px] px-3 text-[13px]",
               active ? "text-[var(--text)]" : "text-[var(--text-muted)] hover:text-[var(--text)]",

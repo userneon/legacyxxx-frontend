@@ -41,7 +41,7 @@ function YourStatus({ penalties, loading, onDetails }: { penalties: PenaltyEntry
   if (loading && penalties.length === 0) {
     return (
       <div className="flex items-center gap-3.5 rounded-xl bg-[var(--glass-fill)] px-[18px] py-4" aria-hidden="true">
-        <Skeleton className="size-10 rounded-[10px] bg-[var(--line-soft)]" />
+        <Skeleton className="size-10 rounded-lg bg-[var(--line-soft)]" />
         <div className="flex flex-1 flex-col gap-2">
           <Skeleton className="h-3 w-40 rounded-full bg-[var(--line)]" />
           <Skeleton className="h-2.5 w-56 rounded-full bg-[var(--line-soft)]" />
@@ -65,7 +65,7 @@ function YourStatus({ penalties, loading, onDetails }: { penalties: PenaltyEntry
       aria-label="Your status"
       className="lx-swap-in flex flex-wrap items-center gap-3.5 rounded-xl bg-[var(--glass-fill)] px-[18px] py-4"
     >
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px]" style={{ color: penaltyStatusColor(active), backgroundColor: `color-mix(in oklab, ${penaltyStatusColor(active)} 14%, transparent)` }}>
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-lg" style={{ color: penaltyStatusColor(active), backgroundColor: `color-mix(in oklab, ${penaltyStatusColor(active)} 14%, transparent)` }}>
         <ShieldAlert className="size-[18px]" />
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-1">
@@ -113,7 +113,7 @@ function PenaltyRow({ penalty, onOpen, index }: { penalty: PenaltyEntry; onOpen:
       )}
     >
       <span className="flex min-w-0 items-center gap-3">
-        <PlayerModerationAvatar avatar={penalty.avatar} name={penalty.player} status={penalty.moderationStatus} className="size-8 shrink-0 rounded-[9px] text-xs" />
+        <PlayerModerationAvatar avatar={penalty.avatar} name={penalty.player} status={penalty.moderationStatus} className="size-8 shrink-0 rounded-lg text-xs" />
         <span className="min-w-0 truncate text-[13px] font-medium text-[var(--text)]" title={penalty.player}>{penalty.player}</span>
       </span>
       <span><TypePill type={penalty.type} /></span>
@@ -169,7 +169,7 @@ function RowSkeleton() {
   return (
     <div className={cn(GRID, "h-14 border-b border-[var(--raised)]")} aria-hidden="true">
       <span className="flex items-center gap-3">
-        <Skeleton className="size-8 rounded-[9px] bg-[var(--line-soft)]" />
+        <Skeleton className="size-8 rounded-lg bg-[var(--line-soft)]" />
         <Skeleton className="h-2.5 w-[55%] rounded-full bg-[var(--line)]" />
       </span>
       <Skeleton className="h-5 w-12 rounded-full bg-[var(--raised)]" />

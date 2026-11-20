@@ -43,7 +43,7 @@ const MODES: Record<PlayPageMode, { mode: PlayMode; title: string; description: 
 const secondary = "inline-flex h-[34px] items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] px-3 text-[13px] font-medium text-[var(--text)] transition-[background-color,border-color,transform] duration-150 hover:border-[var(--line-strong)] hover:bg-[var(--raised)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60 disabled:pointer-events-none disabled:opacity-50"
 const primary = "lx-primary-button inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50 disabled:pointer-events-none disabled:opacity-40 disabled:saturate-50"
 /** On/off switches in the same tray as the Segmented control (Leaders' EXP / K/D / Win rate). */
-const toggleItem = "inline-flex h-[30px] items-center gap-1.5 rounded-[7px] px-3 text-[13px] font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
+const toggleItem = "inline-flex h-[30px] items-center gap-1.5 rounded-md px-3 text-[13px] font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60"
 const toggleOn = "bg-[var(--line)] text-[var(--text)]"
 const toggleOff = "text-[var(--text-muted)] hover:text-[var(--text)]"
 
@@ -253,8 +253,8 @@ function TeamPanel({ side, players }: { side: TeamSide; players: ServerLiveMatch
       </div>
       {players.length > 0 && <TeamRows side={side} players={players} />}
       {players.length === 0
-        ? <div className="flex h-[38px] items-center justify-center rounded-[10px] border border-dashed border-white/10 text-[12px] text-[var(--text-faint)]">Empty · {free} places free</div>
-        : Array.from({ length: free }, (_, index) => <div key={index} className="flex h-[38px] items-center justify-center rounded-[10px] border border-dashed border-white/10 text-[12px] text-[var(--text-faint)]">Free</div>)}
+        ? <div className="flex h-[38px] items-center justify-center rounded-lg border border-dashed border-white/10 text-[12px] text-[var(--text-faint)]">Empty · {free} places free</div>
+        : Array.from({ length: free }, (_, index) => <div key={index} className="flex h-[38px] items-center justify-center rounded-lg border border-dashed border-white/10 text-[12px] text-[var(--text-faint)]">Free</div>)}
     </div>
   )
 }
@@ -801,7 +801,7 @@ function ProLockPad({ access }: { access: CompetitiveAccess }) {
   const share = Math.min(100, (exp / PRO_LEAGUE_MIN_EXP) * 100)
   return (
     <section aria-label="Pro League is locked" className="relative flex w-full max-w-[520px] flex-col gap-6 rounded-[20px] border border-white/12 bg-[rgb(14_16_24/0.5)] p-8 shadow-[0_18px_50px_rgb(0_0_0/0.45),inset_0_1px_0_rgb(255_255_255/0.08)] backdrop-blur-[22px]">
-      <span className="flex size-12 items-center justify-center rounded-[10px] border border-white/15 bg-white/[0.06] text-[var(--text-2)]"><Lock className="size-5" /></span>
+      <span className="flex size-12 items-center justify-center rounded-lg border border-white/15 bg-white/[0.06] text-[var(--text-2)]"><Lock className="size-5" /></span>
       <div className="flex flex-col gap-2">
         <h2 className="text-[clamp(28px,4vw,40px)] font-bold leading-[1.05] tracking-[-0.02em] text-[var(--text)]">Pro League<br /><span className="flex flex-wrap items-center gap-2 text-[var(--text-dim)]">opens at <RankLabel rankId={access.requiredRankId} rankName={access.requiredRankName} size={30} nameClassName="text-[clamp(24px,3.4vw,34px)] font-bold" /></span></h2>
         <p className="max-w-[380px] text-[14px] leading-relaxed text-[var(--text-muted)]">The top ranks play here. Rank up in 5x5 and the door opens by itself.</p>

@@ -78,7 +78,7 @@ function Section({ id, title, description, aside, children, index = 0 }: { id: S
       <span aria-hidden="true" className="absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-[var(--line-strong)] to-transparent" />
       <div className="flex items-start justify-between gap-4 px-5 pb-1 pt-[18px]">
         <div className="flex items-start gap-3">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-[var(--raised)] text-[var(--text-2)] ring-1 ring-inset ring-[var(--line-strong)]"><Icon className="size-[18px]" /></span>
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[var(--raised)] text-[var(--text-2)] ring-1 ring-inset ring-[var(--line-strong)]"><Icon className="size-[18px]" /></span>
           <div className="flex flex-col gap-1">
             <h2 id={`${id}-t`} className="text-[15px] font-semibold text-[var(--text)]">{title}</h2>
             <span className="text-[13px] text-[var(--text-muted)]">{description}</span>
@@ -93,8 +93,8 @@ function Section({ id, title, description, aside, children, index = 0 }: { id: S
 
 function ConnectionRow({ icon, title, description, action }: { icon: React.ReactNode; title: string; description: React.ReactNode; action: React.ReactNode }) {
   return (
-    <div className="lx-layer flex items-center gap-3.5 rounded-[10px] border border-[var(--line-soft)] bg-[var(--panel)] px-3.5 py-3 transition-[border-color,translate,box-shadow] duration-500 hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:duration-300">
-      <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-[9px] bg-[var(--line-soft)] text-[var(--text)]">{icon}</span>
+    <div className="lx-layer flex items-center gap-3.5 rounded-lg border border-[var(--line-soft)] bg-[var(--panel)] px-3.5 py-3 transition-[border-color,translate,box-shadow] duration-500 hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:duration-300">
+      <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[var(--line-soft)] text-[var(--text)]">{icon}</span>
       <span className="flex min-w-0 flex-1 flex-col gap-[5px]">
         <span className="text-sm font-medium text-[var(--text)]">{title}</span>
         <span className="truncate text-xs text-[var(--text-dim)]">{description}</span>
@@ -317,7 +317,7 @@ function Appearance() {
                       onClick={() => setPicked((current) => ({ ...current, [kind]: item.id }))}
                       aria-pressed={selectedId === item.id}
                       className={cn(
-                        "flex w-full flex-col items-center gap-1 rounded-[10px] border bg-[var(--panel)] px-2 pb-2.5 pt-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
+                        "flex w-full flex-col items-center gap-1 rounded-lg border bg-[var(--panel)] px-2 pb-2.5 pt-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50",
                         selectedId === item.id ? "border-[var(--text-2)] bg-[var(--raised)]" : "border-[var(--line-soft)] hover:border-[var(--line-strong)]",
                       )}
                     >
@@ -389,7 +389,7 @@ export function AccountSettings() {
     <div className="flex flex-col gap-4">
       <Section id="connections" title="Connections" description="Accounts linked to your profile.">
         <ConnectionRow
-          icon={user?.avatar ? <PlayerAvatar avatar={user.avatar} name={user.username} className="size-9 rounded-[9px] text-xs" /> : <SteamIcon className="size-[18px]" />}
+          icon={user?.avatar ? <PlayerAvatar avatar={user.avatar} name={user.username} className="size-9 rounded-lg text-xs" /> : <SteamIcon className="size-[18px]" />}
           title="Steam"
           description={user ? `${user.username} · ${user.steamId}` : "—"}
           action={<span className="inline-flex shrink-0 items-center gap-[5px] text-xs font-medium text-[var(--status-green)]"><CircleCheck className="size-3.5" />Connected</span>}
