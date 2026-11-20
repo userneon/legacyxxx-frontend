@@ -15,17 +15,20 @@ import { TermsPage } from "@/pages/terms"
 import { preloadPageArt } from "@/lib/preload-art"
 
 
-// While the site is "coming soon" (lib/coming-soon.ts) only that page is drawn, with the Terms and Privacy pages: no sign-in, no API call.
+// While the site is "coming soon" (lib/coming-soon.ts) only that page is drawn, with the Terms and Privacy pages. The page offers Steam and Discord sign-in (early connect), so the auth provider runs; nothing else of the site loads.
 if (comingSoonActive()) {
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
       <BrowserRouter>
         <ThemeProvider defaultTheme="dark">
-          <Routes>
-            <Route path="/terms" element={<div className="min-h-svh bg-[var(--bg)]"><TermsPage /></div>} />
-            <Route path="/privacy" element={<div className="min-h-svh bg-[var(--bg)]"><PrivacyPage /></div>} />
-            <Route path="*" element={<ComingSoonPage />} />
-          </Routes>
+          <AuthProvider>
+            <Routes>
+              <Route path="/terms" element={<div className="min-h-svh bg-[var(--bg)]"><TermsPage /></div>} />
+              <Route path="/privacy" element={<div className="min-h-svh bg-[var(--bg)]"><PrivacyPage /></div>} />
+              <Route path="*" element={<ComingSoonPage />} />
+            </Routes>
+            <Toaster richColors position="top-center" />
+          </AuthProvider>
         </ThemeProvider>
       </BrowserRouter>
     </StrictMode>
