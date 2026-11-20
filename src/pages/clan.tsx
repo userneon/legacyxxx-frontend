@@ -452,8 +452,9 @@ function ClanCardItem({ clan, mine, pending, canJoin, onClanNavigate, onChanged 
           <span className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-[var(--raised)] px-3 text-[12px] text-[var(--text-2)]"><Check className="size-3.5" aria-hidden="true" />Yours</span>
         ) : pending ? (
           <button type="button" disabled={busy} onClick={() => void act(() => clansService.cancelRequest(clan.id), "Could not cancel the request")} className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-[var(--raised)] px-3 text-[12px] text-[var(--text-2)] hover:text-[var(--text)]"><X className="size-3.5" aria-hidden="true" />Cancel</button>
-        ) : (
-          <button type="button" disabled={isFull || busy || (isAuthenticated && !canJoin)} onClick={join} className={cn("inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-3.5 text-[13px] font-semibold transition-colors", isFull ? "bg-[var(--raised)] text-[var(--text-dim)]" : "lx-primary-button")}>
+        ) : isAuthenticated && !canJoin ? null : (
+          // A player who is already in a clan gets no Join / Request button on other clans at all (owner 2026-11-20); it used to show, greyed out.
+          <button type="button" disabled={isFull || busy} onClick={join} className={cn("inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-3.5 text-[13px] font-semibold transition-colors", isFull ? "bg-[var(--raised)] text-[var(--text-dim)]" : "lx-primary-button")}>
             <UserPlus className="size-4" aria-hidden="true" />
             {isFull ? "Full" : busy ? "Sending…" : clan.joinMode === "request" ? "Request" : "Join"}
           </button>
