@@ -45,6 +45,10 @@ import { Switch } from "@/components/switch"
 
 import { Checkbox } from "@/components/ui/checkbox"
 import { OptimizedImage } from "@/components/optimized-image"
+import { cosmeticsService, type Cosmetics, type FrameItem } from "@/api/cosmetics"
+import { AnimatedChip, isAnimatedModel } from "@/components/model-art"
+import { useAuth } from "@/hooks/use-auth"
+import { itemPicture } from "@/lib/item-picture"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useViewParams } from "@/hooks/use-view-params"
 import { cn } from "@/lib/utils"
@@ -293,6 +297,21 @@ export function SkinchangerPage() {
   const { data: loadoutResponse, loading: loadoutLoading, error: loadoutError, refetch: refetchLoadout } =
     useApiQuery((signal) => skinchangerService.getLoadout({ signal }))
   // Advanced studio: the crafts a player saved, to pick from here (the loadout) later.
+  // The custom model worn on a weapon (owner 2026-11-21: "use the new pictures on Skinchanger too"): its picture replaces the skin's on the card, since the model replaces the weapon itself.
+  const { user: me } = useAuth()
+  const { data: cosmetics, refetch: refetchCosmetics } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { enabled: Boolean(me), queryKey: me ? `cosmetics:${me.id}` : "cosmetics:guest" })
+  useEffect(() => {
+    const again = () => refetchCosmetics()
+    window.addEventListener("legacyx:appearance-changed", again)
+    return () => window.removeEventListener("legacyx:appearance-changed", again)
+  }, [refetchCosmetics])
+  const wornModel = (kind: "knife" | "weapon", weaponClass?: string | null): FrameItem | null => {
+    const pick = (list: FrameItem[] | undefined, worn: string | null | undefined) => list?.find((entry) => entry.id === worn && entry.owned && itemPicture(entry)) ?? null
+    if (kind === "knife") return pick(cosmetics?.modelKnives, cosmetics?.equippedModelKnife)
+    if (weaponClass === "Desert Eagle") return pick(cosmetics?.modelDeagles, cosmetics?.equippedModelDeagle)
+    if (weaponClass === "AK-47") return pick(cosmetics?.modelAk47s, cosmetics?.equippedModelAk47)
+    return null
+  }
   const { data: craftsResponse, loading: craftsLoading, error: craftsError, refetch: refetchCrafts } = useApiQuery((signal) => skinchangerService.getCrafts({ signal }), { queryKey: "skin-crafts" })
   const crafts = craftsResponse?.crafts ?? []
   const craftLimit = craftsResponse?.limit ?? 60
@@ -996,7 +1015,7 @@ export function SkinchangerPage() {
   )
 
   /** An inventory slot card. Hover blurs the render; Customize and remove sit on top of the card button. */
-  const renderCard = ({ id, image, fallback, title, savedItem, entry, openLabel, tall, placeholderArt, onOpen, onCustomize, onRemove }: {
+  const renderCard = ({ id, image, fallback, title, savedItem, entry, openLabel, tall, placeholderArt, model, onOpen, onCustomize, onRemove }: {
     id: string
     image: string | null
     fallback?: string
@@ -1009,12 +1028,15 @@ export function SkinchangerPage() {
     tall?: boolean
     /** A stand-in picture (nothing equipped): shown quieter so it does not out-shout the equipped look. */
     placeholderArt?: boolean
+    /** The custom model worn on this weapon: its picture is shown instead of the skin's. */
+    model?: FrameItem | null
     onOpen: () => void
     onCustomize?: () => void
     onRemove?: () => void
   }) => {
     const rarity = savedItem ? rarityStyle(savedItem) : null
-    const src = image ?? fallback ?? null
+    const modelSrc = model ? itemPicture(model) : null
+    const src = modelSrc ?? image ?? fallback ?? null
     // Stickers (by slot) then the charm, each only when the API resolved its catalogue item and image.
     const resolved = new Map((entry?.resolved_accessories ?? []).map((item) => [item.id, item]))
     const accessories: Array<{ kind: "sticker" | "charm"; slot: number; item: SkinchangerCatalogItem }> = []
@@ -1041,6 +1063,7 @@ export function SkinchangerPage() {
           ? <VerifiedBadge className="absolute left-2 top-2 size-4" />
           : <span aria-hidden="true" className="pointer-events-none absolute left-2.5 top-2.5 size-[7px] rounded-full bg-[var(--line-strong)]" />}
 
+        {model && isAnimatedModel(model) && <span className="pointer-events-none absolute left-2 top-7 z-[2]"><AnimatedChip /></span>}
         <button type="button" onClick={onOpen} aria-label={openLabel} className="absolute inset-0 z-[1] rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50" />
 
         {/* Keyed by the look, so switching team fades the new skin in instead of swapping it. */}
@@ -1051,7 +1074,9 @@ export function SkinchangerPage() {
           "[@media(hover:hover)]:group-hover:scale-[1.03] [@media(hover:hover)]:group-hover:opacity-55 [@media(hover:hover)]:group-hover:blur-[4px] group-has-[:focus-visible]:opacity-55 group-has-[:focus-visible]:blur-[4px]",
           tall ? "pt-5" : "pt-3",
         )}>
-          {src
+          {modelSrc
+            ? <img key={modelSrc} src={modelSrc} alt={model?.name ?? ""} width={220} height={124} draggable={false} className={cn("max-h-full w-full object-contain", swapIn)} />
+            : src
             ? <OptimizedImage key={src} src={src} width={220} height={90} alt="" className={cn("max-h-full w-full object-contain", swapIn, placeholderArt && "opacity-40 saturate-[0.3] brightness-90")} />
             : <ImageOff className="size-6 text-[var(--text-faint)]" />}
         </span>
@@ -1109,6 +1134,7 @@ export function SkinchangerPage() {
     const savedItem = entry?.skinchanger_catalog_items ?? null
     return renderCard({
       id: `${kind}:${item.id}`,
+      model: kind === "weapon" ? wornModel("weapon", item.weapon_class) : null,
       image: catalogImageUrl(savedItem ?? item) ?? (kind === "glove" ? defaultGloveVisual : null),
       title: item.display_name,
       subtitle: savedItem ? savedSkinLabel(savedItem) : "Default",
@@ -1232,6 +1258,7 @@ export function SkinchangerPage() {
     const label = kind === "knife" ? "Knife" : "Gloves"
     return renderCard({
       id: `${kind}:${viewTeam}`,
+      model: kind === "knife" ? wornModel("knife") : null,
       image: savedItem ? catalogImageUrl(savedItem) : kind === "knife" ? defaultKnifeImage : defaultGloveVisual,
       title: label,
       subtitle: savedItem ? savedItem.display_name.replace(/^★\s*/, "").replace(wearSuffix, "") : "Default",

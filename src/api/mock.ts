@@ -39,7 +39,7 @@ function withRentals<T extends Record<string, unknown>>(cosmetics: T): T {
 }
 const mockPings = new Set<string>(["updates"])
 const mockNadeSlots: Record<string, Record<string, string | null>> = {}
-const mockFrameState = { equipped: ((typeof window !== "undefined" && window.sessionStorage.getItem("lx-mock-frame")) || null) as string | null, nameColor: null as string | null, nameGlow: null as string | null, smoke: null as string | null, trail: null as string | null, light: null as string | null, kill: null as string | null, flash: null as string | null, he: null as string | null, owned: new Set<string>(["smoke-solid", "smoke-dual", "trail-classic"]) }
+const mockFrameState = { modelKnife: null as string | null, modelDeagle: null as string | null, modelAk: null as string | null, equipped: ((typeof window !== "undefined" && window.sessionStorage.getItem("lx-mock-frame")) || null) as string | null, nameColor: null as string | null, nameGlow: null as string | null, smoke: null as string | null, trail: null as string | null, light: null as string | null, kill: null as string | null, flash: null as string | null, he: null as string | null, owned: new Set<string>(["smoke-solid", "smoke-dual", "trail-classic"]) }
 function mockNameItems(kind: "color" | "glow"): Array<{ id: string; name: string; nameMn: string; unlock: "free" | "coin" | "achievement"; price: number; requirement: string; owned: boolean; rarity: number; featured: boolean; owners: number | null; color?: string; glow?: string; fx?: string; custom?: boolean }> {
   if (kind === "color") return [
     mockDesign("name-solid", "Solid", 150, 1), mockDesign("name-gradient", "Gradient", 400, 2, "gradient"), mockDesign("name-fire", "Fire", 500, 3, "fire"), mockDesign("name-chrome", "Chrome", 500, 3, "chrome"), mockDesign("name-foil", "Foil", 600, 3, "foil"), mockDesign("name-drift", "Drift", 700, 4, "drift"),
@@ -1037,6 +1037,9 @@ export async function mockResponse(method: string, path: string, query: Query, b
       else if (kind === "grenade_trail") mockFrameState.trail = item
       else if (kind === "grenade_light") mockFrameState.light = item
       else if (kind === "flash_effect") mockFrameState.flash = item
+      else if ((kind as string) === "model_knife") mockFrameState.modelKnife = item
+      else if ((kind as string) === "model_deagle") mockFrameState.modelDeagle = item
+      else if ((kind as string) === "model_ak47") mockFrameState.modelAk = item
       else mockFrameState.nameGlow = item
       return { kind, item }
     }
@@ -1044,7 +1047,7 @@ export async function mockResponse(method: string, path: string, query: Query, b
       mockFrameState.owned.add(decodeURIComponent(path.split("/")[4]))
       return { owned: true }
     }
-    return withRentals({ players: 8, modelKnives: [
+    return withRentals({ players: 8, equippedModelKnife: mockFrameState.modelKnife, equippedModelDeagle: mockFrameState.modelDeagle, equippedModelAk47: mockFrameState.modelAk, modelKnives: [
       { id: "katana-miku", name: "Katana Miku", nameMn: "Katana Miku", unlock: "coin" as const, price: 600, requirement: "", owned: true, rarity: 4, featured: true, owners: 12 },
       { id: "katana-blood", name: "Katana Blood", nameMn: "Katana Blood", unlock: "coin" as const, price: 600, requirement: "", owned: true, rarity: 4, featured: false, owners: 9 },
       { id: "apex-balisong", name: "Apex Balisong", nameMn: "Apex Balisong", unlock: "coin" as const, price: 500, requirement: "", owned: true, rarity: 3, featured: false, owners: 21 },

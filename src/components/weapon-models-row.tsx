@@ -42,6 +42,8 @@ export function WeaponModelsRow({ kind }: { kind: ModelKindId }) {
     try {
       await cosmeticsService.equip(kind, wornId === item.id ? null : item.id)
       await refetch()
+      // The Skinchanger cards read their own copy of the cosmetics: tell them (queries do not share state).
+      window.dispatchEvent(new Event("legacyx:appearance-changed"))
     } catch {
       toast.error("Could not change it")
     } finally {
