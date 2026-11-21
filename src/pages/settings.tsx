@@ -1,7 +1,8 @@
+import { ModelArt } from "@/components/model-art"
 import { ProfileBannerPicture, ProfileCustomizePanel } from "@/components/profile-customize-panel"
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router-dom"
-import { Bell, Check, CircleCheck, Crosshair, Frame, Link2, RotateCcw, MonitorSmartphone, Sword, type LucideIcon } from "lucide-react"
+import { Bell, Check, CircleCheck, Frame, Link2, RotateCcw, MonitorSmartphone, type LucideIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -173,20 +174,15 @@ function Notifications() {
   )
 }
 
-/** What can be worn, in two groups: what shows on the site, and what shows in game. The chips wrap, so every kind stays in reach. */
+/** What can be worn on the profile (owner 2026-11-21: Appearance is only the profile; smoke, trail, grenade light, flash and the weapon models are changed in the Skinchanger, In-game). The chips wrap, so every kind stays in reach. */
 const KINDS: Array<{ value: CosmeticKind; label: string; noun: string; group: "profile" | "game" }> = [
   { value: "frame", label: "Frame", noun: "frame", group: "profile" },
   { value: "background", label: "Background", noun: "background", group: "profile" },
   { value: "profile_customize", label: "Name", noun: "profile customize", group: "profile" },
   { value: "banner", label: "Banner", noun: "banner", group: "profile" },
   { value: "title", label: "Title", noun: "title", group: "profile" },
-  { value: "smoke_color", label: "Smoke", noun: "smoke colour", group: "game" },
-  { value: "grenade_trail", label: "Trail", noun: "trail", group: "game" },
-  { value: "model_knife", label: "Knife", noun: "knife model", group: "game" },
-  { value: "model_deagle", label: "Deagle", noun: "Deagle model", group: "game" },
-  { value: "model_ak47", label: "AK-47", noun: "AK-47 model", group: "game" },
 ]
-const KIND_GROUPS = [{ id: "profile", label: "Profile" }, { id: "game", label: "In game" }] as const
+const KIND_GROUPS = [{ id: "profile", label: "Profile" }] as const
 
 function Appearance() {
   const { user } = useAuth()
@@ -336,7 +332,7 @@ function Appearance() {
                       ) : kind === "smoke_color" ? (
                         <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><SmokePuff color={item.color} color2={item.color2} className="w-[88px]" /></span>
                       ) : isModelKind(kind) ? (
-                        <span className="flex h-[76px] w-full items-center justify-center text-[var(--text-dim)]">{kind === "model_knife" ? <Sword size={32} strokeWidth={2} aria-hidden="true" /> : <Crosshair size={32} strokeWidth={2} aria-hidden="true" />}</span>
+                        <span className="flex h-[76px] w-full items-center justify-center overflow-hidden rounded-md text-[var(--text-dim)]"><ModelArt item={item} kind={kind} mode="fill" /></span>
                       ) : kind === "title" ? (
                         <span className="flex h-[76px] w-full items-center justify-center overflow-hidden px-1"><span className={cn("truncate text-[11px] font-semibold uppercase tracking-[3px]", "text-[var(--text-dim)]")}>{item.name}</span></span>
                       ) : (

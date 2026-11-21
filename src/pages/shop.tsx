@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { EmptyState } from "@/components/illustrations"
-import { useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
-import { Check, ChevronDown, Crosshair, Heart, Lock, RotateCcw, Search, ShoppingCart, SlidersHorizontal, Star, Sword, X } from "lucide-react"
+import { Check, ChevronDown, Heart, Lock, RotateCcw, Search, ShoppingCart, SlidersHorizontal, Star, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
-import { COSMETIC_DURATIONS, cosmeticsService, isModelKind, type ModelKind, type CosmeticDuration, type CosmeticKind, type Cosmetics, type FrameItem } from "@/api/cosmetics"
+import { AnimatedChip, ModelArt, isAnimatedModel } from "@/components/model-art"
+import { itemPicture } from "@/lib/item-picture"
+import { COSMETIC_DURATIONS, cosmeticsService, isModelKind, type CosmeticDuration, type CosmeticKind, type Cosmetics, type FrameItem } from "@/api/cosmetics"
 import { clansService, walletService, type MyClanState, type Wallet } from "@/api"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
@@ -87,7 +89,7 @@ function ItemArt({ item, avatar, username, size }: { item: ShopItem; avatar?: st
   if (item.kind === "grenade_trail") return <GrenadeTrail color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "flash_effect") return <FlashEffect color={item.color} shape={item.fx} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
   if (item.kind === "grenade_light") return <GrenadeLight color={item.color} className={size > 100 ? "w-[200px]" : "w-[112px]"} />
-  if (isModelKind(item.kind)) return <ModelArt id={item.id} kind={item.kind} mode={size > 100 ? "big" : size >= 40 ? "fill" : "small"} />
+  if (isModelKind(item.kind)) return <ModelArt item={item} kind={item.kind} mode={size > 100 ? "big" : size >= 40 ? "fill" : "small"} />
   if (item.kind === "profile_customize") {
     // The product shows what it unlocks: the three name styles, one under the other.
     return (
@@ -102,58 +104,19 @@ function ItemArt({ item, avatar, username, size }: { item: ShopItem; avatar?: st
   return <span {...nameProps(look, cn("font-bold text-[var(--text)]", size > 100 ? "max-w-full truncate text-[19px]" : "whitespace-nowrap text-[13px]"))}>{username}</span>
 }
 
-/** The models that have an in-game picture (`public/shop-models/<id>.webp`, taken in the game, owner request 2026-11-09). Any other model shows the weapon it replaces as an icon. */
-const MODEL_PICTURES = new Set(["katana-wupie", "katana-miku", "katana-blood", "katana-dengliz", "deagle-mari", "ak-10005", "apex-karambit", "apex-balisong"])
-
-/** The preview's picture: a change of model slides the new picture in and the old one out, so the two are never swapped with a jump. */
-function SlidingPicture({ id }: { id: string }) {
-  const [state, setState] = useState<{ shown: string; prev: string | null }>({ shown: id, prev: null })
-  useEffect(() => {
-    setState((current) => (current.shown === id ? current : { shown: id, prev: current.shown }))
-    const timer = window.setTimeout(() => setState((current) => ({ ...current, prev: null })), 450)
-    return () => window.clearTimeout(timer)
-  }, [id])
-  return (
-    <div className="relative aspect-video w-full overflow-hidden">
-      {state.prev && <img key={`out-${state.prev}`} src={`/shop-models/${state.prev}.webp`} alt="" draggable={false} className="lx-model-out absolute inset-0 h-full w-full object-cover" />}
-      <img key={state.shown} src={`/shop-models/${state.shown}.webp`} alt="" width={640} height={360} draggable={false} className={cn("h-full w-full object-cover", state.prev && "lx-model-in")} />
-    </div>
-  )
-}
-
-/** Whether a model has an in-game picture (the Shop tile then lets it fill the whole top of the tile). */
-const hasModelPicture = (item: ShopItem) => isModelKind(item.kind) && MODEL_PICTURES.has(item.id)
-
-/**
- * A weapon model: its picture as it looks in the game's first person view, or, without one, the weapon it replaces drawn as an icon.
- * `fill` covers its whole box (a tile), `big` is the hover card, `preview` the large one beside the price, `small` an outfit thumbnail.
- */
-function ModelArt({ id, kind, mode }: { id: string; kind: ModelKind; mode: "fill" | "big" | "preview" | "small" }) {
-  if (MODEL_PICTURES.has(id)) {
-    // The big preview: when another model is picked, its picture slides in as the old one slides out and fades (owner request 2026-11-09, "the pictures move smoothly between each other").
-    if (mode === "preview") return <SlidingPicture id={id} />
-    const look = mode === "fill" ? "h-full w-full object-cover" : mode === "big" ? "aspect-video w-[320px] rounded-lg border border-[var(--line)] object-cover" : "aspect-video w-16 rounded-md object-cover"
-    return <img src={`/shop-models/${id}.webp`} alt="" width={640} height={360} loading="lazy" draggable={false} className={look} />
-  }
-  const big = mode === "big" || mode === "preview"
-  const Icon = kind === "model_knife" ? Sword : Crosshair
-  return (
-    <span className="flex flex-col items-center gap-1.5 text-[var(--text-2)]">
-      <Icon className={big ? "size-14" : "size-9"} strokeWidth={1.5} aria-hidden="true" />
-      <span className="text-[10px] uppercase tracking-[1.2px] text-[var(--text-dim)]">{kind === "model_knife" ? "Knife" : kind === "model_deagle" ? "Desert Eagle" : "AK-47"}</span>
-    </span>
-  )
-}
+/** Whether a model has a picture (the Shop tile then lets it fill the whole top of the tile). */
+const hasModelPicture = (item: ShopItem) => isModelKind(item.kind) && itemPicture(item) !== null
 
 function accentOf(item: ShopItem) {
   return item.kind === "frame" ? frameAccent(item.id) : item.color ?? item.glow ?? "var(--text-2)"
 }
 
 /** A soft light in the item's own colour behind the art, and a shadow on the floor under it. A background's picture fills the whole box instead. */
-function Spot({ height, children, fill }: { height: number; children: React.ReactNode; fill?: boolean }) {
-  if (fill) return <div className="relative overflow-hidden rounded-lg" style={{ height }}>{children}</div>
+function Spot({ height, children, fill, badge }: { height: number; children: React.ReactNode; fill?: boolean; badge?: React.ReactNode }) {
+  if (fill) return <div className="relative overflow-hidden rounded-lg" style={{ height }}>{children}{badge && <span className="absolute bottom-2 left-2 z-[2]">{badge}</span>}</div>
   return (
     <div className="relative flex items-center justify-center overflow-hidden" style={{ height }}>
+      {badge && <span className="absolute bottom-2 left-2 z-[2]">{badge}</span>}
       <span aria-hidden="true" className="absolute bottom-2.5 left-1/2 h-2.5 w-[56%] -translate-x-1/2" style={{ background: "radial-gradient(ellipse, rgba(0,0,0,.65), transparent 70%)" }} />
       <div className="relative z-[1] flex max-w-full items-center justify-center">{children}</div>
     </div>
@@ -186,6 +149,10 @@ function ShopGrid({ list, card, tight = false }: { list: ShopItem[]; tight?: boo
 export function ShopPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  // A link from the Skinchanger (a locked weapon model) lands on that very product: it is scrolled into view and lit for a moment.
+  const wantedItem = new URLSearchParams(location.search).get("item")
+  const [spot, setSpot] = useState<string | null>(null)
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
@@ -236,6 +203,13 @@ export function ShopPage() {
   ].filter((item) => !item.retired), [data])
   const worn = { discord_role: null as string | null, frame: data?.equippedFrame ?? null, background: data?.equippedBackground ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, profile_customize: null as string | null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null, grenade_light: data?.equippedGrenadeLight ?? null, flash_effect: data?.equippedFlashEffect ?? null, model_knife: data?.equippedModelKnife ?? null, model_deagle: data?.equippedModelDeagle ?? null, model_ak47: data?.equippedModelAk47 ?? null }
   const balance = wallet?.balance ?? null
+  useEffect(() => {
+    if (!wantedItem || !all.some((item) => item.id === wantedItem)) return
+    setSpot(wantedItem)
+    const look = window.setTimeout(() => document.querySelector(`[data-shop-item="${CSS.escape(wantedItem)}"]`)?.scrollIntoView({ block: "center", behavior: "smooth" }), 250)
+    const off = window.setTimeout(() => setSpot(null), 3500)
+    return () => { window.clearTimeout(look); window.clearTimeout(off) }
+  }, [wantedItem, all.length])
   const username = user?.username ?? "Player"
 
   // At most ten (two full rows of five); the rest are still in All items.
@@ -329,7 +303,7 @@ export function ShopPage() {
         : <span className="inline-flex items-center gap-1 text-xs text-[var(--text-dim)]"><Lock className="size-3" />Earned</span>
     return (
       // No content-visibility here: it paints only inside the box, which cut off the tile's border and glow when it lifts on hover (the lists are at most 30 tiles anyway).
-      <li key={item.id} className={cn("group/tile relative rounded-[20px]",)}>
+      <li key={item.id} data-shop-item={item.id} className={cn("group/tile relative rounded-[20px] transition-shadow duration-500", spot === item.id && "ring-2 ring-[var(--brand-bright)] ring-offset-2 ring-offset-[var(--bg)]")}>
               <div
                 role="group"
                 aria-label={item.name}
@@ -343,7 +317,7 @@ export function ShopPage() {
                   {shown.kind === "frame" ? (
                     <FrameStage accent={accentOf(shown)} height={148}><ItemArt item={shown} avatar={user?.avatar} username={username} size={isArtFrame(shown.id) ? 74 : 88} /></FrameStage>
                   ) : (
-                    <Spot height={148} fill={shown.kind === "background" || hasModelPicture(shown)}><ItemArt item={shown} avatar={user?.avatar} username={username} size={72} /></Spot>
+                    <Spot height={148} fill={shown.kind === "background" || hasModelPicture(shown)} badge={isAnimatedModel(shown) && isModelKind(shown.kind) ? <AnimatedChip /> : undefined}><ItemArt item={shown} avatar={user?.avatar} username={username} size={72} /></Spot>
                   )}
                 </div>
                 <div className="flex flex-1 flex-col items-stretch gap-2 px-2 pb-2 pt-3">

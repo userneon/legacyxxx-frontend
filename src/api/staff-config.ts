@@ -1,4 +1,4 @@
-import { get, put, type CallOptions } from "./client"
+import { del, get, put, type CallOptions } from "./client"
 
 /** A number the Owner can change on the staff site (Staff → Settings). */
 export interface SiteSetting {
@@ -30,6 +30,8 @@ export interface StaffCosmetic {
   sort: number
   enabled: boolean
   owners: number
+  /** The item's picture (an address of the API), or null when it has none. */
+  image: string | null
 }
 
 export type CosmeticEdit = Pick<StaffCosmetic, "nameEn" | "nameMn" | "unlock" | "price" | "requirement" | "sort" | "enabled">
@@ -41,5 +43,8 @@ export const staffConfigService = {
   /** Owner or Manager. */
   cosmetics: async (options?: CallOptions) => (await get<{ items: StaffCosmetic[] }>("/api/v1/staff/cosmetics", undefined, options)).items,
   saveCosmetic: (id: string, edit: CosmeticEdit, options?: CallOptions) => put<{ id: string }>(`/api/v1/staff/cosmetics/${encodeURIComponent(id)}`, edit, options),
+  /** The item's picture (PNG, JPEG, WebP or GIF, up to 2 MB): put once here, drawn by the website everywhere the item shows. */
+  uploadCosmeticImage: (id: string, file: Blob, options?: CallOptions) => put<{ id: string; image: string }>(`/api/v1/staff/cosmetics/${encodeURIComponent(id)}/image`, file, options),
+  removeCosmeticImage: (id: string, options?: CallOptions) => del<void>(`/api/v1/staff/cosmetics/${encodeURIComponent(id)}/image`, options),
 }
 

@@ -40,6 +40,7 @@ import { Sheet } from "@/components/ui/sheet"
 import { DetailSheetContent } from "@/components/detail-sheet"
 import type { SkinCraft } from "@/api/skinchanger"
 import { SkinStudio } from "@/components/skin-studio"
+import { WeaponModelsRow, modelKindFor } from "@/components/weapon-models-row"
 
 import { Checkbox } from "@/components/ui/checkbox"
 import { OptimizedImage } from "@/components/optimized-image"
@@ -1449,6 +1450,7 @@ export function SkinchangerPage() {
             {/* Catalogue */}
             <div className={cn("flex min-h-0 flex-col", selected && pickerHasOptions && !accessoryOpen && "hidden lg:flex")}>
               {accessoryOpen ? renderAccessoryBrowser() : (<>
+              {(() => { const modelKind = modelKindFor(category, activeWeapon?.weapon_class); return modelKind ? <WeaponModelsRow kind={modelKind} /> : null })()}
               {slotTeam && (category === "knife" || category === "glove") && (
                 <TooltipProvider delayDuration={80} skipDelayDuration={300}>
                 <ScrollRow role="tablist" aria-label={category === "knife" ? "Knife type" : "Glove type"} className="gap-1.5 border-b border-border px-3 py-2.5">

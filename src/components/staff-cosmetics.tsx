@@ -1,7 +1,8 @@
-import { useState } from "react"
-import { Pencil, RotateCcw, Sparkles } from "lucide-react"
+import { useRef, useState } from "react"
+import { ImagePlus, Pencil, RotateCcw, Sparkles, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
+import { clanArtSrc } from "@/api/clans"
 import { staffConfigService, type CosmeticEdit, type CosmeticKindId, type CosmeticUnlock, type StaffCosmetic } from "@/api/staff-config"
 import { CardIcon, STAFF_CARD, STAFF_GRID, StaffEmpty, StaffSection, type Tone } from "@/components/staff-ui"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -14,6 +15,36 @@ const secondary = "inline-flex h-9 items-center justify-center gap-1.5 rounded-l
 const KIND_LABEL: Record<CosmeticKindId, string> = { frame: "Frames", name_color: "Name colours", name_glow: "Name glows", banner: "Banners", title: "Titles", smoke_color: "Smoke colours", grenade_trail: "Grenade trails", grenade_light: "Grenade lights", flash_effect: "Flash effects", model_knife: "Knife models", model_deagle: "Deagle models", model_ak47: "AK-47 models" }
 const UNLOCK_LABEL: Record<CosmeticUnlock, string> = { free: "Free", coin: "FOL$", achievement: "Earned" }
 const UNLOCK_TONE: Record<CosmeticUnlock, Tone> = { free: "green", coin: "sky", achievement: "violet" }
+
+
+const IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"]
+
+/** The picture of one cosmetic (a weapon model's, for one): put here once, the website draws it everywhere the item shows (owner 2026-11-21). */
+function ItemImage({ item, onChanged }: { item: StaffCosmetic; onChanged: () => void }) {
+  const file = useRef<HTMLInputElement>(null)
+  const [busy, setBusy] = useState(false)
+  const src = clanArtSrc(item.image)
+  const run = async (work: () => Promise<unknown>, done: string) => {
+    setBusy(true)
+    try { await work(); toast.success(done); onChanged() } catch (caught) { toast.error((caught as { message?: string }).message ?? "Could not change the picture") } finally { setBusy(false) }
+  }
+  const pick = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const chosen = event.target.files?.[0]
+    event.target.value = ""
+    if (!chosen) return
+    if (!IMAGE_TYPES.includes(chosen.type)) { toast.error("The picture must be a PNG, JPEG, WebP or GIF"); return }
+    if (chosen.size > 2 * 1024 * 1024) { toast.error("The picture is larger than 2 MB"); return }
+    void run(() => staffConfigService.uploadCosmeticImage(item.id, chosen), "Picture saved")
+  }
+  return (
+    <div className="flex items-center gap-2.5">
+      {src ? <img src={src} alt="" className="aspect-video h-10 shrink-0 rounded-md border border-[var(--line)] object-cover" /> : <span className="grid aspect-video h-10 shrink-0 place-items-center rounded-md border border-dashed border-[var(--line)] text-[10px] text-[var(--text-faint)]">none</span>}
+      <input ref={file} type="file" accept={IMAGE_TYPES.join(",")} onChange={pick} className="sr-only" aria-label={`Picture of ${item.nameEn}`} />
+      <button type="button" disabled={busy} onClick={() => file.current?.click()} className={cn(secondary, "h-8 px-2.5 text-xs")}><ImagePlus className="size-3.5" aria-hidden="true" />{src ? "Replace" : "Add picture"}</button>
+      {src && <button type="button" disabled={busy} onClick={() => void run(() => staffConfigService.removeCosmeticImage(item.id), "Picture removed")} className={cn(secondary, "h-8 px-2.5 text-xs")} aria-label="Remove the picture"><Trash2 className="size-3.5" aria-hidden="true" /></button>}
+    </div>
+  )
+}
 
 /** Staff → Shop → Cosmetics: price, names, how it is unlocked and on/off for every cosmetic. Art and colours stay in the code. */
 export function StaffCosmetics() {
@@ -93,6 +124,7 @@ export function StaffCosmetics() {
                 <span className="lx-tone-text shrink-0 rounded-full border border-[color-mix(in_oklab,var(--tone)_45%,transparent)] px-2 py-0.5 text-[11px] font-semibold">{item.unlock === "coin" ? `${item.price.toLocaleString()} FOL$` : UNLOCK_LABEL[item.unlock]}</span>
               </div>
               <p className="text-xs text-[var(--text-dim)]">{item.owners.toLocaleString()} owner{item.owners === 1 ? "" : "s"}{item.requirement ? ` · ${item.requirement}` : ""}{item.enabled ? "" : " · off"}</p>
+              <ItemImage item={item} onChanged={refetch} />
               <button type="button" onClick={() => setEdit({ id: item.id, draft: { nameEn: item.nameEn, nameMn: item.nameMn, unlock: item.unlock, price: item.price, requirement: item.requirement, sort: item.sort, enabled: item.enabled } })} className={cn(secondary, "mt-auto")}><Pencil className="size-4" />Edit</button>
             </li>
           ))}

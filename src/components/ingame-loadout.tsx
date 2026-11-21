@@ -2,7 +2,7 @@
  * In-game effects in the Loadout (owner request 2026-11-14): smoke colour, grenade trail, grenade light and flash sit beside the skins and are
  * swapped the same way (a card, then a list to pick from). They are cosmetics, not skins, so a shared loadout never carries them.
  * A design the player colours themselves opens an editor: a vivid colour picker (two for the dual smoke) and, for the smoke, one of our own pictures
- * (no uploads). The first pick is free; every change after it costs the price the API names (100 FOL$).
+ * (no uploads). The first pick is free; after it a new colour and a new effect (the smoke's picture) cost the price the API names (500 FOL$) each.
  */
 import { useEffect, useState, type ReactNode } from "react"
 import { toast } from "sonner"
@@ -48,15 +48,19 @@ function Motif({ name, className }: { name: string; className?: string }) {
   return <svg aria-hidden="true" viewBox="0 0 24 24" className={cn("size-5", className)} fill="currentColor"><path d={paths[name] ?? paths.dot} /></svg>
 }
 
-function Editor({ kind, item, price, balance, onBack, onSaved }: { kind: NadeKind; item: FrameItem; price: number; balance: number | null; onBack: () => void; onSaved: () => void }) {
+export function Editor({ kind, item, price, balance, onBack, onSaved }: { kind: NadeKind; item: FrameItem; price: number; balance: number | null; onBack?: () => void; onSaved: () => void }) {
   const [color, setColor] = useState(item.picked && item.color ? item.color : "#ff3b6b")
   const [color2, setColor2] = useState(item.picked && item.color2 ? item.color2 : "#3bb8ff")
   const [motif, setMotif] = useState<string>(item.motif ?? "")
   const [busy, setBusy] = useState(false)
   useEffect(() => { setColor(item.picked && item.color ? item.color : "#ff3b6b"); setColor2(item.picked && item.color2 ? item.color2 : "#3bb8ff"); setMotif(item.motif ?? "") }, [item.id, item.color, item.color2, item.motif])
   const changed = !item.picked || color !== item.color || (item.twoColours && color2 !== item.color2) || motif !== (item.motif ?? "")
-  const costs = Boolean(item.picked) && changed
-  const short = costs && balance != null && balance < price
+  const colourChanged = color !== item.color || Boolean(item.twoColours && color2 !== item.color2)
+  const effectChanged = kind === "smoke_color" && motif !== (item.motif ?? "")
+  // Each paid change is its own price: the colour 500, the effect 500, both 1000 (owner 2026-11-21). The first pick is free.
+  const total = item.picked ? price * (Number(colourChanged) + Number(effectChanged)) : 0
+  const costs = total > 0
+  const short = costs && balance != null && balance < total
   const save = async () => {
     setBusy(true)
     try {
@@ -65,14 +69,14 @@ function Editor({ kind, item, price, balance, onBack, onSaved }: { kind: NadeKin
       toast.success(result.charged > 0 ? `Saved · ${result.charged} FOL$` : "Saved")
       onSaved()
     } catch {
-      toast.error(costs ? `Could not save it. Changing the colour costs ${price} FOL$.` : "Could not save it")
+      toast.error(costs ? `Could not save it. This change costs ${total} FOL$.` : "Could not save it")
     } finally {
       setBusy(false)
     }
   }
   return (
     <div className="flex flex-col gap-4">
-      <button type="button" onClick={onBack} className="self-start text-[12px] text-[var(--text-dim)] hover:text-[var(--text)]">← Back</button>
+      {onBack && <button type="button" onClick={onBack} className="self-start text-[12px] text-[var(--text-dim)] hover:text-[var(--text)]">← Back</button>}
       <div className="flex items-center justify-center rounded-lg bg-[var(--glass-fill)] py-4"><Art kind={kind} item={{ ...item, color, color2: item.twoColours ? color2 : item.color2 }} className="w-[150px]" /></div>
       <div className="flex flex-wrap justify-center gap-5">
         <ColorPicker vivid value={color} onChange={setColor} />
@@ -91,9 +95,9 @@ function Editor({ kind, item, price, balance, onBack, onSaved }: { kind: NadeKin
         </div>
       )}
       <button type="button" disabled={busy || (!changed && Boolean(item.picked)) || short} onClick={() => void save()} className="lx-primary-button inline-flex h-10 items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-50">
-        {short ? `Need ${price - (balance ?? 0)} more FOL$` : costs ? `Save and wear · ${price} FOL$` : item.picked ? "Wear" : "Save and wear · free"}
+        {short ? `Need ${total - (balance ?? 0)} more FOL$` : costs ? `Save and wear · ${total} FOL$` : item.picked ? (changed ? "Save and wear" : "Wear") : "Save and wear"}
       </button>
-      <p className="text-center text-[11px] text-[var(--text-dim)]">The first colour is free. Changing it later costs {price} FOL$, as often as you like. Colours are kept vivid.</p>
+      <p className="text-center text-[11px] text-[var(--text-dim)]">The first pick is free. After that a new colour costs {price} FOL$ {kind === "smoke_color" ? `and a new picture ${price} FOL$, each on its own` : "each time"}. Colours are kept vivid.</p>
     </div>
   )
 }
@@ -107,7 +111,7 @@ export function InGameLoadout({ renderSection }: { renderSection: (title: string
   const { data: wallet } = useApiQuery<{ balance: number }>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   // Until the player's cosmetics arrive the section is already there with quiet placeholders (owner 2026-11-18: the In-game part "popped in later, on its own"), so it comes with the rest.
   if (!data) {
-    return renderSection("IN-GAME", KINDS.map(({ kind }) => <div key={kind} aria-hidden="true" className="h-24 animate-pulse rounded-lg border border-[var(--glass-line)] bg-[var(--glass-fill)]" />))
+    return renderSection("IN-GAME", KINDS.map(({ kind }) => <div key={kind} data-slot-card={`ingame:${kind}`} aria-hidden="true" className="h-24 animate-pulse rounded-lg border border-[var(--glass-line)] bg-[var(--glass-fill)]" />))
   }
 
   const spec = KINDS.find((entry) => entry.kind === open)
@@ -127,7 +131,7 @@ export function InGameLoadout({ renderSection }: { renderSection: (title: string
   const cards = KINDS.map(({ kind, label, list, worn }) => {
     const current = ((data[list] as FrameItem[] | undefined) ?? []).find((item) => item.id === data[worn])
     return (
-      <div key={kind} className="lx-layer group relative h-24 overflow-hidden rounded-lg border border-[var(--glass-line)] bg-[var(--glass-fill)] transition-[border-color,translate] duration-300 hover:-translate-y-0.5 hover:border-[var(--line-strong)]">
+      <div key={kind} data-slot-card={`ingame:${kind}`} className="animate-in fade-in-0 [animation-duration:300ms] motion-reduce:animate-none lx-layer group relative h-24 overflow-hidden rounded-lg border border-[var(--glass-line)] bg-[var(--glass-fill)] transition-[border-color,translate] duration-300 hover:-translate-y-0.5 hover:border-[var(--line-strong)]">
         <button type="button" onClick={() => setOpen(kind)} aria-label={`Change ${label.toLowerCase()}`} className="absolute inset-0 z-[1] rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50" />
         <span className="pointer-events-none absolute inset-0 flex items-center justify-center px-6 pb-6 pt-3">
           <Art kind={kind} item={current} className={cn("w-[84px]", !current && "opacity-30 saturate-0")} />
@@ -145,7 +149,7 @@ export function InGameLoadout({ renderSection }: { renderSection: (title: string
           <DialogHeader><DialogTitle>{spec?.label}</DialogTitle></DialogHeader>
           {open && editing && items.find((item) => item.id === editing) && (
             <div className="max-h-[70vh] overflow-y-auto">
-              <Editor kind={open} item={items.find((item) => item.id === editing)!} price={data.customChangePrice ?? 100} balance={wallet?.balance ?? null} onBack={() => setEditing(null)} onSaved={() => { setEditing(null); void refetch() }} />
+              <Editor kind={open} item={items.find((item) => item.id === editing)!} price={data.customChangePrice ?? 500} balance={wallet?.balance ?? null} onBack={() => setEditing(null)} onSaved={() => { setEditing(null); void refetch() }} />
             </div>
           )}
           {open && !editing && (
