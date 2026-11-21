@@ -8,6 +8,7 @@ import { ArrowUp } from "lucide-react"
 import { Navigate, Routes, Route, useNavigate, useLocation } from "react-router-dom"
 
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { SiteBackdrop } from "@/components/site-backdrop"
 import { ProfileBlock } from "@/components/profile-block"
 import { SiteTourButton } from "@/components/site-tour"
 import { AppSidebar } from "@/components/app-sidebar"
@@ -180,6 +181,7 @@ export function App() {
       {/* The shell (owner pick 2026-11-09): one solid frame holding the rail, a pill header and the page panel. A phone keeps the sidebar sheet and the older layout. */}
       <AppSidebar currentPage={currentPage} onNavigate={handleNavigate} />
       <SidebarInset className={cn("m-0 flex min-w-0 flex-col gap-2 bg-transparent", "h-svh gap-0 bg-[#060606] min-[560px]:rounded-l-[16px] min-[560px]:overflow-hidden max-[559px]:gap-2 max-[559px]:p-2")}>
+        <SiteBackdrop />
         {/* The top bar is gone on wider windows (its parts live in the right sidebar); a phone keeps it, since it has neither sidebar on screen. */}
         <header className={cn("lx-glass-shell relative z-[3] flex h-14 shrink-0 items-center gap-4 pl-4 pr-2 max-md:pl-2 max-sm:gap-1.5 min-[560px]:hidden", "rounded-xl")}>
           {/* On a phone the sidebar is a sheet, so the top bar carries its only trigger. */}
