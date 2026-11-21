@@ -204,7 +204,7 @@ export function App() {
         >
           <ArrowUp className="size-5" aria-hidden="true" />
         </button>
-        <div ref={panelRef} className={cn("lx-glass-shell relative scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-clip max-sm:pb-16", "max-[559px]:rounded-xl")}>
+        <div ref={panelRef} className={cn("lx-glass-shell relative scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-clip pb-16", "max-[559px]:rounded-xl")}>
           {/* Leaders scrolls its table inside the panel (sticky header, your row pinned under it), so it gets the panel's height instead of growing past it. */}
           <PageHero hero={hero} />
           {serious && <SeriousDetail />}

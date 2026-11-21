@@ -25,7 +25,7 @@ export function ColorRow({ label, value, colors, onChange, original }: { label: 
       <span className="w-12 shrink-0 text-[12px] text-[var(--text-dim)]">{label}</span>
       <div className="flex flex-wrap items-center gap-2">
         {swatches.map((color) => (
-          <button key={color} type="button" aria-label={color === own ? `Original ${color}` : color} title={color === own ? "Original colour" : undefined} aria-pressed={value === color} onClick={() => onChange(color)} style={{ background: color }} className="lx-shop-swatch size-7 rounded-full border border-[var(--line-strong)] transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60" />
+          <button key={color} type="button" aria-label={color === own ? `Original ${color}` : color} title={color === own ? "Original colour" : undefined} aria-pressed={value === color} onClick={() => onChange(color)} style={{ background: color }} className="lx-shop-swatch size-7 max-sm:size-9 rounded-full border border-[var(--line-strong)] transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/60" />
         ))}
         <Popover>
           <PopoverTrigger asChild>
