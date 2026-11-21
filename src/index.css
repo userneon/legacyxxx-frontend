@@ -1780,8 +1780,8 @@ html:has([data-lx-gate]) [data-slot="sidebar-inset"] { background: transparent; 
 /* The welcome screen after sign-in: the picture settles in, the words rise a moment later. */
 @keyframes lx-welcome-art { from { opacity: 0; transform: scale(1.04); } to { opacity: 1; transform: none; } }
 @keyframes lx-welcome-text { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-.lx-welcome-art { animation: lx-welcome-art 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-.lx-welcome-text { animation: lx-welcome-text 700ms 250ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.lx-welcome-art { animation: lx-welcome-art 900ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards; }
+.lx-welcome-text { animation: lx-welcome-text 700ms 250ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards; }
 @media (prefers-reduced-motion: reduce) { .lx-welcome-art, .lx-welcome-text { animation: none; } }
 
 /* Dropdowns and menus are glass (owner request 2026-11-17): a see-through dark pane with a soft blur and a faint light edge, so the picture behind shows through. */
