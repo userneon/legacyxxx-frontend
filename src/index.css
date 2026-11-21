@@ -1983,9 +1983,9 @@ html[data-site-bg="calm"] [data-slot="sidebar-inset"]::before { content: ""; pos
 
 /* ---- One shape (owner 2026-11-18: "circles and squares are mixed in the Shop and many places" -> "all square"): ---------------------------------------------------------------
    every round button, chip, price pill, heart and icon tile becomes a rounded rectangle, like the avatars. Kept round: dots, thin bars, switches, radio buttons, slider thumbs,
-   spinners and the scrollbar. The radius is min(12px, 28%) so a 28px tile gets about 8px and a wide pill about 12px. */
+   spinners and the scrollbar. The radius is min(12px, 28%) so a 28px tile gets about 8px and a wide pill about 12px. Buttons are not in this rule (owner 2026-11-21: they are pills, see "ONE BUTTON" at the end). */
 :root { --lx-sq: min(12px, 28%); }
-.rounded-full:not(.lx-keep-round):not(.animate-spin):not([role="switch"]):not([role="radio"]):not([role="progressbar"]):not([data-slot="progress"]):not([data-slot="switch"]):not([data-slot="switch-thumb"]):not([data-slot="slider-thumb"]):not([data-slot="slider-range"]):not([data-slot="slider-track"]):not(.size-0\.5):not(.size-1):not(.size-1\.5):not(.size-2):not(.size-2\.5):not(.size-3):not(.size-3\.5):not(.size-\[4px\]):not(.size-\[5px\]):not(.size-\[6px\]):not(.size-\[7px\]):not(.size-\[8px\]):not(.h-px):not(.h-0\.5):not(.h-1):not(.h-1\.5):not(.h-\[2px\]):not(.h-\[3px\]):not(.h-\[4px\]):not(.h-\[5px\]):not(.w-px):not(.w-0\.5):not(.w-1):not(.w-1\.5):not(.w-\[2px\]):not(.w-\[3px\]) { border-radius: var(--lx-sq); }
+.rounded-full:not(button, [data-slot="button"], a[class*="inline-flex"]):not(.lx-keep-round):not(.animate-spin):not([role="switch"]):not([role="radio"]):not([role="progressbar"]):not([data-slot="progress"]):not([data-slot="switch"]):not([data-slot="switch-thumb"]):not([data-slot="slider-thumb"]):not([data-slot="slider-range"]):not([data-slot="slider-track"]):not(.size-0\.5):not(.size-1):not(.size-1\.5):not(.size-2):not(.size-2\.5):not(.size-3):not(.size-3\.5):not(.size-\[4px\]):not(.size-\[5px\]):not(.size-\[6px\]):not(.size-\[7px\]):not(.size-\[8px\]):not(.h-px):not(.h-0\.5):not(.h-1):not(.h-1\.5):not(.h-\[2px\]):not(.h-\[3px\]):not(.h-\[4px\]):not(.h-\[5px\]):not(.w-px):not(.w-0\.5):not(.w-1):not(.w-1\.5):not(.w-\[2px\]):not(.w-\[3px\]) { border-radius: var(--lx-sq); }
 .lx-team-face, .lx-team-go, .lx-shop-tile .lx-shop-price { border-radius: var(--lx-sq); }
 .lx-shop-ring { border-radius: 24%; }
 /* a switch or a radio keeps its own round parts */
@@ -2055,11 +2055,11 @@ button[role="radio"][aria-checked="true"]:not([role="switch"]) { background: #ec
 button:is([class*="bg-[var(--glass-fill)]"], [class*="bg-[var(--panel)]"], [class*="bg-[var(--card-surface)]"], .lx-glass):not([class^="h-"], [class*=" h-"], [class*=" size-"], [class^="size-"], .rounded-full) { border-radius: var(--ui-r); }
 
 /* ---- ONE BUTTON (owner 2026-11-21: "some transparent, some pill, some box, some plain; every colour is different") ----
-   The older "all square" rule turned every .rounded-full into a 12px box while the newer one made other buttons pills, so both showed. Now every real button (one with its own height or size) is
+   The older "all square" rule turned every .rounded-full into a 12px box while the newer one made other buttons pills, so both showed; that rule now leaves buttons alone. Every real button (one with its own height or size) is
    a pill, an icon-only one a circle; it is an outline (hairline, no fill) unless it is the main button (.lx-primary-button, the soft light box) or the chosen one (a light chip). No colour on
    a button but the neutral ones: the blue and green hover glows are off, a fill (raised, white tint) becomes the outline. Avatars, tabs, switches, checkboxes, dropdown triggers and buttons that float over a picture keep their own look. */
 :is(button, [data-slot="button"], a[class*="inline-flex"]):is([class^="h-"], [class*=" h-"], [class^="size-"], [class*=" size-"]):not([role="tab"], [role="switch"], [role="checkbox"], [role="radio"], [role="combobox"], .lx-keep-round, [class*="rounded-[24%]"], [class*="rounded-none"], [class*="grid-cols"], [class*="w-full"]) {
-  border-radius: 999px !important;
+  border-radius: 999px;
 }
 /* the lighter fills of a button become the outline; a button floating over a picture or fixed on the page keeps its backing */
 :is(button, a)[class*="bg-[var(--raised)]"]:is([class^="h-"], [class*=" h-"]):not(.lx-primary-button, [aria-pressed="true"], [aria-selected="true"], [aria-current], [aria-checked="true"], [role="tab"], [role="switch"], [role="checkbox"], [role="radio"], [role="combobox"], [class*="absolute"], [class*="fixed"], [class*="rounded-[24%]"]),
@@ -2070,4 +2070,4 @@ button:is([class*="bg-[var(--glass-fill)]"], [class*="bg-[var(--panel)]"], [clas
 /* no colour glow on a button: the neutral hover only */
 .lx-hover-blue::after, .lx-hover-green::after { display: none; }
 /* a chip or round button without its own height class is still a pill (the old "all square" rule must not box it) */
-:is(button, a[class*="inline-flex"]).rounded-full:not(.lx-keep-round, [role="tab"], [role="switch"], [role="radio"], [role="checkbox"], [role="combobox"], [class*="rounded-[24%]"], [class*="overflow-hidden"], [class*="animate-spin"]) { border-radius: 999px !important; }
+:is(button, a[class*="inline-flex"]).rounded-full:not(.lx-keep-round, [role="tab"], [role="switch"], [role="radio"], [role="checkbox"], [role="combobox"], [class*="rounded-[24%]"], [class*="overflow-hidden"], [class*="animate-spin"]) { border-radius: 999px; }
