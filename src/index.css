@@ -2026,8 +2026,9 @@ button:not(.lx-primary-button):not(.rounded-full):not([role="tab"]):not([role="r
 button:not(.lx-primary-button):not(.rounded-full):not([role="tab"]):not([role="radio"]):not([role="switch"]):not([role="combobox"]):not([role="checkbox"]):not([aria-pressed="true"]):not([aria-checked="true"]):not([aria-selected="true"]):not([aria-current]):not([aria-expanded="true"]):is([class*="border-[var(--line)]"], [class*="border-[var(--line-soft)]"]):hover:not(:disabled),
 [data-slot="button"][data-variant="outline"]:hover:not(:disabled), [data-slot="button"][data-variant="secondary"]:hover:not(:disabled) { background-color: var(--btn-fill-hover); border-color: var(--btn-line-hover); }
 /* F: the chosen one is a light chip */
-button[aria-pressed="true"]:not([role="switch"]):not([role="tab"]):not(.lx-primary-button),
-button[role="radio"][aria-checked="true"]:not([role="switch"]) { background: #ececf0; border-color: #ececf0; color: #0b0b0d; }
+button[aria-pressed="true"]:is([class^="h-"], [class*=" h-"], [class^="size-"], [class*=" size-"]):not([role="switch"]):not([role="tab"]):not(.lx-primary-button),
+button[role="radio"][aria-checked="true"]:is([class^="h-"], [class*=" h-"], [class^="size-"], [class*=" size-"]):not([role="switch"]) { background: #ececf0; border-color: #ececf0; color: #0b0b0d; }
+/* (only a real button: a card you pick, like a top-up package, keeps its own look) */
 
 /* The main button is not white (owner 2026-11-21): a soft light box with the light word; only the shape follows the pill. */
 .lx-primary-button,
