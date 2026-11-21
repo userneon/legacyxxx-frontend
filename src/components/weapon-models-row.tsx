@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Check, Lock } from "lucide-react"
+import { BadgeCheck, Check, Lock } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
@@ -71,9 +71,8 @@ export function WeaponModelsRow({ kind }: { kind: ModelKindId }) {
                 {owned && <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-[var(--brand-bright)]" />}
                 {worn && <span className="absolute right-1.5 top-1.5 z-[1] inline-flex items-center gap-1 rounded border border-[var(--line-strong)] bg-[var(--raised)] px-1 py-px text-[9px] font-semibold uppercase text-[var(--text-2)]"><Check className="size-3" aria-hidden="true" />Worn</span>}
                 <span className={cn("relative flex h-20 items-center justify-center overflow-hidden rounded-md", !owned && "opacity-50 grayscale")}><ModelArt item={item} kind={kind} mode="fill" /></span>
-                {!owned && <span className="absolute left-3.5 top-3.5 flex size-6 items-center justify-center rounded-full bg-black/65 text-[var(--text-2)]"><Lock className="size-3.5" aria-hidden="true" /></span>}
                 <span className="mt-1.5 line-clamp-2 text-[11px] font-semibold leading-4">{item.name}</span>
-                <span className={cn("mt-0.5 truncate text-[10px]", owned ? "text-[var(--brand-bright)]" : "text-[var(--text-dim)]")}>{owned ? "Model · yours" : "Model · locked"}</span>
+                <span className="mt-0.5 flex h-4 items-center text-[var(--text-dim)]">{owned ? <BadgeCheck className="size-3.5 text-[var(--brand-bright)]" aria-label="Yours" /> : <Lock className="size-3.5" aria-label="Locked" />}</span>
               </button>
             </li>
           )
