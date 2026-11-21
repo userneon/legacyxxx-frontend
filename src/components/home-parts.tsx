@@ -75,7 +75,7 @@ export function HeroSlider({ className, bare = false, children }: { className?: 
     return () => window.clearInterval(id)
   }, [many, paused, slides.length])
   return (
-    <section aria-roledescription="carousel" aria-label="LXC" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)} className={cn("relative isolate min-h-[180px] overflow-hidden", bare ? "rounded-[24px] [mask-image:linear-gradient(180deg,#000_78%,transparent)]" : "lx-glass rounded-xl", className)}>
+    <section aria-roledescription="carousel" aria-label="LXC" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)} className={cn("relative isolate min-h-[180px] overflow-hidden", bare ? "rounded-[24px]" : "lx-glass rounded-xl", className)}>
       {slides.map((slide, position) => (
         <img
           key={slide.key}
@@ -96,7 +96,7 @@ export function HeroSlider({ className, bare = false, children }: { className?: 
         </>
       )}
       {children && <div className="absolute inset-x-6 top-1/2 z-[2] -translate-y-1/2 max-sm:inset-x-4">{children}</div>}
-      <div className={cn("absolute inset-x-5 z-[2] flex items-end justify-between gap-3", bare ? "bottom-12" : "bottom-4")}>
+      <div className={cn("absolute inset-x-5 z-[2] flex items-end justify-between gap-3", "bottom-4")}>
         <div className="flex flex-col gap-2">
           {many && (
             <div className="flex gap-1.5" aria-hidden="true">
