@@ -2011,10 +2011,10 @@ select option, select optgroup { background-color: var(--glass-fill, #111111); c
 select option:checked { background-color: var(--raised, #232323); }
 
 /* ---- Buttons: one look (owner 2026-11-21, chose "A + F" from the six designs) ----
-   A: a pill with a thin outline and no fill; hover gives a soft fill and a lighter outline.
+   A: a rounded square (12px) with a thin outline and no fill; hover gives a soft fill and a lighter outline.
    F: the chosen one (pressed / selected radio) turns into a light chip with dark text.
    The white-box primary button keeps its soft light box (only the shape follows). Tabs, switches, checkboxes and dropdown triggers keep their own look. */
-:root { --btn-r: 999px; --btn-line: rgb(255 255 255 / 0.16); --btn-line-hover: rgb(255 255 255 / 0.28); --btn-fill-hover: rgb(255 255 255 / 0.08); }
+:root { --btn-r: 12px; --btn-r-small: 10px; --btn-line: rgb(255 255 255 / 0.16); --btn-line-hover: rgb(255 255 255 / 0.28); --btn-fill-hover: rgb(255 255 255 / 0.08); }
 button:is(.rounded-md, .rounded-lg, .rounded-xl):is([class^="h-"], [class*=" h-"]):not(.rounded-full),
 a:is(.rounded-md, .rounded-lg, .rounded-xl)[class*="inline-flex"][class*=" h-"]:not(.rounded-full),
 [data-slot="button"]:not(.rounded-full) { border-radius: var(--btn-r); }
@@ -2055,13 +2055,15 @@ button[role="radio"][aria-checked="true"]:is([class^="h-"], [class*=" h-"], [cla
 /* a card that is also a button (a stat tile, a podium place, a tile you tap) is a card: the card corner, never the pill of a real button */
 button:is([class*="bg-[var(--glass-fill)]"], [class*="bg-[var(--panel)]"], [class*="bg-[var(--card-surface)]"], .lx-glass):not([class^="h-"], [class*=" h-"], [class*=" size-"], [class^="size-"], .rounded-full) { border-radius: var(--ui-r); }
 
-/* ---- ONE BUTTON (owner 2026-11-21: "some transparent, some pill, some box, some plain; every colour is different") ----
+/* ---- ONE BUTTON (owner 2026-11-21: "some transparent, some pill, some box, some plain; every colour is different"; then "I do not like the new look: buttons and cards rounded squares", so the pill is a 12px rounded square) ----
    The older "all square" rule turned every .rounded-full into a 12px box while the newer one made other buttons pills, so both showed; that rule now leaves buttons alone. Every real button (one with its own height or size) is
    a pill, an icon-only one a circle; it is an outline (hairline, no fill) unless it is the main button (.lx-primary-button, the soft light box) or the chosen one (a light chip). No colour on
    a button but the neutral ones: the blue and green hover glows are off, a fill (raised, white tint) becomes the outline. Avatars, tabs, switches, checkboxes, dropdown triggers and buttons that float over a picture keep their own look. */
 :is(button, [data-slot="button"], a[class*="inline-flex"]):is([class^="h-"], [class*=" h-"], [class^="size-"], [class*=" size-"]):not([role="tab"], [role="switch"], [role="checkbox"], [role="radio"], [role="combobox"], .lx-keep-round, [class*="rounded-[24%]"], [class*="rounded-none"], [class*="grid-cols"], [class*="w-full"]) {
-  border-radius: 999px;
+  border-radius: var(--btn-r);
 }
+/* a small icon-only button is a rounded square too, with a slightly smaller corner */
+:is(button, [data-slot="button"], a[class*="inline-flex"]):is([class^="size-"], [class*=" size-"]):not([role="tab"], [role="switch"], [role="checkbox"], [role="radio"], [role="combobox"], .lx-keep-round, [class*="rounded-[24%]"], [class*="rounded-none"], [class*="size-1"], [class*="size-12"], [class*="size-14"]) { border-radius: var(--btn-r-small); }
 /* the lighter fills of a button become the outline; a button floating over a picture or fixed on the page keeps its backing */
 :is(button, a)[class*="bg-[var(--raised)]"]:is([class^="h-"], [class*=" h-"]):not(.lx-primary-button, [aria-pressed="true"], [aria-selected="true"], [aria-current], [aria-checked="true"], [role="tab"], [role="switch"], [role="checkbox"], [role="radio"], [role="combobox"], [class*="absolute"], [class*="fixed"], [class*="rounded-[24%]"]),
 :is(button, a)[class*="bg-white/["]:is([class^="h-"], [class*=" h-"]):not(.lx-primary-button, [aria-pressed="true"], [aria-selected="true"], [role="tab"], [role="switch"], [class*="absolute"], [class*="fixed"]) {
@@ -2071,4 +2073,4 @@ button:is([class*="bg-[var(--glass-fill)]"], [class*="bg-[var(--panel)]"], [clas
 /* no colour glow on a button: the neutral hover only */
 .lx-hover-blue::after, .lx-hover-green::after { display: none; }
 /* a chip or round button without its own height class is still a pill (the old "all square" rule must not box it) */
-:is(button, a[class*="inline-flex"]).rounded-full:not(.lx-keep-round, [role="tab"], [role="switch"], [role="radio"], [role="checkbox"], [role="combobox"], [class*="rounded-[24%]"], [class*="overflow-hidden"], [class*="animate-spin"]) { border-radius: 999px; }
+:is(button, a[class*="inline-flex"]).rounded-full:not(.lx-keep-round, [role="tab"], [role="switch"], [role="radio"], [role="checkbox"], [role="combobox"], [class*="rounded-[24%]"], [class*="overflow-hidden"], [class*="animate-spin"]) { border-radius: var(--btn-r); }
