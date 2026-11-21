@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft, ThumbsUp, Trash2 } from "lucide-react"
+import { BackButton } from "@/components/back-button"
+import { ThumbsUp, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
 import { skinchangerService, type SkinCollectionDetail, type SkinCollectionDetailItem } from "@/api"
@@ -249,10 +250,7 @@ export function SkinCollectionPage() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <PageBar>
-        <button type="button" onClick={back} className="-ml-1 inline-flex h-10 items-center gap-1.5 rounded-lg px-1 text-[13px] text-[var(--text-muted)] transition-colors hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60">
-          <ArrowLeft className="size-4" />
-          Collections
-        </button>
+        <BackButton onClick={back} label="Collections" className="my-1 h-10" />
         {collection && <div className="scrollbar-hidden -mr-6 max-w-full overflow-x-auto pr-6 [&_button]:whitespace-nowrap"><PageTabs value={side} onChange={changeSide} options={sideOptions} ariaLabel="Show items by side" /></div>}
       </PageBar>
 

@@ -1,5 +1,6 @@
 import { useState } from "react"
-import { AlertTriangle, ArrowLeft, Check, Copy, ImageOff, Mail, Phone, RotateCcw, ShieldAlert, Trash2 } from "lucide-react"
+import { AlertTriangle, Check, Copy, ImageOff, Mail, Phone, RotateCcw, ShieldAlert, Trash2 } from "lucide-react"
+import { BackButton } from "@/components/back-button"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
 
@@ -59,7 +60,7 @@ export function MarketListingPage() {
     try { setContact(await marketService.contact(id)) } catch (failure) { toast.error((failure as { message?: string }).message ?? "Could not load the contact") } finally { setContactBusy(false) }
   }
 
-  const back = <Link to="/market" className="inline-flex items-center gap-1.5 text-[13px] text-[var(--text-2)] hover:text-[var(--text)]"><ArrowLeft className="size-4" aria-hidden="true" />Market</Link>
+  const back = <BackButton to="/market" />
   if (query.loading && !listing) {
     return <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-4 px-6 py-6 max-md:px-4">{back}<div className="grid gap-6 md:grid-cols-[1.2fr_1fr]"><Skeleton className="aspect-[4/3] rounded-xl bg-[var(--card-surface)]" /><Skeleton className="h-64 rounded-xl bg-[var(--card-surface)]" /></div></div>
   }

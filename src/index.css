@@ -2009,3 +2009,21 @@ html[data-site-bg="calm"] [data-slot="sidebar-inset"]::before { content: ""; pos
 select { color-scheme: dark; }
 select option, select optgroup { background-color: var(--glass-fill, #111111); color: var(--text, #f2f2f2); }
 select option:checked { background-color: var(--raised, #232323); }
+
+/* ---- Buttons: one look (owner 2026-11-21, the picture of the iPhone's Back: "all the buttons like this") ----
+   The Back button's soft dark box with no outline, and one rounded corner for every button. Round pills (.rounded-full) and the white primary button keep their own look (it only gets the corner);
+   a button that shows a state (pressed, checked, selected, a tab, a switch) keeps its outline, because the outline is how it says "on". */
+:root { --btn-r: 14px; --btn-fill: color-mix(in oklab, var(--raised) 80%, white 6%); --btn-fill-hover: color-mix(in oklab, var(--raised) 60%, white 12%); }
+button:is(.rounded-md, .rounded-lg, .rounded-xl):not(.rounded-full),
+a:is(.rounded-md, .rounded-lg, .rounded-xl)[class*="inline-flex"][class*=" h-"]:not(.rounded-full),
+[data-slot="button"]:not(.rounded-full) { border-radius: var(--btn-r); }
+/* a small square icon button gets a smaller corner, so it is not a circle */
+button:is(.rounded-md, .rounded-lg):is([class*="size-6"], [class*="size-7"], [class*="size-8"]):not(.rounded-full),
+[data-slot="button"][data-size^="icon"]:not(.rounded-full) { border-radius: 10px; }
+/* the soft fill replaces the outline on an outlined button */
+button:not(.lx-primary-button):not(.rounded-full):not([role="tab"]):not([role="radio"]):not([role="switch"]):not([role="combobox"]):not([role="checkbox"]):not([aria-pressed="true"]):not([aria-checked="true"]):not([aria-selected="true"]):not([aria-current]):not([aria-expanded="true"]):is([class*="border-[var(--line)]"], [class*="border-[var(--line-soft)]"]),
+[data-slot="button"][data-variant="outline"], [data-slot="button"][data-variant="secondary"] {
+  border-color: transparent; background-color: var(--btn-fill);
+}
+button:not(.lx-primary-button):not(.rounded-full):not([role="tab"]):not([role="radio"]):not([role="switch"]):not([role="combobox"]):not([role="checkbox"]):not([aria-pressed="true"]):not([aria-checked="true"]):not([aria-selected="true"]):not([aria-current]):not([aria-expanded="true"]):is([class*="border-[var(--line)]"], [class*="border-[var(--line-soft)]"]):hover:not(:disabled),
+[data-slot="button"][data-variant="outline"]:hover:not(:disabled), [data-slot="button"][data-variant="secondary"]:hover:not(:disabled) { background-color: var(--btn-fill-hover); }
