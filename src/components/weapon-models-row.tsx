@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
 import { cosmeticsService, type Cosmetics, type FrameItem } from "@/api/cosmetics"
-import { ModelArt, type ModelKindId } from "@/components/model-art"
+import { AnimatedChip, ModelArt, isAnimatedModel, type ModelKindId } from "@/components/model-art"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
@@ -71,6 +71,7 @@ export function WeaponModelsRow({ kind }: { kind: ModelKindId }) {
                 {owned && <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-[var(--brand-bright)]" />}
                 {worn && <span className="absolute right-1.5 top-1.5 z-[1] inline-flex items-center gap-1 rounded border border-[var(--line-strong)] bg-[var(--raised)] px-1 py-px text-[9px] font-semibold uppercase text-[var(--text-2)]"><Check className="size-3" aria-hidden="true" />Worn</span>}
                 <span className={cn("relative flex h-20 items-center justify-center overflow-hidden rounded-md", !owned && "opacity-50 grayscale")}><ModelArt item={item} kind={kind} mode="fill" /></span>
+                {isAnimatedModel(item) && <AnimatedChip className="absolute left-3 top-3 z-[1]" />}
                 <span className="mt-1.5 line-clamp-2 text-[11px] font-semibold leading-4">{item.name}</span>
                 <span className="mt-0.5 flex h-4 items-center text-[var(--text-dim)]">{owned ? <BadgeCheck className="size-3.5 text-[var(--brand-bright)]" aria-label="Yours" /> : <Lock className="size-3.5" aria-label="Locked" />}</span>
               </button>

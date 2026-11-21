@@ -6,7 +6,7 @@ import { Check, ChevronDown, Heart, Lock, RotateCcw, Search, ShoppingCart, Slide
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
-import { ModelArt } from "@/components/model-art"
+import { AnimatedChip, ModelArt, isAnimatedModel } from "@/components/model-art"
 import { itemPicture } from "@/lib/item-picture"
 import { COSMETIC_DURATIONS, cosmeticsService, isModelKind, type CosmeticDuration, type CosmeticKind, type Cosmetics, type FrameItem } from "@/api/cosmetics"
 import { clansService, walletService, type MyClanState, type Wallet } from "@/api"
@@ -112,10 +112,11 @@ function accentOf(item: ShopItem) {
 }
 
 /** A soft light in the item's own colour behind the art, and a shadow on the floor under it. A background's picture fills the whole box instead. */
-function Spot({ height, children, fill }: { height: number; children: React.ReactNode; fill?: boolean }) {
-  if (fill) return <div className="relative overflow-hidden rounded-lg" style={{ height }}>{children}</div>
+function Spot({ height, children, fill, badge }: { height: number; children: React.ReactNode; fill?: boolean; badge?: React.ReactNode }) {
+  if (fill) return <div className="relative overflow-hidden rounded-lg" style={{ height }}>{children}{badge && <span className="absolute bottom-2 left-2 z-[2]">{badge}</span>}</div>
   return (
     <div className="relative flex items-center justify-center overflow-hidden" style={{ height }}>
+      {badge && <span className="absolute bottom-2 left-2 z-[2]">{badge}</span>}
       <span aria-hidden="true" className="absolute bottom-2.5 left-1/2 h-2.5 w-[56%] -translate-x-1/2" style={{ background: "radial-gradient(ellipse, rgba(0,0,0,.65), transparent 70%)" }} />
       <div className="relative z-[1] flex max-w-full items-center justify-center">{children}</div>
     </div>
@@ -316,7 +317,7 @@ export function ShopPage() {
                   {shown.kind === "frame" ? (
                     <FrameStage accent={accentOf(shown)} height={148}><ItemArt item={shown} avatar={user?.avatar} username={username} size={isArtFrame(shown.id) ? 74 : 88} /></FrameStage>
                   ) : (
-                    <Spot height={148} fill={shown.kind === "background" || hasModelPicture(shown)}><ItemArt item={shown} avatar={user?.avatar} username={username} size={72} /></Spot>
+                    <Spot height={148} fill={shown.kind === "background" || hasModelPicture(shown)} badge={isAnimatedModel(shown) && isModelKind(shown.kind) ? <AnimatedChip /> : undefined}><ItemArt item={shown} avatar={user?.avatar} username={username} size={72} /></Spot>
                   )}
                 </div>
                 <div className="flex flex-1 flex-col items-stretch gap-2 px-2 pb-2 pt-3">

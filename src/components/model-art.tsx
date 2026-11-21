@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Crosshair, Sword } from "lucide-react"
+import { Crosshair, Sparkles, Sword } from "lucide-react"
 
 import { itemPicture } from "@/lib/item-picture"
 import { cn } from "@/lib/utils"
@@ -41,6 +41,17 @@ export function ModelArt({ item, kind, mode }: { item: { id: string; image?: str
     <span className="flex flex-col items-center gap-1.5 text-[var(--text-2)]">
       <Icon className={big ? "size-14" : "size-9"} strokeWidth={1.5} aria-hidden="true" />
       <span className="text-[10px] uppercase tracking-[1.2px] text-[var(--text-dim)]">{kind === "model_knife" ? "Knife" : kind === "model_deagle" ? "Desert Eagle" : "AK-47"}</span>
+    </span>
+  )
+}
+
+/** The Apex models bring their own animations (inspect, draw, attack): they carry the "Animated" chip wherever their picture shows. */
+export const isAnimatedModel = (item: { id: string }) => item.id.startsWith("apex-")
+
+export function AnimatedChip({ className }: { className?: string }) {
+  return (
+    <span className={cn("inline-flex h-5 items-center gap-1 rounded-full border border-white/25 bg-black/55 px-2 text-[10px] font-semibold uppercase tracking-[0.4px] text-white backdrop-blur-sm", className)}>
+      <Sparkles className="size-3" aria-hidden="true" />Animated
     </span>
   )
 }
