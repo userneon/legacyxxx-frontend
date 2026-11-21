@@ -21,6 +21,10 @@ import { Spotlight } from "@/components/site-bg-options/spotlight"
 import { StarsBackground } from "@/components/site-bg-options/stars-background"
 import { Vortex } from "@/components/site-bg-options/vortex"
 import { WavyBackground } from "@/components/site-bg-options/wavy-background"
+import RbLightRays from "@/components/reactbits/bg/LightRays"
+import RbSideRays from "@/components/reactbits/bg/SideRays"
+import RbSoftAurora from "@/components/reactbits/bg/SoftAurora"
+import RbLightPillar from "@/components/reactbits/bg/LightPillar"
 
 class Safe extends Component<{ children: ReactNode }, { bad: string | null }> {
   state = { bad: null as string | null }
@@ -55,12 +59,25 @@ const OPTIONS: Array<{ name: string; from: string; node: ReactNode }> = [
   { name: "Light Rays", from: "Magic UI", node: <LightRays /> },
 ]
 
+const LIGHT: Array<{ name: string; from: string; node: ReactNode }> = [
+  { name: "Spotlight", from: "Aceternity UI", node: <Spotlight className="-top-40 left-0 md:-top-20 md:left-40" fill="white" /> },
+  { name: "Spotlight, two", from: "Aceternity UI", node: <><Spotlight className="-top-40 -left-10 md:-top-20 md:left-0" fill="#9db4ff" /><Spotlight className="-top-40 left-[40%] md:-top-20" fill="white" /></> },
+  { name: "Light Rays", from: "Magic UI", node: <LightRays count={9} color="rgba(190,210,255,0.32)" blur={42} speed={16} length="400px" /> },
+  { name: "Lamp", from: "Aceternity UI", node: <LampContainer className="!min-h-0 !h-full"><span /></LampContainer> },
+  { name: "Soft Aurora", from: "React Bits", node: <RbSoftAurora /> },
+  { name: "Light Rays (WebGL)", from: "React Bits", node: <RbLightRays raysOrigin="top-center" raysColor="#b8c8ff" /> },
+  { name: "Side Rays", from: "React Bits", node: <RbSideRays /> },
+  { name: "Light Pillar", from: "React Bits", node: <RbLightPillar /> },
+]
+
 export function SiteBgPreviewPage() {
+  const light = typeof window !== "undefined" && window.location.search.includes("light")
+  const list = light ? LIGHT : OPTIONS
   return (
     <div className="dark fixed inset-0 z-[9999] overflow-auto bg-black p-3 pt-[72px] text-white">
-      <div className="grid grid-cols-4 gap-2.5">
-        {OPTIONS.map((option, index) => (
-          <div key={option.name} className="relative h-[270px] overflow-hidden rounded-2xl border border-white/10 bg-[#060606]">
+      <div className={light ? "grid grid-cols-2 gap-3" : "grid grid-cols-4 gap-2.5"}>
+        {list.map((option, index) => (
+          <div key={option.name} className={`relative overflow-hidden rounded-2xl ${light ? "h-[380px]" : "h-[270px]"} border border-white/10 bg-[#060606]`}>
             <span className="absolute left-2 top-2 z-30 rounded bg-black/70 px-1.5 py-0.5 font-mono text-[11px] text-green-300">{index + 1} · {option.name} <span className="text-white/50">· {option.from}</span></span>
             <Safe>{option.node}</Safe>
             <Card />
