@@ -2027,3 +2027,9 @@ button:not(.lx-primary-button):not(.rounded-full):not([role="tab"]):not([role="r
 }
 button:not(.lx-primary-button):not(.rounded-full):not([role="tab"]):not([role="radio"]):not([role="switch"]):not([role="combobox"]):not([role="checkbox"]):not([aria-pressed="true"]):not([aria-checked="true"]):not([aria-selected="true"]):not([aria-current]):not([aria-expanded="true"]):is([class*="border-[var(--line)]"], [class*="border-[var(--line-soft)]"]):hover:not(:disabled),
 [data-slot="button"][data-variant="outline"]:hover:not(:disabled), [data-slot="button"][data-variant="secondary"]:hover:not(:disabled) { background-color: var(--btn-fill-hover); }
+
+/* The main button is not white any more (owner 2026-11-21): the same soft dark box as every button, one step lighter, with the light word. */
+.lx-primary-button,
+.lx-primary-button:hover:not(:disabled) { color: var(--text); text-shadow: none; }
+.lx-primary-button { background: color-mix(in oklab, var(--raised) 52%, white 20%); box-shadow: none; border-color: transparent; font-weight: 600; }
+.lx-primary-button:hover:not(:disabled) { background: color-mix(in oklab, var(--raised) 40%, white 28%); box-shadow: none; }
