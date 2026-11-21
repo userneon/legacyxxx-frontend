@@ -2,7 +2,7 @@
  * In-game effects in the Loadout (owner request 2026-11-14): smoke colour, grenade trail, grenade light and flash sit beside the skins and are
  * swapped the same way (a card, then a list to pick from). They are cosmetics, not skins, so a shared loadout never carries them.
  * A design the player colours themselves opens an editor: a vivid colour picker (two for the dual smoke) and, for the smoke, one of our own pictures
- * (no uploads). Buy once, change the colour as often as you like (the API may still name a price).
+ * (no uploads). The colour is free to change; changing the effect (the smoke's picture) costs the price the API names (500 FOL$).
  */
 import { useEffect, useState, type ReactNode } from "react"
 import { toast } from "sonner"
@@ -55,7 +55,7 @@ export function Editor({ kind, item, price, balance, onBack, onSaved }: { kind: 
   const [busy, setBusy] = useState(false)
   useEffect(() => { setColor(item.picked && item.color ? item.color : "#ff3b6b"); setColor2(item.picked && item.color2 ? item.color2 : "#3bb8ff"); setMotif(item.motif ?? "") }, [item.id, item.color, item.color2, item.motif])
   const changed = !item.picked || color !== item.color || (item.twoColours && color2 !== item.color2) || motif !== (item.motif ?? "")
-  const costs = price > 0 && Boolean(item.picked) && changed
+  const costs = price > 0 && Boolean(item.picked) && kind === "smoke_color" && motif !== (item.motif ?? "")
   const short = costs && balance != null && balance < price
   const save = async () => {
     setBusy(true)
@@ -65,7 +65,7 @@ export function Editor({ kind, item, price, balance, onBack, onSaved }: { kind: 
       toast.success(result.charged > 0 ? `Saved · ${result.charged} FOL$` : "Saved")
       onSaved()
     } catch {
-      toast.error(costs ? `Could not save it. Changing the colour costs ${price} FOL$.` : "Could not save it")
+      toast.error(costs ? `Could not save it. Changing the picture costs ${price} FOL$.` : "Could not save it")
     } finally {
       setBusy(false)
     }
@@ -93,7 +93,7 @@ export function Editor({ kind, item, price, balance, onBack, onSaved }: { kind: 
       <button type="button" disabled={busy || (!changed && Boolean(item.picked)) || short} onClick={() => void save()} className="lx-primary-button inline-flex h-10 items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-50">
         {short ? `Need ${price - (balance ?? 0)} more FOL$` : costs ? `Save and wear · ${price} FOL$` : item.picked ? (changed ? "Save and wear" : "Wear") : "Save and wear"}
       </button>
-      <p className="text-center text-[11px] text-[var(--text-dim)]">{price > 0 ? `Changing it costs ${price} FOL$, as often as you like.` : "Buy it once, then change the colour as often as you like, free."} Colours are kept vivid.</p>
+      <p className="text-center text-[11px] text-[var(--text-dim)]">Changing the colour is free, as often as you like.{price > 0 && kind === "smoke_color" ? ` Changing the picture costs ${price} FOL$.` : ""} Colours are kept vivid.</p>
     </div>
   )
 }
