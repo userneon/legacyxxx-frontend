@@ -103,7 +103,7 @@ function ItemArt({ item, avatar, username, size }: { item: ShopItem; avatar?: st
 }
 
 /** The models that have an in-game picture (`public/shop-models/<id>.webp`, taken in the game, owner request 2026-11-09). Any other model shows the weapon it replaces as an icon. */
-const MODEL_PICTURES = new Set(["katana-wupie", "katana-miku", "katana-blood", "katana-dengliz", "deagle-mari", "ak-10005"])
+const MODEL_PICTURES = new Set(["katana-wupie", "katana-miku", "katana-blood", "katana-dengliz", "deagle-mari", "ak-10005", "apex-karambit", "apex-balisong"])
 
 /** The preview's picture: a change of model slides the new picture in and the old one out, so the two are never swapped with a jump. */
 function SlidingPicture({ id }: { id: string }) {
