@@ -41,6 +41,8 @@ import { DetailSheetContent } from "@/components/detail-sheet"
 import type { SkinCraft } from "@/api/skinchanger"
 import { SkinStudio } from "@/components/skin-studio"
 import { WeaponModelsRow, modelKindFor } from "@/components/weapon-models-row"
+import { AnimatedChip, ModelArt, isAnimatedModel, type ModelKindId } from "@/components/model-art"
+import { cosmeticsService, type FrameItem } from "@/api/cosmetics"
 import { Switch } from "@/components/switch"
 
 import { Checkbox } from "@/components/ui/checkbox"
@@ -253,6 +255,9 @@ export function SkinchangerPage() {
   // The trash button asks first ("Remove" / "Keep it"); nothing is deleted until it is confirmed.
   const [removeTarget, setRemoveTarget] = useState<{ model: SkinchangerCatalogItem; entry: SkinchangerLoadoutEntry } | null>(null)
   const [saving, setSaving] = useState(false)
+  // A custom weapon model picked in the models row (owner 2026-11-21: like a skin, it shows in the preview and Save puts it on; `worn` = it is the one worn now, Save then takes it off).
+  const [pickedModel, setPickedModel] = useState<{ kind: ModelKindId; item: FrameItem; worn: boolean } | null>(null)
+  const [modelRefresh, setModelRefresh] = useState(0)
   // Advanced studio: the gun being built or edited. Its editor (components/skin-studio.tsx) keeps crafts; the loadout is not touched.
   const [studioWeapon, setStudioWeapon] = useState<SkinchangerCatalogItem | null>(null)
   const [studioCraft, setStudioCraft] = useState<SkinCraft | null>(null)
@@ -540,7 +545,24 @@ export function SkinchangerPage() {
     }
   }
 
+  const saveModel = async () => {
+    if (!pickedModel) return
+    setSaving(true)
+    try {
+      await cosmeticsService.equip(pickedModel.kind, pickedModel.worn ? null : pickedModel.item.id)
+      toast.success(pickedModel.worn ? `${pickedModel.item.name} is off` : `${pickedModel.item.name} is on`)
+      setModelRefresh((count) => count + 1)
+      setPickedModel(null)
+      window.dispatchEvent(new Event("legacyx:appearance-changed"))
+    } catch {
+      toast.error("Could not change it")
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const selectSkin = (item: SkinchangerCatalogItem) => {
+    setPickedModel(null)
     setSelected(item)
     setAccessoryPicker(null)
     setEditingStickerSlot(null)
@@ -1451,7 +1473,7 @@ export function SkinchangerPage() {
             {/* Catalogue */}
             <div className={cn("flex min-h-0 flex-col", selected && pickerHasOptions && !accessoryOpen && "hidden lg:flex")}>
               {accessoryOpen ? renderAccessoryBrowser() : (<>
-              {(() => { const modelKind = modelKindFor(category, activeWeapon?.weapon_class); return modelKind ? <WeaponModelsRow kind={modelKind} /> : null })()}
+              {(() => { const modelKind = modelKindFor(category, activeWeapon?.weapon_class); return modelKind ? <WeaponModelsRow kind={modelKind} pickedId={pickedModel?.kind === modelKind ? pickedModel.item.id : null} onPick={(item, worn) => setPickedModel(item ? { kind: modelKind, item, worn } : null)} refreshKey={modelRefresh} /> : null })()}
               {slotTeam && (category === "knife" || category === "glove") && (
                 <TooltipProvider delayDuration={80} skipDelayDuration={300}>
                 <ScrollRow role="tablist" aria-label={category === "knife" ? "Knife type" : "Glove type"} className="gap-1.5 border-b border-border px-3 py-2.5">
@@ -1594,13 +1616,13 @@ export function SkinchangerPage() {
                   </div>
                 )
               })()}
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">{selected ? "Your choice" : "Nothing picked yet"}</p>
-              <p className="mb-3 mt-1 truncate text-sm font-semibold">{previewChoice?.display_name || `Pick ${activeWeapon ? `a ${activeWeapon.display_name} skin` : "one from the list"}`}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">{selected || pickedModel ? "Your choice" : "Nothing picked yet"}</p>
+              <p className="mb-3 mt-1 truncate text-sm font-semibold">{pickedModel ? pickedModel.item.name : previewChoice?.display_name || `Pick ${activeWeapon ? `a ${activeWeapon.display_name} skin` : "one from the list"}`}</p>
             <div className="relative flex h-40 items-center justify-center rounded-lg border border-border bg-background">
-              {previewChoice && catalogImageUrl(previewChoice) ? <OptimizedImage src={catalogImageUrl(previewChoice) ?? ""} width={320} height={160} priority alt={`${previewChoice.display_name} selected collectible`} data-catalog-item-id={previewChoice.id} className="h-full w-full object-contain p-3" /> : <span className="flex flex-col items-center gap-2 px-6 text-center"><ImageOff className="size-7 text-muted-foreground/50" /><span className="text-[11px] leading-4 text-muted-foreground">Pick one from the list.</span></span>}
+              {pickedModel ? <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-lg"><div className="w-full max-w-[17.5rem]"><ModelArt item={pickedModel.item} kind={pickedModel.kind} mode="preview" /></div>{isAnimatedModel(pickedModel.item) && <AnimatedChip className="absolute left-2 top-2" />}</div> : previewChoice && catalogImageUrl(previewChoice) ? <OptimizedImage src={catalogImageUrl(previewChoice) ?? ""} width={320} height={160} priority alt={`${previewChoice.display_name} selected collectible`} data-catalog-item-id={previewChoice.id} className="h-full w-full object-contain p-3" /> : <span className="flex flex-col items-center gap-2 px-6 text-center"><ImageOff className="size-7 text-muted-foreground/50" /><span className="text-[11px] leading-4 text-muted-foreground">Pick one from the list.</span></span>}
               {canCustomizeAccessories && (previewStickerItems.length > 0 || previewCharmItem) && <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-2"><div className="flex -space-x-1.5">{previewStickerItems.slice(0, 5).map((item) => catalogImageUrl(item) && <OptimizedImage key={item.id} src={catalogImageUrl(item) ?? ""} width={28} height={28} alt={`${item.display_name} selected sticker`} data-catalog-item-id={item.id} className="size-7 rounded-full border border-background bg-card object-contain p-0.5" />)}</div>{previewCharmItem && catalogImageUrl(previewCharmItem) && <OptimizedImage src={catalogImageUrl(previewCharmItem) ?? ""} width={32} height={32} alt={`${previewCharmItem.display_name} selected charm`} data-catalog-item-id={previewCharmItem.id} className="size-8 rounded-md border border-background bg-card object-contain p-0.5" />}</div>}
             </div>
-            {selected && activeWeapon && (
+            {selected && activeWeapon && !pickedModel && (
               <div className="-mx-1.5 mt-3 grid grid-rows-[1fr] overflow-hidden px-1.5">
               {/* The side padding keeps the focus ring and the hover outline of the fields from being clipped at the left and right edges. */}
               <div className="-mx-1.5 min-h-0 overflow-hidden px-1.5">
@@ -1683,7 +1705,7 @@ export function SkinchangerPage() {
             )}
               {/* Save stays in reach while the options scroll. */}
               <div className="sticky bottom-0 -mx-4 mt-4 border-t border-border bg-card/95 px-4 py-3 backdrop-blur">
-                {canUseForBothTeams && (
+                {canUseForBothTeams && !pickedModel && (
                   <label className="mb-3 flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
                     <Checkbox checked={alsoOtherTeam} onCheckedChange={(checked) => setAlsoOtherTeam(checked === true)} disabled={!selected} />
                     <span>Also use for {otherTeamName}</span>
@@ -1691,10 +1713,10 @@ export function SkinchangerPage() {
                   </label>
                 )}
                 <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1" disabled={saving} onClick={closePicker}>Cancel</Button>
-                  <Button className="lx-primary-button flex-1 disabled:opacity-40 disabled:saturate-50" disabled={!selected || saving || selectedAlreadyEquipped} onClick={saveAndClose}>
+                  <Button variant="outline" className="flex-1" disabled={saving} onClick={pickedModel ? () => setPickedModel(null) : closePicker}>Cancel</Button>
+                  <Button className="lx-primary-button flex-1 disabled:opacity-40 disabled:saturate-50" disabled={pickedModel ? saving : !selected || saving || selectedAlreadyEquipped} onClick={pickedModel ? () => void saveModel() : saveAndClose}>
                     {saving ? <Loader2 className="size-4 animate-spin" /> : <BadgeCheck className="size-4" />}
-                    {selectedAlreadyEquipped ? "Saved" : "Save"}
+                    {pickedModel ? (pickedModel.worn ? "Take off" : "Save") : selectedAlreadyEquipped ? "Saved" : "Save"}
                   </Button>
                 </div>
               </div>
