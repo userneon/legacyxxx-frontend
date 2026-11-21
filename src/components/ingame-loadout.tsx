@@ -2,7 +2,7 @@
  * In-game effects in the Loadout (owner request 2026-11-14): smoke colour, grenade trail, grenade light and flash sit beside the skins and are
  * swapped the same way (a card, then a list to pick from). They are cosmetics, not skins, so a shared loadout never carries them.
  * A design the player colours themselves opens an editor: a vivid colour picker (two for the dual smoke) and, for the smoke, one of our own pictures
- * (no uploads). The colour is free to change; changing the effect (the smoke's picture) costs the price the API names (500 FOL$).
+ * (no uploads). The first pick is free; after it a new colour and a new effect (the smoke's picture) cost the price the API names (500 FOL$) each.
  */
 import { useEffect, useState, type ReactNode } from "react"
 import { toast } from "sonner"
@@ -55,8 +55,12 @@ export function Editor({ kind, item, price, balance, onBack, onSaved }: { kind: 
   const [busy, setBusy] = useState(false)
   useEffect(() => { setColor(item.picked && item.color ? item.color : "#ff3b6b"); setColor2(item.picked && item.color2 ? item.color2 : "#3bb8ff"); setMotif(item.motif ?? "") }, [item.id, item.color, item.color2, item.motif])
   const changed = !item.picked || color !== item.color || (item.twoColours && color2 !== item.color2) || motif !== (item.motif ?? "")
-  const costs = price > 0 && Boolean(item.picked) && kind === "smoke_color" && motif !== (item.motif ?? "")
-  const short = costs && balance != null && balance < price
+  const colourChanged = color !== item.color || Boolean(item.twoColours && color2 !== item.color2)
+  const effectChanged = kind === "smoke_color" && motif !== (item.motif ?? "")
+  // Each paid change is its own price: the colour 500, the effect 500, both 1000 (owner 2026-11-21). The first pick is free.
+  const total = item.picked ? price * (Number(colourChanged) + Number(effectChanged)) : 0
+  const costs = total > 0
+  const short = costs && balance != null && balance < total
   const save = async () => {
     setBusy(true)
     try {
@@ -65,7 +69,7 @@ export function Editor({ kind, item, price, balance, onBack, onSaved }: { kind: 
       toast.success(result.charged > 0 ? `Saved · ${result.charged} FOL$` : "Saved")
       onSaved()
     } catch {
-      toast.error(costs ? `Could not save it. Changing the picture costs ${price} FOL$.` : "Could not save it")
+      toast.error(costs ? `Could not save it. This change costs ${total} FOL$.` : "Could not save it")
     } finally {
       setBusy(false)
     }
@@ -91,9 +95,9 @@ export function Editor({ kind, item, price, balance, onBack, onSaved }: { kind: 
         </div>
       )}
       <button type="button" disabled={busy || (!changed && Boolean(item.picked)) || short} onClick={() => void save()} className="lx-primary-button inline-flex h-10 items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-50">
-        {short ? `Need ${price - (balance ?? 0)} more FOL$` : costs ? `Save and wear · ${price} FOL$` : item.picked ? (changed ? "Save and wear" : "Wear") : "Save and wear"}
+        {short ? `Need ${total - (balance ?? 0)} more FOL$` : costs ? `Save and wear · ${total} FOL$` : item.picked ? (changed ? "Save and wear" : "Wear") : "Save and wear"}
       </button>
-      <p className="text-center text-[11px] text-[var(--text-dim)]">Changing the colour is free, as often as you like.{price > 0 && kind === "smoke_color" ? ` Changing the picture costs ${price} FOL$.` : ""} Colours are kept vivid.</p>
+      <p className="text-center text-[11px] text-[var(--text-dim)]">The first pick is free. After that a new colour costs {price} FOL$ {kind === "smoke_color" ? `and a new picture ${price} FOL$, each on its own` : "each time"}. Colours are kept vivid.</p>
     </div>
   )
 }
@@ -145,7 +149,7 @@ export function InGameLoadout({ renderSection }: { renderSection: (title: string
           <DialogHeader><DialogTitle>{spec?.label}</DialogTitle></DialogHeader>
           {open && editing && items.find((item) => item.id === editing) && (
             <div className="max-h-[70vh] overflow-y-auto">
-              <Editor kind={open} item={items.find((item) => item.id === editing)!} price={data.customChangePrice ?? 0} balance={wallet?.balance ?? null} onBack={() => setEditing(null)} onSaved={() => { setEditing(null); void refetch() }} />
+              <Editor kind={open} item={items.find((item) => item.id === editing)!} price={data.customChangePrice ?? 500} balance={wallet?.balance ?? null} onBack={() => setEditing(null)} onSaved={() => { setEditing(null); void refetch() }} />
             </div>
           )}
           {open && !editing && (
