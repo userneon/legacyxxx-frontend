@@ -112,7 +112,7 @@ export function InGameLoadout({ renderSection }: { renderSection: (title: string
   const { data: wallet } = useApiQuery<{ balance: number }>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   // Until the player's cosmetics arrive the section is already there with quiet placeholders (owner 2026-11-18: the In-game part "popped in later, on its own"), so it comes with the rest.
   if (!data) {
-    return renderSection("IN-GAME", KINDS.map(({ kind }) => <div key={kind} aria-hidden="true" className="h-24 animate-pulse rounded-lg border border-[var(--glass-line)] bg-[var(--glass-fill)]" />))
+    return renderSection("IN-GAME", KINDS.map(({ kind }) => <div key={kind} data-slot-card={`ingame:${kind}`} aria-hidden="true" className="h-24 animate-pulse rounded-lg border border-[var(--glass-line)] bg-[var(--glass-fill)]" />))
   }
 
   const spec = KINDS.find((entry) => entry.kind === open)
@@ -132,7 +132,7 @@ export function InGameLoadout({ renderSection }: { renderSection: (title: string
   const cards = KINDS.map(({ kind, label, list, worn }) => {
     const current = ((data[list] as FrameItem[] | undefined) ?? []).find((item) => item.id === data[worn])
     return (
-      <div key={kind} className="lx-layer group relative h-24 overflow-hidden rounded-lg border border-[var(--glass-line)] bg-[var(--glass-fill)] transition-[border-color,translate] duration-300 hover:-translate-y-0.5 hover:border-[var(--line-strong)]">
+      <div key={kind} data-slot-card={`ingame:${kind}`} className="animate-in fade-in-0 [animation-duration:300ms] motion-reduce:animate-none lx-layer group relative h-24 overflow-hidden rounded-lg border border-[var(--glass-line)] bg-[var(--glass-fill)] transition-[border-color,translate] duration-300 hover:-translate-y-0.5 hover:border-[var(--line-strong)]">
         <button type="button" onClick={() => setOpen(kind)} aria-label={`Change ${label.toLowerCase()}`} className="absolute inset-0 z-[1] rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-solid)]/50" />
         <span className="pointer-events-none absolute inset-0 flex items-center justify-center px-6 pb-6 pt-3">
           <Art kind={kind} item={current} className={cn("w-[84px]", !current && "opacity-30 saturate-0")} />
