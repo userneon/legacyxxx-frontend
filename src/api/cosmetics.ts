@@ -49,6 +49,8 @@ export interface FrameItem {
   featured?: boolean
   /** How many players own it; null for free items. */
   owners?: number | null
+  /** The item's picture (a weapon model's, for one): an address of the API, put there by staff. Absent when it has none. */
+  image?: string | null
 }
 
 export type CosmeticKind = "frame" | "background" | "profile_customize" | "name_color" | "name_glow" | "banner" | "title" | "smoke_color" | "grenade_trail" | "grenade_light" | "flash_effect" | "model_knife" | "model_deagle" | "model_ak47" | "discord_role"
