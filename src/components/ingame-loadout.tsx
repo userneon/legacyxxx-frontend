@@ -2,7 +2,7 @@
  * In-game effects in the Loadout (owner request 2026-11-14): smoke colour, grenade trail, grenade light and flash sit beside the skins and are
  * swapped the same way (a card, then a list to pick from). They are cosmetics, not skins, so a shared loadout never carries them.
  * A design the player colours themselves opens an editor: a vivid colour picker (two for the dual smoke) and, for the smoke, one of our own pictures
- * (no uploads). The first pick is free; every change after it costs the price the API names (100 FOL$).
+ * (no uploads). Buy once, change the colour as often as you like (the API may still name a price).
  */
 import { useEffect, useState, type ReactNode } from "react"
 import { toast } from "sonner"
@@ -12,18 +12,22 @@ import { cosmeticsService, SMOKE_MOTIFS, type CosmeticKind, type Cosmetics, type
 import { ColorPicker } from "@/components/color-picker"
 import { FlashEffect } from "@/components/flash-effect"
 import { GrenadeLight, GrenadeTrail } from "@/components/grenade-trail"
+import { ModelArt } from "@/components/model-art"
 import { SmokePuff } from "@/components/smoke-puff"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
 
-type NadeKind = Extract<CosmeticKind, "smoke_color" | "grenade_trail" | "grenade_light" | "flash_effect">
+type NadeKind = Extract<CosmeticKind, "smoke_color" | "grenade_trail" | "grenade_light" | "flash_effect" | "model_knife" | "model_deagle" | "model_ak47">
 const KINDS: Array<{ kind: NadeKind; label: string; list: keyof Cosmetics; worn: keyof Cosmetics }> = [
   { kind: "smoke_color", label: "SMOKE", list: "smokeColors", worn: "equippedSmokeColor" },
   { kind: "grenade_trail", label: "TRAIL", list: "grenadeTrails", worn: "equippedGrenadeTrail" },
   { kind: "grenade_light", label: "GRENADE LIGHT", list: "grenadeLights", worn: "equippedGrenadeLight" },
   { kind: "flash_effect", label: "FLASH", list: "flashEffects", worn: "equippedFlashEffect" },
+  { kind: "model_knife", label: "KNIFE MODEL", list: "modelKnives", worn: "equippedModelKnife" },
+  { kind: "model_deagle", label: "DEAGLE MODEL", list: "modelDeagles", worn: "equippedModelDeagle" },
+  { kind: "model_ak47", label: "AK-47 MODEL", list: "modelAk47s", worn: "equippedModelAk47" },
 ]
 
 function Art({ kind, item, className }: { kind: NadeKind; item?: FrameItem | null; className?: string }) {
@@ -31,6 +35,7 @@ function Art({ kind, item, className }: { kind: NadeKind; item?: FrameItem | nul
   if (kind === "smoke_color") return <SmokePuff color={color} color2={item?.color2} className={className} />
   if (kind === "grenade_trail") return <GrenadeTrail color={color} shape={item?.fx} className={className} />
   if (kind === "flash_effect") return <FlashEffect color={color} shape={item?.fx} className={className} />
+  if (kind === "model_knife" || kind === "model_deagle" || kind === "model_ak47") return <span className={cn("flex aspect-video items-center justify-center overflow-hidden rounded-md", className)}><ModelArt item={item ?? { id: "" }} kind={kind} mode="fill" /></span>
   return <GrenadeLight color={color} className={className} />
 }
 
@@ -48,14 +53,14 @@ function Motif({ name, className }: { name: string; className?: string }) {
   return <svg aria-hidden="true" viewBox="0 0 24 24" className={cn("size-5", className)} fill="currentColor"><path d={paths[name] ?? paths.dot} /></svg>
 }
 
-function Editor({ kind, item, price, balance, onBack, onSaved }: { kind: NadeKind; item: FrameItem; price: number; balance: number | null; onBack: () => void; onSaved: () => void }) {
+export function Editor({ kind, item, price, balance, onBack, onSaved }: { kind: NadeKind; item: FrameItem; price: number; balance: number | null; onBack?: () => void; onSaved: () => void }) {
   const [color, setColor] = useState(item.picked && item.color ? item.color : "#ff3b6b")
   const [color2, setColor2] = useState(item.picked && item.color2 ? item.color2 : "#3bb8ff")
   const [motif, setMotif] = useState<string>(item.motif ?? "")
   const [busy, setBusy] = useState(false)
   useEffect(() => { setColor(item.picked && item.color ? item.color : "#ff3b6b"); setColor2(item.picked && item.color2 ? item.color2 : "#3bb8ff"); setMotif(item.motif ?? "") }, [item.id, item.color, item.color2, item.motif])
   const changed = !item.picked || color !== item.color || (item.twoColours && color2 !== item.color2) || motif !== (item.motif ?? "")
-  const costs = Boolean(item.picked) && changed
+  const costs = price > 0 && Boolean(item.picked) && changed
   const short = costs && balance != null && balance < price
   const save = async () => {
     setBusy(true)
@@ -72,7 +77,7 @@ function Editor({ kind, item, price, balance, onBack, onSaved }: { kind: NadeKin
   }
   return (
     <div className="flex flex-col gap-4">
-      <button type="button" onClick={onBack} className="self-start text-[12px] text-[var(--text-dim)] hover:text-[var(--text)]">← Back</button>
+      {onBack && <button type="button" onClick={onBack} className="self-start text-[12px] text-[var(--text-dim)] hover:text-[var(--text)]">← Back</button>}
       <div className="flex items-center justify-center rounded-lg bg-[var(--glass-fill)] py-4"><Art kind={kind} item={{ ...item, color, color2: item.twoColours ? color2 : item.color2 }} className="w-[150px]" /></div>
       <div className="flex flex-wrap justify-center gap-5">
         <ColorPicker vivid value={color} onChange={setColor} />
@@ -91,9 +96,9 @@ function Editor({ kind, item, price, balance, onBack, onSaved }: { kind: NadeKin
         </div>
       )}
       <button type="button" disabled={busy || (!changed && Boolean(item.picked)) || short} onClick={() => void save()} className="lx-primary-button inline-flex h-10 items-center justify-center rounded-lg text-[13px] font-semibold disabled:opacity-50">
-        {short ? `Need ${price - (balance ?? 0)} more FOL$` : costs ? `Save and wear · ${price} FOL$` : item.picked ? "Wear" : "Save and wear · free"}
+        {short ? `Need ${price - (balance ?? 0)} more FOL$` : costs ? `Save and wear · ${price} FOL$` : item.picked ? (changed ? "Save and wear" : "Wear") : "Save and wear"}
       </button>
-      <p className="text-center text-[11px] text-[var(--text-dim)]">The first colour is free. Changing it later costs {price} FOL$, as often as you like. Colours are kept vivid.</p>
+      <p className="text-center text-[11px] text-[var(--text-dim)]">{price > 0 ? `Changing it costs ${price} FOL$, as often as you like.` : "Buy it once, then change the colour as often as you like, free."} Colours are kept vivid.</p>
     </div>
   )
 }
@@ -145,7 +150,7 @@ export function InGameLoadout({ renderSection }: { renderSection: (title: string
           <DialogHeader><DialogTitle>{spec?.label}</DialogTitle></DialogHeader>
           {open && editing && items.find((item) => item.id === editing) && (
             <div className="max-h-[70vh] overflow-y-auto">
-              <Editor kind={open} item={items.find((item) => item.id === editing)!} price={data.customChangePrice ?? 100} balance={wallet?.balance ?? null} onBack={() => setEditing(null)} onSaved={() => { setEditing(null); void refetch() }} />
+              <Editor kind={open} item={items.find((item) => item.id === editing)!} price={data.customChangePrice ?? 0} balance={wallet?.balance ?? null} onBack={() => setEditing(null)} onSaved={() => { setEditing(null); void refetch() }} />
             </div>
           )}
           {open && !editing && (

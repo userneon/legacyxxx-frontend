@@ -174,20 +174,15 @@ function Notifications() {
   )
 }
 
-/** What can be worn, in two groups: what shows on the site, and what shows in game. The chips wrap, so every kind stays in reach. */
+/** What can be worn on the profile (owner 2026-11-21: Appearance is only the profile; smoke, trail, grenade light, flash and the weapon models are changed in the Skinchanger, In-game). The chips wrap, so every kind stays in reach. */
 const KINDS: Array<{ value: CosmeticKind; label: string; noun: string; group: "profile" | "game" }> = [
   { value: "frame", label: "Frame", noun: "frame", group: "profile" },
   { value: "background", label: "Background", noun: "background", group: "profile" },
   { value: "profile_customize", label: "Name", noun: "profile customize", group: "profile" },
   { value: "banner", label: "Banner", noun: "banner", group: "profile" },
   { value: "title", label: "Title", noun: "title", group: "profile" },
-  { value: "smoke_color", label: "Smoke", noun: "smoke colour", group: "game" },
-  { value: "grenade_trail", label: "Trail", noun: "trail", group: "game" },
-  { value: "model_knife", label: "Knife", noun: "knife model", group: "game" },
-  { value: "model_deagle", label: "Deagle", noun: "Deagle model", group: "game" },
-  { value: "model_ak47", label: "AK-47", noun: "AK-47 model", group: "game" },
 ]
-const KIND_GROUPS = [{ id: "profile", label: "Profile" }, { id: "game", label: "In game" }] as const
+const KIND_GROUPS = [{ id: "profile", label: "Profile" }] as const
 
 function Appearance() {
   const { user } = useAuth()
