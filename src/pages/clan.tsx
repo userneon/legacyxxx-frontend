@@ -15,6 +15,7 @@ import { ArrowLeft, ArrowRight, Check, Coins, Flag, Globe, Lock, Pencil, Plus, S
 import { toast } from "sonner"
 
 
+import { Switch } from "@/components/switch"
 import { cn } from "@/lib/utils"
 import { clansService, type ClanLook } from "@/api"
 import { ClanBackground } from "@/components/clan-background"
@@ -831,9 +832,7 @@ function RecruitmentSettings({ clan, onChanged }: { clan: ClanDetail; onChanged:
     <div className="flex flex-col gap-2.5">
       <div className="flex items-center justify-between gap-3">
         <Label>Recruitment</Label>
-        <button type="button" role="switch" aria-checked={enabled} onClick={() => setEnabled((current) => !current)} className={cn("relative h-6 w-11 rounded-full border transition-colors", enabled ? "border-[var(--brand)] bg-[var(--brand)]/40" : "border-[var(--line)] bg-[var(--raised)]")}>
-          <span className={cn("absolute top-0.5 size-4 rounded-full bg-[var(--text)] transition-all", enabled ? "left-[22px]" : "left-0.5")} />
-        </button>
+        <Switch checked={enabled} onChange={setEnabled} label="Recruitment" />
       </div>
       {enabled && (
         <>

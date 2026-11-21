@@ -2015,7 +2015,7 @@ select option:checked { background-color: var(--raised, #232323); }
    F: the chosen one (pressed / selected radio) turns into a light chip with dark text.
    The white-box primary button keeps its soft light box (only the shape follows). Tabs, switches, checkboxes and dropdown triggers keep their own look. */
 :root { --btn-r: 999px; --btn-line: rgb(255 255 255 / 0.16); --btn-line-hover: rgb(255 255 255 / 0.28); --btn-fill-hover: rgb(255 255 255 / 0.08); }
-button:is(.rounded-md, .rounded-lg, .rounded-xl):not(.rounded-full),
+button:is(.rounded-md, .rounded-lg, .rounded-xl):is([class^="h-"], [class*=" h-"]):not(.rounded-full),
 a:is(.rounded-md, .rounded-lg, .rounded-xl)[class*="inline-flex"][class*=" h-"]:not(.rounded-full),
 [data-slot="button"]:not(.rounded-full) { border-radius: var(--btn-r); }
 /* outlined buttons: thin outline, no fill */
@@ -2034,3 +2034,22 @@ button[role="radio"][aria-checked="true"]:not([role="switch"]) { background: #ec
 .lx-primary-button:hover:not(:disabled) { color: var(--text); text-shadow: none; }
 .lx-primary-button { background: color-mix(in oklab, var(--raised) 52%, white 20%); box-shadow: none; border-color: transparent; font-weight: 600; }
 .lx-primary-button:hover:not(:disabled) { background: color-mix(in oklab, var(--raised) 40%, white 28%); box-shadow: none; }
+
+/* ---- ONE SYSTEM (owner 2026-11-21: "every page has cards or lines, switches and buttons all different: cheap, make everything the same") ----
+   A card is one thing: #111111, a 12px corner, no outline and no shadow. What sits inside a card is #171717 with an 8px corner. A line is only a hairline between rows inside a card.
+   Buttons (pill with a thin outline, light chip when chosen), the switch and the checkbox are one component each (components/switch.tsx, ui/checkbox.tsx). This block comes last and wins over the older looks. */
+:root { --ui-card: #111111; --ui-card-hover: #171717; --ui-inner: #171717; --ui-r: 12px; --ui-r-inner: 8px; }
+/* a card by its surface token, whatever its Tailwind corner */
+:is([class*="bg-[var(--panel)]"], [class*="bg-[var(--glass-fill)]"], [class*="bg-[var(--card-surface)]"], [class*="bg-card"], .lx-glass, .glass, .lx-pcard, .lx-people-card, .lx-team-card, .lx-play-panel, .lx-shop-tile, .lx-shop-glass, .lx-frost, .lx-ring-card, .lx-add-box, .lx-fx-card):is([class*="rounded-lg"], [class*="rounded-xl"], [class*="rounded-2xl"], [class*="rounded-3xl"], [class*="rounded-[16px]"], [class*="rounded-[18px]"], [class*="rounded-[20px]"], [class*="rounded-[24px]"], .lx-glass, .glass):not(button, [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="radio"], [role="combobox"], [data-slot="button"], input, select, textarea, .rounded-full):not([class*=" h-8"], [class*=" h-9"], [class*=" h-10"], [class*=" h-11"], [class*=" size-"]) {
+  background-color: var(--ui-card); border-color: transparent; border-radius: var(--ui-r); box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+/* a box that is only an outline (an empty state, a note): the same card, no outline */
+[class*="border-[var(--line)]"]:is([class*="rounded-lg"], [class*="rounded-xl"], [class*="rounded-2xl"]):not([class*="bg-"], button, [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"], [data-slot="button"], input, select, textarea, .rounded-full, [class*=" h-"], [class*=" size-"], [class*="border-dashed"]) {
+  background-color: var(--ui-card); border-color: transparent; border-radius: var(--ui-r);
+}
+/* the tiles inside a card */
+[class*="bg-[var(--raised)]"]:is([class*="rounded-lg"], [class*="rounded-xl"], [class*="rounded-md"]):not(button, [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="radio"], [role="combobox"], [data-slot="button"], input, select, textarea, .rounded-full, [class*=" h-"], [class*=" size-"]) {
+  background-color: var(--ui-inner); border-color: transparent; border-radius: var(--ui-r-inner);
+}
+/* a card that is also a button (a stat tile, a podium place, a tile you tap) is a card: the card corner, never the pill of a real button */
+button:is([class*="bg-[var(--glass-fill)]"], [class*="bg-[var(--panel)]"], [class*="bg-[var(--card-surface)]"], .lx-glass):not([class^="h-"], [class*=" h-"], [class*=" size-"], [class^="size-"], .rounded-full) { border-radius: var(--ui-r); }

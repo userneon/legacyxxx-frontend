@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Pencil, RotateCcw, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 
@@ -67,7 +68,7 @@ export function StaffCosmetics() {
             <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Order in the list<input className={input} type="number" value={edit.draft.sort} onChange={(event) => setDraft({ sort: Math.floor(Number(event.target.value) || 0) })} /></label>
           </div>
           <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Line for earned items (how to get it)<input className={input} maxLength={80} value={edit.draft.requirement} onChange={(event) => setDraft({ requirement: event.target.value })} /></label>
-          <label className="flex items-center gap-2 text-[13px] text-[var(--text-2)]"><input type="checkbox" checked={edit.draft.enabled} onChange={(event) => setDraft({ enabled: event.target.checked })} />On sale / shown in the Shop</label>
+          <label className="flex items-center gap-2 text-[13px] text-[var(--text-2)]"><Checkbox checked={edit.draft.enabled} onCheckedChange={(next) => setDraft({ enabled: next === true })} />On sale / shown in the Shop</label>
           <div className="flex justify-end gap-2">
             <button type="button" onClick={() => setEdit(null)} className={secondary}>Cancel</button>
             <button type="button" disabled={busy || edit.draft.nameEn.trim().length < 2 || edit.draft.nameMn.trim().length < 2 || (edit.draft.unlock === "coin" && edit.draft.price <= 0)} onClick={() => void save()} className="lx-primary-button inline-flex h-9 items-center rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50">Save</button>

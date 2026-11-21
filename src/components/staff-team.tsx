@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Pencil, Plus, RotateCcw, Shield, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -189,7 +190,7 @@ export function StaffTeam() {
           {draft.role === "ADMIN" && <AdminLevelPicker level={draft.adminLevel} extras={draft.extraCommands} onChange={(adminLevel, extraCommands) => setDraft({ ...draft, adminLevel, extraCommands })} />}
           {draft.role !== "QA" && (
             <label className="flex items-start gap-2.5 rounded-lg border border-[var(--line)] p-3 text-[13px] text-[var(--text-muted)]">
-              <input type="checkbox" checked={draft.qa} onChange={(event) => setDraft({ ...draft, qa: event.target.checked })} className="mt-0.5 size-4 accent-[var(--brand)]" />
+              <Checkbox checked={draft.qa} onCheckedChange={(next) => setDraft({ ...draft, qa: next === true })} className="mt-0.5" />
               <span><span className="font-semibold text-[var(--text)]">Also a QA tester</span><br />Every Shop item opens for them, switched-off ones too, to try before they go on sale. Taken back when this is turned off.</span>
             </label>
           )}

@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Package, Pencil, Plus, RotateCcw } from "lucide-react"
 import { SelectMenu } from "@/components/select-menu"
 import { toast } from "sonner"
@@ -156,7 +157,7 @@ export function StaffShop() {
             <label className="flex flex-col gap-1.5 text-xs text-[var(--text-muted)]">Real photo (shown in the preview, https://…)
               <input className={input} value={draft.previewUrl ?? ""} onChange={(event) => setDraft({ ...draft, previewUrl: event.target.value || null })} placeholder="https://… (optional)" />
             </label>
-            <label className="flex items-center gap-2 text-[13px] text-[var(--text-2)]"><input type="checkbox" checked={draft.enabled} onChange={(event) => setDraft({ ...draft, enabled: event.target.checked })} />Show in the Shop</label>
+            <label className="flex items-center gap-2 text-[13px] text-[var(--text-2)]"><Checkbox checked={draft.enabled} onCheckedChange={(next) => setDraft({ ...draft, enabled: next === true })} />Show in the Shop</label>
             <div className="flex justify-end gap-2">
               <button type="button" onClick={() => setDraft(null)} className={secondary}>Cancel</button>
               <button type="button" disabled={busy} onClick={() => void save()} className="lx-primary-button inline-flex h-9 items-center rounded-lg px-4 text-[13px] font-semibold disabled:opacity-50">Save</button>
