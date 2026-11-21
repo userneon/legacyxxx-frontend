@@ -8,6 +8,7 @@ import { ArrowUp } from "lucide-react"
 import { Navigate, Routes, Route, useNavigate, useLocation } from "react-router-dom"
 
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { SiteBackdrop } from "@/components/site-backdrop"
 import { ProfileBlock } from "@/components/profile-block"
 import { SiteTourButton } from "@/components/site-tour"
 import { AppSidebar } from "@/components/app-sidebar"
@@ -37,6 +38,7 @@ const TermsPage = lazy(() => import("@/pages/terms").then((module) => ({ default
 const PrivacyPage = lazy(() => import("@/pages/privacy").then((module) => ({ default: module.PrivacyPage })))
 const TournamentsPage = lazy(() => import("@/pages/tournaments").then((module) => ({ default: module.TournamentsPage })))
 const SkinCollectionPage = lazy(() => import("@/pages/skin-collection").then((module) => ({ default: module.SkinCollectionPage })))
+const SiteBgPreviewPage = lazy(() => import("@/pages/site-bg-preview").then((module) => ({ default: module.SiteBgPreviewPage })))
 const SkinchangerPage = lazy(() => import("@/pages/skinchanger").then((module) => ({ default: module.SkinchangerPage })))
 const ComparePage = lazy(() => import("@/pages/compare").then((module) => ({ default: module.ComparePage })))
 const ShopPage = lazy(() => import("@/pages/shop").then((module) => ({ default: module.ShopPage })))
@@ -179,6 +181,7 @@ export function App() {
       {/* The shell (owner pick 2026-11-09): one solid frame holding the rail, a pill header and the page panel. A phone keeps the sidebar sheet and the older layout. */}
       <AppSidebar currentPage={currentPage} onNavigate={handleNavigate} />
       <SidebarInset className={cn("m-0 flex min-w-0 flex-col gap-2 bg-transparent", "h-svh gap-0 bg-[#060606] min-[560px]:rounded-l-[16px] min-[560px]:overflow-hidden max-[559px]:gap-2 max-[559px]:p-2")}>
+        <SiteBackdrop />
         {/* The top bar is gone on wider windows (its parts live in the right sidebar); a phone keeps it, since it has neither sidebar on screen. */}
         <header className={cn("lx-glass-shell relative z-[3] flex h-14 shrink-0 items-center gap-4 pl-4 pr-2 max-md:pl-2 max-sm:gap-1.5 min-[560px]:hidden", "rounded-xl")}>
           {/* On a phone the sidebar is a sheet, so the top bar carries its only trigger. */}
@@ -231,6 +234,7 @@ export function App() {
               {isFeatureEnabled("clan") && <Route path="/clan/:clanId" element={<Navigate to={{ pathname: location.pathname.replace(/^\/clan\//, "/clans/"), search: location.search }} replace />} />}
               {isFeatureEnabled("clan") && <Route path="/clans/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
               <Route path="/skinchanger/collections/:collectionId" element={<ProtectedPage pageName="Skinchanger"><SkinCollectionPage /></ProtectedPage>} />
+              <Route path="/__site-bg" element={<SiteBgPreviewPage />} />
               <Route path="/skinchanger" element={<ProtectedPage pageName="Skinchanger"><SkinchangerPage /></ProtectedPage>} />
               {isFeatureEnabled("compare") && <Route path="/compare" element={<ComparePage />} />}
               {/* Staff lives on its own site now (owner request 2026-10-23); the older addresses move there. */}

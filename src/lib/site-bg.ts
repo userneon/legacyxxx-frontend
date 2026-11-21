@@ -1,12 +1,12 @@
 /**
  * The website's own background, behind every page (owner request 2026-11-18: "not the hero banner, the website's background, show me many").
- * ?site=foil|calm|violet|aurora|dusk|spotlight|grid|contour|ember|ocean|mono|ink in the address (foil is the default since 2026-11-20) picks one and this browser keeps it (html[data-site-bg], styled in index.css).
+ * ?site=foil|calm|violet|aurora|dusk|spotlight|grid|contour|ember|ocean|mono|ink in the address (lightrays, the Magic UI Light Rays, is the default since 2026-11-21; foil was before) picks one and this browser keeps it (html[data-site-bg], styled in index.css).
  */
-export const SITE_BGS = ["foil", "calm", "violet", "aurora", "dusk", "spotlight", "grid", "contour", "ember", "ocean", "mono", "ink"] as const
+export const SITE_BGS = ["foil", "calm", "violet", "aurora", "dusk", "spotlight", "grid", "contour", "ember", "ocean", "mono", "ink", "siderays", "lightrays"] as const
 export type SiteBg = (typeof SITE_BGS)[number]
 
 export function applySiteBg(): SiteBg {
-  let pick: SiteBg = "foil"
+  let pick: SiteBg = "lightrays"
   try {
     const asked = new URLSearchParams(window.location.search).get("site")
     if (asked && (SITE_BGS as readonly string[]).includes(asked)) { window.localStorage.setItem("lx-site-bg", asked); pick = asked as SiteBg }
