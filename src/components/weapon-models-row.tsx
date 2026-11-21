@@ -49,14 +49,14 @@ export function WeaponModelsRow({ kind }: { kind: ModelKindId }) {
     }
   }
   return (
-    <section aria-label={spec.title} className="border-b border-border px-3 py-3">
+    <section aria-label={spec.title} className="border-b border-border px-3 pb-3 pt-2.5">
       <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.5px] text-[var(--text-dim)]">{spec.title}</h3>
-      <ul className="flex gap-2 overflow-x-auto pb-1">
+      <ul className="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-2">
         {items.map((item) => {
           const owned = Boolean(item.owned)
           const worn = wornId === item.id
           return (
-            <li key={item.id} className="shrink-0">
+            <li key={item.id}>
               <button
                 type="button"
                 disabled={busy === item.id}
@@ -64,13 +64,16 @@ export function WeaponModelsRow({ kind }: { kind: ModelKindId }) {
                 aria-label={owned ? `${worn ? "Take off" : "Wear"} ${item.name}` : `${item.name} is locked: see it in the Shop`}
                 aria-pressed={owned ? worn : undefined}
                 className={cn(
-                  "relative flex w-[132px] flex-col overflow-hidden rounded-lg border text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60",
-                  owned ? "border-[var(--brand)]/70 bg-[color-mix(in_oklab,var(--brand)_12%,var(--panel))] hover:border-[var(--brand-bright)]" : "border-[var(--line)] bg-[var(--panel)] hover:border-[var(--line-strong)]",
+                  "group relative flex w-full flex-col overflow-hidden rounded-lg border bg-[var(--glass-fill)] p-2 text-left transition-[border-color,box-shadow,translate] duration-300 hover:-translate-y-1 hover:shadow-[0_10px_24px_rgba(0,0,0,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60",
+                  worn ? "border-[var(--text-2)]" : "border-[var(--line-soft)] hover:border-[var(--line-strong)]",
                 )}
               >
-                <span className={cn("block aspect-video w-full overflow-hidden", !owned && "opacity-45 grayscale")}><ModelArt item={item} kind={kind} mode="fill" /></span>
-                <span className="flex items-center gap-1 px-2 py-1.5 text-[11px] font-semibold text-[var(--text)]"><span className="min-w-0 flex-1 truncate">{item.name}</span>{worn && <Check className="size-3.5 shrink-0 text-[var(--status-green)]" aria-hidden="true" />}</span>
-                {!owned && <span className="absolute right-1.5 top-1.5 flex size-6 items-center justify-center rounded-full bg-black/60 text-[var(--text-2)]"><Lock className="size-3.5" aria-hidden="true" /></span>}
+                {owned && <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-[var(--brand-bright)]" />}
+                {worn && <span className="absolute right-1.5 top-1.5 z-[1] inline-flex items-center gap-1 rounded border border-[var(--line-strong)] bg-[var(--raised)] px-1 py-px text-[9px] font-semibold uppercase text-[var(--text-2)]"><Check className="size-3" aria-hidden="true" />Worn</span>}
+                <span className={cn("relative flex h-20 items-center justify-center overflow-hidden rounded-md", !owned && "opacity-50 grayscale")}><ModelArt item={item} kind={kind} mode="fill" /></span>
+                {!owned && <span className="absolute left-3.5 top-3.5 flex size-6 items-center justify-center rounded-full bg-black/65 text-[var(--text-2)]"><Lock className="size-3.5" aria-hidden="true" /></span>}
+                <span className="mt-1.5 line-clamp-2 text-[11px] font-semibold leading-4">{item.name}</span>
+                <span className={cn("mt-0.5 truncate text-[10px]", owned ? "text-[var(--brand-bright)]" : "text-[var(--text-dim)]")}>{owned ? "Model · yours" : "Model · locked"}</span>
               </button>
             </li>
           )
