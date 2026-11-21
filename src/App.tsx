@@ -37,6 +37,7 @@ const TermsPage = lazy(() => import("@/pages/terms").then((module) => ({ default
 const PrivacyPage = lazy(() => import("@/pages/privacy").then((module) => ({ default: module.PrivacyPage })))
 const TournamentsPage = lazy(() => import("@/pages/tournaments").then((module) => ({ default: module.TournamentsPage })))
 const SkinCollectionPage = lazy(() => import("@/pages/skin-collection").then((module) => ({ default: module.SkinCollectionPage })))
+const SiteBgPreviewPage = lazy(() => import("@/pages/site-bg-preview").then((module) => ({ default: module.SiteBgPreviewPage })))
 const SkinchangerPage = lazy(() => import("@/pages/skinchanger").then((module) => ({ default: module.SkinchangerPage })))
 const ComparePage = lazy(() => import("@/pages/compare").then((module) => ({ default: module.ComparePage })))
 const ShopPage = lazy(() => import("@/pages/shop").then((module) => ({ default: module.ShopPage })))
@@ -231,6 +232,7 @@ export function App() {
               {isFeatureEnabled("clan") && <Route path="/clan/:clanId" element={<Navigate to={{ pathname: location.pathname.replace(/^\/clan\//, "/clans/"), search: location.search }} replace />} />}
               {isFeatureEnabled("clan") && <Route path="/clans/:clanId" element={<ClanPage onProfileNavigate={handleProfileNavigate} onClanNavigate={handleClanNavigate} />} />}
               <Route path="/skinchanger/collections/:collectionId" element={<ProtectedPage pageName="Skinchanger"><SkinCollectionPage /></ProtectedPage>} />
+              <Route path="/__site-bg" element={<SiteBgPreviewPage />} />
               <Route path="/skinchanger" element={<ProtectedPage pageName="Skinchanger"><SkinchangerPage /></ProtectedPage>} />
               {isFeatureEnabled("compare") && <Route path="/compare" element={<ComparePage />} />}
               {/* Staff lives on its own site now (owner request 2026-10-23); the older addresses move there. */}
