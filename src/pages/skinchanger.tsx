@@ -260,6 +260,7 @@ export function SkinchangerPage() {
   const [saving, setSaving] = useState(false)
   // A custom weapon model picked in the models row (owner 2026-11-21: like a skin, it shows in the preview and Save puts it on; `worn` = it is the one worn now, Save then takes it off).
   const [pickedModel, setPickedModel] = useState<{ kind: ModelKindId; item: FrameItem; worn: boolean } | null>(null)
+  const [wornCustomModel, setWornCustomModel] = useState<{ kind: ModelKindId; item: FrameItem | null } | null>(null)
   const [modelRefresh, setModelRefresh] = useState(0)
   // Advanced studio: the gun being built or edited. Its editor (components/skin-studio.tsx) keeps crafts; the loadout is not touched.
   const [studioWeapon, setStudioWeapon] = useState<SkinchangerCatalogItem | null>(null)
@@ -376,6 +377,9 @@ export function SkinchangerPage() {
     ?? (fallsBackToBoth ? loadoutEntries.find((entry) => entry.slot_key === selectedSlotKey && entry.team_scope === "all") : undefined)
   const savedItemForActiveSlot = savedEntryForActiveSlot?.skinchanger_catalog_items ?? null
   const previewChoice = selected ?? savedItemForActiveSlot ?? (defaultChoice === category ? defaultModelItem(defaultChoice) : null)
+  // What the right side shows when no skin is chosen: the model picked in the models row, or else the custom model worn for this weapon (owner 2026-11-21: coming back to the picker it showed the weapon, not the worn model).
+  const modelKindHere = modelKindFor(category, activeWeapon?.weapon_class)
+  const shownModel = pickedModel ?? (!selected && modelKindHere && wornCustomModel?.kind === modelKindHere && wornCustomModel.item ? { kind: modelKindHere, item: wornCustomModel.item, worn: true } : null)
   const canCustomizeAccessories = Boolean(activeWeapon && category === "weapon")
   const selectedCharmItem = customOptions.charm ? selectedAccessories[customOptions.charm.catalogItemId] ?? null : null
   const savedAccessories = savedEntryForActiveSlot?.resolved_accessories ?? []
@@ -1499,7 +1503,7 @@ export function SkinchangerPage() {
             {/* Catalogue */}
             <div className={cn("flex min-h-0 flex-col", selected && pickerHasOptions && !accessoryOpen && "hidden lg:flex")}>
               {accessoryOpen ? renderAccessoryBrowser() : (<>
-              {(() => { const modelKind = modelKindFor(category, activeWeapon?.weapon_class); return modelKind ? <WeaponModelsRow kind={modelKind} pickedId={pickedModel?.kind === modelKind ? pickedModel.item.id : null} onPick={(item, worn) => setPickedModel(item ? { kind: modelKind, item, worn } : null)} refreshKey={modelRefresh} /> : null })()}
+              {(() => { const modelKind = modelKindFor(category, activeWeapon?.weapon_class); return modelKind ? <WeaponModelsRow kind={modelKind} pickedId={pickedModel?.kind === modelKind ? pickedModel.item.id : null} onPick={(item, worn) => setPickedModel(item ? { kind: modelKind, item, worn } : null)} refreshKey={modelRefresh} onWornChange={(kind, item) => setWornCustomModel({ kind, item })} /> : null })()}
               {slotTeam && (category === "knife" || category === "glove") && (
                 <TooltipProvider delayDuration={80} skipDelayDuration={300}>
                 <ScrollRow role="tablist" aria-label={category === "knife" ? "Knife type" : "Glove type"} className="gap-1.5 border-b border-border px-3 py-2.5">
@@ -1642,10 +1646,10 @@ export function SkinchangerPage() {
                   </div>
                 )
               })()}
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">{selected || pickedModel ? "Your choice" : "Nothing picked yet"}</p>
-              <p className="mb-3 mt-1 truncate text-sm font-semibold">{pickedModel ? pickedModel.item.name : previewChoice?.display_name || `Pick ${activeWeapon ? `a ${activeWeapon.display_name} skin` : "one from the list"}`}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">{selected || pickedModel ? "Your choice" : shownModel ? "Worn now" : "Nothing picked yet"}</p>
+              <p className="mb-3 mt-1 truncate text-sm font-semibold">{shownModel ? shownModel.item.name : previewChoice?.display_name || `Pick ${activeWeapon ? `a ${activeWeapon.display_name} skin` : "one from the list"}`}</p>
             <div className="relative flex h-40 items-center justify-center rounded-lg border border-border bg-background">
-              {pickedModel ? <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-lg"><div className="w-full max-w-[17.5rem]"><ModelArt item={pickedModel.item} kind={pickedModel.kind} mode="preview" /></div>{isAnimatedModel(pickedModel.item) && <AnimatedChip className="absolute left-2 top-2" />}</div> : previewChoice && catalogImageUrl(previewChoice) ? <OptimizedImage src={catalogImageUrl(previewChoice) ?? ""} width={320} height={160} priority alt={`${previewChoice.display_name} selected collectible`} data-catalog-item-id={previewChoice.id} className="h-full w-full object-contain p-3" /> : <span className="flex flex-col items-center gap-2 px-6 text-center"><ImageOff className="size-7 text-muted-foreground/50" /><span className="text-[11px] leading-4 text-muted-foreground">Pick one from the list.</span></span>}
+              {shownModel ? <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-lg"><div className="w-full max-w-[17.5rem]"><ModelArt item={shownModel.item} kind={shownModel.kind} mode="preview" /></div>{isAnimatedModel(shownModel.item) && <AnimatedChip className="absolute left-2 top-2" />}</div> : previewChoice && catalogImageUrl(previewChoice) ? <OptimizedImage src={catalogImageUrl(previewChoice) ?? ""} width={320} height={160} priority alt={`${previewChoice.display_name} selected collectible`} data-catalog-item-id={previewChoice.id} className="h-full w-full object-contain p-3" /> : <span className="flex flex-col items-center gap-2 px-6 text-center"><ImageOff className="size-7 text-muted-foreground/50" /><span className="text-[11px] leading-4 text-muted-foreground">Pick one from the list.</span></span>}
               {canCustomizeAccessories && (previewStickerItems.length > 0 || previewCharmItem) && <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-2"><div className="flex -space-x-1.5">{previewStickerItems.slice(0, 5).map((item) => catalogImageUrl(item) && <OptimizedImage key={item.id} src={catalogImageUrl(item) ?? ""} width={28} height={28} alt={`${item.display_name} selected sticker`} data-catalog-item-id={item.id} className="size-7 rounded-full border border-background bg-card object-contain p-0.5" />)}</div>{previewCharmItem && catalogImageUrl(previewCharmItem) && <OptimizedImage src={catalogImageUrl(previewCharmItem) ?? ""} width={32} height={32} alt={`${previewCharmItem.display_name} selected charm`} data-catalog-item-id={previewCharmItem.id} className="size-8 rounded-md border border-background bg-card object-contain p-0.5" />}</div>}
             </div>
             {selected && activeWeapon && !pickedModel && (

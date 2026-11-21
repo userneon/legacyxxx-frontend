@@ -30,7 +30,7 @@ export function modelKindFor(category: string, weaponClass: string | null | unde
  * With `onPick` a tap on an owned model only PICKS it (owner 2026-11-21: like a skin, the model shows in the preview on the right and Save puts it on; a second tap on the
  * picked one drops the pick). Without `onPick` a tap wears or takes off at once, as before. `refreshKey` makes the row read what is worn again (after Save).
  */
-export function WeaponModelsRow({ kind, pickedId = null, onPick, refreshKey = 0 }: { kind: ModelKindId; pickedId?: string | null; onPick?: (item: FrameItem | null, worn: boolean) => void; refreshKey?: number }) {
+export function WeaponModelsRow({ kind, pickedId = null, onPick, refreshKey = 0, onWornChange }: { kind: ModelKindId; pickedId?: string | null; onPick?: (item: FrameItem | null, worn: boolean) => void; refreshKey?: number; onWornChange?: (kind: ModelKindId, item: FrameItem | null) => void }) {
   const { user } = useAuth()
   const navigate = useNavigate()
   const { data, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
@@ -38,8 +38,12 @@ export function WeaponModelsRow({ kind, pickedId = null, onPick, refreshKey = 0 
   useEffect(() => { if (refreshKey > 0) void refetch() }, [refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
   const spec = LISTS[kind]
   const items = ((data?.[spec.list] as FrameItem[] | undefined) ?? []).filter((item) => !item.retired)
+  const wornId = (data?.[spec.worn] as string | null | undefined) ?? null
+  // The model worn now is told to the picker, whose preview shows it when nothing else is picked (owner 2026-11-21: coming back to the picker the right side showed the weapon, not the worn model).
+  const wornItem = wornId ? items.find((item) => item.id === wornId && item.owned) ?? null : null
+  const wornItemId = wornItem?.id ?? null
+  useEffect(() => { onWornChange?.(kind, wornItem) }, [kind, wornItemId]) // eslint-disable-line react-hooks/exhaustive-deps
   if (!data || items.length === 0) return null
-  const wornId = (data[spec.worn] as string | null | undefined) ?? null
   const wear = async (item: FrameItem) => {
     setBusy(item.id)
     try {
