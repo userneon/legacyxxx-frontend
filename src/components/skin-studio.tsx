@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input"
 import { Sheet } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiQuery } from "@/hooks/use-api-query"
+import { Switch } from "@/components/switch"
 import { cn } from "@/lib/utils"
 import { wearColor, wearName, wearTiers, wearTrack } from "@/lib/skin-wear"
 import { useWeaponModels, weaponModelFor } from "@/lib/weapon-models"
@@ -360,9 +361,7 @@ function Editor({ weapon, initial, onClose, onSaved }: { weapon: SkinchangerCata
             <section className="flex flex-col gap-2.5" aria-label="StatTrak">
               <div className="flex items-center justify-between gap-3 rounded-lg border border-[var(--line)] bg-[var(--panel)] px-3 py-2">
                 <div><p className="text-xs font-medium">StatTrak™</p><p className="text-[10px] text-[var(--text-dim)]">Counts kills in game</p></div>
-                <button type="button" role="switch" aria-checked={Boolean(options.statTrak)} aria-label="StatTrak" onClick={() => set({ statTrak: !options.statTrak })} className={cn("relative h-5 w-9 shrink-0 rounded-full border transition-colors", options.statTrak ? "border-[var(--text)] bg-[var(--text)]" : "border-[var(--line)] bg-[var(--raised)]")}>
-                  <span className={cn("absolute top-0.5 size-3.5 rounded-full transition-[left] duration-200", options.statTrak ? "left-[1.1rem] bg-[var(--bg)]" : "left-0.5 bg-[var(--text-dim)]")} />
-                </button>
+                <Switch checked={Boolean(options.statTrak)} onChange={(next) => set({ statTrak: next })} label="StatTrak" />
               </div>
               {options.statTrak && (
                 <label className="flex flex-col gap-1.5 text-xs font-medium">

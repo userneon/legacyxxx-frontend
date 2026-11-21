@@ -41,6 +41,7 @@ import { DetailSheetContent } from "@/components/detail-sheet"
 import type { SkinCraft } from "@/api/skinchanger"
 import { SkinStudio } from "@/components/skin-studio"
 import { WeaponModelsRow, modelKindFor } from "@/components/weapon-models-row"
+import { Switch } from "@/components/switch"
 
 import { Checkbox } from "@/components/ui/checkbox"
 import { OptimizedImage } from "@/components/optimized-image"
@@ -1655,16 +1656,7 @@ export function SkinchangerPage() {
                     <p className="text-xs font-medium">StatTrak™</p>
                     <p className="text-[10px] text-muted-foreground">Counts your kills in game</p>
                   </div>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={Boolean(customOptions.statTrak)}
-                    aria-label="StatTrak"
-                    onClick={() => setCustomOptions((current) => ({ ...current, statTrak: !current.statTrak }))}
-                    className={cn("relative h-5 w-9 shrink-0 rounded-full border transition-colors", customOptions.statTrak ? "border-foreground bg-foreground" : "border-border bg-secondary")}
-                  >
-                    <span className={cn("absolute top-0.5 size-3.5 rounded-full transition-[left] duration-200", customOptions.statTrak ? "left-[1.1rem] bg-background" : "left-0.5 bg-muted-foreground")} />
-                  </button>
+                  <Switch checked={Boolean(customOptions.statTrak)} onChange={(next) => setCustomOptions((current) => ({ ...current, statTrak: next }))} label="StatTrak" />
                 </div>}
                 {canCustomizeAccessories && <div>
                   <div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Name tag</span>{customOptions.nameTag && <button onClick={() => setCustomOptions((current) => ({ ...current, nameTag: undefined }))} className="text-[10px] text-muted-foreground hover:text-foreground">Clear</button>}</div>

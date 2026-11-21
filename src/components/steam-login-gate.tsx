@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button"
 import { SiteLogo } from "@/components/site-logo"
+import { BackButton } from "@/components/back-button"
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
-import { ArrowLeft, Check, Lock } from "lucide-react"
+import { Check, Lock } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
 interface SteamLoginGateProps {
@@ -31,7 +32,7 @@ export function SteamLoginGate({ pageName }: SteamLoginGateProps) {
           ))}
         </ul>
         <p className="mt-6 flex items-center gap-2 text-[12px] leading-4 text-[var(--text-dim)]"><Lock className="size-3.5 shrink-0" aria-hidden="true" />Steam handles the password. LXC never sees it.</p>
-        <button type="button" onClick={() => navigate("/")} className="mt-5 inline-flex items-center gap-1.5 text-[13px] text-[var(--text-dim)] transition-colors hover:text-[var(--text)]"><ArrowLeft className="size-3.5" aria-hidden="true" />Back to Home</button>
+        <BackButton onClick={() => navigate("/")} className="mt-5" />
       </section>
     </div>
   )

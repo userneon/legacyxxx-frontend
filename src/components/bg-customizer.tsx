@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Check, Plus, RotateCcw, X } from "lucide-react"
 
 import { ColorRow, PICK_COLORS } from "@/components/color-row"
@@ -64,7 +65,7 @@ function Knob({ control, value, onChange }: { control: BgControl; value: BgLook[
     const current = typeof value === "boolean" ? value : control.default
     return (
       <label className="inline-flex cursor-pointer items-center gap-2 self-end text-[13px] text-[var(--text-2)]">
-        <input type="checkbox" checked={current} onChange={(event) => onChange(event.target.checked)} className="size-4 accent-[var(--text-2)]" />
+        <Checkbox checked={current} onCheckedChange={(next) => onChange(next === true)} />
         {control.label}
       </label>
     )

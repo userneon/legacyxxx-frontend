@@ -11,6 +11,7 @@ import { usePathTab } from "@/hooks/use-url-tab"
 import { ArrowLeftRight, Ban, ChevronRight, Copy, Crown, ExternalLink, EyeOff, Info, MessageCircle, MoreHorizontal, Play, RotateCcw, ShieldAlert, ShieldCheck, Shield } from "lucide-react"
 import { toast } from "sonner"
 
+import { Switch } from "@/components/switch"
 import { cn } from "@/lib/utils"
 import { profileService } from "@/api"
 import { AnimatedNumber, CountText } from "@/components/animated-number"
@@ -111,21 +112,6 @@ function RoleBadge({ role }: { role: string }) {
     return <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-[linear-gradient(180deg,var(--brand-bright),var(--brand))] px-2.5 text-xs font-semibold text-[var(--text)]"><Crown className="size-3.5" />Owner</span>
   }
   return <span className="inline-flex h-6 items-center gap-1.5 rounded-full border border-[var(--line-strong)] bg-[var(--raised)] px-2.5 text-xs font-medium text-[var(--text-2)]"><Shield className="size-3.5 text-[var(--text-2)]" />{role}</span>
-}
-
-function Switch({ checked, onChange, label }: { checked: boolean; onChange: (next: boolean) => void; label: string }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      onClick={() => onChange(!checked)}
-      className={cn("relative h-[22px] w-[38px] shrink-0 rounded-full p-0.5 transition-[background-color,box-shadow] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/50", checked ? "bg-[var(--brand)]" : "bg-[var(--line-strong)]")}
-    >
-      <span className={cn("block size-[18px] rounded-full bg-white transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:transition-none", checked && "translate-x-4")} />
-    </button>
-  )
 }
 
 function PrivacyPopover({ visibility, onSaved }: { visibility: Record<ProfileSection, boolean>; onSaved: () => void }) {

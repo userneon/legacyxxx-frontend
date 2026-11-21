@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
-import { ArrowLeft, Gavel, MessageSquareOff, MicOff, RotateCcw, Search } from "lucide-react"
+import { BackButton } from "@/components/back-button"
+import { Gavel, MessageSquareOff, MicOff, RotateCcw, Search } from "lucide-react"
 
 import { checksService, type PlayerCheck } from "@/api/checks"
 import { moderationService } from "@/api/moderation"
@@ -92,7 +93,7 @@ export function PlayerCase({ steamId, access, onBack, onFind, onChecks }: { stea
   return (
     <div className="flex flex-col gap-4 px-6 pb-8 pt-4">
       <div className="flex items-center gap-2">
-        <button type="button" onClick={onBack} className="inline-flex items-center gap-1.5 text-[13px] text-[var(--text-dim)] transition-colors hover:text-[var(--text)]"><ArrowLeft className="size-4" aria-hidden="true" />Players</button>
+        <BackButton onClick={onBack} />
         <button type="button" onClick={onFind} className="ml-auto inline-flex h-8 items-center gap-2 rounded-lg border border-[var(--glass-line)] px-3 text-[13px] text-[var(--text-dim)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--text)]"><Search className="size-3.5" aria-hidden="true" />Find another<kbd className="rounded border border-[var(--line)] px-1 text-[10px]">/</kbd></button>
       </div>
 
