@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { BadgeCheck, Check, Lock } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
@@ -25,14 +25,17 @@ export function modelKindFor(category: string, weaponClass: string | null | unde
 }
 
 /**
- * The custom models of one weapon, in the same picker as its skins. The ones you own have a coloured edge and a tick when worn (a tap wears or
- * takes off); the ones you do not own are locked, and a tap takes you to that product in the Shop.
+ * The custom models of one weapon, in the same picker as its skins. The ones you own have a coloured edge and a tick when worn; the ones you do not own are locked,
+ * and a tap takes you to that product in the Shop.
+ * With `onPick` a tap on an owned model only PICKS it (owner 2026-11-21: like a skin, the model shows in the preview on the right and Save puts it on; a second tap on the
+ * picked one drops the pick). Without `onPick` a tap wears or takes off at once, as before. `refreshKey` makes the row read what is worn again (after Save).
  */
-export function WeaponModelsRow({ kind }: { kind: ModelKindId }) {
+export function WeaponModelsRow({ kind, pickedId = null, onPick, refreshKey = 0 }: { kind: ModelKindId; pickedId?: string | null; onPick?: (item: FrameItem | null, worn: boolean) => void; refreshKey?: number }) {
   const { user } = useAuth()
   const navigate = useNavigate()
   const { data, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const [busy, setBusy] = useState<string | null>(null)
+  useEffect(() => { if (refreshKey > 0) void refetch() }, [refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
   const spec = LISTS[kind]
   const items = ((data?.[spec.list] as FrameItem[] | undefined) ?? []).filter((item) => !item.retired)
   if (!data || items.length === 0) return null
@@ -57,17 +60,18 @@ export function WeaponModelsRow({ kind }: { kind: ModelKindId }) {
         {items.map((item) => {
           const owned = Boolean(item.owned)
           const worn = wornId === item.id
+          const picked = pickedId === item.id
           return (
             <li key={item.id}>
               <button
                 type="button"
                 disabled={busy === item.id}
-                onClick={() => (owned ? void wear(item) : navigate(`/shop?item=${encodeURIComponent(item.id)}`, { state: { tab: "model" } }))}
-                aria-label={owned ? `${worn ? "Take off" : "Wear"} ${item.name}` : `${item.name} is locked: see it in the Shop`}
-                aria-pressed={owned ? worn : undefined}
+                onClick={() => (owned ? (onPick ? onPick(picked ? null : item, worn) : void wear(item)) : navigate(`/shop?item=${encodeURIComponent(item.id)}`, { state: { tab: "model" } }))}
+                aria-label={owned ? (onPick ? `${picked ? "Drop the pick of" : "Pick"} ${item.name}` : `${worn ? "Take off" : "Wear"} ${item.name}`) : `${item.name} is locked: see it in the Shop`}
+                aria-pressed={owned ? (onPick ? picked : worn) : undefined}
                 className={cn(
                   "group relative flex w-full flex-col overflow-hidden rounded-lg border bg-[var(--glass-fill)] p-2 text-left transition-[border-color,box-shadow,translate] duration-300 hover:-translate-y-1 hover:shadow-[0_10px_24px_rgba(0,0,0,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-solid)]/60",
-                  worn ? "border-[var(--text-2)]" : "border-[var(--line-soft)] hover:border-[var(--line-strong)]",
+                  picked ? "border-[var(--brand-bright)] shadow-[0_0_0_1px_var(--brand-bright)]" : worn ? "border-[var(--text-2)]" : "border-[var(--line-soft)] hover:border-[var(--line-strong)]",
                 )}
               >
                 {owned && <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-[var(--brand-bright)]" />}
