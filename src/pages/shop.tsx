@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { EmptyState } from "@/components/illustrations"
-import { useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 import { usePathTab } from "@/hooks/use-url-tab"
 import { Check, ChevronDown, Heart, Lock, RotateCcw, Search, ShoppingCart, SlidersHorizontal, Star, X } from "lucide-react"
 import { toast } from "sonner"
@@ -148,6 +148,10 @@ function ShopGrid({ list, card, tight = false }: { list: ShopItem[]; tight?: boo
 export function ShopPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  // A link from the Skinchanger (a locked weapon model) lands on that very product: it is scrolled into view and lit for a moment.
+  const wantedItem = new URLSearchParams(location.search).get("item")
+  const [spot, setSpot] = useState<string | null>(null)
   const { data, loading, error, refetch } = useApiQuery<Cosmetics>((signal) => cosmeticsService.getMine({ signal }), { queryKey: user ? `cosmetics:${user.id}` : "cosmetics:guest" })
   const { data: wallet, refetch: refetchWallet } = useApiQuery<Wallet>((signal) => walletService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `wallet:${user.id}` : "wallet:guest" })
   const { data: myClan, loading: clanLoading, refetch: refetchClan } = useApiQuery<MyClanState>((signal) => clansService.getMine({ signal }), { enabled: Boolean(user), queryKey: user ? `clans-me:${user.id}` : "clans-me:guest" })
@@ -198,6 +202,13 @@ export function ShopPage() {
   ].filter((item) => !item.retired), [data])
   const worn = { discord_role: null as string | null, frame: data?.equippedFrame ?? null, background: data?.equippedBackground ?? null, name_color: data?.equippedNameColor ?? null, name_glow: data?.equippedNameGlow ?? null, profile_customize: null as string | null, smoke_color: data?.equippedSmokeColor ?? null, grenade_trail: data?.equippedGrenadeTrail ?? null, grenade_light: data?.equippedGrenadeLight ?? null, flash_effect: data?.equippedFlashEffect ?? null, model_knife: data?.equippedModelKnife ?? null, model_deagle: data?.equippedModelDeagle ?? null, model_ak47: data?.equippedModelAk47 ?? null }
   const balance = wallet?.balance ?? null
+  useEffect(() => {
+    if (!wantedItem || !all.some((item) => item.id === wantedItem)) return
+    setSpot(wantedItem)
+    const look = window.setTimeout(() => document.querySelector(`[data-shop-item="${CSS.escape(wantedItem)}"]`)?.scrollIntoView({ block: "center", behavior: "smooth" }), 250)
+    const off = window.setTimeout(() => setSpot(null), 3500)
+    return () => { window.clearTimeout(look); window.clearTimeout(off) }
+  }, [wantedItem, all.length])
   const username = user?.username ?? "Player"
 
   // At most ten (two full rows of five); the rest are still in All items.
@@ -291,7 +302,7 @@ export function ShopPage() {
         : <span className="inline-flex items-center gap-1 text-xs text-[var(--text-dim)]"><Lock className="size-3" />Earned</span>
     return (
       // No content-visibility here: it paints only inside the box, which cut off the tile's border and glow when it lifts on hover (the lists are at most 30 tiles anyway).
-      <li key={item.id} className={cn("group/tile relative rounded-[20px]",)}>
+      <li key={item.id} data-shop-item={item.id} className={cn("group/tile relative rounded-[20px] transition-shadow duration-500", spot === item.id && "ring-2 ring-[var(--brand-bright)] ring-offset-2 ring-offset-[var(--bg)]")}>
               <div
                 role="group"
                 aria-label={item.name}

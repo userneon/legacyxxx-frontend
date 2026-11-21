@@ -12,22 +12,18 @@ import { cosmeticsService, SMOKE_MOTIFS, type CosmeticKind, type Cosmetics, type
 import { ColorPicker } from "@/components/color-picker"
 import { FlashEffect } from "@/components/flash-effect"
 import { GrenadeLight, GrenadeTrail } from "@/components/grenade-trail"
-import { ModelArt } from "@/components/model-art"
 import { SmokePuff } from "@/components/smoke-puff"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
 
-type NadeKind = Extract<CosmeticKind, "smoke_color" | "grenade_trail" | "grenade_light" | "flash_effect" | "model_knife" | "model_deagle" | "model_ak47">
+type NadeKind = Extract<CosmeticKind, "smoke_color" | "grenade_trail" | "grenade_light" | "flash_effect">
 const KINDS: Array<{ kind: NadeKind; label: string; list: keyof Cosmetics; worn: keyof Cosmetics }> = [
   { kind: "smoke_color", label: "SMOKE", list: "smokeColors", worn: "equippedSmokeColor" },
   { kind: "grenade_trail", label: "TRAIL", list: "grenadeTrails", worn: "equippedGrenadeTrail" },
   { kind: "grenade_light", label: "GRENADE LIGHT", list: "grenadeLights", worn: "equippedGrenadeLight" },
   { kind: "flash_effect", label: "FLASH", list: "flashEffects", worn: "equippedFlashEffect" },
-  { kind: "model_knife", label: "KNIFE MODEL", list: "modelKnives", worn: "equippedModelKnife" },
-  { kind: "model_deagle", label: "DEAGLE MODEL", list: "modelDeagles", worn: "equippedModelDeagle" },
-  { kind: "model_ak47", label: "AK-47 MODEL", list: "modelAk47s", worn: "equippedModelAk47" },
 ]
 
 function Art({ kind, item, className }: { kind: NadeKind; item?: FrameItem | null; className?: string }) {
@@ -35,7 +31,6 @@ function Art({ kind, item, className }: { kind: NadeKind; item?: FrameItem | nul
   if (kind === "smoke_color") return <SmokePuff color={color} color2={item?.color2} className={className} />
   if (kind === "grenade_trail") return <GrenadeTrail color={color} shape={item?.fx} className={className} />
   if (kind === "flash_effect") return <FlashEffect color={color} shape={item?.fx} className={className} />
-  if (kind === "model_knife" || kind === "model_deagle" || kind === "model_ak47") return <span className={cn("flex aspect-video items-center justify-center overflow-hidden rounded-md", className)}><ModelArt item={item ?? { id: "" }} kind={kind} mode="fill" /></span>
   return <GrenadeLight color={color} className={className} />
 }
 
