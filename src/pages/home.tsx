@@ -20,16 +20,16 @@ export function HomePage({ onNavigate }: HomePageProps) {
   return (
     <div className="lx-open @container flex flex-1 flex-col">
       <HomeHero onNavigate={onNavigate} />
-      <div className="lx-stack mx-auto flex w-full max-w-[var(--lx-w)] flex-1 flex-col gap-10 p-4 @2xl:p-6">
+      <div className="lx-stack mx-auto flex w-full max-w-[var(--lx-w)] flex-1 flex-col gap-3 p-4 @2xl:p-6">
         {greeting && <div><span className="lx-event-greeting">{greeting}</span></div>}
-        <StatsRow />
-        <div className="grid grid-cols-1 gap-12 @4xl:grid-cols-2">
-          <LiveNow onNavigate={onNavigate} />
-          <TopPlayers onOpenProfile={(steamId) => navigate(`/profile/${encodeURIComponent(steamId)}`)} onViewAll={() => onNavigate("leaders")} />
+        <div className="lx-glass rounded-xl p-5"><StatsRow /></div>
+        <div className="grid grid-cols-1 gap-3 @4xl:grid-cols-2">
+          <div className="lx-glass rounded-xl p-5"><LiveNow onNavigate={onNavigate} /></div>
+          <div className="lx-glass rounded-xl p-5"><TopPlayers onOpenProfile={(steamId) => navigate(`/profile/${encodeURIComponent(steamId)}`)} onViewAll={() => onNavigate("leaders")} /></div>
         </div>
-        <LastMatches />
+        <div className="lx-glass rounded-xl p-5"><LastMatches /></div>
         <div className="grid grid-cols-1 gap-3 @2xl:grid-cols-3">
-          <HomeReviewsCard onOpen={() => onNavigate("feedback")} />
+          <div className="lx-glass rounded-xl"><HomeReviewsCard onOpen={() => onNavigate("feedback")} /></div>
           <TikTokCard />
           <DiscordCard />
         </div>
